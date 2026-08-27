@@ -290,7 +290,7 @@ pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 7] = [
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 34] = [
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 39] = [
     "bounded_types/src/btree.rs",
     "bounded_types/src/hash.rs",
     "bounded_types/src/lib.rs",
@@ -303,7 +303,12 @@ pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 34] = [
     "macro_helpers/src/syn_field.rs",
     "macro_helpers/src/tool_command.rs",
     PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
+    "pg_crud_common/src/batch_validation.rs",
     "pg_crud_common/src/bounded_btree_map.rs",
+    "pg_crud_common/src/bounded_unique_vec.rs",
+    "pg_crud_common/src/bounded_vec.rs",
+    "pg_crud_common/src/list_total.rs",
+    "pg_crud_common/src/list_total/list_total_source.rs",
     "pg_crud_common/src/pagination.rs",
     "pg_crud_common/src/query_fragment.rs",
     VALUE_1ACC98BE,
@@ -326,7 +331,7 @@ pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 34] = [
     "server_runtime_http/src/domain_types.rs",
     "server_runtime_http/src/http_client.rs",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 34] = [
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 39] = [
     "bounded B-tree map facade preserves the public collection path across owner modules",
     "bounded hash map facade preserves the public collection path across owner modules",
     "bounded types facade exports validated string and collection families",
@@ -339,7 +344,12 @@ pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 34] = [
     "syntax field facade preserves the public parsed-field API across owner modules",
     "tool command facade preserves process wrapper paths across owner modules",
     "PG CRUD common facade exports shared domain primitives",
+    "batch validation facade preserves public report and policy paths across owner modules",
     "bounded B-tree map facade preserves public map types across owner modules",
+    "bounded unique vector facade preserves public collection paths across owner modules",
+    "bounded vector facade preserves public vector types across owner modules",
+    "list result facade preserves public pagination result paths across owner modules",
+    "list total source function module preserves its colliding enum path through a nested same-named module",
     "pagination facade preserves public pagination value types across owner modules",
     "query fragment facade preserves public query-building types across owner modules",
     "PG CRUD macro common facade preserves its public token-generation API across responsibility modules",

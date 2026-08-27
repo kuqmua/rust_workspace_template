@@ -361,6 +361,7 @@ pub const BOOLEAN: &str = "boolean";
 pub const CONST: &str = "const";
 pub const ITEM_KIND_CONST: &str = "const";
 pub const ITEM_KIND_ENUM: &str = "enum";
+pub const ITEM_KIND_FN: &str = "fn";
 pub const ITEM_KIND_STATIC: &str = "static";
 pub const ITEM_KIND_STRUCT: &str = "struct";
 pub const ITEM_KIND_TRAIT: &str = "trait";
@@ -763,7 +764,6 @@ pub const VALUE_8443FF5D: &str =
 pub const VALUE_A4489C21: &str =
     "../git_info/src/domain_types.rs::validate\n../git_info/src/domain_types.rs::validate";
 pub const VALUE_A2FD7F33: &str = "../init_env_files/src/domain_types.rs";
-pub const VALUE_58C1A75F: &str = "../location_lib/src/domain_types.rs::validate\n../location_lib/src/domain_types.rs::validate\n../macro_helpers/src/generate_field_location_new_token_stream.rs::validate\n../macro_helpers/src/generate_field_location_new_token_stream.rs::validate\n../server_admin/src/application_auth.rs::validate\n../server_admin/src/application_auth.rs::validate\n../server_admin/src/application_auth.rs::validate";
 pub const VALUE_BE04A453: &str = "../macro_clippy_check_common/src/lib.rs:String::from";
 pub const VALUE_2D81C306: &str = "../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_const_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_const_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_new_for_identifier_token_stream";
 pub const VALUE_F43CC42D: &str = "../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_const_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_try_new_for_identifier_token_stream";
@@ -773,7 +773,6 @@ pub const VALUE_11C1DCC5: &str = "../newtype/src/lib.rs::to_err_string\n../newty
 pub const VALUE_8E6C7109: &str = "../notification_service/src/routes.rs";
 pub const VALUE_2D700ED6: &str = "../pg_crud_common/src/domain_types.rs::visit_str\n../pg_crud_where_filters/src/domain_types.rs::visit_str";
 pub const VALUE_6BF051A2: &str = "../pg_crud_common/src/domain_types.rs:AllEnumVariants";
-pub const VALUE_D7049B21: &str = "../pg_crud_common/src/advisory_lock.rs::try_from\n../pg_crud_common/src/operational_invariants.rs::try_from";
 pub const VALUE_090096ED: &str = "../pg_crud_common/src/batch_validation.rs:BatchInvalidItems";
 pub const VALUE_CBBA0BFF: &str = "../pg_crud_common/src/bounded_b_tree_map.rs::deserialize\n../pg_crud_common/src/bounded_vec.rs::deserialize\n../pg_crud_where_filters/src/domain_types.rs::deserialize";
 pub const VALUE_94E2B4FA: &str = "../pg_crud_common/src/bounded_unique_vec.rs:BoundedUniqueVec";
@@ -803,7 +802,6 @@ pub const VALUE_9DB8F65B: &str =
     "../pg_crud_common/src/order_preserving_deduplication.rs:OrderPreservingValues";
 pub const VALUE_7A32C552: &str = "../pg_crud_common/src/pg_values.rs::to_query_str\n../pg_crud_macro_common/src/emission_types.rs::non_null_or_nullable_str\n../pg_crud_macro_common/src/emission_types.rs::to_path\n../pg_crud_where_filters/src/domain_types.rs::postgreql_syntax";
 pub const VALUE_C7F27415: &str = "../pg_crud_common/src/query_collections.rs:NotEmptyUniqueVec";
-pub const VALUE_5392D537: &str = "../pg_crud_common/src/query_pagination.rs::try_from\n../pg_crud_common/src/query_pagination.rs::try_from";
 pub const VALUE_02000EC4: &str = "../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream";
 pub const VALUE_944342EF: &str = "../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_default_some_one_element_token_stream";
 pub const VALUE_671231A3: &str =
@@ -828,7 +826,6 @@ pub const VALUE_88A7A661: &str = "../server_admin/src/extractors.rs::from_reques
 pub const VALUE_CB780650: &str =
     "../server_admin/src/application_auth.rs:JsonwebtokenAdminDecodingKeys";
 pub const VALUE_148FAD59: &str = "../server_admin/src/application_html_actions_roles.rs::delete_role\n../server_admin/src/application_html_actions_users.rs::delete_user";
-pub const VALUE_689F2872: &str = "../server_admin/src/maintenance.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from";
 pub const CODE_STYLE_SERVER_ADMIN_AUTH_SECURITY_PATH: &str = "server_admin/src/security.rs";
 pub const CODE_STYLE_SERVER_ADMIN_MAINTENANCE_PATH: &str = "server_admin/src/maintenance.rs";
 pub const VALUE_599796F1: &str =
@@ -839,7 +836,6 @@ pub const VALUE_2EF7512D: &str = "../server_runtime_core/src/lease_registry.rs";
 pub const VALUE_DCB5D4F2: &str = "../server_runtime_core/src/lease_registry.rs::try_from\n../server_runtime_core/src/lease_registry.rs::try_from";
 pub const VALUE_43BDEFF3: &str = "../server_runtime_core/src/lease_registry.rs::try_from\n../server_runtime_http/src/lifecycle.rs::try_from\n../server_runtime_http/src/lifecycle.rs::try_from";
 pub const HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS: &str = "../server_runtime_http/src/reqwest_connect_timeout_duration.rs::try_from\n../server_runtime_http/src/reqwest_request_timeout_duration.rs::try_from";
-pub const VALUE_F9E232EF: &str = "../server_runtime_core/src/resource_budget.rs::try_from\n../server_runtime_http/src/batched_cleanup.rs::try_from\n../server_runtime_http/src/limits.rs::try_from";
 pub const VALUE_757BD453: &str = "../server_runtime_core/src/secret_text.rs::try_from\n../server_runtime_core/src/secret_text.rs::try_from";
 pub const VALUE_57DDC4BF: &str = "../server_runtime_core/src/single_flight.rs";
 pub const VALUE_94FCEDB7: &str = "../server_runtime_http/src/request_id_service.rs:to_string";
@@ -1402,8 +1398,6 @@ pub const VALUE_2459C957: &str = "data table parsing maps to typed repository er
 pub const VALUE_469219C9: &str = "data-field=\"id\"";
 pub const VALUE_3837854C: &str = "data-field=\"login\"";
 pub const VALUE_FE0C1BD5: &str = "data-table input failures map to stable API categories";
-pub const VALUE_BC7CFE3A: &str =
-    "database count conversions target unrelated bounded domain types and errors";
 pub const VALUE_69C4B56B: &str = "database_unavailable";
 pub const VALUE_C1819A84: &str = "date filter parsing maps to contract validation errors";
 pub const VALUE_EB2E6B1F: &str = "dbg!";
@@ -1653,7 +1647,6 @@ pub const VALUE_48ED1531: &str = "list_roles";
 pub const VALUE_73CF19F8: &str = "list_users";
 pub const VALUE_F75AB320: &str = "location formatting accepts heterogeneous display values";
 pub const VALUE_D3009FFC: &str = "location macro compatibility predates per-attribute reasons";
-pub const VALUE_1F5A2577: &str = "location newtypes and generated tokens each require a local validator at their invariant boundary";
 pub const VALUE_EC66DC39: &str = "location_lib/src/domain_types.rs";
 pub const VALUE_20A65589: &str = "location_lib_location/src/lib.rs";
 pub const VALUE_FF5D5E0E: &str = "location_lib_location_macros/src/lib.rs";
@@ -1812,9 +1805,6 @@ pub const VALUE_3A40A71C: &str = "policy predicates inspect different syntax own
 pub const VALUE_5AF70CDF: &str =
     "pool configuration maps numeric parsing details to its stable public error";
 pub const VALUE_F8D397A3: &str = "port";
-pub const VALUE_D7436E0E: &str =
-    "positive-value conversions define unrelated PostgreSQL domain types and public errors";
-pub const VALUE_D0783800: &str = "positive-value domain boundaries expose distinct public errors; the shared shape is only trait glue";
 pub const VALUE_EAFDE0B2: &str = "primary_color";
 pub const VALUE_0981EB3C: &str = "print!";
 pub const VALUE_2FFB2CC3: &str = "println!";
@@ -1828,8 +1818,6 @@ pub const VALUE_5C907704: &str = "pub use crate::owner::Item;";
 pub const VALUE_E40DBB0F: &str = "pub use self::owner::Item;";
 pub const VALUE_9388C05D: &str = "pub(crate) use crate::owner::Item;";
 pub const VALUE_2CB32E6F: &str = "query collections bind heterogeneous filter values";
-pub const VALUE_8AFCED0D: &str =
-    "query fragment and pagination wrappers retain distinct SQL-domain invariants and errors";
 pub const VALUE_6270BA4A: &str = "query fragments require heterogeneous SQL part dispatch";
 pub const VALUE_A48897C5: &str =
     "query fragments use dynamic dispatch over heterogeneous SQL parts";

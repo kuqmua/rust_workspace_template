@@ -37,7 +37,7 @@ pub(super) async fn create_session_in_connection(
         super::super::hash_opaque_token::hash_opaque_token(&token_identifier)
             .map_err(super::AdminSessionError::SecretText)?;
     let expires_at =
-        super::super::AdminUnixTokenStream::from(now.get().saturating_add(state.access_ttl.0));
+        super::super::AdminUnixTokenStream::from(now.get().saturating_add(state.access_ttl.get()));
     let claims = super::super::AdminAccessClaims::new(
         user_id,
         session_id,
@@ -59,9 +59,13 @@ pub(super) async fn create_session_in_connection(
             .map_err(super::super::AdminSecretTextError::from)
             .map_err(super::AdminSessionError::SecretText)
     })?;
-    let session_offset =
-        i64::try_from(usize::from(state.session_limit).saturating_sub(constants_usize::ONE))
-            .unwrap_or(i64::MAX);
+    let session_offset = i64::try_from(
+        state
+            .session_limit
+            .get()
+            .saturating_sub(constants_usize::ONE),
+    )
+    .unwrap_or(i64::MAX);
     let _access_result = sqlx::query(constants_str::SERVER_ADMIN_REVOKE_EXCESS_ACCESS_SESSIONS_SQL)
         .bind(user_id.get())
         .bind(session_offset)
@@ -82,7 +86,7 @@ pub(super) async fn create_session_in_connection(
         .bind(token_identifier_hash.expose().as_ref())
         .bind(context_hash.expose().as_ref())
         .bind(csrf_generated.hash().expose().as_ref())
-        .bind(i64::try_from(u64::from(state.access_ttl)).unwrap_or(i64::MAX))
+        .bind(i64::try_from(state.access_ttl.get()).unwrap_or(i64::MAX))
         .execute(connection.as_mut())
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
@@ -92,7 +96,7 @@ pub(super) async fn create_session_in_connection(
         .bind(super::super::UuidAdminValue::from(uuid::Uuid::new_v4()).get())
         .bind(user_id.get())
         .bind(refresh_hash.expose().as_ref())
-        .bind(i64::try_from(u64::from(state.refresh_ttl)).unwrap_or(i64::MAX))
+        .bind(i64::try_from(state.refresh_ttl.get()).unwrap_or(i64::MAX))
         .execute(connection.as_mut())
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)

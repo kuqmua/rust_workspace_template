@@ -23,12 +23,12 @@ mod tests {
     #[test]
     fn page_total_accepts_non_negative_values_and_rejects_negative_values() {
         let total = super::page_total::page_total(
-            crate::adapters::repository::AdminPageTotalCount::from(17i64),
+            crate::repository::AdminPageTotalCount::from(17i64),
         )
         .expect("8d31f2a7 page_total_accepts_non_negative_values_and_rejects_negative_values invariant must hold");
         assert_eq!(u64::from(total), 17u64);
         assert!(matches!(
-            super::page_total::page_total(crate::adapters::repository::AdminPageTotalCount::from(
+            super::page_total::page_total(crate::repository::AdminPageTotalCount::from(
                 -constants_i64::ONE
             )),
             Err(super::super::AdminError::Validation)
@@ -74,7 +74,7 @@ mod tests {
     fn invalid_repository_values_map_to_validation_errors() {
         assert!(matches!(
             super::map_repository_error::map_repository_error(
-                crate::adapters::repository::AdminRepositoryError::InvalidStoredValue,
+                crate::repository::AdminRepositoryError::InvalidStoredValue,
             ),
             super::super::AdminError::Validation
         ));

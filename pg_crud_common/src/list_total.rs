@@ -1,154 +1,34 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ListOffset(i64);
-impl From<crate::domain_types::PaginationOffset> for ListOffset {
-    fn from(value: crate::domain_types::PaginationOffset) -> Self {
-        Self(value.get())
-    }
-}
+#[path = "list_total/list_items.rs"]
+mod list_items;
+#[path = "list_total/list_offset.rs"]
+mod list_offset;
+#[path = "list_total/list_page.rs"]
+mod list_page;
+#[path = "list_total/list_rows.rs"]
+mod list_rows;
+#[path = "list_total/list_rows_presence.rs"]
+mod list_rows_presence;
+#[path = "list_total/list_total.rs"]
+mod list_total;
+#[path = "list_total/list_total_error.rs"]
+mod list_total_error;
+#[path = "list_total/list_total_source.rs"]
+mod list_total_source;
+#[path = "list_total/run_list_with_total.rs"]
+mod run_list_with_total;
+#[path = "list_total/window_total_presence.rs"]
+mod window_total_presence;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ListRowsPresence {
-    Empty,
-    Present,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum WindowTotalPresence {
-    Absent,
-    Present,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ListTotalSource {
-    CountQuery,
-    Window,
-    Zero,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::IntoInnerFrom,
-)]
-pub struct ListTotal(i64);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("list total must not be negative")]
-pub struct ListTotalError;
-impl TryFrom<i64> for ListTotal {
-    type Error = ListTotalError;
-
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value < constants_i64::ZERO {
-            Err(ListTotalError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-impl From<u32> for ListTotal {
-    fn from(value: u32) -> Self {
-        Self(i64::from(value))
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::FromInner,
-)]
-pub struct ListItems<Item>(Vec<Item>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct ListPage<Item> {
-    items: ListItems<Item>,
-    total: ListTotal,
-}
-impl<Item> ListPage<Item> {
-    #[must_use]
-    pub const fn items(&self) -> &[Item] {
-        self.items.0.as_slice()
-    }
-
-    #[must_use]
-    pub const fn total(&self) -> ListTotal {
-        self.total
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct ListRows<Item> {
-    items: ListItems<Item>,
-    window_total: Option<ListTotal>,
-}
-impl<Item> ListRows<Item> {
-    #[must_use]
-    pub const fn new(items: ListItems<Item>, window_total: Option<ListTotal>) -> Self {
-        Self {
-            items,
-            window_total,
-        }
-    }
-}
-
-pub async fn run_list_with_total<
-    Item,
-    Error,
-    FetchList,
-    FetchListFuture,
-    FetchCount,
-    FetchCountFuture,
->(
-    offset: ListOffset,
-    fetch_list: FetchList,
-    fetch_count: FetchCount,
-) -> Result<ListPage<Item>, Error>
-where
-    FetchList: FnOnce() -> FetchListFuture,
-    FetchListFuture: Future<Output = Result<ListRows<Item>, Error>>,
-    FetchCount: FnOnce() -> FetchCountFuture,
-    FetchCountFuture: Future<Output = Result<ListTotal, Error>>,
-{
-    let rows = fetch_list().await?;
-    let rows_presence = if rows.items.0.is_empty() {
-        ListRowsPresence::Empty
-    } else {
-        ListRowsPresence::Present
-    };
-    let window_presence = if rows.window_total.is_some() {
-        WindowTotalPresence::Present
-    } else {
-        WindowTotalPresence::Absent
-    };
-    let total = match list_total_source(offset, rows_presence, window_presence) {
-        ListTotalSource::CountQuery => fetch_count().await?,
-        ListTotalSource::Window => rows
-            .window_total
-            .unwrap_or_else(|| ListTotal::from(constants_u32::ZERO)),
-        ListTotalSource::Zero => ListTotal::from(constants_u32::ZERO),
-    };
-    Ok(ListPage {
-        items: rows.items,
-        total,
-    })
-}
-
-#[must_use]
-pub const fn list_total_source(
-    offset: ListOffset,
-    rows: ListRowsPresence,
-    window_total: WindowTotalPresence,
-) -> ListTotalSource {
-    match (rows, window_total, offset.0) {
-        (ListRowsPresence::Present, WindowTotalPresence::Present, _) => ListTotalSource::Window,
-        (ListRowsPresence::Empty, _, constants_i64::ZERO) => ListTotalSource::Zero,
-        (ListRowsPresence::Empty | ListRowsPresence::Present, _, _) => ListTotalSource::CountQuery,
-    }
-}
+pub use list_items::ListItems;
+pub use list_offset::ListOffset;
+pub use list_page::ListPage;
+pub use list_rows::ListRows;
+pub use list_rows_presence::ListRowsPresence;
+pub use list_total::ListTotal;
+pub use list_total_error::ListTotalError;
+pub use list_total_source::{ListTotalSource, list_total_source};
+pub use run_list_with_total::run_list_with_total;
+pub use window_total_presence::WindowTotalPresence;
 
 #[cfg(test)]
 mod tests {

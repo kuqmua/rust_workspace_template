@@ -1,0 +1,16 @@
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PgRateLimitScopeRef<'value_lt>(pub(super) &'value_lt str);
+
+impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitScopeRef<'value_lt> {
+    type Error = super::PgRateLimitValidationError;
+
+    fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            Err(super::PgRateLimitValidationError::EmptyKeyPart)
+        } else if value.len() > super::PG_RATE_LIMIT_KEY_PART_MAX_LEN {
+            Err(super::PgRateLimitValidationError::KeyPartTooLong)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}

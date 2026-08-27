@@ -38,7 +38,7 @@ pub(super) fn measure_memusage_command(
                 }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
-            crate::adapters::print_without_memusage_footer::print_without_memusage_footer(
+            crate::print_without_memusage_footer::print_without_memusage_footer(
                 crate::domain_types::StderrTextRef::from(stderr.as_ref()),
             );
             let clean = crate::domain_types::strip_ansi_codes(
@@ -138,7 +138,7 @@ pub(super) fn measure_memusage_command(
                 }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
-            crate::adapters::print_without_memusage_footer::print_without_memusage_footer(
+            crate::print_without_memusage_footer::print_without_memusage_footer(
                 crate::domain_types::StderrTextRef::from(stderr.as_ref()),
             );
             eprintln!(

@@ -1,165 +1,34 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "path policy types stay grouped with their validation operations"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpProxyPathRef<'value_lt>(&'value_lt str);
+#[path = "path_policy/http_allowed_path_prefix_ref.rs"]
+mod http_allowed_path_prefix_ref;
+#[path = "path_policy/http_normalized_path.rs"]
+mod http_normalized_path;
+#[path = "path_policy/http_normalized_path_error.rs"]
+mod http_normalized_path_error;
+#[path = "path_policy/http_proxy_path.rs"]
+mod http_proxy_path;
+#[path = "path_policy/http_proxy_path_error.rs"]
+mod http_proxy_path_error;
+#[path = "path_policy/http_proxy_path_prefix_match.rs"]
+mod http_proxy_path_prefix_match;
+#[path = "path_policy/http_proxy_path_ref.rs"]
+mod http_proxy_path_ref;
+#[path = "path_policy/http_request_path_ref.rs"]
+mod http_request_path_ref;
+#[path = "path_policy/normalize_identifier_path.rs"]
+mod normalize_identifier_path;
+#[path = "path_policy/proxy_path_matches_prefix.rs"]
+mod proxy_path_matches_prefix;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct HttpProxyPath(String);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum HttpProxyPathError {
-    #[error("proxy path must not be empty")]
-    Empty,
-    #[error("proxy path contains forbidden segment")]
-    ForbiddenSegment,
-    #[error("proxy path contains forbidden syntax")]
-    ForbiddenSyntax,
-}
-impl TryFrom<String> for HttpProxyPath {
-    type Error = HttpProxyPathError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_192 {
-            return Err(Self::Error::ForbiddenSyntax);
-        }
-        Self::try_from(HttpProxyPathRef::from(value.as_str()))
-    }
-}
-impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
-    type Error = HttpProxyPathError;
-    fn try_from(value: HttpProxyPathRef<'_>) -> Result<Self, Self::Error> {
-        let path = value.0.trim().trim_start_matches('/');
-        if path.is_empty() {
-            return Err(Self::Error::Empty);
-        }
-        if path.len() > constants_usize::VALUE_8_192 {
-            return Err(Self::Error::ForbiddenSyntax);
-        }
-        let starts_with_ignore_ascii_case = |prefix: &str| {
-            path.as_bytes()
-                .get(..prefix.len())
-                .is_some_and(|prefix_bytes| prefix_bytes.eq_ignore_ascii_case(prefix.as_bytes()))
-        };
-        let contains_ignore_ascii_case = |pattern: &str| {
-            path.as_bytes()
-                .windows(pattern.len())
-                .any(|window| window.eq_ignore_ascii_case(pattern.as_bytes()))
-        };
-        if starts_with_ignore_ascii_case(constants_str::HTTP_SCHEME_PREFIX)
-            || starts_with_ignore_ascii_case(constants_str::HTTPS_SCHEME_PREFIX)
-            || [
-                constants_str::ENCODED_DOT,
-                constants_str::ENCODED_SLASH,
-                constants_str::ENCODED_QUERY,
-                constants_str::ENCODED_FRAGMENT,
-                constants_str::ENCODED_BACKSLASH,
-            ]
-            .into_iter()
-            .any(contains_ignore_ascii_case)
-            || path.contains(['\\', '?', '#', '\0'])
-            || path.chars().any(char::is_whitespace)
-        {
-            return Err(Self::Error::ForbiddenSyntax);
-        }
-        if path.split('/').any(|segment| {
-            segment.is_empty()
-                || segment == constants_str::CURRENT_PATH_SEGMENT
-                || segment == constants_str::PARENT_PATH_SEGMENT
-        }) {
-            return Err(Self::Error::ForbiddenSegment);
-        }
-        Ok(Self(path.to_owned()))
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpAllowedPathPrefixRef<'value_lt>(&'value_lt str);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct HttpProxyPathPrefixMatch(bool);
-#[must_use]
-pub fn proxy_path_matches_prefix(
-    path: &HttpProxyPath,
-    prefix: HttpAllowedPathPrefixRef<'_>,
-) -> HttpProxyPathPrefixMatch {
-    HttpProxyPathPrefixMatch::from(
-        path.as_ref() == prefix.0
-            || path
-                .as_ref()
-                .strip_prefix(prefix.0)
-                .is_some_and(|suffix| suffix.starts_with('/')),
-    )
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpRequestPathRef<'value_lt>(&'value_lt str);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct HttpNormalizedPath(String);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("normalized HTTP path is too long")]
-pub struct HttpNormalizedPathError;
-impl TryFrom<String> for HttpNormalizedPath {
-    type Error = HttpNormalizedPathError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_192 {
-            Err(HttpNormalizedPathError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[must_use]
-pub fn normalize_identifier_path(path: HttpRequestPathRef<'_>) -> Option<HttpNormalizedPath> {
-    if path.0.len() > constants_usize::VALUE_8_192
-        || !path.0.bytes().any(|byte| byte.is_ascii_digit())
-    {
-        return None;
-    }
-    let normalized = path.0.split('/').enumerate().fold(
-        String::with_capacity(path.0.len()),
-        |mut normalized, (index, segment)| {
-            if index > constants_usize::ZERO {
-                normalized.push('/');
-            }
-            if !segment.is_empty()
-                && segment.len() <= 19usize
-                && segment.bytes().all(|byte| byte.is_ascii_digit())
-            {
-                normalized.push_str(constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
-            } else if uuid::Uuid::parse_str(segment)
-                .is_ok_and(|value| value.get_version_num() == 4usize)
-            {
-                normalized.push_str(constants_str::HTTP_NORMALIZED_UUID_SEGMENT);
-            } else {
-                normalized.push_str(segment);
-            }
-            normalized
-        },
-    );
-    if normalized == path.0 {
-        None
-    } else {
-        HttpNormalizedPath::try_from(normalized).ok()
-    }
-}
+pub use http_allowed_path_prefix_ref::HttpAllowedPathPrefixRef;
+pub use http_normalized_path::HttpNormalizedPath;
+pub use http_normalized_path_error::HttpNormalizedPathError;
+pub use http_proxy_path::HttpProxyPath;
+pub use http_proxy_path_error::HttpProxyPathError;
+pub use http_proxy_path_prefix_match::HttpProxyPathPrefixMatch;
+pub use http_proxy_path_ref::HttpProxyPathRef;
+pub use http_request_path_ref::HttpRequestPathRef;
+pub use normalize_identifier_path::normalize_identifier_path;
+pub use proxy_path_matches_prefix::proxy_path_matches_prefix;
 
 #[cfg(test)]
 mod tests {

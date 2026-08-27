@@ -11,10 +11,8 @@ pub(super) async fn settings_get(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let settings = crate::adapters::repository::read_settings::read_settings(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
-        ),
+    let settings = crate::repository::read_settings::read_settings(
+        crate::repository::SqlxAdminRepositoryPoolRef::from(auth.state.as_ref().pool.as_ref()),
     )
     .await
     .map_err(super::shared::map_repository_error::map_repository_error)?;

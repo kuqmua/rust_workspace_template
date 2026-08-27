@@ -1,304 +1,48 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefOwned, newtype::FromInner)]
-pub struct SecrecyAdminString(secrecy::SecretBox<StdAdminString>);
 
-impl std::fmt::Debug for SecrecyAdminString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
-    }
-}
-impl TryFrom<String> for SecrecyAdminString {
-    type Error = StdAdminStringTryFromStringError;
+#[path = "domain_types/admin_audit_log_id.rs"]
+mod admin_audit_log_id;
+#[path = "domain_types/admin_id_try_from_i64_error.rs"]
+mod admin_id_try_from_i64_error;
+#[path = "domain_types/admin_non_zero_usize.rs"]
+mod admin_non_zero_usize;
+#[path = "domain_types/admin_permission_id.rs"]
+mod admin_permission_id;
+#[path = "domain_types/admin_permission_name.rs"]
+mod admin_permission_name;
+#[path = "domain_types/admin_resource_text.rs"]
+mod admin_resource_text;
+#[path = "domain_types/admin_role_id.rs"]
+mod admin_role_id;
+#[path = "domain_types/admin_socket_addr.rs"]
+mod admin_socket_addr;
+#[path = "domain_types/admin_user_id.rs"]
+mod admin_user_id;
+#[path = "domain_types/secrecy_admin_string.rs"]
+mod secrecy_admin_string;
+#[path = "domain_types/std_admin_bool.rs"]
+mod std_admin_bool;
+#[path = "domain_types/std_admin_str_ref.rs"]
+mod std_admin_str_ref;
+#[path = "domain_types/std_admin_string.rs"]
+mod std_admin_string;
+#[path = "domain_types/uuid_admin_value.rs"]
+mod uuid_admin_value;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        StdAdminString::try_from(value)
-            .map(|bounded| Self::from(secrecy::SecretBox::new(Box::new(bounded))))
-    }
-}
-impl secrecy::ExposeSecret<StdAdminString> for SecrecyAdminString {
-    fn expose_secret(&self) -> &StdAdminString {
-        secrecy::ExposeSecret::expose_secret(&self.0)
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    utoipa::ToSchema,
-    newtype::BoundedString,
-    newtype::AsRefOwned,
-    newtype::DerefInner,
-    newtype::IntoInner,
-)]
-#[bounded_string(max = 8192, description = "administrator internal text")]
-pub struct StdAdminString(String);
-impl secrecy::zeroize::Zeroize for StdAdminString {
-    fn zeroize(&mut self) {
-        secrecy::zeroize::Zeroize::zeroize(&mut self.0);
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-enum AdminResourceText {
-    PositiveI64(server_admin_contract::domain_types::PositiveNonZeroI64),
-    SystemSettings,
-    Uuid(UuidAdminValue),
-}
-impl From<AdminResourceText> for StdAdminString {
-    fn from(resource: AdminResourceText) -> Self {
-        Self(match resource {
-            AdminResourceText::PositiveI64(value) => value.get().to_string(),
-            AdminResourceText::SystemSettings => constants_str::VALUE_1.to_owned(),
-            AdminResourceText::Uuid(value) => value.get().to_string(),
-        })
-    }
-}
-impl StdAdminString {
-    #[must_use]
-    pub fn from_positive_i64(
-        value: server_admin_contract::domain_types::PositiveNonZeroI64,
-    ) -> Self {
-        Self::from(AdminResourceText::PositiveI64(value))
-    }
-
-    #[must_use]
-    pub fn from_uuid(value: UuidAdminValue) -> Self {
-        Self::from(AdminResourceText::Uuid(value))
-    }
-
-    #[must_use]
-    pub fn system_settings_resource() -> Self {
-        Self::from(AdminResourceText::SystemSettings)
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    std::hash::Hash,
-    newtype::AsRefInner,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct StdAdminStrRef<'value_lt>(&'value_lt str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-#[serde(from = "bool")]
-pub struct StdAdminBool(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::DerefInner,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct AdminNonZeroUsize(std::num::NonZeroUsize);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-#[serde(from = "uuid::Uuid")]
-pub struct UuidAdminValue(uuid::Uuid);
-impl utoipa::PartialSchema for UuidAdminValue {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        utoipa::openapi::ObjectBuilder::new()
-            .schema_type(utoipa::openapi::schema::Type::String)
-            .format(Some(utoipa::openapi::SchemaFormat::Custom(
-                constants_str::PG_CRUD_PG_UUID.to_owned(),
-            )))
-            .into()
-    }
-}
-impl utoipa::ToSchema for UuidAdminValue {}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct AdminSocketAddr(std::net::SocketAddr);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Display,
-    newtype::FromInner,
-)]
-#[serde(try_from = "i64")]
-pub struct AdminUserId(server_admin_contract::domain_types::PositiveNonZeroI64);
-impl TryFrom<i64> for AdminUserId {
-    type Error = AdminIdTryFromI64Error;
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
-            .map(Self)
-            .map_err(|_error| AdminIdTryFromI64Error)
-    }
-}
-impl AdminUserId {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0.get()
-    }
-    #[must_use]
-    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
-        self.0
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    std::hash::Hash,
-    PartialOrd,
-    Ord,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::FromInner,
-)]
-#[serde(try_from = "i64")]
-pub struct AdminRoleId(server_admin_contract::domain_types::PositiveNonZeroI64);
-impl TryFrom<i64> for AdminRoleId {
-    type Error = AdminIdTryFromI64Error;
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
-            .map(Self)
-            .map_err(|_error| AdminIdTryFromI64Error)
-    }
-}
-impl AdminRoleId {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0.get()
-    }
-    #[must_use]
-    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
-        self.0
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    std::hash::Hash,
-    PartialOrd,
-    Ord,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::FromInner,
-)]
-#[serde(try_from = "i64")]
-pub struct AdminPermissionId(server_admin_contract::domain_types::PositiveNonZeroI64);
-impl TryFrom<i64> for AdminPermissionId {
-    type Error = AdminIdTryFromI64Error;
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
-            .map(Self)
-            .map_err(|_error| AdminIdTryFromI64Error)
-    }
-}
-impl AdminPermissionId {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0.get()
-    }
-    #[must_use]
-    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
-        self.0
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    utoipa::ToSchema,
-    newtype::FromInner,
-)]
-pub struct AdminAuditLogId(server_admin_contract::domain_types::PositiveNonZeroI64);
-impl TryFrom<i64> for AdminAuditLogId {
-    type Error = AdminIdTryFromI64Error;
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
-            .map(Self)
-            .map_err(|_error| AdminIdTryFromI64Error)
-    }
-}
-impl AdminAuditLogId {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0.get()
-    }
-    #[must_use]
-    pub const fn value(self) -> server_admin_contract::domain_types::PositiveNonZeroI64 {
-        self.0
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{self:?}")]
-pub struct AdminIdTryFromI64Error;
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-pub struct AdminPermissionName(server_admin_contract::domain_types::AdminPermission);
+pub use admin_audit_log_id::AdminAuditLogId;
+pub use admin_id_try_from_i64_error::AdminIdTryFromI64Error;
+pub use admin_non_zero_usize::AdminNonZeroUsize;
+pub use admin_permission_id::AdminPermissionId;
+pub use admin_permission_name::AdminPermissionName;
+use admin_resource_text::AdminResourceText;
+pub use admin_role_id::AdminRoleId;
+pub use admin_socket_addr::AdminSocketAddr;
+pub use admin_user_id::AdminUserId;
+pub use secrecy_admin_string::SecrecyAdminString;
+pub use std_admin_bool::StdAdminBool;
+pub use std_admin_str_ref::StdAdminStrRef;
+pub use std_admin_string::*;
+pub use uuid_admin_value::UuidAdminValue;
 
 #[cfg(test)]
 mod tests {

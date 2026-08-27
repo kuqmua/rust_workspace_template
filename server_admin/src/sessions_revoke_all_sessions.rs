@@ -23,8 +23,8 @@ pub(super) async fn sessions_revoke_all_sessions(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    crate::adapters::repository::revoke_user_sessions::revoke_user_sessions(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::revoke_user_sessions::revoke_user_sessions(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         authenticated.id,
     )
     .await

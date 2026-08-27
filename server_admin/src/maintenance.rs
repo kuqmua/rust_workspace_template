@@ -68,7 +68,7 @@ impl From<super::SqlxAdminError> for AdminMigrateError {
 pub async fn prepare_postgresql(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,
 ) -> Result<(), AdminMigrateError> {
-    crate::adapters::migrations::migrator()
+    crate::migrations::migrator()
         .run(pool.as_ref())
         .await
         .map_err(SqlxAdminMigrateError::from)
@@ -94,7 +94,7 @@ pub async fn prepare_postgresql(
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupBatchSize(i64);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AdminCleanupRetentionSeconds(i64);
+pub struct AdminCleanupRetentionSeconds(server_admin_contract::domain_types::PositiveNonZeroI64);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupCfg {
     audit_retention: AdminCleanupRetentionSeconds,
@@ -148,6 +148,11 @@ pub enum AdminCleanupCfgError {
     #[error("{}", constants_str::CLEANUP_RETENTION_MUST_BE_GREATER_THAN_ZERO)]
     RetentionMustBePositive,
 }
+impl From<server_admin_contract::domain_types::AdminIdTryFromI64Error> for AdminCleanupCfgError {
+    fn from(_value: server_admin_contract::domain_types::AdminIdTryFromI64Error) -> Self {
+        Self::RetentionMustBePositive
+    }
+}
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminCleanupError {
     #[error("{}", constants_str::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
@@ -174,11 +179,9 @@ impl TryFrom<i64> for AdminCleanupBatchSize {
 impl TryFrom<i64> for AdminCleanupRetentionSeconds {
     type Error = AdminCleanupCfgError;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value > constants_i64::ZERO {
-            Ok(Self(value))
-        } else {
-            Err(AdminCleanupCfgError::RetentionMustBePositive)
-        }
+        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
+            .map(Self)
+            .map_err(AdminCleanupCfgError::from)
     }
 }
 impl AdminCleanupCfg {
@@ -232,7 +235,7 @@ impl AdminCleanupBatchSize {
 }
 impl AdminCleanupRetentionSeconds {
     pub(crate) const fn get(self) -> i64 {
-        self.0
+        self.0.get()
     }
 }
 impl AdminCleanupReport {
@@ -399,7 +402,7 @@ pub async fn create_initial_administrator(
     password: server_admin_contract::domain_types::AdminNewPassword,
     password_hasher: &super::AdminPasswordHasher,
 ) -> Result<super::AdminUserId, InitialAdministratorCreationError> {
-    crate::adapters::migrations::create_initial_administrator(
+    crate::migrations::create_initial_administrator(
         pool,
         login,
         display_name,
@@ -414,7 +417,7 @@ pub async fn reset_admin_password(
     password: server_admin_contract::domain_types::AdminNewPassword,
     password_hasher: &super::AdminPasswordHasher,
 ) -> Result<super::AdminUserId, AdminPasswordResetError> {
-    crate::adapters::migrations::reset_admin_password(pool, login, password, password_hasher).await
+    crate::migrations::reset_admin_password(pool, login, password, password_hasher).await
 }
 
 #[cfg(test)]

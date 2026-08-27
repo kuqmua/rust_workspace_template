@@ -1,4 +1,32 @@
-const CASE_STRING_MAX_LEN: usize = 1_048_576;
+#[path = "domain_types/case_from_string.rs"]
+mod case_from_string;
+#[path = "domain_types/case_string.rs"]
+mod case_string;
+#[path = "domain_types/case_string_max_len.rs"]
+mod case_string_max_len;
+#[path = "domain_types/convert_case_kind.rs"]
+mod convert_case_kind;
+#[path = "domain_types/display_case_str.rs"]
+mod display_case_str;
+#[path = "domain_types/proc_macro2_case_token_stream.rs"]
+mod proc_macro2_case_token_stream;
+#[path = "domain_types/str_case.rs"]
+mod str_case;
+#[path = "domain_types/to_token_stream_or_panic.rs"]
+mod to_token_stream_or_panic;
+#[path = "domain_types/tokenized_case_str.rs"]
+mod tokenized_case_str;
+
+use case_from_string::case_from_string;
+use case_string::CaseString;
+use case_string_max_len::CASE_STRING_MAX_LEN;
+use convert_case_kind::ConvertCaseKind;
+use display_case_str::display_case_str;
+use proc_macro2_case_token_stream::ProcMacro2CaseTokenStream;
+use str_case::str_case;
+use to_token_stream_or_panic::to_token_stream_or_panic;
+use tokenized_case_str::tokenized_case_str;
+
 naming_common_macros::case_trait_pair!(
     AsRefStrToUpperCamelCaseStr,
     AsRefStrToUpperCamelCaseTokenStream,
@@ -69,61 +97,6 @@ naming_common_macros::case_trait_pair!(
     quote::ToTokens,
     |self_ref| tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
 );
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-struct ConvertCaseKind(convert_case::Case<'static>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    newtype::BoundedString,
-    newtype::AsRefStr,
-    newtype::Display,
-)]
-#[bounded_string(max = CASE_STRING_MAX_LEN )]
-struct CaseString(String);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner)]
-struct ProcMacro2CaseTokenStream(proc_macro2::TokenStream);
-fn to_token_stream_or_panic<T>(v: &T) -> ProcMacro2CaseTokenStream
-where
-    T: std::fmt::Display + ?Sized,
-{
-    ProcMacro2CaseTokenStream::from(match v.to_string().parse::<proc_macro2::TokenStream>() {
-        Ok(parsed_token_stream) => parsed_token_stream,
-        Err(error) => {
-            let message = error.to_string();
-            quote::quote! {compile_error!(#message);}
-        }
-    })
-}
-fn case_from_string<S>(v: S, case: ConvertCaseKind) -> CaseString
-where
-    S: AsRef<str>,
-{
-    str_case(v, case)
-}
-fn display_case_str<T>(v: &T, case: ConvertCaseKind) -> CaseString
-where
-    T: std::fmt::Display,
-{
-    let stringified = v.to_string();
-    case_from_string(stringified, case)
-}
-fn tokenized_case_str<T>(v: &T, case: ConvertCaseKind) -> CaseString
-where
-    T: quote::ToTokens,
-{
-    let tokenized = quote::quote! {#v}.to_string();
-    case_from_string(tokenized, case)
-}
-fn str_case<S>(v: S, case: ConvertCaseKind) -> CaseString
-where
-    S: AsRef<str>,
-{
-    CaseString::try_from(convert_case::Casing::to_case(&v.as_ref(), case.0))
-        .unwrap_or_else(CaseString::from)
-}
 #[cfg(test)]
 mod tests {
     fn assert_case_triplet<S>(to_upper_camel_case: S, to_snake_case: S, to_upper_snake_case: S)

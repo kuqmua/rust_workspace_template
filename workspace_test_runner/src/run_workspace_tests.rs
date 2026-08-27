@@ -21,12 +21,12 @@ pub(crate) fn run_workspace_tests() -> Result<(), ()> {
     .get()
     {
         println!("test_executor=nextest");
-        crate::adapters::execution::run_commands(crate::adapters::execution::CommandsRef::from(
+        crate::execution::run_commands(crate::execution::CommandsRef::from(
             &constants_str::WORKSPACE_TEST_RUNNER_NEXTEST_COMMANDS,
         ))
     } else {
         println!("test_executor=cargo fallback=true");
-        crate::adapters::execution::run_commands(crate::adapters::execution::CommandsRef::from(
+        crate::execution::run_commands(crate::execution::CommandsRef::from(
             &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS,
         ))
     }

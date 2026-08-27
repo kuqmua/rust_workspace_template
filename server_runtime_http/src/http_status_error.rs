@@ -1,45 +1,13 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct HttpErrorStatus(http::StatusCode);
+#[path = "http_status_error/classify_http_error_status.rs"]
+mod classify_http_error_status;
+#[path = "http_status_error/http_error_class.rs"]
+mod http_error_class;
+#[path = "http_status_error/http_error_status.rs"]
+mod http_error_status;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum HttpErrorClass {
-    Authentication,
-    Conflict,
-    Forbidden,
-    Internal,
-    NotFound,
-    PayloadTooLarge,
-    RateLimited,
-    ServiceUnavailable,
-    Timeout,
-    UnexpectedSuccess,
-    Validation,
-}
-
-#[must_use]
-pub const fn classify_http_error_status(status: HttpErrorStatus) -> HttpErrorClass {
-    match status.0.as_u16() {
-        200..=299 => HttpErrorClass::UnexpectedSuccess,
-        401 => HttpErrorClass::Authentication,
-        403 => HttpErrorClass::Forbidden,
-        404 => HttpErrorClass::NotFound,
-        408 | 504 => HttpErrorClass::Timeout,
-        409 => HttpErrorClass::Conflict,
-        413 => HttpErrorClass::PayloadTooLarge,
-        422 => HttpErrorClass::Validation,
-        429 => HttpErrorClass::RateLimited,
-        502 | 503 => HttpErrorClass::ServiceUnavailable,
-        _ => HttpErrorClass::Internal,
-    }
-}
+pub use classify_http_error_status::classify_http_error_status;
+pub use http_error_class::HttpErrorClass;
+pub use http_error_status::HttpErrorStatus;
 
 #[cfg(test)]
 mod tests {

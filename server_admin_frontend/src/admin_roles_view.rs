@@ -11,7 +11,7 @@ mod csr_admin_role_row;
 pub(in crate::domain_types::start) fn AdminRolesView(
     admin: server_admin_contract::domain_types::AuthenticatedAdmin,
     page: server_admin_contract::domain_types::AdminRolesPage,
-    query: super::query::AdminCsrQuery,
+    query: super::admin_csr_query::AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
     let can_create = bool::from(
         admin.has_permission(server_admin_contract::domain_types::AdminPermission::RolesCreate),
@@ -35,7 +35,7 @@ pub(in crate::domain_types::start) fn AdminRolesView(
             </div>
             <crate::domain_types::with_owner::tables::table_wrapper::TableWrapper><crate::domain_types::with_owner::tables::table::Table><crate::domain_types::with_owner::tables::table_header::TableHeader><crate::domain_types::with_owner::tables::table_row::TableRow><crate::domain_types::with_owner::tables::table_head::TableHead>"id"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"name"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"system"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"permissions"</crate::domain_types::with_owner::tables::table_head::TableHead></crate::domain_types::with_owner::tables::table_row::TableRow></crate::domain_types::with_owner::tables::table_header::TableHeader>
             <crate::domain_types::with_owner::tables::table_body::TableBody>{rows}</crate::domain_types::with_owner::tables::table_body::TableBody></crate::domain_types::with_owner::tables::table::Table></crate::domain_types::with_owner::tables::table_wrapper::TableWrapper>
-            <super::pagination::AdminPagination action=server_admin_contract::domain_types::AdminFrontendPath::Roles query=query total=total />
+            <super::admin_pagination::AdminPagination action=server_admin_contract::domain_types::AdminFrontendPath::Roles query=query total=total />
         </section>
     }
 }

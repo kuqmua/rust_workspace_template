@@ -25,18 +25,16 @@ pub(super) async fn audit_export_log(
         auth.state.as_ref().policy.audit_export_window,
     )
     .await?;
-    let page = crate::adapters::repository::query_audit_log::query_audit_log(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
-        ),
+    let page = crate::repository::query_audit_log::query_audit_log(
+        crate::repository::SqlxAdminRepositoryPoolRef::from(auth.state.as_ref().pool.as_ref()),
         query.0,
     )
     .await
     .map_err(|error| match error {
-        crate::adapters::repository::AdminRepositoryError::InvalidStoredValue => {
+        crate::repository::AdminRepositoryError::InvalidStoredValue => {
             super::AdminError::Validation
         }
-        crate::adapters::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
+        crate::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
             super::AdminError::postgresql(sqlx_error)
         }
     })?;

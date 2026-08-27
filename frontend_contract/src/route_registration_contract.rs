@@ -1,47 +1,18 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct RegisteredRoutePath(&'static str);
-
-pub trait RouteRegistrationContract: Copy {
-    fn method(self) -> super::RouteMethod;
-    fn path(self) -> RegisteredRoutePath;
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[cfg(not(target_arch = "wasm32"))]
-#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
-pub struct AxumRouteMethodRouter<State>(axum::routing::MethodRouter<State>);
+#[path = "route_registration_contract/axum_route_method_router.rs"]
+mod axum_route_method_router;
+#[path = "route_registration_contract/registered_route_path.rs"]
+mod registered_route_path;
+#[path = "route_registration_contract/route_method_router.rs"]
+mod route_method_router;
+#[path = "route_registration_contract/route_registration_contract.rs"]
+mod route_registration_contract;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn route_method_router<State, Endpoint, Marker>(
-    method: super::RouteMethod,
-    endpoint: Endpoint,
-) -> AxumRouteMethodRouter<State>
-where
-    State: Clone + Send + Sync + 'static,
-    Endpoint: axum::handler::Handler<Marker, State> + Clone + Send + Sync + 'static,
-    Marker: 'static,
-{
-    AxumRouteMethodRouter::from(match method {
-        super::RouteMethod::Connect => axum::routing::connect(endpoint),
-        super::RouteMethod::Delete => axum::routing::delete(endpoint),
-        super::RouteMethod::Get => axum::routing::get(endpoint),
-        super::RouteMethod::Head => axum::routing::head(endpoint),
-        super::RouteMethod::Options => axum::routing::options(endpoint),
-        super::RouteMethod::Patch => axum::routing::patch(endpoint),
-        super::RouteMethod::Post => axum::routing::post(endpoint),
-        super::RouteMethod::Put => axum::routing::put(endpoint),
-        super::RouteMethod::Trace => axum::routing::trace(endpoint),
-    })
-}
+pub use axum_route_method_router::AxumRouteMethodRouter;
+pub use registered_route_path::RegisteredRoutePath;
+#[cfg(not(target_arch = "wasm32"))]
+pub use route_method_router::route_method_router;
+pub use route_registration_contract::RouteRegistrationContract;
 
 #[cfg(test)]
 mod tests {

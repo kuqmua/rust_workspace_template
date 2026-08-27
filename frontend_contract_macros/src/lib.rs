@@ -322,6 +322,7 @@ pub fn endpoint_registry(
         Err(error) => return error.to_compile_error().into(),
     };
     let identifier = &item.ident;
+    let visibility = &item.vis;
     let state = parsed_args.state.into_inner();
     let contracts = parsed_args
         .bindings
@@ -338,7 +339,7 @@ pub fn endpoint_registry(
     quote::quote! {
         #item
         impl #identifier {
-            fn router() -> axum::Router<#state> {
+            #visibility fn router() -> axum::Router<#state> {
                 axum::Router::new()
                     #(.route(
                         frontend_contract::domain_types::RouteRegistrationContract::path(#contracts).get(),
@@ -804,6 +805,7 @@ pub fn route_registry(
         }
     };
     let identifier = &item.ident;
+    let visibility = &item.vis;
     let unique_route_trait_identifier = quote::format_ident!("{}UniqueRoute", identifier);
     let openapi_identifier = quote::format_ident!("{}OpenApi", identifier);
     let state = parsed_args.state.into_inner();
@@ -847,12 +849,12 @@ pub fn route_registry(
         #[openapi(paths(#(#endpoints),*), #openapi_metadata)]
         struct #openapi_identifier;
         impl #identifier {
-            fn assert_route_family_membership<Route>()
+            #visibility fn assert_route_family_membership<Route>()
             where
                 Route: frontend_contract::domain_types::RouteInFamily<#family> + #unique_route_trait_identifier,
             {
             }
-            fn open_api() -> utoipa::openapi::OpenApi {
+            #visibility fn open_api() -> utoipa::openapi::OpenApi {
                 let mut document = <#openapi_identifier as utoipa::OpenApi>::openapi();
                 #({
                     let components = document
@@ -907,7 +909,7 @@ pub fn route_registry(
                 })*
                 document
             }
-            fn router() -> axum::Router<#state> {
+            #visibility fn router() -> axum::Router<#state> {
                 #(Self::assert_route_family_membership::<#routes>();)*
                 axum::Router::new()
                     #(.route(
@@ -1728,9 +1730,10 @@ pub fn route_error(
         #inner_signature #original_block
         Ok(#inner_identifier(#(#arguments),*).await)
     }};
+    let visibility = &function.vis;
     quote::quote! {
         #[derive(Debug, thiserror::Error)]
-        enum #error {}
+        #visibility enum #error {}
         impl axum::response::IntoResponse for #error {
             fn into_response(self) -> axum::response::Response {
                 match self {}

@@ -1,84 +1,22 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-    newtype::ToTokens,
-)]
-pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::DerefTarget,
-    newtype::FromInner,
-    newtype::ToTokens,
-)]
-pub struct ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>(&'lt proc_macro2::TokenStream);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
-)]
-pub enum MacroAttrError {
-    #[error("attr_not_list")]
-    AttrNotList,
-    #[error("no_attr")]
-    NoAttr,
-}
-#[must_use]
-pub fn find_macro_attribute<'lt, A, S>(attrs: A, attr_path: S) -> Option<SynMacroAttrRef<'lt>>
-where
-    A: IntoIterator<Item = &'lt syn::Attribute>,
-    S: AsRef<str> + Copy,
-{
-    attrs.into_iter().map(SynMacroAttrRef).find(|attr| {
-        let mut attr_segments = attr.0.path().segments.iter();
-        let mut expected_segments = attr_path
-            .as_ref()
-            .split(constants_str::PATH_SEPARATOR)
-            .map(str::trim)
-            .filter(|element| !element.is_empty());
-        loop {
-            match (attr_segments.next(), expected_segments.next()) {
-                (Some(attr_segment), Some(expected_segment)) => {
-                    if attr_segment.ident != expected_segment {
-                        break false;
-                    }
-                }
-                (None, None) => break true,
-                (Some(_), None) | (None, Some(_)) => break false,
-            }
-        }
-    })
-}
-pub fn try_get_macro_attribute<'lt, A, S>(
-    attrs: A,
-    attr_path: S,
-) -> Result<SynMacroAttrRef<'lt>, MacroAttrError>
-where
-    A: IntoIterator<Item = &'lt syn::Attribute>,
-    S: AsRef<str> + Copy,
-{
-    find_macro_attribute(attrs, attr_path).ok_or(MacroAttrError::NoAttr)
-}
-pub fn try_get_macro_attr_meta_list_token_stream<'lt, A, S>(
-    attrs: A,
-    attr_path: S,
-) -> Result<ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>, MacroAttrError>
-where
-    A: IntoIterator<Item = &'lt syn::Attribute>,
-    S: AsRef<str> + Copy,
-{
-    let attr = try_get_macro_attribute(attrs, attr_path)?;
-    if let syn::Meta::List(v) = &attr.0.meta {
-        Ok(ProcMacro2MacroAttrMetaListTokenStreamRef::from(&v.tokens))
-    } else {
-        Err(MacroAttrError::AttrNotList)
-    }
-}
+#[path = "get_macro_attribute/find_macro_attribute.rs"]
+mod find_macro_attribute;
+#[path = "get_macro_attribute/macro_attr_error.rs"]
+mod macro_attr_error;
+#[path = "get_macro_attribute/proc_macro2_macro_attr_meta_list_token_stream_ref.rs"]
+mod proc_macro2_macro_attr_meta_list_token_stream_ref;
+#[path = "get_macro_attribute/syn_macro_attr_ref.rs"]
+mod syn_macro_attr_ref;
+#[path = "get_macro_attribute/try_get_macro_attr_meta_list_token_stream.rs"]
+mod try_get_macro_attr_meta_list_token_stream;
+#[path = "get_macro_attribute/try_get_macro_attribute.rs"]
+mod try_get_macro_attribute;
+
+pub use find_macro_attribute::find_macro_attribute;
+pub use macro_attr_error::MacroAttrError;
+pub use proc_macro2_macro_attr_meta_list_token_stream_ref::ProcMacro2MacroAttrMetaListTokenStreamRef;
+pub use syn_macro_attr_ref::SynMacroAttrRef;
+pub use try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream;
+pub use try_get_macro_attribute::try_get_macro_attribute;
 #[cfg(test)]
 mod tests {
     fn attrs() -> Vec<syn::Attribute> {

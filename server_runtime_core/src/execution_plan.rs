@@ -1,32 +1,13 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ExecutionMode {
-    Apply,
-    DryRun,
-}
+#[path = "execution_plan/execute_plan.rs"]
+mod execute_plan;
+#[path = "execution_plan/execution_mode.rs"]
+mod execution_mode;
+#[path = "execution_plan/execution_report.rs"]
+mod execution_report;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub enum ExecutionReport<Plan, Output> {
-    Applied { output: Output },
-    DryRun { plan: Plan },
-}
-
-pub async fn execute_plan<Plan, Output, Error, Apply, ApplyFuture>(
-    mode: ExecutionMode,
-    plan: Plan,
-    apply: Apply,
-) -> Result<ExecutionReport<Plan, Output>, Error>
-where
-    Apply: FnOnce(Plan) -> ApplyFuture,
-    ApplyFuture: Future<Output = Result<Output, Error>>,
-{
-    match mode {
-        ExecutionMode::Apply => {
-            let output = apply(plan).await?;
-            Ok(ExecutionReport::Applied { output })
-        }
-        ExecutionMode::DryRun => Ok(ExecutionReport::DryRun { plan }),
-    }
-}
+pub use execute_plan::execute_plan;
+pub use execution_mode::ExecutionMode;
+pub use execution_report::ExecutionReport;
 
 #[cfg(test)]
 mod tests {

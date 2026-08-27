@@ -1,30 +1,13 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum SourceSelection<'source_lt, LocalSource, RemoteSource> {
-    Local(&'source_lt LocalSource),
-    LocalAndRemote {
-        local: &'source_lt LocalSource,
-        remote: &'source_lt RemoteSource,
-    },
-    Remote(&'source_lt RemoteSource),
-}
+#[path = "source_selection/select_sources.rs"]
+mod select_sources;
+#[path = "source_selection/source_selection.rs"]
+mod source_selection;
+#[path = "source_selection/source_selection_error.rs"]
+mod source_selection_error;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{}", constants_str::SOURCE_SELECTION_REQUIRES_AT_LEAST_ONE_SOURCE)]
-pub struct SourceSelectionError;
-
-pub const fn select_sources<'source_lt, LocalSource, RemoteSource>(
-    optional_local: Option<&'source_lt LocalSource>,
-    optional_remote: Option<&'source_lt RemoteSource>,
-) -> Result<SourceSelection<'source_lt, LocalSource, RemoteSource>, SourceSelectionError> {
-    match (optional_local, optional_remote) {
-        (Some(local), Some(remote)) => Ok(SourceSelection::LocalAndRemote { local, remote }),
-        (Some(local), None) => Ok(SourceSelection::Local(local)),
-        (None, Some(remote)) => Ok(SourceSelection::Remote(remote)),
-        (None, None) => Err(SourceSelectionError),
-    }
-}
+pub use select_sources::select_sources;
+pub use source_selection::SourceSelection;
+pub use source_selection_error::SourceSelectionError;
 
 #[cfg(test)]
 mod tests {

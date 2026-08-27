@@ -1,141 +1,28 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    newtype::Display,
-    newtype::FromInner,
-)]
-pub struct ServiceName(&'static str);
+#[path = "initialization/init_service_observability.rs"]
+mod init_service_observability;
+#[path = "initialization/observability_guard.rs"]
+mod observability_guard;
+#[path = "initialization/observability_init_error.rs"]
+mod observability_init_error;
+#[path = "initialization/opentelemetry_otlp_exporter_build_error.rs"]
+mod opentelemetry_otlp_exporter_build_error;
+#[path = "initialization/opentelemetry_sdk_observability_shutdown_error.rs"]
+mod opentelemetry_sdk_observability_shutdown_error;
+#[path = "initialization/opentelemetry_sdk_tracer_provider.rs"]
+mod opentelemetry_sdk_tracer_provider;
+#[path = "initialization/service_name.rs"]
+mod service_name;
+#[path = "initialization/tracing_subscriber_init_error.rs"]
+mod tracing_subscriber_init_error;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct OpentelemetryOtlpExporterBuildError(opentelemetry_otlp::ExporterBuildError);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct OpentelemetrySdkTracerProvider(opentelemetry_sdk::trace::SdkTracerProvider);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum ObservabilityInitError {
-    #[error("failed to build OTLP span exporter: {0}")]
-    Exporter(OpentelemetryOtlpExporterBuildError),
-    #[error("failed to install tracing subscriber: {0}")]
-    Subscriber(TracingSubscriberInitError),
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("failed to shut down OpenTelemetry tracer provider: {0}")]
-pub struct OpentelemetrySdkObservabilityShutdownError(opentelemetry_sdk::error::OTelSdkError);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub struct ObservabilityGuard {
-    tracer_provider: Option<OpentelemetrySdkTracerProvider>,
-}
-
-impl ObservabilityGuard {
-    pub fn shutdown(mut self) -> Result<(), OpentelemetrySdkObservabilityShutdownError> {
-        let Some(tracer_provider) = self.tracer_provider.take() else {
-            return Ok(());
-        };
-        tracer_provider
-            .0
-            .shutdown()
-            .map_err(OpentelemetrySdkObservabilityShutdownError)
-    }
-}
-
-impl Drop for ObservabilityGuard {
-    fn drop(&mut self) {
-        let Some(tracer_provider) = self.tracer_provider.take() else {
-            return;
-        };
-        if let Err(error) = tracer_provider.0.shutdown() {
-            tracing::error!(error = %error, "OpenTelemetry tracer provider shutdown failed");
-        }
-    }
-}
-
-pub fn init_service_observability(
-    format: crate::service_tracing_format::ServiceTracingFormat,
-    service_name: ServiceName,
-) -> Result<ObservabilityGuard, ObservabilityInitError> {
-    opentelemetry::global::set_text_map_propagator(
-        opentelemetry_sdk::propagation::TraceContextPropagator::new(),
-    );
-    let exporter = opentelemetry_otlp::SpanExporter::builder()
-        .with_http()
-        .build()
-        .map_err(|error| {
-            ObservabilityInitError::Exporter(OpentelemetryOtlpExporterBuildError::from(error))
-        })?;
-    let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
-        .with_batch_exporter(exporter)
-        .with_resource(
-            opentelemetry_sdk::Resource::builder()
-                .with_service_name(service_name.0)
-                .build(),
-        )
-        .build();
-    let tracer = opentelemetry::trace::TracerProvider::tracer(&tracer_provider, service_name.0);
-    opentelemetry::global::set_tracer_provider(tracer_provider.clone());
-    let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_error| {
-        tracing_subscriber::EnvFilter::new(constants_str::CONFIG_TRACING_INFO)
-    });
-    let init_result = match format {
-        crate::service_tracing_format::ServiceTracingFormat::Json => {
-            tracing_subscriber::util::SubscriberInitExt::try_init(
-                tracing_subscriber::layer::SubscriberExt::with(
-                    tracing_subscriber::layer::SubscriberExt::with(
-                        tracing_subscriber::layer::SubscriberExt::with(
-                            tracing_subscriber::registry(),
-                            filter,
-                        ),
-                        tracing_opentelemetry::layer().with_tracer(tracer),
-                    ),
-                    tracing_subscriber::fmt::layer().json(),
-                ),
-            )
-        }
-        crate::service_tracing_format::ServiceTracingFormat::Text => {
-            tracing_subscriber::util::SubscriberInitExt::try_init(
-                tracing_subscriber::layer::SubscriberExt::with(
-                    tracing_subscriber::layer::SubscriberExt::with(
-                        tracing_subscriber::layer::SubscriberExt::with(
-                            tracing_subscriber::registry(),
-                            filter,
-                        ),
-                        tracing_opentelemetry::layer().with_tracer(tracer),
-                    ),
-                    tracing_subscriber::fmt::layer(),
-                ),
-            )
-        }
-    };
-    if let Err(error) = init_result {
-        if let Err(shutdown_error) = tracer_provider.shutdown() {
-            tracing::error!(
-                error = %shutdown_error,
-                "OpenTelemetry cleanup after subscriber initialization failure failed"
-            );
-        }
-        return Err(ObservabilityInitError::Subscriber(
-            TracingSubscriberInitError::from(error),
-        ));
-    }
-    Ok(ObservabilityGuard {
-        tracer_provider: Some(OpentelemetrySdkTracerProvider::from(tracer_provider)),
-    })
-}
+pub use init_service_observability::init_service_observability;
+pub use observability_guard::ObservabilityGuard;
+pub use observability_init_error::ObservabilityInitError;
+pub use opentelemetry_otlp_exporter_build_error::OpentelemetryOtlpExporterBuildError;
+pub use opentelemetry_sdk_observability_shutdown_error::OpentelemetrySdkObservabilityShutdownError;
+use opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider;
+pub use service_name::ServiceName;
+pub use tracing_subscriber_init_error::TracingSubscriberInitError;
 
 #[cfg(test)]
 mod tests {

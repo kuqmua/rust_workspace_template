@@ -11,11 +11,11 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+constants_i32 = { workspace = true }
+constants_i64 = { workspace = true }
 constants_usize = { workspace = true }
 constants_u8 = { workspace = true }
 constants_u64 = { workspace = true }
-constants_i32 = { workspace = true }
-constants_i64 = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 server_observability = { workspace = true }

@@ -7,7 +7,7 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, ElementChild};
 )]
 pub(in crate::domain_types::start) fn AdminPagination(
     action: server_admin_contract::domain_types::AdminFrontendPath,
-    query: super::query::AdminCsrQuery,
+    query: super::admin_csr_query::AdminCsrQuery,
     total: server_admin_contract::domain_types::AdminPageTotal,
 ) -> impl leptos::prelude::IntoView {
     let range = crate::domain_types::shared::pagination::admin_page_range::AdminPageRange::new(
@@ -18,28 +18,28 @@ pub(in crate::domain_types::start) fn AdminPagination(
     let total_value = u64::from(total);
     let limit = u16::from(query.limit).to_string();
     let page_size_query =
-        crate::domain_types::shared::table_filters::query::admin_table_query_hidden_inputs(
+        crate::domain_types::shared::table_filters::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
             &query.search,
             &query.sort,
-            &crate::domain_types::shared::table_filters::query::AdminTableQueryDirection::Csr(
+            &crate::domain_types::shared::table_filters::admin_table_query_direction::AdminTableQueryDirection::Csr(
                 query.direction.clone(),
             ),
             query.limit,
         );
     let previous_query =
-        crate::domain_types::shared::table_filters::query::admin_table_query_hidden_inputs(
+        crate::domain_types::shared::table_filters::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
             &query.search,
             &query.sort,
-            &crate::domain_types::shared::table_filters::query::AdminTableQueryDirection::Csr(
+            &crate::domain_types::shared::table_filters::admin_table_query_direction::AdminTableQueryDirection::Csr(
                 query.direction.clone(),
             ),
             query.limit,
         );
     let next_query =
-        crate::domain_types::shared::table_filters::query::admin_table_query_hidden_inputs(
+        crate::domain_types::shared::table_filters::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
             &query.search,
             &query.sort,
-            &crate::domain_types::shared::table_filters::query::AdminTableQueryDirection::Csr(
+            &crate::domain_types::shared::table_filters::admin_table_query_direction::AdminTableQueryDirection::Csr(
                 query.direction,
             ),
             query.limit,

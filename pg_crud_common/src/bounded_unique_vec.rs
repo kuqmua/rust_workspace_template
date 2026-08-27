@@ -1,148 +1,17 @@
-const SERDE_PREALLOC_MAX_ITEMS: usize = 1024usize;
+#[path = "bounded_unique_vec/bounded_unique_vec.rs"]
+mod bounded_unique_vec;
+#[path = "bounded_unique_vec/bounded_unique_vec_visitor_phantom_data.rs"]
+mod bounded_unique_vec_visitor_phantom_data;
+#[path = "bounded_unique_vec/serde_prealloc_max_items.rs"]
+mod serde_prealloc_max_items;
+#[path = "bounded_unique_vec/unique_vec_error.rs"]
+mod unique_vec_error;
+#[path = "bounded_unique_vec/unique_vec_len.rs"]
+mod unique_vec_len;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::Display,
-    newtype::FromInner,
-)]
-pub struct UniqueVecLen(usize);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum UniqueVecError {
-    #[error("{} {max}", constants_str::BOUNDED_UNIQUE_VEC_ABOVE_MAX)]
-    AboveMax { max: UniqueVecLen },
-    #[error("{}: {actual} < {min}", constants_str::BOUNDED_UNIQUE_VEC_BELOW_MIN)]
-    BelowMin {
-        actual: UniqueVecLen,
-        min: UniqueVecLen,
-    },
-    #[error("{}", constants_str::BOUNDED_UNIQUE_VEC_DUPLICATE)]
-    Duplicate,
-    #[error("{}: {min} > {max}", constants_str::BOUNDED_UNIQUE_VEC_INVALID_BOUNDS)]
-    InvalidBounds {
-        min: UniqueVecLen,
-        max: UniqueVecLen,
-    },
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    serde::Serialize,
-    newtype::AsRefTarget,
-)]
-#[serde(transparent)]
-pub struct BoundedUniqueVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
-impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
-    for BoundedUniqueVec<T, MIN, MAX>
-{
-    type Error = UniqueVecError;
-    fn try_from(values: Vec<T>) -> Result<Self, Self::Error> {
-        let bounded_values =
-            bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::try_from(values)
-                .map_err(UniqueVecError::from)?
-                .into_inner();
-        if bounded_values.iter().enumerate().any(|(idx, item)| {
-            bounded_values
-                .get(..idx)
-                .is_some_and(|seen| seen.contains(item))
-        }) {
-            return Err(Self::Error::Duplicate);
-        }
-        Ok(Self(bounded_values))
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct BoundedUniqueVecVisitorPhantomData<T, const MIN: usize, const MAX: usize>(
-    std::marker::PhantomData<T>,
-);
-impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: usize>
-    serde::de::Visitor<'de> for BoundedUniqueVecVisitorPhantomData<T, MIN, MAX>
-{
-    type Value = BoundedUniqueVec<T, MIN, MAX>;
-    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(constants_str::BOUNDED_UNIQUE_VEC_EXPECTING)
-    }
-    fn visit_seq<Access>(self, mut seq: Access) -> Result<Self::Value, Access::Error>
-    where
-        Access: serde::de::SeqAccess<'de>,
-    {
-        bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::validate_bounds()
-            .map_err(UniqueVecError::from)
-            .map_err(serde::de::Error::custom)?;
-        let mut values = Vec::with_capacity(
-            seq.size_hint()
-                .unwrap_or(constants_usize::ZERO)
-                .min(MAX)
-                .min(SERDE_PREALLOC_MAX_ITEMS),
-        );
-        loop {
-            if values.len() == MAX {
-                return seq.next_element::<serde::de::IgnoredAny>()?.map_or_else(
-                    || BoundedUniqueVec::try_from(values).map_err(serde::de::Error::custom),
-                    |_ignored| {
-                        Err(serde::de::Error::custom(UniqueVecError::AboveMax {
-                            max: MAX.into(),
-                        }))
-                    },
-                );
-            }
-            let Some(item) = seq.next_element::<T>()? else {
-                return BoundedUniqueVec::try_from(values).map_err(serde::de::Error::custom);
-            };
-            if values.contains(&item) {
-                return Err(serde::de::Error::custom(UniqueVecError::Duplicate));
-            }
-            values.push(item);
-        }
-    }
-}
-impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: usize>
-    serde::Deserialize<'de> for BoundedUniqueVec<T, MIN, MAX>
-{
-    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
-    where
-        Deserializer: serde::Deserializer<'de>,
-    {
-        deserializer.deserialize_seq(BoundedUniqueVecVisitorPhantomData::from(
-            std::marker::PhantomData,
-        ))
-    }
-}
-impl From<bounded_types::domain_types::BoundedValueError> for UniqueVecError {
-    fn from(value: bounded_types::domain_types::BoundedValueError) -> Self {
-        match value {
-            bounded_types::domain_types::BoundedValueError::AboveMax { max, .. } => {
-                Self::AboveMax {
-                    max: UniqueVecLen::from(max.get()),
-                }
-            }
-            bounded_types::domain_types::BoundedValueError::BelowMin { actual, min } => {
-                Self::BelowMin {
-                    actual: UniqueVecLen::from(actual.get()),
-                    min: UniqueVecLen::from(min.get()),
-                }
-            }
-            bounded_types::domain_types::BoundedValueError::InvalidBounds { min, max } => {
-                Self::InvalidBounds {
-                    min: UniqueVecLen::from(min.get()),
-                    max: UniqueVecLen::from(max.get()),
-                }
-            }
-        }
-    }
-}
+pub use bounded_unique_vec::BoundedUniqueVec;
+pub use unique_vec_error::UniqueVecError;
+pub use unique_vec_len::UniqueVecLen;
 
 #[cfg(test)]
 mod tests {

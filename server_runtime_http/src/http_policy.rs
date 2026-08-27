@@ -1,187 +1,48 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "HTTP policy types stay grouped with their corresponding resolver functions"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpAuthorizationHeaderTextRef<'value_lt>(Option<&'value_lt str>);
+#[path = "http_policy/bearer_authorization_resolution.rs"]
+mod bearer_authorization_resolution;
+#[path = "http_policy/classify_optional_json_content_type.rs"]
+mod classify_optional_json_content_type;
+#[path = "http_policy/cookie_resolution.rs"]
+mod cookie_resolution;
+#[path = "http_policy/http_authorization_header_text_ref.rs"]
+mod http_authorization_header_text_ref;
+#[path = "http_policy/http_bearer_token_ref.rs"]
+mod http_bearer_token_ref;
+#[path = "http_policy/http_content_type_text_ref.rs"]
+mod http_content_type_text_ref;
+#[path = "http_policy/http_cookie_headers_ref.rs"]
+mod http_cookie_headers_ref;
+#[path = "http_policy/http_cookie_name_ref.rs"]
+mod http_cookie_name_ref;
+#[path = "http_policy/http_cookie_value_ref.rs"]
+mod http_cookie_value_ref;
+#[path = "http_policy/optional_json_body_presence.rs"]
+mod optional_json_body_presence;
+#[path = "http_policy/optional_json_content_type.rs"]
+mod optional_json_content_type;
+#[path = "http_policy/optional_json_content_type_decision.rs"]
+mod optional_json_content_type_decision;
+#[path = "http_policy/resolve_bearer_authorization.rs"]
+mod resolve_bearer_authorization;
+#[path = "http_policy/resolve_unique_cookie.rs"]
+mod resolve_unique_cookie;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Eq,
-    PartialEq,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
-impl std::fmt::Debug for HttpBearerTokenRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum BearerAuthorizationResolution<'value_lt> {
-    Invalid,
-    Missing,
-    Resolved(HttpBearerTokenRef<'value_lt>),
-}
-#[must_use]
-pub fn resolve_bearer_authorization(
-    header: HttpAuthorizationHeaderTextRef<'_>,
-) -> BearerAuthorizationResolution<'_> {
-    let Some(value) = header.0 else {
-        return BearerAuthorizationResolution::Missing;
-    };
-    if value.len() > 4096usize {
-        return BearerAuthorizationResolution::Invalid;
-    }
-    let Some((scheme, token)) = value.split_once(' ') else {
-        return BearerAuthorizationResolution::Invalid;
-    };
-    if !scheme.eq_ignore_ascii_case(constants_str::BEARER)
-        || token.is_empty()
-        || token.contains(char::is_whitespace)
-    {
-        BearerAuthorizationResolution::Invalid
-    } else {
-        BearerAuthorizationResolution::Resolved(HttpBearerTokenRef::from(token))
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpCookieHeadersRef<'value_lt>(&'value_lt http::HeaderMap);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpCookieNameRef<'value_lt>(&'value_lt str);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Eq,
-    PartialEq,
-    newtype::AsRefInner,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct HttpCookieValueRef<'value_lt>(&'value_lt str);
-impl std::fmt::Debug for HttpCookieValueRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CookieResolution<'value_lt> {
-    Invalid,
-    Missing,
-    Resolved(HttpCookieValueRef<'value_lt>),
-}
-#[must_use]
-pub fn resolve_unique_cookie<'value_lt>(
-    headers: HttpCookieHeadersRef<'value_lt>,
-    name: HttpCookieNameRef<'_>,
-) -> CookieResolution<'value_lt> {
-    let mut header_values = headers.0.get_all(http::header::COOKIE).iter();
-    let Some(header) = header_values.next() else {
-        return CookieResolution::Missing;
-    };
-    if header_values.next().is_some() {
-        return CookieResolution::Invalid;
-    }
-    let Ok(text) = header.to_str() else {
-        return CookieResolution::Invalid;
-    };
-    if text.len() > 4096usize {
-        return CookieResolution::Invalid;
-    }
-    match text.split(';').try_fold(
-        (constants_usize::ZERO, None),
-        |(pair_count, found), pair| {
-            if pair_count == 128usize {
-                return std::ops::ControlFlow::Break(());
-            }
-            let Some((pair_name, value)) = pair.trim().split_once('=') else {
-                return std::ops::ControlFlow::Continue((
-                    pair_count.saturating_add(constants_usize::ONE),
-                    found,
-                ));
-            };
-            if pair_name != name.0 {
-                return std::ops::ControlFlow::Continue((
-                    pair_count.saturating_add(constants_usize::ONE),
-                    found,
-                ));
-            }
-            if found.is_some() {
-                std::ops::ControlFlow::Break(())
-            } else {
-                std::ops::ControlFlow::Continue((
-                    pair_count.saturating_add(constants_usize::ONE),
-                    Some(value),
-                ))
-            }
-        },
-    ) {
-        std::ops::ControlFlow::Break(()) => CookieResolution::Invalid,
-        std::ops::ControlFlow::Continue((_pair_count, Some(value))) => {
-            CookieResolution::Resolved(HttpCookieValueRef::from(value))
-        }
-        std::ops::ControlFlow::Continue((_pair_count, None)) => CookieResolution::Missing,
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpContentTypeTextRef<'value_lt>(Option<&'value_lt str>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum OptionalJsonContentType {
-    ApplicationJson,
-    Missing,
-    NonJson,
-}
-#[must_use]
-pub fn classify_optional_json_content_type(
-    value: HttpContentTypeTextRef<'_>,
-) -> OptionalJsonContentType {
-    let Some(text) = value.0.map(str::trim).filter(|text| !text.is_empty()) else {
-        return OptionalJsonContentType::Missing;
-    };
-    if text.len() > 4096usize {
-        return OptionalJsonContentType::NonJson;
-    }
-    if text
-        .parse::<mime::Mime>()
-        .is_ok_and(|media_type| media_type.essence_str() == constants_str::APPLICATION_JSON)
-    {
-        OptionalJsonContentType::ApplicationJson
-    } else {
-        OptionalJsonContentType::NonJson
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum OptionalJsonBodyPresence {
-    Empty,
-    NonEmpty,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum OptionalJsonContentTypeDecision {
-    Accept,
-    RejectUnsupportedMediaType,
-}
-#[must_use]
-pub const fn optional_json_content_type_decision(
-    body: OptionalJsonBodyPresence,
-    content_type: OptionalJsonContentType,
-) -> OptionalJsonContentTypeDecision {
-    match (body, content_type) {
-        (_, OptionalJsonContentType::ApplicationJson)
-        | (OptionalJsonBodyPresence::Empty, OptionalJsonContentType::Missing) => {
-            OptionalJsonContentTypeDecision::Accept
-        }
-        _ => OptionalJsonContentTypeDecision::RejectUnsupportedMediaType,
-    }
-}
+pub use bearer_authorization_resolution::BearerAuthorizationResolution;
+pub use classify_optional_json_content_type::classify_optional_json_content_type;
+pub use cookie_resolution::CookieResolution;
+pub use http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef;
+pub use http_bearer_token_ref::HttpBearerTokenRef;
+pub use http_content_type_text_ref::HttpContentTypeTextRef;
+pub use http_cookie_headers_ref::HttpCookieHeadersRef;
+pub use http_cookie_name_ref::HttpCookieNameRef;
+pub use http_cookie_value_ref::HttpCookieValueRef;
+pub use optional_json_body_presence::OptionalJsonBodyPresence;
+pub use optional_json_content_type::OptionalJsonContentType;
+pub use optional_json_content_type_decision::{
+    OptionalJsonContentTypeDecision, optional_json_content_type_decision,
+};
+pub use resolve_bearer_authorization::resolve_bearer_authorization;
+pub use resolve_unique_cookie::resolve_unique_cookie;
 
 #[cfg(test)]
 mod tests {

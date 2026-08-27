@@ -127,7 +127,7 @@ fn rejects_scaffold_text_over_size_limit() {
         vec![b'x'; constants_usize::VALUE_16_777_216.saturating_add(constants_usize::ONE)],
     )
     .expect("d97e30ac rejects_scaffold_text_over_size_limit invariant must hold");
-    let result = crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(
+    let result = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
         super::ScaffoldPathRef::from(path.as_path()),
     );
     assert!(

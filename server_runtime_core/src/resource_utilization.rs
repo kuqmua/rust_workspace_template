@@ -1,147 +1,37 @@
-const CRITICAL_PERCENT: u8 = 85u8;
-const REJECT_NON_ESSENTIAL_WRITES_PERCENT: u8 = 95u8;
-const WARNING_PERCENT: u8 = 70u8;
+#[path = "resource_utilization/calculate_resource_utilization.rs"]
+mod calculate_resource_utilization;
+#[path = "resource_utilization/critical_percent.rs"]
+mod critical_percent;
+#[path = "resource_utilization/reject_non_essential_writes_percent.rs"]
+mod reject_non_essential_writes_percent;
+#[path = "resource_utilization/resource_amount.rs"]
+mod resource_amount;
+#[path = "resource_utilization/resource_utilization.rs"]
+mod resource_utilization;
+#[path = "resource_utilization/resource_utilization_error.rs"]
+mod resource_utilization_error;
+#[path = "resource_utilization/resource_utilization_known_percent.rs"]
+mod resource_utilization_known_percent;
+#[path = "resource_utilization/resource_utilization_percent.rs"]
+mod resource_utilization_percent;
+#[path = "resource_utilization/resource_utilization_percent_try_from_u8_error.rs"]
+mod resource_utilization_percent_try_from_u8_error;
+#[path = "resource_utilization/resource_utilization_status.rs"]
+mod resource_utilization_status;
+#[path = "resource_utilization/warning_percent.rs"]
+mod warning_percent;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    Ord,
-    PartialOrd,
-    newtype::FromInner,
-)]
-pub struct ResourceAmount(u64);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    Ord,
-    PartialOrd,
-    newtype::GetInner,
-    newtype::TryFrom,
-)]
-#[try_from(
-    error = ResourceUtilizationPercentTryFromU8Error,
-    validator = ResourceUtilizationPercent::validate
-)]
-pub struct ResourceUtilizationPercent(u8);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-enum ResourceUtilizationKnownPercent {
-    Max,
-}
-impl From<ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
-    fn from(value: ResourceUtilizationKnownPercent) -> Self {
-        match value {
-            ResourceUtilizationKnownPercent::Max => Self(100u8),
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{self:?}")]
-pub struct ResourceUtilizationPercentTryFromU8Error;
-
-impl ResourceUtilizationPercent {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &u8) -> Result<(), ResourceUtilizationPercentTryFromU8Error> {
-        if *value <= 100u8 {
-            Ok(())
-        } else {
-            Err(ResourceUtilizationPercentTryFromU8Error)
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ResourceUtilizationStatus {
-    Critical,
-    Ok,
-    RejectNonEssentialWrites,
-    Warning,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum ResourceUtilizationError {
-    #[error(
-        "{}",
-        constants_str::RESOURCE_UTILIZATION_MAXIMUM_MUST_BE_GREATER_THAN_ZERO
-    )]
-    ZeroMaximum,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-pub struct ResourceUtilization {
-    maximum: ResourceAmount,
-    used: ResourceAmount,
-    percent: ResourceUtilizationPercent,
-    status: ResourceUtilizationStatus,
-}
-
-impl ResourceUtilization {
-    #[must_use]
-    pub const fn maximum(self) -> ResourceAmount {
-        self.maximum
-    }
-
-    #[must_use]
-    pub const fn percent(self) -> ResourceUtilizationPercent {
-        self.percent
-    }
-
-    #[must_use]
-    pub const fn status(self) -> ResourceUtilizationStatus {
-        self.status
-    }
-
-    #[must_use]
-    pub const fn used(self) -> ResourceAmount {
-        self.used
-    }
-}
-
-pub fn calculate_resource_utilization(
-    used: ResourceAmount,
-    maximum: ResourceAmount,
-) -> Result<ResourceUtilization, ResourceUtilizationError> {
-    if maximum.0 == constants_u64::ZERO {
-        return Err(ResourceUtilizationError::ZeroMaximum);
-    }
-    let percent_u128 = u128::from(used.0)
-        .saturating_mul(100u128)
-        .div_euclid(u128::from(maximum.0))
-        .min(100u128);
-    let percent_u8 = u8::try_from(percent_u128).unwrap_or(100u8);
-    let percent = ResourceUtilizationPercent::try_from(percent_u8).unwrap_or_else(|_error| {
-        ResourceUtilizationPercent::from(ResourceUtilizationKnownPercent::Max)
-    });
-    let status = match percent.0 {
-        REJECT_NON_ESSENTIAL_WRITES_PERCENT..=u8::MAX => {
-            ResourceUtilizationStatus::RejectNonEssentialWrites
-        }
-        CRITICAL_PERCENT..REJECT_NON_ESSENTIAL_WRITES_PERCENT => {
-            ResourceUtilizationStatus::Critical
-        }
-        WARNING_PERCENT..CRITICAL_PERCENT => ResourceUtilizationStatus::Warning,
-        constants_u8::ZERO..WARNING_PERCENT => ResourceUtilizationStatus::Ok,
-    };
-    Ok(ResourceUtilization {
-        maximum,
-        used,
-        percent,
-        status,
-    })
-}
+pub use calculate_resource_utilization::calculate_resource_utilization;
+use critical_percent::CRITICAL_PERCENT;
+use reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT;
+pub use resource_amount::ResourceAmount;
+pub use resource_utilization::ResourceUtilization;
+pub use resource_utilization_error::ResourceUtilizationError;
+use resource_utilization_known_percent::ResourceUtilizationKnownPercent;
+pub use resource_utilization_percent::ResourceUtilizationPercent;
+pub use resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error;
+pub use resource_utilization_status::ResourceUtilizationStatus;
+use warning_percent::WARNING_PERCENT;
 
 #[cfg(test)]
 mod tests {

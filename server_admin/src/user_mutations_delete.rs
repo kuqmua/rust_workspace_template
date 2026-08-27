@@ -20,13 +20,13 @@ pub(in crate::domain_types::auth) async fn user_mutations_delete(
         .begin()
         .await
         .map_err(super::super::AdminError::from)?;
-    crate::adapters::repository::roles::lock_last_admin(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::roles::lock_last_admin(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
     )
     .await
     .map_err(super::super::AdminError::from)?;
-    let last_admin_state = crate::adapters::repository::roles::read_last_admin_state(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    let last_admin_state = crate::repository::roles::read_last_admin_state(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
     )
     .await

@@ -1,39 +1,16 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct JsonFixtureRef<'fixture_lt>(&'fixture_lt str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct SerdeJsonError(serde_json::Error);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum ContractError {
-    #[error("fixture JSON deserialization failed: {0}")]
-    DeserializeFixture(SerdeJsonError),
-    #[error("round-trip JSON deserialization failed: {0}")]
-    DeserializeRoundTrip(SerdeJsonError),
-    #[error("JSON serialization failed: {0}")]
-    Serialize(SerdeJsonError),
-    #[error("round-trip value differs from fixture value")]
-    ValueMismatch,
-}
-pub fn ensure_json_contract_round_trip<Value>(
-    fixture: JsonFixtureRef<'_>,
-) -> Result<(), ContractError>
-where
-    Value: Eq + serde::Serialize + serde::de::DeserializeOwned,
-{
-    let fixture_value = serde_json::from_str::<Value>(fixture.0)
-        .map_err(|error| ContractError::DeserializeFixture(SerdeJsonError::from(error)))?;
-    let serialized = serde_json::to_string(&fixture_value)
-        .map_err(|error| ContractError::Serialize(SerdeJsonError::from(error)))?;
-    let round_trip_value = serde_json::from_str::<Value>(serialized.as_str())
-        .map_err(|error| ContractError::DeserializeRoundTrip(SerdeJsonError::from(error)))?;
-    if fixture_value == round_trip_value {
-        Ok(())
-    } else {
-        Err(ContractError::ValueMismatch)
-    }
-}
+#[path = "json_contract/contract_error.rs"]
+mod contract_error;
+#[path = "json_contract/ensure_json_contract_round_trip.rs"]
+mod ensure_json_contract_round_trip;
+#[path = "json_contract/json_fixture_ref.rs"]
+mod json_fixture_ref;
+#[path = "json_contract/serde_json_error.rs"]
+mod serde_json_error;
+
+pub use contract_error::ContractError;
+pub use ensure_json_contract_round_trip::ensure_json_contract_round_trip;
+pub use json_fixture_ref::JsonFixtureRef;
+pub use serde_json_error::SerdeJsonError;
 #[cfg(test)]
 mod tests {
     #[derive(

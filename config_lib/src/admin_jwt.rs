@@ -1,89 +1,16 @@
-const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
-const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
+#[path = "admin_jwt/admin_jwt_secret.rs"]
+mod admin_jwt_secret;
+#[path = "admin_jwt/admin_jwt_secret_max_count.rs"]
+mod admin_jwt_secret_max_count;
+#[path = "admin_jwt/admin_jwt_secret_min_len.rs"]
+mod admin_jwt_secret_min_len;
+#[path = "admin_jwt/try_from_std_env_var_ok_admin_jwt_secret_error.rs"]
+mod try_from_std_env_var_ok_admin_jwt_secret_error;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
-    newtype::AsRefOwned,
-    newtype::DebugRedacted,
-    newtype::FromInner,
-)]
-pub struct AdminJwtSecret(
-    bounded_types::domain_types::vector::BoundedVec<
-        super::SecrecySecretBoxString,
-        1,
-        ADMIN_JWT_SECRET_MAX_COUNT,
-    >,
-);
-
-impl AdminJwtSecret {
-    #[must_use]
-    pub fn primary(&self) -> Option<&super::SecrecySecretBoxString> {
-        self.0.first()
-    }
-
-    #[must_use]
-    pub const fn verification_secrets(&self) -> &[super::SecrecySecretBoxString] {
-        self.0.as_slice()
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
-)]
-pub enum TryFromStdEnvVarOkAdminJwtSecretError {
-    #[error("administrator JWT secret list must not be empty")]
-    Empty,
-    #[error("administrator JWT secret list contains an empty entry")]
-    EmptyEntry,
-    #[error(
-        "administrator JWT secret list must contain at most {ADMIN_JWT_SECRET_MAX_COUNT} entries"
-    )]
-    TooMany,
-    #[error("administrator JWT secret must contain at least {ADMIN_JWT_SECRET_MIN_LEN} bytes")]
-    TooShort,
-    #[error("administrator JWT secret is too long")]
-    TooLong,
-}
-
-impl super::TryFromStdEnvVarOk for AdminJwtSecret {
-    type Error = TryFromStdEnvVarOkAdminJwtSecretError;
-
-    fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        if v.0.split(',').map(str::trim).all(str::is_empty) {
-            return Err(Self::Error::Empty);
-        }
-        let raw_secrets = v.0.split(',').map(str::trim);
-        let raw_secret_count = raw_secrets.clone().count();
-        if raw_secret_count > ADMIN_JWT_SECRET_MAX_COUNT {
-            return Err(Self::Error::TooMany);
-        }
-        let secrets = raw_secrets
-            .into_iter()
-            .map(|value| {
-                if value.is_empty() {
-                    Err(Self::Error::EmptyEntry)
-                } else if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
-                    Err(Self::Error::TooShort)
-                } else {
-                    super::SecrecySecretBoxString::try_from(value.to_owned())
-                        .map_err(|_error| Self::Error::TooLong)
-                }
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        bounded_types::domain_types::vector::BoundedVec::try_from(secrets)
-            .map(Self)
-            .map_err(|error| match error {
-                bounded_types::domain_types::BoundedValueError::BelowMin { .. } => {
-                    Self::Error::Empty
-                }
-                bounded_types::domain_types::BoundedValueError::AboveMax { .. }
-                | bounded_types::domain_types::BoundedValueError::InvalidBounds { .. } => {
-                    Self::Error::TooMany
-                }
-            })
-    }
-}
+pub use admin_jwt_secret::{AdminJwtSecret, AdminJwtSecretProvider};
+use admin_jwt_secret_max_count::ADMIN_JWT_SECRET_MAX_COUNT;
+use admin_jwt_secret_min_len::ADMIN_JWT_SECRET_MIN_LEN;
+pub use try_from_std_env_var_ok_admin_jwt_secret_error::TryFromStdEnvVarOkAdminJwtSecretError;
 
 #[cfg(test)]
 mod tests {

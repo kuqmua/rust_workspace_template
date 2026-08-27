@@ -1,200 +1,37 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteContractMismatch {
-    Method {
-        expected: frontend_contract::domain_types::ContractStr,
-        observed: frontend_contract::domain_types::ContractStr,
-    },
-    OpenApiOperationId {
-        expected: frontend_contract::domain_types::ContractStr,
-        observed: frontend_contract::domain_types::ContractStr,
-    },
-    Path {
-        expected: frontend_contract::domain_types::ContractStr,
-        observed: frontend_contract::domain_types::ContractStr,
-    },
-}
+#[path = "route_contract_validation/http_contract_body.rs"]
+mod http_contract_body;
+#[path = "route_contract_validation/http_contract_body_kind.rs"]
+mod http_contract_body_kind;
+#[path = "route_contract_validation/http_contract_expectation.rs"]
+mod http_contract_expectation;
+#[path = "route_contract_validation/http_contract_mismatch.rs"]
+mod http_contract_mismatch;
+#[path = "route_contract_validation/http_contract_observation.rs"]
+mod http_contract_observation;
+#[path = "route_contract_validation/http_contract_status.rs"]
+mod http_contract_status;
+#[path = "route_contract_validation/route_contract_mismatch.rs"]
+mod route_contract_mismatch;
+#[path = "route_contract_validation/route_contract_mismatches.rs"]
+mod route_contract_mismatches;
+#[path = "route_contract_validation/run_http_contract_fixture.rs"]
+mod run_http_contract_fixture;
+#[path = "route_contract_validation/validate_route_contract_metadata.rs"]
+mod validate_route_contract_metadata;
+#[path = "route_contract_validation/validate_typed_route_contract.rs"]
+mod validate_typed_route_contract;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub struct RouteContractMismatches(
-    bounded_types::domain_types::vector::BoundedVec<RouteContractMismatch, 0, { usize::MAX }>,
-);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
-)]
-#[try_from(
-    error = frontend_contract::domain_types::HttpStatusTryFromU16Error,
-    validator = HttpContractStatus::validate
-)]
-pub struct HttpContractStatus(u16);
-impl HttpContractStatus {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    fn validate(
-        value: &u16,
-    ) -> Result<(), frontend_contract::domain_types::HttpStatusTryFromU16Error> {
-        if (100u16..1_000u16).contains(value) {
-            Ok(())
-        } else {
-            Err(frontend_contract::domain_types::HttpStatusTryFromU16Error)
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct HttpContractBody(
-    bounded_types::domain_types::vector::BoundedVec<
-        u8,
-        0,
-        { frontend_contract::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES },
-    >,
-);
-impl TryFrom<Vec<u8>> for HttpContractBody {
-    type Error = frontend_contract::domain_types::FrontendContractBodyError;
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
-            .map(Self)
-            .map_err(frontend_contract::domain_types::FrontendContractBodyError::from)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum HttpContractBodyKind {
-    Empty,
-    Json,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct HttpContractObservation {
-    body: HttpContractBody,
-    metadata: frontend_contract::domain_types::RouteMetadata,
-    status: HttpContractStatus,
-}
-impl HttpContractObservation {
-    #[must_use]
-    pub const fn new(
-        metadata: frontend_contract::domain_types::RouteMetadata,
-        status: HttpContractStatus,
-        body: HttpContractBody,
-    ) -> Self {
-        Self {
-            body,
-            metadata,
-            status,
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-pub struct HttpContractExpectation {
-    metadata: frontend_contract::domain_types::RouteMetadata,
-    status: HttpContractStatus,
-    body_kind: HttpContractBodyKind,
-}
-impl HttpContractExpectation {
-    #[must_use]
-    pub const fn new(
-        metadata: frontend_contract::domain_types::RouteMetadata,
-        status: HttpContractStatus,
-        body_kind: HttpContractBodyKind,
-    ) -> Self {
-        Self {
-            metadata,
-            status,
-            body_kind,
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub enum HttpContractMismatch {
-    BodyExpectedEmpty,
-    BodyExpectedJson,
-    Metadata(RouteContractMismatches),
-    Status {
-        expected: HttpContractStatus,
-        observed: HttpContractStatus,
-    },
-}
-
-pub async fn run_http_contract_fixture<Send, SendFuture>(
-    expectation: HttpContractExpectation,
-    send: Send,
-) -> Result<(), HttpContractMismatch>
-where
-    Send: FnOnce(frontend_contract::domain_types::RouteMetadata) -> SendFuture,
-    SendFuture: Future<Output = HttpContractObservation>,
-{
-    let observation = send(expectation.metadata).await;
-    validate_route_contract_metadata(expectation.metadata, observation.metadata)
-        .map_err(HttpContractMismatch::Metadata)?;
-    if expectation.status != observation.status {
-        return Err(HttpContractMismatch::Status {
-            expected: expectation.status,
-            observed: observation.status,
-        });
-    }
-    match expectation.body_kind {
-        HttpContractBodyKind::Empty if !observation.body.0.is_empty() => {
-            Err(HttpContractMismatch::BodyExpectedEmpty)
-        }
-        HttpContractBodyKind::Json
-            if serde_json::from_slice::<serde_json::Value>(&observation.body.0).is_err() =>
-        {
-            Err(HttpContractMismatch::BodyExpectedJson)
-        }
-        HttpContractBodyKind::Empty | HttpContractBodyKind::Json => Ok(()),
-    }
-}
-
-pub fn validate_route_contract_metadata(
-    expected: frontend_contract::domain_types::RouteMetadata,
-    observed: frontend_contract::domain_types::RouteMetadata,
-) -> Result<(), RouteContractMismatches> {
-    let mut mismatches = Vec::with_capacity(3usize);
-    if expected.method() != observed.method() {
-        mismatches.push(RouteContractMismatch::Method {
-            expected: expected.method(),
-            observed: observed.method(),
-        });
-    }
-    if expected.openapi_operation_id() != observed.openapi_operation_id() {
-        mismatches.push(RouteContractMismatch::OpenApiOperationId {
-            expected: expected.openapi_operation_id(),
-            observed: observed.openapi_operation_id(),
-        });
-    }
-    if expected.path() != observed.path() {
-        mismatches.push(RouteContractMismatch::Path {
-            expected: expected.path(),
-            observed: observed.path(),
-        });
-    }
-    if mismatches.is_empty() {
-        Ok(())
-    } else {
-        Err(RouteContractMismatches::from(
-            bounded_types::domain_types::vector::BoundedVec::from_max_iter(mismatches),
-        ))
-    }
-}
-
-pub fn validate_typed_route_contract<Route>(
-    observed: frontend_contract::domain_types::RouteMetadata,
-) -> Result<(), RouteContractMismatches>
-where
-    Route: frontend_contract::domain_types::TypedRoute,
-{
-    validate_route_contract_metadata(Route::metadata(), observed)
-}
+pub use http_contract_body::HttpContractBody;
+pub use http_contract_body_kind::HttpContractBodyKind;
+pub use http_contract_expectation::HttpContractExpectation;
+pub use http_contract_mismatch::HttpContractMismatch;
+pub use http_contract_observation::HttpContractObservation;
+pub use http_contract_status::HttpContractStatus;
+pub use route_contract_mismatch::RouteContractMismatch;
+pub use route_contract_mismatches::RouteContractMismatches;
+pub use run_http_contract_fixture::run_http_contract_fixture;
+pub use validate_route_contract_metadata::validate_route_contract_metadata;
+pub use validate_typed_route_contract::validate_typed_route_contract;
 
 #[cfg(test)]
 mod tests {
@@ -245,7 +82,7 @@ mod tests {
             super::validate_typed_route_contract::<ReadRoute>(metadata(
                 frontend_contract::domain_types::RouteMethod::Get,
                 constants_str::ROUTE_READ,
-                constants_str::ROUTE,
+                constants_str::ROUTE
             )),
             Ok(())
         );

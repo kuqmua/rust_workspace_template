@@ -1,126 +1,23 @@
-const DEVELOPMENT_IDENTITY_SPECS_MAX_LEN: usize = 1_024usize;
+#[path = "domain_types/development_identity_count.rs"]
+mod development_identity_count;
+#[path = "domain_types/development_identity_creation_plan.rs"]
+mod development_identity_creation_plan;
+#[path = "domain_types/development_identity_creation_summary.rs"]
+mod development_identity_creation_summary;
+#[path = "domain_types/development_identity_specs.rs"]
+mod development_identity_specs;
+#[path = "domain_types/development_identity_specs_error.rs"]
+mod development_identity_specs_error;
+#[path = "domain_types/development_identity_specs_max_len.rs"]
+mod development_identity_specs_max_len;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::TryFrom,
-)]
-#[try_from(
-    validator = DevelopmentIdentitySpecs::<Login, DisplayName, Role, SecretSource>::validate
-)]
-pub struct DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>(
-    Vec<server_runtime_http::domain_types::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
-);
-
-impl<Login, DisplayName, Role, SecretSource>
-    DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>
-{
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    const fn validate(
-        value: &[server_runtime_http::domain_types::IdentitySpec<
-            Login,
-            DisplayName,
-            Role,
-            SecretSource,
-        >],
-    ) -> Result<(), DevelopmentIdentitySpecsError> {
-        if value.len() > DEVELOPMENT_IDENTITY_SPECS_MAX_LEN {
-            Err(DevelopmentIdentitySpecsError)
-        } else {
-            Ok(())
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{self:?}")]
-pub struct DevelopmentIdentitySpecsError;
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct DevelopmentIdentityCreationPlan<Login, DisplayName, Role, SecretSource> {
-    identities: DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>,
-}
-
-impl<Login, DisplayName, Role, SecretSource>
-    DevelopmentIdentityCreationPlan<Login, DisplayName, Role, SecretSource>
-{
-    #[must_use]
-    pub fn identities(
-        &self,
-    ) -> &[server_runtime_http::domain_types::IdentitySpec<Login, DisplayName, Role, SecretSource>]
-    {
-        self.identities.as_ref()
-    }
-
-    #[must_use]
-    pub const fn new(
-        identities: DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>,
-    ) -> Self {
-        Self { identities }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Default, Eq, PartialEq,
-)]
-pub struct DevelopmentIdentityCreationSummary {
-    already_exists: DevelopmentIdentityCount,
-    create: DevelopmentIdentityCount,
-    missing_role: DevelopmentIdentityCount,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::IntoInnerFrom,
-    newtype::FromInner,
-)]
-pub struct DevelopmentIdentityCount(usize);
-
-impl DevelopmentIdentityCreationSummary {
-    #[must_use]
-    pub const fn already_exists(self) -> DevelopmentIdentityCount {
-        self.already_exists
-    }
-
-    #[must_use]
-    pub const fn create(self) -> DevelopmentIdentityCount {
-        self.create
-    }
-
-    #[must_use]
-    pub const fn missing_role(self) -> DevelopmentIdentityCount {
-        self.missing_role
-    }
-
-    pub(crate) const fn record(
-        &mut self,
-        decision: server_runtime_http::domain_types::IdentityCreationDecision,
-    ) {
-        match decision {
-            server_runtime_http::domain_types::IdentityCreationDecision::AlreadyExists => {
-                self.already_exists.0 = self.already_exists.0.saturating_add(constants_usize::ONE);
-            }
-            server_runtime_http::domain_types::IdentityCreationDecision::Create => {
-                self.create.0 = self.create.0.saturating_add(constants_usize::ONE);
-            }
-            server_runtime_http::domain_types::IdentityCreationDecision::MissingRole => {
-                self.missing_role.0 = self.missing_role.0.saturating_add(constants_usize::ONE);
-            }
-        }
-    }
-}
+pub use development_identity_count::DevelopmentIdentityCount;
+pub use development_identity_creation_plan::DevelopmentIdentityCreationPlan;
+pub use development_identity_creation_summary::DevelopmentIdentityCreationSummary;
+pub use development_identity_specs::DevelopmentIdentitySpecs;
+pub use development_identity_specs_error::DevelopmentIdentitySpecsError;
+#[cfg(test)]
+use development_identity_specs_max_len::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN;
 
 #[cfg(test)]
 mod tests {

@@ -1,88 +1,21 @@
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DerefInner,
-)]
-pub struct MaximumSizeOfHttpBodyInBytes(usize);
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout,
-)]
-pub enum MaximumSizeOfHttpBodyInBytesTryFromUsizeError {
-    #[error("maximum size of http body in bytes must be greater than zero")]
-    IsZero,
-}
-impl TryFrom<usize> for MaximumSizeOfHttpBodyInBytes {
-    type Error = MaximumSizeOfHttpBodyInBytesTryFromUsizeError;
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == 0 {
-            Err(Self::Error::IsZero)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
-pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError {
-    #[error("{maximum_size_of_http_body_in_bytes:?}")]
-    MaximumSizeOfHttpBodyInBytes {
-        maximum_size_of_http_body_in_bytes: MaximumSizeOfHttpBodyInBytesTryFromUsizeError,
-    },
-    #[error("{:?}", .usize_parsing)]
-    UsizeParsing {
-        usize_parsing: super::UsizeParseIntError,
-    },
-}
-impl super::TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
-    type Error = TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError;
-    fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed: usize = super::parse_from_str_with_error(
-            super::StdEnvVarOkRef::from(v.0.as_str()),
-            |usize_parsing| Self::Error::UsizeParsing {
-                usize_parsing: super::UsizeParseIntError::from(usize_parsing),
-            },
-        )?;
-        Self::try_from(parsed).map_err(|maximum_size_of_http_body_in_bytes| {
-            Self::Error::MaximumSizeOfHttpBodyInBytes {
-                maximum_size_of_http_body_in_bytes,
-            }
-        })
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, newtype::AsRefOwned,
-)]
-pub struct ContentSecurityPolicy(String);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
-)]
-pub enum ContentSecurityPolicyError {
-    #[error("content security policy must not be empty")]
-    Empty,
-    #[error("content security policy is too long or contains forbidden line breaks")]
-    Invalid,
-}
-impl TryFrom<String> for ContentSecurityPolicy {
-    type Error = ContentSecurityPolicyError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let trimmed = value.trim();
-        if trimmed.is_empty() {
-            Err(Self::Error::Empty)
-        } else if trimmed.len() > 4096usize || trimmed.contains(['\r', '\n']) {
-            Err(Self::Error::Invalid)
-        } else {
-            Ok(Self(trimmed.to_owned()))
-        }
-    }
-}
-impl super::TryFromStdEnvVarOk for ContentSecurityPolicy {
-    type Error = ContentSecurityPolicyError;
-    fn try_from_std_env_var_ok(v: super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        Self::try_from(v.0)
-    }
-}
+#[path = "http/content_security_policy.rs"]
+mod content_security_policy;
+#[path = "http/content_security_policy_error.rs"]
+mod content_security_policy_error;
+#[path = "http/maximum_size_of_http_body_in_bytes.rs"]
+mod maximum_size_of_http_body_in_bytes;
+#[path = "http/maximum_size_of_http_body_in_bytes_try_from_usize_error.rs"]
+mod maximum_size_of_http_body_in_bytes_try_from_usize_error;
+#[path = "http/try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error.rs"]
+mod try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error;
+
+pub use content_security_policy::ContentSecurityPolicy;
+pub use content_security_policy_error::ContentSecurityPolicyError;
+pub use maximum_size_of_http_body_in_bytes::{
+    MaximumSizeOfHttpBodyInBytes, MaximumSizeOfHttpBodyInBytesProvider,
+};
+pub use maximum_size_of_http_body_in_bytes_try_from_usize_error::MaximumSizeOfHttpBodyInBytesTryFromUsizeError;
+pub use try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError;
 
 #[cfg(test)]
 mod tests {

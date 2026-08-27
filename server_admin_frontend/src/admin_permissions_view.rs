@@ -7,7 +7,7 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 )]
 pub(in crate::domain_types::start) fn AdminPermissionsView(
     page: server_admin_contract::domain_types::AdminPermissionsPage,
-    query: super::query::AdminCsrQuery,
+    query: super::admin_csr_query::AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
     let total = page.total();
     let rows = page.items().iter().map(|item| {
@@ -21,7 +21,7 @@ pub(in crate::domain_types::start) fn AdminPermissionsView(
         <section class="table-page" data-renderer="csr">
             <crate::domain_types::with_owner::tables::table_wrapper::TableWrapper><crate::domain_types::with_owner::tables::table::Table><crate::domain_types::with_owner::tables::table_header::TableHeader><crate::domain_types::with_owner::tables::table_row::TableRow><crate::domain_types::with_owner::tables::table_head::TableHead>"id"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"permission"</crate::domain_types::with_owner::tables::table_head::TableHead></crate::domain_types::with_owner::tables::table_row::TableRow></crate::domain_types::with_owner::tables::table_header::TableHeader>
             <crate::domain_types::with_owner::tables::table_body::TableBody>{rows}</crate::domain_types::with_owner::tables::table_body::TableBody></crate::domain_types::with_owner::tables::table::Table></crate::domain_types::with_owner::tables::table_wrapper::TableWrapper>
-            <super::pagination::AdminPagination action=server_admin_contract::domain_types::AdminFrontendPath::Permissions query=query total=total />
+            <super::admin_pagination::AdminPagination action=server_admin_contract::domain_types::AdminFrontendPath::Permissions query=query total=total />
         </section>
     }
 }

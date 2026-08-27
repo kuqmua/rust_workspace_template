@@ -2,268 +2,38 @@ mod keyword {
     syn::custom_keyword!(constants);
     syn::custom_keyword!(fragments);
 }
-const COLLECTION_MAX_LEN: usize = 10_000usize;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct SynIdent(syn::Ident);
-impl From<syn::Ident> for SynIdent {
-    fn from(value: syn::Ident) -> Self {
-        Self(value)
-    }
-}
+#[path = "domain_types/collection_max_len.rs"]
+mod collection_max_len;
+#[path = "domain_types/constant.rs"]
+mod constant;
+#[path = "domain_types/constant_part.rs"]
+mod constant_part;
+#[path = "domain_types/constant_parts.rs"]
+mod constant_parts;
+#[path = "domain_types/constants.rs"]
+mod constants;
+#[path = "domain_types/define_str_constants_input.rs"]
+mod define_str_constants_input;
+#[path = "domain_types/fragment.rs"]
+mod fragment;
+#[path = "domain_types/fragments.rs"]
+mod fragments;
+#[path = "domain_types/syn_ident.rs"]
+mod syn_ident;
+#[path = "domain_types/syn_lit_str.rs"]
+mod syn_lit_str;
+#[path = "domain_types/syn_visibility.rs"]
+mod syn_visibility;
 
-impl syn::parse::Parse for SynIdent {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input.parse().map(Self)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct SynLitStr(syn::LitStr);
-impl From<syn::LitStr> for SynLitStr {
-    fn from(value: syn::LitStr) -> Self {
-        Self(value)
-    }
-}
-
-impl syn::parse::Parse for SynLitStr {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input.parse().map(Self)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct SynVisibility(syn::Visibility);
-impl From<syn::Visibility> for SynVisibility {
-    fn from(value: syn::Visibility) -> Self {
-        Self(value)
-    }
-}
-
-impl syn::parse::Parse for SynVisibility {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input.parse().map(Self)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct Fragment {
-    name: SynIdent,
-    value: SynLitStr,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) enum ConstantPart {
-    Fragment(SynIdent),
-    Literal(SynLitStr),
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct ConstantParts(Vec<ConstantPart>);
-impl TryFrom<Vec<ConstantPart>> for ConstantParts {
-    type Error = syn::Error;
-    fn try_from(value: Vec<ConstantPart>) -> Result<Self, Self::Error> {
-        if value.len() > COLLECTION_MAX_LEN {
-            Err(syn::Error::new(
-                proc_macro2::Span::call_site(),
-                stringify!(c93f714a too many constant parts),
-            ))
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct Constants(Vec<Constant>);
-impl TryFrom<Vec<Constant>> for Constants {
-    type Error = syn::Error;
-    fn try_from(value: Vec<Constant>) -> Result<Self, Self::Error> {
-        if value.len() > COLLECTION_MAX_LEN {
-            Err(syn::Error::new(
-                proc_macro2::Span::call_site(),
-                stringify!(2bd1b963 too many constants),
-            ))
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct Fragments(Vec<Fragment>);
-#[allow(
-    clippy::useless_concat,
-    reason = "the constants_str generator cannot depend on the crate that it generates"
-)]
-impl TryFrom<Vec<Fragment>> for Fragments {
-    type Error = syn::Error;
-    fn try_from(value: Vec<Fragment>) -> Result<Self, Self::Error> {
-        if value.len() > COLLECTION_MAX_LEN {
-            Err(syn::Error::new(
-                proc_macro2::Span::call_site(),
-                concat!("883ea6b2 too many fragments"),
-            ))
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct Constant {
-    name: SynIdent,
-    parts: ConstantParts,
-    visibility: Option<SynVisibility>,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) struct DefineStrConstantsInput {
-    constants: Constants,
-    fragments: Fragments,
-}
-
-impl syn::parse::Parse for DefineStrConstantsInput {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        let _: keyword::fragments = input.parse()?;
-        let fragment_content;
-        let _ = syn::braced!(fragment_content in input);
-        let mut fragments = Vec::new();
-        while !fragment_content.is_empty() {
-            fragments.push(Fragment {
-                name: fragment_content.parse()?,
-                value: {
-                    let _: syn::Token![=] = fragment_content.parse()?;
-                    fragment_content.parse()?
-                },
-            });
-            let _: syn::Token![;] = fragment_content.parse()?;
-        }
-
-        let _: keyword::constants = input.parse()?;
-        let constant_content;
-        let _ = syn::braced!(constant_content in input);
-        let mut constants = Vec::new();
-        while !constant_content.is_empty() {
-            let visibility = if constant_content.peek(syn::Token![pub]) {
-                Some(constant_content.parse()?)
-            } else {
-                None
-            };
-            let name = constant_content.parse()?;
-            let _: syn::Token![=] = constant_content.parse()?;
-            let part_content;
-            let _ = syn::bracketed!(part_content in constant_content);
-            let parts = part_content
-                .parse_terminated(
-                    |part_input| {
-                        if part_input.peek(syn::LitStr) {
-                            part_input.parse().map(ConstantPart::Literal)
-                        } else {
-                            part_input.parse().map(ConstantPart::Fragment)
-                        }
-                    },
-                    syn::Token![,],
-                )?
-                .into_iter()
-                .collect::<Vec<ConstantPart>>();
-            let _: syn::Token![;] = constant_content.parse()?;
-            constants.push(Constant {
-                name,
-                parts: ConstantParts::try_from(parts)?,
-                visibility,
-            });
-        }
-        if input.is_empty() {
-            Ok(Self {
-                constants: Constants::try_from(constants)?,
-                fragments: Fragments::try_from(fragments)?,
-            })
-        } else {
-            Err(input.error(stringify!(
-                d53e729b unexpected tokens after constants block
-            )))
-        }
-    }
-}
-
-impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
-    fn from(parsed: DefineStrConstantsInput) -> Self {
-        let generated = (|| {
-            let fragment_count = parsed.fragments.0.len();
-            let fragments = parsed.fragments.0.into_iter().try_fold(
-                std::collections::HashMap::with_capacity(fragment_count),
-                |mut fragments, fragment| {
-                    let name = fragment.name.0.to_string();
-                    if fragments.insert(name, fragment.value.0.value()).is_some() {
-                        Err(syn::Error::new(
-                            fragment.name.0.span(),
-                            stringify!(5bbbde57 duplicate string fragment),
-                        ))
-                    } else {
-                        Ok(fragments)
-                    }
-                },
-            )?;
-            let constant_count = parsed.constants.0.len();
-            let (_, _, generated) = parsed.constants.0.into_iter().try_fold(
-                (
-                    std::collections::HashSet::with_capacity(constant_count),
-                    std::collections::HashMap::with_capacity(constant_count),
-                    Vec::with_capacity(constant_count),
-                ),
-                |(mut names, mut values, mut generated), constant| {
-                    if !names.insert(constant.name.0.to_string()) {
-                        return Err(syn::Error::new(
-                            constant.name.0.span(),
-                            stringify!(ad857256 duplicate string constant name),
-                        ));
-                    }
-                    let value = constant.parts.0.into_iter().try_fold(
-                        String::new(),
-                        |mut value, part| match part {
-                            ConstantPart::Fragment(identifier) => {
-                                let Some(fragment) = fragments.get(&identifier.0.to_string())
-                                else {
-                                    return Err(syn::Error::new(
-                                        identifier.0.span(),
-                                        stringify!(bb09ab55 unknown string fragment),
-                                    ));
-                                };
-                                value.push_str(fragment);
-                                Ok(value)
-                            }
-                            ConstantPart::Literal(literal) => {
-                                value.push_str(&literal.0.value());
-                                Ok(value)
-                            }
-                        },
-                    )?;
-                    let literal = syn::LitStr::new(&value, proc_macro2::Span::call_site());
-                    if let Some(previous_name) = values.insert(value, constant.name.0.to_string()) {
-                        return Err(syn::Error::new(
-                            constant.name.0.span(),
-                            format!(
-                                "2370f7b3: string constant duplicates the value of {previous_name}"
-                            ),
-                        ));
-                    }
-                    let name = constant.name.0;
-                    if let Some(visibility) = constant.visibility {
-                        let syn_visibility = visibility.0;
-                        generated.push(quote::quote! {
-                            #syn_visibility const #name: &str = #literal;
-                        });
-                    } else {
-                        generated.push(quote::quote! {
-                            pub const #name: &str = #literal;
-                        });
-                    }
-                    Ok((names, values, generated))
-                },
-            )?;
-            Ok::<Self, syn::Error>(quote::quote! { #(#generated)* })
-        })();
-        match generated {
-            Ok(tokens) => tokens,
-            Err(error) => error.into_compile_error(),
-        }
-    }
-}
+use collection_max_len::COLLECTION_MAX_LEN;
+use constant::Constant;
+use constant_part::ConstantPart;
+use constant_parts::ConstantParts;
+use constants::Constants;
+pub(crate) use define_str_constants_input::DefineStrConstantsInput;
+use fragment::Fragment;
+use fragments::Fragments;
+use syn_ident::SynIdent;
+use syn_lit_str::SynLitStr;
+use syn_visibility::SynVisibility;

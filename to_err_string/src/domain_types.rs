@@ -1,4 +1,26 @@
-const ERROR_TEXT_MAX_LEN: usize = 1_048_576;
+#[path = "as_ref_str_to_owned.rs"]
+mod as_ref_str_to_owned;
+#[path = "debug_to_string.rs"]
+mod debug_to_string;
+#[path = "error_text.rs"]
+mod error_text;
+#[path = "error_text_max_len.rs"]
+mod error_text_max_len;
+#[path = "static_str_to_owned.rs"]
+mod static_str_to_owned;
+#[path = "static_str_to_owned_input.rs"]
+mod static_str_to_owned_input;
+#[path = "to_err_string.rs"]
+mod to_err_string;
+
+use as_ref_str_to_owned::as_ref_str_to_owned;
+use debug_to_string::debug_to_string;
+pub use error_text::{ErrorText, ErrorTextTryFromStringError};
+use error_text_max_len::ERROR_TEXT_MAX_LEN;
+use static_str_to_owned::static_str_to_owned;
+use static_str_to_owned_input::StaticStrToOwnedInput;
+pub use to_err_string::ToErrString;
+
 to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
 #[cfg(not(target_arch = "wasm32"))]
 to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| format!("{v:#?}"));
@@ -30,75 +52,11 @@ to_err_string_macros::impl_to_err_string_with!(
     sqlx::types::BigDecimal
     => |v| v.to_string()
 );
-pub trait ToErrString {
-    fn to_err_string(&self) -> ErrorText;
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Default,
-    PartialEq,
-    Eq,
-    newtype::BoundedString,
-    newtype::AsRefStr,
-    newtype::DerefTarget,
-    newtype::Display,
-    newtype::IntoInner,
-)]
-#[bounded_string(
-    max = ERROR_TEXT_MAX_LEN,
-    serde,
-    description = "error text"
-)]
-pub struct ErrorText(String);
-impl<T> ToErrString for &T
-where
-    T: ToErrString + ?Sized,
-{
-    fn to_err_string(&self) -> ErrorText {
-        (*self).to_err_string()
-    }
-}
-impl<T> ToErrString for Option<T>
-where
-    T: std::fmt::Debug,
-{
-    fn to_err_string(&self) -> ErrorText {
-        debug_to_string(self)
-    }
-}
-impl<T, E> ToErrString for Result<T, E>
-where
-    T: std::fmt::Debug,
-    E: std::fmt::Debug,
-{
-    fn to_err_string(&self) -> ErrorText {
-        debug_to_string(self)
-    }
-}
 to_err_string_macros::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
 to_err_string_macros::impl_to_err_string_const!(
     tracing::dispatcher::SetGlobalDefaultError => constants_str::TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR,
     tracing::log::SetLoggerError => constants_str::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
 );
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-struct StaticStrToOwnedInput(&'static str);
-fn debug_to_string<T>(v: &T) -> ErrorText
-where
-    T: std::fmt::Debug,
-{
-    ErrorText::try_from(format!("{v:?}")).unwrap_or_else(ErrorText::from)
-}
-fn as_ref_str_to_owned<T>(v: &T) -> ErrorText
-where
-    T: ?Sized + AsRef<str>,
-{
-    ErrorText::try_from(v.as_ref().to_owned()).unwrap_or_else(ErrorText::from)
-}
-fn static_str_to_owned(v: StaticStrToOwnedInput) -> ErrorText {
-    ErrorText::try_from(v.0.to_owned()).unwrap_or_else(ErrorText::from)
-}
 #[cfg(test)]
 mod tests {
     fn assert_to_err_string(v: impl super::ToErrString, exp: &str) {

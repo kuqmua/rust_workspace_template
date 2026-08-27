@@ -24,10 +24,8 @@ generate_accessor_traits_for_struct_fields = { workspace = true }
 optimal_memory_layout = { workspace = true }
 config_lib_macros = { workspace = true }
 constants_str = { workspace = true }
-newtype = { workspace = true }
-
-[dev-dependencies]
 constants_usize = { workspace = true }
+newtype = { workspace = true }
 
 [lints]
 workspace = true

@@ -1,0 +1,76 @@
+use super::AdminPermissionStrRef;
+
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::WireEnum,
+    utoipa::ToSchema,
+)]
+#[wire_enum(
+    ref_type = AdminPermissionStrRef,
+    error_message = constants_str::UNKNOWN_ADMINISTRATOR_PERMISSION,
+)]
+pub enum AdminPermission {
+    #[wire("access_sessions:read")]
+    AccessSessionsRead,
+    #[wire("audit_log:export")]
+    AuditLogExport,
+    #[wire("audit_log:read")]
+    AuditLogRead,
+    #[wire("cleanup_status:read")]
+    CleanupStatusRead,
+    #[wire("login_attempts:read")]
+    LoginAttemptsRead,
+    #[wire("metrics:read")]
+    MetricsRead,
+    #[wire("openapi:read")]
+    OpenApiRead,
+    #[wire("permissions:read")]
+    PermissionsRead,
+    #[wire("rate_limits:read")]
+    RateLimitsRead,
+    #[wire("refresh_tokens:read")]
+    RefreshTokensRead,
+    #[wire("role_permissions:create")]
+    RolePermissionsCreate,
+    #[wire("role_permissions:delete")]
+    RolePermissionsDelete,
+    #[wire("role_permissions:read")]
+    RolePermissionsRead,
+    #[wire("role_permissions:update")]
+    RolePermissionsUpdate,
+    #[wire("roles:create")]
+    RolesCreate,
+    #[wire("roles:delete")]
+    RolesDelete,
+    #[wire("roles:read")]
+    RolesRead,
+    #[wire("roles:update")]
+    RolesUpdate,
+    #[wire("system_settings:read")]
+    SystemSettingsRead,
+    #[wire("system_settings:update")]
+    SystemSettingsUpdate,
+    #[wire("tables:read")]
+    TablesRead,
+    #[wire("user_roles:create")]
+    UserRolesCreate,
+    #[wire("user_roles:delete")]
+    UserRolesDelete,
+    #[wire("user_roles:read")]
+    UserRolesRead,
+    #[wire("user_roles:update")]
+    UserRolesUpdate,
+    #[wire("users:create")]
+    UsersCreate,
+    #[wire("users:delete")]
+    UsersDelete,
+    #[wire("users:read")]
+    UsersRead,
+    #[wire("users:update")]
+    UsersUpdate,
+}

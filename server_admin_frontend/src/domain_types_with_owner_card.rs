@@ -1,108 +1,20 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    clippy::field_scoped_visibility_modifiers,
-    clippy::impl_trait_in_params,
-    clippy::missing_const_for_fn,
-    clippy::multiple_inherent_impl,
-    clippy::needless_pass_by_value,
-    clippy::option_if_let_else,
-    clippy::same_name_method,
-    clippy::shadow_reuse,
-    clippy::single_call_fn,
-    clippy::unused_trait_names,
-    reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
-)]
+#[path = "admin_card.rs"]
+mod admin_card;
+#[path = "admin_card_description.rs"]
+mod admin_card_description;
+#[path = "admin_card_footer.rs"]
+mod admin_card_footer;
+#[path = "admin_card_header.rs"]
+mod admin_card_header;
+#[path = "admin_card_title.rs"]
+mod admin_card_title;
+#[path = "admin_card_variant.rs"]
+mod admin_card_variant;
 
-#[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
-#[rustfmt::skip]
-use leptos::prelude::{AddAnyAttr};
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq)]
-pub(crate) enum AdminCardVariant {
-    #[default]
-    Default,
-    #[cfg(not(target_arch = "wasm32"))]
-    Auth,
-    #[cfg(not(target_arch = "wasm32"))]
-    Code,
-    Profile,
-    Security,
-    Settings,
-}
-
-impl AdminCardVariant {
-    fn class(self) -> &'static str {
-        match self {
-            Self::Default => constants_str::VALUE_417CCDBE,
-            #[cfg(not(target_arch = "wasm32"))]
-            Self::Auth => constants_str::VALUE_A8036BFC,
-            #[cfg(not(target_arch = "wasm32"))]
-            Self::Code => constants_str::VALUE_1FDF161B,
-            Self::Profile => constants_str::VALUE_51A2D8C6,
-            Self::Security => constants_str::VALUE_140F31FA,
-            Self::Settings => constants_str::VALUE_48A99713,
-        }
-    }
-}
-
-#[leptos::component]
-#[allow(
-    unreachable_pub,
-    reason = "Leptos component visibility is required for composition across frontend modules"
-)]
-pub(crate) fn AdminCard(
-    #[prop(default = AdminCardVariant::default())] variant: AdminCardVariant,
-    children: leptos::prelude::Children,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! {
-        <singlestage::Card attr:data-name="Card" attr:data-size="default" attr:class=variant.class()>
-            <singlestage::CardContent attr:data-name="CardContent" attr:class="px-6">{children()}</singlestage::CardContent>
-        </singlestage::Card>
-    }
-}
-
-#[leptos::component]
-#[allow(
-    unreachable_pub,
-    reason = "Leptos component visibility is required for card composition"
-)]
-pub(crate) fn AdminCardHeader(
-    children: leptos::prelude::Children,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! { <singlestage::CardHeader attr:data-name="CardHeader">{children()}</singlestage::CardHeader> }
-}
-
-#[leptos::component]
-#[allow(
-    unreachable_pub,
-    reason = "Leptos component visibility is required for card composition"
-)]
-pub(crate) fn AdminCardTitle(
-    #[prop(optional)] class: Option<&'static str>,
-    children: leptos::prelude::Children,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! { <singlestage::CardTitle attr:data-name="CardTitle" class=class.map(String::from)>{children()}</singlestage::CardTitle> }
-}
-
+pub(crate) use admin_card::AdminCard;
 #[cfg(not(target_arch = "wasm32"))]
-#[leptos::component]
-#[allow(
-    unreachable_pub,
-    reason = "Leptos component visibility is required for card composition"
-)]
-pub(crate) fn AdminCardDescription(
-    children: leptos::prelude::Children,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! { <singlestage::CardDescription attr:data-name="CardDescription">{children()}</singlestage::CardDescription> }
-}
-
-#[leptos::component]
-#[allow(
-    unreachable_pub,
-    reason = "Leptos component visibility is required for card composition"
-)]
-pub(crate) fn AdminCardFooter(
-    children: leptos::prelude::Children,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! { <singlestage::CardFooter attr:data-name="CardFooter">{children()}</singlestage::CardFooter> }
-}
+pub(crate) use admin_card_description::AdminCardDescription;
+pub(crate) use admin_card_footer::AdminCardFooter;
+pub(crate) use admin_card_header::AdminCardHeader;
+pub(crate) use admin_card_title::AdminCardTitle;
+pub(crate) use admin_card_variant::AdminCardVariant;

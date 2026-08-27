@@ -83,8 +83,8 @@ pub(super) async fn authn_refresh(
         return Err(super::AdminError::Authentication);
     };
     let admin_user_id = user_id;
-    crate::adapters::repository::revoke_refresh_token::revoke_refresh_token(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::revoke_refresh_token::revoke_refresh_token(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         &token_hash,
         admin_user_id,
     )
@@ -122,7 +122,7 @@ pub(super) async fn authn_refresh(
     .await?;
     let authenticated = super::persistence::load_authenticated_admin_from_db(
         &mut super::persistence::AdminDbRef::Connection(
-            crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+            crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         ),
         admin_user_id,
         session.session_id(),

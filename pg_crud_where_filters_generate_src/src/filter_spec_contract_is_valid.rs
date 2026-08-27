@@ -3,9 +3,9 @@ pub(super) fn filter_spec_contract_is_valid(
     spec: crate::domain_types::spec::FilterSpec,
 ) -> crate::domain_types::spec::FilterSpecValid {
     crate::domain_types::spec::FilterSpecValid::from(
-        crate::domain_types::bind::bind_count_matches(
+        crate::domain_types::bind_count_matches::bind_count_matches(
             spec,
-            crate::domain_types::bind::FilterPlaceholderCount::one(),
+            crate::domain_types::filter_placeholder_count::FilterPlaceholderCount::one(),
         )
         .get()
             && crate::domain_types::schema::schema_uses_text_value::schema_uses_text_value(spec)
@@ -46,9 +46,9 @@ mod tests {
         .into_iter()
         .for_each(|spec| {
             assert!(
-                crate::domain_types::bind::bind_count_matches(
+                crate::domain_types::bind_count_matches::bind_count_matches(
                     spec,
-                    crate::domain_types::bind::FilterPlaceholderCount::one()
+                    crate::domain_types::filter_placeholder_count::FilterPlaceholderCount::one()
                 )
                 .get()
             );

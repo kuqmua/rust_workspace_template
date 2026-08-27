@@ -55,7 +55,7 @@ pub(in crate::domain_types::auth) async fn queries_list_permissions(
         server_admin_contract::domain_types::AdminPermissionsPage::new(
             permissions,
             super::super::shared::page_total::page_total(
-                crate::adapters::repository::AdminPageTotalCount::from(total),
+                crate::repository::AdminPageTotalCount::from(total),
             )?,
         ),
     ))

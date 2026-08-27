@@ -1,204 +1,45 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub struct WrittenFilePathBuf(std::path::PathBuf);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct WrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-struct GeneratedFileMaximumBytes(usize);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-    newtype::NotInner,
-)]
-pub struct ShouldWriteString(bool);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
-pub enum WritePathOutcome {
-    Changed(WrittenFilePathBuf),
-    Unchanged(WrittenFilePathBuf),
-}
-impl WritePathOutcome {
-    #[must_use]
-    pub fn into_path(self) -> WrittenFilePathBuf {
-        match self {
-            Self::Changed(path) | Self::Unchanged(path) => path,
-        }
-    }
-    #[must_use]
-    pub fn is_changed(&self) -> ShouldWriteString {
-        ShouldWriteString::from(matches!(self, Self::Changed(_)))
-    }
-    #[must_use]
-    pub fn path(&self) -> WrittenFilePathRef<'_> {
-        match self {
-            Self::Changed(path) | Self::Unchanged(path) => WrittenFilePathRef::from(path.as_ref()),
-        }
-    }
-}
-fn validate_existing_file_text(
-    path: WrittenFilePathRef<'_>,
-    maximum_bytes: GeneratedFileMaximumBytes,
-) -> std::io::Result<()> {
-    server_runtime_http::domain_types::read_bounded_file(
-        server_runtime_http::domain_types::PathRef::from(path.as_ref()),
-        server_runtime_http::domain_types::BoundedReadMaximumBytes::from(maximum_bytes.0),
-    )
-    .and_then(server_runtime_http::domain_types::BoundedText::try_from)
-    .map(|_text| ())
-    .map_err(std::io::Error::other)
-}
-#[allow(clippy::single_call_fn)] // write-decision logic is split out to keep file write path minimal and focused
-fn should_write_string_into_file(
-    path: WrittenFilePathRef<'_>,
-    string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<ShouldWriteString> {
-    let path_ref = path.as_ref();
-    let string_cnt_ref = string_cnt.as_ref();
-    match std::fs::metadata(path_ref) {
-        Ok(v) => {
-            let new_len_u64 = u64::try_from(string_cnt_ref.len()).map_err(|_error| {
-                std::io::Error::other(constants_str::VALUE_2F4D7A8C_FAILED_CONVERTING_STRING_LENGTH)
-            })?;
-            if v.len() != new_len_u64 {
-                return Ok(ShouldWriteString::from(true));
-            }
-            let mut old_file = std::fs::File::open(path_ref)?;
-            let mut offset = constants_usize::ZERO;
-            let mut old_chunk = [constants_u8::ZERO; 8192];
-            loop {
-                let read_len = std::io::Read::read(&mut old_file, &mut old_chunk)?;
-                if read_len == constants_usize::ZERO {
-                    if offset == string_cnt_ref.len() {
-                        return Ok(ShouldWriteString::from(false));
-                    }
-                    validate_existing_file_text(
-                        path,
-                        GeneratedFileMaximumBytes::from(string_cnt_ref.len()),
-                    )?;
-                    return Ok(ShouldWriteString::from(true));
-                }
-                let end = offset.checked_add(read_len).ok_or_else(|| {
-                    std::io::Error::other(
-                        constants_str::VALUE_5F28D14C_GENERATED_FILE_COMPARISON_OFFSET_OVERFLOW,
-                    )
-                })?;
-                let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
-                    validate_existing_file_text(
-                        path,
-                        GeneratedFileMaximumBytes::from(string_cnt_ref.len()),
-                    )?;
-                    return Ok(ShouldWriteString::from(true));
-                };
-                let Some(old_chunk_read) = old_chunk.get(..read_len) else {
-                    return Err(std::io::Error::other(constants_str::F83D470A_GENERATED_FILE_COMPARISON_READ_LENGTH_EXCEEDS_BUFFER));
-                };
-                if old_chunk_read != new_chunk {
-                    validate_existing_file_text(
-                        path,
-                        GeneratedFileMaximumBytes::from(string_cnt_ref.len()),
-                    )?;
-                    return Ok(ShouldWriteString::from(true));
-                }
-                offset = end;
-            }
-        }
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            Ok(ShouldWriteString::from(true))
-        }
-        Err(error) => Err(error),
-    }
-}
-#[allow(clippy::single_call_fn)] // extracted side-effect helper keeps write/no-write branching reusable and test-focused
-fn write_string_if_needed(
-    path: WrittenFilePathRef<'_>,
-    string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<ShouldWriteString> {
-    let should_write = should_write_string_into_file(path, string_cnt)?;
-    if bool::from(should_write) {
-        let mut file = atomic_write_file::AtomicWriteFile::open(path.as_ref())?;
-        std::io::Write::write_all(&mut file, string_cnt.as_ref().as_bytes())?;
-        file.commit()?;
-    }
-    Ok(should_write)
-}
-#[allow(clippy::single_call_fn)] // preserves write/no-write state so callers can skip extra work (e.g. formatting) on unchanged files
-pub(crate) fn try_write_string_into_path_with_outcome(
-    path: impl AsRef<std::path::Path>,
-    string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<WritePathOutcome> {
-    let path_ref = path.as_ref();
-    let should_write = write_string_if_needed(WrittenFilePathRef::from(path_ref), string_cnt)?;
-    let path_buf = WrittenFilePathBuf::from(path_ref.to_path_buf());
-    Ok(if bool::from(should_write) {
-        WritePathOutcome::Changed(path_buf)
-    } else {
-        WritePathOutcome::Unchanged(path_buf)
-    })
-}
-pub fn try_write_string_into_file_with_outcome<P>(
-    file_name: P,
-    string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<WritePathOutcome>
-where
-    P: AsRef<std::path::Path>,
-{
-    try_write_string_into_path_with_outcome(
-        crate::domain_types::rs_file_path::rs_file_path(file_name),
-        string_cnt,
-    )
-}
+#[path = "write_string_into_file/generated_file_maximum_bytes.rs"]
+mod generated_file_maximum_bytes;
+#[path = "write_string_into_file/should_write_string.rs"]
+mod should_write_string;
+#[path = "write_string_into_file/should_write_string_into_file.rs"]
+mod should_write_string_into_file;
+#[path = "write_string_into_file/string_file_content_ref.rs"]
+mod string_file_content_ref;
+#[path = "write_string_into_file/try_write_string_into_file.rs"]
+mod try_write_string_into_file;
+#[path = "write_string_into_file/try_write_string_into_file_with_outcome.rs"]
+mod try_write_string_into_file_with_outcome;
+#[path = "write_string_into_file/try_write_string_into_path.rs"]
+mod try_write_string_into_path;
+#[path = "write_string_into_file/try_write_string_into_path_with_outcome.rs"]
+mod try_write_string_into_path_with_outcome;
+#[path = "write_string_into_file/validate_existing_file_text.rs"]
+mod validate_existing_file_text;
+#[path = "write_string_into_file/write_path_outcome.rs"]
+mod write_path_outcome;
+#[path = "write_string_into_file/write_string_if_needed.rs"]
+mod write_string_if_needed;
+#[path = "write_string_into_file/written_file_path_buf.rs"]
+mod written_file_path_buf;
+#[path = "write_string_into_file/written_file_path_ref.rs"]
+mod written_file_path_ref;
+
+use generated_file_maximum_bytes::GeneratedFileMaximumBytes;
+pub use should_write_string::*;
+use should_write_string_into_file::should_write_string_into_file;
+pub use string_file_content_ref::*;
+pub use try_write_string_into_file::try_write_string_into_file;
+pub use try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome;
 #[cfg(test)]
-pub(crate) fn try_write_string_into_path(
-    path: impl AsRef<std::path::Path>,
-    string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<WrittenFilePathBuf> {
-    try_write_string_into_path_with_outcome(path, string_cnt).map(WritePathOutcome::into_path)
-}
-pub fn try_write_string_into_file<P>(
-    file_name: P,
-    string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<WrittenFilePathBuf>
-where
-    P: AsRef<std::path::Path>,
-{
-    try_write_string_into_file_with_outcome(file_name, string_cnt).map(WritePathOutcome::into_path)
-}
+pub(crate) use try_write_string_into_path::try_write_string_into_path;
+pub(crate) use try_write_string_into_path_with_outcome::try_write_string_into_path_with_outcome;
+use validate_existing_file_text::validate_existing_file_text;
+pub use write_path_outcome::WritePathOutcome;
+use write_string_if_needed::write_string_if_needed;
+pub use written_file_path_buf::WrittenFilePathBuf;
+pub use written_file_path_ref::WrittenFilePathRef;
+
 #[cfg(test)]
 mod tests {
     fn file_content(v: &str) -> super::StringFileContentRef<'_> {

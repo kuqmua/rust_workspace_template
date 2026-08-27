@@ -1,22 +1,10 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct SqlxPgPoolRef<'pool_lt>(&'pool_lt sqlx::PgPool);
+#[path = "sqlx_pg_pool.rs"]
+mod sqlx_pg_pool;
+#[path = "sqlx_pg_pool_provider.rs"]
+mod sqlx_pg_pool_provider;
+#[path = "sqlx_pg_pool_ref.rs"]
+mod sqlx_pg_pool_ref;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-)]
-pub struct SqlxPgPool(sqlx::PgPool);
-
-pub trait SqlxPgPoolProvider {
-    fn sqlx_pg_pool(&self) -> SqlxPgPoolRef<'_>;
-}
+pub use sqlx_pg_pool::SqlxPgPool;
+pub use sqlx_pg_pool_provider::SqlxPgPoolProvider;
+pub use sqlx_pg_pool_ref::SqlxPgPoolRef;

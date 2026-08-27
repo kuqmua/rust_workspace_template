@@ -32,8 +32,8 @@ pub(in crate::domain_types::auth) async fn user_mutations_create(
         .begin()
         .await
         .map_err(super::super::AdminError::from)?;
-    let user_id = crate::adapters::repository::insert_user::insert_user(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    let user_id = crate::repository::insert_user::insert_user(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         &login,
         &display_name,
         &password_hash,

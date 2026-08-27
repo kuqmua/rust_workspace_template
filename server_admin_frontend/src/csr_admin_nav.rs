@@ -11,7 +11,7 @@ pub(in crate::domain_types::start) fn CsrAdminNav(
     let pathname = web_sys::window()
         .and_then(|window| window.location().pathname().ok())
         .unwrap_or_default();
-    let active_table = super::query::AdminCsrQuery::from_location()
+    let active_table = super::admin_csr_query::AdminCsrQuery::from_location()
         .ok()
         .and_then(|query| query.table);
     leptos::view! {

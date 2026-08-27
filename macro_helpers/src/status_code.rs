@@ -441,34 +441,16 @@ impl TryFrom<&String> for StatusCode {
         }
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq, thiserror::Error,
-)]
-pub enum OnlyOneStatusCodeError {
-    #[error("07286cf0: two or more supported status code attrs")]
-    MoreThanOne,
-    #[error("19fc6512: supported status code attr not found")]
-    NotFound,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
-pub fn only_one(
-    variant_ref: SynStatusCodeVariantRef<'_>,
-) -> Result<StatusCode, OnlyOneStatusCodeError> {
-    let variant = variant_ref.0;
-    let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {
-        if attr.path().segments.len() != 1 {
-            return None;
-        }
-        let segment = attr.path().segments.first()?;
-        StatusCode::try_from(&segment.ident.to_string()).ok()
-    });
-    let optional_self = supported_attrs.next();
-    if supported_attrs.next().is_some() {
-        return Err(OnlyOneStatusCodeError::MoreThanOne);
-    }
-    optional_self.ok_or(OnlyOneStatusCodeError::NotFound)
-}
+#[path = "status_code/only_one.rs"]
+mod only_one;
+#[path = "status_code/only_one_status_code_error.rs"]
+mod only_one_status_code_error;
+#[path = "status_code/syn_status_code_variant_ref.rs"]
+mod syn_status_code_variant_ref;
+
+pub use only_one::only_one;
+pub use only_one_status_code_error::OnlyOneStatusCodeError;
+pub use syn_status_code_variant_ref::SynStatusCodeVariantRef;
 
 #[cfg(test)]
 mod tests {

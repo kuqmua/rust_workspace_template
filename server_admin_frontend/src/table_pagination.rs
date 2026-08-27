@@ -36,10 +36,10 @@ pub(super) fn table_pagination(
     let filter_end =
         table_filter.and_then(server_admin_contract::domain_types::AdminDataTableFilterQuery::end);
     let page_size_query =
-        crate::domain_types::shared::table_filters::query::admin_table_query_hidden_inputs(
+        crate::domain_types::shared::table_filters::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
             query.search(),
             query.sort(),
-            &crate::domain_types::shared::table_filters::query::AdminTableQueryDirection::Ssr(
+            &crate::domain_types::shared::table_filters::admin_table_query_direction::AdminTableQueryDirection::Ssr(
                 query.direction(),
             ),
             query.limit(),
@@ -52,10 +52,10 @@ pub(super) fn table_pagination(
             filter_end,
         );
     let previous_query =
-        crate::domain_types::shared::table_filters::query::admin_table_query_hidden_inputs(
+        crate::domain_types::shared::table_filters::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
             query.search(),
             query.sort(),
-            &crate::domain_types::shared::table_filters::query::AdminTableQueryDirection::Ssr(
+            &crate::domain_types::shared::table_filters::admin_table_query_direction::AdminTableQueryDirection::Ssr(
                 query.direction(),
             ),
             query.limit(),
@@ -68,10 +68,10 @@ pub(super) fn table_pagination(
             filter_end,
         );
     let next_query =
-        crate::domain_types::shared::table_filters::query::admin_table_query_hidden_inputs(
+        crate::domain_types::shared::table_filters::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
             query.search(),
             query.sort(),
-            &crate::domain_types::shared::table_filters::query::AdminTableQueryDirection::Ssr(
+            &crate::domain_types::shared::table_filters::admin_table_query_direction::AdminTableQueryDirection::Ssr(
                 query.direction(),
             ),
             query.limit(),

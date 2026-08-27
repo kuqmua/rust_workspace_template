@@ -1,84 +1,25 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct AxumBody(axum::body::Body);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::FromInner,
-    newtype::ToErrString,
-)]
-#[serde(from = "usize")]
-pub struct BodySizeLimitBytes(usize);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::ToErrString, newtype::FromInner,
-)]
-pub struct AxumBodySizeError(axum::Error);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub struct HttpBodySizeHint(http_body::SizeHint);
-impl to_err_string::domain_types::ToErrString for HttpBodySizeHint {
-    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-        to_err_string::domain_types::ErrorText::try_from(format!("{:#?}", self.0))
-            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    newtype::AsRefTarget,
-    newtype::DerefTarget,
-    newtype::FromInner,
-)]
-pub struct BytesBodyBytes(bytes::Bytes);
-#[location::errors_with_location]
-#[derive(
-    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
-)]
-#[location_to_schema]
-pub enum BodySizeError {
-    ReachedMaximumSizeOfBody {
-        #[eo_to_err_string]
-        error: AxumBodySizeError,
-        #[eo_to_err_string_serde]
-        maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
-        #[eo_to_err_string]
-        size_hint: HttpBodySizeHint,
-    },
-}
-impl crate::domain_types::AxumHttpStatusCodeProvider for BodySizeError {
-    fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
-        crate::domain_types::AxumHttpStatusCode::payload_too_large()
-    }
-}
-pub async fn check_body_size<BodyTy, LimitTy>(
-    body: BodyTy,
-    limit: LimitTy,
-) -> Result<BytesBodyBytes, BodySizeError>
-where
-    BodyTy: Into<AxumBody>,
-    LimitTy: Into<BodySizeLimitBytes>,
-{
-    let body_value = body.into();
-    let limit_value = limit.into();
-    let size_hint = axum::body::HttpBody::size_hint(&body_value.0);
-    axum::body::to_bytes(body_value.0, limit_value.0)
-        .await
-        .map(BytesBodyBytes)
-        .map_err(|error| BodySizeError::ReachedMaximumSizeOfBody {
-            error: AxumBodySizeError::from(error),
-            maximum_size_of_body_limit_in_bytes: limit_value,
-            size_hint: HttpBodySizeHint::from(size_hint),
-            location: location_macros::location!(),
-        })
-}
+#[path = "axum_body.rs"]
+mod axum_body;
+#[path = "axum_body_size_error.rs"]
+mod axum_body_size_error;
+#[path = "body_size_error.rs"]
+mod body_size_error;
+#[path = "body_size_limit_bytes.rs"]
+mod body_size_limit_bytes;
+#[path = "bytes_body_bytes.rs"]
+mod bytes_body_bytes;
+#[path = "check_body_size/check_body_size.rs"]
+mod check_body_size;
+#[path = "http_body_size_hint.rs"]
+mod http_body_size_hint;
+
+pub use axum_body::AxumBody;
+pub use axum_body_size_error::AxumBodySizeError;
+pub use body_size_error::{BodySizeError, BodySizeErrorWithSerde};
+pub use body_size_limit_bytes::BodySizeLimitBytes;
+pub use bytes_body_bytes::BytesBodyBytes;
+pub use check_body_size::check_body_size;
+pub use http_body_size_hint::HttpBodySizeHint;
 #[cfg(test)]
 mod tests {
     fn expect_reached_max_size(

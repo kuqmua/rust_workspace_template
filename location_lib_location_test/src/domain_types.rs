@@ -1,248 +1,32 @@
-// todo is there is no point to add extra info to enum like this
-// eo_location_field: {
-//     eo_display_with_serde_field: v
-// }
-// https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/location_test/src/main.rs#L85 2024-05-06 09:17:23
-// impl display like this this
-// eo_location_field
-// https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/location_test/src/main.rs#L85 2024-05-06 09:17:23
-const LOC_TEST_TEXT_MAX_LEN: usize = 1_048_576;
-#[derive(
-    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
-)]
-pub enum ErrorOne {
-    //use to_err_string::domain_types::ToErrString for hashmap ks instead of Display
-    //todo even for String in serialize deserialize version of error must be using to_err_string::domain_types::ToErrString impl instead of std::fmt::Display
-    //todo test on using only location as pnly field in named variant
-    Variant {
-        #[eo_to_err_string]
-        eo_display_field: DisplayStruct, //IN SERIALIZE DESERIALIZE String
-        #[eo_to_err_string_serde]
-        eo_serde: SerdeStruct,
-        #[eo_location]
-        eo_location_field: ErrorTwo, //IN SERIALIZE DESERIALIZE nested
-        #[eo_vec_to_err_string] //todo remove w under Vec
-        eo_vec_display_field: Vec<DisplayStruct>, //IN SERIALIZE DESERIALIZE Vec<String>
-        #[eo_vec_to_err_string_serde]
-        eo_vec_serde: Vec<SerdeStruct>,
-        #[eo_vec_location]
-        eo_vec_location_field: Vec<ErrorUnnamedOne>, //IN SERIALIZE DESERIALIZE Vec<nested>
-        #[eo_hashmap_k_string_v_to_err_string]
-        hashmap_string_string: std::collections::HashMap<LocationTestText, DisplayStruct>,
-        #[eo_hashmap_k_string_v_to_err_string_serde]
-        hashmap_string_serde: std::collections::HashMap<LocationTestText, SerdeStruct>,
-        #[eo_hashmap_k_string_v_location]
-        hashmap_string_location: std::collections::HashMap<LocationTestText, ErrorUnnamedOne>,
-        location: location_lib::domain_types::Location,
-    },
-}
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    Hash,
-    serde::Deserialize,
-    serde::Serialize,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::BoundedString,
-    newtype::ToErrStringAsRefStr,
-)]
-#[bounded_string(max = LOC_TEST_TEXT_MAX_LEN )]
-#[serde(try_from = "String")]
-pub struct LocationTestText(String);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::FromInner,
-    newtype::ToErrString,
-)]
-#[serde(from = "bool")]
-pub struct LocationTestFlag(bool);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::FromInner,
-    newtype::ToErrString,
-)]
-#[serde(from = "u32")]
-pub struct LocationTestCount(u32);
-#[derive(
-    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
-)]
-pub enum ErrorTwo {
-    Another {
-        #[eo_to_err_string_serde]
-        sdasdasd: LocationTestText,
-        location: location_lib::domain_types::Location,
-    },
-    Variant {
-        #[eo_to_err_string_serde]
-        eo_display_with_serde_field: LocationTestText,
-        location: location_lib::domain_types::Location,
-    },
-}
-#[derive(
-    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
-)]
-pub enum ErrorUnnamedOne {
-    Something(ErrorTwo),
-}
-#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
-pub struct DisplayStruct {
-    pub display: LocationTestText,
-    pub something: LocationTestFlag,
-}
-//todo or maybe two different traits - display foreign type and convert into serializable and deserializable type
-impl to_err_string::domain_types::ToErrString for DisplayStruct {
-    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-        to_err_string::domain_types::ErrorText::try_from(format!("{self:?}"))
-            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
-    }
-}
-//todo rename fields
-#[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(
-    Debug, serde::Serialize, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout,
-)]
-pub struct SerdeStruct {
-    pub one: LocationTestText,
-    pub three: LocationTestCount,
-    pub two: LocationTestFlag,
-}
-impl to_err_string::domain_types::ToErrString for SerdeStruct {
-    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-        to_err_string::domain_types::ErrorText::try_from(format!("{self:?}"))
-            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
-    }
-}
-fn location_test_text(value: String) -> LocationTestText {
-    LocationTestText::try_from(value).unwrap_or_else(LocationTestText::from)
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "the binary entrypoint delegates the complete location-domain exercise scenario"
-)]
-pub(crate) fn run() {
-    let error = ErrorOne::Variant {
-        eo_display_field: DisplayStruct {
-            display: location_test_text(String::from(constants_str::PG_CRUD_V_FIELD)),
-            something: LocationTestFlag::from(true),
-        },
-        eo_serde: SerdeStruct {
-            one: location_test_text(String::from(constants_str::PG_CRUD_V_FIELD)),
-            two: LocationTestFlag::from(true),
-            three: LocationTestCount::from(42),
-        },
-        eo_location_field: ErrorTwo::Variant {
-            eo_display_with_serde_field: location_test_text(String::from(
-                constants_str::PG_CRUD_V_FIELD,
-            )),
-            location: location_macros::location!(),
-        },
-        eo_vec_display_field: vec![
-            DisplayStruct {
-                display: LocationTestText(String::from(constants_str::VALUE_08708789)),
-                something: LocationTestFlag::from(true),
-            },
-            DisplayStruct {
-                display: LocationTestText(String::from(constants_str::VALUE_7565757)),
-                something: LocationTestFlag::from(true),
-            },
-        ],
-        eo_vec_serde: vec![
-            SerdeStruct {
-                one: LocationTestText(String::from(constants_str::PG_CRUD_V_FIELD)),
-                two: LocationTestFlag::from(true),
-                three: LocationTestCount::from(42),
-            },
-            SerdeStruct {
-                one: LocationTestText(String::from(constants_str::VALUE_97697697)),
-                two: LocationTestFlag::from(false),
-                three: LocationTestCount::from(422),
-            },
-        ],
-        eo_vec_location_field: vec![
-            ErrorUnnamedOne::Something(ErrorTwo::Variant {
-                eo_display_with_serde_field: LocationTestText(String::from(
-                    constants_str::PG_CRUD_V_FIELD,
-                )),
-                location: location_macros::location!(),
-            }),
-            ErrorUnnamedOne::Something(ErrorTwo::Variant {
-                eo_display_with_serde_field: LocationTestText(String::from(
-                    constants_str::VALUE_123,
-                )),
-                location: location_macros::location!(),
-            }),
-        ],
-        hashmap_string_string: std::collections::HashMap::from([
-            (
-                location_test_text(String::from(constants_str::KESDFSFDSFSD)),
-                DisplayStruct {
-                    display: location_test_text(String::from(constants_str::VASFDSDFSDFLUE)),
-                    something: LocationTestFlag::from(true),
-                },
-            ),
-            (
-                location_test_text(String::from(constants_str::KSDFSDFSDFSDFEY)),
-                DisplayStruct {
-                    display: location_test_text(String::from(constants_str::VALSFDSFDSFDSUE)),
-                    something: LocationTestFlag::from(true),
-                },
-            ),
-        ]),
-        hashmap_string_serde: std::collections::HashMap::from([
-            (
-                location_test_text(String::from(constants_str::KDFGSDFGDSFGEY)),
-                SerdeStruct {
-                    one: location_test_text(String::from(constants_str::VALUSDFGDSGDSFGDE)),
-                    two: LocationTestFlag::from(true),
-                    three: LocationTestCount::from(42),
-                },
-            ),
-            (
-                location_test_text(String::from(constants_str::KSDFGDSFGSDFGEY)),
-                SerdeStruct {
-                    one: location_test_text(String::from(constants_str::VALSDFGDSGDUE)),
-                    two: LocationTestFlag::from(true),
-                    three: LocationTestCount::from(42),
-                },
-            ),
-        ]),
-        hashmap_string_location: std::collections::HashMap::from([
-            (
-                location_test_text(String::from(constants_str::KSDFGADSFGSDFGDFGEY)),
-                ErrorUnnamedOne::Something(ErrorTwo::Variant {
-                    eo_display_with_serde_field: location_test_text(String::from(
-                        constants_str::VASDFGDGDFGLUE,
-                    )),
-                    location: location_macros::location!(),
-                }),
-            ),
-            (
-                location_test_text(String::from(constants_str::KESDFGSDGFDFGY)),
-                ErrorUnnamedOne::Something(ErrorTwo::Variant {
-                    eo_display_with_serde_field: location_test_text(String::from(
-                        constants_str::VALSDFGDSAFGDSGUE,
-                    )),
-                    location: location_macros::location!(),
-                }),
-            ),
-        ]),
-        location: location_macros::location!(),
-    };
-    println!("{error:?}");
-}
+#[path = "domain_types/display_struct.rs"]
+mod display_struct;
+#[path = "domain_types/error_one.rs"]
+mod error_one;
+#[path = "domain_types/error_two.rs"]
+mod error_two;
+#[path = "domain_types/error_unnamed_one.rs"]
+mod error_unnamed_one;
+#[path = "domain_types/loc_test_text_max_len.rs"]
+mod loc_test_text_max_len;
+#[path = "domain_types/location_test_count.rs"]
+mod location_test_count;
+#[path = "domain_types/location_test_flag.rs"]
+mod location_test_flag;
+#[path = "domain_types/location_test_text.rs"]
+mod location_test_text;
+#[path = "domain_types/run.rs"]
+mod run;
+#[path = "domain_types/serde_struct.rs"]
+mod serde_struct;
+
+pub use display_struct::DisplayStruct;
+pub use error_one::*;
+pub use error_two::*;
+pub use error_unnamed_one::*;
+use loc_test_text_max_len::LOC_TEST_TEXT_MAX_LEN;
+pub use location_test_count::LocationTestCount;
+pub use location_test_flag::LocationTestFlag;
+use location_test_text::location_test_text;
+pub use location_test_text::*;
+pub(crate) use run::run;
+pub use serde_struct::SerdeStruct;

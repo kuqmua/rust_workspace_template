@@ -29,8 +29,8 @@ pub(in crate::domain_types::auth) async fn mutations_set_password(
         .begin()
         .await
         .map_err(super::super::AdminError::from)?;
-    crate::adapters::repository::update_user_password::update_user_password(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::update_user_password::update_user_password(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
         &password_hash,
         super::super::super::AdminPasswordChangeRequired::from(true),
@@ -40,8 +40,8 @@ pub(in crate::domain_types::auth) async fn mutations_set_password(
     .get()
     .then_some(())
     .ok_or(super::super::AdminError::Conflict)?;
-    crate::adapters::repository::revoke_user_sessions::revoke_user_sessions(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::revoke_user_sessions::revoke_user_sessions(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
     )
     .await

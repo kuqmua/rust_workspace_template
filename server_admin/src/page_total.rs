@@ -1,5 +1,5 @@
 pub(in crate::domain_types::auth) fn page_total(
-    value: crate::adapters::repository::AdminPageTotalCount,
+    value: crate::repository::AdminPageTotalCount,
 ) -> Result<server_admin_contract::domain_types::AdminPageTotal, super::super::AdminError> {
     u64::try_from(value.get())
         .map(server_admin_contract::domain_types::AdminPageTotal::from)

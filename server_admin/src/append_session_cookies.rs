@@ -7,13 +7,13 @@ pub(super) fn append_session_cookies(
     let access = super::super::build_admin_cookie(
         super::super::AdminCookieKind::Access,
         super::super::StdAdminStrRef::from(session.access_token.as_ref().as_str()),
-        super::super::AdminCookieMaxAgeSeconds::from(state.access_ttl.0),
+        super::super::AdminCookieMaxAgeSeconds::from(state.access_ttl.get()),
         state.cookie_secure,
     );
     let csrf = super::super::build_admin_cookie(
         super::super::AdminCookieKind::Csrf,
         super::super::StdAdminStrRef::from(session.csrf_token.expose().as_ref()),
-        super::super::AdminCookieMaxAgeSeconds::from(state.access_ttl.0),
+        super::super::AdminCookieMaxAgeSeconds::from(state.access_ttl.get()),
         state.cookie_secure,
     );
     [access, csrf].into_iter().try_for_each(|cookie| {
@@ -32,7 +32,7 @@ pub(super) fn append_session_cookies(
     let refresh = super::super::build_admin_cookie(
         super::super::AdminCookieKind::Refresh,
         session.refresh_token.expose(),
-        super::super::AdminCookieMaxAgeSeconds::from(state.refresh_ttl.0),
+        super::super::AdminCookieMaxAgeSeconds::from(state.refresh_ttl.get()),
         state.cookie_secure,
     );
     http::HeaderValue::from_str(refresh.as_ref())

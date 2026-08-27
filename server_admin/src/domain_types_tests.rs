@@ -69,7 +69,7 @@ fn unknown_permission_is_rejected() {
 }
 #[test]
 fn migration_inventory_is_not_empty() {
-    let migrator = crate::adapters::migrations::migrator();
+    let migrator = crate::migrations::migrator();
     let migrations = migrator.iter().collect::<Vec<_>>();
     assert_eq!(migrations.len(), 13usize);
     assert!(
@@ -81,14 +81,12 @@ fn migration_inventory_is_not_empty() {
 #[test]
 fn permission_seed_contains_the_complete_typed_catalog() {
     assert!(super::AdminPermission::ALL.into_iter().all(|permission| {
-        crate::adapters::migrations::migrator()
-            .iter()
-            .any(|migration| {
-                migration
-                    .sql
-                    .as_str()
-                    .contains(permission.as_str().as_ref())
-            })
+        crate::migrations::migrator().iter().any(|migration| {
+            migration
+                .sql
+                .as_str()
+                .contains(permission.as_str().as_ref())
+        })
     }));
 }
 #[tokio::test]

@@ -216,25 +216,24 @@ mod tests {
     #[tokio::test]
     async fn operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
         let operational_path = common_routes::domain_types::CommonRoute::HealthLive.path();
-        let router =
-            axum::Router::from(crate::adapters::mount_service_routes::mount_service_routes(
-                server_runtime_http::domain_types::AxumRouter::from(
-                    axum::Router::new()
-                        .route(
-                            operational_path.as_ref(),
-                            axum::routing::get(async || axum::http::StatusCode::NO_CONTENT),
-                        )
-                        .fallback(async || axum::http::StatusCode::IM_A_TEAPOT),
-                ),
-                super::AxumApiRoutes::from(axum::Router::new().route(
-                    constants_str::VALUE_87D0B7F8,
-                    axum::routing::get(async || constants_str::VALUE_14C2529E),
-                )),
-                super::HttpBodyMaximumBytes::from(1_024usize),
-            ))
-            .merge(axum::Router::from(
-                crate::adapters::frontend_fallback_routes::frontend_fallback_routes(),
-            ));
+        let router = axum::Router::from(crate::mount_service_routes::mount_service_routes(
+            server_runtime_http::domain_types::AxumRouter::from(
+                axum::Router::new()
+                    .route(
+                        operational_path.as_ref(),
+                        axum::routing::get(async || axum::http::StatusCode::NO_CONTENT),
+                    )
+                    .fallback(async || axum::http::StatusCode::IM_A_TEAPOT),
+            ),
+            super::AxumApiRoutes::from(axum::Router::new().route(
+                constants_str::VALUE_87D0B7F8,
+                axum::routing::get(async || constants_str::VALUE_14C2529E),
+            )),
+            super::HttpBodyMaximumBytes::from(1_024usize),
+        ))
+        .merge(axum::Router::from(
+            crate::frontend_fallback_routes::frontend_fallback_routes(),
+        ));
         let status = |path: &str| {
             tower::ServiceExt::oneshot(
                 router.clone(),
@@ -268,7 +267,7 @@ mod tests {
     #[tokio::test]
     async fn missing_page_redirects_to_default_authentication_page() {
         let response = tower::ServiceExt::oneshot(
-            axum::Router::from(crate::adapters::frontend_fallback_routes::frontend_fallback_routes()),
+            axum::Router::from(crate::frontend_fallback_routes::frontend_fallback_routes()),
             axum::http::Request::builder()
                 .uri(constants_str::VALUE_10D40EF4)
                 .body(axum::body::Body::empty())

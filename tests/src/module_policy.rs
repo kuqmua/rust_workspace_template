@@ -231,7 +231,7 @@ fn function_only_modules_contain_at_most_one_function() {
 }
 
 #[test]
-fn homogeneous_named_owner_modules_contain_at_most_one_owner() {
+fn production_modules_contain_at_most_one_named_owner() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         let target_roots = snapshot
             .workspace_metadata()
@@ -253,16 +253,12 @@ fn homogeneous_named_owner_modules_contain_at_most_one_owner() {
             })
             .filter_map(|file| {
                 let owner = |item: &syn::Item| match item {
-                    syn::Item::Const(item_const) => {
-                        Some((constants_str::ITEM_KIND_CONST, item_const.ident.to_string()))
-                    }
                     syn::Item::Enum(item_enum) => {
                         Some((constants_str::ITEM_KIND_ENUM, item_enum.ident.to_string()))
                     }
-                    syn::Item::Static(item_static) => Some((
-                        constants_str::ITEM_KIND_STATIC,
-                        item_static.ident.to_string(),
-                    )),
+                    syn::Item::Fn(item_fn) => {
+                        Some((constants_str::ITEM_KIND_FN, item_fn.sig.ident.to_string()))
+                    }
                     syn::Item::Struct(item_struct) => Some((
                         constants_str::ITEM_KIND_STRUCT,
                         item_struct.ident.to_string(),
@@ -270,22 +266,16 @@ fn homogeneous_named_owner_modules_contain_at_most_one_owner() {
                     syn::Item::Trait(item_trait) => {
                         Some((constants_str::ITEM_KIND_TRAIT, item_trait.ident.to_string()))
                     }
-                    syn::Item::TraitAlias(item_trait_alias) => Some((
-                        constants_str::ITEM_KIND_TRAIT_ALIAS,
-                        item_trait_alias.ident.to_string(),
-                    )),
-                    syn::Item::Type(item_type) => {
-                        Some((constants_str::ITEM_KIND_TYPE, item_type.ident.to_string()))
-                    }
-                    syn::Item::Union(item_union) => {
-                        Some((constants_str::ITEM_KIND_UNION, item_union.ident.to_string()))
-                    }
-                    syn::Item::ExternCrate(_)
-                    | syn::Item::Fn(_)
+                    syn::Item::Const(_)
+                    | syn::Item::ExternCrate(_)
                     | syn::Item::ForeignMod(_)
                     | syn::Item::Impl(_)
                     | syn::Item::Macro(_)
                     | syn::Item::Mod(_)
+                    | syn::Item::Static(_)
+                    | syn::Item::TraitAlias(_)
+                    | syn::Item::Type(_)
+                    | syn::Item::Union(_)
                     | syn::Item::Use(_)
                     | syn::Item::Verbatim(_)
                     | _ => None,
@@ -297,37 +287,35 @@ fn homogeneous_named_owner_modules_contain_at_most_one_owner() {
                     .iter()
                     .filter_map(owner)
                     .collect::<Vec<_>>();
-                let owner_kind = &owners.first()?.0;
-                let homogeneous = owners
-                    .iter()
-                    .all(|(kind, _ignored_identifier)| kind == owner_kind)
-                    && file.ast().as_ref().items.iter().all(|item| {
-                        owner(item).map_or_else(
-                            || {
-                                matches!(
-                                    item,
-                                    syn::Item::Impl(_) | syn::Item::Mod(_) | syn::Item::Use(_)
-                                )
-                            },
-                            |(kind, _ignored_owner_identifier)| kind == *owner_kind,
-                        )
-                    });
-                (homogeneous && owners.len() > constants_usize::ONE).then(|| {
-                    format!(
-                        "{} ({owner_kind}): {}",
+                if owners.len() > constants_usize::ONE {
+                    return Some(format!(
+                        "{}: {}",
                         file.path().as_ref().display(),
                         owners
                             .iter()
-                            .map(|(_kind, identifier)| identifier.as_str())
+                            .map(|(kind, identifier)| format!("{kind} {identifier}"))
                             .collect::<Vec<_>>()
                             .join(", ")
+                    ));
+                }
+                let (_kind, identifier) = owners.first()?;
+                let expected_file_stem = identifier_snake_case(&syn::Ident::new(
+                    identifier,
+                    proc_macro2::Span::call_site(),
+                ));
+                let file_stem = file.path().as_ref().file_stem()?.to_str()?;
+                (file_stem != expected_file_stem.as_ref()).then(|| {
+                    format!(
+                        "{}: named owner `{identifier}` requires file stem `{}`",
+                        file.path().as_ref().display(),
+                        expected_file_stem.as_ref()
                     )
                 })
             })
             .collect::<Vec<_>>();
         assert!(
             violations.is_empty(),
-            "homogeneous production Rust modules must place each top-level named owner in its own same-named module:\n{}",
+            "production Rust modules must place each top-level function, struct, enum, and trait in its own same-named module:\n{}",
             violations.join("\n")
         );
     });

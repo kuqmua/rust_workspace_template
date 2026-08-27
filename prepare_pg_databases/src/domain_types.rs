@@ -1,211 +1,46 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefStr,
-    newtype::TryFrom,
-)]
-#[try_from(validator = validate_database_url)]
-pub struct DatabaseUrl(String);
+#[path = "domain_types/database_preparation_spec.rs"]
+mod database_preparation_spec;
+#[path = "domain_types/database_url.rs"]
+mod database_url;
+#[path = "domain_types/database_url_error.rs"]
+mod database_url_error;
+#[path = "domain_types/migration_commands.rs"]
+mod migration_commands;
+#[path = "domain_types/migrations_source.rs"]
+mod migrations_source;
+#[path = "domain_types/migrations_source_error.rs"]
+mod migrations_source_error;
+#[path = "domain_types/process_argument.rs"]
+mod process_argument;
+#[path = "domain_types/process_arguments.rs"]
+mod process_arguments;
+#[path = "domain_types/process_command.rs"]
+mod process_command;
+#[path = "domain_types/process_commands.rs"]
+mod process_commands;
+#[path = "domain_types/process_program.rs"]
+mod process_program;
+#[path = "domain_types/process_static_argument.rs"]
+mod process_static_argument;
+#[path = "domain_types/validate_database_url.rs"]
+mod validate_database_url;
+#[path = "domain_types/validate_migrations_source.rs"]
+mod validate_migrations_source;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum DatabaseUrlError {
-    #[error("{0}", constants_str::DATABASE_URL_MUST_NOT_BE_EMPTY)]
-    Empty,
-    #[error("{0}", constants_str::DATABASE_URL_EXCEEDS_MAXIMUM_LENGTH)]
-    TooLong,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefStr,
-    newtype::TryFrom,
-)]
-#[try_from(validator = validate_migrations_source)]
-pub struct MigrationsSource(String);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum MigrationsSourceError {
-    #[error("{0}", constants_str::MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH)]
-    TooLong,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct DatabasePreparationSpec {
-    migrations_source: MigrationsSource,
-    url: DatabaseUrl,
-}
-
-impl DatabasePreparationSpec {
-    #[must_use]
-    pub const fn new(url: DatabaseUrl, migrations_source: MigrationsSource) -> Self {
-        Self {
-            migrations_source,
-            url,
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct ProcessCommand {
-    arguments: ProcessArguments,
-    program: ProcessProgram,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub enum ProcessArgument {
-    DatabaseUrl(DatabaseUrl),
-    MigrationsSource(MigrationsSource),
-    Static(ProcessStaticArgument),
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct ProcessStaticArgument(&'static str);
-
-impl From<DatabaseUrl> for ProcessArgument {
-    fn from(value: DatabaseUrl) -> Self {
-        Self::DatabaseUrl(value)
-    }
-}
-
-impl From<MigrationsSource> for ProcessArgument {
-    fn from(value: MigrationsSource) -> Self {
-        Self::MigrationsSource(value)
-    }
-}
-
-impl From<&'static str> for ProcessArgument {
-    fn from(value: &'static str) -> Self {
-        Self::Static(ProcessStaticArgument(value))
-    }
-}
-
-impl AsRef<str> for ProcessArgument {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::DatabaseUrl(value) => value.as_ref(),
-            Self::MigrationsSource(value) => value.as_ref(),
-            Self::Static(value) => value.0,
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub struct ProcessArguments(
-    bounded_types::domain_types::vector::BoundedVec<ProcessArgument, 0, { usize::MAX }>,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub struct ProcessCommands(
-    bounded_types::domain_types::vector::BoundedVec<ProcessCommand, 0, { usize::MAX }>,
-);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct ProcessProgram(&'static str);
-
-impl ProcessCommand {
-    #[must_use]
-    pub const fn arguments(&self) -> &ProcessArguments {
-        &self.arguments
-    }
-
-    #[must_use]
-    pub const fn program(&self) -> ProcessProgram {
-        self.program
-    }
-}
-
-#[allow(clippy::single_call_fn)] // named validation boundary is consumed by the Newtype derive
-fn validate_database_url<Value>(value: &Value) -> Result<(), DatabaseUrlError>
-where
-    Value: AsRef<str>,
-{
-    let value_ref = value.as_ref();
-    if value_ref.trim().is_empty() {
-        Err(DatabaseUrlError::Empty)
-    } else if value_ref.len() > constants_usize::VALUE_8_192 {
-        Err(DatabaseUrlError::TooLong)
-    } else {
-        Ok(())
-    }
-}
-
-#[allow(clippy::single_call_fn)] // named validation boundary is consumed by the Newtype derive
-fn validate_migrations_source<Value>(value: &Value) -> Result<(), MigrationsSourceError>
-where
-    Value: AsRef<str>,
-{
-    if value.as_ref().len() > 4_096usize {
-        Err(MigrationsSourceError::TooLong)
-    } else {
-        Ok(())
-    }
-}
-
-#[must_use]
-pub fn migration_commands<Specifications>(specs: Specifications) -> ProcessCommands
-where
-    Specifications: IntoIterator<Item = DatabasePreparationSpec>,
-{
-    ProcessCommands::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(specs.into_iter().map(
-            |spec| ProcessCommand {
-                arguments: ProcessArguments::from(
-                    bounded_types::domain_types::vector::BoundedVec::from_max_iter([
-                        ProcessArgument::from(constants_str::DATABASE_URL_FLAG),
-                        ProcessArgument::from(spec.url),
-                        ProcessArgument::from(constants_str::SOURCE_FLAG),
-                        ProcessArgument::from(spec.migrations_source),
-                        ProcessArgument::from(constants_str::RUN),
-                    ]),
-                ),
-                program: ProcessProgram::from(constants_str::SQLX),
-            },
-        )),
-    )
-}
+pub use database_preparation_spec::DatabasePreparationSpec;
+pub use database_url::DatabaseUrl;
+pub use database_url_error::DatabaseUrlError;
+pub use migration_commands::migration_commands;
+pub use migrations_source::MigrationsSource;
+pub use migrations_source_error::MigrationsSourceError;
+pub use process_argument::ProcessArgument;
+pub use process_arguments::ProcessArguments;
+pub use process_command::ProcessCommand;
+pub use process_commands::ProcessCommands;
+pub use process_program::ProcessProgram;
+pub use process_static_argument::ProcessStaticArgument;
+use validate_database_url::validate_database_url;
+use validate_migrations_source::validate_migrations_source;
 
 #[cfg(test)]
 mod tests {

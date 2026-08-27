@@ -1,289 +1,80 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct PathRef<'path_lt>(&'path_lt std::path::Path);
+#[path = "bounded_read/bounded_bytes.rs"]
+mod bounded_bytes;
+#[path = "bounded_read/bounded_json_read_error.rs"]
+mod bounded_json_read_error;
+#[path = "bounded_read/bounded_json_text.rs"]
+mod bounded_json_text;
+#[path = "bounded_read/bounded_read_concurrency_arc_semaphore.rs"]
+mod bounded_read_concurrency_arc_semaphore;
+#[path = "bounded_read/bounded_read_concurrency_maximum_non_zero_usize.rs"]
+mod bounded_read_concurrency_maximum_non_zero_usize;
+#[path = "bounded_read/bounded_read_error.rs"]
+mod bounded_read_error;
+#[path = "bounded_read/bounded_read_from_utf8_error.rs"]
+mod bounded_read_from_utf8_error;
+#[path = "bounded_read/bounded_read_io_error.rs"]
+mod bounded_read_io_error;
+#[path = "bounded_read/bounded_read_maximum_bytes.rs"]
+mod bounded_read_maximum_bytes;
+#[path = "bounded_read/bounded_read_observed_bytes.rs"]
+mod bounded_read_observed_bytes;
+#[path = "bounded_read/bounded_text.rs"]
+mod bounded_text;
+#[path = "bounded_read/classify_not_found_io_error.rs"]
+mod classify_not_found_io_error;
+#[path = "bounded_read/ensure_size_within_limit.rs"]
+mod ensure_size_within_limit;
+#[path = "bounded_read/io_error_presence_disposition.rs"]
+mod io_error_presence_disposition;
+#[path = "bounded_read/parse_bounded_json.rs"]
+mod parse_bounded_json;
+#[path = "bounded_read/parse_bounded_json_owned.rs"]
+mod parse_bounded_json_owned;
+#[path = "bounded_read/path_ref.rs"]
+mod path_ref;
+#[path = "bounded_read/read_bounded_file.rs"]
+mod read_bounded_file;
+#[path = "bounded_read/read_bounded_file_async.rs"]
+mod read_bounded_file_async;
+#[path = "bounded_read/read_bounded_http_response.rs"]
+mod read_bounded_http_response;
+#[path = "bounded_read/read_bounded_json_file_async.rs"]
+mod read_bounded_json_file_async;
+#[path = "bounded_read/read_bounded_json_http_response.rs"]
+mod read_bounded_json_http_response;
+#[path = "bounded_read/reqwest_error.rs"]
+mod reqwest_error;
+#[path = "bounded_read/reqwest_response.rs"]
+mod reqwest_response;
+#[path = "bounded_read/serde_json_error.rs"]
+mod serde_json_error;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::Display,
-)]
-pub struct BoundedReadMaximumBytes(usize);
+pub use bounded_bytes::BoundedBytes;
+pub use bounded_json_read_error::BoundedJsonReadError;
+pub use bounded_json_text::BoundedJsonText;
+pub use bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore;
+pub use bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize;
+pub use bounded_read_error::BoundedReadError;
+pub use bounded_read_from_utf8_error::BoundedReadFromUtf8Error;
+pub use bounded_read_io_error::BoundedReadIoError;
+pub use bounded_read_maximum_bytes::BoundedReadMaximumBytes;
+use bounded_read_observed_bytes::BoundedReadObservedBytes;
+pub use bounded_text::BoundedText;
+pub use classify_not_found_io_error::classify_not_found_io_error;
+use ensure_size_within_limit::ensure_size_within_limit;
+pub use io_error_presence_disposition::IoErrorPresenceDisposition;
+pub use parse_bounded_json::parse_bounded_json;
+use parse_bounded_json_owned::parse_bounded_json_owned;
+pub use path_ref::PathRef;
+pub use read_bounded_file::read_bounded_file;
+pub use read_bounded_file_async::read_bounded_file_async;
+pub use read_bounded_http_response::read_bounded_http_response;
+pub use read_bounded_json_file_async::read_bounded_json_file_async;
+pub use read_bounded_json_http_response::read_bounded_json_http_response;
+pub use reqwest_error::ReqwestError;
+pub use reqwest_response::ReqwestResponse;
+pub use serde_json_error::SerdeJsonError;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::IntoInner,
-)]
-pub struct BoundedBytes(Vec<u8>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefStr,
-    newtype::IntoInner,
-)]
-pub struct BoundedText(String);
-impl TryFrom<String> for BoundedText {
-    type Error = BoundedReadError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_16_777_216 {
-            return Err(BoundedReadError::ExceedsMaximum {
-                maximum_bytes: BoundedReadMaximumBytes(constants_usize::VALUE_16_777_216),
-            });
-        }
-        Ok(Self(value))
-    }
-}
-impl TryFrom<BoundedBytes> for BoundedText {
-    type Error = BoundedReadError;
-    fn try_from(value: BoundedBytes) -> Result<Self, Self::Error> {
-        let text = String::from_utf8(value.0).map_err(|source| BoundedReadError::Utf8 {
-            source: BoundedReadFromUtf8Error(source),
-        })?;
-        Self::try_from(text)
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct BoundedReadConcurrencyArcSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct BoundedReadConcurrencyMaximumNonZeroUsize(std::num::NonZeroUsize);
-
-impl BoundedReadConcurrencyArcSemaphore {
-    #[must_use]
-    pub fn new(maximum_concurrent_reads: BoundedReadConcurrencyMaximumNonZeroUsize) -> Self {
-        Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
-            maximum_concurrent_reads.0.get(),
-        )))
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct BoundedReadIoError(std::io::Error);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub enum IoErrorPresenceDisposition {
-    Missing,
-    Other(BoundedReadIoError),
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct ReqwestError(reqwest::Error);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct BoundedReadFromUtf8Error(std::string::FromUtf8Error);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct ReqwestResponse(reqwest::Response);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct SerdeJsonError(serde_json::Error);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct BoundedJsonText(String);
-impl BoundedJsonText {
-    pub fn compact(&self) -> Result<Self, BoundedJsonReadError> {
-        let value = serde_json::from_str::<serde_json::Value>(self.0.as_str())
-            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError::from(error)))?;
-        let text = serde_json::to_string(&value)
-            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError::from(error)))?;
-        Self::try_from(text)
-    }
-
-    pub fn pretty(&self) -> Result<Self, BoundedJsonReadError> {
-        let value = serde_json::from_str::<serde_json::Value>(self.0.as_str())
-            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError::from(error)))?;
-        let text = serde_json::to_string_pretty(&value)
-            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError::from(error)))?;
-        Self::try_from(text)
-    }
-}
-impl TryFrom<String> for BoundedJsonText {
-    type Error = BoundedJsonReadError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_16_777_216 {
-            return Err(BoundedJsonReadError::Read(
-                BoundedReadError::ExceedsMaximum {
-                    maximum_bytes: BoundedReadMaximumBytes(constants_usize::VALUE_16_777_216),
-                },
-            ));
-        }
-        let _validated_value = serde_json::from_str::<serde_json::Value>(value.as_str())
-            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError(error)))?;
-        Ok(Self(value))
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum BoundedJsonReadError {
-    #[error("bounded content read failed")]
-    Read(#[source] BoundedReadError),
-    #[error("bounded content is not valid JSON")]
-    SerdeJson(#[source] SerdeJsonError),
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum BoundedReadError {
-    #[error("content exceeds maximum size of {maximum_bytes} bytes")]
-    ExceedsMaximum {
-        maximum_bytes: BoundedReadMaximumBytes,
-    },
-    #[error("HTTP response body read failed")]
-    Http {
-        #[source]
-        source: ReqwestError,
-    },
-    #[error("file read failed")]
-    Io {
-        #[source]
-        source: BoundedReadIoError,
-    },
-    #[error("bounded read concurrency limiter is closed")]
-    LimiterClosed,
-    #[error("text content must be valid UTF-8")]
-    Utf8 {
-        #[source]
-        source: BoundedReadFromUtf8Error,
-    },
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct BoundedReadObservedBytes(usize);
-
-#[must_use]
-pub fn classify_not_found_io_error(error: BoundedReadIoError) -> IoErrorPresenceDisposition {
-    if error.0.kind() == std::io::ErrorKind::NotFound {
-        IoErrorPresenceDisposition::Missing
-    } else {
-        IoErrorPresenceDisposition::Other(error)
-    }
-}
-const fn ensure_size_within_limit(
-    size: BoundedReadObservedBytes,
-    maximum_bytes: BoundedReadMaximumBytes,
-) -> Result<(), BoundedReadError> {
-    if size.0 > maximum_bytes.0 {
-        Err(BoundedReadError::ExceedsMaximum { maximum_bytes })
-    } else {
-        Ok(())
-    }
-}
-pub fn read_bounded_file(
-    path: PathRef<'_>,
-    maximum_bytes: BoundedReadMaximumBytes,
-) -> Result<BoundedBytes, BoundedReadError> {
-    let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadError::Io {
-        source: BoundedReadIoError::from(source),
-    })?;
-    if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
-        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
-    }
-    let bytes = std::fs::read(path.0).map_err(|source| BoundedReadError::Io {
-        source: BoundedReadIoError::from(source),
-    })?;
-    ensure_size_within_limit(BoundedReadObservedBytes::from(bytes.len()), maximum_bytes)?;
-    Ok(BoundedBytes::from(bytes))
-}
-pub async fn read_bounded_file_async(
-    path: PathRef<'_>,
-    maximum_bytes: BoundedReadMaximumBytes,
-) -> Result<BoundedBytes, BoundedReadError> {
-    let metadata = tokio::fs::metadata(path.0)
-        .await
-        .map_err(|source| BoundedReadError::Io {
-            source: BoundedReadIoError::from(source),
-        })?;
-    if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
-        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
-    }
-    let bytes = tokio::fs::read(path.0)
-        .await
-        .map_err(|source| BoundedReadError::Io {
-            source: BoundedReadIoError::from(source),
-        })?;
-    ensure_size_within_limit(BoundedReadObservedBytes::from(bytes.len()), maximum_bytes)?;
-    Ok(BoundedBytes::from(bytes))
-}
-pub async fn read_bounded_http_response(
-    response: ReqwestResponse,
-    maximum_bytes: BoundedReadMaximumBytes,
-    concurrency: BoundedReadConcurrencyArcSemaphore,
-) -> Result<BoundedBytes, BoundedReadError> {
-    let _permit = concurrency
-        .0
-        .acquire_owned()
-        .await
-        .map_err(|_error| BoundedReadError::LimiterClosed)?;
-    let mut inner_response = response.0;
-    if let Some(content_length) = inner_response.content_length()
-        && content_length > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX)
-    {
-        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
-    }
-    let initial_capacity = inner_response
-        .content_length()
-        .and_then(|length| usize::try_from(length).ok())
-        .map_or(constants_usize::ZERO, |length| length.min(maximum_bytes.0));
-    let mut bytes = Vec::with_capacity(initial_capacity);
-    while let Some(chunk) =
-        inner_response
-            .chunk()
-            .await
-            .map_err(|source| BoundedReadError::Http {
-                source: ReqwestError::from(source),
-            })?
-    {
-        let next_len = bytes.len().saturating_add(chunk.len());
-        ensure_size_within_limit(BoundedReadObservedBytes::from(next_len), maximum_bytes)?;
-        bytes.extend_from_slice(&chunk);
-    }
-    Ok(BoundedBytes::from(bytes))
-}
-pub fn parse_bounded_json(bytes: &BoundedBytes) -> Result<BoundedJsonText, BoundedJsonReadError> {
-    parse_bounded_json_owned(bytes.clone())
-}
-fn parse_bounded_json_owned(bytes: BoundedBytes) -> Result<BoundedJsonText, BoundedJsonReadError> {
-    let text = String::from_utf8(bytes.0).map_err(|error| {
-        BoundedJsonReadError::Read(BoundedReadError::Utf8 {
-            source: BoundedReadFromUtf8Error::from(error),
-        })
-    })?;
-    BoundedJsonText::try_from(text)
-}
-pub async fn read_bounded_json_file_async(
-    path: PathRef<'_>,
-    maximum_bytes: BoundedReadMaximumBytes,
-) -> Result<BoundedJsonText, BoundedJsonReadError> {
-    let bytes = read_bounded_file_async(path, maximum_bytes)
-        .await
-        .map_err(BoundedJsonReadError::Read)?;
-    parse_bounded_json_owned(bytes)
-}
-pub async fn read_bounded_json_http_response(
-    response: ReqwestResponse,
-    maximum_bytes: BoundedReadMaximumBytes,
-    concurrency: BoundedReadConcurrencyArcSemaphore,
-) -> Result<BoundedJsonText, BoundedJsonReadError> {
-    let bytes = read_bounded_http_response(response, maximum_bytes, concurrency)
-        .await
-        .map_err(BoundedJsonReadError::Read)?;
-    parse_bounded_json_owned(bytes)
-}
 #[cfg(test)]
 mod tests {
     fn unique_path(name: &str) -> std::path::PathBuf {

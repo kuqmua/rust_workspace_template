@@ -6,7 +6,7 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
     reason = "Leptos component visibility is required for composition from the parent app module"
 )]
 pub(in crate::domain_types::start) fn AdminDataGrid(
-    query: super::query::AdminCsrQuery,
+    query: super::admin_csr_query::AdminCsrQuery,
     view: server_admin_contract::domain_types::AdminDataTableView,
 ) -> impl leptos::prelude::IntoView {
     let supports_filters = bool::from(view.table().supports_filters());

@@ -144,21 +144,26 @@ impl PgTableIdempotencyCleanupRetentionSeconds {
     }
 }
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::FromInner,
 )]
-#[try_from(
-    error = PgTableIdempotencyCleanupValueTryFromI64Error,
-    validator = PgTableIdempotencyCleanupBatchSize::validate
-)]
-pub struct PgTableIdempotencyCleanupBatchSize(i64);
-impl PgTableIdempotencyCleanupBatchSize {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &i64) -> Result<(), PgTableIdempotencyCleanupValueTryFromI64Error> {
-        if *value <= constants_i64::ZERO {
-            Err(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
-        } else {
-            Ok(())
-        }
+struct PgTableIdempotencyCleanupBatchSizeNonZeroI64(std::num::NonZeroI64);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PgTableIdempotencyCleanupBatchSize(PgTableIdempotencyCleanupBatchSizeNonZeroI64);
+impl TryFrom<i64> for PgTableIdempotencyCleanupBatchSize {
+    type Error = PgTableIdempotencyCleanupValueTryFromI64Error;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        std::num::NonZeroI64::new(value)
+            .filter(|non_zero_value| non_zero_value.get().is_positive())
+            .map(PgTableIdempotencyCleanupBatchSizeNonZeroI64::from)
+            .map(Self)
+            .ok_or(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
     }
 }
 #[derive(
@@ -558,7 +563,7 @@ pub async fn cleanup_pg_table_idempotency(
     )
     .bind(completed_retention_seconds.0)
     .bind(pending_retention_seconds.0)
-    .bind(batch_size.0)
+    .bind(batch_size.0.0.get())
     .execute(pool.as_ref())
     .await
     .map_err(SqlxPgTableIdempotencyError::from)?;

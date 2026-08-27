@@ -1,199 +1,35 @@
-pub const NOTIFICATION_API_BODY_MAX_BYTES: usize = 8_192;
-const NOTIFICATION_MESSAGE_MAX_LEN: usize = 4_096;
+#[path = "domain_types/create_notification_req.rs"]
+mod create_notification_req;
+#[path = "domain_types/create_notification_res.rs"]
+mod create_notification_res;
+#[path = "domain_types/create_notification_route.rs"]
+mod create_notification_route;
+#[path = "domain_types/notification_api_body_max_bytes.rs"]
+mod notification_api_body_max_bytes;
+#[path = "domain_types/notification_message.rs"]
+mod notification_message;
+#[path = "domain_types/notification_message_max_len.rs"]
+mod notification_message_max_len;
+#[path = "domain_types/notification_message_try_from_string_error.rs"]
+mod notification_message_try_from_string_error;
+#[path = "domain_types/notification_operational_route.rs"]
+mod notification_operational_route;
+#[path = "domain_types/notification_route.rs"]
+mod notification_route;
+#[path = "domain_types/uuid_notification_id.rs"]
+mod uuid_notification_id;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    utoipa::ToSchema,
-)]
-#[serde(deny_unknown_fields)]
-pub struct CreateNotificationReq {
-    message: NotificationMessage,
-}
-impl CreateNotificationReq {
-    #[must_use]
-    pub fn into_message(self) -> NotificationMessage {
-        self.message
-    }
-    #[must_use]
-    pub const fn new(message: NotificationMessage) -> Self {
-        Self { message }
-    }
-}
+pub use create_notification_req::CreateNotificationReq;
+pub use create_notification_res::CreateNotificationRes;
+pub use create_notification_route::*;
+pub use notification_api_body_max_bytes::NOTIFICATION_API_BODY_MAX_BYTES;
+pub use notification_message::NotificationMessage;
+use notification_message_max_len::NOTIFICATION_MESSAGE_MAX_LEN;
+pub use notification_message_try_from_string_error::NotificationMessageTryFromStringError;
+pub use notification_operational_route::*;
+pub use notification_route::*;
+pub use uuid_notification_id::UuidNotificationId;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    utoipa::ToSchema,
-)]
-pub struct CreateNotificationRes {
-    id: UuidNotificationId,
-}
-impl CreateNotificationRes {
-    #[must_use]
-    pub const fn id(&self) -> UuidNotificationId {
-        self.id
-    }
-    #[must_use]
-    pub const fn new(id: UuidNotificationId) -> Self {
-        Self { id }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefStr,
-    serde::Deserialize,
-    serde::Serialize,
-    utoipa::ToSchema,
-)]
-#[serde(try_from = "String")]
-pub struct NotificationMessage(String);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-    utoipa::ToSchema,
-)]
-#[serde(from = "uuid::Uuid")]
-#[schema(value_type = String, format = "uuid")]
-pub struct UuidNotificationId(uuid::Uuid);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    frontend_contract::domain_types::TypedRoute,
-)]
-#[typed_route(
-    authentication = frontend_contract::domain_types::AuthenticationRequirement::Public,
-    error_policy = frontend_contract::domain_types::RouteErrorPolicy::Default,
-    method = frontend_contract::domain_types::RouteMethod::Post,
-    mutation = frontend_contract::domain_types::RouteMutation::Mutating,
-    obligations = frontend_contract::domain_types::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
-    openapi_operation_id = "create_notification",
-    path = "/notifications",
-    request = CreateNotificationReq,
-    request_body = frontend_contract::domain_types::RouteRequestBody::Json,
-    response = CreateNotificationRes,
-    success_status = frontend_contract::domain_types::SuccessStatus::Code201,
-    transport = frontend_contract::domain_types::PublicTransport
-)]
-pub struct CreateNotificationRoute;
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    frontend_contract::domain_types::RouteCatalog,
-)]
-#[route_catalog(
-    family = NotificationRouteFamily,
-    body_limit = NOTIFICATION_API_BODY_MAX_BYTES,
-)]
-pub enum NotificationRoute {
-    #[route_catalog_route(CreateNotificationRoute)]
-    Create,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    frontend_contract::domain_types::RouteCatalog,
-)]
-#[route_catalog(
-    family = NotificationOperationalRouteFamily,
-    body_limit = NOTIFICATION_API_BODY_MAX_BYTES,
-)]
-pub enum NotificationOperationalRoute {
-    #[route_catalog_route(
-        contract = frontend_contract::domain_types::RouteContract::new(
-            frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::HttpMethod::Get,
-            frontend_contract::domain_types::MutationKind::ReadOnly,
-            frontend_contract::domain_types::ContractStr::from("/metrics"),
-            frontend_contract::domain_types::SuccessStatus::Code200,
-        ),
-        path = "/metrics",
-        exclude_from_family,
-    )]
-    Metrics,
-    #[route_catalog_route(
-        contract = frontend_contract::domain_types::RouteContract::new(
-            frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::HttpMethod::Get,
-            frontend_contract::domain_types::MutationKind::ReadOnly,
-            frontend_contract::domain_types::ContractStr::from("/openapi.json"),
-            frontend_contract::domain_types::SuccessStatus::Code200,
-        ),
-        path = "/openapi.json",
-        exclude_from_family,
-    )]
-    OpenApi,
-}
-impl frontend_contract::domain_types::RouteRegistrationContract for NotificationOperationalRoute {
-    fn method(self) -> frontend_contract::domain_types::RouteMethod {
-        frontend_contract::domain_types::RouteMethod::Get
-    }
-    fn path(self) -> frontend_contract::domain_types::RegisteredRoutePath {
-        frontend_contract::domain_types::RegisteredRoutePath::from(match self {
-            Self::Metrics => constants_str::METRICS,
-            Self::OpenApi => constants_str::OPENAPI_JSON,
-        })
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum NotificationMessageTryFromStringError {
-    #[error("notification message must not be empty")]
-    Empty,
-    #[error("notification message exceeds its maximum length")]
-    TooLong,
-}
-impl TryFrom<String> for NotificationMessage {
-    type Error = NotificationMessageTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(Self::Error::Empty);
-        }
-        if value.len() > NOTIFICATION_MESSAGE_MAX_LEN {
-            return Err(Self::Error::TooLong);
-        }
-        Ok(Self(value))
-    }
-}
 #[cfg(test)]
 mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]

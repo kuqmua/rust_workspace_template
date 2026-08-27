@@ -7,9 +7,9 @@ mod routes;
 pub(super) async fn run_server(
     config: server_config::domain_types::Config,
 ) -> Result<(), crate::domain_types::RunServerError> {
-    let pg_pool = crate::adapters::make_postgresql_pool::make_postgresql_pool(&config).await?;
-    let cleanup_cfg = crate::adapters::maintenance::configuration()?;
-    let cleanup_interval = crate::adapters::maintenance::interval()?;
+    let pg_pool = crate::make_postgresql_pool::make_postgresql_pool(&config).await?;
+    let cleanup_cfg = crate::configuration::configuration()?;
+    let cleanup_interval = crate::interval::interval()?;
     let cleanup_pool = pg_pool.clone();
     let Some(cleanup_task) = server_runtime_http::domain_types::spawn_interval_task(
         Some(cleanup_interval),
@@ -224,24 +224,20 @@ pub(super) async fn run_server(
             .apply(
                 server_runtime_http::domain_types::RequestTimeoutLayer::from(request_timeout)
                     .apply(server_runtime_http::domain_types::AxumRouter::from(
-                        axum::Router::from(
-                            crate::adapters::mount_service_routes::mount_service_routes(
-                                server_runtime_http::domain_types::AxumRouter::from(
-                                    operational_routes,
-                                ),
-                                api_routes,
-                                crate::domain_types::HttpBodyMaximumBytes::from(
-                                    maximum_http_body_bytes,
-                                ),
+                        axum::Router::from(crate::mount_service_routes::mount_service_routes(
+                            server_runtime_http::domain_types::AxumRouter::from(operational_routes),
+                            api_routes,
+                            crate::domain_types::HttpBodyMaximumBytes::from(
+                                maximum_http_body_bytes,
                             ),
-                        )
+                        ))
                         .merge(axum::Router::from(
                             server_admin_frontend::domain_types::routes(),
                         ))
                         .merge(axum::Router::from(admin_html_routes))
                         .merge(admin_metrics_routes)
                         .merge(axum::Router::from(
-                            crate::adapters::frontend_fallback_routes::frontend_fallback_routes(),
+                            crate::frontend_fallback_routes::frontend_fallback_routes(),
                         ))
                         .layer(
                             tower_http::compression::CompressionLayer::new()

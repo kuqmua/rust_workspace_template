@@ -1,40 +1,20 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub struct TokioServiceRuntime(tokio::runtime::Runtime);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub struct ServiceRuntimeIoError(std::io::Error);
-
-pub fn build_service_runtime() -> Result<TokioServiceRuntime, ServiceRuntimeIoError> {
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .map(TokioServiceRuntime)
-        .map_err(ServiceRuntimeIoError)
-}
-
+#[path = "domain_types_service_runtime/build_service_runtime.rs"]
+mod build_service_runtime;
+#[path = "domain_types_service_runtime/service_runtime_io_error.rs"]
+mod service_runtime_io_error;
+#[path = "domain_types_service_runtime/tokio_service_runtime.rs"]
+mod tokio_service_runtime;
 #[cfg(not(unix))]
-pub async fn wait_for_service_shutdown_signal() -> Result<(), ServiceRuntimeIoError> {
-    tokio::signal::ctrl_c().await.map_err(ServiceRuntimeIoError)
-}
-
+#[path = "domain_types_service_runtime/non_unix/wait_for_service_shutdown_signal.rs"]
+mod wait_for_service_shutdown_signal;
 #[cfg(unix)]
-#[allow(
-    clippy::integer_division_remainder_used,
-    reason = "tokio::select macro expansion uses integer remainder internally"
-)]
-pub async fn wait_for_service_shutdown_signal() -> Result<(), ServiceRuntimeIoError> {
-    let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-        .map_err(ServiceRuntimeIoError)?;
-    tokio::select! {
-        ctrl_c = tokio::signal::ctrl_c() => ctrl_c.map_err(ServiceRuntimeIoError),
-        _signal = terminate.recv() => Ok(()),
-    }
-}
+#[path = "domain_types_service_runtime/unix/wait_for_service_shutdown_signal.rs"]
+mod wait_for_service_shutdown_signal;
+
+pub use build_service_runtime::build_service_runtime;
+pub use service_runtime_io_error::ServiceRuntimeIoError;
+pub use tokio_service_runtime::TokioServiceRuntime;
+pub use wait_for_service_shutdown_signal::wait_for_service_shutdown_signal;
 
 #[cfg(test)]
 mod tests {

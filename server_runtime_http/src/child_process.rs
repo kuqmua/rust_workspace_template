@@ -1,342 +1,67 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct ChildDiagnosticMaximumNonZeroUsize(std::num::NonZeroUsize);
+#[path = "child_process/child_diagnostic.rs"]
+mod child_diagnostic;
+#[path = "child_process/child_diagnostic_maximum_non_zero_usize.rs"]
+mod child_diagnostic_maximum_non_zero_usize;
+#[path = "child_process/child_exit_status.rs"]
+mod child_exit_status;
+#[path = "child_process/child_process_completion.rs"]
+mod child_process_completion;
+#[path = "child_process/child_process_error.rs"]
+mod child_process_error;
+#[path = "child_process/child_process_id.rs"]
+mod child_process_id;
+#[path = "child_process/child_process_io_error.rs"]
+mod child_process_io_error;
+#[path = "child_process/child_process_report.rs"]
+mod child_process_report;
+#[path = "child_process/child_process_reports.rs"]
+mod child_process_reports;
+#[path = "child_process/child_process_set.rs"]
+mod child_process_set;
+#[path = "child_process/child_process_set_error.rs"]
+mod child_process_set_error;
+#[path = "child_process/child_process_set_maximum_non_zero_usize.rs"]
+mod child_process_set_maximum_non_zero_usize;
+#[path = "child_process/child_process_succeeded.rs"]
+mod child_process_succeeded;
+#[path = "child_process/child_process_supervisor.rs"]
+mod child_process_supervisor;
+#[path = "child_process/join_diagnostic.rs"]
+mod join_diagnostic;
+#[path = "child_process/read_child_diagnostic.rs"]
+mod read_child_diagnostic;
+#[path = "child_process/std_collections_child_process_map.rs"]
+mod std_collections_child_process_map;
+#[path = "child_process/tokio_child_diagnostic_task.rs"]
+mod tokio_child_diagnostic_task;
+#[path = "child_process/tokio_child_process.rs"]
+mod tokio_child_process;
+#[path = "child_process/tokio_child_process_join_error.rs"]
+mod tokio_child_process_join_error;
+#[path = "child_process/tokio_managed_child.rs"]
+mod tokio_managed_child;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    newtype::FromInner,
-)]
-pub struct ChildProcessId(u64);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct ChildProcessSetMaximumNonZeroUsize(std::num::NonZeroUsize);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
-struct StdCollectionsChildProcessMap(
-    bounded_types::domain_types::btree::BoundedBTreeMap<
-        ChildProcessId,
-        ChildProcessSupervisor,
-        { usize::MAX },
-    >,
-);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub struct ChildProcessSet {
-    maximum: ChildProcessSetMaximumNonZeroUsize,
-    next_id: ChildProcessId,
-    processes: StdCollectionsChildProcessMap,
-}
-impl ChildProcessSet {
-    pub fn insert(
-        &mut self,
-        process: ChildProcessSupervisor,
-    ) -> Result<ChildProcessId, ChildProcessSetError> {
-        if self.processes.0.len().get() >= self.maximum.0.get() {
-            return Err(ChildProcessSetError::Full);
-        }
-        let id = self.next_id;
-        self.next_id = ChildProcessId::from(
-            self.next_id
-                .0
-                .checked_add(1u64)
-                .ok_or(ChildProcessSetError::IdOverflow)?,
-        );
-        self.processes
-            .0
-            .try_insert(id, process)
-            .map(|_previous| id)
-            .map_err(ChildProcessSetError::from)
-    }
-
-    #[must_use]
-    pub fn new(maximum: ChildProcessSetMaximumNonZeroUsize) -> Self {
-        Self {
-            maximum,
-            next_id: ChildProcessId::from(constants_u64::ZERO),
-            processes: StdCollectionsChildProcessMap::from(
-                bounded_types::domain_types::btree::BoundedBTreeMap::default(),
-            ),
-        }
-    }
-
-    pub async fn shutdown_all(
-        mut self,
-        timeout: crate::domain_types::RequestTimeoutDuration,
-    ) -> Result<ChildProcessReports, ChildProcessSetError> {
-        let mut reports = Vec::with_capacity(self.processes.0.len().get());
-        while let Some((_id, process)) = self.processes.0.pop_first() {
-            reports.push(
-                process
-                    .shutdown(timeout)
-                    .await
-                    .map_err(ChildProcessSetError::Process)?,
-            );
-        }
-        Ok(ChildProcessReports::from(
-            bounded_types::domain_types::vector::BoundedVec::from_max_iter(reports),
-        ))
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub struct ChildProcessReports(
-    bounded_types::domain_types::vector::BoundedVec<ChildProcessReport, 0, { usize::MAX }>,
-);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum ChildProcessSetError {
-    #[error("child process set is full")]
-    Full,
-    #[error("child process identifier overflowed")]
-    IdOverflow,
-    #[error("child process shutdown failed")]
-    Process(#[source] ChildProcessError),
-}
-
-impl From<bounded_types::domain_types::BoundedValueError> for ChildProcessSetError {
-    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
-        Self::Full
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub struct ChildDiagnostic(bounded_types::domain_types::vector::BoundedVec<u8, 0, { usize::MAX }>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ChildProcessCompletion {
-    Exited,
-    KilledAfterTimeout,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct ChildExitStatus(std::process::ExitStatus);
-
-impl ChildExitStatus {
-    #[must_use]
-    pub fn succeeded(self) -> ChildProcessSucceeded {
-        if self.0.success() {
-            ChildProcessSucceeded::Yes
-        } else {
-            ChildProcessSucceeded::No
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ChildProcessSucceeded {
-    No,
-    Yes,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-pub struct ChildProcessReport {
-    diagnostic: ChildDiagnostic,
-    status: ChildExitStatus,
-    completion: ChildProcessCompletion,
-}
-impl ChildProcessReport {
-    #[must_use]
-    pub const fn completion(&self) -> ChildProcessCompletion {
-        self.completion
-    }
-
-    #[must_use]
-    pub const fn diagnostic(&self) -> &ChildDiagnostic {
-        &self.diagnostic
-    }
-
-    #[must_use]
-    pub const fn status(&self) -> ChildExitStatus {
-        self.status
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct TokioManagedChild(tokio::process::Child);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct TokioChildProcess(tokio::process::Child);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-struct TokioChildDiagnosticTask(
-    tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>,
-);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-#[must_use]
-pub struct ChildProcessSupervisor {
-    child: Option<TokioManagedChild>,
-    diagnostic: Option<TokioChildDiagnosticTask>,
-}
-impl ChildProcessSupervisor {
-    pub fn new(mut child: TokioChildProcess, maximum: ChildDiagnosticMaximumNonZeroUsize) -> Self {
-        let diagnostic = child.0.stderr.take().map(|stderr| {
-            TokioChildDiagnosticTask::from(tokio::spawn(async move {
-                read_child_diagnostic(stderr, maximum).await
-            }))
-        });
-        Self {
-            child: Some(TokioManagedChild::from(child.0)),
-            diagnostic,
-        }
-    }
-
-    pub async fn shutdown(
-        mut self,
-        timeout: crate::domain_types::RequestTimeoutDuration,
-    ) -> Result<ChildProcessReport, ChildProcessError> {
-        let mut child = self.child.take().ok_or(ChildProcessError::MissingChild)?;
-        let (completion, status) = match tokio::time::timeout(timeout.get(), child.0.wait()).await {
-            Ok(result) => (
-                ChildProcessCompletion::Exited,
-                result
-                    .map_err(ChildProcessIoError::from)
-                    .map_err(ChildProcessError::Io)?,
-            ),
-            Err(_graceful_elapsed) => {
-                child
-                    .0
-                    .start_kill()
-                    .map_err(ChildProcessIoError::from)
-                    .map_err(ChildProcessError::Io)?;
-                let status = tokio::time::timeout(timeout.get(), child.0.wait())
-                    .await
-                    .map_err(|_kill_elapsed| ChildProcessError::Timeout)?
-                    .map_err(ChildProcessIoError::from)
-                    .map_err(ChildProcessError::Io)?;
-                (ChildProcessCompletion::KilledAfterTimeout, status)
-            }
-        };
-        let diagnostic = join_diagnostic(self.diagnostic.take()).await?;
-        Ok(ChildProcessReport {
-            completion,
-            diagnostic,
-            status: ChildExitStatus::from(status),
-        })
-    }
-}
-impl Drop for ChildProcessSupervisor {
-    fn drop(&mut self) {
-        if let Some(child) = self.child.as_mut() {
-            let _kill_result = child.0.start_kill();
-        }
-        if let Some(diagnostic) = self.diagnostic.take() {
-            diagnostic.0.abort();
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum ChildProcessError {
-    #[error("child process diagnostic read failed")]
-    DiagnosticIo(ChildProcessIoError),
-    #[error("child process diagnostic buffer range is invalid")]
-    DiagnosticRange,
-    #[error("child process operation failed")]
-    Io(ChildProcessIoError),
-    #[error("child process diagnostic task failed")]
-    Join(TokioChildProcessJoinError),
-    #[error("child process is missing")]
-    MissingChild,
-    #[error("child process did not terminate before the timeout")]
-    Timeout,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error(transparent)]
-#[derive(newtype::FromInner)]
-pub struct ChildProcessIoError(std::io::Error);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error(transparent)]
-#[derive(newtype::FromInner)]
-pub struct TokioChildProcessJoinError(tokio::task::JoinError);
-
-#[allow(clippy::single_call_fn)] // isolates optional diagnostic task joining from process state transitions
-async fn join_diagnostic(
-    optional_task: Option<TokioChildDiagnosticTask>,
-) -> Result<ChildDiagnostic, ChildProcessError> {
-    match optional_task {
-        Some(diagnostic_task) => diagnostic_task
-            .0
-            .await
-            .map_err(TokioChildProcessJoinError::from)
-            .map_err(ChildProcessError::Join)?,
-        None => Ok(ChildDiagnostic::from(
-            bounded_types::domain_types::vector::BoundedVec::default(),
-        )),
-    }
-}
-
-#[allow(clippy::single_call_fn)] // generic reader keeps bounded diagnostic behavior independently testable
-async fn read_child_diagnostic<Reader>(
-    mut reader: Reader,
-    maximum: ChildDiagnosticMaximumNonZeroUsize,
-) -> Result<ChildDiagnostic, ChildProcessError>
-where
-    Reader: tokio::io::AsyncRead + Unpin,
-{
-    let mut output = Vec::with_capacity(maximum.0.get());
-    let mut buffer = [constants_u8::ZERO; 4096usize];
-    while output.len() < maximum.0.get() {
-        let remaining = maximum.0.get().saturating_sub(output.len());
-        let read_length = remaining.min(buffer.len());
-        let target = buffer
-            .get_mut(..read_length)
-            .ok_or(ChildProcessError::DiagnosticRange)?;
-        let read = tokio::io::AsyncReadExt::read(&mut reader, target)
-            .await
-            .map_err(ChildProcessIoError::from)
-            .map_err(ChildProcessError::DiagnosticIo)?;
-        if read == constants_usize::ZERO {
-            break;
-        }
-        let read_bytes = buffer
-            .get(..read)
-            .ok_or(ChildProcessError::DiagnosticRange)?;
-        output.extend_from_slice(read_bytes);
-    }
-    Ok(ChildDiagnostic::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(output),
-    ))
-}
+pub use child_diagnostic::ChildDiagnostic;
+pub use child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize;
+pub use child_exit_status::ChildExitStatus;
+pub use child_process_completion::ChildProcessCompletion;
+pub use child_process_error::ChildProcessError;
+pub use child_process_id::ChildProcessId;
+pub use child_process_io_error::ChildProcessIoError;
+pub use child_process_report::ChildProcessReport;
+pub use child_process_reports::ChildProcessReports;
+pub use child_process_set::ChildProcessSet;
+pub use child_process_set_error::ChildProcessSetError;
+pub use child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize;
+pub use child_process_succeeded::ChildProcessSucceeded;
+pub use child_process_supervisor::ChildProcessSupervisor;
+use join_diagnostic::join_diagnostic;
+use read_child_diagnostic::read_child_diagnostic;
+use std_collections_child_process_map::StdCollectionsChildProcessMap;
+use tokio_child_diagnostic_task::TokioChildDiagnosticTask;
+pub use tokio_child_process::TokioChildProcess;
+pub use tokio_child_process_join_error::TokioChildProcessJoinError;
+use tokio_managed_child::TokioManagedChild;
 
 #[cfg(test)]
 mod tests {

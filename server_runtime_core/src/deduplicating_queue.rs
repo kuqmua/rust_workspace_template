@@ -1,71 +1,19 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct QueueMaximumNonZeroUsize(std::num::NonZeroUsize);
+#[path = "deduplicating_queue/collections_hash_set.rs"]
+mod collections_hash_set;
+#[path = "deduplicating_queue/collections_vec_deque.rs"]
+mod collections_vec_deque;
+#[path = "deduplicating_queue/deduplicating_queue.rs"]
+mod deduplicating_queue;
+#[path = "deduplicating_queue/queue_maximum_non_zero_usize.rs"]
+mod queue_maximum_non_zero_usize;
+#[path = "deduplicating_queue/queue_push.rs"]
+mod queue_push;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum QueuePush {
-    Duplicate,
-    Full,
-    Queued,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-pub struct DeduplicatingQueue<Item>
-where
-    Item: Clone + Eq + std::hash::Hash,
-{
-    items: CollectionsVecDeque<Item>,
-    keys: CollectionsHashSet<Item>,
-    maximum: QueueMaximumNonZeroUsize,
-}
-impl<Item> DeduplicatingQueue<Item>
-where
-    Item: Clone + Eq + std::hash::Hash,
-{
-    #[must_use]
-    pub fn new(maximum: QueueMaximumNonZeroUsize) -> Self {
-        Self {
-            items: CollectionsVecDeque::from(std::collections::VecDeque::with_capacity(
-                maximum.0.get(),
-            )),
-            keys: CollectionsHashSet::from(std::collections::HashSet::with_capacity(
-                maximum.0.get(),
-            )),
-            maximum,
-        }
-    }
-
-    pub fn pop(&mut self) -> Option<Item> {
-        let item = self.items.0.pop_front()?;
-        let _removed = self.keys.0.remove(&item);
-        Some(item)
-    }
-
-    pub fn push(&mut self, item: Item) -> QueuePush {
-        if self.keys.0.contains(&item) {
-            QueuePush::Duplicate
-        } else if self.items.0.len() >= self.maximum.0.get() {
-            QueuePush::Full
-        } else {
-            let _inserted = self.keys.0.insert(item.clone());
-            self.items.0.push_back(item);
-            QueuePush::Queued
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct CollectionsHashSet<Item>(std::collections::HashSet<Item>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct CollectionsVecDeque<Item>(std::collections::VecDeque<Item>);
+use collections_hash_set::CollectionsHashSet;
+use collections_vec_deque::CollectionsVecDeque;
+pub use deduplicating_queue::DeduplicatingQueue;
+pub use queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize;
+pub use queue_push::QueuePush;
 
 #[cfg(test)]
 mod tests {

@@ -136,22 +136,28 @@ struct JsonwebtokenAdminDecodingKeys(Vec<jsonwebtoken::DecodingKey>);
     Copy,
     PartialEq,
     Eq,
-    newtype::IntoInnerFrom,
-    newtype::TryFrom,
+    newtype::FromInner,
 )]
-#[try_from(
-    error = AdminAuthPositiveValueError,
-    validator = StdAdminAccessTtlSeconds::validate
-)]
-pub struct StdAdminAccessTtlSeconds(u64);
+struct StdAdminAccessTtlSecondsNonZeroU64(std::num::NonZeroU64);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StdAdminAccessTtlSeconds(StdAdminAccessTtlSecondsNonZeroU64);
+impl TryFrom<u64> for StdAdminAccessTtlSeconds {
+    type Error = AdminAuthPositiveValueError;
+
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        std::num::NonZeroU64::new(value)
+            .map(Self::from)
+            .ok_or(AdminAuthPositiveValueError)
+    }
+}
+impl From<std::num::NonZeroU64> for StdAdminAccessTtlSeconds {
+    fn from(value: std::num::NonZeroU64) -> Self {
+        Self(StdAdminAccessTtlSecondsNonZeroU64::from(value))
+    }
+}
 impl StdAdminAccessTtlSeconds {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == constants_u64::ZERO {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(())
-        }
+    const fn get(self) -> u64 {
+        self.0.0.get()
     }
 }
 #[derive(
@@ -161,22 +167,28 @@ impl StdAdminAccessTtlSeconds {
     Copy,
     PartialEq,
     Eq,
-    newtype::IntoInnerFrom,
-    newtype::TryFrom,
+    newtype::FromInner,
 )]
-#[try_from(
-    error = AdminAuthPositiveValueError,
-    validator = StdAdminRefreshTtlSeconds::validate
-)]
-pub struct StdAdminRefreshTtlSeconds(u64);
+struct StdAdminRefreshTtlSecondsNonZeroU64(std::num::NonZeroU64);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StdAdminRefreshTtlSeconds(StdAdminRefreshTtlSecondsNonZeroU64);
+impl TryFrom<u64> for StdAdminRefreshTtlSeconds {
+    type Error = AdminAuthPositiveValueError;
+
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        std::num::NonZeroU64::new(value)
+            .map(Self::from)
+            .ok_or(AdminAuthPositiveValueError)
+    }
+}
+impl From<std::num::NonZeroU64> for StdAdminRefreshTtlSeconds {
+    fn from(value: std::num::NonZeroU64) -> Self {
+        Self(StdAdminRefreshTtlSecondsNonZeroU64::from(value))
+    }
+}
 impl StdAdminRefreshTtlSeconds {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &u64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == constants_u64::ZERO {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(())
-        }
+    const fn get(self) -> u64 {
+        self.0.0.get()
     }
 }
 #[derive(
@@ -186,47 +198,44 @@ impl StdAdminRefreshTtlSeconds {
     Copy,
     PartialEq,
     Eq,
-    newtype::IntoInnerFrom,
-    newtype::TryFrom,
+    newtype::FromInner,
 )]
-#[try_from(
-    error = AdminAuthPositiveValueError,
-    validator = StdAdminSessionLimit::validate
-)]
-pub struct StdAdminSessionLimit(usize);
+struct StdAdminSessionLimitNonZeroUsize(std::num::NonZeroUsize);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StdAdminSessionLimit(StdAdminSessionLimitNonZeroUsize);
+impl TryFrom<usize> for StdAdminSessionLimit {
+    type Error = AdminAuthPositiveValueError;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        std::num::NonZeroUsize::new(value)
+            .map(Self::from)
+            .ok_or(AdminAuthPositiveValueError)
+    }
+}
+impl From<std::num::NonZeroUsize> for StdAdminSessionLimit {
+    fn from(value: std::num::NonZeroUsize) -> Self {
+        Self(StdAdminSessionLimitNonZeroUsize::from(value))
+    }
+}
 impl StdAdminSessionLimit {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &usize) -> Result<(), AdminAuthPositiveValueError> {
-        if *value == constants_usize::ZERO {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(())
-        }
+    const fn get(self) -> usize {
+        self.0.0.get()
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::IntoInnerFrom,
-    newtype::TryFrom,
-)]
-#[try_from(
-    error = AdminAuthPositiveValueError,
-    validator = StdAdminFailureThreshold::validate
-)]
-pub struct StdAdminFailureThreshold(i64);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StdAdminFailureThreshold(server_admin_contract::domain_types::PositiveNonZeroI64);
+impl TryFrom<i64> for StdAdminFailureThreshold {
+    type Error = AdminAuthPositiveValueError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
+            .map(Self)
+            .map_err(AdminAuthPositiveValueError::from)
+    }
+}
 impl StdAdminFailureThreshold {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &i64) -> Result<(), AdminAuthPositiveValueError> {
-        if *value <= constants_i64::ZERO {
-            Err(AdminAuthPositiveValueError)
-        } else {
-            Ok(())
-        }
+    pub(crate) const fn get(self) -> i64 {
+        self.0.get()
     }
 }
 #[derive(
@@ -234,6 +243,13 @@ impl StdAdminFailureThreshold {
 )]
 #[error("{self:?}")]
 pub struct AdminAuthPositiveValueError;
+impl From<server_admin_contract::domain_types::AdminIdTryFromI64Error>
+    for AdminAuthPositiveValueError
+{
+    fn from(_value: server_admin_contract::domain_types::AdminIdTryFromI64Error) -> Self {
+        Self
+    }
+}
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,

@@ -1,0 +1,1 @@
+pub(super) const SYNCHRONIZATION_PAYLOAD_MAX_BYTES: usize = 16 * 1024 * 1024;

@@ -22,14 +22,14 @@ pub(in crate::domain_types::auth) async fn mutations_set_ban(
         .begin()
         .await
         .map_err(super::super::AdminError::from)?;
-    crate::adapters::repository::roles::lock_last_admin(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::roles::lock_last_admin(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
     )
     .await
     .map_err(super::super::AdminError::from)?;
     if is_banned {
-        let last_admin_state = crate::adapters::repository::roles::read_last_admin_state(
-            crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        let last_admin_state = crate::repository::roles::read_last_admin_state(
+            crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             path.0,
         )
         .await
@@ -50,8 +50,8 @@ pub(in crate::domain_types::auth) async fn mutations_set_ban(
         .then_some(())
         .ok_or(super::super::AdminError::Conflict)?;
     if is_banned {
-        crate::adapters::repository::revoke_user_sessions::revoke_user_sessions(
-            crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::repository::revoke_user_sessions::revoke_user_sessions(
+            crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             path.0,
         )
         .await

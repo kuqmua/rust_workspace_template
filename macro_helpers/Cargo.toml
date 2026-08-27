@@ -11,7 +11,6 @@ license.workspace = true
 [dependencies]
 constants_usize = { workspace = true }
 constants_u8 = { workspace = true }
-constants_u32 = { workspace = true }
 atomic-write-file = { workspace = true }
 constants_str = { workspace = true }
 proc-macro2 = { workspace = true }
@@ -30,6 +29,10 @@ naming_macros = { workspace = true }
 newtype = { workspace = true }
 generate_derive_token_stream_builder = { workspace = true }
 optimal_memory_layout = { workspace = true }
+
+[dev-dependencies]
+constants_u32 = { workspace = true }
+
 [features]
 test-utils = ["dep:serde_json"]
 [lints]

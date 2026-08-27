@@ -1,0 +1,5 @@
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+)]
+#[error("{message}", message = constants_str::CURSOR_SIGNING_KEY_LENGTH_INVALID)]
+pub struct CursorSigningKeyError;

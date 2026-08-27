@@ -7,152 +7,33 @@
     PartialEq,
     PartialOrd,
     newtype::AsRefStr,
-    newtype::TryFrom,
 )]
-#[try_from(validator = SqlIdentifier::validate)]
 pub struct SqlIdentifier(String);
 impl SqlIdentifier {
     #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    fn validate(value: &str) -> Result<(), SqlIdentifierError> {
+    fn validate(value: &str) -> Result<(), crate::domain_types::SqlIdentifierError> {
         if value.len() > 128usize {
-            return Err(SqlIdentifierError::Invalid);
+            return Err(crate::domain_types::SqlIdentifierError::Invalid);
         }
         let mut bytes = value.bytes();
-        let first = bytes.next().ok_or(SqlIdentifierError::Empty)?;
+        let first = bytes
+            .next()
+            .ok_or(crate::domain_types::SqlIdentifierError::Empty)?;
         if !(first.is_ascii_alphabetic() || first == b'_')
             || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
         {
-            return Err(SqlIdentifierError::Invalid);
+            return Err(crate::domain_types::SqlIdentifierError::Invalid);
         }
         Ok(())
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum SqlIdentifierError {
-    #[error("SQL identifier is empty")]
-    Empty,
-    #[error("SQL identifier contains unsupported characters")]
-    Invalid,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct SqlQualifiedIdentifier {
-    schema: SqlIdentifier,
-    table: SqlIdentifier,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-struct SqlIdentifierListText(String);
-impl TryFrom<String> for SqlIdentifierListText {
-    type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;
+
+impl TryFrom<String> for SqlIdentifier {
+    type Error = crate::domain_types::SqlIdentifierError;
+
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            Err(
-                crate::domain_types::PgCrudStringWrapperTryFromStringError::TooLong {
-                    len: value.len(),
-                    max: crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN,
-                },
-            )
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct SqlIdentifiers(SqlIdentifierListText);
-impl TryFrom<Vec<SqlIdentifier>> for SqlIdentifiers {
-    type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;
-    fn try_from(value: Vec<SqlIdentifier>) -> Result<Self, Self::Error> {
-        if value.len() > bounded_types::domain_types::COLLECTION_MAX_LEN {
-            return Err(
-                crate::domain_types::PgCrudStringWrapperTryFromStringError::TooLong {
-                    len: value.len(),
-                    max: bounded_types::domain_types::COLLECTION_MAX_LEN,
-                },
-            );
-        }
-        let identifiers_len = value.iter().fold(constants_usize::ZERO, |len, identifier| {
-            len.saturating_add(identifier.as_ref().len())
-        });
-        let separators_len = value
-            .len()
-            .saturating_sub(constants_usize::ONE)
-            .saturating_mul(constants_str::TEXT_ALT_6.len());
-        let mut text = String::with_capacity(identifiers_len.saturating_add(separators_len));
-        value.iter().enumerate().for_each(|(idx, identifier)| {
-            if idx != constants_usize::ZERO {
-                text.push_str(constants_str::TEXT_ALT_6);
-            }
-            text.push_str(identifier.as_ref());
-        });
-        SqlIdentifierListText::try_from(text).map(Self)
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct SqlQueryText(String);
-impl From<crate::domain_types::PgCrudStringWrapperTryFromStringError> for SqlQueryText {
-    fn from(value: crate::domain_types::PgCrudStringWrapperTryFromStringError) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for SqlQueryText {
-    type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            Err(
-                crate::domain_types::PgCrudStringWrapperTryFromStringError::TooLong {
-                    len: value.len(),
-                    max: crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN,
-                },
-            )
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-impl SqlQualifiedIdentifier {
-    #[must_use]
-    pub const fn new(schema: SqlIdentifier, table: SqlIdentifier) -> Self {
-        Self { schema, table }
-    }
-}
-impl std::fmt::Display for SqlQualifiedIdentifier {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.schema.as_ref())?;
-        f.write_str(constants_str::DOT)?;
-        f.write_str(self.table.as_ref())
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct SqlSelectBuilder {
-    columns: SqlIdentifiers,
-    table: SqlQualifiedIdentifier,
-}
-impl SqlSelectBuilder {
-    #[must_use]
-    pub fn build(&self) -> crate::domain_types::QueryPartFragment {
-        let fixed_len = constants_str::SELECT
-            .len()
-            .saturating_add(constants_str::FROM.len())
-            .saturating_add(self.table.schema.as_ref().len())
-            .saturating_add(constants_str::DOT.len())
-            .saturating_add(self.table.table.as_ref().len());
-        let columns = self.columns.0.0.as_str();
-        let capacity = fixed_len.saturating_add(columns.len());
-        let mut query = SqlQueryText::try_from(String::with_capacity(capacity))
-            .unwrap_or_else(SqlQueryText::from);
-        query.0.push_str(constants_str::SELECT);
-        query.0.push_str(columns);
-        query.0.push_str(constants_str::FROM);
-        query.0.push_str(self.table.schema.as_ref());
-        query.0.push('.');
-        query.0.push_str(self.table.table.as_ref());
-        crate::domain_types::QueryPartFragment::try_from(query.0)
-            .unwrap_or_else(crate::domain_types::QueryPartFragment::from)
-    }
-    #[must_use]
-    pub const fn new(table: SqlQualifiedIdentifier, columns: SqlIdentifiers) -> Self {
-        Self { columns, table }
+        Self::validate(value.as_str())?;
+        Ok(Self(value))
     }
 }
 #[cfg(test)]
@@ -193,12 +74,12 @@ mod tests {
     }
     #[test]
     fn query_builder_accepts_only_validated_identifiers() {
-        let builder = super::SqlSelectBuilder::new(
-            super::SqlQualifiedIdentifier::new(
+        let builder = crate::domain_types::SqlSelectBuilder::new(
+            crate::domain_types::SqlQualifiedIdentifier::new(
                 identifier(constants_str::PUBLIC),
                 identifier(constants_str::USERS_ALT),
             ),
-            super::SqlIdentifiers::try_from(vec![
+            crate::domain_types::SqlIdentifiers::try_from(vec![
                 identifier(constants_str::SQL_NAMES_ID),
                 identifier(constants_str::LOGIN),
             ])

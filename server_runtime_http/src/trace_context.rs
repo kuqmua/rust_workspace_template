@@ -1,257 +1,52 @@
-const TRACE_PARENT_LEN: usize = 55;
-const TRACE_STATE_MAX_LEN: usize = 512;
+#[path = "trace_context/extract_remote_trace_context.rs"]
+mod extract_remote_trace_context;
+#[path = "trace_context/http_header_extractor.rs"]
+mod http_header_extractor;
+#[path = "trace_context/http_header_injector.rs"]
+mod http_header_injector;
+#[path = "trace_context/http_host_ref.rs"]
+mod http_host_ref;
+#[path = "trace_context/http_method_ref.rs"]
+mod http_method_ref;
+#[path = "trace_context/http_opentelemetry_header_map_mut.rs"]
+mod http_opentelemetry_header_map_mut;
+#[path = "trace_context/http_opentelemetry_header_map_ref.rs"]
+mod http_opentelemetry_header_map_ref;
+#[path = "trace_context/http_trace_parent.rs"]
+mod http_trace_parent;
+#[path = "trace_context/http_trace_parent_error.rs"]
+mod http_trace_parent_error;
+#[path = "trace_context/http_trace_state.rs"]
+mod http_trace_state;
+#[path = "trace_context/http_trace_state_error.rs"]
+mod http_trace_state_error;
+#[path = "trace_context/inject_trace_context.rs"]
+mod inject_trace_context;
+#[path = "trace_context/opentelemetry_context.rs"]
+mod opentelemetry_context;
+#[path = "trace_context/outbound_trace_context.rs"]
+mod outbound_trace_context;
+#[path = "trace_context/reqwest_request.rs"]
+mod reqwest_request;
+#[path = "trace_context/reqwest_request_builder.rs"]
+mod reqwest_request_builder;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct HttpHeaderExtractor<'headers_lt>(&'headers_lt http::HeaderMap);
-
-impl opentelemetry::propagation::Extractor for HttpHeaderExtractor<'_> {
-    fn get(&self, key: &str) -> Option<&str> {
-        let value = self.0.get(key)?;
-        value.to_str().ok()
-    }
-
-    fn keys(&self) -> Vec<&str> {
-        self.0.keys().map(http::HeaderName::as_str).collect()
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct HttpHeaderInjector<'headers_lt>(&'headers_lt mut http::HeaderMap);
-
-impl opentelemetry::propagation::Injector for HttpHeaderInjector<'_> {
-    fn set(&mut self, key: &str, value: String) {
-        let Ok(header_name) = http::HeaderName::try_from(key) else {
-            return;
-        };
-        let Ok(header_value) = http::HeaderValue::try_from(value) else {
-            return;
-        };
-        let _previous_value = self.0.insert(header_name, header_value);
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct HttpTraceParent(String);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum HttpTraceParentError {
-    #[error("{}", constants_str::TRACEPARENT_W3C_VERSION_00_FORMAT)]
-    Format,
-    #[error("{}", constants_str::TRACEPARENT_PARENT_ID_NOT_ZERO)]
-    ZeroParentId,
-    #[error("{}", constants_str::TRACEPARENT_TRACE_ID_NOT_ZERO)]
-    ZeroTraceId,
-}
-
-impl TryFrom<String> for HttpTraceParent {
-    type Error = HttpTraceParentError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let bytes = value.as_bytes();
-        if bytes.len() != TRACE_PARENT_LEN
-            || bytes.get(constants_usize::ZERO..3usize) != Some(b"00-")
-            || bytes.get(35usize) != Some(&b'-')
-            || bytes.get(52usize) != Some(&b'-')
-            || !bytes
-                .iter()
-                .enumerate()
-                .filter(|(idx, _byte)| !matches!(idx, 2usize | 35usize | 52usize))
-                .all(|(_idx, byte)| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
-        {
-            return Err(Self::Error::Format);
-        }
-        let Some(trace_id) = bytes.get(3usize..35usize) else {
-            return Err(Self::Error::Format);
-        };
-        let Some(parent_id) = bytes.get(36usize..52usize) else {
-            return Err(Self::Error::Format);
-        };
-        if trace_id.iter().all(|byte| *byte == b'0') {
-            return Err(Self::Error::ZeroTraceId);
-        }
-        if parent_id.iter().all(|byte| *byte == b'0') {
-            return Err(Self::Error::ZeroParentId);
-        }
-        Ok(Self(value))
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct HttpTraceState(String);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{}", constants_str::TRACESTATE_PRINTABLE_ASCII_MAX_512)]
-pub struct HttpTraceStateError;
-
-impl TryFrom<String> for HttpTraceState {
-    type Error = HttpTraceStateError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty()
-            || value.len() > TRACE_STATE_MAX_LEN
-            || !value.bytes().all(|byte| (0x20u8..=0x7eu8).contains(&byte))
-        {
-            return Err(HttpTraceStateError);
-        }
-        Ok(Self(value))
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct OutboundTraceContext {
-    request_id: Option<crate::domain_types::RequestId>,
-    trace_parent: HttpTraceParent,
-    trace_state: Option<HttpTraceState>,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub struct ReqwestRequestBuilder(reqwest::RequestBuilder);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct ReqwestRequest(reqwest::Request);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    newtype::DerefInner,
-    newtype::DerefMutInner,
-    newtype::FromInner,
-)]
-pub struct HttpOpentelemetryHeaderMapMut<'headers_lt>(&'headers_lt mut http::HeaderMap);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct HttpOpentelemetryHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    newtype::DerefInner,
-    newtype::Display,
-    newtype::FromInner,
-)]
-pub struct HttpHostRef<'host_lt>(&'host_lt str);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    newtype::DerefInner,
-    newtype::Display,
-    newtype::FromInner,
-)]
-pub struct HttpMethodRef<'method_lt>(&'method_lt http::Method);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-pub struct OpentelemetryContext(opentelemetry::Context);
-
-impl ReqwestRequest {
-    pub(crate) fn headers_mut(&mut self) -> HttpOpentelemetryHeaderMapMut<'_> {
-        HttpOpentelemetryHeaderMapMut::from(self.0.headers_mut())
-    }
-
-    pub(crate) fn host(&self) -> Option<HttpHostRef<'_>> {
-        self.0.url().host_str().map(HttpHostRef::from)
-    }
-
-    pub(crate) fn into_inner(self) -> reqwest::Request {
-        self.0
-    }
-
-    pub(crate) fn method(&self) -> HttpMethodRef<'_> {
-        HttpMethodRef::from(self.0.method())
-    }
-}
-
-impl TryFrom<ReqwestRequestBuilder> for ReqwestRequest {
-    type Error = crate::domain_types::ReqwestError;
-
-    fn try_from(value: ReqwestRequestBuilder) -> Result<Self, Self::Error> {
-        value
-            .0
-            .build()
-            .map(Self)
-            .map_err(crate::domain_types::ReqwestError::from)
-    }
-}
-
-impl OutboundTraceContext {
-    #[must_use]
-    pub fn apply(&self, request: ReqwestRequestBuilder) -> ReqwestRequestBuilder {
-        let request_with_parent = request
-            .0
-            .header(constants_str::TRACEPARENT, self.trace_parent.as_ref());
-        let request_with_state = match self.trace_state.as_ref() {
-            Some(trace_state) => {
-                request_with_parent.header(constants_str::TRACESTATE, trace_state.as_ref())
-            }
-            None => request_with_parent,
-        };
-        match self.request_id.as_ref() {
-            Some(request_id) => {
-                request_with_state.header(constants_str::X_REQUEST_ID, request_id.to_string())
-            }
-            None => request_with_state,
-        }
-        .into()
-    }
-
-    #[must_use]
-    pub const fn new(
-        trace_parent: HttpTraceParent,
-        trace_state: Option<HttpTraceState>,
-        request_id: Option<crate::domain_types::RequestId>,
-    ) -> Self {
-        Self {
-            request_id,
-            trace_parent,
-            trace_state,
-        }
-    }
-}
-
-#[must_use]
-pub fn extract_remote_trace_context(
-    headers: HttpOpentelemetryHeaderMapRef<'_>,
-) -> OpentelemetryContext {
-    opentelemetry::global::get_text_map_propagator(|propagator| {
-        OpentelemetryContext::from(propagator.extract(&HttpHeaderExtractor::from(headers.0)))
-    })
-}
-
-pub fn inject_trace_context(
-    context: &OpentelemetryContext,
-    mut headers: HttpOpentelemetryHeaderMapMut<'_>,
-) {
-    opentelemetry::global::get_text_map_propagator(|propagator| {
-        propagator.inject_context(&context.0, &mut HttpHeaderInjector::from(&mut **headers));
-    });
-}
+pub use extract_remote_trace_context::extract_remote_trace_context;
+use http_header_extractor::HttpHeaderExtractor;
+use http_header_injector::HttpHeaderInjector;
+pub use http_host_ref::HttpHostRef;
+pub use http_method_ref::HttpMethodRef;
+pub use http_opentelemetry_header_map_mut::HttpOpentelemetryHeaderMapMut;
+pub use http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef;
+pub use http_trace_parent::HttpTraceParent;
+pub use http_trace_parent_error::HttpTraceParentError;
+pub use http_trace_state::HttpTraceState;
+pub use http_trace_state_error::HttpTraceStateError;
+pub use inject_trace_context::inject_trace_context;
+pub use opentelemetry_context::OpentelemetryContext;
+pub use outbound_trace_context::OutboundTraceContext;
+pub use reqwest_request::ReqwestRequest;
+pub use reqwest_request_builder::ReqwestRequestBuilder;
 
 #[cfg(test)]
 mod tests {

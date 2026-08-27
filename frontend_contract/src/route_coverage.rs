@@ -1,277 +1,49 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteAccess {
-    Authenticated,
-    Public,
-}
+#[path = "route_coverage/missing_required_test_categories.rs"]
+mod missing_required_test_categories;
+#[path = "route_coverage/required_test_categories.rs"]
+mod required_test_categories;
+#[path = "route_coverage/route_access.rs"]
+mod route_access;
+#[path = "route_coverage/route_coverage_descriptor.rs"]
+mod route_coverage_descriptor;
+#[path = "route_coverage/route_coverage_error.rs"]
+mod route_coverage_error;
+#[path = "route_coverage/route_coverage_evidence.rs"]
+mod route_coverage_evidence;
+#[path = "route_coverage/route_coverage_obligation.rs"]
+mod route_coverage_obligation;
+#[path = "route_coverage/route_database_usage.rs"]
+mod route_database_usage;
+#[path = "route_coverage/route_json_body_usage.rs"]
+mod route_json_body_usage;
+#[path = "route_coverage/route_mutation.rs"]
+mod route_mutation;
+#[path = "route_coverage/route_response_kind.rs"]
+mod route_response_kind;
+#[path = "route_coverage/route_test_capabilities.rs"]
+mod route_test_capabilities;
+#[path = "route_coverage/route_test_categories.rs"]
+mod route_test_categories;
+#[path = "route_coverage/route_test_category.rs"]
+mod route_test_category;
+#[path = "route_coverage/validate_route_coverage.rs"]
+mod validate_route_coverage;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteMutation {
-    Mutating,
-    ReadOnly,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteDatabaseUsage {
-    Database,
-    None,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteJsonBodyUsage {
-    JsonBody,
-    None,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteResponseKind {
-    Buffered,
-    Streaming,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RouteTestCapabilities {
-    database: RouteDatabaseUsage,
-    json_body: RouteJsonBodyUsage,
-    response: RouteResponseKind,
-}
-
-impl RouteTestCapabilities {
-    #[must_use]
-    pub const fn new(
-        database: RouteDatabaseUsage,
-        json_body: RouteJsonBodyUsage,
-        response: RouteResponseKind,
-    ) -> Self {
-        Self {
-            database,
-            json_body,
-            response,
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteTestCategory {
-    DatabaseFixture,
-    FixtureHook,
-    JsonRoundTrip,
-    Metadata,
-    StreamingResponse,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct RouteTestCategories(
-    bounded_types::domain_types::vector::BoundedVec<RouteTestCategory, 0, { usize::MAX }>,
-);
-impl TryFrom<Vec<RouteTestCategory>> for RouteTestCategories {
-    type Error = bounded_types::domain_types::BoundedValueError;
-    fn try_from(value: Vec<RouteTestCategory>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
-            .map(Self::from)
-    }
-}
-
-#[must_use]
-pub fn missing_required_test_categories(
-    capabilities: RouteTestCapabilities,
-    available_categories: &[RouteTestCategory],
-) -> RouteTestCategories {
-    RouteTestCategories::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(
-            bounded_types::domain_types::vector::BoundedVec::from(required_test_categories(
-                capabilities,
-            ))
-            .into_iter()
-            .filter(|category| !available_categories.contains(category)),
-        ),
-    )
-}
-
-#[must_use]
-pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTestCategories {
-    let categories = [
-        Some(RouteTestCategory::FixtureHook),
-        Some(RouteTestCategory::Metadata),
-        (capabilities.database == RouteDatabaseUsage::Database)
-            .then_some(RouteTestCategory::DatabaseFixture),
-        (capabilities.json_body == RouteJsonBodyUsage::JsonBody)
-            .then_some(RouteTestCategory::JsonRoundTrip),
-        (capabilities.response == RouteResponseKind::Streaming)
-            .then_some(RouteTestCategory::StreamingResponse),
-    ]
-    .into_iter()
-    .flatten();
-    RouteTestCategories::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(categories),
-    )
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RouteCoverageEvidence {
-    obligations: &'static [RouteCoverageObligation],
-}
-
-impl RouteCoverageEvidence {
-    #[must_use]
-    pub const fn new(obligations: &'static [RouteCoverageObligation]) -> Self {
-        Self { obligations }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RouteCoverageDescriptor {
-    evidence: RouteCoverageEvidence,
-    metadata: crate::domain_types::RouteMetadata,
-    access: RouteAccess,
-    mutation: RouteMutation,
-}
-
-impl RouteCoverageDescriptor {
-    #[must_use]
-    pub const fn new(
-        metadata: crate::domain_types::RouteMetadata,
-        access: RouteAccess,
-        mutation: RouteMutation,
-        evidence: RouteCoverageEvidence,
-    ) -> Self {
-        Self {
-            evidence,
-            metadata,
-            access,
-            mutation,
-        }
-    }
-    #[must_use]
-    pub const fn metadata(self) -> crate::domain_types::RouteMetadata {
-        self.metadata
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteCoverageObligation {
-    IntegrationFixture,
-    OpenApiOperation,
-    PayloadValidation,
-    ReplayValidation,
-    SecurityValidation,
-}
-pub const PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
-    RouteCoverageObligation::IntegrationFixture,
-    RouteCoverageObligation::OpenApiOperation,
-    RouteCoverageObligation::PayloadValidation,
-];
-pub const PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
-    RouteCoverageObligation::IntegrationFixture,
-    RouteCoverageObligation::OpenApiOperation,
-    RouteCoverageObligation::PayloadValidation,
-    RouteCoverageObligation::ReplayValidation,
-];
-pub const AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
-    RouteCoverageObligation::IntegrationFixture,
-    RouteCoverageObligation::OpenApiOperation,
-    RouteCoverageObligation::PayloadValidation,
-    RouteCoverageObligation::SecurityValidation,
-];
-pub const AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
-    RouteCoverageObligation::IntegrationFixture,
-    RouteCoverageObligation::OpenApiOperation,
-    RouteCoverageObligation::PayloadValidation,
-    RouteCoverageObligation::ReplayValidation,
-    RouteCoverageObligation::SecurityValidation,
-];
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteCoverageError {
-    DuplicateRoute {
-        metadata: crate::domain_types::RouteMetadata,
-    },
-    Missing {
-        metadata: crate::domain_types::RouteMetadata,
-        obligation: RouteCoverageObligation,
-    },
-}
-
-pub fn validate_route_coverage(
-    descriptors: &[RouteCoverageDescriptor],
-) -> Result<(), RouteCoverageError> {
-    descriptors
-        .iter()
-        .enumerate()
-        .try_for_each(|(index, descriptor)| {
-            if descriptors
-                .iter()
-                .take(index)
-                .any(|previous| previous.metadata == descriptor.metadata)
-            {
-                return Err(RouteCoverageError::DuplicateRoute {
-                    metadata: descriptor.metadata,
-                });
-            }
-            let required = [
-                (
-                    RouteCoverageObligation::IntegrationFixture,
-                    descriptor
-                        .evidence
-                        .obligations
-                        .contains(&RouteCoverageObligation::IntegrationFixture),
-                ),
-                (
-                    RouteCoverageObligation::OpenApiOperation,
-                    descriptor
-                        .evidence
-                        .obligations
-                        .contains(&RouteCoverageObligation::OpenApiOperation),
-                ),
-                (
-                    RouteCoverageObligation::PayloadValidation,
-                    descriptor
-                        .evidence
-                        .obligations
-                        .contains(&RouteCoverageObligation::PayloadValidation),
-                ),
-            ];
-            if let Some((obligation, _present)) =
-                required.into_iter().find(|(_kind, present)| !present)
-            {
-                return Err(RouteCoverageError::Missing {
-                    metadata: descriptor.metadata,
-                    obligation,
-                });
-            }
-            if descriptor.access == RouteAccess::Authenticated
-                && !descriptor
-                    .evidence
-                    .obligations
-                    .contains(&RouteCoverageObligation::SecurityValidation)
-            {
-                return Err(RouteCoverageError::Missing {
-                    metadata: descriptor.metadata,
-                    obligation: RouteCoverageObligation::SecurityValidation,
-                });
-            }
-            if descriptor.mutation == RouteMutation::Mutating
-                && !descriptor
-                    .evidence
-                    .obligations
-                    .contains(&RouteCoverageObligation::ReplayValidation)
-            {
-                return Err(RouteCoverageError::Missing {
-                    metadata: descriptor.metadata,
-                    obligation: RouteCoverageObligation::ReplayValidation,
-                });
-            }
-            Ok(())
-        })
-}
+pub use missing_required_test_categories::missing_required_test_categories;
+pub use required_test_categories::required_test_categories;
+pub use route_access::RouteAccess;
+pub use route_coverage_descriptor::RouteCoverageDescriptor;
+pub use route_coverage_error::RouteCoverageError;
+pub use route_coverage_evidence::RouteCoverageEvidence;
+pub use route_coverage_obligation::*;
+pub use route_database_usage::RouteDatabaseUsage;
+pub use route_json_body_usage::RouteJsonBodyUsage;
+pub use route_mutation::RouteMutation;
+pub use route_response_kind::RouteResponseKind;
+pub use route_test_capabilities::RouteTestCapabilities;
+pub use route_test_categories::RouteTestCategories;
+pub use route_test_category::RouteTestCategory;
+pub use validate_route_coverage::validate_route_coverage;
 
 #[cfg(test)]
 mod tests {

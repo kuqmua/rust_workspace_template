@@ -1,119 +1,31 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct CleanupBatchSize(u64);
+#[path = "batched_cleanup/cleanup_batch_count.rs"]
+mod cleanup_batch_count;
+#[path = "batched_cleanup/cleanup_batch_size.rs"]
+mod cleanup_batch_size;
+#[path = "batched_cleanup/cleanup_batch_size_error.rs"]
+mod cleanup_batch_size_error;
+#[path = "batched_cleanup/cleanup_batch_size_non_zero_u64.rs"]
+mod cleanup_batch_size_non_zero_u64;
+#[path = "batched_cleanup/cleanup_completion.rs"]
+mod cleanup_completion;
+#[path = "batched_cleanup/cleanup_continuation.rs"]
+mod cleanup_continuation;
+#[path = "batched_cleanup/cleanup_report.rs"]
+mod cleanup_report;
+#[path = "batched_cleanup/cleanup_rows.rs"]
+mod cleanup_rows;
+#[path = "batched_cleanup/run_batched_cleanup.rs"]
+mod run_batched_cleanup;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("cleanup batch size must be greater than zero")]
-pub struct CleanupBatchSizeError;
-
-impl TryFrom<u64> for CleanupBatchSize {
-    type Error = CleanupBatchSizeError;
-
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == constants_u64::ZERO {
-            Err(CleanupBatchSizeError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct CleanupRows(u64);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct CleanupBatchCount(u64);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CleanupContinuation {
-    Continue,
-    Stop,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CleanupCompletion {
-    Drained,
-    Stopped,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-pub struct CleanupReport {
-    batches: CleanupBatchCount,
-    rows: CleanupRows,
-    completion: CleanupCompletion,
-}
-
-impl CleanupReport {
-    #[must_use]
-    pub const fn batches(self) -> CleanupBatchCount {
-        self.batches
-    }
-
-    #[must_use]
-    pub const fn completion(self) -> CleanupCompletion {
-        self.completion
-    }
-
-    #[must_use]
-    pub const fn rows(self) -> CleanupRows {
-        self.rows
-    }
-}
-
-pub async fn run_batched_cleanup<Cleanup, CleanupFuture, CleanupError, Continue>(
-    batch_size: CleanupBatchSize,
-    mut cleanup: Cleanup,
-    mut continuation: Continue,
-) -> Result<CleanupReport, CleanupError>
-where
-    Cleanup: FnMut(CleanupBatchSize) -> CleanupFuture,
-    CleanupFuture: Future<Output = Result<CleanupRows, CleanupError>>,
-    Continue: FnMut() -> CleanupContinuation,
-{
-    let mut batches = constants_u64::ZERO;
-    let mut rows = constants_u64::ZERO;
-    loop {
-        if continuation() == CleanupContinuation::Stop {
-            return Ok(CleanupReport {
-                batches: CleanupBatchCount::from(batches),
-                completion: CleanupCompletion::Stopped,
-                rows: CleanupRows::from(rows),
-            });
-        }
-        let batch_rows = u64::from(cleanup(batch_size).await?);
-        batches = batches.saturating_add(1u64);
-        rows = rows.saturating_add(batch_rows);
-        if batch_rows < batch_size.0 {
-            return Ok(CleanupReport {
-                batches: CleanupBatchCount::from(batches),
-                completion: CleanupCompletion::Drained,
-                rows: CleanupRows::from(rows),
-            });
-        }
-    }
-}
+pub use cleanup_batch_count::CleanupBatchCount;
+pub use cleanup_batch_size::CleanupBatchSize;
+pub use cleanup_batch_size_error::CleanupBatchSizeError;
+use cleanup_batch_size_non_zero_u64::CleanupBatchSizeNonZeroU64;
+pub use cleanup_completion::CleanupCompletion;
+pub use cleanup_continuation::CleanupContinuation;
+pub use cleanup_report::CleanupReport;
+pub use cleanup_rows::CleanupRows;
+pub use run_batched_cleanup::run_batched_cleanup;
 
 #[cfg(test)]
 mod tests {

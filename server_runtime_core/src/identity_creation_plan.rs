@@ -1,85 +1,19 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct IdentitySpec<Login, DisplayName, Role, SecretSource> {
-    display_name: DisplayName,
-    login: Login,
-    role: Role,
-    secret_source: SecretSource,
-}
+#[path = "identity_creation_plan/identity_creation_decision.rs"]
+mod identity_creation_decision;
+#[path = "identity_creation_plan/identity_presence.rs"]
+mod identity_presence;
+#[path = "identity_creation_plan/identity_role_presence.rs"]
+mod identity_role_presence;
+#[path = "identity_creation_plan/identity_spec.rs"]
+mod identity_spec;
+#[path = "identity_creation_plan/plan_identity_creation.rs"]
+mod plan_identity_creation;
 
-impl<Login, DisplayName, Role, SecretSource> IdentitySpec<Login, DisplayName, Role, SecretSource> {
-    #[must_use]
-    pub const fn display_name(&self) -> &DisplayName {
-        &self.display_name
-    }
-
-    #[must_use]
-    pub const fn login(&self) -> &Login {
-        &self.login
-    }
-
-    #[must_use]
-    pub const fn new(
-        login: Login,
-        display_name: DisplayName,
-        role: Role,
-        secret_source: SecretSource,
-    ) -> Self {
-        Self {
-            display_name,
-            login,
-            role,
-            secret_source,
-        }
-    }
-
-    #[must_use]
-    pub const fn role(&self) -> &Role {
-        &self.role
-    }
-
-    #[must_use]
-    pub const fn secret_source(&self) -> &SecretSource {
-        &self.secret_source
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum IdentityPresence {
-    Missing,
-    Present,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum IdentityRolePresence {
-    Missing,
-    Present,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum IdentityCreationDecision {
-    AlreadyExists,
-    Create,
-    MissingRole,
-}
-
-#[must_use]
-pub const fn plan_identity_creation(
-    identity: IdentityPresence,
-    role: IdentityRolePresence,
-) -> IdentityCreationDecision {
-    match (identity, role) {
-        (
-            IdentityPresence::Present,
-            IdentityRolePresence::Missing | IdentityRolePresence::Present,
-        ) => IdentityCreationDecision::AlreadyExists,
-        (IdentityPresence::Missing, IdentityRolePresence::Missing) => {
-            IdentityCreationDecision::MissingRole
-        }
-        (IdentityPresence::Missing, IdentityRolePresence::Present) => {
-            IdentityCreationDecision::Create
-        }
-    }
-}
+pub use identity_creation_decision::IdentityCreationDecision;
+pub use identity_presence::IdentityPresence;
+pub use identity_role_presence::IdentityRolePresence;
+pub use identity_spec::IdentitySpec;
+pub use plan_identity_creation::plan_identity_creation;
 
 #[cfg(test)]
 mod tests {

@@ -1,67 +1,25 @@
-const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
-const CORS_ALLOW_ORIGIN_MAX_BYTES: usize = 65_536usize;
-const CORS_ALLOW_ORIGIN_MAX_ITEMS: usize = 128usize;
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpCorsAllowOriginTextRef<'text_lt>(&'text_lt str);
+#[path = "cors/cors_allow_origin_max_bytes.rs"]
+mod cors_allow_origin_max_bytes;
+#[path = "cors/cors_allow_origin_max_items.rs"]
+mod cors_allow_origin_max_items;
+#[path = "cors/cors_allow_origin_split_ch.rs"]
+mod cors_allow_origin_split_ch;
+#[path = "cors/http_cors_allow_origin_header_values.rs"]
+mod http_cors_allow_origin_header_values;
+#[path = "cors/http_cors_allow_origin_header_values_error.rs"]
+mod http_cors_allow_origin_header_values_error;
+#[path = "cors/http_cors_allow_origin_text_ref.rs"]
+mod http_cors_allow_origin_text_ref;
+#[path = "cors/parse_cors_allow_origin.rs"]
+mod parse_cors_allow_origin;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub struct HttpCorsAllowOriginHeaderValues(Vec<http::HeaderValue>);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum HttpCorsAllowOriginHeaderValuesError {
-    #[error("CORS allow-origin configuration contains an invalid origin")]
-    InvalidOrigin,
-    #[error("CORS allow-origin configuration exceeds its maximum byte length")]
-    TooLong,
-    #[error("CORS allow-origin configuration contains too many entries")]
-    TooManyItems,
-}
-impl From<super::AllowedOriginError> for HttpCorsAllowOriginHeaderValuesError {
-    fn from(_value: super::AllowedOriginError) -> Self {
-        Self::InvalidOrigin
-    }
-}
-impl From<http::header::InvalidHeaderValue> for HttpCorsAllowOriginHeaderValuesError {
-    fn from(_value: http::header::InvalidHeaderValue) -> Self {
-        Self::InvalidOrigin
-    }
-}
-pub fn parse_cors_allow_origin(
-    value: HttpCorsAllowOriginTextRef<'_>,
-) -> Result<HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginHeaderValuesError> {
-    if value.0.len() > CORS_ALLOW_ORIGIN_MAX_BYTES {
-        return Err(HttpCorsAllowOriginHeaderValuesError::TooLong);
-    }
-    let capacity = value
-        .0
-        .chars()
-        .filter(|character| *character == CORS_ALLOW_ORIGIN_SPLIT_CH)
-        .count()
-        .saturating_add(constants_usize::ONE);
-    if capacity > CORS_ALLOW_ORIGIN_MAX_ITEMS {
-        return Err(HttpCorsAllowOriginHeaderValuesError::TooManyItems);
-    }
-    if value.0.trim().is_empty() {
-        return Ok(HttpCorsAllowOriginHeaderValues::from(Vec::new()));
-    }
-    let parsed = value
-        .0
-        .split(CORS_ALLOW_ORIGIN_SPLIT_CH)
-        .map(str::trim)
-        .map(|origin| {
-            drop(
-                super::AllowedOrigin::try_from(origin.to_owned())
-                    .map_err(HttpCorsAllowOriginHeaderValuesError::from)?,
-            );
-            http::HeaderValue::try_from(origin).map_err(HttpCorsAllowOriginHeaderValuesError::from)
-        })
-        .collect::<Result<Vec<http::HeaderValue>, HttpCorsAllowOriginHeaderValuesError>>()?;
-    Ok(HttpCorsAllowOriginHeaderValues::from(parsed))
-}
+use cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES;
+use cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS;
+use cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH;
+pub use http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues;
+pub use http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError;
+pub use http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef;
+pub use parse_cors_allow_origin::parse_cors_allow_origin;
 #[cfg(test)]
 mod tests {
     #[test]

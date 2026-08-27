@@ -1,68 +1,18 @@
-const SYNCHRONIZATION_PAYLOAD_MAX_BYTES: usize = 16 * 1024 * 1024;
+#[path = "domain_types/synchronization_payload.rs"]
+mod synchronization_payload;
+#[path = "domain_types/synchronization_payload_max_bytes.rs"]
+mod synchronization_payload_max_bytes;
+#[path = "domain_types/synchronization_payload_too_large.rs"]
+mod synchronization_payload_too_large;
+#[path = "domain_types/synchronization_runtime_configuration.rs"]
+mod synchronization_runtime_configuration;
+#[path = "domain_types/synchronization_source.rs"]
+mod synchronization_source;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-pub struct SynchronizationRuntimeConfiguration {
-    retry_policy: server_runtime_core::domain_types::RetryPolicy,
-    execution_mode: server_runtime_core::domain_types::ExecutionMode,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{}", std::any::type_name::<Self>())]
-pub struct SynchronizationPayloadTooLarge;
-impl From<bounded_types::domain_types::BoundedValueError> for SynchronizationPayloadTooLarge {
-    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
-        Self
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
-)]
-pub struct SynchronizationPayload(
-    bounded_types::domain_types::vector::BoundedVec<u8, 0, SYNCHRONIZATION_PAYLOAD_MAX_BYTES>,
-);
-
-impl TryFrom<Vec<u8>> for SynchronizationPayload {
-    type Error = SynchronizationPayloadTooLarge;
-
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
-            .map(Self)
-            .map_err(SynchronizationPayloadTooLarge::from)
-    }
-}
-
-pub trait SynchronizationSource {
-    type Error: std::error::Error + Send + Sync + 'static;
-
-    fn read(&mut self) -> impl Future<Output = Result<SynchronizationPayload, Self::Error>> + Send;
-}
-
-impl SynchronizationRuntimeConfiguration {
-    #[must_use]
-    pub const fn execution_mode(&self) -> server_runtime_core::domain_types::ExecutionMode {
-        self.execution_mode
-    }
-
-    #[must_use]
-    pub const fn new(
-        retry_policy: server_runtime_core::domain_types::RetryPolicy,
-        execution_mode: server_runtime_core::domain_types::ExecutionMode,
-    ) -> Self {
-        Self {
-            retry_policy,
-            execution_mode,
-        }
-    }
-
-    #[must_use]
-    pub const fn retry_policy(&self) -> server_runtime_core::domain_types::RetryPolicy {
-        self.retry_policy
-    }
-}
+pub use synchronization_payload::SynchronizationPayload;
+pub use synchronization_payload_too_large::SynchronizationPayloadTooLarge;
+pub use synchronization_runtime_configuration::SynchronizationRuntimeConfiguration;
+pub use synchronization_source::SynchronizationSource;
 
 #[cfg(test)]
 mod tests {

@@ -4,7 +4,7 @@
 )]
 pub(in crate::domain_types::start) async fn fetch_page(
     page: server_admin_contract::domain_types::AdminPage,
-    query: &super::query::AdminCsrQuery,
+    query: &super::admin_csr_query::AdminCsrQuery,
 ) -> Result<
     super::state::admin_load_state::AdminLoadState,
     super::state::admin_table_load_error::AdminTableLoadError,
@@ -16,7 +16,7 @@ pub(in crate::domain_types::start) async fn fetch_page(
         .map_err(|_error| super::state::admin_table_load_error::AdminTableLoadError::Fetch)?;
     let me_url =
         super::http::url::admin_api_url(server_admin_contract::domain_types::AdminRoute::Me)?;
-    let admin = super::http::fetch::fetch_json::<
+    let admin = super::http::fetch_json::fetch_json::<
         server_admin_contract::domain_types::AuthenticatedAdmin,
     >(&me_url)
     .await?;
@@ -41,7 +41,7 @@ pub(in crate::domain_types::start) async fn fetch_page(
                 server_admin_contract::domain_types::AdminRoute::DataTable(table),
                 super::http::url::AdminCsrApiUrlSuffixRef::from(table_search.as_str()),
             )?;
-            return super::http::fetch::fetch_json(&url)
+            return super::http::fetch_json::fetch_json(&url)
                 .await
                 .map(|value| super::state::admin_load_state::AdminLoadState::Table(admin, value));
         }
@@ -67,25 +67,27 @@ pub(in crate::domain_types::start) async fn fetch_page(
     )?;
     match page {
         server_admin_contract::domain_types::AdminPage::Permissions => {
-            super::http::fetch::fetch_json(&url).await.map(|value| {
-                super::state::admin_load_state::AdminLoadState::Permissions(admin, value)
-            })
+            super::http::fetch_json::fetch_json(&url)
+                .await
+                .map(|value| {
+                    super::state::admin_load_state::AdminLoadState::Permissions(admin, value)
+                })
         }
         server_admin_contract::domain_types::AdminPage::Profile => Ok(
             super::state::admin_load_state::AdminLoadState::Profile(admin),
         ),
         server_admin_contract::domain_types::AdminPage::Roles => {
-            super::http::fetch::fetch_json(&url)
+            super::http::fetch_json::fetch_json(&url)
                 .await
                 .map(|value| super::state::admin_load_state::AdminLoadState::Roles(admin, value))
         }
         server_admin_contract::domain_types::AdminPage::Sessions => {
-            super::http::fetch::fetch_json(&url)
+            super::http::fetch_json::fetch_json(&url)
                 .await
                 .map(|value| super::state::admin_load_state::AdminLoadState::Sessions(admin, value))
         }
         server_admin_contract::domain_types::AdminPage::Settings => {
-            super::http::fetch::fetch_json(&url)
+            super::http::fetch_json::fetch_json(&url)
                 .await
                 .map(|value| super::state::admin_load_state::AdminLoadState::Settings(admin, value))
         }
@@ -93,7 +95,7 @@ pub(in crate::domain_types::start) async fn fetch_page(
             Ok(super::state::admin_load_state::AdminLoadState::Empty(admin))
         }
         server_admin_contract::domain_types::AdminPage::Users => {
-            super::http::fetch::fetch_json(&url)
+            super::http::fetch_json::fetch_json(&url)
                 .await
                 .map(|value| super::state::admin_load_state::AdminLoadState::Users(admin, value))
         }

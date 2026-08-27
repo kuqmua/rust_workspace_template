@@ -1,169 +1,52 @@
-const SINGLE_FLIGHT_KEY_MAXIMUM_BYTES: usize = 1024usize;
+#[path = "single_flight/arc_single_flight_rw_lock.rs"]
+mod arc_single_flight_rw_lock;
+#[path = "single_flight/single_flight.rs"]
+mod single_flight;
+#[path = "single_flight/single_flight_acquire.rs"]
+mod single_flight_acquire;
+#[path = "single_flight/single_flight_inner.rs"]
+mod single_flight_inner;
+#[path = "single_flight/single_flight_key.rs"]
+mod single_flight_key;
+#[path = "single_flight/single_flight_key_error.rs"]
+mod single_flight_key_error;
+#[path = "single_flight/single_flight_key_maximum_bytes.rs"]
+mod single_flight_key_maximum_bytes;
+#[path = "single_flight/single_flight_maximum_non_zero_usize.rs"]
+mod single_flight_maximum_non_zero_usize;
+#[path = "single_flight/single_flight_owner.rs"]
+mod single_flight_owner;
+#[path = "single_flight/single_flight_rw_lock_write_guard.rs"]
+mod single_flight_rw_lock_write_guard;
+#[path = "single_flight/single_flight_signal.rs"]
+mod single_flight_signal;
+#[path = "single_flight/single_flight_wait_outcome.rs"]
+mod single_flight_wait_outcome;
+#[path = "single_flight/single_flight_waiter.rs"]
+mod single_flight_waiter;
+#[path = "single_flight/tokio_single_flight_receiver.rs"]
+mod tokio_single_flight_receiver;
+#[path = "single_flight/tokio_single_flight_sender.rs"]
+mod tokio_single_flight_sender;
+#[path = "single_flight/write_inner.rs"]
+mod write_inner;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Hash, PartialEq)]
-pub struct SingleFlightKey(String);
-impl TryFrom<String> for SingleFlightKey {
-    type Error = SingleFlightKeyError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > SINGLE_FLIGHT_KEY_MAXIMUM_BYTES {
-            return Err(SingleFlightKeyError::TooLong);
-        }
-        if value.is_empty() {
-            Err(SingleFlightKeyError::Empty)
-        } else if value.contains('\0') {
-            Err(SingleFlightKeyError::ContainsNul)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum SingleFlightKeyError {
-    #[error("single-flight key contains a NUL character")]
-    ContainsNul,
-    #[error("single-flight key must not be empty")]
-    Empty,
-    #[error("single-flight key exceeds its maximum length")]
-    TooLong,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct SingleFlightMaximumNonZeroUsize(std::num::NonZeroUsize);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-pub struct SingleFlight {
-    inner: ArcSingleFlightRwLock,
-    maximum: SingleFlightMaximumNonZeroUsize,
-}
-impl SingleFlight {
-    #[must_use]
-    #[allow(clippy::missing_const_for_fn)] // the lock-backed return value cannot be constructed in const context
-    pub fn acquire(&self, key: SingleFlightKey) -> SingleFlightAcquire {
-        let mut inner = write_inner(&self.inner);
-        if let Some(sender) = inner.flights.get(&key) {
-            return SingleFlightAcquire::Waiter(SingleFlightWaiter::from(
-                TokioSingleFlightReceiver::from(sender.0.subscribe()),
-            ));
-        }
-        if inner.flights.len().get() >= self.maximum.0.get() {
-            return SingleFlightAcquire::Full;
-        }
-        let (sender, _) = tokio::sync::watch::channel(SingleFlightSignal::Running);
-        let insertion = inner
-            .flights
-            .try_insert(key.clone(), TokioSingleFlightSender::from(sender));
-        if insertion.is_err() {
-            return SingleFlightAcquire::Full;
-        }
-        drop(inner);
-        SingleFlightAcquire::Owner(SingleFlightOwner {
-            inner: self.inner.clone(),
-            key: Some(key),
-        })
-    }
-
-    #[must_use]
-    pub fn new(maximum: SingleFlightMaximumNonZeroUsize) -> Self {
-        Self {
-            inner: ArcSingleFlightRwLock::default(),
-            maximum,
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub enum SingleFlightAcquire {
-    Full,
-    Owner(SingleFlightOwner),
-    Waiter(SingleFlightWaiter),
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-#[must_use]
-pub struct SingleFlightOwner {
-    inner: ArcSingleFlightRwLock,
-    key: Option<SingleFlightKey>,
-}
-impl Drop for SingleFlightOwner {
-    fn drop(&mut self) {
-        let Some(key) = self.key.take() else {
-            return;
-        };
-        let optional_sender = write_inner(&self.inner).flights.remove(&key);
-        if let Some(sender) = optional_sender {
-            let _send_result = sender.0.send(SingleFlightSignal::Retry);
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct SingleFlightWaiter(TokioSingleFlightReceiver);
-
-impl SingleFlightWaiter {
-    pub async fn wait(mut self) -> SingleFlightWaitOutcome {
-        match self.0.0.changed().await {
-            Ok(()) | Err(_) => SingleFlightWaitOutcome::Retry,
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum SingleFlightWaitOutcome {
-    Retry,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
-struct SingleFlightInner {
-    flights: bounded_types::domain_types::hash::BoundedHashMap<
-        SingleFlightKey,
-        TokioSingleFlightSender,
-        { usize::MAX },
-    >,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, newtype::FromInner)]
-struct ArcSingleFlightRwLock(std::sync::Arc<std::sync::RwLock<SingleFlightInner>>);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    newtype::DerefMutTarget,
-    newtype::DerefTarget,
-    newtype::FromInner,
-)]
-struct SingleFlightRwLockWriteGuard<'value_lt>(
-    std::sync::RwLockWriteGuard<'value_lt, SingleFlightInner>,
-);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-enum SingleFlightSignal {
-    Retry,
-    Running,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct TokioSingleFlightReceiver(tokio::sync::watch::Receiver<SingleFlightSignal>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-struct TokioSingleFlightSender(tokio::sync::watch::Sender<SingleFlightSignal>);
-
-fn write_inner(inner: &ArcSingleFlightRwLock) -> SingleFlightRwLockWriteGuard<'_> {
-    match inner.0.write() {
-        Ok(guard) => SingleFlightRwLockWriteGuard::from(guard),
-        Err(poisoned) => SingleFlightRwLockWriteGuard::from(poisoned.into_inner()),
-    }
-}
+use arc_single_flight_rw_lock::ArcSingleFlightRwLock;
+pub use single_flight::SingleFlight;
+pub use single_flight_acquire::SingleFlightAcquire;
+use single_flight_inner::SingleFlightInner;
+pub use single_flight_key::SingleFlightKey;
+pub use single_flight_key_error::SingleFlightKeyError;
+use single_flight_key_maximum_bytes::SINGLE_FLIGHT_KEY_MAXIMUM_BYTES;
+pub use single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize;
+pub use single_flight_owner::SingleFlightOwner;
+use single_flight_rw_lock_write_guard::SingleFlightRwLockWriteGuard;
+use single_flight_signal::SingleFlightSignal;
+pub use single_flight_wait_outcome::SingleFlightWaitOutcome;
+pub use single_flight_waiter::SingleFlightWaiter;
+use tokio_single_flight_receiver::TokioSingleFlightReceiver;
+use tokio_single_flight_sender::TokioSingleFlightSender;
+use write_inner::write_inner;
 
 #[cfg(test)]
 mod tests {

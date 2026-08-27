@@ -1,84 +1,16 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::FromInner)]
-pub struct RedactedUrl(Option<crate::domain_types::RequiredNulFreeBoundedText>);
+#[path = "redacted_url/redact_rtsp_url_userinfo.rs"]
+mod redact_rtsp_url_userinfo;
+#[path = "redacted_url/redact_url_userinfo.rs"]
+mod redact_url_userinfo;
+#[path = "redacted_url/redacted_url.rs"]
+mod redacted_url;
+#[path = "redacted_url/redacted_url_text_ref.rs"]
+mod redacted_url_text_ref;
 
-impl AsRef<str> for RedactedUrl {
-    fn as_ref(&self) -> &str {
-        self.0
-            .as_ref()
-            .map_or(constants_str::REDACTED_ALT_3, AsRef::as_ref)
-    }
-}
-impl std::fmt::Display for RedactedUrl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.as_ref())
-    }
-}
-impl std::fmt::Debug for RedactedUrl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(constants_str::REDACTED_URL)
-            .field(&self.as_ref())
-            .finish()
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct RedactedUrlTextRef<'value_lt>(&'value_lt str);
-
-#[must_use]
-pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
-    let input = value.0;
-    if let Ok(mut url) = reqwest::Url::parse(input) {
-        if url.username().is_empty() && url.password().is_none() {
-            return RedactedUrl::from(
-                crate::domain_types::RequiredNulFreeBoundedText::try_from(input.to_owned()).ok(),
-            );
-        }
-        if url.set_username(constants_str::REDACTED_ALT).is_ok() && url.set_password(None).is_ok() {
-            return RedactedUrl::from(
-                crate::domain_types::RequiredNulFreeBoundedText::try_from(url.to_string()).ok(),
-            );
-        }
-    }
-    let Some((scheme, remainder)) = input.split_once(constants_str::TEXT_ALT_10) else {
-        return RedactedUrl::from(
-            crate::domain_types::RequiredNulFreeBoundedText::try_from(
-                constants_str::REDACTED_ALT_3.to_owned(),
-            )
-            .ok(),
-        );
-    };
-    let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
-    let Some(authority) = remainder.get(..authority_end) else {
-        return RedactedUrl::from(
-            crate::domain_types::RequiredNulFreeBoundedText::try_from(
-                constants_str::REDACTED_ALT_3.to_owned(),
-            )
-            .ok(),
-        );
-    };
-    let Some(userinfo_end) = authority.rfind('@') else {
-        return RedactedUrl::from(
-            crate::domain_types::RequiredNulFreeBoundedText::try_from(input.to_owned()).ok(),
-        );
-    };
-    let host = authority
-        .get(userinfo_end.saturating_add(constants_usize::ONE)..)
-        .unwrap_or(constants_str::REDACTED_ALT_3);
-    let suffix = remainder.get(authority_end..).unwrap_or_default();
-    let mut output = String::with_capacity(input.len());
-    output.push_str(scheme);
-    output.push_str(constants_str::TEXT_ALT_10);
-    output.push_str(constants_str::REDACTED_ALT);
-    output.push('@');
-    output.push_str(host);
-    output.push_str(suffix);
-    RedactedUrl::from(crate::domain_types::RequiredNulFreeBoundedText::try_from(output).ok())
-}
-
-#[must_use]
-pub fn redact_rtsp_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
-    redact_url_userinfo(value)
-}
+pub use redact_rtsp_url_userinfo::redact_rtsp_url_userinfo;
+pub use redact_url_userinfo::redact_url_userinfo;
+pub use redacted_url::RedactedUrl;
+pub use redacted_url_text_ref::RedactedUrlTextRef;
 
 #[cfg(test)]
 mod tests {

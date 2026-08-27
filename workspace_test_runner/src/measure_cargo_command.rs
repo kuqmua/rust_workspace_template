@@ -59,7 +59,7 @@ pub(crate) fn measure_cargo_command(
                     print!("{stdout}");
                 }
             }
-            crate::adapters::print_without_measurement_footer::print_without_measurement_footer(
+            crate::print_without_measurement_footer::print_without_measurement_footer(
                 crate::domain_types::StderrTextRef::from(stderr.as_ref()),
             );
             println!(
@@ -79,7 +79,7 @@ pub(crate) fn measure_cargo_command(
                 }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
-            crate::adapters::print_without_measurement_footer::print_without_measurement_footer(
+            crate::print_without_measurement_footer::print_without_measurement_footer(
                 crate::domain_types::StderrTextRef::from(stderr.as_ref()),
             );
             eprintln!(

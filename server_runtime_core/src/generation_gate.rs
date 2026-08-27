@@ -1,47 +1,16 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct Generation(u64);
+#[path = "generation_gate/generation.rs"]
+mod generation;
+#[path = "generation_gate/generation_atomic_u64.rs"]
+mod generation_atomic_u64;
+#[path = "generation_gate/generation_commit.rs"]
+mod generation_commit;
+#[path = "generation_gate/generation_gate.rs"]
+mod generation_gate;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum GenerationCommit {
-    Current,
-    Stale,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
-pub struct GenerationGate {
-    current: GenerationAtomicU64,
-}
-impl GenerationGate {
-    #[must_use]
-    pub fn begin(&self) -> Generation {
-        Generation::from(
-            self.current
-                .0
-                .fetch_add(1u64, std::sync::atomic::Ordering::AcqRel)
-                .saturating_add(1u64),
-        )
-    }
-
-    #[must_use]
-    pub fn classify(&self, generation: Generation) -> GenerationCommit {
-        if self.current.0.load(std::sync::atomic::Ordering::Acquire) == generation.0 {
-            GenerationCommit::Current
-        } else {
-            GenerationCommit::Stale
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
-struct GenerationAtomicU64(std::sync::atomic::AtomicU64);
+pub use generation::Generation;
+use generation_atomic_u64::GenerationAtomicU64;
+pub use generation_commit::GenerationCommit;
+pub use generation_gate::GenerationGate;
 
 #[cfg(test)]
 mod tests {

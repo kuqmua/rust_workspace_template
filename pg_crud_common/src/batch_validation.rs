@@ -1,183 +1,28 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum BatchDuplicatePolicy {
-    KeepFirst,
-    KeepLast,
-    Reject,
-}
+#[path = "batch_validation/batch_duplicate_policy.rs"]
+mod batch_duplicate_policy;
+#[path = "batch_validation/batch_invalid_item_count.rs"]
+mod batch_invalid_item_count;
+#[path = "batch_validation/batch_invalid_items.rs"]
+mod batch_invalid_items;
+#[path = "batch_validation/batch_processed_item_count.rs"]
+mod batch_processed_item_count;
+#[path = "batch_validation/batch_records_b_tree_map.rs"]
+mod batch_records_b_tree_map;
+#[path = "batch_validation/batch_stopped_early.rs"]
+mod batch_stopped_early;
+#[path = "batch_validation/batch_validation_report.rs"]
+mod batch_validation_report;
+#[path = "batch_validation/validate_batch_by_key.rs"]
+mod validate_batch_by_key;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct BatchProcessedItemCount(usize);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct BatchInvalidItemCount(usize);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct BatchStoppedEarly(bool);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::FromInner,
-)]
-pub struct BatchInvalidItems<InvalidItem>(Vec<InvalidItem>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-)]
-pub struct BatchRecordsBTreeMap<Key, Record>(std::collections::BTreeMap<Key, Record>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct BatchValidationReport<Key, Record, InvalidItem> {
-    invalid_items: BatchInvalidItems<InvalidItem>,
-    processed_item_count: BatchProcessedItemCount,
-    records_by_key: BatchRecordsBTreeMap<Key, Record>,
-    stopped_early: BatchStoppedEarly,
-}
-
-impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
-    #[must_use]
-    pub fn into_parts(
-        self,
-    ) -> (
-        BatchRecordsBTreeMap<Key, Record>,
-        BatchInvalidItems<InvalidItem>,
-    ) {
-        (self.records_by_key, self.invalid_items)
-    }
-
-    #[must_use]
-    pub fn invalid_item_count(&self) -> BatchInvalidItemCount {
-        BatchInvalidItemCount::from(self.invalid_items.0.len())
-    }
-
-    #[must_use]
-    pub const fn invalid_items(&self) -> &[InvalidItem] {
-        self.invalid_items.0.as_slice()
-    }
-
-    #[must_use]
-    pub const fn processed_item_count(&self) -> BatchProcessedItemCount {
-        self.processed_item_count
-    }
-
-    #[must_use]
-    pub const fn records_by_key(&self) -> &BatchRecordsBTreeMap<Key, Record> {
-        &self.records_by_key
-    }
-
-    #[must_use]
-    pub const fn stopped_early(&self) -> BatchStoppedEarly {
-        self.stopped_early
-    }
-}
-
-#[must_use]
-pub fn validate_batch_by_key<
-    SourceItems,
-    SourceItem,
-    Record,
-    Key,
-    InvalidItem,
-    ValidationError,
-    ValidateSourceItem,
-    SelectRecordKey,
-    BuildInvalidItem,
-    BuildDuplicateInvalidItem,
->(
-    source_items: SourceItems,
-    maximum_invalid_items: BatchInvalidItemCount,
-    duplicate_policy: BatchDuplicatePolicy,
-    validate_source_item: ValidateSourceItem,
-    select_record_key: SelectRecordKey,
-    build_invalid_item: BuildInvalidItem,
-    build_duplicate_invalid_item: BuildDuplicateInvalidItem,
-) -> BatchValidationReport<Key, Record, InvalidItem>
-where
-    SourceItems: IntoIterator<Item = SourceItem>,
-    Key: Ord,
-    ValidateSourceItem: Fn(SourceItem) -> Result<Record, ValidationError>,
-    SelectRecordKey: Fn(&Record) -> Key,
-    BuildInvalidItem: Fn(usize, ValidationError) -> InvalidItem,
-    BuildDuplicateInvalidItem: Fn(usize, &Key) -> InvalidItem,
-{
-    let maximum_invalid_item_count = maximum_invalid_items.get();
-    let mut records_by_key = std::collections::BTreeMap::new();
-    let mut invalid_items = Vec::with_capacity(maximum_invalid_item_count);
-    let mut processed_item_count = constants_usize::ZERO;
-    let mut stopped_early = false;
-
-    let _validation_flow =
-        source_items
-            .into_iter()
-            .enumerate()
-            .try_for_each(|(item_index, source_item)| {
-                if invalid_items.len() >= maximum_invalid_item_count {
-                    stopped_early = true;
-                    return std::ops::ControlFlow::Break(());
-                }
-                processed_item_count = processed_item_count.saturating_add(constants_usize::ONE);
-                match validate_source_item(source_item) {
-                    Ok(record) => {
-                        let key = select_record_key(&record);
-                        match records_by_key.entry(key) {
-                            std::collections::btree_map::Entry::Vacant(entry) => {
-                                let _inserted_record = entry.insert(record);
-                            }
-                            std::collections::btree_map::Entry::Occupied(mut entry) => {
-                                match duplicate_policy {
-                                    BatchDuplicatePolicy::Reject => invalid_items.push(
-                                        build_duplicate_invalid_item(item_index, entry.key()),
-                                    ),
-                                    BatchDuplicatePolicy::KeepFirst => {}
-                                    BatchDuplicatePolicy::KeepLast => {
-                                        drop(entry.insert(record));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Err(error) => invalid_items.push(build_invalid_item(item_index, error)),
-                }
-                std::ops::ControlFlow::Continue(())
-            });
-
-    BatchValidationReport {
-        records_by_key: records_by_key.into(),
-        invalid_items: invalid_items.into(),
-        processed_item_count: BatchProcessedItemCount::from(processed_item_count),
-        stopped_early: BatchStoppedEarly::from(stopped_early),
-    }
-}
+pub use batch_duplicate_policy::BatchDuplicatePolicy;
+pub use batch_invalid_item_count::BatchInvalidItemCount;
+pub use batch_invalid_items::BatchInvalidItems;
+pub use batch_processed_item_count::BatchProcessedItemCount;
+pub use batch_records_b_tree_map::BatchRecordsBTreeMap;
+pub use batch_stopped_early::BatchStoppedEarly;
+pub use batch_validation_report::BatchValidationReport;
+pub use validate_batch_by_key::validate_batch_by_key;
 
 #[cfg(test)]
 mod tests {

@@ -1,263 +1,34 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct ServiceBaseUrl(String);
+#[path = "domain_types/http_runtime_test_status.rs"]
+mod http_runtime_test_status;
+#[path = "domain_types/reqwest_runtime_test_client.rs"]
+mod reqwest_runtime_test_client;
+#[path = "domain_types/reqwest_runtime_test_response.rs"]
+mod reqwest_runtime_test_response;
+#[path = "domain_types/runtime_test_config.rs"]
+mod runtime_test_config;
+#[path = "domain_types/runtime_test_error.rs"]
+mod runtime_test_error;
+#[path = "domain_types/runtime_test_kind.rs"]
+mod runtime_test_kind;
+#[path = "domain_types/runtime_test_report.rs"]
+mod runtime_test_report;
+#[path = "domain_types/runtime_test_url.rs"]
+mod runtime_test_url;
+#[path = "domain_types/service_base_url.rs"]
+mod service_base_url;
+#[path = "domain_types/service_base_url_error.rs"]
+mod service_base_url_error;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum ServiceBaseUrlError {
-    #[error("service base URL must include a host")]
-    Host,
-    #[error("service base URL exceeds its maximum length")]
-    Length,
-    #[error("service base URL must use HTTP or HTTPS")]
-    Scheme,
-    #[error("service base URL must not include a query or fragment")]
-    Suffix,
-}
-
-impl TryFrom<String> for ServiceBaseUrl {
-    type Error = ServiceBaseUrlError;
-
-    fn try_from(mut value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_192 {
-            return Err(ServiceBaseUrlError::Length);
-        }
-        while value.ends_with('/') {
-            let _removed = value.pop();
-        }
-        let parsed = match reqwest::Url::parse(value.as_str()) {
-            Ok(parsed) => parsed,
-            Err(_error)
-                if value.starts_with(constants_str::VALUE_8C8DAC95)
-                    || value.starts_with(constants_str::VALUE_66DFEEED) =>
-            {
-                return Err(ServiceBaseUrlError::Host);
-            }
-            Err(_error) => return Err(ServiceBaseUrlError::Scheme),
-        };
-        if parsed.scheme() != constants_str::HTTP && parsed.scheme() != constants_str::HTTPS {
-            return Err(ServiceBaseUrlError::Scheme);
-        }
-        if parsed.host().is_none() {
-            return Err(ServiceBaseUrlError::Host);
-        }
-        if parsed.query().is_some() || parsed.fragment().is_some() {
-            return Err(ServiceBaseUrlError::Suffix);
-        }
-        Ok(Self(value))
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct RuntimeTestConfig {
-    application_base_url: ServiceBaseUrl,
-    notification_service_base_url: ServiceBaseUrl,
-}
-
-impl RuntimeTestConfig {
-    #[must_use]
-    pub const fn application_base_url(&self) -> &ServiceBaseUrl {
-        &self.application_base_url
-    }
-
-    #[must_use]
-    pub const fn new(
-        application_base_url: ServiceBaseUrl,
-        notification_service_base_url: ServiceBaseUrl,
-    ) -> Self {
-        Self {
-            application_base_url,
-            notification_service_base_url,
-        }
-    }
-
-    #[must_use]
-    pub const fn notification_service_base_url(&self) -> &ServiceBaseUrl {
-        &self.notification_service_base_url
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RuntimeTestKind {
-    ApplicationLiveness,
-    ApplicationReadiness,
-    NotificationCreation,
-    NotificationServiceLiveness,
-    NotificationServiceReadiness,
-}
-
-impl std::fmt::Display for RuntimeTestKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::ApplicationLiveness => constants_str::VALUE_2AE6635F,
-            Self::ApplicationReadiness => constants_str::VALUE_27B02AA0,
-            Self::NotificationCreation => constants_str::VALUE_D1712BA9,
-            Self::NotificationServiceLiveness => constants_str::VALUE_FA6BAA20,
-            Self::NotificationServiceReadiness => constants_str::VALUE_7595852C,
-        })
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::FromInner,
-)]
-pub struct RuntimeTestReport(
-    bounded_types::domain_types::vector::BoundedVec<
-        RuntimeTestKind,
-        { constants_usize::ZERO },
-        5usize,
-    >,
-);
-
-impl RuntimeTestReport {
-    #[must_use]
-    pub const fn passed(&self) -> &[RuntimeTestKind] {
-        self.0.as_slice()
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::Display,
-    newtype::FromInner,
-)]
-pub struct HttpRuntimeTestStatus(u16);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub(crate) struct ReqwestRuntimeTestClient(reqwest::blocking::Client);
-
-impl ReqwestRuntimeTestClient {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the runtime adapter keeps the external HTTP client behind a domain boundary"
-    )]
-    pub(crate) fn send_get(
-        &self,
-        url: &RuntimeTestUrl,
-    ) -> Result<ReqwestRuntimeTestResponse, server_runtime_http::domain_types::ReqwestError> {
-        self.0
-            .get(url.0.as_str())
-            .send()
-            .map(ReqwestRuntimeTestResponse::from)
-            .map_err(server_runtime_http::domain_types::ReqwestError::from)
-    }
-
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the runtime adapter keeps the external HTTP client behind a domain boundary"
-    )]
-    pub(crate) fn send_notification(
-        &self,
-        url: &RuntimeTestUrl,
-        request: &notification_service_contract::domain_types::CreateNotificationReq,
-    ) -> Result<ReqwestRuntimeTestResponse, server_runtime_http::domain_types::ReqwestError> {
-        self.0
-            .post(url.0.as_str())
-            .json(request)
-            .send()
-            .map(ReqwestRuntimeTestResponse::from)
-            .map_err(server_runtime_http::domain_types::ReqwestError::from)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct ReqwestRuntimeTestResponse(reqwest::blocking::Response);
-
-impl ReqwestRuntimeTestResponse {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the runtime adapter decodes the health contract without exposing the HTTP response"
-    )]
-    pub(crate) fn into_health_report(
-        self,
-    ) -> Result<
-        common_routes::domain_types::HealthReport,
-        server_runtime_http::domain_types::ReqwestError,
-    > {
-        self.0
-            .json::<common_routes::domain_types::HealthReport>()
-            .map_err(server_runtime_http::domain_types::ReqwestError::from)
-    }
-
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the runtime adapter decodes the notification contract without exposing the HTTP response"
-    )]
-    pub(crate) fn into_notification_res(
-        self,
-    ) -> Result<
-        notification_service_contract::domain_types::CreateNotificationRes,
-        server_runtime_http::domain_types::ReqwestError,
-    > {
-        self.0
-            .json::<notification_service_contract::domain_types::CreateNotificationRes>()
-            .map_err(server_runtime_http::domain_types::ReqwestError::from)
-    }
-
-    #[must_use]
-    pub(crate) fn status(&self) -> HttpRuntimeTestStatus {
-        HttpRuntimeTestStatus::from(self.0.status().as_u16())
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub(crate) struct RuntimeTestUrl(String);
-
-impl TryFrom<String> for RuntimeTestUrl {
-    type Error = ServiceBaseUrlError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_192 {
-            Err(ServiceBaseUrlError::Length)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum RuntimeTestError {
-    #[error("runtime service URL is invalid: {0}")]
-    BaseUrl(#[from] ServiceBaseUrlError),
-    #[error("runtime HTTP client could not be built: {0}")]
-    Client(#[source] server_runtime_http::domain_types::ReqwestError),
-    #[error("runtime notification test message is invalid: {0}")]
-    NotificationMessage(
-        #[source]
-        notification_service_contract::domain_types::NotificationMessageTryFromStringError,
-    ),
-    #[error("runtime test report exceeded its result capacity: {0}")]
-    Report(#[source] bounded_types::domain_types::BoundedValueError),
-    #[error("{test} request failed: {source}")]
-    Request {
-        #[source]
-        source: server_runtime_http::domain_types::ReqwestError,
-        test: RuntimeTestKind,
-    },
-    #[error("{test} response could not be decoded: {source}")]
-    Response {
-        #[source]
-        source: server_runtime_http::domain_types::ReqwestError,
-        test: RuntimeTestKind,
-    },
-    #[error("{test} returned HTTP {actual}; expected {expected}")]
-    Status {
-        actual: HttpRuntimeTestStatus,
-        expected: HttpRuntimeTestStatus,
-        test: RuntimeTestKind,
-    },
-    #[error("{test} reported an unhealthy service")]
-    Unhealthy { test: RuntimeTestKind },
-}
+pub use http_runtime_test_status::HttpRuntimeTestStatus;
+pub(crate) use reqwest_runtime_test_client::ReqwestRuntimeTestClient;
+pub(crate) use reqwest_runtime_test_response::ReqwestRuntimeTestResponse;
+pub use runtime_test_config::RuntimeTestConfig;
+pub use runtime_test_error::RuntimeTestError;
+pub use runtime_test_kind::RuntimeTestKind;
+pub use runtime_test_report::RuntimeTestReport;
+pub(crate) use runtime_test_url::RuntimeTestUrl;
+pub use service_base_url::ServiceBaseUrl;
+pub use service_base_url_error::ServiceBaseUrlError;
 
 #[cfg(test)]
 mod tests {

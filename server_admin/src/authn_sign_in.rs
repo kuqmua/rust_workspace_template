@@ -51,7 +51,7 @@ pub(super) async fn authn_sign_in(
             .fetch_one(state.as_ref().pool.as_ref())
             .await
             .map_err(crate::domain_types::SqlxAdminError::from)
-            .map(crate::adapters::repository::AdminRecentLoginFailureCount::from)
+            .map(crate::repository::AdminRecentLoginFailureCount::from)
             .map_err(super::AdminError::from)?;
     if recent_failures
         .reached(state.as_ref().policy.failure_threshold)
@@ -67,7 +67,7 @@ pub(super) async fn authn_sign_in(
             .map_err(crate::domain_types::SqlxAdminError::from)
             .and_then(|value| {
                 value
-                    .map(crate::adapters::repository::AdminSignInUser::try_from)
+                    .map(crate::repository::AdminSignInUser::try_from)
                     .transpose()
             })
             .map_err(super::AdminError::from)?;

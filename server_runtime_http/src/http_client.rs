@@ -8,6 +8,8 @@ mod reqwest_client_policy;
 mod reqwest_connect_timeout_duration;
 #[path = "reqwest_request_timeout_duration.rs"]
 mod reqwest_request_timeout_duration;
+#[path = "std_reqwest_timeout_duration_ref.rs"]
+mod std_reqwest_timeout_duration_ref;
 #[path = "std_reqwest_timeout_error.rs"]
 mod std_reqwest_timeout_error;
 #[path = "tracing_http_client_span.rs"]

@@ -1,5 +1,9 @@
-mod adapters;
+mod configuration;
 mod domain_types;
+mod frontend_fallback_routes;
+mod interval;
+mod make_postgresql_pool;
+mod mount_service_routes;
 mod run_server;
 
 fn main() -> domain_types::ServerExitCode {

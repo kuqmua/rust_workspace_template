@@ -10,7 +10,6 @@ edition.workspace = true
 
 
 [dependencies]
-constants_u32 = { workspace = true }
 constants_str = { workspace = true }
 utoipa = { workspace = true }
 chrono = { workspace = true }
@@ -23,6 +22,7 @@ newtype = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
+constants_u32 = { workspace = true }
 constants_usize = { workspace = true }
 
 [lints]

@@ -1,367 +1,64 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "multipart domain declarations stay adjacent to their validation implementations"
-)]
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct MultipartPayloadMaximum(usize);
+#[path = "multipart/file_staging_action.rs"]
+mod file_staging_action;
+#[path = "multipart/file_staging_directory_name.rs"]
+mod file_staging_directory_name;
+#[path = "multipart/identifier_file_storage_relative_path.rs"]
+mod identifier_file_storage_relative_path;
+#[path = "multipart/multipart_bytes.rs"]
+mod multipart_bytes;
+#[path = "multipart/multipart_bytes_part.rs"]
+mod multipart_bytes_part;
+#[path = "multipart/multipart_bytes_parts.rs"]
+mod multipart_bytes_parts;
+#[path = "multipart/multipart_field_name.rs"]
+mod multipart_field_name;
+#[path = "multipart/multipart_file_name.rs"]
+mod multipart_file_name;
+#[path = "multipart/multipart_payload_maximum.rs"]
+mod multipart_payload_maximum;
+#[path = "multipart/multipart_request_error.rs"]
+mod multipart_request_error;
+#[path = "multipart/multipart_text_part.rs"]
+mod multipart_text_part;
+#[path = "multipart/multipart_text_parts.rs"]
+mod multipart_text_parts;
+#[path = "multipart/multipart_text_value.rs"]
+mod multipart_text_value;
+#[path = "multipart/multipart_upload_request.rs"]
+mod multipart_upload_request;
+#[path = "multipart/multipart_value_error.rs"]
+mod multipart_value_error;
+#[path = "multipart/multipart_value_length.rs"]
+mod multipart_value_length;
+#[path = "multipart/staging_directory_name.rs"]
+mod staging_directory_name;
+#[path = "multipart/storage_path_segment.rs"]
+mod storage_path_segment;
+#[path = "multipart/storage_path_segment_error.rs"]
+mod storage_path_segment_error;
+#[path = "multipart/storage_relative_path_buf.rs"]
+mod storage_relative_path_buf;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::Display,
-)]
-pub struct MultipartValueLength(usize);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum MultipartValueError {
-    #[error("multipart name must not contain control characters")]
-    ControlCharacter,
-    #[error("multipart field name must not be empty")]
-    EmptyFieldName,
-    #[error("multipart file name must not be empty")]
-    EmptyFileName,
-    #[error("multipart value must not contain NUL")]
-    Nul,
-    #[error("multipart file name must not contain path components")]
-    PathComponent,
-    #[error("multipart value length {actual} exceeds its maximum")]
-    TooLong { actual: MultipartValueLength },
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct MultipartFieldName(String);
-impl TryFrom<String> for MultipartFieldName {
-    type Error = MultipartValueError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(Self::Error::EmptyFieldName);
-        }
-        if value.len() > 256usize {
-            return Err(Self::Error::TooLong {
-                actual: MultipartValueLength(value.len()),
-            });
-        }
-        if value.chars().any(char::is_control) {
-            return Err(Self::Error::ControlCharacter);
-        }
-        Ok(Self(value))
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct MultipartFileName(String);
-impl TryFrom<String> for MultipartFileName {
-    type Error = MultipartValueError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(Self::Error::EmptyFileName);
-        }
-        if value.len() > 1024usize {
-            return Err(Self::Error::TooLong {
-                actual: MultipartValueLength(value.len()),
-            });
-        }
-        if value.chars().any(char::is_control) {
-            return Err(Self::Error::ControlCharacter);
-        }
-        if value.contains(['/', '\\'])
-            || std::path::Path::new(&value)
-                .file_name()
-                .and_then(|name| name.to_str())
-                != Some(&value)
-        {
-            return Err(Self::Error::PathComponent);
-        }
-        Ok(Self(value))
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct MultipartTextValue(String);
-impl TryFrom<String> for MultipartTextValue {
-    type Error = MultipartValueError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 65_536usize {
-            return Err(Self::Error::TooLong {
-                actual: MultipartValueLength(value.len()),
-            });
-        }
-        if value.contains('\0') {
-            return Err(Self::Error::Nul);
-        }
-        Ok(Self(value))
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
-)]
-pub struct MultipartBytes(bounded_types::domain_types::vector::BoundedVec<u8, 0, 16_777_216>);
-impl TryFrom<Vec<u8>> for MultipartBytes {
-    type Error = MultipartValueError;
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        let actual = MultipartValueLength(value.len());
-        match bounded_types::domain_types::vector::BoundedVec::try_from(value) {
-            Ok(bounded) => Ok(Self(bounded)),
-            Err(_error) => Err(Self::Error::TooLong { actual }),
-        }
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct MultipartTextPart {
-    name: MultipartFieldName,
-    value: MultipartTextValue,
-}
-impl MultipartTextPart {
-    #[must_use]
-    pub const fn name(&self) -> &MultipartFieldName {
-        &self.name
-    }
-    #[must_use]
-    pub const fn new(name: MultipartFieldName, value: MultipartTextValue) -> Self {
-        Self { name, value }
-    }
-    #[must_use]
-    pub const fn value(&self) -> &MultipartTextValue {
-        &self.value
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct MultipartBytesPart {
-    bytes: MultipartBytes,
-    file_name: Option<MultipartFileName>,
-    name: MultipartFieldName,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-struct MultipartBytesParts(Vec<MultipartBytesPart>);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-struct MultipartTextParts(Vec<MultipartTextPart>);
-impl MultipartBytesPart {
-    #[must_use]
-    pub const fn bytes(&self) -> &MultipartBytes {
-        &self.bytes
-    }
-    #[must_use]
-    pub const fn file_name(&self) -> Option<&MultipartFileName> {
-        self.file_name.as_ref()
-    }
-    #[must_use]
-    pub const fn name(&self) -> &MultipartFieldName {
-        &self.name
-    }
-    #[must_use]
-    pub const fn new(name: MultipartFieldName, bytes: MultipartBytes) -> Self {
-        Self {
-            bytes,
-            file_name: None,
-            name,
-        }
-    }
-    #[must_use]
-    pub fn with_file_name(mut self, file_name: MultipartFileName) -> Self {
-        self.file_name = Some(file_name);
-        self
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum MultipartRequestError {
-    #[error("multipart request payload exceeds its maximum")]
-    PayloadTooLarge,
-    #[error("multipart request contains too many parts")]
-    TooManyParts,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
-pub struct MultipartUploadRequest {
-    bytes_parts: MultipartBytesParts,
-    payload_bytes: MultipartValueLength,
-    text_parts: MultipartTextParts,
-}
-impl MultipartUploadRequest {
-    #[must_use]
-    pub const fn bytes_parts(&self) -> &[MultipartBytesPart] {
-        self.bytes_parts.0.as_slice()
-    }
-    fn ensure_additional_part(
-        &mut self,
-        part_bytes: MultipartValueLength,
-        maximum: MultipartPayloadMaximum,
-    ) -> Result<(), MultipartRequestError> {
-        if self
-            .bytes_parts
-            .as_ref()
-            .len()
-            .saturating_add(self.text_parts.as_ref().len())
-            >= 32usize
-        {
-            return Err(MultipartRequestError::TooManyParts);
-        }
-        let payload_bytes = self
-            .payload_bytes
-            .0
-            .checked_add(part_bytes.0)
-            .ok_or(MultipartRequestError::PayloadTooLarge)?;
-        if payload_bytes > maximum.0 {
-            return Err(MultipartRequestError::PayloadTooLarge);
-        }
-        self.payload_bytes = MultipartValueLength::from(payload_bytes);
-        Ok(())
-    }
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-    #[must_use]
-    pub const fn text_parts(&self) -> &[MultipartTextPart] {
-        self.text_parts.0.as_slice()
-    }
-    pub fn with_bytes_part(
-        mut self,
-        part: MultipartBytesPart,
-        maximum: MultipartPayloadMaximum,
-    ) -> Result<Self, MultipartRequestError> {
-        self.ensure_additional_part(
-            MultipartValueLength::from(part.bytes().as_ref().len()),
-            maximum,
-        )?;
-        self.bytes_parts.0.push(part);
-        Ok(self)
-    }
-    pub fn with_text_part(
-        mut self,
-        part: MultipartTextPart,
-        maximum: MultipartPayloadMaximum,
-    ) -> Result<Self, MultipartRequestError> {
-        self.ensure_additional_part(
-            MultipartValueLength::from(part.value().as_ref().len()),
-            maximum,
-        )?;
-        self.text_parts.0.push(part);
-        Ok(self)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum FileStagingAction {
-    Delete,
-    Upload,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct FileStagingDirectoryName(String);
-impl TryFrom<String> for FileStagingDirectoryName {
-    type Error = MultipartValueError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 256usize {
-            Err(MultipartValueError::TooLong {
-                actual: MultipartValueLength(value.len()),
-            })
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-pub fn staging_directory_name(
-    action: FileStagingAction,
-) -> Result<FileStagingDirectoryName, MultipartValueError> {
-    FileStagingDirectoryName::try_from(String::from(match action {
-        FileStagingAction::Delete => constants_str::FILE_DELETE_STAGING_DIRECTORY,
-        FileStagingAction::Upload => constants_str::FILE_UPLOAD_STAGING_DIRECTORY,
-    }))
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct StoragePathSegment(String);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("invalid storage path segment")]
-pub struct StoragePathSegmentError;
-impl TryFrom<String> for StoragePathSegment {
-    type Error = StoragePathSegmentError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 1024usize {
-            return Err(StoragePathSegmentError);
-        }
-        text_policy::domain_types::validate_url_safe_token_part(
-            text_policy::domain_types::UrlSafeTokenPartRef::from(value.as_str()),
-            text_policy::domain_types::UrlSafeTokenPartMaximumBytes::from(1024usize),
-        )
-        .map_err(|_error| StoragePathSegmentError)?;
-        Ok(Self(value))
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub struct StorageRelativePathBuf(std::path::PathBuf);
-#[must_use]
-pub fn identifier_file_storage_relative_path(
-    identifier: &StoragePathSegment,
-    unique_file_identifier: &StoragePathSegment,
-    file_name: &MultipartFileName,
-) -> StorageRelativePathBuf {
-    let extension = std::path::Path::new(file_name.as_ref())
-        .extension()
-        .and_then(|value| value.to_str());
-    let stored_file_name = extension.map_or_else(
-        || unique_file_identifier.as_ref().to_owned(),
-        |value| format!("{}.{value}", unique_file_identifier.as_ref()),
-    );
-    StorageRelativePathBuf::from(std::path::Path::new(identifier.as_ref()).join(stored_file_name))
-}
+pub use file_staging_action::FileStagingAction;
+pub use file_staging_directory_name::FileStagingDirectoryName;
+pub use identifier_file_storage_relative_path::identifier_file_storage_relative_path;
+pub use multipart_bytes::MultipartBytes;
+pub use multipart_bytes_part::MultipartBytesPart;
+use multipart_bytes_parts::MultipartBytesParts;
+pub use multipart_field_name::MultipartFieldName;
+pub use multipart_file_name::MultipartFileName;
+pub use multipart_payload_maximum::MultipartPayloadMaximum;
+pub use multipart_request_error::MultipartRequestError;
+pub use multipart_text_part::MultipartTextPart;
+use multipart_text_parts::MultipartTextParts;
+pub use multipart_text_value::MultipartTextValue;
+pub use multipart_upload_request::MultipartUploadRequest;
+pub use multipart_value_error::MultipartValueError;
+pub use multipart_value_length::MultipartValueLength;
+pub use staging_directory_name::staging_directory_name;
+pub use storage_path_segment::StoragePathSegment;
+pub use storage_path_segment_error::StoragePathSegmentError;
+pub use storage_relative_path_buf::StorageRelativePathBuf;
 
 #[cfg(test)]
 mod tests {

@@ -1,7 +1,7 @@
-mod domain_types;
+mod generated_crate_steps;
 
 #[cfg(feature = "test-utils")]
-impl Drop for domain_types::RemoveDirOnDrop {
+impl Drop for generated_crate_steps::RemoveDirOnDrop {
     fn drop(&mut self) {
         remove_dir_all_if_exists(&self.path, constants_str::E28698F2);
         if let Some(parent) = self.path.parent()
@@ -32,7 +32,7 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
     remove_dir_all_if_exists(&crate_path, constants_str::E28698F2);
     std::fs::create_dir_all(crate_path.join(constants_str::SRC_ALT))
         .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
-    let _remove_dir_on_drop = domain_types::RemoveDirOnDrop {
+    let _remove_dir_on_drop = generated_crate_steps::RemoveDirOnDrop {
         path: crate_path.clone(),
     };
     let cargo_toml_cnt = format!(
@@ -168,7 +168,7 @@ categories = ["category"]
         crate_path.join(constants_str::CARGO_LOCK),
     )
     .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
-    domain_types::GENERATED_CRATE_STEPS
+    generated_crate_steps::GENERATED_CRATE_STEPS
         .iter()
         .fold((), |(), step| {
             let status = macro_helpers::domain_types::tool_command::ToolCommand::new(
@@ -233,7 +233,7 @@ mod tests {
         let path = dir.path().join(constants_str::CRATE_DIR);
         std::fs::create_dir_all(&path)
             .expect("9b0e24f1 remove_dir_on_drop_removes_temp_crate_dir invariant must hold");
-        let guard = super::domain_types::RemoveDirOnDrop { path: path.clone() };
+        let guard = super::generated_crate_steps::RemoveDirOnDrop { path: path.clone() };
         drop(guard);
         assert!(!path.exists());
     }
@@ -247,10 +247,10 @@ mod tests {
     #[test]
     fn generated_crate_phases_have_stable_diagnostics() {
         let phases = [
-            super::domain_types::GeneratedCratePhase::Compilation,
-            super::domain_types::GeneratedCratePhase::Clippy,
-            super::domain_types::GeneratedCratePhase::Formatting,
-            super::domain_types::GeneratedCratePhase::Test,
+            super::generated_crate_steps::GeneratedCratePhase::Compilation,
+            super::generated_crate_steps::GeneratedCratePhase::Clippy,
+            super::generated_crate_steps::GeneratedCratePhase::Formatting,
+            super::generated_crate_steps::GeneratedCratePhase::Test,
         ];
         assert_eq!(
             phases.map(|phase| phase.to_string()),

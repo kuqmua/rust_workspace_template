@@ -37,8 +37,8 @@ pub(in crate::domain_types::auth) async fn mutations_set_roles(
         .await
         .map_err(super::super::AdminError::from)?;
     let outcome = async {
-        crate::adapters::repository::roles::lock_last_admin(
-            crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::repository::roles::lock_last_admin(
+            crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         )
         .await?;
         let optional_target_is_active =
@@ -49,7 +49,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_roles(
                 .map_err(crate::domain_types::SqlxAdminError::from)?;
         let Some(target_is_active) = optional_target_is_active else {
             return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::adapters::repository::ReplaceUserRolesOutcome::MissingUser,
+                crate::repository::ReplaceUserRolesOutcome::MissingUser,
             );
         };
         let current_role_ids =
@@ -66,7 +66,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_roles(
                 .collect::<Vec<_>>();
         expected_raw_ids.sort_unstable();
         if current_role_ids != expected_raw_ids {
-            return Ok(crate::adapters::repository::ReplaceUserRolesOutcome::StaleAssignment);
+            return Ok(crate::repository::ReplaceUserRolesOutcome::StaleAssignment);
         }
         let raw_ids =
             AsRef::<[server_admin_contract::domain_types::AdminRoleId]>::as_ref(&contract_role_ids)
@@ -81,7 +81,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_roles(
                 .await
                 .map_err(crate::domain_types::SqlxAdminError::from)?;
         if usize::try_from(existing_count).ok() != Some(raw_ids.len()) {
-            return Ok(crate::adapters::repository::ReplaceUserRolesOutcome::UnknownRole);
+            return Ok(crate::repository::ReplaceUserRolesOutcome::UnknownRole);
         }
         let admin_role_id =
             sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
@@ -104,9 +104,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_roles(
             .await
             .map_err(crate::domain_types::SqlxAdminError::from)?;
             if active_admin_count <= constants_i64::ONE {
-                return Ok(
-                    crate::adapters::repository::ReplaceUserRolesOutcome::LastActiveAdministrator,
-                );
+                return Ok(crate::repository::ReplaceUserRolesOutcome::LastActiveAdministrator);
             }
         }
         let _delete_result = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL)
@@ -120,23 +118,23 @@ pub(in crate::domain_types::auth) async fn mutations_set_roles(
             .execute(&mut *tx)
             .await
             .map_err(crate::domain_types::SqlxAdminError::from)?;
-        crate::adapters::repository::revoke_user_sessions::revoke_user_sessions(
-            crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::repository::revoke_user_sessions::revoke_user_sessions(
+            crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             path.0,
         )
         .await?;
-        Ok(crate::adapters::repository::ReplaceUserRolesOutcome::Updated)
+        Ok(crate::repository::ReplaceUserRolesOutcome::Updated)
     }
     .await
     .map_err(super::super::AdminError::from)?;
     match outcome {
-        crate::adapters::repository::ReplaceUserRolesOutcome::Updated => {}
-        crate::adapters::repository::ReplaceUserRolesOutcome::UnknownRole => {
+        crate::repository::ReplaceUserRolesOutcome::Updated => {}
+        crate::repository::ReplaceUserRolesOutcome::UnknownRole => {
             return Err(super::super::AdminError::Validation);
         }
-        crate::adapters::repository::ReplaceUserRolesOutcome::LastActiveAdministrator
-        | crate::adapters::repository::ReplaceUserRolesOutcome::MissingUser
-        | crate::adapters::repository::ReplaceUserRolesOutcome::StaleAssignment => {
+        crate::repository::ReplaceUserRolesOutcome::LastActiveAdministrator
+        | crate::repository::ReplaceUserRolesOutcome::MissingUser
+        | crate::repository::ReplaceUserRolesOutcome::StaleAssignment => {
             return Err(super::super::AdminError::Conflict);
         }
     }

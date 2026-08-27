@@ -30,32 +30,24 @@ pub(super) async fn sessions(
     .map(|(id, created_at, expires_at)| {
         Ok(server_admin_contract::domain_types::AdminSessionView::new(
             server_admin_contract::domain_types::AdminSessionTimestamp::try_from(created_at)
-                .map_err(|_error| {
-                    crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-                })?,
+                .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)?,
             server_admin_contract::domain_types::AdminSessionTimestamp::try_from(expires_at)
-                .map_err(|_error| {
-                    crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-                })?,
+                .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)?,
             server_admin_contract::domain_types::AdminSessionIdentifier::try_from(id.to_string())
-                .map_err(|_error| {
-                crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-            })?,
+                .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)?,
             server_admin_contract::domain_types::AdminBool::from(
                 id == authenticated.session_id.get().get(),
             ),
         ))
     })
-    .collect::<Result<Vec<_>, crate::adapters::repository::AdminRepositoryError>>()
+    .collect::<Result<Vec<_>, crate::repository::AdminRepositoryError>>()
     .map_err(super::shared::map_repository_error::map_repository_error)?;
     let page = server_admin_contract::domain_types::AdminSessionsPage::new(
         server_admin_contract::domain_types::AdminSessionViews::try_from(items)
-            .map_err(|_error| crate::adapters::repository::AdminRepositoryError::InvalidStoredValue)
+            .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)
             .map_err(super::shared::map_repository_error::map_repository_error)?,
-        crate::adapters::repository::page_total(
-            crate::adapters::repository::AdminPageTotalCount::from(total),
-        )
-        .map_err(super::shared::map_repository_error::map_repository_error)?,
+        crate::repository::page_total(crate::repository::AdminPageTotalCount::from(total))
+            .map_err(super::shared::map_repository_error::map_repository_error)?,
     );
     Ok(super::shared::json_response::json_response(page))
 }

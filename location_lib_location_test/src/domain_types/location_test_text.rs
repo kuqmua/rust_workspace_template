@@ -1,0 +1,20 @@
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    serde::Deserialize,
+    serde::Serialize,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::BoundedString,
+    newtype::ToErrStringAsRefStr,
+)]
+#[bounded_string(max = super::LOC_TEST_TEXT_MAX_LEN)]
+#[serde(try_from = "String")]
+pub struct LocationTestText(pub(super) String);
+
+#[path = "location_test_text/location_test_text.rs"]
+mod location_test_text;
+
+pub(super) use location_test_text::location_test_text;

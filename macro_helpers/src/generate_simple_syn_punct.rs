@@ -1,53 +1,16 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct SynPathSegment(syn::PathSegment);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-    newtype::ToTokens,
-)]
-pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
-#[must_use]
-pub fn generate_simple_syn_punct<I, S>(v: I) -> SynPathSegments
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<str>,
-{
-    let mut accumulator =
-        syn::punctuated::Punctuated::<syn::PathSegment, syn::token::PathSep>::new();
-    let mut iter = v.into_iter().peekable();
-    while let Some(element) = iter.next() {
-        accumulator.push_value(syn::PathSegment {
-            ident: proc_macro2::Ident::new(element.as_ref(), proc_macro2::Span::call_site()),
-            arguments: syn::PathArguments::None,
-        });
-        if iter.peek().is_some() {
-            accumulator.push_punct(syn::token::PathSep {
-                spans: [
-                    proc_macro2::Span::call_site(),
-                    proc_macro2::Span::call_site(),
-                ],
-            });
-        }
-    }
-    SynPathSegments::from(accumulator)
-}
-#[must_use]
-pub fn string_syn_punct() -> SynPathSegments {
-    generate_simple_syn_punct([
-        constants_str::STD,
-        constants_str::STRING_ALT,
-        constants_str::STRING,
-    ])
-}
+#[path = "generate_simple_syn_punct/generate_simple_syn_punct.rs"]
+mod generate_simple_syn_punct;
+#[path = "generate_simple_syn_punct/string_syn_punct.rs"]
+mod string_syn_punct;
+#[path = "generate_simple_syn_punct/syn_path_segment.rs"]
+mod syn_path_segment;
+#[path = "generate_simple_syn_punct/syn_path_segments.rs"]
+mod syn_path_segments;
+
+pub use generate_simple_syn_punct::generate_simple_syn_punct;
+pub use string_syn_punct::string_syn_punct;
+pub use syn_path_segment::SynPathSegment;
+pub use syn_path_segments::SynPathSegments;
 #[cfg(test)]
 mod tests {
     #[test]

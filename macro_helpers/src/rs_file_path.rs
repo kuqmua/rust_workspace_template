@@ -1,20 +1,10 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub(crate) struct RsFilePathBuf(std::path::PathBuf);
-#[allow(clippy::single_call_fn)] // centralized .rs extension mapping keeps path behavior consistent across file-write helpers
-pub(crate) fn rs_file_path<P>(file_name: P) -> RsFilePathBuf
-where
-    P: AsRef<std::path::Path>,
-{
-    RsFilePathBuf::from(file_name.as_ref().with_extension(constants_str::RS))
-}
+#[path = "rs_file_path/rs_file_path.rs"]
+mod rs_file_path;
+#[path = "rs_file_path/rs_file_path_buf.rs"]
+mod rs_file_path_buf;
+
+pub(crate) use rs_file_path::rs_file_path;
+pub(crate) use rs_file_path_buf::RsFilePathBuf;
 #[cfg(test)]
 mod tests {
     #[test]

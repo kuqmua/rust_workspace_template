@@ -1,70 +1,25 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::IntoInnerFrom,
-)]
-pub struct HttpHeaderTextMaximumBytes(usize);
+#[path = "header_text/http_header_name.rs"]
+mod http_header_name;
+#[path = "header_text/http_header_text_bytes.rs"]
+mod http_header_text_bytes;
+#[path = "header_text/http_header_text_maximum_bytes.rs"]
+mod http_header_text_maximum_bytes;
+#[path = "header_text/http_header_text_maximum_bytes_error.rs"]
+mod http_header_text_maximum_bytes_error;
+#[path = "header_text/http_header_text_maximum_bytes_non_zero_usize.rs"]
+mod http_header_text_maximum_bytes_non_zero_usize;
+#[path = "header_text/http_header_text_ref.rs"]
+mod http_header_text_ref;
+#[path = "header_text/http_header_text_resolution.rs"]
+mod http_header_text_resolution;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct HttpHeaderTextBytes(usize);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-)]
-pub struct HttpHeaderName(http::HeaderName);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct HttpHeaderTextRef<'header>(&'header str);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("HTTP header text maximum must be greater than zero")]
-pub struct HttpHeaderTextMaximumBytesError;
-
-impl TryFrom<usize> for HttpHeaderTextMaximumBytes {
-    type Error = HttpHeaderTextMaximumBytesError;
-
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value == constants_usize::ZERO {
-            return Err(HttpHeaderTextMaximumBytesError);
-        }
-        Ok(Self(value))
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum HttpHeaderTextResolution<'header> {
-    ExceedsMaximumBytes { actual_bytes: HttpHeaderTextBytes },
-    InvalidText,
-    Missing,
-    Value(HttpHeaderTextRef<'header>),
-}
+pub use http_header_name::HttpHeaderName;
+pub use http_header_text_bytes::HttpHeaderTextBytes;
+pub use http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes;
+pub use http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError;
+use http_header_text_maximum_bytes_non_zero_usize::HttpHeaderTextMaximumBytesNonZeroUsize;
+pub use http_header_text_ref::HttpHeaderTextRef;
+pub use http_header_text_resolution::HttpHeaderTextResolution;
 
 #[cfg(test)]
 mod tests {

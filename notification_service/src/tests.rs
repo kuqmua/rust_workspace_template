@@ -53,7 +53,7 @@ async fn default_service_routes_return_success_statuses() {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("52a25be1 default_service_routes_return_success_statuses invariant must hold");
-    let router = crate::adapters::routes::router(
+    let router = crate::routes::router(
         state(pool),
         super::NotificationBodyMaximumBytes::from(
             notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
@@ -129,7 +129,7 @@ async fn default_service_routes_return_success_statuses() {
 #[test]
 fn open_api_has_no_unresolved_schema_references() {
     frontend_contract_validation::domain_types::openapi_validation::validate_openapi_schema_references(&{
-        let mut document = crate::adapters::routes::open_api_document();
+        let mut document = crate::routes::open_api_document();
         document.merge(utoipa::openapi::OpenApi::from(
             common_routes::domain_types::CommonRoutesOpenApi::open_api(),
         ));
@@ -141,7 +141,7 @@ fn open_api_has_no_unresolved_schema_references() {
 #[test]
 fn open_api_operation_and_statuses_come_from_the_typed_route() {
     let metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::domain_types::TypedRoute>::metadata();
-    let document = serde_json::to_value(crate::adapters::routes::open_api_document()).expect(
+    let document = serde_json::to_value(crate::routes::open_api_document()).expect(
         "3d8a056d open_api_operation_and_statuses_come_from_the_typed_route invariant must hold",
     );
     let operation = document
@@ -296,7 +296,7 @@ async fn create_notification_persists_through_http_route() {
         .body(axum::body::Body::from(body))
         .expect("f8d2ab0b create_notification_persists_through_http_route invariant must hold");
     let response = tower::ServiceExt::oneshot(
-        crate::adapters::routes::router(
+        crate::routes::router(
             state(pool),
             super::NotificationBodyMaximumBytes::from(
                 notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,

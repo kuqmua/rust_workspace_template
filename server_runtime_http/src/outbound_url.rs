@@ -1,269 +1,37 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum OutboundHostPolicy {
-    AllowPrivate,
-    RejectPrivate,
-}
+#[path = "outbound_url/outbound_address_disposition.rs"]
+mod outbound_address_disposition;
+#[path = "outbound_url/outbound_allowed_host.rs"]
+mod outbound_allowed_host;
+#[path = "outbound_url/outbound_host_allowlist.rs"]
+mod outbound_host_allowlist;
+#[path = "outbound_url/outbound_host_allowlist_error.rs"]
+mod outbound_host_allowlist_error;
+#[path = "outbound_url/outbound_host_policy.rs"]
+mod outbound_host_policy;
+#[path = "outbound_url/outbound_ip_addr.rs"]
+mod outbound_ip_addr;
+#[path = "outbound_url/outbound_url_error.rs"]
+mod outbound_url_error;
+#[path = "outbound_url/outbound_url_policy.rs"]
+mod outbound_url_policy;
+#[path = "outbound_url/outbound_url_scheme.rs"]
+mod outbound_url_scheme;
+#[path = "outbound_url/outbound_url_text_ref.rs"]
+mod outbound_url_text_ref;
+#[path = "outbound_url/reqwest_outbound_url.rs"]
+mod reqwest_outbound_url;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum OutboundUrlScheme {
-    Http,
-    Https,
-    Rtsp,
-    Rtsps,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct OutboundUrlTextRef<'value_lt>(&'value_lt str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
-pub struct ReqwestOutboundUrl(reqwest::Url);
-
-impl ReqwestOutboundUrl {
-    #[must_use]
-    pub fn scheme(&self) -> OutboundUrlScheme {
-        match self.0.scheme() {
-            constants_str::HTTPS => OutboundUrlScheme::Https,
-            constants_str::RTSP => OutboundUrlScheme::Rtsp,
-            constants_str::RTSPS => OutboundUrlScheme::Rtsps,
-            _ => OutboundUrlScheme::Http,
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Ord, PartialEq, PartialOrd,
-)]
-pub struct OutboundAllowedHost(String);
-impl TryFrom<String> for OutboundAllowedHost {
-    type Error = OutboundHostAllowlistError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty()
-            || value.len() > 253usize
-            || value.bytes().any(|byte| {
-                !(byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b':' | b'[' | b']'))
-            })
-        {
-            return Err(OutboundHostAllowlistError::InvalidHost);
-        }
-        Ok(Self(value.to_ascii_lowercase()))
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct OutboundHostAllowlist(
-    bounded_types::domain_types::vector::BoundedVec<OutboundAllowedHost, 1, 64>,
-);
-impl TryFrom<Vec<OutboundAllowedHost>> for OutboundHostAllowlist {
-    type Error = OutboundHostAllowlistError;
-    fn try_from(mut value: Vec<OutboundAllowedHost>) -> Result<Self, Self::Error> {
-        value.sort_unstable();
-        value.dedup();
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
-            .map(Self)
-            .map_err(|error| match error {
-                bounded_types::domain_types::BoundedValueError::BelowMin { .. } => {
-                    OutboundHostAllowlistError::Empty
-                }
-                bounded_types::domain_types::BoundedValueError::AboveMax { .. }
-                | bounded_types::domain_types::BoundedValueError::InvalidBounds { .. } => {
-                    OutboundHostAllowlistError::TooManyHosts
-                }
-            })
-    }
-}
-impl OutboundHostAllowlist {
-    pub fn validate(&self, url: &ReqwestOutboundUrl) -> Result<(), OutboundHostAllowlistError> {
-        let host = url
-            .0
-            .host_str()
-            .ok_or(OutboundHostAllowlistError::InvalidHost)?;
-        if self
-            .0
-            .binary_search_by(|allowed| allowed.0.as_str().cmp(host))
-            .is_ok()
-        {
-            Ok(())
-        } else {
-            Err(OutboundHostAllowlistError::HostNotAllowed)
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum OutboundHostAllowlistError {
-    #[error("outbound host allowlist must not be empty")]
-    Empty,
-    #[error("outbound host is not present in the allowlist")]
-    HostNotAllowed,
-    #[error("outbound allowlist host is invalid")]
-    InvalidHost,
-    #[error("outbound host allowlist exceeds 64 entries")]
-    TooManyHosts,
-}
-impl std::fmt::Debug for ReqwestOutboundUrl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(constants_str::OUTBOUND_URL)
-            .field(&crate::domain_types::redact_url_userinfo(
-                self.0.as_str().into(),
-            ))
-            .finish()
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct OutboundIpAddr(std::net::IpAddr);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-pub struct OutboundUrlPolicy {
-    schemes: &'static [OutboundUrlScheme],
-    host_policy: OutboundHostPolicy,
-}
-impl OutboundUrlPolicy {
-    #[must_use]
-    pub const fn new(
-        schemes: &'static [OutboundUrlScheme],
-        host_policy: OutboundHostPolicy,
-    ) -> Self {
-        Self {
-            schemes,
-            host_policy,
-        }
-    }
-
-    pub fn validate(
-        self,
-        value: OutboundUrlTextRef<'_>,
-    ) -> Result<ReqwestOutboundUrl, OutboundUrlError> {
-        if value.0.contains(['\0', '\r', '\n'])
-            || value.0.as_bytes().windows(3usize).any(|window| {
-                window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_NUL)
-                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_CR)
-                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_LF)
-            })
-        {
-            return Err(OutboundUrlError::ControlCharacter);
-        }
-        let url = reqwest::Url::parse(value.0).map_err(|_error| OutboundUrlError::Invalid)?;
-        if !url.username().is_empty() || url.password().is_some() {
-            return Err(OutboundUrlError::UserInfo);
-        }
-        if !self.schemes.iter().any(|scheme| match scheme {
-            OutboundUrlScheme::Http => url.scheme() == constants_str::HTTP,
-            OutboundUrlScheme::Https => url.scheme() == constants_str::HTTPS,
-            OutboundUrlScheme::Rtsp => url.scheme() == constants_str::RTSP,
-            OutboundUrlScheme::Rtsps => url.scheme() == constants_str::RTSPS,
-        }) {
-            return Err(OutboundUrlError::Scheme);
-        }
-        let host = url.host_str().ok_or(OutboundUrlError::MissingHost)?;
-        if self.host_policy == OutboundHostPolicy::RejectPrivate
-            && (host.eq_ignore_ascii_case(constants_str::LOCALHOST)
-                || host
-                    .to_ascii_lowercase()
-                    .ends_with(constants_str::DOT_LOCALHOST))
-        {
-            return Err(OutboundUrlError::ForbiddenHost);
-        }
-        if self.host_policy == OutboundHostPolicy::RejectPrivate
-            && host.parse::<std::net::IpAddr>().is_ok_and(|address| {
-                outbound_address_disposition(OutboundIpAddr::from(address))
-                    == OutboundAddressDisposition::Forbidden
-            })
-        {
-            return Err(OutboundUrlError::ForbiddenHost);
-        }
-        Ok(ReqwestOutboundUrl::from(url))
-    }
-
-    pub fn validate_resolved_addresses(
-        self,
-        addresses: &[OutboundIpAddr],
-    ) -> Result<(), OutboundUrlError> {
-        if addresses.is_empty() {
-            return Err(OutboundUrlError::MissingResolvedAddress);
-        }
-        if self.host_policy == OutboundHostPolicy::RejectPrivate
-            && addresses.iter().any(|address| {
-                outbound_address_disposition(*address) == OutboundAddressDisposition::Forbidden
-            })
-        {
-            Err(OutboundUrlError::ForbiddenHost)
-        } else {
-            Ok(())
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum OutboundUrlError {
-    #[error("outbound URL contains a forbidden control character")]
-    ControlCharacter,
-    #[error("outbound URL resolves to a forbidden address")]
-    ForbiddenHost,
-    #[error("outbound URL is invalid")]
-    Invalid,
-    #[error("outbound URL has no host")]
-    MissingHost,
-    #[error("outbound URL did not resolve to an address")]
-    MissingResolvedAddress,
-    #[error("outbound URL scheme is not allowed")]
-    Scheme,
-    #[error("outbound URL must not contain user information")]
-    UserInfo,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-enum OutboundAddressDisposition {
-    Allowed,
-    Forbidden,
-}
-
-fn outbound_address_disposition(address: OutboundIpAddr) -> OutboundAddressDisposition {
-    let forbidden = match address.0 {
-        std::net::IpAddr::V4(ipv4_address) => {
-            let octets = ipv4_address.octets();
-            ipv4_address.is_broadcast()
-                || ipv4_address.is_link_local()
-                || ipv4_address.is_loopback()
-                || ipv4_address.is_multicast()
-                || ipv4_address.is_private()
-                || ipv4_address.is_unspecified()
-                || octets[0] == constants_u8::ZERO
-                || (octets[0] == 100u8 && (64u8..=127u8).contains(&octets[1]))
-                || (octets[0] == 192u8
-                    && octets[1] == constants_u8::ZERO
-                    && octets[2] == constants_u8::ZERO)
-                || (octets[0] == 192u8 && octets[1] == constants_u8::ZERO && octets[2] == 2u8)
-                || (octets[0] == 198u8 && (octets[1] == 18u8 || octets[1] == 19u8))
-                || (octets[0] == 198u8 && octets[1] == 51u8 && octets[2] == 100u8)
-                || (octets[0] == 203u8 && octets[1] == constants_u8::ZERO && octets[2] == 113u8)
-                || octets[0] >= 240u8
-        }
-        std::net::IpAddr::V6(ipv6_address) => ipv6_address.to_ipv4_mapped().map_or_else(
-            || {
-                ipv6_address.is_loopback()
-                    || ipv6_address.is_multicast()
-                    || ipv6_address.is_unicast_link_local()
-                    || ipv6_address.is_unique_local()
-                    || ipv6_address.is_unspecified()
-                    || ipv6_address.segments()[..2usize] == [0x2001u16, 0x0db8u16]
-            },
-            |mapped| {
-                outbound_address_disposition(OutboundIpAddr::from(std::net::IpAddr::V4(mapped)))
-                    == OutboundAddressDisposition::Forbidden
-            },
-        ),
-    };
-    if forbidden {
-        OutboundAddressDisposition::Forbidden
-    } else {
-        OutboundAddressDisposition::Allowed
-    }
-}
+use outbound_address_disposition::{OutboundAddressDisposition, outbound_address_disposition};
+pub use outbound_allowed_host::OutboundAllowedHost;
+pub use outbound_host_allowlist::OutboundHostAllowlist;
+pub use outbound_host_allowlist_error::OutboundHostAllowlistError;
+pub use outbound_host_policy::OutboundHostPolicy;
+pub use outbound_ip_addr::OutboundIpAddr;
+pub use outbound_url_error::OutboundUrlError;
+pub use outbound_url_policy::OutboundUrlPolicy;
+pub use outbound_url_scheme::OutboundUrlScheme;
+pub use outbound_url_text_ref::OutboundUrlTextRef;
+pub use reqwest_outbound_url::ReqwestOutboundUrl;
 
 #[cfg(test)]
 mod tests {

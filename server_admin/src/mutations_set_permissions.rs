@@ -56,12 +56,12 @@ pub(in crate::domain_types::auth) async fn mutations_set_permissions(
                 .map_err(crate::domain_types::SqlxAdminError::from)?;
         let Some(is_system) = optional_is_system else {
             return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::adapters::repository::ReplaceRolePermissionsOutcome::MissingRole,
+                crate::repository::ReplaceRolePermissionsOutcome::MissingRole,
             );
         };
         if is_system {
             return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::adapters::repository::ReplaceRolePermissionsOutcome::SystemRole,
+                crate::repository::ReplaceRolePermissionsOutcome::SystemRole,
             );
         }
         let current_permission_ids =
@@ -78,7 +78,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_permissions(
         expected_raw_ids.sort_unstable();
         if current_permission_ids != expected_raw_ids {
             return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::adapters::repository::ReplaceRolePermissionsOutcome::StaleAssignment,
+                crate::repository::ReplaceRolePermissionsOutcome::StaleAssignment,
             );
         }
         let raw_ids = inlined_permission_ids
@@ -94,7 +94,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_permissions(
                 .map_err(crate::domain_types::SqlxAdminError::from)?;
         if usize::try_from(existing_count).ok() != Some(raw_ids.len()) {
             return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::adapters::repository::ReplaceRolePermissionsOutcome::UnknownPermission,
+                crate::repository::ReplaceRolePermissionsOutcome::UnknownPermission,
             );
         }
         let _delete_result =
@@ -111,19 +111,19 @@ pub(in crate::domain_types::auth) async fn mutations_set_permissions(
                 .await
                 .map_err(crate::domain_types::SqlxAdminError::from)?;
         Ok::<_, crate::domain_types::SqlxAdminError>(
-            crate::adapters::repository::ReplaceRolePermissionsOutcome::Updated,
+            crate::repository::ReplaceRolePermissionsOutcome::Updated,
         )
     }
     .await
     .map_err(super::super::AdminError::from)?;
     match outcome {
-        crate::adapters::repository::ReplaceRolePermissionsOutcome::Updated => {}
-        crate::adapters::repository::ReplaceRolePermissionsOutcome::UnknownPermission => {
+        crate::repository::ReplaceRolePermissionsOutcome::Updated => {}
+        crate::repository::ReplaceRolePermissionsOutcome::UnknownPermission => {
             return Err(super::super::AdminError::Validation);
         }
-        crate::adapters::repository::ReplaceRolePermissionsOutcome::MissingRole
-        | crate::adapters::repository::ReplaceRolePermissionsOutcome::StaleAssignment
-        | crate::adapters::repository::ReplaceRolePermissionsOutcome::SystemRole => {
+        crate::repository::ReplaceRolePermissionsOutcome::MissingRole
+        | crate::repository::ReplaceRolePermissionsOutcome::StaleAssignment
+        | crate::repository::ReplaceRolePermissionsOutcome::SystemRole => {
             return Err(super::super::AdminError::Conflict);
         }
     }

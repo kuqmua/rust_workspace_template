@@ -1,62 +1,22 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[must_use]
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
-pub struct FieldLocationFile(&'static str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::TryFrom)]
-#[try_from(
-    error = FieldLocationCoordinateTryFromU32Error,
-    validator = FieldLocationLine::validate
-)]
-pub struct FieldLocationLine(u32);
-impl From<std::num::NonZeroU32> for FieldLocationLine {
-    fn from(value: std::num::NonZeroU32) -> Self {
-        Self(value.get())
-    }
-}
-impl FieldLocationLine {
-    #[must_use]
-    pub fn first() -> Self {
-        Self::from(std::num::NonZeroU32::MIN)
-    }
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &u32) -> Result<(), FieldLocationCoordinateTryFromU32Error> {
-        if *value == constants_u32::ZERO {
-            Err(FieldLocationCoordinateTryFromU32Error)
-        } else {
-            Ok(())
-        }
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::TryFrom)]
-#[try_from(
-    error = FieldLocationCoordinateTryFromU32Error,
-    validator = FieldLocationColumn::validate
-)]
-pub struct FieldLocationColumn(u32);
-impl From<std::num::NonZeroU32> for FieldLocationColumn {
-    fn from(value: std::num::NonZeroU32) -> Self {
-        Self(value.get())
-    }
-}
-impl FieldLocationColumn {
-    #[must_use]
-    pub fn first() -> Self {
-        Self::from(std::num::NonZeroU32::MIN)
-    }
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
-    const fn validate(value: &u32) -> Result<(), FieldLocationCoordinateTryFromU32Error> {
-        if *value == constants_u32::ZERO {
-            Err(FieldLocationCoordinateTryFromU32Error)
-        } else {
-            Ok(())
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{self:?}")]
-pub struct FieldLocationCoordinateTryFromU32Error;
+#[path = "generate_field_location_new_token_stream/field_location_column.rs"]
+mod field_location_column;
+#[path = "generate_field_location_new_token_stream/field_location_column_non_zero_u32.rs"]
+mod field_location_column_non_zero_u32;
+#[path = "generate_field_location_new_token_stream/field_location_coordinate_try_from_u32_error.rs"]
+mod field_location_coordinate_try_from_u32_error;
+#[path = "generate_field_location_new_token_stream/field_location_file.rs"]
+mod field_location_file;
+#[path = "generate_field_location_new_token_stream/field_location_line.rs"]
+mod field_location_line;
+#[path = "generate_field_location_new_token_stream/field_location_line_non_zero_u32.rs"]
+mod field_location_line_non_zero_u32;
+
+pub use field_location_column::FieldLocationColumn;
+use field_location_column_non_zero_u32::FieldLocationColumnNonZeroU32;
+pub use field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
+pub use field_location_file::FieldLocationFile;
+pub use field_location_line::FieldLocationLine;
+use field_location_line_non_zero_u32::FieldLocationLineNonZeroU32;
 #[must_use]
 pub fn generate_field_location_new_token_stream(
     file: FieldLocationFile,
@@ -68,11 +28,11 @@ pub fn generate_field_location_new_token_stream(
     let location_new_token_stream = {
         let file_token_stream = generate_quotes::domain_types::dq_token_stream(&file.0);
         let line_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(line.0);
+            let literal = proc_macro2::Literal::u32_unsuffixed(line.0.0.get());
             quote::quote! {#literal}
         };
         let column_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(column.0);
+            let literal = proc_macro2::Literal::u32_unsuffixed(column.0.0.get());
             quote::quote! {#literal}
         };
         quote::quote! {

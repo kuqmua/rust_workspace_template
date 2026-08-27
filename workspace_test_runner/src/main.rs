@@ -7,18 +7,21 @@
     reason = "repository policy forbids for loops"
 )]
 
-mod adapters;
+mod admin_fixture;
 mod domain_types;
+mod execution;
+mod mode;
+mod print_without_measurement_footer;
+mod print_without_memusage_footer;
 mod run_workspace_tests;
+mod tool_available;
 
 fn main() {
-    let mode = adapters::mode::mode();
+    let mode = mode::mode();
     let result = match mode.as_ref().map(domain_types::RunnerMode::as_ref) {
-        None | Some(constants_str::STATIC) => {
-            adapters::execution::run_commands(adapters::execution::CommandsRef::from(
-                &constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS,
-            ))
-        }
+        None | Some(constants_str::STATIC) => execution::run_commands(
+            execution::CommandsRef::from(&constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS),
+        ),
         Some(constants_str::DATABASE) => {
             match std::env::var(constants_str::ENV_NAMES_DATABASE_URL) {
                 Ok(database_url) => {
@@ -27,12 +30,10 @@ fn main() {
                             database_url.as_str(),
                         ),
                     ) {
-                        Ok(_target) => adapters::execution::run_commands(
-                            adapters::execution::CommandsRef::from(&[(
-                                constants_str::WORKSPACE_TEST_RUNNER_CARGO,
-                                &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS[..],
-                            )]),
-                        ),
+                        Ok(_target) => execution::run_commands(execution::CommandsRef::from(&[(
+                            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
+                            &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS[..],
+                        )])),
                         Err(error) => {
                             eprintln!("database test guard rejected DATABASE_URL: {error}");
                             Err(())
@@ -115,7 +116,7 @@ fn main() {
             )
             .get()
             {
-                adapters::execution::run_commands(adapters::execution::CommandsRef::from(&[(
+                execution::run_commands(execution::CommandsRef::from(&[(
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                     &constants_str::WORKSPACE_TEST_RUNNER_NEXTEST_HEAVY_ARGS[..],
                 )]))
@@ -191,27 +192,23 @@ fn main() {
             .for_each(|(_subcommand, args)| {
                 commands.push((constants_str::WORKSPACE_TEST_RUNNER_CARGO, args));
             });
-            adapters::execution::run_commands(adapters::execution::CommandsRef::from(
-                commands.as_slice(),
-            ))
+            execution::run_commands(execution::CommandsRef::from(commands.as_slice()))
         }
         Some(constants_str::MEASURE) => run_workspace_tests::measure_mode::measure_mode(),
-        Some(constants_str::ALL_ALT) => {
-            adapters::execution::run_commands(adapters::execution::CommandsRef::from(
-                &constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS,
-            ))
-            .and_then(|()| run_workspace_tests::run_workspace_tests())
-            .and_then(|()| {
-                domain_types::macro_generation_measurements()
-                    .iter()
-                    .try_fold((), |(), (measurement_name, args)| {
-                        run_workspace_tests::measure_cargo_command::measure_cargo_command(
-                            *measurement_name,
-                            *args,
-                        )
-                    })
-            })
-        }
+        Some(constants_str::ALL_ALT) => execution::run_commands(execution::CommandsRef::from(
+            &constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS,
+        ))
+        .and_then(|()| run_workspace_tests::run_workspace_tests())
+        .and_then(|()| {
+            domain_types::macro_generation_measurements()
+                .iter()
+                .try_fold((), |(), (measurement_name, args)| {
+                    run_workspace_tests::measure_cargo_command::measure_cargo_command(
+                        *measurement_name,
+                        *args,
+                    )
+                })
+        }),
         Some(other) => {
             eprintln!(
                 "unknown mode `{other}`; expected `static`, `database`, `tests`, `heavy-load`, `release`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"

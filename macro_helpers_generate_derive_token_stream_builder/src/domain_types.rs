@@ -1,10 +1,7 @@
-const SC_STRING_MAX_LEN: usize = 1_048_576;
+#[path = "snake_case_string.rs"]
+mod snake_case_string;
+#[path = "to_snake_case_input.rs"]
+mod to_snake_case_input;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::AsRefStr, newtype::FromInner,
-)]
-pub(crate) struct ToSnakeCaseInput<'input_lt>(&'input_lt str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefStr, newtype::BoundedString)]
-#[bounded_string(max = SC_STRING_MAX_LEN, description = "snake case string")]
-pub(crate) struct SnakeCaseString(String);
+pub(crate) use snake_case_string::SnakeCaseString;
+pub(crate) use to_snake_case_input::ToSnakeCaseInput;

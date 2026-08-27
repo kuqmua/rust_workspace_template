@@ -1,129 +1,44 @@
-const PG_RATE_LIMIT_KEY_PART_MAX_LEN: usize = 4096usize;
+#[path = "pg_rate_limit/enforce_pg_rate_limit.rs"]
+mod enforce_pg_rate_limit;
+#[path = "pg_rate_limit/pg_rate_limit_decision.rs"]
+mod pg_rate_limit_decision;
+#[path = "pg_rate_limit/pg_rate_limit_error.rs"]
+mod pg_rate_limit_error;
+#[path = "pg_rate_limit/pg_rate_limit_key_part_max_len.rs"]
+mod pg_rate_limit_key_part_max_len;
+#[path = "pg_rate_limit/pg_rate_limit_maximum.rs"]
+mod pg_rate_limit_maximum;
+#[path = "pg_rate_limit/pg_rate_limit_maximum_non_zero_i64.rs"]
+mod pg_rate_limit_maximum_non_zero_i64;
+#[path = "pg_rate_limit/pg_rate_limit_query_ref.rs"]
+mod pg_rate_limit_query_ref;
+#[path = "pg_rate_limit/pg_rate_limit_scope_ref.rs"]
+mod pg_rate_limit_scope_ref;
+#[path = "pg_rate_limit/pg_rate_limit_subject_ref.rs"]
+mod pg_rate_limit_subject_ref;
+#[path = "pg_rate_limit/pg_rate_limit_validation_error.rs"]
+mod pg_rate_limit_validation_error;
+#[path = "pg_rate_limit/pg_rate_limit_window_seconds.rs"]
+mod pg_rate_limit_window_seconds;
+#[path = "pg_rate_limit/pg_rate_limit_window_seconds_non_zero_i32.rs"]
+mod pg_rate_limit_window_seconds_non_zero_i32;
+#[path = "pg_rate_limit/sqlx_pg_rate_limit_error.rs"]
+mod sqlx_pg_rate_limit_error;
+#[path = "pg_rate_limit/sqlx_pg_rate_limit_pool_ref.rs"]
+mod sqlx_pg_rate_limit_pool_ref;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct PgRateLimitQueryRef(&'static str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct SqlxPgRateLimitPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgRateLimitScopeRef<'value_lt>(&'value_lt str);
-impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitScopeRef<'value_lt> {
-    type Error = PgRateLimitValidationError;
-
-    fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            Err(PgRateLimitValidationError::EmptyKeyPart)
-        } else if value.len() > PG_RATE_LIMIT_KEY_PART_MAX_LEN {
-            Err(PgRateLimitValidationError::KeyPartTooLong)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgRateLimitSubjectRef<'value_lt>(&'value_lt str);
-impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitSubjectRef<'value_lt> {
-    type Error = PgRateLimitValidationError;
-
-    fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            Err(PgRateLimitValidationError::EmptyKeyPart)
-        } else if value.len() > PG_RATE_LIMIT_KEY_PART_MAX_LEN {
-            Err(PgRateLimitValidationError::KeyPartTooLong)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgRateLimitMaximum(i64);
-impl TryFrom<i64> for PgRateLimitMaximum {
-    type Error = PgRateLimitValidationError;
-
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        if value > constants_i64::ZERO {
-            Ok(Self(value))
-        } else {
-            Err(PgRateLimitValidationError::MustBePositive)
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgRateLimitWindowSeconds(i32);
-impl TryFrom<i32> for PgRateLimitWindowSeconds {
-    type Error = PgRateLimitValidationError;
-
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if value > constants_i32::ZERO {
-            Ok(Self(value))
-        } else {
-            Err(PgRateLimitValidationError::MustBePositive)
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum PgRateLimitDecision {
-    Allowed,
-    Limited(PgRateLimitWindowSeconds),
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum PgRateLimitValidationError {
-    #[error("rate-limit key part must not be empty")]
-    EmptyKeyPart,
-    #[error("rate-limit key part is too long")]
-    KeyPartTooLong,
-    #[error("rate-limit numeric configuration must be positive")]
-    MustBePositive,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    thiserror::Error,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[error(transparent)]
-pub struct SqlxPgRateLimitError(sqlx::Error);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum PgRateLimitError {
-    #[error("PostgreSQL rate-limit query failed: {0}")]
-    Sqlx(SqlxPgRateLimitError),
-}
-
-pub async fn enforce_pg_rate_limit(
-    pool: SqlxPgRateLimitPoolRef<'_>,
-    query: PgRateLimitQueryRef,
-    scope: PgRateLimitScopeRef<'_>,
-    subject: PgRateLimitSubjectRef<'_>,
-    maximum: PgRateLimitMaximum,
-    window_seconds: PgRateLimitWindowSeconds,
-) -> Result<PgRateLimitDecision, PgRateLimitError> {
-    sqlx::query_scalar::<_, bool>(query.0)
-        .bind(scope.0)
-        .bind(subject.0)
-        .bind(maximum.0)
-        .bind(window_seconds.0)
-        .fetch_one(pool.0)
-        .await
-        .map(|allowed| {
-            if allowed {
-                PgRateLimitDecision::Allowed
-            } else {
-                PgRateLimitDecision::Limited(window_seconds)
-            }
-        })
-        .map_err(|error| PgRateLimitError::Sqlx(SqlxPgRateLimitError::from(error)))
-}
+pub use enforce_pg_rate_limit::enforce_pg_rate_limit;
+pub use pg_rate_limit_decision::PgRateLimitDecision;
+pub use pg_rate_limit_error::PgRateLimitError;
+use pg_rate_limit_key_part_max_len::PG_RATE_LIMIT_KEY_PART_MAX_LEN;
+pub use pg_rate_limit_maximum::PgRateLimitMaximum;
+pub use pg_rate_limit_query_ref::PgRateLimitQueryRef;
+pub use pg_rate_limit_scope_ref::PgRateLimitScopeRef;
+pub use pg_rate_limit_subject_ref::PgRateLimitSubjectRef;
+pub use pg_rate_limit_validation_error::PgRateLimitValidationError;
+pub use pg_rate_limit_window_seconds::PgRateLimitWindowSeconds;
+pub use sqlx_pg_rate_limit_error::SqlxPgRateLimitError;
+pub use sqlx_pg_rate_limit_pool_ref::SqlxPgRateLimitPoolRef;
 
 #[cfg(test)]
 mod tests {

@@ -296,8 +296,7 @@ fn synchronize_generated_file(
     generated: ScaffoldTextRef<'_>,
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
-    let source =
-        crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(path)?;
+    let source = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(path)?;
     let (prefix, after_begin) = source
         .as_ref()
         .split_once(begin.0)
@@ -314,7 +313,7 @@ fn synchronize_generated_file(
         return Ok(());
     }
     if bool::from(write_changes) {
-        crate::adapters::template_fs_write_text::template_fs_write_text(
+        crate::template_fs_write_text::template_fs_write_text(
             path,
             ScaffoldTextRef::from(expected.as_ref()),
         )
@@ -331,7 +330,7 @@ pub(crate) fn synchronize_deployment_projections(
     write_changes: ShouldWrite,
 ) -> Result<(), ScaffoldError> {
     let catalog_path = root.0.join(constants_str::VALUE_C1590960);
-    let catalog = crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(
+    let catalog = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
         ScaffoldPathRef::from(catalog_path.as_path()),
     )?;
     let entries =
@@ -587,10 +586,9 @@ pub(crate) fn synchronize_deployment_projections(
             return Err(ScaffoldError::GeneratedDeployment);
         }
         let compose_path = root.0.join(entry.compose_file.as_ref());
-        let compose =
-            crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(
-                ScaffoldPathRef::from(compose_path.as_path()),
-            )?;
+        let compose = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+            ScaffoldPathRef::from(compose_path.as_path()),
+        )?;
         let port = entry.port.0;
         if !compose
             .as_ref()
@@ -605,10 +603,9 @@ pub(crate) fn synchronize_deployment_projections(
             return Err(ScaffoldError::GeneratedDeployment);
         }
         let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
-        let kubernetes =
-            crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(
-                ScaffoldPathRef::from(kubernetes_path.as_path()),
-            )?;
+        let kubernetes = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+            ScaffoldPathRef::from(kubernetes_path.as_path()),
+        )?;
         if !kubernetes
             .as_ref()
             .contains(format!("image: {}:", entry.image.as_ref()).as_str())
@@ -714,7 +711,7 @@ pub(crate) fn scaffold_service(
             port.0.to_string(),
         ),
     ];
-    crate::adapters::template_fs_copy_template_tree::template_fs_copy_template_tree(
+    crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
         ScaffoldPathRef::from(
             root.0
                 .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
@@ -723,7 +720,7 @@ pub(crate) fn scaffold_service(
         ScaffoldPathRef::from(root.0.join(service).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
-    crate::adapters::template_fs_copy_template_tree::template_fs_copy_template_tree(
+    crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
         ScaffoldPathRef::from(
             root.0
                 .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
@@ -732,7 +729,7 @@ pub(crate) fn scaffold_service(
         ScaffoldPathRef::from(root.0.join(config.as_str()).as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
-    crate::adapters::template_fs_copy_template_tree::template_fs_copy_template_tree(
+    crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
         ScaffoldPathRef::from(
             root.0
                 .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
@@ -743,7 +740,7 @@ pub(crate) fn scaffold_service(
     )?;
 
     let manifest = root.0.join(constants_str::CARGO_TOML);
-    crate::adapters::template_fs_insert_once::template_fs_insert_once(
+    crate::template_fs_insert_once::template_fs_insert_once(
         ScaffoldPathRef::from(manifest.as_path()),
         ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
         ScaffoldTextRef::from(
@@ -754,7 +751,7 @@ pub(crate) fn scaffold_service(
         ),
     )?;
     let dependency_marker = constants_str::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
-    crate::adapters::template_fs_insert_once::template_fs_insert_once(
+    crate::template_fs_insert_once::template_fs_insert_once(
         ScaffoldPathRef::from(manifest.as_path()),
         ScaffoldTextRef::from(dependency_marker),
         ScaffoldTextRef::from(
@@ -774,16 +771,15 @@ pub(crate) fn scaffold_service(
         .join(constants_str::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
         .join(k8s_file_name.as_str());
     let _copied_bytes = std::fs::copy(k8s_source.as_path(), k8s_destination.as_path())?;
-    crate::adapters::template_fs_replace_file::template_fs_replace_file(
+    crate::template_fs_replace_file::template_fs_replace_file(
         ScaffoldPathRef::from(k8s_destination.as_path()),
         ReplacementsRef::from(replacements.as_slice()),
     )?;
-    let mut k8s_contents =
-        crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(
-            ScaffoldPathRef::from(k8s_destination.as_path()),
-        )?
-        .as_ref()
-        .to_owned();
+    let mut k8s_contents = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+        ScaffoldPathRef::from(k8s_destination.as_path()),
+    )?
+    .as_ref()
+    .to_owned();
     k8s_contents.push_str(
         format!(
             "\n---\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: {kebab}-access\n  namespace: rust-workspace-template\nspec:\n  podSelector:\n    matchLabels:\n      app.kubernetes.io/name: {kebab}\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/name: application\n      ports:\n        - protocol: TCP\n          port: {port}\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: database\n          podSelector:\n            matchLabels:\n              app.kubernetes.io/name: {kebab}-postgresql\n      ports:\n        - protocol: TCP\n          port: 5432\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53\n  policyTypes: [\"Ingress\", \"Egress\"]\n",
@@ -791,14 +787,14 @@ pub(crate) fn scaffold_service(
         )
         .as_str(),
     );
-    crate::adapters::template_fs_write_text::template_fs_write_text(
+    crate::template_fs_write_text::template_fs_write_text(
         ScaffoldPathRef::from(k8s_destination.as_path()),
         ScaffoldTextRef::from(k8s_contents.as_str()),
     )?;
     let kustomization = root
         .0
         .join(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
-    crate::adapters::template_fs_insert_once::template_fs_insert_once(
+    crate::template_fs_insert_once::template_fs_insert_once(
         ScaffoldPathRef::from(kustomization.as_path()),
         ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER),
         ScaffoldTextRef::from(
@@ -810,10 +806,9 @@ pub(crate) fn scaffold_service(
         .0
         .join(config.as_str())
         .join(constants_str::ENV_EXAMPLE);
-    let config_example =
-        crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(
-            ScaffoldPathRef::from(config_example_path.as_path()),
-        )?;
+    let config_example = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+        ScaffoldPathRef::from(config_example_path.as_path()),
+    )?;
     let database_key = format!("{upper_snake}_DATABASE_URL");
     let socket_key = format!("{upper_snake}_SERVICE_SOCKET_ADDRESS");
     let compose_environment = config_example
@@ -850,7 +845,7 @@ pub(crate) fn scaffold_service(
         ready_path = ready_path.as_ref(),
     );
     let compose_path = root.0.join(format!("docker-compose.{service}.yml"));
-    crate::adapters::template_fs_write_text::template_fs_write_text(
+    crate::template_fs_write_text::template_fs_write_text(
         ScaffoldPathRef::from(compose_path.as_path()),
         ScaffoldTextRef::from(compose.as_str()),
     )?;
@@ -859,7 +854,7 @@ pub(crate) fn scaffold_service(
         .0
         .join(constants_str::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
     let mut service_catalog_contents =
-        crate::adapters::template_fs_read_bounded_text::template_fs_read_bounded_text(
+        crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
             ScaffoldPathRef::from(service_catalog.as_path()),
         )?
         .as_ref()
@@ -871,7 +866,7 @@ pub(crate) fn scaffold_service(
         )
         .as_str(),
     );
-    crate::adapters::template_fs_write_text::template_fs_write_text(
+    crate::template_fs_write_text::template_fs_write_text(
         ScaffoldPathRef::from(service_catalog.as_path()),
         ScaffoldTextRef::from(service_catalog_contents.as_str()),
     )?;

@@ -17,10 +17,8 @@ pub(super) async fn data_tables_get(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    crate::adapters::repository::data_tables::read(
-        crate::adapters::repository::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
-        ),
+    crate::repository::data_tables::read(
+        crate::repository::SqlxAdminRepositoryPoolRef::from(auth.state.as_ref().pool.as_ref()),
         table,
         &query,
     )

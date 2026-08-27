@@ -50,13 +50,12 @@ pub(in crate::domain_types::auth) async fn queries_users_page(
                 >::with_capacity(user_ids.len()),
                 |mut values, (user_id, role_id)| {
                     values.entry(user_id).or_default().push(
-                    server_admin_contract::domain_types::AdminRoleId::try_from(role_id).map_err(
-                        |_error| {
-                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-                        },
-                    )?,
-                );
-                    Ok::<_, crate::adapters::repository::AdminRepositoryError>(values)
+                        server_admin_contract::domain_types::AdminRoleId::try_from(role_id)
+                            .map_err(|_error| {
+                                crate::repository::AdminRepositoryError::InvalidStoredValue
+                            })?,
+                    );
+                    Ok::<_, crate::repository::AdminRepositoryError>(values)
                 },
             )?;
         let items = rows
@@ -65,33 +64,28 @@ pub(in crate::domain_types::auth) async fn queries_users_page(
                 Ok(server_admin_contract::domain_types::AdminUserSummary::new(
                     server_admin_contract::domain_types::AdminDisplayName::try_from(display_name)
                         .map_err(|_error| {
-                        crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        crate::repository::AdminRepositoryError::InvalidStoredValue
                     })?,
                     server_admin_contract::domain_types::AdminUserId::try_from(id).map_err(
-                        |_error| {
-                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-                        },
+                        |_error| crate::repository::AdminRepositoryError::InvalidStoredValue,
                     )?,
                     server_admin_contract::domain_types::AdminBool::from(is_banned),
                     server_admin_contract::domain_types::AdminLogin::try_from(login).map_err(
-                        |_error| {
-                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-                        },
+                        |_error| crate::repository::AdminRepositoryError::InvalidStoredValue,
                     )?,
                     server_admin_contract::domain_types::AdminRoleIds::try_from(
                         role_ids_by_user.remove(&id).unwrap_or_default(),
                     )
                     .map_err(|_error| {
-                        crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        crate::repository::AdminRepositoryError::InvalidStoredValue
                     })?,
                 ))
             })
-            .collect::<Result<Vec<_>, crate::adapters::repository::AdminRepositoryError>>()?;
-        Ok::<_, crate::adapters::repository::AdminRepositoryError>((
-            server_admin_contract::domain_types::AdminUserSummaries::try_from(items).map_err(
-                |_error| crate::adapters::repository::AdminRepositoryError::InvalidStoredValue,
-            )?,
-            crate::adapters::repository::AdminPageTotalCount::from(total),
+            .collect::<Result<Vec<_>, crate::repository::AdminRepositoryError>>()?;
+        Ok::<_, crate::repository::AdminRepositoryError>((
+            server_admin_contract::domain_types::AdminUserSummaries::try_from(items)
+                .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)?,
+            crate::repository::AdminPageTotalCount::from(total),
         ))
     }
     .await
@@ -120,10 +114,10 @@ pub(in crate::domain_types::auth) async fn queries_users_page(
                 values.entry(role_id).or_default().push(
                     server_admin_contract::domain_types::AdminPermissionId::try_from(permission_id)
                         .map_err(|_error| {
-                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                            crate::repository::AdminRepositoryError::InvalidStoredValue
                         })?,
                 );
-                Ok::<_, crate::adapters::repository::AdminRepositoryError>(values)
+                Ok::<_, crate::repository::AdminRepositoryError>(values)
             },
         )?;
         let values = rows
@@ -131,27 +125,23 @@ pub(in crate::domain_types::auth) async fn queries_users_page(
             .map(|(id, name, is_system)| {
                 Ok(server_admin_contract::domain_types::AdminRoleSummary::new(
                     server_admin_contract::domain_types::AdminRoleId::try_from(id).map_err(
-                        |_error| {
-                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-                        },
+                        |_error| crate::repository::AdminRepositoryError::InvalidStoredValue,
                     )?,
                     server_admin_contract::domain_types::AdminBool::from(is_system),
                     server_admin_contract::domain_types::AdminRoleName::try_from(name).map_err(
-                        |_error| {
-                            crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
-                        },
+                        |_error| crate::repository::AdminRepositoryError::InvalidStoredValue,
                     )?,
                     server_admin_contract::domain_types::AdminPermissionIds::try_from(
                         permission_ids_by_role.remove(&id).unwrap_or_default(),
                     )
                     .map_err(|_error| {
-                        crate::adapters::repository::AdminRepositoryError::InvalidStoredValue
+                        crate::repository::AdminRepositoryError::InvalidStoredValue
                     })?,
                 ))
             })
-            .collect::<Result<Vec<_>, crate::adapters::repository::AdminRepositoryError>>()?;
+            .collect::<Result<Vec<_>, crate::repository::AdminRepositoryError>>()?;
         server_admin_contract::domain_types::AdminRoleSummaries::try_from(values)
-            .map_err(|_error| crate::adapters::repository::AdminRepositoryError::InvalidStoredValue)
+            .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)
     }
     .await
     .map_err(super::super::shared::map_repository_error::map_repository_error)?;

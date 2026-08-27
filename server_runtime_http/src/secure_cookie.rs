@@ -1,143 +1,28 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct HttpCookieName(String);
-impl TryFrom<String> for HttpCookieName {
-    type Error = HttpSecureCookieError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let valid = !value.is_empty()
-            && value.len() <= constants_usize::VALUE_8_192
-            && value.bytes().all(|byte| {
-                byte.is_ascii_alphanumeric()
-                    || matches!(
-                        byte,
-                        b'!' | b'#'
-                            | b'$'
-                            | b'%'
-                            | b'&'
-                            | b'\''
-                            | b'*'
-                            | b'+'
-                            | b'-'
-                            | b'.'
-                            | b'^'
-                            | b'_'
-                            | b'`'
-                            | b'|'
-                            | b'~'
-                    )
-            });
-        if valid {
-            Ok(Self(value))
-        } else {
-            Err(HttpSecureCookieError::InvalidName)
-        }
-    }
-}
+#[path = "secure_cookie/build_secure_strict_cookie.rs"]
+mod build_secure_strict_cookie;
+#[path = "secure_cookie/http_cookie_access.rs"]
+mod http_cookie_access;
+#[path = "secure_cookie/http_cookie_name.rs"]
+mod http_cookie_name;
+#[path = "secure_cookie/http_cookie_secure.rs"]
+mod http_cookie_secure;
+#[path = "secure_cookie/http_cookie_value.rs"]
+mod http_cookie_value;
+#[path = "secure_cookie/http_secure_cookie_error.rs"]
+mod http_secure_cookie_error;
+#[path = "secure_cookie/http_set_cookie_header_value.rs"]
+mod http_set_cookie_header_value;
+#[path = "secure_cookie/std_cookie_max_age_seconds.rs"]
+mod std_cookie_max_age_seconds;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
-pub struct HttpCookieValue(String);
-impl std::fmt::Debug for HttpCookieValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
-    }
-}
-impl TryFrom<String> for HttpCookieValue {
-    type Error = HttpSecureCookieError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let valid = value.len() <= constants_usize::VALUE_8_192
-            && value.bytes().all(
-                |byte| matches!(byte, 0x21 | 0x23..=0x2b | 0x2d..=0x3a | 0x3c..=0x5b | 0x5d..=0x7e),
-            );
-        if valid {
-            Ok(Self(value))
-        } else {
-            Err(HttpSecureCookieError::InvalidValue)
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct StdCookieMaxAgeSeconds(u64);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum HttpCookieAccess {
-    HttpOnly,
-    ScriptReadable,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum HttpCookieSecure {
-    Disabled,
-    Enabled,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct HttpSetCookieHeaderValue(http::HeaderValue);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum HttpSecureCookieError {
-    #[error("generated Set-Cookie header is invalid")]
-    InvalidHeader,
-    #[error("invalid cookie name")]
-    InvalidName,
-    #[error("invalid cookie value")]
-    InvalidValue,
-}
-
-pub fn build_secure_strict_cookie(
-    name: &HttpCookieName,
-    value: &HttpCookieValue,
-    maximum_age: StdCookieMaxAgeSeconds,
-    access: HttpCookieAccess,
-    secure: HttpCookieSecure,
-) -> Result<HttpSetCookieHeaderValue, HttpSecureCookieError> {
-    let text = i64::try_from(maximum_age.0).map_or_else(
-        |_conversion_error| {
-            let http_only = match access {
-                HttpCookieAccess::HttpOnly => constants_str::HTTPONLY,
-                HttpCookieAccess::ScriptReadable => constants_str::EMPTY,
-            };
-            let secure_attribute = match secure {
-                HttpCookieSecure::Disabled => constants_str::EMPTY,
-                HttpCookieSecure::Enabled => constants_str::SECURE,
-            };
-            format!(
-                "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attribute}",
-                name.0, value.0, maximum_age.0
-            )
-        },
-        |maximum_age_seconds| {
-            cookie::Cookie::build((name.0.as_str(), value.0.as_str()))
-                .path(constants_str::SLASH)
-                .max_age(cookie::time::Duration::seconds(maximum_age_seconds))
-                .same_site(cookie::SameSite::Strict)
-                .http_only(matches!(access, HttpCookieAccess::HttpOnly))
-                .secure(matches!(secure, HttpCookieSecure::Enabled))
-                .build()
-                .to_string()
-        },
-    );
-    http::HeaderValue::try_from(text)
-        .map(HttpSetCookieHeaderValue)
-        .map_err(|_error| HttpSecureCookieError::InvalidHeader)
-}
+pub use build_secure_strict_cookie::build_secure_strict_cookie;
+pub use http_cookie_access::HttpCookieAccess;
+pub use http_cookie_name::HttpCookieName;
+pub use http_cookie_secure::HttpCookieSecure;
+pub use http_cookie_value::HttpCookieValue;
+pub use http_secure_cookie_error::HttpSecureCookieError;
+pub use http_set_cookie_header_value::HttpSetCookieHeaderValue;
+pub use std_cookie_max_age_seconds::StdCookieMaxAgeSeconds;
 
 #[cfg(test)]
 mod tests {

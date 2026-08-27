@@ -1,0 +1,7 @@
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+pub enum GenerateWhereFiltersPipelineError {
+    #[error("{}", constants_str::INVALID_FILTER_SPECIFICATION)]
+    InvalidContract,
+    #[error("{0}")]
+    Parse(super::SerdeJsonGenerateWhereFiltersError),
+}

@@ -1,263 +1,49 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
-pub struct NotificationApiToken(String);
+#[path = "notification/axum_notification_json.rs"]
+mod axum_notification_json;
+#[path = "notification/axum_notification_router.rs"]
+mod axum_notification_router;
+#[path = "notification/axum_notification_state.rs"]
+mod axum_notification_state;
+#[path = "notification/http_notification_header_map.rs"]
+mod http_notification_header_map;
+#[path = "notification/notification_api_token.rs"]
+mod notification_api_token;
+#[path = "notification/notification_api_token_authorized.rs"]
+mod notification_api_token_authorized;
+#[path = "notification/notification_api_token_error.rs"]
+mod notification_api_token_error;
+#[path = "notification/notification_api_token_ref.rs"]
+mod notification_api_token_ref;
+#[path = "notification/notification_message.rs"]
+mod notification_message;
+#[path = "notification/notification_message_error.rs"]
+mod notification_message_error;
+#[path = "notification/notification_request.rs"]
+mod notification_request;
+#[path = "notification/notification_router.rs"]
+mod notification_router;
+#[path = "notification/notification_sender.rs"]
+mod notification_sender;
+#[path = "notification/notification_service_state.rs"]
+mod notification_service_state;
+#[path = "notification/send_notification.rs"]
+mod send_notification;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
-impl std::fmt::Debug for NotificationApiTokenRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct NotificationApiTokenAuthorized(bool);
-
-impl NotificationApiToken {
-    #[must_use]
-    pub fn authorizes(
-        &self,
-        candidate: NotificationApiTokenRef<'_>,
-    ) -> NotificationApiTokenAuthorized {
-        let maximum_len = self.0.len().max(candidate.0.len());
-        let difference = (constants_usize::ZERO..maximum_len).fold(
-            self.0.len() ^ candidate.0.len(),
-            |acc, index| {
-                acc | usize::from(
-                    self.0
-                        .as_bytes()
-                        .get(index)
-                        .copied()
-                        .unwrap_or(constants_u8::ZERO)
-                        ^ candidate
-                            .0
-                            .as_bytes()
-                            .get(index)
-                            .copied()
-                            .unwrap_or(constants_u8::ZERO),
-                )
-            },
-        );
-        NotificationApiTokenAuthorized::from(difference == constants_usize::ZERO)
-    }
-}
-
-impl std::fmt::Debug for NotificationApiToken {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum NotificationApiTokenError {
-    #[error("notification API token must not be empty")]
-    Empty,
-    #[error("notification API token exceeds maximum length")]
-    TooLong,
-}
-
-impl TryFrom<String> for NotificationApiToken {
-    type Error = NotificationApiTokenError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            Err(Self::Error::Empty)
-        } else if value.len() > 4096usize {
-            Err(Self::Error::TooLong)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefStr,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[serde(try_from = "String")]
-pub struct NotificationMessage(String);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum NotificationMessageError {
-    #[error("notification message must not be empty")]
-    Empty,
-    #[error("notification message exceeds maximum length")]
-    TooLong,
-}
-
-impl TryFrom<String> for NotificationMessage {
-    type Error = NotificationMessageError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            Err(Self::Error::Empty)
-        } else if value.len() > 65_536usize {
-            Err(Self::Error::TooLong)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-pub trait NotificationSender: Clone + Send + Sync + 'static {
-    type Error: std::error::Error + Send + Sync + 'static;
-
-    fn send(
-        &self,
-        message: NotificationMessage,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, serde::Serialize,
-)]
-#[serde(deny_unknown_fields)]
-pub struct NotificationRequest {
-    message: NotificationMessage,
-}
-impl NotificationRequest {
-    #[must_use]
-    pub const fn new(message: NotificationMessage) -> Self {
-        Self { message }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-pub struct NotificationServiceState<Sender> {
-    permits: crate::domain_types::ArcTokioSemaphore,
-    sender: Sender,
-    token: NotificationApiToken,
-}
-impl<Sender> NotificationServiceState<Sender> {
-    #[must_use]
-    pub fn new(
-        token: NotificationApiToken,
-        sender: Sender,
-        maximum_concurrency: crate::domain_types::SemaphorePermitCountNonZeroUsize,
-    ) -> Self {
-        Self {
-            permits: crate::domain_types::ArcTokioSemaphore::new(maximum_concurrency),
-            sender,
-            token,
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub struct AxumNotificationRouter(axum::Router);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct HttpNotificationHeaderMap(http::HeaderMap);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct AxumNotificationState<Sender> {
-    headers: HttpNotificationHeaderMap,
-    state: NotificationServiceState<Sender>,
-}
-impl<Sender> axum::extract::FromRequestParts<NotificationServiceState<Sender>>
-    for AxumNotificationState<Sender>
-where
-    Sender: Clone + Send + Sync,
-{
-    type Rejection = std::convert::Infallible;
-    fn from_request_parts(
-        parts: &mut http::request::Parts,
-        state: &NotificationServiceState<Sender>,
-    ) -> impl Future<Output = Result<Self, Self::Rejection>> {
-        std::future::ready(Ok(Self {
-            headers: HttpNotificationHeaderMap::from(parts.headers.clone()),
-            state: state.clone(),
-        }))
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-struct AxumNotificationJson(NotificationRequest);
-
-impl<State> axum::extract::FromRequest<State> for AxumNotificationJson
-where
-    State: Send + Sync,
-{
-    type Rejection = axum::extract::rejection::JsonRejection;
-    async fn from_request(
-        req: axum::extract::Request,
-        state: &State,
-    ) -> Result<Self, Self::Rejection> {
-        axum::Json::<NotificationRequest>::from_request(req, state)
-            .await
-            .map(|axum::Json(value)| Self::from(value))
-    }
-}
-#[allow(clippy::single_call_fn)] // named endpoint keeps axum extractor boundaries domain-typed
-async fn send_notification<Sender>(
-    state: AxumNotificationState<Sender>,
-    request: AxumNotificationJson,
-) -> http::StatusCode
-where
-    Sender: NotificationSender,
-{
-    let authorization = state
-        .headers
-        .0
-        .get(http::header::AUTHORIZATION)
-        .and_then(|value| value.to_str().ok());
-    let authorized = match crate::domain_types::resolve_bearer_authorization(
-        crate::domain_types::HttpAuthorizationHeaderTextRef::from(authorization),
-    ) {
-        crate::domain_types::BearerAuthorizationResolution::Resolved(token) => bool::from(
-            state
-                .state
-                .token
-                .authorizes(NotificationApiTokenRef::from(token.as_ref())),
-        ),
-        crate::domain_types::BearerAuthorizationResolution::Invalid
-        | crate::domain_types::BearerAuthorizationResolution::Missing => false,
-    };
-    if !authorized {
-        return http::StatusCode::UNAUTHORIZED;
-    }
-    let Some(_permit) = state.state.permits.try_acquire() else {
-        return http::StatusCode::TOO_MANY_REQUESTS;
-    };
-    match state.state.sender.send(request.0.message).await {
-        Ok(()) => http::StatusCode::NO_CONTENT,
-        Err(_error) => http::StatusCode::BAD_GATEWAY,
-    }
-}
-
-pub fn notification_router<Sender>(
-    state: NotificationServiceState<Sender>,
-) -> AxumNotificationRouter
-where
-    Sender: NotificationSender,
-{
-    AxumNotificationRouter::from(
-        axum::Router::new()
-            .route(
-                constants_str::NOTIFICATIONS_PATH,
-                axum::routing::post(send_notification::<Sender>),
-            )
-            .with_state(state),
-    )
-}
+use axum_notification_json::AxumNotificationJson;
+pub use axum_notification_router::AxumNotificationRouter;
+use axum_notification_state::AxumNotificationState;
+use http_notification_header_map::HttpNotificationHeaderMap;
+pub use notification_api_token::NotificationApiToken;
+pub use notification_api_token_authorized::NotificationApiTokenAuthorized;
+pub use notification_api_token_error::NotificationApiTokenError;
+pub use notification_api_token_ref::NotificationApiTokenRef;
+pub use notification_message::NotificationMessage;
+pub use notification_message_error::NotificationMessageError;
+pub use notification_request::NotificationRequest;
+pub use notification_router::notification_router;
+pub use notification_sender::NotificationSender;
+pub use notification_service_state::NotificationServiceState;
+use send_notification::send_notification;
 
 #[cfg(test)]
 mod tests {

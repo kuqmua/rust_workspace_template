@@ -1,5 +1,11 @@
-mod adapters;
 mod domain_types;
+mod template_fs_copy_template_tree;
+mod template_fs_insert_once;
+mod template_fs_read_bounded_text;
+mod template_fs_rename_identity;
+mod template_fs_replace_file;
+mod template_fs_should_skip;
+mod template_fs_write_text;
 
 fn workspace_root() -> Result<domain_types::ScaffoldPathRef<'static>, domain_types::ScaffoldError> {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -32,7 +38,7 @@ fn main() {
                     domain_types::naming_validate_repository_url::naming_validate_repository_url(
                         repository_url_ref,
                     )?;
-                    adapters::template_fs_rename_identity::template_fs_rename_identity(
+                    template_fs_rename_identity::template_fs_rename_identity(
                         workspace_root()?,
                         name_ref,
                         repository_url_ref,

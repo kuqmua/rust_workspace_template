@@ -75,8 +75,8 @@ pub(super) async fn account_change_own_password(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    crate::adapters::repository::update_user_password::update_user_password(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::update_user_password::update_user_password(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         actor.id,
         &password_hash,
         super::super::AdminPasswordChangeRequired::from(false),

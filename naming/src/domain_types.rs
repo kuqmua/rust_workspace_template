@@ -1,5 +1,34 @@
+#[path = "domain_types/display_plus_to_tokens.rs"]
+mod display_plus_to_tokens;
+#[path = "domain_types/hash_map.rs"]
+mod hash_map;
+#[path = "domain_types/hash_map_snake_case.rs"]
+mod hash_map_snake_case;
+#[path = "domain_types/hash_map_upper_camel_case.rs"]
+mod hash_map_upper_camel_case;
 #[path = "parameter.rs"]
 pub mod parameter;
+#[path = "domain_types/swagger_url_path_prefix.rs"]
+mod swagger_url_path_prefix;
+#[path = "domain_types/swagger_url_path_self_quotes_str.rs"]
+mod swagger_url_path_self_quotes_str;
+#[path = "domain_types/swagger_url_path_self_quotes_str_value.rs"]
+mod swagger_url_path_self_quotes_str_value;
+#[path = "domain_types/swagger_url_path_self_quotes_token_stream.rs"]
+mod swagger_url_path_self_quotes_token_stream;
+#[path = "domain_types/swagger_url_path_self_quotes_token_stream_value.rs"]
+mod swagger_url_path_self_quotes_token_stream_value;
+
+pub use display_plus_to_tokens::DisplayPlusToTokens;
+pub use hash_map::HashMap;
+pub use hash_map_snake_case::HashMapSnakeCase;
+pub use hash_map_upper_camel_case::HashMapUpperCamelCase;
+pub use swagger_url_path_prefix::SwaggerUrlPathPrefix;
+pub use swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr;
+pub use swagger_url_path_self_quotes_str_value::SwaggerUrlPathSelfQuotesStrValue;
+pub use swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream;
+pub use swagger_url_path_self_quotes_token_stream_value::SwaggerUrlPathSelfQuotesTokenStreamValue;
+
 naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["primary", "key"],
     ["serde"],
@@ -477,108 +506,6 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["v"],
     ["not", "uuid"]
 ]);
-#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
-pub struct HashMap;
-#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
-pub struct HashMapUpperCamelCase;
-impl std::fmt::Display for HashMapUpperCamelCase {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "HashMap")
-    }
-}
-impl quote::ToTokens for HashMapUpperCamelCase {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        quote::quote! {HashMap}.to_tokens(tokens);
-    }
-}
-#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
-pub struct HashMapSnakeCase;
-impl std::fmt::Display for HashMapSnakeCase {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "hashmap")
-    }
-}
-impl quote::ToTokens for HashMapSnakeCase {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        quote::quote! {hashmap}.to_tokens(tokens);
-    }
-}
-pub trait DisplayPlusToTokens: std::fmt::Display + quote::ToTokens {}
-impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct SwaggerUrlPathPrefix<'prefix_lt>(&'prefix_lt str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::AsRefStr, newtype::FromInner,
-)]
-pub struct SwaggerUrlPathSelfQuotesStrValue(generate_quotes::domain_types::QuotedLiteral);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner, newtype::ToTokens,
-)]
-pub struct SwaggerUrlPathSelfQuotesTokenStreamValue(
-    generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream,
-);
-pub trait SwaggerUrlPathSelfQuotesStr {
-    fn swagger_url_path_self_quotes_str(
-        &self,
-        v: SwaggerUrlPathPrefix<'_>,
-    ) -> SwaggerUrlPathSelfQuotesStrValue;
-}
-impl<T> SwaggerUrlPathSelfQuotesStr for T
-where
-    T: naming_common::domain_types::AsRefStrToSnakeCaseStr,
-{
-    fn swagger_url_path_self_quotes_str(
-        &self,
-        v: SwaggerUrlPathPrefix<'_>,
-    ) -> SwaggerUrlPathSelfQuotesStrValue {
-        SwaggerUrlPathSelfQuotesStrValue::from(generate_quotes::domain_types::double_quoted_string(
-            &format!("/{}/{}", v.as_ref(), self.case()),
-        ))
-    }
-}
-pub trait SwaggerUrlPathSelfQuotesTokenStream {
-    fn swagger_url_path_self_quotes_token_stream(
-        &self,
-        v: SwaggerUrlPathPrefix<'_>,
-    ) -> SwaggerUrlPathSelfQuotesTokenStreamValue;
-}
-impl<T> SwaggerUrlPathSelfQuotesTokenStream for T
-where
-    T: SwaggerUrlPathSelfQuotesStr,
-{
-    fn swagger_url_path_self_quotes_token_stream(
-        &self,
-        v: SwaggerUrlPathPrefix<'_>,
-    ) -> SwaggerUrlPathSelfQuotesTokenStreamValue {
-        match self
-            .swagger_url_path_self_quotes_str(v)
-            .as_ref()
-            .parse::<proc_macro2::TokenStream>()
-        {
-            Ok(parsed_token_stream) => SwaggerUrlPathSelfQuotesTokenStreamValue::from(
-                generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream::from(
-                    parsed_token_stream,
-                ),
-            ),
-            Err(error) => {
-                let message = error.to_string();
-                SwaggerUrlPathSelfQuotesTokenStreamValue::from(
-                    generate_quotes::domain_types::ProcMacro2QuotedLiteralTokenStream::from(
-                        quote::quote! {compile_error!(#message);},
-                    ),
-                )
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     #[test]

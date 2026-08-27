@@ -1,5 +1,7 @@
-mod adapters;
 mod domain_types;
+mod migrate_notification;
+mod routes;
+mod run;
 
 #[tokio::main]
 async fn main() -> domain_types::NotificationExitCode {
@@ -38,9 +40,9 @@ async fn main() -> domain_types::NotificationExitCode {
     };
     let run_result = match config.svc_mode() {
         config_lib::domain_types::types::SvcMode::Migrate => {
-            adapters::migrate_notification::migrate_notification(&config).await
+            migrate_notification::migrate_notification(&config).await
         }
-        config_lib::domain_types::types::SvcMode::Serve => adapters::run::run(config).await,
+        config_lib::domain_types::types::SvcMode::Serve => run::run(config).await,
     };
     if let Err(error) = run_result.as_ref() {
         tracing::error!(error = %error, "notification service terminated with an error");

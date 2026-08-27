@@ -52,7 +52,7 @@ pub(crate) async fn run(
         .apply(
             server_runtime_http::domain_types::RequestTimeoutLayer::from(timeout).apply(
                 server_runtime_http::domain_types::AxumRouter::from(
-                    crate::adapters::routes::router(
+                    crate::routes::router(
                         crate::domain_types::NotificationState {
                             metrics,
                             pool: app_state::domain_types::SqlxPgPool::from(pool),

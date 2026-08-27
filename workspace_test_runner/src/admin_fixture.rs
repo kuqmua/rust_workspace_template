@@ -1,23 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::BoundedString)]
-#[bounded_string(max = constants_usize::VALUE_1_048_576)]
-pub(crate) struct AdminFixtureString(String);
-pub(crate) fn admin_fixture_string<Value>(
-    value: impl TryInto<AdminFixtureString>,
-) -> Result<Value, ()>
-where
-    Value: TryFrom<String>,
-    Value::Error: std::fmt::Display,
-{
-    let bounded_value = value.try_into().map_err(|_error| {
-        eprintln!(
-            "{}",
-            constants_str::WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID
-        );
-    })?;
-    Value::try_from(bounded_value.0).map_err(|error| {
-        eprintln!("{error}");
-    })
-}
+#[path = "admin_fixture/admin_fixture_string.rs"]
+mod admin_fixture_string;
+
+pub(crate) use admin_fixture_string::{
+    AdminFixtureString, AdminFixtureStringTryFromStringError, admin_fixture_string,
+};
 
 #[cfg(test)]
 mod tests {

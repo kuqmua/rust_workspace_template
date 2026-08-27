@@ -1,280 +1,59 @@
-const MAX_FORWARDED_HEADER_BYTES: usize = 4096;
-const MAX_FORWARDED_ENTRIES: usize = 32;
-const TRUSTED_PROXY_RANGES_MAX_ITEMS: usize = 128usize;
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
+const MAX_FORWARDED_HEADER_BYTES: usize = constants_usize::VALUE_4_096;
+const MAX_FORWARDED_ENTRIES: usize = 32usize;
+const TRUSTED_PROXY_RANGES_MAX_ITEMS: usize = constants_usize::VALUE_128;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct TrustedProxyRangesTextRef<'text_lt>(&'text_lt str);
+#[path = "client_ip/client_addr_parse_error.rs"]
+mod client_addr_parse_error;
+#[path = "client_ip/client_socket_addr.rs"]
+mod client_socket_addr;
+#[path = "client_ip/http_header_map_ref.rs"]
+mod http_header_map_ref;
+#[path = "client_ip/ipnet_network.rs"]
+mod ipnet_network;
+#[path = "client_ip/parse_int_error.rs"]
+mod parse_int_error;
+#[path = "client_ip/parse_trusted_proxy_ranges.rs"]
+mod parse_trusted_proxy_ranges;
+#[path = "client_ip/parsed_ip_addr.rs"]
+mod parsed_ip_addr;
+#[path = "client_ip/resolve_client_ip.rs"]
+mod resolve_client_ip;
+#[path = "client_ip/resolve_header_text.rs"]
+mod resolve_header_text;
+#[path = "client_ip/resolved_client_ip_addr.rs"]
+mod resolved_client_ip_addr;
+#[path = "client_ip/std_range_contains.rs"]
+mod std_range_contains;
+#[path = "client_ip/trusted_proxy_range.rs"]
+mod trusted_proxy_range;
+#[path = "client_ip/trusted_proxy_range_parse_error.rs"]
+mod trusted_proxy_range_parse_error;
+#[path = "client_ip/trusted_proxy_ranges.rs"]
+mod trusted_proxy_ranges;
+#[path = "client_ip/trusted_proxy_ranges_error.rs"]
+mod trusted_proxy_ranges_error;
+#[path = "client_ip/trusted_proxy_ranges_parse_error.rs"]
+mod trusted_proxy_ranges_parse_error;
+#[path = "client_ip/trusted_proxy_ranges_text_ref.rs"]
+mod trusted_proxy_ranges_text_ref;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::Display,
-    newtype::FromInner,
-)]
-pub struct ClientSocketAddr(std::net::SocketAddr);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefOwned,
-    newtype::Display,
-    newtype::FromInner,
-)]
-pub struct ResolvedClientIpAddr(std::net::IpAddr);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct TrustedProxyRange {
-    network: IpnetNetwork,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-struct IpnetNetwork(ipnet::IpNet);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-struct ParsedIpAddr(std::net::IpAddr);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-struct StdRangeContains(bool);
-
-impl StdRangeContains {
-    const fn get(self) -> bool {
-        self.0
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub struct ClientAddrParseError(std::net::AddrParseError);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub struct ParseIntError(std::num::ParseIntError);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum TrustedProxyRangeParseError {
-    #[error("trusted proxy address is invalid")]
-    InvalidAddress {
-        #[source]
-        source: ClientAddrParseError,
-    },
-    #[error("trusted proxy prefix is invalid")]
-    InvalidPrefix {
-        #[source]
-        source: ParseIntError,
-    },
-    #[error("trusted proxy range must use address/prefix notation")]
-    MissingPrefix,
-    #[error("trusted proxy prefix exceeds address width")]
-    PrefixExceedsAddressWidth,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum TrustedProxyRangesParseError {
-    #[error("trusted proxy range is invalid: {0}")]
-    Range(TrustedProxyRangeParseError),
-    #[error("trusted proxy range list is invalid: {0}")]
-    Ranges(TrustedProxyRangesError),
-}
-impl TryFrom<String> for TrustedProxyRange {
-    type Error = TrustedProxyRangeParseError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let Some((address_text, prefix_text)) = value.split_once('/') else {
-            return Err(TrustedProxyRangeParseError::MissingPrefix);
-        };
-        let network_address = address_text.parse::<std::net::IpAddr>().map_err(|source| {
-            TrustedProxyRangeParseError::InvalidAddress {
-                source: ClientAddrParseError::from(source),
-            }
-        })?;
-        let prefix_bits = prefix_text.parse::<u8>().map_err(|source| {
-            TrustedProxyRangeParseError::InvalidPrefix {
-                source: ParseIntError::from(source),
-            }
-        })?;
-        let Ok(network) = ipnet::IpNet::new(network_address, prefix_bits) else {
-            return Err(TrustedProxyRangeParseError::PrefixExceedsAddressWidth);
-        };
-        Ok(Self {
-            network: IpnetNetwork::from(network),
-        })
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
-pub struct TrustedProxyRanges(
-    bounded_types::domain_types::vector::BoundedVec<
-        TrustedProxyRange,
-        0,
-        TRUSTED_PROXY_RANGES_MAX_ITEMS,
-    >,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("trusted proxy range list exceeds its maximum item count")]
-pub struct TrustedProxyRangesError;
-impl From<bounded_types::domain_types::BoundedValueError> for TrustedProxyRangesError {
-    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
-        Self
-    }
-}
-impl TryFrom<Vec<TrustedProxyRange>> for TrustedProxyRanges {
-    type Error = TrustedProxyRangesError;
-    fn try_from(value: Vec<TrustedProxyRange>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
-            .map(Self)
-            .map_err(TrustedProxyRangesError::from)
-    }
-}
-impl TrustedProxyRange {
-    fn contains(self, candidate_ip: ParsedIpAddr) -> StdRangeContains {
-        StdRangeContains::from(self.network.0.contains(&candidate_ip.0))
-    }
-}
-impl TrustedProxyRanges {
-    fn contains(&self, candidate: ParsedIpAddr) -> StdRangeContains {
-        StdRangeContains::from(self.0.iter().any(|range| range.contains(candidate).get()))
-    }
-}
-#[must_use]
-pub fn resolve_client_ip(
-    headers: HttpHeaderMapRef<'_>,
-    peer: ClientSocketAddr,
-    trusted_proxy_ranges: &TrustedProxyRanges,
-) -> ResolvedClientIpAddr {
-    let peer_ip = peer.0.ip();
-    if !trusted_proxy_ranges
-        .contains(ParsedIpAddr::from(peer_ip))
-        .get()
-    {
-        return ResolvedClientIpAddr::from(peer_ip);
-    }
-    let parsed_forwarded_ip = || {
-        let values = headers
-            .0
-            .get_all(constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME);
-        let mut iter = values.iter();
-        let value = iter.next()?;
-        if iter.next().is_some() || value.as_bytes().len() > MAX_FORWARDED_HEADER_BYTES {
-            return None;
-        }
-        let value_text = value.to_str().ok()?;
-        let (count, first, rightmost_untrusted) = value_text.split(',').map(str::trim).try_fold(
-            (constants_usize::ZERO, None, None),
-            |(count, first, rightmost_untrusted), entry| {
-                if count >= MAX_FORWARDED_ENTRIES {
-                    return None;
-                }
-                let parsed = entry.parse::<std::net::IpAddr>().ok()?;
-                let next_first = first.or(Some(parsed));
-                let next_rightmost_untrusted = if trusted_proxy_ranges
-                    .contains(ParsedIpAddr::from(parsed))
-                    .get()
-                {
-                    rightmost_untrusted
-                } else {
-                    Some(parsed)
-                };
-                Some((
-                    count.saturating_add(constants_usize::ONE),
-                    next_first,
-                    next_rightmost_untrusted,
-                ))
-            },
-        )?;
-        (count > constants_usize::ZERO)
-            .then_some(rightmost_untrusted.or(first))
-            .flatten()
-    };
-    let parsed_real_ip = || {
-        let values = headers
-            .0
-            .get_all(constants_str::RUNTIME_REAL_IP_HEADER_NAME);
-        let mut iter = values.iter();
-        let value = iter.next()?;
-        if iter.next().is_some() || value.as_bytes().len() > MAX_FORWARDED_HEADER_BYTES {
-            return None;
-        }
-        value.to_str().ok()?.trim().parse::<std::net::IpAddr>().ok()
-    };
-    ResolvedClientIpAddr::from(
-        parsed_forwarded_ip()
-            .or_else(parsed_real_ip)
-            .unwrap_or(peer_ip),
-    )
-}
-
-pub fn parse_trusted_proxy_ranges(
-    value: TrustedProxyRangesTextRef<'_>,
-) -> Result<TrustedProxyRanges, TrustedProxyRangesParseError> {
-    if value.0.trim().is_empty() {
-        return Ok(TrustedProxyRanges::default());
-    }
-    let ranges = value
-        .0
-        .split(',')
-        .map(str::trim)
-        .map(|item| {
-            TrustedProxyRange::try_from(item.to_owned())
-                .map_err(TrustedProxyRangesParseError::Range)
-        })
-        .collect::<Result<Vec<TrustedProxyRange>, TrustedProxyRangesParseError>>()?;
-    TrustedProxyRanges::try_from(ranges).map_err(TrustedProxyRangesParseError::Ranges)
-}
-#[must_use]
-pub fn resolve_header_text<'header>(
-    headers: HttpHeaderMapRef<'header>,
-    name: &crate::domain_types::HttpHeaderName,
-    maximum: crate::domain_types::HttpHeaderTextMaximumBytes,
-) -> crate::domain_types::HttpHeaderTextResolution<'header> {
-    let Some(value) = headers.0.get(name.as_ref()) else {
-        return crate::domain_types::HttpHeaderTextResolution::Missing;
-    };
-    let bytes = value.as_bytes();
-    if bytes.len() > usize::from(maximum) {
-        return crate::domain_types::HttpHeaderTextResolution::ExceedsMaximumBytes {
-            actual_bytes: crate::domain_types::HttpHeaderTextBytes::from(bytes.len()),
-        };
-    }
-    match value.to_str() {
-        Ok(text) => crate::domain_types::HttpHeaderTextResolution::Value(
-            crate::domain_types::HttpHeaderTextRef::from(text.trim()),
-        ),
-        Err(_error) => crate::domain_types::HttpHeaderTextResolution::InvalidText,
-    }
-}
+pub use client_addr_parse_error::ClientAddrParseError;
+pub use client_socket_addr::ClientSocketAddr;
+pub use http_header_map_ref::HttpHeaderMapRef;
+use ipnet_network::IpnetNetwork;
+pub use parse_int_error::ParseIntError;
+pub use parse_trusted_proxy_ranges::parse_trusted_proxy_ranges;
+use parsed_ip_addr::ParsedIpAddr;
+pub use resolve_client_ip::resolve_client_ip;
+pub use resolve_header_text::resolve_header_text;
+pub use resolved_client_ip_addr::ResolvedClientIpAddr;
+use std_range_contains::StdRangeContains;
+pub use trusted_proxy_range::TrustedProxyRange;
+pub use trusted_proxy_range_parse_error::TrustedProxyRangeParseError;
+pub use trusted_proxy_ranges::TrustedProxyRanges;
+pub use trusted_proxy_ranges_error::TrustedProxyRangesError;
+pub use trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError;
+pub use trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef;
 
 #[cfg(test)]
 mod tests {

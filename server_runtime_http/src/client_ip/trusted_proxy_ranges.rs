@@ -1,0 +1,24 @@
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
+pub struct TrustedProxyRanges(
+    bounded_types::domain_types::vector::BoundedVec<
+        super::TrustedProxyRange,
+        0,
+        { super::TRUSTED_PROXY_RANGES_MAX_ITEMS },
+    >,
+);
+
+impl TryFrom<Vec<super::TrustedProxyRange>> for TrustedProxyRanges {
+    type Error = super::TrustedProxyRangesError;
+
+    fn try_from(value: Vec<super::TrustedProxyRange>) -> Result<Self, Self::Error> {
+        bounded_types::domain_types::vector::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(super::TrustedProxyRangesError::from)
+    }
+}
+
+impl TrustedProxyRanges {
+    pub(super) fn contains(&self, candidate: super::ParsedIpAddr) -> super::StdRangeContains {
+        super::StdRangeContains::from(self.0.iter().any(|range| range.contains(candidate).get()))
+    }
+}

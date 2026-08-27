@@ -1,0 +1,1 @@
+pub(super) const REJECT_NON_ESSENTIAL_WRITES_PERCENT: u8 = 95u8;

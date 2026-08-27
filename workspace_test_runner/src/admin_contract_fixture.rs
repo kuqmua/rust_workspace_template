@@ -47,18 +47,18 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
         let permission_values = server_admin_contract::domain_types::AdminPermission::ALL
             .into_iter()
             .map(|permission| {
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminPermissionValue,
                 >(permission.as_str().as_ref().to_owned())
             })
             .collect::<Result<Vec<_>, ()>>()?;
         let authenticated_admin = server_admin_contract::domain_types::AuthenticatedAdmin::new(
-            crate::adapters::admin_fixture::admin_fixture_string::<
+            crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminDisplayName,
             >(String::from(constants_str::ADMIN))?,
             server_admin_contract::domain_types::AdminUserId::try_from(constants_i64::ONE)
                 .map_err(|error| eprintln!("{error}"))?,
-            crate::adapters::admin_fixture::admin_fixture_string::<
+            crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminLogin,
             >(String::from(constants_str::ROOT))?,
             server_admin_contract::domain_types::AdminPermissionValues::try_from(
@@ -66,7 +66,7 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
             )
             .map_err(|error| eprintln!("{error}"))?,
             server_admin_contract::domain_types::AdminRoleNames::try_from(vec![
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminRoleName,
                 >(String::from(constants_str::ADMIN_FIXTURE_ROLE_NAME))?,
             ])
@@ -82,7 +82,7 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
                     server_admin_contract::domain_types::AdminRoleId::try_from(constants_i64::ONE)
                         .map_err(|error| eprintln!("{error}"))?;
                 Ok(server_admin_contract::domain_types::AdminUserSummary::new(
-                    crate::adapters::admin_fixture::admin_fixture_string::<
+                    crate::admin_fixture::admin_fixture_string::<
                         server_admin_contract::domain_types::AdminDisplayName,
                     >(if is_alpha {
                         String::from(constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME)
@@ -94,7 +94,7 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
                     server_admin_contract::domain_types::AdminBool::from(
                         index & constants_i64::ONE == constants_i64::ZERO,
                     ),
-                    crate::adapters::admin_fixture::admin_fixture_string::<
+                    crate::admin_fixture::admin_fixture_string::<
                         server_admin_contract::domain_types::AdminLogin,
                     >(if is_alpha {
                         String::from(constants_str::ADMIN_FIXTURE_ALPHA_LOGIN)
@@ -131,7 +131,7 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
             server_admin_contract::domain_types::AdminRoleId::try_from(constants_i64::ONE)
                 .map_err(|error| eprintln!("{error}"))?,
             server_admin_contract::domain_types::AdminBool::from(false),
-            crate::adapters::admin_fixture::admin_fixture_string::<
+            crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminRoleName,
             >(String::from(constants_str::ADMIN_FIXTURE_ROLE_NAME))?,
             server_admin_contract::domain_types::AdminPermissionIds::try_from(
@@ -156,25 +156,25 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
         let audit_user_id = server_admin_contract::domain_types::AdminUserId::try_from(25i64)
             .map_err(|error| eprintln!("{error}"))?;
         let audit = vec![server_admin_contract::domain_types::AdminAuditView::new(
-            crate::adapters::admin_fixture::admin_fixture_string::<
+            crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminText,
             >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_ACTION))?,
-            crate::adapters::admin_fixture::admin_fixture_string::<
+            crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminAuditTimestamp,
             >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT))?,
             Some(audit_details),
             audit_log_id,
-            crate::adapters::admin_fixture::admin_fixture_string::<
+            crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminText,
             >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_RESOURCE))?,
-            Some(crate::adapters::admin_fixture::admin_fixture_string::<
+            Some(crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminText,
             >(String::from(
                 constants_str::ADMIN_FIXTURE_AUDIT_RESOURCE_ID,
             ))?),
             server_admin_contract::domain_types::AdminBool::from(true),
             Some(audit_user_id),
-            Some(crate::adapters::admin_fixture::admin_fixture_string::<
+            Some(crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminLogin,
             >(String::from(
                 constants_str::ADMIN_FIXTURE_ALPHA_LOGIN,
@@ -182,33 +182,33 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
         )];
         let sessions = vec![
             server_admin_contract::domain_types::AdminSessionView::new(
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminSessionTimestamp,
                 >(String::from(
                     constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
                 ))?,
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminSessionTimestamp,
                 >(String::from(
                     constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
                 ))?,
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminSessionIdentifier,
                 >(String::from(constants_str::ADMIN_FIXTURE_SESSION_ID))?,
                 server_admin_contract::domain_types::AdminBool::from(true),
             ),
             server_admin_contract::domain_types::AdminSessionView::new(
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminSessionTimestamp,
                 >(String::from(
                     constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
                 ))?,
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminSessionTimestamp,
                 >(String::from(
                     constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
                 ))?,
-                crate::adapters::admin_fixture::admin_fixture_string::<
+                crate::admin_fixture::admin_fixture_string::<
                     server_admin_contract::domain_types::AdminSessionIdentifier,
                 >(String::from(constants_str::ADMIN_FIXTURE_SECOND_SESSION_ID))?,
                 server_admin_contract::domain_types::AdminBool::from(false),
@@ -259,7 +259,7 @@ pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
                 eprintln!("{error}");
             })?;
         let audit_cursor = server_admin_contract::domain_types::AdminAuditCursor::new(
-            crate::adapters::admin_fixture::admin_fixture_string::<
+            crate::admin_fixture::admin_fixture_string::<
                 server_admin_contract::domain_types::AdminAuditTimestamp,
             >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT))?,
             server_admin_contract::domain_types::AdminAuditLogId::try_from(constants_i64::ONE)

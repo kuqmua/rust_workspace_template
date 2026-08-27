@@ -1,94 +1,31 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct PermitWaitTimeoutDuration(std::time::Duration);
+#[path = "limits/acquire_permit.rs"]
+mod acquire_permit;
+#[path = "limits/acquire_permit_error.rs"]
+mod acquire_permit_error;
+#[path = "limits/arc_tokio_semaphore.rs"]
+mod arc_tokio_semaphore;
+#[path = "limits/permit_wait_timeout_duration.rs"]
+mod permit_wait_timeout_duration;
+#[path = "limits/retry_after_secs.rs"]
+mod retry_after_secs;
+#[path = "limits/retry_after_secs_non_zero_u64.rs"]
+mod retry_after_secs_non_zero_u64;
+#[path = "limits/retry_after_secs_try_from_u64_error.rs"]
+mod retry_after_secs_try_from_u64_error;
+#[path = "limits/semaphore_permit_count_non_zero_usize.rs"]
+mod semaphore_permit_count_non_zero_usize;
+#[path = "limits/tokio_acquire_error.rs"]
+mod tokio_acquire_error;
+#[path = "limits/tokio_owned_semaphore_permit.rs"]
+mod tokio_owned_semaphore_permit;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RetryAfterSecs(u64);
-impl TryFrom<u64> for RetryAfterSecs {
-    type Error = RetryAfterSecsTryFromU64Error;
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == constants_u64::ZERO {
-            Err(RetryAfterSecsTryFromU64Error)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{}", constants_str::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)]
-pub struct RetryAfterSecsTryFromU64Error;
-impl TryFrom<RetryAfterSecs> for http::HeaderValue {
-    type Error = http::header::InvalidHeaderValue;
-    fn try_from(value: RetryAfterSecs) -> Result<Self, Self::Error> {
-        Self::from_str(value.0.to_string().as_str())
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct ArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct SemaphorePermitCountNonZeroUsize(std::num::NonZeroUsize);
-
-impl ArcTokioSemaphore {
-    #[must_use]
-    pub fn new(permit_count: SemaphorePermitCountNonZeroUsize) -> Self {
-        Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
-            permit_count.0.get(),
-        )))
-    }
-    #[must_use]
-    pub fn try_acquire(&self) -> Option<TokioOwnedSemaphorePermit> {
-        std::sync::Arc::clone(&self.0)
-            .try_acquire_owned()
-            .ok()
-            .map(TokioOwnedSemaphorePermit::from)
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct TokioAcquireError(tokio::sync::AcquireError);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum AcquirePermitError {
-    #[error("concurrency limiter is closed: {0}")]
-    Closed(#[source] TokioAcquireError),
-    #[error("concurrency limit reached; retry after {} seconds", .0.0)]
-    Timeout(RetryAfterSecs),
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct TokioOwnedSemaphorePermit(tokio::sync::OwnedSemaphorePermit);
-
-impl TokioOwnedSemaphorePermit {
-    pub fn forget(self) {
-        self.0.forget();
-    }
-}
-pub async fn acquire_permit(
-    semaphore: ArcTokioSemaphore,
-    wait_timeout: PermitWaitTimeoutDuration,
-    retry_after: RetryAfterSecs,
-) -> Result<TokioOwnedSemaphorePermit, AcquirePermitError> {
-    match tokio::time::timeout(wait_timeout.0, semaphore.0.acquire_owned()).await {
-        Ok(Ok(permit)) => Ok(TokioOwnedSemaphorePermit::from(permit)),
-        Ok(Err(error)) => Err(AcquirePermitError::Closed(TokioAcquireError::from(error))),
-        Err(_elapsed) => Err(AcquirePermitError::Timeout(retry_after)),
-    }
-}
+pub use acquire_permit::acquire_permit;
+pub use acquire_permit_error::AcquirePermitError;
+pub use arc_tokio_semaphore::ArcTokioSemaphore;
+pub use permit_wait_timeout_duration::PermitWaitTimeoutDuration;
+pub use retry_after_secs::RetryAfterSecs;
+use retry_after_secs_non_zero_u64::RetryAfterSecsNonZeroU64;
+pub use retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error;
+pub use semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize;
+pub use tokio_acquire_error::TokioAcquireError;
+pub use tokio_owned_semaphore_permit::TokioOwnedSemaphorePermit;

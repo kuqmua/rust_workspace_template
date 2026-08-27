@@ -8,10 +8,8 @@ impl TryFrom<std::time::Duration> for ReqwestRequestTimeoutDuration {
     type Error = super::std_reqwest_timeout_error::StdReqwestTimeoutError;
 
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
-            Err(super::std_reqwest_timeout_error::StdReqwestTimeoutError)
-        } else {
-            Ok(Self(value))
-        }
+        super::std_reqwest_timeout_duration_ref::StdReqwestTimeoutDurationRef::from(&value)
+            .validate()
+            .map(|()| Self(value))
     }
 }

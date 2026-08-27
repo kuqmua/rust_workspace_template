@@ -57,11 +57,9 @@ where
             .await
             .map(|axum::Json(value)| Self::from(value))
             .map_err(|error| {
-                if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
-                    super::AdminError::PayloadTooLarge
-                } else {
-                    super::AdminError::Validation
-                }
+                super::AdminError::body_rejection(super::super::StdAdminBool::from(
+                    error.status() == http::StatusCode::PAYLOAD_TOO_LARGE,
+                ))
             })
     }
 }
@@ -76,11 +74,9 @@ where
             .await
             .map(|axum::Json(value)| Self::from(value))
             .map_err(|error| {
-                if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
-                    super::AdminError::PayloadTooLarge
-                } else {
-                    super::AdminError::Validation
-                }
+                super::AdminError::body_rejection(super::super::StdAdminBool::from(
+                    error.status() == http::StatusCode::PAYLOAD_TOO_LARGE,
+                ))
             })
     }
 }
@@ -95,11 +91,9 @@ where
             .await
             .map(|axum::Form(value)| Self::from(value))
             .map_err(|error| {
-                if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
-                    super::AdminError::PayloadTooLarge
-                } else {
-                    super::AdminError::Validation
-                }
+                super::AdminError::body_rejection(super::super::StdAdminBool::from(
+                    error.status() == http::StatusCode::PAYLOAD_TOO_LARGE,
+                ))
             })
     }
 }

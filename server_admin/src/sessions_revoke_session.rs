@@ -24,8 +24,8 @@ pub(super) async fn sessions_revoke_session(
         &authenticated,
     )
     .await?;
-    crate::adapters::repository::revoke_access_session::revoke_access_session(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::revoke_access_session::revoke_access_session(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         session.0,
         authenticated.id,
     )

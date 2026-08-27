@@ -9,7 +9,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
             crate::domain_types::allocation_tools()
                 .iter()
                 .try_fold((), |(), tool| {
-                    let available = crate::adapters::tool_available::tool_available(tool.path());
+                    let available = crate::tool_available::tool_available(tool.path());
                     println!(
                         "measurement=allocation_tool_available tool={} path={} available={}",
                         tool.name().get(),

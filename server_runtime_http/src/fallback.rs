@@ -1,85 +1,22 @@
-const MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT: usize = 128usize;
+#[path = "fallback/fallback_response_mode.rs"]
+mod fallback_response_mode;
+#[path = "fallback/http_accept_header_maximum_bytes.rs"]
+mod http_accept_header_maximum_bytes;
+#[path = "fallback/http_fallback_api_prefix_ref.rs"]
+mod http_fallback_api_prefix_ref;
+#[path = "fallback/http_fallback_metrics_path_ref.rs"]
+mod http_fallback_metrics_path_ref;
+#[path = "fallback/http_fallback_request_path_ref.rs"]
+mod http_fallback_request_path_ref;
+#[path = "fallback/http_optional_accept_header_ref.rs"]
+mod http_optional_accept_header_ref;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum FallbackResponseMode {
-    HumanReadable,
-    MachineReadable,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpFallbackRequestPathRef<'value_lt>(&'value_lt str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpFallbackApiPrefixRef<'value_lt>(&'value_lt str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpFallbackMetricsPathRef<'value_lt>(&'value_lt str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpOptionalAcceptHeaderRef<'value_lt>(Option<&'value_lt http::HeaderValue>);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpAcceptHeaderMaximumBytes(usize);
-
-#[must_use]
-pub fn fallback_response_mode(
-    request_path: HttpFallbackRequestPathRef<'_>,
-    api_prefix: HttpFallbackApiPrefixRef<'_>,
-    metrics_path: HttpFallbackMetricsPathRef<'_>,
-    accept: HttpOptionalAcceptHeaderRef<'_>,
-    maximum_accept_bytes: HttpAcceptHeaderMaximumBytes,
-) -> FallbackResponseMode {
-    let normalized_api_prefix = api_prefix.0.strip_suffix('/').unwrap_or(api_prefix.0);
-    let api_path = request_path.0 == normalized_api_prefix
-        || request_path
-            .0
-            .strip_prefix(normalized_api_prefix)
-            .is_some_and(|suffix| suffix.starts_with('/'));
-    if api_path || request_path.0 == metrics_path.0 {
-        return FallbackResponseMode::MachineReadable;
-    }
-    let accepts_json = accept
-        .0
-        .filter(|value| value.as_bytes().len() <= maximum_accept_bytes.0)
-        .and_then(|value| value.to_str().ok())
-        .is_some_and(|value| {
-            value
-                .split(',')
-                .take(MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT.saturating_add(constants_usize::ONE))
-                .enumerate()
-                .any(|(index, range)| {
-                    if index >= MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT {
-                        return false;
-                    }
-                    let mut segments = range.split(';').map(str::trim);
-                    segments.next().is_some_and(|media_type| {
-                        media_type.eq_ignore_ascii_case(constants_str::APPLICATION_JSON)
-                    }) && !segments.any(|parameter| {
-                        parameter
-                            .split_once('=')
-                            .is_some_and(|(name, quality_value)| {
-                                name.trim().eq_ignore_ascii_case(
-                                    constants_str::HTTP_ACCEPT_QUALITY_PARAMETER,
-                                ) && quality_value
-                                    .trim()
-                                    .strip_prefix('0')
-                                    .is_some_and(|suffix| {
-                                        suffix.is_empty()
-                                            || suffix.strip_prefix('.').is_some_and(|digits| {
-                                                !digits.is_empty()
-                                                    && digits.bytes().all(|byte| byte == b'0')
-                                            })
-                                    })
-                            })
-                    })
-                })
-        });
-    if accepts_json {
-        FallbackResponseMode::MachineReadable
-    } else {
-        FallbackResponseMode::HumanReadable
-    }
-}
+pub use fallback_response_mode::{FallbackResponseMode, fallback_response_mode};
+pub use http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes;
+pub use http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef;
+pub use http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef;
+pub use http_fallback_request_path_ref::HttpFallbackRequestPathRef;
+pub use http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef;
 
 #[cfg(test)]
 mod tests {

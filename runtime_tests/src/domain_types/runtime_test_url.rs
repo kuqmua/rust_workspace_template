@@ -1,0 +1,16 @@
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+)]
+pub(crate) struct RuntimeTestUrl(pub(super) String);
+
+impl TryFrom<String> for RuntimeTestUrl {
+    type Error = super::ServiceBaseUrlError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::VALUE_8_192 {
+            Err(super::ServiceBaseUrlError::Length)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}

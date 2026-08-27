@@ -75,6 +75,14 @@ impl super::AdminError {
         ))
     }
 
+    pub(super) const fn body_rejection(is_payload_too_large: super::super::StdAdminBool) -> Self {
+        if is_payload_too_large.get() {
+            Self::PayloadTooLarge
+        } else {
+            Self::Validation
+        }
+    }
+
     #[track_caller]
     pub(super) fn csrf_secret_text(source: super::super::AdminSecretTextError) -> Self {
         Self::CsrfSecretText(Self::observed(

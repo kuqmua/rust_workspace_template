@@ -3,262 +3,56 @@
     reason = "validators stay adjacent to their domain wrappers and ranges retain minimum-then-maximum order"
 )]
 
-const URL_SAFE_TOKEN_PART_MAXIMUM_BYTES: usize = 4096usize;
+#[path = "domain_types/bounded_text_policy_error.rs"]
+mod bounded_text_policy_error;
+#[path = "domain_types/fixed_length_ascii_hex_text.rs"]
+mod fixed_length_ascii_hex_text;
+#[path = "domain_types/fixed_length_ascii_hex_text_error.rs"]
+mod fixed_length_ascii_hex_text_error;
+#[path = "domain_types/non_empty_trimmed_text.rs"]
+mod non_empty_trimmed_text;
+#[path = "domain_types/password_length.rs"]
+mod password_length;
+#[path = "domain_types/password_length_range.rs"]
+mod password_length_range;
+#[path = "domain_types/password_length_range_error.rs"]
+mod password_length_range_error;
+#[path = "domain_types/password_policy_violation.rs"]
+mod password_policy_violation;
+#[path = "domain_types/password_text_ref.rs"]
+mod password_text_ref;
+#[path = "domain_types/required_nul_free_bounded_text.rs"]
+mod required_nul_free_bounded_text;
+#[path = "domain_types/url_safe_token_part_maximum_bytes.rs"]
+mod url_safe_token_part_maximum_bytes;
+#[path = "domain_types/url_safe_token_part_ref.rs"]
+mod url_safe_token_part_ref;
+#[path = "domain_types/url_safe_token_part_text.rs"]
+mod url_safe_token_part_text;
+#[path = "domain_types/url_safe_token_part_text_error.rs"]
+mod url_safe_token_part_text_error;
+#[path = "domain_types/validate_password_policy.rs"]
+mod validate_password_policy;
+#[path = "domain_types/validate_url_safe_token_part.rs"]
+mod validate_url_safe_token_part;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum BoundedTextPolicyError {
-    #[error("text contains a NUL character")]
-    ContainsNul,
-    #[error("text must not be empty")]
-    Empty,
-    #[error("text exceeds its maximum byte length")]
-    TooLong,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct RequiredNulFreeBoundedText(String);
-impl TryFrom<String> for RequiredNulFreeBoundedText {
-    type Error = BoundedTextPolicyError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_1_048_576 {
-            return Err(Self::Error::TooLong);
-        }
-        if value.is_empty() {
-            Err(Self::Error::Empty)
-        } else if value.contains('\0') {
-            Err(Self::Error::ContainsNul)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct NonEmptyTrimmedText(String);
-impl TryFrom<String> for NonEmptyTrimmedText {
-    type Error = BoundedTextPolicyError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_1_048_576 {
-            return Err(Self::Error::TooLong);
-        }
-        let trimmed = value.trim();
-        if trimmed.is_empty() {
-            Err(Self::Error::Empty)
-        } else if trimmed.contains('\0') {
-            Err(Self::Error::ContainsNul)
-        } else {
-            Ok(Self(trimmed.to_owned()))
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum FixedLengthAsciiHexTextError {
-    #[error("hexadecimal text has an unexpected length")]
-    InvalidLength,
-    #[error("hexadecimal text must contain only lowercase ASCII hexadecimal digits")]
-    InvalidSymbol,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefStr,
-    newtype::IntoInner,
-)]
-pub struct FixedLengthAsciiHexText(String);
-impl TryFrom<String> for FixedLengthAsciiHexText {
-    type Error = FixedLengthAsciiHexTextError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() != 40usize {
-            Err(Self::Error::InvalidLength)
-        } else if !value
-            .bytes()
-            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
-        {
-            Err(Self::Error::InvalidSymbol)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct UrlSafeTokenPartMaximumBytes(usize);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct UrlSafeTokenPartRef<'value_lt>(&'value_lt str);
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum UrlSafeTokenPartTextError {
-    #[error("URL-safe token part must not be empty")]
-    Empty,
-    #[error("URL-safe token part contains a forbidden symbol")]
-    InvalidSymbol,
-    #[error("URL-safe token part is too long")]
-    TooLong,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
-)]
-pub struct UrlSafeTokenPartText(String);
-impl TryFrom<String> for UrlSafeTokenPartText {
-    type Error = UrlSafeTokenPartTextError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > URL_SAFE_TOKEN_PART_MAXIMUM_BYTES {
-            return Err(Self::Error::TooLong);
-        }
-        validate_url_safe_token_part(
-            UrlSafeTokenPartRef::from(value.as_str()),
-            UrlSafeTokenPartMaximumBytes::from(URL_SAFE_TOKEN_PART_MAXIMUM_BYTES),
-        )?;
-        Ok(Self(value))
-    }
-}
-
-pub fn validate_url_safe_token_part(
-    value: UrlSafeTokenPartRef<'_>,
-    maximum_bytes: UrlSafeTokenPartMaximumBytes,
-) -> Result<(), UrlSafeTokenPartTextError> {
-    if value.0.len() > maximum_bytes.0 {
-        return Err(UrlSafeTokenPartTextError::TooLong);
-    }
-    if value.0.is_empty() {
-        Err(UrlSafeTokenPartTextError::Empty)
-    } else if value
-        .0
-        .bytes()
-        .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
-    {
-        Ok(())
-    } else {
-        Err(UrlSafeTokenPartTextError::InvalidSymbol)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-pub struct PasswordTextRef<'value_lt>(&'value_lt str);
-impl std::fmt::Debug for PasswordTextRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct PasswordLength(usize);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PasswordLengthRange {
-    minimum: PasswordLength,
-    maximum: PasswordLength,
-}
-impl PasswordLengthRange {
-    #[must_use]
-    pub const fn from_prevalidated(minimum: PasswordLength, maximum: PasswordLength) -> Self {
-        Self { minimum, maximum }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("password maximum length must not be less than minimum length")]
-pub struct PasswordLengthRangeError;
-impl TryFrom<(PasswordLength, PasswordLength)> for PasswordLengthRange {
-    type Error = PasswordLengthRangeError;
-    fn try_from(value: (PasswordLength, PasswordLength)) -> Result<Self, Self::Error> {
-        if value.1.0 < value.0.0 {
-            Err(PasswordLengthRangeError)
-        } else {
-            Ok(Self {
-                minimum: value.0,
-                maximum: value.1,
-            })
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum PasswordPolicyViolation {
-    #[error("password must not contain whitespace")]
-    ContainsWhitespace,
-    #[error("password must contain a digit")]
-    MissingDigit,
-    #[error("password must contain a lowercase letter")]
-    MissingLowercase,
-    #[error("password must contain a special character")]
-    MissingSpecial,
-    #[error("password must contain an uppercase letter")]
-    MissingUppercase,
-    #[error("password is too long")]
-    TooLong,
-    #[error("password is too short")]
-    TooShort,
-}
-pub fn validate_password_policy(
-    password: PasswordTextRef<'_>,
-    range: PasswordLengthRange,
-) -> Result<(), PasswordPolicyViolation> {
-    if password.0.len() < range.minimum.0 {
-        return Err(PasswordPolicyViolation::TooShort);
-    }
-    if password.0.len() > range.maximum.0 {
-        return Err(PasswordPolicyViolation::TooLong);
-    }
-    if password.0.bytes().any(|byte| byte.is_ascii_whitespace()) {
-        return Err(PasswordPolicyViolation::ContainsWhitespace);
-    }
-    if !password.0.bytes().any(|byte| byte.is_ascii_digit()) {
-        return Err(PasswordPolicyViolation::MissingDigit);
-    }
-    if !password.0.bytes().any(|byte| byte.is_ascii_lowercase()) {
-        return Err(PasswordPolicyViolation::MissingLowercase);
-    }
-    if !password.0.bytes().any(|byte| byte.is_ascii_uppercase()) {
-        return Err(PasswordPolicyViolation::MissingUppercase);
-    }
-    if !password.0.bytes().any(|byte| byte.is_ascii_punctuation()) {
-        return Err(PasswordPolicyViolation::MissingSpecial);
-    }
-    Ok(())
-}
+pub use bounded_text_policy_error::BoundedTextPolicyError;
+pub use fixed_length_ascii_hex_text::FixedLengthAsciiHexText;
+pub use fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;
+pub use non_empty_trimmed_text::NonEmptyTrimmedText;
+pub use password_length::PasswordLength;
+pub use password_length_range::PasswordLengthRange;
+pub use password_length_range_error::PasswordLengthRangeError;
+pub use password_policy_violation::PasswordPolicyViolation;
+pub use password_text_ref::PasswordTextRef;
+pub use required_nul_free_bounded_text::RequiredNulFreeBoundedText;
+use url_safe_token_part_maximum_bytes::URL_SAFE_TOKEN_PART_MAXIMUM_BYTES;
+pub use url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes;
+pub use url_safe_token_part_ref::UrlSafeTokenPartRef;
+pub use url_safe_token_part_text::UrlSafeTokenPartText;
+pub use url_safe_token_part_text_error::UrlSafeTokenPartTextError;
+pub use validate_password_policy::validate_password_policy;
+pub use validate_url_safe_token_part::validate_url_safe_token_part;
 
 #[cfg(test)]
 mod tests {

@@ -1,103 +1,22 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct RequestTimeoutLayer(super::RequestTimeoutDuration);
+#[path = "request_timeout/request_timeout_body.rs"]
+mod request_timeout_body;
+#[path = "request_timeout/request_timeout_error.rs"]
+mod request_timeout_error;
+#[path = "request_timeout/request_timeout_layer.rs"]
+mod request_timeout_layer;
+#[path = "request_timeout/request_timeout_service.rs"]
+mod request_timeout_service;
+#[path = "request_timeout/request_timeout_tower_layer.rs"]
+mod request_timeout_tower_layer;
+#[path = "request_timeout/std_request_timeout_message.rs"]
+mod std_request_timeout_message;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-enum RequestTimeoutError {
-    #[error("request timeout")]
-    TimedOut,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, serde::Serialize)]
-#[serde(transparent)]
-#[derive(newtype::FromInner)]
-struct StdRequestTimeoutMessage(&'static str);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Serialize)]
-struct RequestTimeoutBody {
-    error: StdRequestTimeoutMessage,
-}
-
-impl axum::response::IntoResponse for RequestTimeoutError {
-    fn into_response(self) -> axum::response::Response {
-        match self {
-            Self::TimedOut => axum::response::IntoResponse::into_response((
-                http::StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(RequestTimeoutBody {
-                    error: StdRequestTimeoutMessage::from(constants_str::REQUEST_TIMEOUT),
-                }),
-            )),
-        }
-    }
-}
-
-impl RequestTimeoutLayer {
-    #[must_use]
-    pub fn apply(self, router: super::AxumRouter) -> super::AxumRouter {
-        super::AxumRouter::from(
-            axum::Router::from(router).layer(RequestTimeoutTowerLayer::from(self.0)),
-        )
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-struct RequestTimeoutTowerLayer(super::RequestTimeoutDuration);
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-struct RequestTimeoutService<Service> {
-    inner: Service,
-    timeout: super::RequestTimeoutDuration,
-}
-
-impl<Service> tower::Layer<Service> for RequestTimeoutTowerLayer {
-    type Service = RequestTimeoutService<Service>;
-
-    fn layer(&self, inner: Service) -> Self::Service {
-        RequestTimeoutService {
-            inner,
-            timeout: self.0,
-        }
-    }
-}
-
-impl<Service> tower::Service<axum::extract::Request> for RequestTimeoutService<Service>
-where
-    Service: tower::Service<axum::extract::Request, Response = axum::response::Response>
-        + Send
-        + 'static,
-    Service::Future: Send + 'static,
-{
-    type Error = Service::Error;
-    type Future = std::pin::Pin<
-        Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
-    >;
-    type Response = axum::response::Response;
-
-    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
-        let response_future = tower::Service::call(&mut self.inner, req);
-        let timeout = self.timeout;
-        Box::pin(async move {
-            match tokio::time::timeout(timeout.get(), response_future).await {
-                Ok(response) => response,
-                Err(_elapsed) => {
-                    let mut response =
-                        axum::response::IntoResponse::into_response(RequestTimeoutError::TimedOut);
-                    let _previous = response.headers_mut().insert(
-                        http::header::RETRY_AFTER,
-                        http::HeaderValue::from(timeout.get().as_secs().max(1u64)),
-                    );
-                    Ok(response)
-                }
-            }
-        })
-    }
-
-    fn poll_ready(
-        &mut self,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
-    }
-}
+use request_timeout_body::RequestTimeoutBody;
+use request_timeout_error::RequestTimeoutError;
+pub use request_timeout_layer::RequestTimeoutLayer;
+use request_timeout_service::RequestTimeoutService;
+use request_timeout_tower_layer::RequestTimeoutTowerLayer;
+use std_request_timeout_message::StdRequestTimeoutMessage;
 
 #[cfg(test)]
 mod tests {

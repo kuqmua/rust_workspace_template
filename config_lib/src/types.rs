@@ -1,230 +1,48 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::Display,
-    newtype::FromInner,
-)]
-struct TracingLevelName(&'static str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-struct EnvVarResultVarError(Result<String, std::env::VarError>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    PartialEq,
-    Eq,
-    thiserror::Error,
-    newtype::FromInner,
-)]
-#[error(transparent)]
-struct EnvVarError(std::env::VarError);
-impl TryFrom<Result<String, std::env::VarError>> for EnvVarResultVarError {
-    type Error = super::ConfigLibStringWrapperTryFromStringError;
-    fn try_from(value: Result<String, std::env::VarError>) -> Result<Self, Self::Error> {
-        match value {
-            Ok(raw_value) => {
-                let bounded = super::StdEnvVarOk::try_from(raw_value)?;
-                Ok(Self(Ok(bounded.0)))
-            }
-            Err(error) => Ok(Self(Err(error))),
-        }
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-struct EnvVarNameRef<'name_lt>(&'name_lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-struct EnvVarValueRef<'value_lt>(&'value_lt str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::Display,
-    newtype::FromInner,
-)]
-struct ParseCtxRef(&'static str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, thiserror::Error)]
-enum EnvParseError {
-    #[error("environment variable value exceeds the size limit")]
-    ValueTooLong {
-        #[source]
-        source: super::ConfigLibStringWrapperTryFromStringError,
-    },
-    #[error("std::env::var(\"{name}\")")]
-    Read {
-        name: super::EnvVarName,
-        #[source]
-        source: EnvVarError,
-    },
-    #[error("{context}: {detail}")]
-    Parse {
-        context: ParseCtxRef,
-        detail: to_err_string::domain_types::ErrorText,
-    },
-}
-impl From<super::ConfigLibStringWrapperTryFromStringError> for EnvParseError {
-    fn from(value: super::ConfigLibStringWrapperTryFromStringError) -> Self {
-        Self::ValueTooLong { source: value }
-    }
-}
-#[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(
-    std::fmt::Debug,
-    Default,
-    Clone,
-    Copy,
-    strum_macros::EnumIter,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    Eq,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::EnumFromStr,
-)]
-#[strum(serialize_all = "snake_case")]
-pub enum TracingLevel {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    #[default]
-    Error,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Default, Clone, Copy, PartialEq, Eq,
-)]
-pub enum TracingFormat {
-    Json,
-    #[default]
-    Text,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Default, Clone, Copy, PartialEq, Eq,
-)]
-pub enum SvcMode {
-    Migrate,
-    #[default]
-    Serve,
-}
-impl TracingLevel {
-    fn as_str(self) -> TracingLevelName {
-        TracingLevelName::from(match self {
-            Self::Trace => constants_str::CONFIG_TRACING_TRACE,
-            Self::Debug => constants_str::CONFIG_TRACING_DEBUG,
-            Self::Info => constants_str::CONFIG_TRACING_INFO,
-            Self::Warn => constants_str::CONFIG_TRACING_WARN,
-            Self::Error => constants_str::CONFIG_TRACING_ERROR,
-        })
-    }
-}
-impl std::fmt::Display for TracingLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", (*self).as_str().0)
-    }
-}
-#[derive(
-    std::fmt::Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    strum_macros::Display,
-    strum_macros::EnumIter,
-    serde::Serialize,
-    serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::EnumFromStr,
-)]
-#[strum(serialize_all = "snake_case")]
-pub enum SrcPlaceType {
-    #[default]
-    Github,
-    Src,
-}
-impl SrcPlaceType {
-    #[must_use]
-    pub fn from_env_or_default() -> Self {
-        let default = Self::default();
-        if let Err(error) = dotenv::dotenv() {
-            tracing::warn!(
-                error = %error,
-                "dotenv initialization failed while resolving the source place type"
-            );
-        }
-        let parsed =
-            EnvVarResultVarError::try_from(std::env::var(constants_str::ENV_NAMES_SRC_PLACE_TYPE))
-                .map_err(EnvParseError::from)
-                .and_then(Self::parse_src_place_type_from_env_var);
-        match parsed {
-            Ok(v) => v,
-            Err(message) => {
-                tracing::warn!(
-                    error = %message,
-                    default = ?default,
-                    fix = constants_str::CONFIG_SRC_PLACE_TYPE_FIX_MSG,
-                    "using the default source place type"
-                );
-                default
-            }
-        }
-    }
-    #[allow(clippy::single_call_fn)] // helper keeps env-read error context centralized and deterministic for tests
-    fn parse_src_place_type_from_env_var(v: EnvVarResultVarError) -> Result<Self, EnvParseError> {
-        parse_from_env_var_from_str(
-            v,
-            EnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
-            ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
-        )
-    }
-}
-#[allow(clippy::single_call_fn)] // helper centralizes env var context mapping for string parsers and is reused by enum parsing
-fn parse_from_env_var_with<T>(
-    env_v: EnvVarResultVarError,
-    env_var_name: EnvVarNameRef<'static>,
-    parse: impl FnOnce(EnvVarValueRef<'_>) -> Result<T, EnvParseError>,
-) -> Result<T, EnvParseError> {
-    let raw_v = env_v.0.map_err(|source| EnvParseError::Read {
-        name: super::EnvVarName::try_from(env_var_name.0.to_owned())
-            .unwrap_or_else(super::EnvVarName::from),
-        source: EnvVarError::from(source),
-    })?;
-    parse(EnvVarValueRef::from(raw_v.as_str()))
-}
-#[allow(clippy::single_call_fn)] // helper centralizes std::str::FromStr context formatting and keeps per-type parsing helpers minimal
-fn parse_from_str_with_ctx<T>(
-    v: EnvVarValueRef<'_>,
-    parse_ctx: ParseCtxRef,
-) -> Result<T, EnvParseError>
-where
-    T: std::str::FromStr,
-    T::Err: std::fmt::Display,
-{
-    T::from_str(v.0).map_err(|error| EnvParseError::Parse {
-        context: parse_ctx,
-        detail: to_err_string::domain_types::ErrorText::try_from(error.to_string())
-            .unwrap_or_else(to_err_string::domain_types::ErrorText::from),
-    })
-}
-#[allow(clippy::single_call_fn)] // helper composes env var read + std::str::FromStr context mapping for reuse across enum env parsers
-fn parse_from_env_var_from_str<T>(
-    env_v: EnvVarResultVarError,
-    env_var_name: EnvVarNameRef<'static>,
-    parse_ctx: ParseCtxRef,
-) -> Result<T, EnvParseError>
-where
-    T: std::str::FromStr,
-    T::Err: std::fmt::Display,
-{
-    parse_from_env_var_with(env_v, env_var_name, |v| {
-        parse_from_str_with_ctx(v, parse_ctx)
-    })
-}
+#[path = "types/env_parse_error.rs"]
+mod env_parse_error;
+#[path = "types/env_var_error.rs"]
+mod env_var_error;
+#[path = "types/env_var_name_ref.rs"]
+mod env_var_name_ref;
+#[path = "types/env_var_result_var_error.rs"]
+mod env_var_result_var_error;
+#[path = "types/env_var_value_ref.rs"]
+mod env_var_value_ref;
+#[path = "types/parse_ctx_ref.rs"]
+mod parse_ctx_ref;
+#[path = "types/parse_from_env_var_from_str.rs"]
+mod parse_from_env_var_from_str;
+#[path = "types/parse_from_env_var_with.rs"]
+mod parse_from_env_var_with;
+#[path = "types/parse_from_str_with_ctx.rs"]
+mod parse_from_str_with_ctx;
+#[path = "types/src_place_type.rs"]
+mod src_place_type;
+#[path = "types/svc_mode.rs"]
+mod svc_mode;
+#[path = "types/tracing_format.rs"]
+mod tracing_format;
+#[path = "types/tracing_level.rs"]
+mod tracing_level;
+#[path = "types/tracing_level_name.rs"]
+mod tracing_level_name;
+
+use super::{ConfigLibStringWrapperTryFromStringError, EnvVarName, StdEnvVarOk};
+use env_parse_error::EnvParseError;
+use env_var_error::EnvVarError;
+use env_var_name_ref::EnvVarNameRef;
+use env_var_result_var_error::EnvVarResultVarError;
+use env_var_value_ref::EnvVarValueRef;
+use parse_ctx_ref::ParseCtxRef;
+use parse_from_env_var_from_str::parse_from_env_var_from_str;
+use parse_from_env_var_with::parse_from_env_var_with;
+use parse_from_str_with_ctx::parse_from_str_with_ctx;
+pub use src_place_type::*;
+pub use svc_mode::SvcMode;
+pub use tracing_format::TracingFormat;
+pub use tracing_level::*;
+use tracing_level_name::TracingLevelName;
+
 #[cfg(test)]
 mod tests {
     fn env_result(value: Result<String, std::env::VarError>) -> super::EnvVarResultVarError {

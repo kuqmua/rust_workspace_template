@@ -1,119 +1,28 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct AuthSessionInstant(std::time::Instant);
+#[path = "auth_session_keep_alive/auth_session_instant.rs"]
+mod auth_session_instant;
+#[path = "auth_session_keep_alive/auth_session_keep_alive.rs"]
+mod auth_session_keep_alive;
+#[path = "auth_session_keep_alive/auth_session_keep_alive_decision.rs"]
+mod auth_session_keep_alive_decision;
+#[path = "auth_session_keep_alive/auth_session_keep_alive_error.rs"]
+mod auth_session_keep_alive_error;
+#[path = "auth_session_keep_alive/auth_session_presence.rs"]
+mod auth_session_presence;
+#[path = "auth_session_keep_alive/auth_session_refresh_interval_duration.rs"]
+mod auth_session_refresh_interval_duration;
+#[path = "auth_session_keep_alive/auth_session_refresh_outcome.rs"]
+mod auth_session_refresh_outcome;
+#[path = "auth_session_keep_alive/auth_session_refresh_state.rs"]
+mod auth_session_refresh_state;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AuthSessionRefreshIntervalDuration(std::time::Duration);
-impl TryFrom<std::time::Duration> for AuthSessionRefreshIntervalDuration {
-    type Error = AuthSessionKeepAliveError;
-    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
-            Err(AuthSessionKeepAliveError::ZeroInterval)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum AuthSessionPresence {
-    Missing,
-    Present,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum AuthSessionRefreshOutcome {
-    Failed,
-    Refreshed,
-    Rejected,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum AuthSessionKeepAliveDecision {
-    RefreshNow,
-    SkipAlreadyRunning,
-    SkipMissing,
-    SkipNotDue { next: AuthSessionInstant },
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum AuthSessionKeepAliveError {
-    #[error("authentication session refresh interval must not be zero")]
-    ZeroInterval,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-enum AuthSessionRefreshState {
-    Idle,
-    Running,
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AuthSessionKeepAlive {
-    interval: AuthSessionRefreshIntervalDuration,
-    next: Option<AuthSessionInstant>,
-    state: AuthSessionRefreshState,
-}
-impl AuthSessionKeepAlive {
-    pub fn begin(
-        &mut self,
-        now: AuthSessionInstant,
-        presence: AuthSessionPresence,
-    ) -> AuthSessionKeepAliveDecision {
-        if presence == AuthSessionPresence::Missing {
-            self.mark_missing();
-            return AuthSessionKeepAliveDecision::SkipMissing;
-        }
-        if self.state == AuthSessionRefreshState::Running {
-            return AuthSessionKeepAliveDecision::SkipAlreadyRunning;
-        }
-        if let Some(next) = self.next
-            && now.0 < next.0
-        {
-            return AuthSessionKeepAliveDecision::SkipNotDue { next };
-        }
-        self.state = AuthSessionRefreshState::Running;
-        AuthSessionKeepAliveDecision::RefreshNow
-    }
-
-    pub fn finish(
-        &mut self,
-        now: AuthSessionInstant,
-        outcome: AuthSessionRefreshOutcome,
-    ) -> AuthSessionRefreshOutcome {
-        self.state = AuthSessionRefreshState::Idle;
-        self.next = match outcome {
-            AuthSessionRefreshOutcome::Failed | AuthSessionRefreshOutcome::Refreshed => {
-                now.0.checked_add(self.interval.0).map(AuthSessionInstant)
-            }
-            AuthSessionRefreshOutcome::Rejected => None,
-        };
-        outcome
-    }
-
-    pub const fn mark_missing(&mut self) {
-        self.next = None;
-        self.state = AuthSessionRefreshState::Idle;
-    }
-
-    #[must_use]
-    pub const fn new(interval: AuthSessionRefreshIntervalDuration) -> Self {
-        Self {
-            interval,
-            next: None,
-            state: AuthSessionRefreshState::Idle,
-        }
-    }
-}
+pub use auth_session_instant::AuthSessionInstant;
+pub use auth_session_keep_alive::AuthSessionKeepAlive;
+pub use auth_session_keep_alive_decision::AuthSessionKeepAliveDecision;
+pub use auth_session_keep_alive_error::AuthSessionKeepAliveError;
+pub use auth_session_presence::AuthSessionPresence;
+pub use auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration;
+pub use auth_session_refresh_outcome::AuthSessionRefreshOutcome;
+use auth_session_refresh_state::AuthSessionRefreshState;
 
 #[cfg(test)]
 mod tests {

@@ -1,15 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub struct ProcMacro2DeriveTokensRef<'tokens_lt>(
-    &'tokens_lt [&'tokens_lt proc_macro2::TokenStream],
-);
-#[must_use]
-pub fn wrap_derive(
-    v: ProcMacro2DeriveTokensRef<'_>,
-) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
-{
-    let tokens = v.0;
-    quote::quote! {#[derive(#(#tokens),*)]}.into()
-}
+#[path = "wrap_derive/proc_macro2_derive_tokens_ref.rs"]
+mod proc_macro2_derive_tokens_ref;
+#[path = "wrap_derive/wrap_derive.rs"]
+mod wrap_derive;
+
+pub use proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef;
+pub use wrap_derive::wrap_derive;
 
 #[cfg(test)]
 mod tests {

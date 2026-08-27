@@ -25,8 +25,8 @@ pub(super) async fn authn_sign_out(
         .begin()
         .await
         .map_err(super::AdminError::from)?;
-    crate::adapters::repository::revoke_access_session::revoke_access_session(
-        crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::repository::revoke_access_session::revoke_access_session(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         authenticated.session_id,
         authenticated.id,
     )
@@ -52,8 +52,8 @@ pub(super) async fn authn_sign_out(
                 &context_hash,
             )
             .map_err(super::AdminError::authentication_secret_text)?;
-        crate::adapters::repository::revoke_refresh_token::revoke_refresh_token(
-            crate::adapters::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::repository::revoke_refresh_token::revoke_refresh_token(
+            crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             &refresh_hash,
             authenticated.id,
         )

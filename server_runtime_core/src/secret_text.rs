@@ -1,107 +1,22 @@
-const SECRET_TEXT_MINIMUM_BYTES: usize = 16usize;
+#[path = "secret_text/bounded_secret_text.rs"]
+mod bounded_secret_text;
+#[path = "secret_text/bounded_secret_text_error.rs"]
+mod bounded_secret_text_error;
+#[path = "secret_text/secret_text_match.rs"]
+mod secret_text_match;
+#[path = "secret_text/secret_text_minimum_bytes.rs"]
+mod secret_text_minimum_bytes;
+#[path = "secret_text/secret_text_ref.rs"]
+mod secret_text_ref;
+#[path = "secret_text/secret_texts_match.rs"]
+mod secret_texts_match;
 
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum BoundedSecretTextError {
-    #[error("secret text length is outside the allowed range")]
-    InvalidLength,
-    #[error("secret text repeats one byte")]
-    RepeatedByte,
-    #[error("secret text contains surrounding whitespace")]
-    SurroundingWhitespace,
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::DisplayConst,
-)]
-#[display_const(constants_str::REDACTED_ALT_3)]
-pub struct BoundedSecretText(String);
-impl TryFrom<String> for BoundedSecretText {
-    type Error = BoundedSecretTextError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > constants_usize::VALUE_8_192 {
-            return Err(BoundedSecretTextError::InvalidLength);
-        }
-        if value.trim().len() != value.len() {
-            return Err(BoundedSecretTextError::SurroundingWhitespace);
-        }
-        if value
-            .as_bytes()
-            .first()
-            .is_some_and(|first| value.as_bytes().iter().all(|byte| byte == first))
-        {
-            return Err(BoundedSecretTextError::RepeatedByte);
-        }
-        Ok(Self(value))
-    }
-}
-impl std::fmt::Debug for BoundedSecretText {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-pub struct SecretTextRef<'value_lt>(&'value_lt str);
-impl<'value_lt> TryFrom<&'value_lt str> for SecretTextRef<'value_lt> {
-    type Error = BoundedSecretTextError;
-    fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
-        if value.len() < SECRET_TEXT_MINIMUM_BYTES || value.len() > constants_usize::VALUE_8_192 {
-            return Err(BoundedSecretTextError::InvalidLength);
-        }
-        if value.trim().len() != value.len() {
-            return Err(BoundedSecretTextError::SurroundingWhitespace);
-        }
-        if value
-            .as_bytes()
-            .first()
-            .is_some_and(|first| value.as_bytes().iter().all(|byte| byte == first))
-        {
-            return Err(BoundedSecretTextError::RepeatedByte);
-        }
-        Ok(Self(value))
-    }
-}
-impl<'value_lt> From<&'value_lt BoundedSecretText> for SecretTextRef<'value_lt> {
-    fn from(value: &'value_lt BoundedSecretText) -> Self {
-        Self(value.0.as_str())
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum SecretTextMatch {
-    Different,
-    Equal,
-}
-impl std::fmt::Debug for SecretTextRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
-    }
-}
-
-#[must_use]
-pub fn secret_texts_match(
-    expected: SecretTextRef<'_>,
-    provided: SecretTextRef<'_>,
-) -> SecretTextMatch {
-    let expected_bytes = expected.0.as_bytes();
-    let provided_bytes = provided.0.as_bytes();
-    let length_difference = expected_bytes.len() ^ provided_bytes.len();
-    let difference = (constants_usize::ZERO..constants_usize::VALUE_8_192).fold(
-        length_difference,
-        |accumulated, index| {
-            let expected_byte = expected_bytes.get(index).copied().unwrap_or_default();
-            let provided_byte = provided_bytes.get(index).copied().unwrap_or_default();
-            accumulated | usize::from(expected_byte ^ provided_byte)
-        },
-    );
-    if difference == constants_usize::ZERO {
-        SecretTextMatch::Equal
-    } else {
-        SecretTextMatch::Different
-    }
-}
+pub use bounded_secret_text::BoundedSecretText;
+pub use bounded_secret_text_error::BoundedSecretTextError;
+pub use secret_text_match::SecretTextMatch;
+use secret_text_minimum_bytes::SECRET_TEXT_MINIMUM_BYTES;
+pub use secret_text_ref::SecretTextRef;
+pub use secret_texts_match::secret_texts_match;
 
 #[cfg(test)]
 mod tests {

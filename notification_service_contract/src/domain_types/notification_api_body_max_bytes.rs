@@ -1,0 +1,1 @@
+pub const NOTIFICATION_API_BODY_MAX_BYTES: usize = 8_192;
