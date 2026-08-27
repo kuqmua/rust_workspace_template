@@ -11,7 +11,7 @@ use leptos::prelude::{
 };
 
 #[must_use]
-pub(in crate::domain_types::ssr) fn render_text_page_with_access(
+pub fn render_text_page_with_access(
     page: server_admin_contract::domain_types::AdminPage,
     _title: super::super::AdminSsrText,
     text: super::super::AdminSsrText,

@@ -10,7 +10,7 @@ use leptos::prelude::{
 };
 
 #[must_use]
-pub(in crate::domain_types::ssr) fn render_admin_csr(
+pub fn render_admin_csr(
     page: server_admin_contract::domain_types::AdminPage,
     _active_table: Option<server_admin_contract::domain_types::AdminDataTable>,
     _admin: &server_admin_contract::domain_types::AuthenticatedAdmin,

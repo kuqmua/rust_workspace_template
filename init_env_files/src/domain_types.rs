@@ -1,337 +1,64 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum RunMode {
-    Apply,
-    DryRun,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum InitializationStatus {
-    Created,
-    SkippedExisting,
-    Updated,
-    WouldCreate,
-    WouldUpdate,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
-pub(crate) struct InitializationEntry {
-    keys: EnvKeys,
-    member: WorkspaceMember,
-    status: InitializationStatus,
-}
-impl InitializationEntry {
-    pub(crate) const fn keys(&self) -> &EnvKeys {
-        &self.keys
-    }
-    pub(crate) const fn member(&self) -> &WorkspaceMember {
-        &self.member
-    }
-    pub(crate) const fn status(&self) -> InitializationStatus {
-        self.status
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefStr,
-    newtype::TryFrom,
-)]
-#[try_from(error = InitStringError, validator = EnvContent::validate)]
-pub(crate) struct EnvContent(String);
-impl EnvContent {
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    fn validate(value: &str) -> Result<(), InitStringError> {
-        if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) {
-            Err(InitStringError)
-        } else {
-            Ok(())
-        }
-    }
-}
-impl From<server_runtime_http::domain_types::BoundedText> for EnvContent {
-    fn from(value: server_runtime_http::domain_types::BoundedText) -> Self {
-        Self(value.into_inner())
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::AsRefStr, newtype::FromInner,
-)]
-pub(crate) struct EnvContentRef<'content_lt>(&'content_lt str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Eq,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    newtype::AsRefStr,
-    newtype::BorrowStr,
-    newtype::TryFrom,
-)]
-#[try_from(error = InitStringError, validator = EnvKey::validate)]
-pub(crate) struct EnvKey(String);
-impl EnvKey {
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    const fn validate(value: &str) -> Result<(), InitStringError> {
-        if value.is_empty() || value.len() > 1_024usize {
-            Err(InitStringError)
-        } else {
-            Ok(())
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-)]
-pub(crate) struct EnvKeys(
-    bounded_types::domain_types::vector::BoundedVec<EnvKey, 0, { usize::MAX }>,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Eq,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    newtype::AsRefStr,
-    newtype::Display,
-    newtype::TryFrom,
-)]
-#[try_from(error = InitStringError, validator = WorkspaceMember::validate)]
-pub(crate) struct WorkspaceMember(String);
-impl WorkspaceMember {
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    const fn validate(value: &str) -> Result<(), InitStringError> {
-        if value.is_empty() || value.len() > 4_096usize {
-            Err(InitStringError)
-        } else {
-            Ok(())
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-)]
-pub(crate) struct WorkspaceRootPathRef<'root_lt>(&'root_lt std::path::Path);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner, newtype::GetInner,
-)]
-pub(crate) struct InitPathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner, newtype::GetInner,
-)]
-pub(crate) struct InitMaxBytes(usize);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub(crate) struct InitPathExists(bool);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::IntoIterator)]
-pub(crate) struct InitEntries(
-    bounded_types::domain_types::vector::BoundedVec<InitializationEntry, 0, { usize::MAX }>,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct InitIoError(std::io::Error);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct ServerRuntimeBoundedReadError(
-    server_runtime_http::domain_types::BoundedReadError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct TomlInitError(toml::de::Error);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error("environment initializer string value is invalid")]
-pub(crate) struct InitStringError;
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub(crate) enum InitializeError {
-    #[error("workspace member path is invalid: {member}")]
-    InvalidMember { member: WorkspaceMember },
-    #[error("failed to parse workspace manifest")]
-    ManifestParse {
-        #[source]
-        source: TomlInitError,
-    },
-    #[error("workspace manifest does not contain a members array")]
-    MembersMissing,
-    #[error("failed to read environment example")]
-    ReadExample {
-        #[source]
-        source: ServerRuntimeBoundedReadError,
-    },
-    #[error("failed to read workspace manifest")]
-    ReadManifest {
-        #[source]
-        source: ServerRuntimeBoundedReadError,
-    },
-    #[error(transparent)]
-    String(#[from] InitStringError),
-    #[error("failed to write environment file")]
-    WriteEnvironment {
-        #[source]
-        source: InitIoError,
-    },
-}
-fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringError> {
-    content
-        .as_ref()
-        .lines()
-        .filter_map(|source_line| {
-            let trimmed_line = source_line.trim();
-            (!trimmed_line.is_empty() && !trimmed_line.starts_with('#'))
-                .then(|| {
-                    trimmed_line
-                        .split_once('=')
-                        .map(|(key, _value)| EnvKey::try_from(key.trim().to_owned()))
-                })
-                .flatten()
-        })
-        .collect::<Result<Vec<EnvKey>, InitStringError>>()
-        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
-        .map(EnvKeys::from)
-}
-#[allow(
-    clippy::needless_for_each,
-    clippy::single_call_fn,
-    reason = "provides one testable dry-run and apply entry point; repository policy forbids for loops"
-)]
-pub(crate) fn initialize(
-    root: WorkspaceRootPathRef<'_>,
-    mode: RunMode,
-) -> Result<InitEntries, InitializeError> {
-    let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
-    let manifest = crate::read_bounded_content::read_bounded_content(
-        InitPathRef::from(manifest_path.as_path()),
-        InitMaxBytes::from(constants_usize::VALUE_1_048_576),
-    )
-    .map_err(|source| InitializeError::ReadManifest { source })?;
-    let value = toml::from_str::<toml::Value>(manifest.as_ref()).map_err(|source| {
-        InitializeError::ManifestParse {
-            source: source.into(),
-        }
-    })?;
-    let members = value
-        .get(constants_str::WORKSPACE)
-        .and_then(|workspace| workspace.get(constants_str::MEMBERS))
-        .and_then(toml::Value::as_array)
-        .ok_or(InitializeError::MembersMissing)?
-        .iter()
-        .filter_map(toml::Value::as_str)
-        .map(|raw_member| {
-            let member = WorkspaceMember::try_from(raw_member.to_owned())?;
-            let member_path = std::path::Path::new(member.as_ref());
-            if !member.as_ref().is_empty()
-                && member_path.is_relative()
-                && member_path
-                    .components()
-                    .all(|component| matches!(component, std::path::Component::Normal(_)))
-            {
-                Ok(member)
-            } else {
-                Err(InitializeError::InvalidMember { member })
-            }
-        })
-        .collect::<Result<Vec<WorkspaceMember>, InitializeError>>()?;
-    members
-        .into_iter()
-        .try_fold(Vec::new(), |mut entries, member| {
-            let example_path = root
-                .as_ref()
-                .join(member.as_ref())
-                .join(constants_str::ENV_EXAMPLE);
-            if !bool::from(crate::path_exists::path_exists(InitPathRef::from(
-                example_path.as_path(),
-            ))) {
-                return Ok(entries);
-            }
-            let content = crate::read_bounded_content::read_bounded_content(
-                InitPathRef::from(example_path.as_path()),
-                InitMaxBytes::from(constants_usize::VALUE_1_048_576),
-            )
-            .map_err(|source| InitializeError::ReadExample { source })?;
-            let environment_path = root.as_ref().join(member.as_ref()).join(constants_str::ENV);
-            let status = if bool::from(crate::path_exists::path_exists(InitPathRef::from(
-                environment_path.as_path(),
-            ))) {
-                let current = crate::read_bounded_content::read_bounded_content(
-                    InitPathRef::from(environment_path.as_path()),
-                    InitMaxBytes::from(constants_usize::VALUE_1_048_576),
-                )
-                .map_err(|source| InitializeError::ReadExample { source })?;
-                let current_keys = environment_keys(EnvContentRef::from(current.as_ref()))?
-                    .0
-                    .into_iter()
-                    .collect::<std::collections::BTreeSet<EnvKey>>();
-                let missing = content
-                    .as_ref()
-                    .lines()
-                    .filter(|line| {
-                        line.split_once('=')
-                            .is_some_and(|(key, _value)| !current_keys.contains(key.trim()))
-                    })
-                    .collect::<Vec<&str>>();
-                let merged = if missing.is_empty() {
-                    None
-                } else {
-                    let mut merged_text = current.as_ref().to_owned();
-                    if !merged_text.is_empty() && !merged_text.ends_with('\n') {
-                        merged_text.push('\n');
-                    }
-                    missing.into_iter().for_each(|line| {
-                        merged_text.push_str(line);
-                        merged_text.push('\n');
-                    });
-                    Some(EnvContent::try_from(merged_text)?)
-                };
-                match merged {
-                    None => InitializationStatus::SkippedExisting,
-                    Some(_merged) if mode == RunMode::DryRun => InitializationStatus::WouldUpdate,
-                    Some(merged_content) => {
-                        crate::write_content::write_content(
-                            InitPathRef::from(environment_path.as_path()),
-                            EnvContentRef::from(merged_content.as_ref()),
-                        )?;
-                        InitializationStatus::Updated
-                    }
-                }
-            } else if mode == RunMode::DryRun {
-                InitializationStatus::WouldCreate
-            } else {
-                crate::write_content::write_content(
-                    InitPathRef::from(environment_path.as_path()),
-                    EnvContentRef::from(content.as_ref()),
-                )?;
-                InitializationStatus::Created
-            };
-            entries.push(InitializationEntry {
-                keys: environment_keys(EnvContentRef::from(content.as_ref()))?,
-                member,
-                status,
-            });
-            Ok(entries)
-        })
-        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
-        .map(InitEntries::from)
-}
+#[path = "domain_types/run_mode.rs"]
+mod run_mode;
+pub(crate) use run_mode::*;
+#[path = "domain_types/initialization_status.rs"]
+mod initialization_status;
+pub(crate) use initialization_status::*;
+#[path = "domain_types/initialization_entry.rs"]
+mod initialization_entry;
+pub(crate) use initialization_entry::*;
+#[path = "domain_types/env_content.rs"]
+mod env_content;
+pub(crate) use env_content::*;
+#[path = "domain_types/env_content_ref.rs"]
+mod env_content_ref;
+pub(crate) use env_content_ref::*;
+#[path = "domain_types/env_key.rs"]
+mod env_key;
+pub(crate) use env_key::*;
+#[path = "domain_types/env_keys.rs"]
+mod env_keys;
+pub(crate) use env_keys::*;
+#[path = "domain_types/workspace_member.rs"]
+mod workspace_member;
+pub(crate) use workspace_member::*;
+#[path = "domain_types/workspace_root_path_ref.rs"]
+mod workspace_root_path_ref;
+pub(crate) use workspace_root_path_ref::*;
+#[path = "domain_types/init_path_ref.rs"]
+mod init_path_ref;
+pub(crate) use init_path_ref::*;
+#[path = "domain_types/init_max_bytes.rs"]
+mod init_max_bytes;
+pub(crate) use init_max_bytes::*;
+#[path = "domain_types/init_path_exists.rs"]
+mod init_path_exists;
+pub(crate) use init_path_exists::*;
+#[path = "domain_types/init_entries.rs"]
+mod init_entries;
+pub(crate) use init_entries::*;
+#[path = "domain_types/init_io_error.rs"]
+mod init_io_error;
+pub(crate) use init_io_error::*;
+#[path = "domain_types/server_runtime_bounded_read_error.rs"]
+mod server_runtime_bounded_read_error;
+pub(crate) use server_runtime_bounded_read_error::*;
+#[path = "domain_types/toml_init_error.rs"]
+mod toml_init_error;
+pub(crate) use toml_init_error::*;
+#[path = "domain_types/init_string_error.rs"]
+mod init_string_error;
+pub(crate) use init_string_error::*;
+#[path = "domain_types/initialize_error.rs"]
+mod initialize_error;
+pub(crate) use initialize_error::*;
+#[path = "domain_types/environment_keys.rs"]
+mod environment_keys;
+use environment_keys::*;
+#[path = "domain_types/initialize.rs"]
+mod initialize;
+pub(crate) use initialize::*;
+
 #[cfg(test)]
 mod tests {
     fn fixture() -> std::path::PathBuf {

@@ -1,203 +1,76 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct ServerIoError(std::io::Error);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct ServerRuntimeServeError(
-    server_runtime_http::domain_types::ServeWithGracefulShutdownError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub(crate) struct MetricsExporterPrometheusRenderer(metrics_exporter_prometheus::PrometheusHandle);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerRuntimeRequestTimeoutError(
-    server_runtime_http::domain_types::StdRequestTimeoutTryFromDurationError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerRuntimeRunIntervalError(
-    server_runtime_http::domain_types::StdRunIntervalTryFromDurationError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerRuntimeBackgroundTaskShutdownError(
-    server_runtime_http::domain_types::BackgroundTaskShutdownError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerObservabilityInitError(
-    server_runtime_http::domain_types::ObservabilityInitError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerObservabilityShutdownError(
-    server_runtime_http::domain_types::OpentelemetrySdkObservabilityShutdownError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerAdminCleanupCfgError(server_admin::domain_types::AdminCleanupCfgError);
+#[path = "domain_types/server_io_error.rs"]
+mod server_io_error;
+pub(crate) use server_io_error::*;
+#[path = "domain_types/server_runtime_serve_error.rs"]
+mod server_runtime_serve_error;
+pub(crate) use server_runtime_serve_error::*;
+#[path = "domain_types/metrics_exporter_prometheus_build_error.rs"]
+mod metrics_exporter_prometheus_build_error;
+pub(crate) use metrics_exporter_prometheus_build_error::*;
+#[path = "domain_types/metrics_exporter_prometheus_renderer.rs"]
+mod metrics_exporter_prometheus_renderer;
+pub(crate) use metrics_exporter_prometheus_renderer::*;
+#[path = "domain_types/server_runtime_request_timeout_error.rs"]
+mod server_runtime_request_timeout_error;
+pub(crate) use server_runtime_request_timeout_error::*;
+#[path = "domain_types/server_runtime_run_interval_error.rs"]
+mod server_runtime_run_interval_error;
+pub(crate) use server_runtime_run_interval_error::*;
+#[path = "domain_types/server_runtime_background_task_shutdown_error.rs"]
+mod server_runtime_background_task_shutdown_error;
+pub(crate) use server_runtime_background_task_shutdown_error::*;
+#[path = "domain_types/server_observability_init_error.rs"]
+mod server_observability_init_error;
+pub(crate) use server_observability_init_error::*;
+#[path = "domain_types/server_observability_shutdown_error.rs"]
+mod server_observability_shutdown_error;
+pub(crate) use server_observability_shutdown_error::*;
+#[path = "domain_types/server_admin_cleanup_cfg_error.rs"]
+mod server_admin_cleanup_cfg_error;
+pub(crate) use server_admin_cleanup_cfg_error::*;
+#[path = "domain_types/admin_metrics_error.rs"]
+mod admin_metrics_error;
+pub(crate) use admin_metrics_error::*;
+#[path = "domain_types/server_config_error.rs"]
+mod server_config_error;
+pub(crate) use server_config_error::*;
+#[path = "domain_types/server_config_production_error.rs"]
+mod server_config_production_error;
+pub(crate) use server_config_production_error::*;
+#[path = "domain_types/sqlx_server_pg_connect_error.rs"]
+mod sqlx_server_pg_connect_error;
+pub(crate) use sqlx_server_pg_connect_error::*;
+#[path = "domain_types/server_admin_migrate_error.rs"]
+mod server_admin_migrate_error;
+pub(crate) use server_admin_migrate_error::*;
+#[path = "domain_types/server_admin_auth_svc_state_build_error.rs"]
+mod server_admin_auth_svc_state_build_error;
+pub(crate) use server_admin_auth_svc_state_build_error::*;
+#[path = "domain_types/server_runtime_content_security_policy_error.rs"]
+mod server_runtime_content_security_policy_error;
+pub(crate) use server_runtime_content_security_policy_error::*;
+#[path = "domain_types/server_runtime_trusted_proxy_ranges_parse_error.rs"]
+mod server_runtime_trusted_proxy_ranges_parse_error;
+pub(crate) use server_runtime_trusted_proxy_ranges_parse_error::*;
+#[path = "domain_types/axum_api_routes.rs"]
+mod axum_api_routes;
+pub(crate) use axum_api_routes::*;
+#[path = "domain_types/http_body_maximum_bytes.rs"]
+mod http_body_maximum_bytes;
+pub(crate) use http_body_maximum_bytes::*;
+#[path = "domain_types/shared_server_app_state_arc.rs"]
+mod shared_server_app_state_arc;
+pub(crate) use shared_server_app_state_arc::*;
+#[path = "domain_types/tokio_server_runtime.rs"]
+mod tokio_server_runtime;
+pub(crate) use tokio_server_runtime::*;
+#[path = "domain_types/server_exit_code.rs"]
+mod server_exit_code;
+pub(crate) use server_exit_code::*;
+#[path = "domain_types/run_server_error.rs"]
+mod run_server_error;
+pub(crate) use run_server_error::*;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub(crate) enum AdminMetricsError {
-    #[error(transparent)]
-    Render(server_runtime_http::domain_types::MetricsResponseBodyError),
-}
-impl axum::response::IntoResponse for AdminMetricsError {
-    fn into_response(self) -> axum::response::Response {
-        match self {
-            Self::Render(_error) => axum::response::IntoResponse::into_response(
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            ),
-        }
-    }
-}
-
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct ServerConfigError(server_config::domain_types::ConfigTryFromEnvError);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct ServerConfigProductionError(server_config::domain_types::ProductionConfigError);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct SqlxServerPgConnectError(sqlx::Error);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct ServerAdminMigrateError(server_admin::domain_types::AdminMigrateError);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error(transparent)]
-pub(crate) struct ServerAdminAuthSvcStateBuildError(
-    server_admin::domain_types::auth::AdminAuthSvcStateBuildError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerRuntimeContentSecurityPolicyError(
-    server_runtime_http::domain_types::HttpContentSecurityPolicyError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub(crate) struct ServerRuntimeTrustedProxyRangesParseError(
-    server_runtime_http::domain_types::TrustedProxyRangesParseError,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub(crate) struct AxumApiRoutes(axum::Router);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub(crate) struct HttpBodyMaximumBytes(usize);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::DerefTarget, newtype::FromInner,
-)]
-pub(crate) struct SharedServerAppStateArc(
-    std::sync::Arc<server_app_state::domain_types::ServerAppState<'static>>,
-);
-impl SharedServerAppStateArc {
-    pub(crate) const fn get(
-        &self,
-    ) -> &std::sync::Arc<server_app_state::domain_types::ServerAppState<'static>> {
-        &self.0
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub(crate) struct TokioServerRuntime(tokio::runtime::Runtime);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-pub(crate) struct ServerExitCode(std::process::ExitCode);
-impl std::process::Termination for ServerExitCode {
-    fn report(self) -> std::process::ExitCode {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub(crate) enum RunServerError {
-    #[error("failed to build administrator authentication state: {0}")]
-    AdminAuthState(ServerAdminAuthSvcStateBuildError),
-    #[error("invalid administrator cleanup configuration: {0}")]
-    AdminCleanupConfig(ServerAdminCleanupCfgError),
-    #[error("administrator cleanup task shutdown failed: {0}")]
-    AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownError),
-    #[error("failed to bind service socket: {0}")]
-    BindServiceSocket(ServerIoError),
-    #[error("failed to build tokio runtime: {0}")]
-    BuildRuntime(ServerIoError),
-    #[error("failed to read configuration from environment: {0}")]
-    Config(ServerConfigError),
-    #[error("unsafe production configuration: {0}")]
-    ConfigProduction(ServerConfigProductionError),
-    #[error("invalid content security policy: {0}")]
-    ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError),
-    #[error("invalid CORS allow-origin configuration: {0}")]
-    CorsAllowOrigin(server_runtime_http::domain_types::HttpCorsAllowOriginHeaderValuesError),
-    #[error("failed to install metrics recorder: {0}")]
-    MetricsRecorder(MetricsExporterPrometheusBuildError),
-    #[error("failed to initialize observability: {0}")]
-    ObservabilityInit(ServerObservabilityInitError),
-    #[error("failed to shut down observability: {0}")]
-    ObservabilityShutdown(ServerObservabilityShutdownError),
-    #[error("failed to connect to postgres: {0}")]
-    PgConnect(SqlxServerPgConnectError),
-    #[error("postgres minimum connections must not exceed maximum connections")]
-    PgPoolConfiguration,
-    #[error("failed to prepare administrator schema: {0}")]
-    PrepAdminPg(ServerAdminMigrateError),
-    #[error("invalid server runtime interval: {0}")]
-    RuntimeInterval(ServerRuntimeRunIntervalError),
-    #[error("invalid server runtime timeout: {0}")]
-    RuntimeTimeout(ServerRuntimeRequestTimeoutError),
-    #[error("server failed: {0}")]
-    Serve(ServerRuntimeServeError),
-    #[error("invalid trusted proxy ranges: {0}")]
-    TrustedProxyRanges(ServerRuntimeTrustedProxyRangesParseError),
-}
 #[cfg(test)]
 mod tests {
     #[tokio::test]

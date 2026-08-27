@@ -14,7 +14,7 @@ use super::{
 #[serde(
     from = "bounded_types::domain_types::btree::BoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
 )]
-pub(super) struct StdAdminHtmlSelected(
+pub(in crate::domain_types::auth::html) struct StdAdminHtmlSelected(
     bounded_types::domain_types::btree::BoundedBTreeMap<
         AdminHtmlFormKey,
         AdminHtmlFormText,

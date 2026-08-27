@@ -1,0 +1,28 @@
+use super::{AdminMigrateError, SqlxAdminMigrateError};
+
+pub async fn prepare_postgresql(
+    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+) -> Result<(), AdminMigrateError> {
+    crate::migrations::migrator()
+        .run(pool.as_ref())
+        .await
+        .map_err(SqlxAdminMigrateError::from)
+        .map_err(AdminMigrateError::from)?;
+    let permission_names = super::AdminPermission::ALL
+        .into_iter()
+        .map(|permission| permission.as_str().as_ref().to_owned())
+        .collect::<Vec<_>>();
+    let _permission_result = sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_PERMISSIONS_SQL)
+        .bind(permission_names)
+        .execute(pool.as_ref())
+        .await
+        .map_err(super::SqlxAdminError::from)
+        .map_err(AdminMigrateError::from)?;
+    let _role_permission_result =
+        sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_ROLE_PERMISSIONS_SQL)
+            .execute(pool.as_ref())
+            .await
+            .map_err(super::SqlxAdminError::from)
+            .map_err(AdminMigrateError::from)?;
+    Ok(())
+}

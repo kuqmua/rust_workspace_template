@@ -10,7 +10,7 @@ use super::AdminHtmlFormKeyError;
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
-pub(super) struct AdminHtmlFormKey(
+pub(in crate::domain_types::auth::html) struct AdminHtmlFormKey(
     bounded_types::domain_types::bounded_string::BoundedString<0, { constants_usize::VALUE_8_192 }>,
 );
 impl TryFrom<String> for AdminHtmlFormKey {

@@ -8,7 +8,7 @@
 use leptos::prelude::{ClassAttribute, ElementChild};
 
 #[must_use]
-pub(in crate::domain_types::ssr) fn render_data_tables(
+pub fn render_data_tables(
     table: Option<&server_admin_contract::domain_types::AdminDataTableView>,
     query: &server_admin_contract::domain_types::AdminDataTableQuery,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,

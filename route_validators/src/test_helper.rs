@@ -1,281 +1,101 @@
 #![allow(clippy::shadow_reuse)]
-const MAX_BLOCK_ON_POLLS: usize = 4096;
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::Display, newtype::FromInner)]
-pub(crate) struct TestExpId(&'static str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::Display, newtype::FromInner)]
-struct TestPanicText(&'static str);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsRefOwned,
-    newtype::DerefInner,
-    newtype::DerefMutInner,
-    newtype::FromInner,
-)]
-pub(crate) struct AxumTestHeaders(axum::http::HeaderMap);
+#[path = "test_helper/test_exp_id.rs"]
+mod test_exp_id;
+pub(crate) use test_exp_id::*;
+#[path = "test_helper/axum_test_headers.rs"]
+mod axum_test_headers;
+pub(crate) use axum_test_headers::*;
+#[path = "test_helper/axum_test_headers_mut_ref.rs"]
+mod axum_test_headers_mut_ref;
+pub(crate) use axum_test_headers_mut_ref::*;
+#[path = "test_helper/axum_test_header_value.rs"]
+mod axum_test_header_value;
+pub(crate) use axum_test_header_value::*;
+#[path = "test_helper/block_on.rs"]
+mod block_on;
+pub(crate) use block_on::*;
+#[path = "test_helper/panic_unexpected_variant.rs"]
+mod panic_unexpected_variant;
+pub(crate) use panic_unexpected_variant::*;
+#[path = "test_helper/expect_variant.rs"]
+mod expect_variant;
+pub(crate) use expect_variant::*;
+#[path = "test_helper/expect_variant_ref.rs"]
+mod expect_variant_ref;
+pub(crate) use expect_variant_ref::*;
+#[path = "test_helper/expect_ok.rs"]
+mod expect_ok;
+pub(crate) use expect_ok::*;
+#[path = "test_helper/assert_ok_eq.rs"]
+mod assert_ok_eq;
+pub(crate) use assert_ok_eq::*;
+#[path = "test_helper/expect_error.rs"]
+mod expect_error;
+pub(crate) use expect_error::*;
+#[path = "test_helper/expect_error_mapped.rs"]
+mod expect_error_mapped;
+pub(crate) use expect_error_mapped::*;
+#[path = "test_helper/expect_error_variant_ref.rs"]
+mod expect_error_variant_ref;
+pub(crate) use expect_error_variant_ref::*;
+#[path = "test_helper/assert_err_status_code.rs"]
+mod assert_err_status_code;
+pub(crate) use assert_err_status_code::*;
+#[path = "test_helper/assert_err_status_code_only.rs"]
+mod assert_err_status_code_only;
+pub(crate) use assert_err_status_code_only::*;
+#[path = "test_helper/assert_err_status_code_variant_ref.rs"]
+mod assert_err_status_code_variant_ref;
+pub(crate) use assert_err_status_code_variant_ref::*;
+#[path = "test_helper/expect_err_variant_ref_with_status.rs"]
+mod expect_err_variant_ref_with_status;
+pub(crate) use expect_err_variant_ref_with_status::*;
+#[path = "test_helper/make_headers_with_entry.rs"]
+mod make_headers_with_entry;
+pub(crate) use make_headers_with_entry::*;
+#[path = "test_helper/replace_header_name.rs"]
+mod replace_header_name;
+pub(crate) use replace_header_name::*;
+#[path = "test_helper/non_utf8_header_value.rs"]
+mod non_utf8_header_value;
+pub(crate) use non_utf8_header_value::*;
+#[path = "test_helper/assert_panics.rs"]
+mod assert_panics;
+pub(crate) use assert_panics::*;
+#[path = "test_helper/test_panic_text.rs"]
+mod test_panic_text;
+use test_panic_text::*;
+#[path = "test_helper/test_poll_count.rs"]
+mod test_poll_count;
+use test_poll_count::*;
+#[path = "test_helper/test_poll_limit_reached.rs"]
+mod test_poll_limit_reached;
+use test_poll_limit_reached::*;
+#[path = "test_helper/insert_header_no_prev.rs"]
+mod insert_header_no_prev;
+use insert_header_no_prev::*;
+#[path = "test_helper/is_block_on_poll_limit_reached.rs"]
+mod is_block_on_poll_limit_reached;
+use is_block_on_poll_limit_reached::*;
+#[path = "test_helper/increment_block_on_poll_count.rs"]
+mod increment_block_on_poll_count;
+use increment_block_on_poll_count::*;
+#[path = "test_helper/map_or_panic_unexpected_variant.rs"]
+mod map_or_panic_unexpected_variant;
+use map_or_panic_unexpected_variant::*;
+#[path = "test_helper/panic_unexpected_result.rs"]
+mod panic_unexpected_result;
+use panic_unexpected_result::*;
+#[path = "test_helper/map_err.rs"]
+mod map_err;
+use map_err::*;
+#[path = "test_helper/map_err_after_status_check.rs"]
+mod map_err_after_status_check;
+use map_err_after_status_check::*;
+#[path = "test_helper/max_block_on_polls.rs"]
+mod max_block_on_polls;
+use max_block_on_polls::*;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(&'headers_lt mut axum::http::HeaderMap);
-impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutRef<'headers_lt> {
-    fn from(value: &'headers_lt mut AxumTestHeaders) -> Self {
-        Self(&mut value.0)
-    }
-}
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::DerefInner, newtype::FromInner)]
-pub(crate) struct AxumTestHeaderValue(axum::http::HeaderValue);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-struct TestPollCount(usize);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::NotInner)]
-struct TestPollLimitReached(bool);
-fn insert_header_no_prev<'headers_lt, ValueTy>(
-    headers: impl Into<AxumTestHeadersMutRef<'headers_lt>>,
-    name: impl axum::http::header::IntoHeaderName,
-    value: ValueTy,
-) where
-    ValueTy: Into<AxumTestHeaderValue>,
-{
-    let headers = headers.into();
-    let prev = headers.0.insert(name, value.into().0);
-    assert!(prev.is_none());
-}
-fn is_block_on_poll_limit_reached(poll_count: TestPollCount) -> TestPollLimitReached {
-    TestPollLimitReached::from(poll_count.0 >= MAX_BLOCK_ON_POLLS)
-}
-fn increment_block_on_poll_count(poll_count: &mut TestPollCount) {
-    poll_count.0 = poll_count.0.saturating_add(1);
-}
-pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
-    let mut future = std::pin::pin!(input_future);
-    let waker = std::task::Waker::noop();
-    let mut context = std::task::Context::from_waker(waker);
-    let mut poll_count = TestPollCount::from(constants_usize::ZERO);
-    loop {
-        match future.as_mut().poll(&mut context) {
-            std::task::Poll::Ready(output) => {
-                return output;
-            }
-            std::task::Poll::Pending => {
-                assert!(
-                    !is_block_on_poll_limit_reached(poll_count),
-                    "{} super::block_on exceeded poll limit",
-                    constants_str::ROUTE_VALIDATORS_BLOCK_ON_POLL_LIMIT_ER_ID
-                );
-                increment_block_on_poll_count(&mut poll_count);
-                std::thread::yield_now();
-            }
-        }
-    }
-}
-#[track_caller]
-pub(crate) fn panic_unexpected_variant(exp_id: impl Into<TestExpId>) -> ! {
-    let exp_id = exp_id.into();
-    panic!("4fe6f2e6 id={exp_id}");
-}
-#[track_caller]
-fn map_or_panic_unexpected_variant<R>(map_res: Option<R>, exp_id: impl Into<TestExpId>) -> R {
-    map_res.unwrap_or_else(|| panic_unexpected_variant(exp_id))
-}
-#[track_caller]
-pub(crate) fn expect_variant<T, R>(
-    v: T,
-    map: impl FnOnce(T) -> Option<R>,
-    exp_id: impl Into<TestExpId>,
-) -> R {
-    map_or_panic_unexpected_variant(map(v), exp_id)
-}
-#[track_caller]
-pub(crate) fn expect_variant_ref<T, R>(
-    v: &T,
-    map: impl FnOnce(&T) -> Option<R>,
-    exp_id: impl Into<TestExpId>,
-) -> R {
-    map_or_panic_unexpected_variant(map(v), exp_id)
-}
-#[track_caller]
-fn panic_unexpected_result(
-    error_id: impl Into<TestPanicText>,
-    fn_name: impl Into<TestPanicText>,
-    expected: impl Into<TestPanicText>,
-    exp_id: impl Into<TestExpId>,
-) -> ! {
-    let error_id = error_id.into();
-    let fn_name = fn_name.into();
-    let expected = expected.into();
-    let exp_id = exp_id.into();
-    panic!("{error_id} unexpected {expected} for {fn_name}, id={exp_id}");
-}
-#[track_caller]
-pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> T {
-    v.unwrap_or_else(|_| {
-        panic_unexpected_result(
-            constants_str::ROUTE_VALIDATORS_EXPECT_OK_ER_ID,
-            constants_str::EXPECT_OK,
-            constants_str::ERR,
-            exp_id,
-        )
-    })
-}
-#[track_caller]
-pub(crate) fn assert_ok_eq<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>, expected: &T)
-where
-    T: PartialEq + std::fmt::Debug,
-{
-    assert_eq!(&expect_ok(v, exp_id), expected);
-}
-#[track_caller]
-pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
-    v.err().unwrap_or_else(|| {
-        panic_unexpected_result(
-            constants_str::ROUTE_VALIDATORS_EXPECT_ER_ER_ID,
-            constants_str::EXPECT_ERROR,
-            constants_str::OK,
-            exp_id,
-        )
-    })
-}
-#[track_caller]
-fn map_err<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    check: impl FnOnce(&E),
-    map: impl FnOnce(E, &'static str) -> R,
-) -> R {
-    let exp_id = exp_id.into();
-    let error = expect_error(v, exp_id.0);
-    check(&error);
-    map(error, exp_id.0)
-}
-#[track_caller]
-pub(crate) fn expect_error_mapped<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    map: impl FnOnce(E, &'static str) -> R,
-) -> R {
-    map_err(v, exp_id, |_| (), map)
-}
-#[track_caller]
-pub(crate) fn expect_error_variant_ref<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    map: impl FnOnce(&E) -> Option<R>,
-) -> R {
-    expect_error_mapped(v, exp_id, |error, mapped_exp_id| {
-        expect_variant_ref(&error, map, mapped_exp_id)
-    })
-}
-#[track_caller]
-fn map_err_after_status_check<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    expected: crate::domain_types::AxumHttpStatusCode,
-    map: impl FnOnce(E, &'static str) -> R,
-) -> R
-where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
-{
-    map_err(
-        v,
-        exp_id,
-        |error| {
-            assert_eq!(error.axum_http_status_code(), expected);
-        },
-        map,
-    )
-}
-#[track_caller]
-pub(crate) fn assert_err_status_code<T, E>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    expected: crate::domain_types::AxumHttpStatusCode,
-) -> E
-where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
-{
-    map_err_after_status_check(v, exp_id, expected, |error, _| error)
-}
-#[track_caller]
-pub(crate) fn assert_err_status_code_only<T, E>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    expected: crate::domain_types::AxumHttpStatusCode,
-) where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
-{
-    drop(assert_err_status_code(v, exp_id, expected));
-}
-#[track_caller]
-pub(crate) fn assert_err_status_code_variant_ref<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    expected: crate::domain_types::AxumHttpStatusCode,
-    map: impl FnOnce(&E) -> Option<R>,
-) -> R
-where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
-{
-    map_err_after_status_check(v, exp_id, expected, |error, mapped_exp_id| {
-        expect_variant_ref(&error, map, mapped_exp_id)
-    })
-}
-#[track_caller]
-pub(crate) fn expect_err_variant_ref_with_status<T, E, R>(
-    v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    expected: Option<crate::domain_types::AxumHttpStatusCode>,
-    map: impl FnOnce(&E) -> Option<R>,
-) -> R
-where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
-{
-    let exp_id = exp_id.into();
-    match expected {
-        Some(status_code) => assert_err_status_code_variant_ref(v, exp_id.0, status_code, map),
-        None => expect_error_variant_ref(v, exp_id.0, map),
-    }
-}
-pub(crate) fn make_headers_with_entry<ValueTy>(
-    name: impl axum::http::header::IntoHeaderName,
-    value: ValueTy,
-) -> AxumTestHeaders
-where
-    ValueTy: Into<AxumTestHeaderValue>,
-{
-    let mut headers = axum::http::HeaderMap::new();
-    insert_header_no_prev(&mut headers, name, value);
-    AxumTestHeaders::from(headers)
-}
-#[track_caller]
-pub(crate) fn replace_header_name<'headers_lt>(
-    headers: impl Into<AxumTestHeadersMutRef<'headers_lt>>,
-    from_name: impl axum::http::header::AsHeaderName,
-    to_name: impl axum::http::header::IntoHeaderName,
-    exp_id: impl Into<TestExpId>,
-) {
-    let headers = headers.into();
-    let value = headers.0.remove(from_name).unwrap_or_else(|| {
-        let exp_id = exp_id.into();
-        panic!(
-            "{} missing source header while replacing, id={exp_id}",
-            constants_str::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
-        );
-    });
-    insert_header_no_prev(headers.0, to_name, value);
-}
-pub(crate) fn non_utf8_header_value() -> AxumTestHeaderValue {
-    AxumTestHeaderValue::from(
-        axum::http::HeaderValue::from_bytes(&[0x80])
-            .expect("86eb20cf non_utf8_header_value invariant must hold"),
-    )
-}
-#[track_caller]
-pub(crate) fn assert_panics(
-    action: impl FnOnce() + std::panic::UnwindSafe,
-    exp_id: impl Into<TestExpId>,
-) {
-    let exp_id = exp_id.into();
-    let panic_res = std::panic::catch_unwind(action);
-    drop(panic_res.expect_err(exp_id.0));
-}
 #[cfg(test)]
 mod tests {
     #[test]

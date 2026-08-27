@@ -7,7 +7,7 @@ use leptos::prelude::{ClassAttribute, ElementChild};
     clippy::single_call_fn,
     reason = "the screen renderer is isolated behind the stable public SSR facade"
 )]
-pub(super) fn render_roles(
+pub fn render_roles(
     page: &server_admin_contract::domain_types::AdminRolesPage,
     query: &server_admin_contract::domain_types::AdminTableQuery,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
