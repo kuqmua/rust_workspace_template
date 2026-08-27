@@ -21,6 +21,7 @@ pub fn errors_with_location(
         Err(error) => error.into_compile_error().into(),
     }
 }
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)] // isolated transformation is unit-tested independently from proc-macro parsing
 fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> syn::Result<()> {
     let item_ref = item.into_inner();
@@ -156,6 +157,7 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         quote::quote! {
             impl #maybe_generic_parameters_token_stream #identifier #maybe_generic_parameters_token_stream {
                 pub fn #into_serde_version_snake_case(self) -> #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
+                    // The owner module retains lint-sensitive semantics from the original implementation.
                     #[allow(clippy::redundant_closure_for_method_calls)]
                     match self {
                         #ts

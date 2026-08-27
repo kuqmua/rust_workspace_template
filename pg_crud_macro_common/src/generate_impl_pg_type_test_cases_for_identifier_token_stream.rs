@@ -353,10 +353,13 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
             }
         });
     quote::quote! {
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(unused_qualifications)]
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::absolute_paths)]
         #AllowClippyArbitrarySrcItemOrdering
         #cfg_token_stream
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::float_arithmetic)]
         impl #import::#PgTypeTestCasesUpperCamelCase for #identifier {
             type #PgTypeUpperCamelCase = #SelfUpperCamelCase;

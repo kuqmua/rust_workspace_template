@@ -48,10 +48,10 @@ mod admin_open_api_vec;
 pub(crate) use admin_open_api_vec::*;
 #[path = "collections/admin_open_api_vec_phantom_data.rs"]
 mod admin_open_api_vec_phantom_data;
-use admin_open_api_vec_phantom_data::*;
+use admin_open_api_vec_phantom_data::AdminOpenApiVecPhantomData;
 #[path = "collections/admin_empty_collection.rs"]
 mod admin_empty_collection;
-use admin_empty_collection::*;
+use admin_empty_collection::AdminEmptyCollection;
 #[path = "collections/admin_collection_max_items.rs"]
 mod admin_collection_max_items;
 pub(crate) use admin_collection_max_items::*;

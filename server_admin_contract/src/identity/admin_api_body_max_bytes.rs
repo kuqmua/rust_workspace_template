@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,

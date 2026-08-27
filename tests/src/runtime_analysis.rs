@@ -53,6 +53,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub(super) struct RuntimeArcVisitor {
     pub ers: super::types::DiagnosticMsgs,

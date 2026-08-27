@@ -1,3 +1,7 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
 use super::{DefaultRegexPattern, RegexError, RegexRegexTryFromStringError};
 
 #[derive(
@@ -36,11 +40,15 @@ impl TryFrom<String> for RegexRegex {
         Ok(Self(v))
     }
 }
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_qualifications)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::absolute_paths)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 const _: () = {
     #[automatically_derived]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(unused_braces)]
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {

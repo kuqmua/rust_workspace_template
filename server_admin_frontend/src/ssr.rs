@@ -77,7 +77,7 @@ mod render_admin_settings_page;
 pub use render_admin_settings_page::*;
 #[path = "ssr/render_view.rs"]
 mod render_view;
-use render_view::*;
+use render_view::render_view;
 #[cfg(test)]
 #[path = "ssr/admin_ssr_view_ext.rs"]
 mod admin_ssr_view_ext;

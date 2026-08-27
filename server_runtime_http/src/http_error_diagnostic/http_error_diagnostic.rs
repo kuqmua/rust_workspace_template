@@ -83,6 +83,7 @@ impl HttpErrorDiagnostic {
         &self.span_trace
     }
 
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn)]
     pub(in crate::domain_types) const fn telemetry(&self) -> super::HttpErrorTelemetry {
         self.telemetry

@@ -63,15 +63,9 @@ impl<'query_lt> crate::domain_types::PgTypeWhereFilter<'query_lt> for Pagination
         _: crate::domain_types::AddOperator,
     ) -> Result<crate::domain_types::QueryPartFragment, crate::domain_types::QueryPartError> {
         let limit_increment =
-            match crate::domain_types::increment_checked_add_one_returning_increment(increment) {
-                Ok(v) => v,
-                Err(error) => return Err(error),
-            };
+            crate::domain_types::increment_checked_add_one_returning_increment(increment)?;
         let offset_increment =
-            match crate::domain_types::increment_checked_add_one_returning_increment(increment) {
-                Ok(v) => v,
-                Err(error) => return Err(error),
-            };
+            crate::domain_types::increment_checked_add_one_returning_increment(increment)?;
         let mut query_part = String::with_capacity(32);
         if std::fmt::Write::write_fmt(
             &mut query_part,

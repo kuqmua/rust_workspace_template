@@ -1,9 +1,13 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractBody(
     pub(super)  bounded_types::domain_types::vector::BoundedVec<
         u8,
         0,
-        { frontend_contract::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES },
+        { constants_usize::VALUE_16_777_216 },
     >,
 );
 

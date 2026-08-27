@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "generate_simple_syn_punct/generate_simple_syn_punct.rs"]
 mod generate_simple_syn_punct;
 #[path = "generate_simple_syn_punct/string_syn_punct.rs"]

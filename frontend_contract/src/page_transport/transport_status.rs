@@ -19,6 +19,7 @@ impl From<super::super::KnownHttpStatus> for TransportStatus {
 }
 
 impl TransportStatus {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)]
     fn validate(value: &u16) -> Result<(), super::super::HttpStatusTryFromU16Error> {
         if (100u16..1_000u16).contains(value) {

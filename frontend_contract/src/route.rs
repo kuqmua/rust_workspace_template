@@ -1,700 +1,3 @@
-pub trait RouteTransport {}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PublicTransport;
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AuthenticatedTransport;
-impl RouteTransport for PublicTransport {}
-impl RouteTransport for AuthenticatedTransport {}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteMethod {
-    Connect,
-    Delete,
-    Get,
-    Head,
-    Options,
-    Patch,
-    Post,
-    Put,
-    Trace,
-}
-impl RouteMethod {
-    #[must_use]
-    pub fn as_str(self) -> crate::domain_types::ContractStr {
-        crate::domain_types::ContractStr::from(match self {
-            Self::Connect => constants_str::CONNECT,
-            Self::Delete => constants_str::DELETE,
-            Self::Get => constants_str::GET,
-            Self::Head => constants_str::HEAD,
-            Self::Options => constants_str::OPTIONS,
-            Self::Patch => constants_str::PATCH,
-            Self::Post => constants_str::POST,
-            Self::Put => constants_str::PUT,
-            Self::Trace => constants_str::TRACE,
-        })
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[cfg(not(target_arch = "wasm32"))]
-#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
-pub struct AxumMethodFilter(axum::routing::MethodFilter);
-#[cfg(not(target_arch = "wasm32"))]
-#[must_use]
-pub fn axum_method_filter(method: crate::domain_types::HttpMethod) -> AxumMethodFilter {
-    AxumMethodFilter::from(match method {
-        crate::domain_types::HttpMethod::Connect => axum::routing::MethodFilter::CONNECT,
-        crate::domain_types::HttpMethod::Delete => axum::routing::MethodFilter::DELETE,
-        crate::domain_types::HttpMethod::Get => axum::routing::MethodFilter::GET,
-        crate::domain_types::HttpMethod::Head => axum::routing::MethodFilter::HEAD,
-        crate::domain_types::HttpMethod::Options => axum::routing::MethodFilter::OPTIONS,
-        crate::domain_types::HttpMethod::Patch => axum::routing::MethodFilter::PATCH,
-        crate::domain_types::HttpMethod::Post => axum::routing::MethodFilter::POST,
-        crate::domain_types::HttpMethod::Put => axum::routing::MethodFilter::PUT,
-        crate::domain_types::HttpMethod::Trace => axum::routing::MethodFilter::TRACE,
-    })
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RouteMetadata {
-    authentication: crate::domain_types::AuthenticationRequirement,
-    error_statuses: &'static [crate::domain_types::RouteErrorStatus],
-    openapi_operation_id: crate::domain_types::ContractStr,
-    path: crate::domain_types::ContractStr,
-    method: RouteMethod,
-    mutation: crate::domain_types::RouteMutation,
-    success_status: crate::domain_types::SuccessStatus,
-}
-impl RouteMetadata {
-    #[must_use]
-    pub const fn new(
-        method: RouteMethod,
-        openapi_operation_id: crate::domain_types::ContractStr,
-        path: crate::domain_types::ContractStr,
-    ) -> Self {
-        Self::new_with_policy(
-            crate::domain_types::AuthenticationRequirement::Public,
-            &[],
-            method,
-            crate::domain_types::RouteMutation::ReadOnly,
-            openapi_operation_id,
-            path,
-            crate::domain_types::SuccessStatus::Code200,
-        )
-    }
-    #[must_use]
-    pub const fn new_with_policy(
-        authentication: crate::domain_types::AuthenticationRequirement,
-        error_statuses: &'static [crate::domain_types::RouteErrorStatus],
-        method: RouteMethod,
-        mutation: crate::domain_types::RouteMutation,
-        openapi_operation_id: crate::domain_types::ContractStr,
-        path: crate::domain_types::ContractStr,
-        success_status: crate::domain_types::SuccessStatus,
-    ) -> Self {
-        Self {
-            authentication,
-            error_statuses,
-            openapi_operation_id,
-            path,
-            method,
-            mutation,
-            success_status,
-        }
-    }
-    #[must_use]
-    pub const fn authentication(self) -> crate::domain_types::AuthenticationRequirement {
-        self.authentication
-    }
-    #[must_use]
-    pub const fn error_statuses(self) -> &'static [crate::domain_types::RouteErrorStatus] {
-        self.error_statuses
-    }
-    #[must_use]
-    pub const fn access(self) -> crate::domain_types::RouteAccess {
-        match self.authentication {
-            crate::domain_types::AuthenticationRequirement::Public => {
-                crate::domain_types::RouteAccess::Public
-            }
-            crate::domain_types::AuthenticationRequirement::Authenticated
-            | crate::domain_types::AuthenticationRequirement::Permission(_) => {
-                crate::domain_types::RouteAccess::Authenticated
-            }
-        }
-    }
-    #[must_use]
-    pub fn method(self) -> crate::domain_types::ContractStr {
-        self.method.as_str()
-    }
-    #[must_use]
-    pub const fn route_method(self) -> RouteMethod {
-        self.method
-    }
-    #[must_use]
-    pub const fn openapi_operation_id(self) -> crate::domain_types::ContractStr {
-        self.openapi_operation_id
-    }
-    #[must_use]
-    pub const fn path(self) -> crate::domain_types::ContractStr {
-        self.path
-    }
-    #[must_use]
-    pub const fn mutation(self) -> crate::domain_types::RouteMutation {
-        self.mutation
-    }
-    #[must_use]
-    pub const fn success_status(self) -> crate::domain_types::SuccessStatus {
-        self.success_status
-    }
-    #[must_use]
-    pub const fn contract(self) -> crate::domain_types::RouteContract {
-        crate::domain_types::RouteContract::new(
-            self.authentication,
-            match self.method {
-                RouteMethod::Connect => crate::domain_types::HttpMethod::Connect,
-                RouteMethod::Delete => crate::domain_types::HttpMethod::Delete,
-                RouteMethod::Get => crate::domain_types::HttpMethod::Get,
-                RouteMethod::Head => crate::domain_types::HttpMethod::Head,
-                RouteMethod::Options => crate::domain_types::HttpMethod::Options,
-                RouteMethod::Patch => crate::domain_types::HttpMethod::Patch,
-                RouteMethod::Post => crate::domain_types::HttpMethod::Post,
-                RouteMethod::Put => crate::domain_types::HttpMethod::Put,
-                RouteMethod::Trace => crate::domain_types::HttpMethod::Trace,
-            },
-            match self.mutation {
-                crate::domain_types::RouteMutation::ReadOnly => {
-                    crate::domain_types::MutationKind::ReadOnly
-                }
-                crate::domain_types::RouteMutation::Mutating => {
-                    crate::domain_types::MutationKind::Mutating
-                }
-            },
-            self.path,
-            self.success_status,
-        )
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-pub struct UtoipaOpenApiComponentsRefMut<'value_lt>(
-    &'value_lt mut utoipa::openapi::schema::Components,
-);
-impl std::fmt::Debug for UtoipaOpenApiComponentsRefMut<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::UTOIPAOPENAPICOMPONENTSREFMUT)
-            .finish_non_exhaustive()
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
-impl std::fmt::Debug for UtoipaOpenApiRefMut<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::UTOIPAOPENAPIREFMUT)
-            .finish_non_exhaustive()
-    }
-}
-pub trait TypedRoute: Sized {
-    type Request: serde::Serialize + serde::de::DeserializeOwned;
-    type Response: serde::Serialize + serde::de::DeserializeOwned;
-    type Transport: RouteTransport;
-    fn metadata() -> RouteMetadata;
-    #[must_use]
-    fn openapi_request_schema() -> Option<UtoipaOpenApiRouteSchema> {
-        None
-    }
-    #[must_use]
-    fn openapi_request_body_schema() -> Option<UtoipaOpenApiRouteSchema> {
-        None
-    }
-    #[must_use]
-    fn openapi_response_schema() -> Option<UtoipaOpenApiRouteSchema> {
-        None
-    }
-    #[must_use]
-    fn openapi_error_response_schema(
-        _status: crate::domain_types::RouteErrorStatus,
-    ) -> Option<UtoipaOpenApiRouteSchema> {
-        Some(UtoipaOpenApiRouteSchema::from(
-            <crate::domain_types::ApiProblem as utoipa::PartialSchema>::schema(),
-        ))
-    }
-    #[must_use]
-    fn openapi_path_parameter() -> Option<UtoipaOpenApiPathParameter> {
-        None
-    }
-    #[must_use]
-    fn request_body() -> RouteRequestBody {
-        RouteRequestBody::Absent
-    }
-    fn register_openapi_schemas(_components: &mut UtoipaOpenApiComponentsRefMut<'_>) {}
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RouteRequestBody {
-    Absent,
-    Json,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-pub struct RouteSchemaContract {
-    metadata: RouteMetadata,
-    request_schema: Option<UtoipaOpenApiRouteSchema>,
-    response_schema: Option<UtoipaOpenApiRouteSchema>,
-}
-impl RouteSchemaContract {
-    #[must_use]
-    pub fn from_typed_route<Route>() -> Self
-    where
-        Route: TypedRoute,
-    {
-        Self {
-            metadata: Route::metadata(),
-            request_schema: Route::openapi_request_schema(),
-            response_schema: Route::openapi_response_schema(),
-        }
-    }
-    #[must_use]
-    pub const fn metadata(&self) -> RouteMetadata {
-        self.metadata
-    }
-    #[must_use]
-    pub const fn request_schema(&self) -> Option<&UtoipaOpenApiRouteSchema> {
-        self.request_schema.as_ref()
-    }
-    #[must_use]
-    pub const fn response_schema(&self) -> Option<&UtoipaOpenApiRouteSchema> {
-        self.response_schema.as_ref()
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
-impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::OPEN_API_ROUTE_SCHEMA)
-            .finish_non_exhaustive()
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
-impl std::fmt::Debug for UtoipaOpenApiPathParameter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::UTOIPAOPENAPIPATHPARAMETER)
-            .finish_non_exhaustive()
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::IntoInnerFrom,
-)]
-pub struct ParameterizedRoutePath(String);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ParameterizedRoutePathTryFromStringError;
-impl TryFrom<String> for ParameterizedRoutePath {
-    type Error = ParameterizedRoutePathTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_192 {
-            Err(ParameterizedRoutePathTryFromStringError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-)]
-pub struct OpenApiSecuritySchemeRef<'value_lt>(&'value_lt str);
-pub trait CoveredRoute: TypedRoute {
-    fn coverage_descriptor() -> crate::domain_types::RouteCoverageDescriptor;
-}
-pub trait ParameterizedRoute: TypedRoute {
-    type Parameter;
-    fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath;
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    newtype::FromInner,
-    newtype::GetInner,
-)]
-pub struct RouteBodyLimit(usize);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct RouteCoverageDescriptors(
-    bounded_types::domain_types::vector::BoundedVec<
-        crate::domain_types::RouteCoverageDescriptor,
-        0,
-        { usize::MAX },
-    >,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Default,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct RouteSchemaContracts(
-    bounded_types::domain_types::vector::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>,
-);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub struct RouteMetadataList(
-    bounded_types::domain_types::vector::BoundedVec<RouteMetadata, 0, { usize::MAX }>,
-);
-impl TryFrom<Vec<crate::domain_types::RouteCoverageDescriptor>> for RouteCoverageDescriptors {
-    type Error = bounded_types::domain_types::BoundedValueError;
-    fn try_from(
-        value: Vec<crate::domain_types::RouteCoverageDescriptor>,
-    ) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
-            .map(Self::from)
-    }
-}
-impl TryFrom<Vec<RouteSchemaContract>> for RouteSchemaContracts {
-    type Error = bounded_types::domain_types::BoundedValueError;
-    fn try_from(value: Vec<RouteSchemaContract>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
-            .map(Self::from)
-    }
-}
-impl TryFrom<Vec<RouteMetadata>> for RouteMetadataList {
-    type Error = bounded_types::domain_types::BoundedValueError;
-    fn try_from(value: Vec<RouteMetadata>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
-            .map(Self::from)
-    }
-}
-impl RouteCoverageDescriptors {
-    #[must_use]
-    pub fn from_max_iter<Values>(values: Values) -> Self
-    where
-        Values: IntoIterator<Item = crate::domain_types::RouteCoverageDescriptor>,
-    {
-        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
-    }
-}
-impl RouteSchemaContracts {
-    #[must_use]
-    pub fn from_max_iter<Values>(values: Values) -> Self
-    where
-        Values: IntoIterator<Item = RouteSchemaContract>,
-    {
-        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
-    }
-}
-pub trait RouteFamily {
-    const ROUTE_COUNT: usize = constants_usize::ZERO;
-    #[must_use]
-    fn body_limit() -> Option<RouteBodyLimit> {
-        None
-    }
-    fn coverage_descriptors() -> RouteCoverageDescriptors;
-    #[must_use]
-    fn schema_contracts() -> RouteSchemaContracts {
-        RouteSchemaContracts::default()
-    }
-    fn route_metadata() -> RouteMetadataList {
-        RouteMetadataList::from(
-            bounded_types::domain_types::vector::BoundedVec::from_max_iter(
-                bounded_types::domain_types::vector::BoundedVec::from(Self::coverage_descriptors())
-                    .into_iter()
-                    .map(crate::domain_types::RouteCoverageDescriptor::metadata),
-            ),
-        )
-    }
-}
-pub trait RouteInFamily<Family>
-where
-    Family: RouteFamily,
-{
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct RouteRequest<Route>
-where
-    Route: TypedRoute,
-{
-    body: Route::Request,
-}
-impl<Route> RouteRequest<Route>
-where
-    Route: TypedRoute,
-{
-    #[must_use]
-    pub const fn new(body: Route::Request) -> Self {
-        Self { body }
-    }
-    #[must_use]
-    pub const fn body(&self) -> &Route::Request {
-        &self.body
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct RouteResponse<Route>
-where
-    Route: TypedRoute,
-{
-    body: Route::Response,
-}
-impl<Route> RouteResponse<Route>
-where
-    Route: TypedRoute,
-{
-    #[must_use]
-    pub const fn body(&self) -> &Route::Response {
-        &self.body
-    }
-}
-#[must_use]
-pub const fn client_request<Route>(body: Route::Request) -> RouteRequest<Route>
-where
-    Route: TypedRoute,
-{
-    RouteRequest::new(body)
-}
-#[must_use]
-pub const fn server_response<Route>(body: Route::Response) -> RouteResponse<Route>
-where
-    Route: TypedRoute,
-{
-    RouteResponse { body }
-}
-#[must_use]
-pub fn client_route_metadata<Route>() -> RouteMetadata
-where
-    Route: TypedRoute,
-{
-    Route::metadata()
-}
-#[must_use]
-pub fn server_route_metadata<Route>() -> RouteMetadata
-where
-    Route: TypedRoute,
-{
-    Route::metadata()
-}
-#[must_use]
-pub fn openapi_route_metadata<Route>() -> RouteMetadata
-where
-    Route: TypedRoute,
-{
-    Route::metadata()
-}
-pub fn apply_openapi_success_contract<Route>(operation: &mut utoipa::openapi::path::Operation)
-where
-    Route: TypedRoute,
-{
-    let metadata = Route::metadata();
-    operation
-        .responses
-        .responses
-        .retain(|status, _response| !status.starts_with('2'));
-    let status = metadata.success_status().transport_status().to_string();
-    let mut response = utoipa::openapi::response::Response::new(status.clone());
-    if metadata.success_status() != crate::domain_types::SuccessStatus::Code204
-        && let Some(schema) = Route::openapi_response_schema()
-    {
-        let _previous_content = response.content.insert(
-            constants_str::APPLICATION_JSON.to_owned(),
-            utoipa::openapi::Content::new(Some(
-                utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from(schema),
-            )),
-        );
-    }
-    let _previous_response = operation
-        .responses
-        .responses
-        .insert(status, utoipa::openapi::RefOr::T(response));
-}
-pub fn apply_openapi_request_contract<Route>(operation: &mut utoipa::openapi::path::Operation)
-where
-    Route: TypedRoute,
-{
-    operation.request_body = match Route::request_body() {
-        RouteRequestBody::Absent => None,
-        RouteRequestBody::Json => Route::openapi_request_body_schema().map(|schema| {
-            utoipa::openapi::request_body::RequestBodyBuilder::new()
-                .required(Some(utoipa::openapi::Required::True))
-                .content(
-                    constants_str::APPLICATION_JSON,
-                    utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
-                        utoipa::openapi::Schema,
-                    >::from(schema))),
-                )
-                .build()
-        }),
-    };
-}
-#[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
-pub fn register_openapi_schema<Schema>(components: &mut UtoipaOpenApiComponentsRefMut<'_>)
-where
-    Schema: utoipa::ToSchema,
-{
-    let name = Schema::name();
-    let schema = <Schema as utoipa::PartialSchema>::schema();
-    let qualified_name =
-        std::any::type_name::<Schema>().replace(constants_str::DOUBLE_COLON, constants_str::DOT);
-    let _previous_qualified_schema = components.0.schemas.insert(qualified_name, schema.clone());
-    if let Some(crate_name) = std::any::type_name::<Schema>()
-        .split(constants_str::DOUBLE_COLON)
-        .next()
-    {
-        let _previous_crate_schema = components
-            .0
-            .schemas
-            .insert(format!("{crate_name}.{name}"), schema.clone());
-    }
-    let _previous_named_schema = components.0.schemas.insert(name.into_owned(), schema);
-    let mut referenced_schemas = Vec::new();
-    Schema::schemas(&mut referenced_schemas);
-    referenced_schemas
-        .into_iter()
-        .for_each(|(referenced_name, referenced_schema)| {
-            let _previous_schema = components
-                .0
-                .schemas
-                .insert(referenced_name, referenced_schema);
-        });
-}
-pub fn register_openapi_route_schemas<Route>(document: &mut UtoipaOpenApiRefMut<'_>)
-where
-    Route: TypedRoute,
-{
-    let raw_components = document
-        .0
-        .components
-        .get_or_insert_with(utoipa::openapi::schema::Components::new);
-    let mut schema_components = UtoipaOpenApiComponentsRefMut::from(raw_components);
-    Route::register_openapi_schemas(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblem>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemDetail>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemField>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemKind>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemRequestId>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemStatus>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemViolation>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::FilterOperation>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::FilterValueShape>(&mut schema_components);
-}
-pub fn apply_openapi_path_parameter_contract<Route>(
-    operation: &mut utoipa::openapi::path::Operation,
-) where
-    Route: TypedRoute,
-{
-    if let Some(parameter) = Route::openapi_path_parameter() {
-        operation
-            .parameters
-            .get_or_insert_default()
-            .push(parameter.into());
-    }
-}
-pub fn apply_openapi_security_contract<Route>(
-    operation: &mut utoipa::openapi::path::Operation,
-    authenticated_scheme: OpenApiSecuritySchemeRef<'_>,
-    csrf_scheme: OpenApiSecuritySchemeRef<'_>,
-) where
-    Route: TypedRoute,
-{
-    let metadata = Route::metadata();
-    operation.security = match metadata.authentication() {
-        crate::domain_types::AuthenticationRequirement::Public => None,
-        crate::domain_types::AuthenticationRequirement::Authenticated
-        | crate::domain_types::AuthenticationRequirement::Permission(_) => {
-            let requirement = utoipa::openapi::security::SecurityRequirement::new(
-                authenticated_scheme.0,
-                std::iter::empty::<&str>(),
-            );
-            let complete_requirement =
-                if metadata.mutation() == crate::domain_types::RouteMutation::Mutating {
-                    requirement.add(csrf_scheme.0, std::iter::empty::<&str>())
-                } else {
-                    requirement
-                };
-            Some(vec![complete_requirement])
-        }
-    };
-}
-pub fn apply_openapi_error_contract<Route>(operation: &mut utoipa::openapi::path::Operation)
-where
-    Route: TypedRoute,
-{
-    operation
-        .responses
-        .responses
-        .retain(|status, _response| !status.starts_with('4') && !status.starts_with('5'));
-    Route::metadata()
-        .error_statuses()
-        .iter()
-        .copied()
-        .for_each(|error_status| {
-            let status = error_status.transport_status().to_string();
-            let mut response = utoipa::openapi::response::Response::new(status.clone());
-            if let Some(schema) = Route::openapi_error_response_schema(error_status) {
-                let _previous_content = response.content.insert(
-                    constants_str::APPLICATION_JSON.to_owned(),
-                    utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
-                        utoipa::openapi::Schema,
-                    >::from(schema))),
-                );
-            }
-            if error_status == crate::domain_types::RouteErrorStatus::RateLimited {
-                let _previous_header = response.headers.insert(
-                    constants_str::RETRY_AFTER.to_owned(),
-                    utoipa::openapi::header::Header::default(),
-                );
-            }
-            let _previous_response = operation
-                .responses
-                .responses
-                .insert(status, utoipa::openapi::RefOr::T(response));
-        });
-}
-#[must_use]
-pub fn typed_route_path<Route>() -> crate::domain_types::ContractStr
-where
-    Route: TypedRoute,
-{
-    Route::metadata().path()
-}
-#[must_use]
-pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> ParameterizedRoutePath
-where
-    Route: ParameterizedRoute,
-{
-    Route::path(parameter)
-}
 #[cfg(test)]
 mod tests {
     #[derive(
@@ -757,3 +60,126 @@ mod tests {
         );
     }
 }
+#[path = "route/route_transport.rs"]
+mod route_transport;
+pub use route_transport::*;
+#[path = "route/public_transport.rs"]
+mod public_transport;
+pub use public_transport::*;
+#[path = "route/authenticated_transport.rs"]
+mod authenticated_transport;
+pub use authenticated_transport::*;
+#[path = "route/route_method.rs"]
+mod route_method;
+pub use route_method::*;
+#[path = "route/axum_method_filter.rs"]
+mod axum_method_filter;
+pub use axum_method_filter::*;
+#[path = "route/route_metadata.rs"]
+mod route_metadata;
+pub use route_metadata::*;
+#[path = "route/utoipa_open_api_components_ref_mut.rs"]
+mod utoipa_open_api_components_ref_mut;
+pub use utoipa_open_api_components_ref_mut::*;
+#[path = "route/utoipa_open_api_ref_mut.rs"]
+mod utoipa_open_api_ref_mut;
+pub use utoipa_open_api_ref_mut::*;
+#[path = "route/typed_route.rs"]
+mod typed_route;
+pub use typed_route::*;
+#[path = "route/route_request_body.rs"]
+mod route_request_body;
+pub use route_request_body::*;
+#[path = "route/route_schema_contract.rs"]
+mod route_schema_contract;
+pub use route_schema_contract::*;
+#[path = "route/utoipa_open_api_route_schema.rs"]
+mod utoipa_open_api_route_schema;
+pub use utoipa_open_api_route_schema::*;
+#[path = "route/utoipa_open_api_path_parameter.rs"]
+mod utoipa_open_api_path_parameter;
+pub use utoipa_open_api_path_parameter::*;
+#[path = "route/parameterized_route_path.rs"]
+mod parameterized_route_path;
+pub use parameterized_route_path::*;
+#[path = "route/parameterized_route_path_try_from_string_error.rs"]
+mod parameterized_route_path_try_from_string_error;
+pub use parameterized_route_path_try_from_string_error::*;
+#[path = "route/open_api_security_scheme_ref.rs"]
+mod open_api_security_scheme_ref;
+pub use open_api_security_scheme_ref::*;
+#[path = "route/covered_route.rs"]
+mod covered_route;
+pub use covered_route::*;
+#[path = "route/parameterized_route.rs"]
+mod parameterized_route;
+pub use parameterized_route::*;
+#[path = "route/route_body_limit.rs"]
+mod route_body_limit;
+pub use route_body_limit::*;
+#[path = "route/route_coverage_descriptors.rs"]
+mod route_coverage_descriptors;
+pub use route_coverage_descriptors::*;
+#[path = "route/route_schema_contracts.rs"]
+mod route_schema_contracts;
+pub use route_schema_contracts::*;
+#[path = "route/route_metadata_list.rs"]
+mod route_metadata_list;
+pub use route_metadata_list::*;
+#[path = "route/route_family.rs"]
+mod route_family;
+pub use route_family::*;
+#[path = "route/route_in_family.rs"]
+mod route_in_family;
+pub use route_in_family::*;
+#[path = "route/route_request.rs"]
+mod route_request;
+pub use route_request::*;
+#[path = "route/route_response.rs"]
+mod route_response;
+pub use route_response::*;
+#[path = "route/client_request.rs"]
+mod client_request;
+pub use client_request::*;
+#[path = "route/server_response.rs"]
+mod server_response;
+pub use server_response::*;
+#[path = "route/client_route_metadata.rs"]
+mod client_route_metadata;
+pub use client_route_metadata::*;
+#[path = "route/server_route_metadata.rs"]
+mod server_route_metadata;
+pub use server_route_metadata::*;
+#[path = "route/openapi_route_metadata.rs"]
+mod openapi_route_metadata;
+pub use openapi_route_metadata::*;
+#[path = "route/apply_openapi_success_contract.rs"]
+mod apply_openapi_success_contract;
+pub use apply_openapi_success_contract::*;
+#[path = "route/apply_openapi_request_contract.rs"]
+mod apply_openapi_request_contract;
+pub use apply_openapi_request_contract::*;
+#[path = "route/register_openapi_schema.rs"]
+mod register_openapi_schema;
+pub use register_openapi_schema::*;
+#[path = "route/register_openapi_route_schemas.rs"]
+mod register_openapi_route_schemas;
+pub use register_openapi_route_schemas::*;
+#[path = "route/apply_openapi_path_parameter_contract.rs"]
+mod apply_openapi_path_parameter_contract;
+pub use apply_openapi_path_parameter_contract::*;
+#[path = "route/apply_openapi_security_contract.rs"]
+mod apply_openapi_security_contract;
+pub use apply_openapi_security_contract::*;
+#[path = "route/apply_openapi_error_contract.rs"]
+mod apply_openapi_error_contract;
+pub use apply_openapi_error_contract::*;
+#[path = "route/typed_route_path.rs"]
+mod typed_route_path;
+pub use typed_route_path::*;
+#[path = "route/typed_parameterized_route_path.rs"]
+mod typed_parameterized_route_path;
+pub use typed_parameterized_route_path::*;
+#[path = "route/functions.rs"]
+mod functions;
+pub use functions::*;

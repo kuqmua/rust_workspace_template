@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::arbitrary_source_item_ordering)] // domain declarations are grouped by authentication and authorization responsibility
 #[path = "application_auth.rs"]
 pub mod auth;

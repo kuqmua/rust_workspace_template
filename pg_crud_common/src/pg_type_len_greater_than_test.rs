@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct PgTypeLenGreaterThanTest<T: crate::domain_types::PgType> {

@@ -1143,7 +1143,19 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_12509C8A,
-            (3, 0, 1, constants_str::VALUE_60EE0A5C),
+            (0, 0, 1, constants_str::VALUE_60EE0A5C),
+        ),
+        (
+            constants_str::VALUE_9C3011F7,
+            (1, 0, 0, constants_str::VALUE_60EE0A5C),
+        ),
+        (
+            constants_str::VALUE_315FCF0A,
+            (1, 0, 0, constants_str::VALUE_60EE0A5C),
+        ),
+        (
+            constants_str::VALUE_778833C1,
+            (1, 0, 0, constants_str::VALUE_60EE0A5C),
         ),
         (
             constants_str::VALUE_CF2E8B6C,
@@ -1211,15 +1223,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
-            (0, 0, 8, constants_str::VALUE_B5B270A8),
-        ),
-        (
-            constants_str::VALUE_5036238B,
-            (0, 0, 1, constants_str::VALUE_2CB32E6F),
-        ),
-        (
-            constants_str::VALUE_C71E84EC,
-            (0, 0, 2, constants_str::VALUE_9838A739),
+            (0, 0, 11, constants_str::VALUE_B5B270A8),
         ),
         (
             constants_str::VALUE_7FE2AF02,
@@ -1406,12 +1410,16 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_EB67E2C6),
         ),
         (
-            constants_str::VALUE_C85E36AA,
+            constants_str::VALUE_46FA1B05,
             (2usize, constants_str::VALUE_C98C08E2),
         ),
         (
-            constants_str::VALUE_5549F923,
-            (9usize, constants_str::VALUE_9111728C),
+            constants_str::VALUE_96B90C9B,
+            (constants_usize::ONE, constants_str::VALUE_9111728C),
+        ),
+        (
+            constants_str::VALUE_E5C6D18E,
+            (8usize, constants_str::VALUE_9111728C),
         ),
         (
             constants_str::VALUE_E4B07557,
@@ -1422,20 +1430,28 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_1134EDB5),
         ),
         (
-            constants_str::VALUE_3F67003B,
+            constants_str::VALUE_11F5A276,
             (2usize, constants_str::VALUE_C1819A84),
         ),
         (
-            constants_str::VALUE_BCE1238C,
-            (3usize, constants_str::VALUE_53588272),
+            constants_str::VALUE_2CBAA4F4,
+            (constants_usize::ONE, constants_str::VALUE_53588272),
+        ),
+        (
+            constants_str::VALUE_D191EE7F,
+            (2usize, constants_str::VALUE_53588272),
         ),
         (
             constants_str::VALUE_61FFCD13,
             (constants_usize::ONE, constants_str::VALUE_324906E5),
         ),
         (
-            constants_str::VALUE_AC77DBAA,
-            (2usize, constants_str::VALUE_099B4392),
+            constants_str::VALUE_B29D07A8,
+            (constants_usize::ONE, constants_str::VALUE_099B4392),
+        ),
+        (
+            constants_str::VALUE_A1750307,
+            (constants_usize::ONE, constants_str::VALUE_099B4392),
         ),
         (
             constants_str::VALUE_237F2CE7,
@@ -1450,7 +1466,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_63C3DBE6),
         ),
         (
-            constants_str::VALUE_532433A4,
+            constants_str::VALUE_3930BC5E,
             (constants_usize::ONE, constants_str::VALUE_7B6389D8),
         ),
         (
@@ -1503,7 +1519,19 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_0690A45F,
-            (38usize, constants_str::VALUE_FD41C49E),
+            (27usize, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::VALUE_DC454021,
+            (4usize, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::VALUE_DC37304F,
+            (constants_usize::ONE, constants_str::VALUE_FD41C49E),
+        ),
+        (
+            constants_str::VALUE_939FFBC6,
+            (6usize, constants_str::VALUE_FD41C49E),
         ),
         (
             constants_str::SERVER_ADMIN_SRC_ADAPTERS_REPOSITORY_RS,
@@ -1782,7 +1810,9 @@ fn usize_max_usage_matches_reviewed_inventory() {
         .values()
         .for_each(|(_count, reason)| assert!(!reason.is_empty(), "cfc5175f"));
     super::snapshot::with_codebase_snapshot(|snapshot| {
-        let observed = snapshot
+        let mut observed = std::collections::BTreeMap::<&str, usize>::new();
+        let mut violations = Vec::new();
+        snapshot
             .rs_files()
             .iter()
             .filter(|source_file| {
@@ -1793,20 +1823,39 @@ fn usize_max_usage_matches_reviewed_inventory() {
                 )))
                 .get()
             })
-            .filter_map(|source_file| {
+            .for_each(|source_file| {
                 let visitor = super::visit_syn_file(
                     super::types::SynFileRef::from(source_file.ast().as_ref()),
                     UsizeMaxExprVisitor::default(),
                 );
                 let count = visitor.count.get();
-                (count != constants_usize::ZERO)
-                    .then(|| (source_file.path().as_ref().display().to_string(), count))
-            })
-            .collect::<std::collections::BTreeMap<String, usize>>();
+                if count == constants_usize::ZERO {
+                    return;
+                }
+                let path = source_file.path().as_ref().display().to_string();
+                let reviewed_owner = reviewed
+                    .keys()
+                    .filter(|suffix| {
+                        path.ends_with(**suffix)
+                            || super::declared_child_matches(path.as_str(), suffix)
+                    })
+                    .max_by_key(|suffix| suffix.len());
+                if let Some(owner) = reviewed_owner {
+                    let _observed_count_entry = observed
+                        .entry(owner)
+                        .and_modify(|observed_count| {
+                            *observed_count = observed_count.saturating_add(count);
+                        })
+                        .or_insert(count);
+                } else {
+                    violations.push(format!("unreviewed usize::MAX owner: {path}"));
+                }
+            });
+        assert!(violations.is_empty(), "cfc5175f {violations:#?}");
         let expected = reviewed
             .iter()
-            .map(|(path, (count, _reason))| ((*path).to_owned(), *count))
-            .collect::<std::collections::BTreeMap<String, usize>>();
+            .map(|(path, (count, _reason))| (*path, *count))
+            .collect::<std::collections::BTreeMap<&str, usize>>();
         assert_eq!(observed, expected, "cfc5175f usize::MAX inventory changed");
     });
 }
@@ -1857,14 +1906,41 @@ fn select_sites_match_reviewed_cancellation_inventory() {
                     SelectMacroVisitor::default(),
                 );
                 if visitor.count.get() != constants_usize::ZERO {
-                    let _previous = observed.insert(
-                        source_file.path().as_ref().display().to_string(),
-                        visitor.count.get(),
-                    );
+                    let path = source_file.path().as_ref().display().to_string();
+                    let reviewed_owner = reviewed
+                        .iter()
+                        .map(|(reviewed_path, _count, _reason)| *reviewed_path)
+                        .filter(|reviewed_path| {
+                            path.ends_with(reviewed_path)
+                                || super::declared_child_matches(path.as_str(), reviewed_path)
+                        })
+                        .max_by_key(|reviewed_path| reviewed_path.len());
+                    if let Some(owner_suffix) = reviewed_owner {
+                        let owner_path = format!("../{owner_suffix}");
+                        let _observed_entry = observed
+                            .entry(owner_path)
+                            .and_modify(|count| {
+                                *count = count.saturating_add(visitor.count.get());
+                            })
+                            .or_insert_with(|| visitor.count.get());
+                    } else {
+                        return std::iter::once(format!(
+                            "{}: unreviewed select owner",
+                            source_file.path().as_ref().display()
+                        ))
+                        .chain(visitor.unsafe_operations.into_iter().map(|violation| {
+                            format!("{}: {violation}", source_file.path().as_ref().display())
+                        }))
+                        .collect::<Vec<String>>();
+                    }
                 }
-                visitor.unsafe_operations.into_iter().map(|violation| {
-                    format!("{}: {violation}", source_file.path().as_ref().display())
-                })
+                visitor
+                    .unsafe_operations
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}: {violation}", source_file.path().as_ref().display())
+                    })
+                    .collect::<Vec<String>>()
             })
             .collect::<Vec<String>>();
         reviewed

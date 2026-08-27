@@ -1,4 +1,5 @@
 #[must_use]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::integer_division_remainder_used)]
 pub fn spawn_interval_task<Run, RunFuture>(
     optional_interval: Option<super::RunIntervalDuration>,

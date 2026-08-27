@@ -22,6 +22,7 @@ impl From<crate::domain_types::KnownHttpStatus> for ApiProblemStatus {
 }
 
 impl ApiProblemStatus {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)]
     fn validate(value: &u16) -> Result<(), crate::domain_types::HttpStatusTryFromU16Error> {
         if (100u16..1_000u16).contains(value) {

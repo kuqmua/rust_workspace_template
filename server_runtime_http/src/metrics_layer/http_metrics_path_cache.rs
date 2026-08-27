@@ -1,3 +1,7 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules and related behavior retain their intentional facade ordering"
+)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(super) struct HttpMetricsPathCache {
     entries: super::HttpMetricsPathEntriesRwLock,
@@ -6,16 +10,13 @@ pub(super) struct HttpMetricsPathCache {
 }
 
 impl HttpMetricsPathCache {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn)]
     pub(super) fn new(maximum: super::HttpMetricsPathCacheMaximum) -> Self {
         Self {
             entries: super::HttpMetricsPathEntriesRwLock::from(std::sync::RwLock::new(
                 std::collections::HashMap::with_capacity(
-                    maximum
-                        .0
-                        .0
-                        .get()
-                        .min(super::DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM),
+                    maximum.0.0.get().min(constants_usize::VALUE_4_096),
                 ),
             )),
             maximum,

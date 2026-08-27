@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "domain_types_request_id/http_header_to_str_error.rs"]
 mod http_header_to_str_error;
 #[path = "domain_types_request_id/request_id.rs"]

@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "request_origin_allowed/request_origin_allowed.rs"]
 mod request_origin_allowed;
 

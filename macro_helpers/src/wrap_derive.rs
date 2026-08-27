@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "wrap_derive/proc_macro2_derive_tokens_ref.rs"]
 mod proc_macro2_derive_tokens_ref;
 #[path = "wrap_derive/wrap_derive.rs"]

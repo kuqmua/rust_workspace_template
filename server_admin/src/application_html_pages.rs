@@ -1,3 +1,4 @@
+#![allow(clippy::wildcard_imports)] // split page modules share a private facade vocabulary
 #[path = "application_html_pages/sign_in_page.rs"]
 mod sign_in_page;
 pub(super) use sign_in_page::*;

@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "resource_utilization/calculate_resource_utilization.rs"]
 mod calculate_resource_utilization;
 #[path = "resource_utilization/critical_percent.rs"]

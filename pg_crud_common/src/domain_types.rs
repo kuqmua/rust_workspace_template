@@ -1,3 +1,7 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "split owner modules expose representation only within the crate"
+)]
 #[path = "add_operator.rs"]
 mod add_operator;
 #[path = "all_enum_variants.rs"]

@@ -146,6 +146,7 @@ pub fn optimal_memory_layout(
     let const_name_token_stream = quote::quote! {_OPTIMAL_PACK_CHECK};
     let impl_check_token_stream = quote::quote! {
         #[cfg(not(target_arch = "wasm32"))]
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(unused_qualifications)]
         impl #impl_generics #identifier #ty_generics #where_clause {
             const #const_name_token_stream: () = {

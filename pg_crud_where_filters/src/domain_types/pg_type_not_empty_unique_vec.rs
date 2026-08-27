@@ -49,10 +49,14 @@ impl<T: Eq + std::hash::Hash> PgTypeNotEmptyUniqueVec<T> {
             .map(Self)
     }
 }
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_qualifications)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::absolute_paths)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 const _: () = {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[expect(clippy::useless_attribute)]
     extern crate serde as _serde;
     #[automatically_derived]

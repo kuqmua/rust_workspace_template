@@ -37,7 +37,7 @@ use command_idx::CommandIdx;
 use command_run::CommandRun;
 use command_started_at_instant::CommandStartedAtInstant;
 use command_succeeded::CommandSucceeded;
-use command_text::*;
+use command_text::CommandText;
 use command_texts::CommandTexts;
 pub(crate) use commands_ref::CommandsRef;
 use execution_io_error::ExecutionIoError;
@@ -45,7 +45,7 @@ use failed_test_names::failed_test_names;
 pub(crate) use run_commands::run_commands;
 use run_counter::RUN_COUNTER;
 use strip_ansi::strip_ansi;
-use summary_text::*;
+use summary_text::SummaryText;
 use text_ref::TextRef;
 
 #[cfg(test)]

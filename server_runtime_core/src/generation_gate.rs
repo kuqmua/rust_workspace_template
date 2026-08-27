@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "generation_gate/generation.rs"]
 mod generation;
 #[path = "generation_gate/generation_atomic_u64.rs"]

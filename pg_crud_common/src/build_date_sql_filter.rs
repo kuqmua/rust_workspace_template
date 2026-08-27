@@ -70,7 +70,7 @@ pub fn build_date_sql_filter(
             fragment.push_str(comparator);
             fragment.push_str(constants_str::DOLLAR_SIGN);
             std::fmt::Write::write_fmt(&mut fragment, format_args!("{bind_index}"))
-                .map_err(|_| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
+                .map_err(|_error| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
             values.push(*value.0);
             bind_index = bind_index
                 .checked_add(1u32)
@@ -78,7 +78,7 @@ pub fn build_date_sql_filter(
             Ok(())
         })?;
     let query_fragment = crate::domain_types::QueryPartFragment::try_from(fragment)
-        .map_err(|_| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
+        .map_err(|_error| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
     Ok(crate::domain_types::DateSqlFilter {
         fragment: query_fragment,
         values: crate::domain_types::ChronoUtcDateTimes::from(values),

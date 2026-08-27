@@ -1,3 +1,7 @@
+#![allow(
+    clippy::wildcard_imports,
+    reason = "split schema owner modules import the private facade vocabulary used by validation"
+)]
 use super::*;
 
 pub fn validate_postgres_table_schema(

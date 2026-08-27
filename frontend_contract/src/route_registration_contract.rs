@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "route_registration_contract/axum_route_method_router.rs"]
 mod axum_route_method_router;
 #[path = "route_registration_contract/registered_route_path.rs"]

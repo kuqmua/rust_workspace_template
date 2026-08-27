@@ -8,6 +8,10 @@ pub struct OperationBudgetExceeded {
 }
 
 impl OperationBudgetExceeded {
+    #[allow(
+        clippy::single_call_fn,
+        reason = "the constructor preserves the operation-budget invariant boundary"
+    )]
     pub(super) const fn new(
         actual: crate::domain_types::OperationCount,
         budget: crate::domain_types::OperationBudget,

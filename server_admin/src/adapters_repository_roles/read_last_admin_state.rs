@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)]
 pub(crate) async fn read_last_admin_state(
     connection: super::super::SqlxAdminRepositoryConnectionMutRef<'_>,

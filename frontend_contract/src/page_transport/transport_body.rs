@@ -2,11 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq, newtype::AsRefTarget,
 )]
 pub struct TransportBody(
-    bounded_types::domain_types::vector::BoundedVec<
-        u8,
-        0,
-        { super::super::FRONTEND_CONTRACT_BODY_MAX_BYTES },
-    >,
+    bounded_types::domain_types::vector::BoundedVec<u8, 0, { constants_usize::VALUE_16_777_216 }>,
 );
 
 impl TryFrom<Vec<u8>> for TransportBody {

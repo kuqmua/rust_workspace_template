@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)]
 pub(crate) fn try_write_string_into_path_with_outcome(
     path: impl AsRef<std::path::Path>,

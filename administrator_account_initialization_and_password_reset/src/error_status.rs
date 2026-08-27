@@ -1,3 +1,4 @@
+#![allow(clippy::single_call_fn)] // separate same-named owner module preserves command-status mapping ownership
 #[allow(
     clippy::missing_const_for_fn,
     reason = "repository wrappers initialize through the non-const From trait"

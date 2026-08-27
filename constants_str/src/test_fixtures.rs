@@ -421,7 +421,7 @@ pub const PG_SQLSTATE_PREFIX: &str = "PG_SQLSTATE_";
 pub const PG_SQLSTATE_SERIALIZATION_FAILURE: &str = "40001";
 pub const PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION: &str = "22001";
 pub const PG_SQLSTATE_UNIQUE_VIOLATION: &str = "23505";
-pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_common/src/pg_error.rs";
+pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud_common/src/classify_pg_code.rs";
 pub const NEWTYPE_TRY_FROM: &str = "try_from";
 pub const NEWTYPE_FROM_INNER_DERIVE_NAME: &str = "FromInner";
 pub const NEWTYPE_TRY_FROM_DERIVE_NAME: &str = "TryFrom";
@@ -729,19 +729,22 @@ pub const VALUE_08DBA674: &str = "../bounded_types/src/bounded_string.rs";
 pub const VALUE_72A10749: &str = "../bounded_types/src/bounded_string.rs::try_from\n../bounded_types/src/bounded_vec.rs::try_from";
 pub const VALUE_2483AEA6: &str = "../bounded_types/src/bounded_vec.rs";
 pub const VALUE_7630EBEC: &str = "../bounded_types/src/bounded_vec.rs:BoundedVec";
-pub const VALUE_86D03626: &str = "../common_routes/src/domain_types.rs:HealthComponents";
+pub const VALUE_86D03626: &str =
+    "../common_routes/src/domain_types/health_components.rs:HealthComponents";
 pub const VALUE_7E4078D9: &str = "../config_lib/src/domain_types.rs::try_from\n../config_lib/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from";
 pub const VALUE_522C0343: &str = "../config_lib/src/domain_types.rs::try_from\n../server_admin_core/src/domain_types.rs::try_from";
 pub const VALUE_4CB1E1F3: &str =
     "../config_lib/src/http.rs::try_from\n../config_lib/src/pg_pool.rs::try_from";
-pub const VALUE_FAB1545F: &str = "../constants_str_macros/src/domain_types.rs:ConstantParts";
-pub const VALUE_9FB992E8: &str = "../constants_str_macros/src/domain_types.rs:Constants";
-pub const VALUE_D200D86F: &str = "../constants_str_macros/src/domain_types.rs:Fragments";
-pub const VALUE_63BD6017: &str = "../constants_str_macros/src/domain_types.rs:collect";
-pub const VALUE_6C761A40: &str =
-    "../dev_identity_creation_planner/src/domain_types.rs:DevelopmentIdentitySpecs";
+pub const VALUE_FAB1545F: &str =
+    "../constants_str_macros/src/domain_types/constant_parts.rs:ConstantParts";
+pub const VALUE_9FB992E8: &str = "../constants_str_macros/src/domain_types/constants.rs:Constants";
+pub const VALUE_D200D86F: &str = "../constants_str_macros/src/domain_types/fragments.rs:Fragments";
+pub const VALUE_63BD6017: &str =
+    "../constants_str_macros/src/domain_types/define_str_constants_input.rs:collect";
+pub const VALUE_6C761A40: &str = "../dev_identity_creation_planner/src/domain_types/development_identity_specs.rs:DevelopmentIdentitySpecs";
 pub const VALUE_EEF4AEDA: &str = "../file_storage/src/domain_types.rs";
-pub const VALUE_B7558033: &str = "../file_storage/src/domain_types.rs:clone";
+pub const VALUE_B7558033: &str =
+    "../file_storage/src/domain_types/plan_disk_cache_eviction.rs:clone";
 pub const VALUE_7615091D: &str = "../frontend_contract/src/field_contract.rs";
 pub const CODE_STYLE_FRONTEND_ROUTE_CONTRACT_PATH: &str =
     "../frontend_contract/src/route_contract.rs";
@@ -750,12 +753,12 @@ pub const VALUE_05051852: &str = "../frontend_contract/src/problem.rs::validate\
 pub const VALUE_B7324575: &str = "../frontend_contract/src/route.rs";
 pub const VALUE_66B5730A: &str = "../frontend_contract/src/route.rs::try_from\n../pg_crud_common/src/filter_bind_plan.rs::try_from\n../server_runtime_http/src/path_policy.rs::try_from";
 pub const VALUE_E66CEAFB: &str = "../frontend_contract/src/route_coverage.rs";
-pub const VALUE_F68E036F: &str =
-    "../frontend_contract_macros/src/domain_types.rs:SynRouteRegistrySchemas";
+pub const VALUE_F68E036F: &str = "../frontend_contract_macros/src/domain_types/syn_route_registry_schemas.rs:SynRouteRegistrySchemas";
 pub const VALUE_FD73A503: &str = "../frontend_contract_macros/src/lib.rs:to_string";
-pub const VALUE_BC495D5D: &str = "../frontend_contract_validation/src/artifact.rs:String::from";
+pub const VALUE_BC495D5D: &str =
+    "../frontend_contract_validation/src/canonical_json_contract_snapshot.rs:String::from";
 pub const VALUE_E841E205: &str =
-    "../frontend_contract_validation/src/openapi_validation.rs:to_owned";
+    "../frontend_contract_validation/src/openapi_validation/openapi_schema_references.rs:to_owned";
 pub const VALUE_321E6445: &str = "../frontend_contract_validation/src/route_contract_validation.rs";
 pub const VALUE_F2B019BA: &str = "../generate_quotes/src/domain_types.rs::binary_double_quote_style\n../generate_quotes/src/domain_types.rs::double_quote_style";
 pub const VALUE_5BE6CC71: &str = "../generate_quotes/src/domain_types.rs::binary_single_quote_style\n../generate_quotes/src/domain_types.rs::single_quote_style";
@@ -772,59 +775,67 @@ pub const VALUE_A744A72D: &str =
 pub const VALUE_11C1DCC5: &str = "../newtype/src/lib.rs::to_err_string\n../newtype/src/lib.rs::to_err_string_as_ref_str\n../newtype/src/lib.rs::to_err_string_debug";
 pub const VALUE_8E6C7109: &str = "../notification_service/src/routes.rs";
 pub const VALUE_2D700ED6: &str = "../pg_crud_common/src/domain_types.rs::visit_str\n../pg_crud_where_filters/src/domain_types.rs::visit_str";
-pub const VALUE_6BF051A2: &str = "../pg_crud_common/src/domain_types.rs:AllEnumVariants";
-pub const VALUE_090096ED: &str = "../pg_crud_common/src/batch_validation.rs:BatchInvalidItems";
+pub const VALUE_6BF051A2: &str = "../pg_crud_common/src/all_enum_variants.rs:AllEnumVariants";
+pub const VALUE_090096ED: &str =
+    "../pg_crud_common/src/batch_validation/batch_invalid_items.rs:BatchInvalidItems";
 pub const VALUE_CBBA0BFF: &str = "../pg_crud_common/src/bounded_b_tree_map.rs::deserialize\n../pg_crud_common/src/bounded_vec.rs::deserialize\n../pg_crud_where_filters/src/domain_types.rs::deserialize";
-pub const VALUE_94E2B4FA: &str = "../pg_crud_common/src/bounded_unique_vec.rs:BoundedUniqueVec";
-pub const VALUE_D9B93146: &str = "../pg_crud_common/src/bounded_vec.rs:BoundedVec";
-pub const VALUE_6F5D2E20: &str = "../pg_crud_common/src/cardinality.rs:DuplicateCandidates";
+pub const VALUE_94E2B4FA: &str =
+    "../pg_crud_common/src/bounded_unique_vec/bounded_unique_vec.rs:BoundedUniqueVec";
+pub const VALUE_D9B93146: &str = "../pg_crud_common/src/bounded_vec/bounded_vec.rs:BoundedVec";
+pub const VALUE_6F5D2E20: &str =
+    "../pg_crud_common/src/duplicate_candidates.rs:DuplicateCandidates";
 pub const VALUE_1C550714: &str = "../pg_crud_common/src/cursor.rs::try_from\n../pg_crud_common/src/cursor.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from";
-pub const VALUE_9DFC7A97: &str = "../pg_crud_common/src/date_sql_filter.rs:ChronoUtcDateTimes";
+pub const VALUE_9DFC7A97: &str =
+    "../pg_crud_common/src/chrono_utc_date_times.rs:ChronoUtcDateTimes";
 pub const VALUE_07C16E6D: &str = "../pg_crud_common/src/db_schema_conformance.rs::schema_text\n../pg_crud_common/src/db_schema_conformance.rs::schema_text";
-pub const VALUE_0525E2BF: &str =
-    "../pg_crud_common/src/db_schema_conformance.rs:DbColumnContractSnapshots";
-pub const VALUE_CAE88716: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSnapshots";
-pub const VALUE_D51ADF29: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbColumnSpecs";
-pub const VALUE_B1A7F284: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbDefaultSpecs";
-pub const VALUE_975B0C21: &str =
-    "../pg_crud_common/src/db_schema_conformance.rs:DbKeyContractSnapshots";
-pub const VALUE_AA7EE094: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbKeySpecs";
-pub const VALUE_5879251A: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSnapshots";
-pub const VALUE_51CC135E: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbObjectSpecs";
-pub const VALUE_8C2154B5: &str = "../pg_crud_common/src/db_schema_conformance.rs:DbSchemaTexts";
+pub const VALUE_0525E2BF: &str = "../pg_crud_common/src/db_schema_conformance/db_column_contract_snapshots.rs:DbColumnContractSnapshots";
+pub const VALUE_CAE88716: &str =
+    "../pg_crud_common/src/db_schema_conformance/db_column_snapshots.rs:DbColumnSnapshots";
+pub const VALUE_D51ADF29: &str =
+    "../pg_crud_common/src/db_schema_conformance/db_column_specs.rs:DbColumnSpecs";
+pub const VALUE_B1A7F284: &str =
+    "../pg_crud_common/src/db_schema_conformance/db_default_specs.rs:DbDefaultSpecs";
+pub const VALUE_975B0C21: &str = "../pg_crud_common/src/db_schema_conformance/db_key_contract_snapshots.rs:DbKeyContractSnapshots";
+pub const VALUE_AA7EE094: &str =
+    "../pg_crud_common/src/db_schema_conformance/db_key_specs.rs:DbKeySpecs";
+pub const VALUE_5879251A: &str =
+    "../pg_crud_common/src/db_schema_conformance/db_object_snapshots.rs:DbObjectSnapshots";
+pub const VALUE_51CC135E: &str =
+    "../pg_crud_common/src/db_schema_conformance/db_object_specs.rs:DbObjectSpecs";
+pub const VALUE_8C2154B5: &str =
+    "../pg_crud_common/src/db_schema_conformance/db_schema_texts.rs:DbSchemaTexts";
 pub const VALUE_7314D06D: &str =
-    "../pg_crud_common/src/db_schema_conformance.rs:DbStaticSchemaTexts";
+    "../pg_crud_common/src/db_schema_conformance/db_static_schema_texts.rs:DbStaticSchemaTexts";
 pub const VALUE_9AE03CB2: &str = "../pg_crud_common/src/filter_bind_plan.rs:FilterBindPlan";
-pub const VALUE_A417488B: &str = "../pg_crud_common/src/list_total.rs:ListItems";
+pub const VALUE_A417488B: &str = "../pg_crud_common/src/list_total/list_items.rs:ListItems";
 pub const VALUE_CD2A0018: &str = "../pg_crud_common/src/operational_invariants.rs::try_from\n../pg_crud_common/src/sql_identifier.rs::try_from\n../pg_crud_common/src/sql_identifier.rs::try_from";
-pub const VALUE_919ACACB: &str = "../pg_crud_common/src/operational_invariants.rs:PgSqlIdentifiers";
+pub const VALUE_919ACACB: &str = "../pg_crud_common/src/pg_sql_identifiers.rs:PgSqlIdentifiers";
 pub const VALUE_9DB8F65B: &str =
-    "../pg_crud_common/src/order_preserving_deduplication.rs:OrderPreservingValues";
+    "../pg_crud_common/src/order_preserving_values.rs:OrderPreservingValues";
 pub const VALUE_7A32C552: &str = "../pg_crud_common/src/pg_values.rs::to_query_str\n../pg_crud_macro_common/src/emission_types.rs::non_null_or_nullable_str\n../pg_crud_macro_common/src/emission_types.rs::to_path\n../pg_crud_where_filters/src/domain_types.rs::postgreql_syntax";
-pub const VALUE_C7F27415: &str = "../pg_crud_common/src/query_collections.rs:NotEmptyUniqueVec";
+pub const VALUE_C7F27415: &str = "../pg_crud_common/src/not_empty_unique_vec.rs:NotEmptyUniqueVec";
 pub const VALUE_02000EC4: &str = "../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream";
 pub const VALUE_944342EF: &str = "../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/token_emission.rs::generate_impl_pg_crud_default_some_one_element_token_stream";
-pub const VALUE_671231A3: &str =
-    "../pg_crud_macro_common/src/emission_types.rs:ParseTokenStreamStrings";
-pub const VALUE_DEB830DD: &str =
-    "../pg_crud_macro_common/src/emission_types.rs:ProcMacro2GeneratedRustTokenStreamVec";
+pub const VALUE_671231A3: &str = "../pg_crud_macro_common/src/emission_types/parse_token_stream_strings.rs:ParseTokenStreamStrings";
+pub const VALUE_DEB830DD: &str = "../pg_crud_macro_common/src/emission_types/proc_macro2_generated_rust_token_stream_vec.rs:ProcMacro2GeneratedRustTokenStreamVec";
 pub const VALUE_5BB2B57A: &str = "../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from";
 pub const VALUE_9DB464C8: &str = "../pg_crud_pg_table_generate_src/src/source.rs";
-pub const VALUE_DD337AC0: &str = "../pg_crud_pg_table_generate_src/src/source.rs:TableTestNames";
+pub const VALUE_DD337AC0: &str =
+    "../pg_crud_pg_table_generate_src/src/source/table_test_names.rs:TableTestNames";
 pub const VALUE_D63A5858: &str = "../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../pg_crud_pg_types_generate_src/src/source.rs::try_from\n../server_runtime_http/src/metrics_layer.rs::try_from";
 pub const VALUE_06C235F4: &str =
-    "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypeRecords";
-pub const VALUE_2316F647: &str = "../pg_crud_pg_types_generate_src/src/source.rs:GeneratePgTypes";
-pub const VALUE_5D687FEA: &str = "../pg_crud_where_filters/src/domain_types.rs:BoundedVec";
-pub const VALUE_7E7B2B37: &str =
-    "../pg_crud_where_filters/src/domain_types.rs:PgTypeNotEmptyUniqueVec";
+    "../pg_crud_pg_types_generate_src/src/source/generate_pg_type_records.rs:GeneratePgTypeRecords";
+pub const VALUE_2316F647: &str =
+    "../pg_crud_pg_types_generate_src/src/source/generate_pg_types.rs:GeneratePgTypes";
+pub const VALUE_5D687FEA: &str =
+    "../pg_crud_where_filters/src/domain_types/bounded_vec.rs:BoundedVec";
+pub const VALUE_7E7B2B37: &str = "../pg_crud_where_filters/src/domain_types/pg_type_not_empty_unique_vec.rs:PgTypeNotEmptyUniqueVec";
 pub const VALUE_4389D615: &str = "../prepare_pg_databases/src/domain_types.rs";
 pub const VALUE_E4A2A88A: &str =
     "../server_admin/src/repository.rs::into_parts\n../server_admin/src/repository.rs::into_parts";
 pub const VALUE_51DBE253: &str = "../server_admin/src/extractors.rs::from_request\n../server_admin/src/extractors.rs::from_request";
 pub const VALUE_88A7A661: &str = "../server_admin/src/extractors.rs::from_request_parts\n../server_admin/src/extractors.rs::from_request_parts";
-pub const VALUE_CB780650: &str =
-    "../server_admin/src/application_auth.rs:JsonwebtokenAdminDecodingKeys";
+pub const VALUE_CB780650: &str = "../server_admin/src/application_auth/jsonwebtoken_admin_decoding_keys.rs:JsonwebtokenAdminDecodingKeys";
 pub const VALUE_148FAD59: &str = "../server_admin/src/application_html_actions_roles.rs::delete_role\n../server_admin/src/application_html_actions_users.rs::delete_user";
 pub const CODE_STYLE_SERVER_ADMIN_AUTH_SECURITY_PATH: &str = "server_admin/src/security.rs";
 pub const CODE_STYLE_SERVER_ADMIN_MAINTENANCE_PATH: &str = "server_admin/src/maintenance.rs";
@@ -839,14 +850,17 @@ pub const HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS: &str = "../server_runtime_http
 pub const VALUE_757BD453: &str = "../server_runtime_core/src/secret_text.rs::try_from\n../server_runtime_core/src/secret_text.rs::try_from";
 pub const VALUE_57DDC4BF: &str = "../server_runtime_core/src/single_flight.rs";
 pub const VALUE_94FCEDB7: &str = "../server_runtime_http/src/request_id_service.rs:to_string";
-pub const VALUE_1D2594F2: &str = "../server_runtime_http/src/bounded_read.rs:BoundedBytes";
+pub const VALUE_1D2594F2: &str =
+    "../server_runtime_http/src/bounded_read/bounded_bytes.rs:BoundedBytes";
 pub const VALUE_20BD9443: &str = "../server_runtime_http/src/child_process.rs";
-pub const VALUE_A48AAE67: &str =
-    "../server_runtime_http/src/cors.rs:HttpCorsAllowOriginHeaderValues";
+pub const VALUE_A48AAE67: &str = "../server_runtime_http/src/cors/http_cors_allow_origin_header_values.rs:HttpCorsAllowOriginHeaderValues";
 pub const VALUE_CD85A891: &str = "../server_runtime_http/src/geojson.rs::validate_geo_json\n../server_runtime_http/src/geojson.rs::validate_geo_json\n../server_runtime_http/src/geojson.rs::validate_geo_json";
-pub const VALUE_213316BE: &str = "../server_runtime_http/src/http_error_diagnostic.rs:to_string";
-pub const VALUE_B9937202: &str = "../server_runtime_http/src/multipart.rs:MultipartBytesParts";
-pub const VALUE_2941B657: &str = "../server_runtime_http/src/multipart.rs:MultipartTextParts";
+pub const VALUE_213316BE: &str =
+    "../server_runtime_http/src/http_error_diagnostic/http_error_diagnostic.rs:to_string";
+pub const VALUE_B9937202: &str =
+    "../server_runtime_http/src/multipart/multipart_bytes_parts.rs:MultipartBytesParts";
+pub const VALUE_2941B657: &str =
+    "../server_runtime_http/src/multipart/multipart_text_parts.rs:MultipartTextParts";
 pub const VALUE_422EC2EB: &str = "../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from";
 pub const VALUE_FBAC771A: &str = "../tests/src/advanced_policy.rs::visit_expr_await\n../tests/src/advanced_policy.rs::visit_macro";
 pub const VALUE_0D4F3549: &str = "../tests/src/advanced_policy.rs::visit_expr_loop\n../tests/src/advanced_policy.rs::visit_expr_while\n../tests/src/runtime_analysis.rs::visit_expr_async";
@@ -864,9 +878,8 @@ pub const VALUE_4FDDA503: &str = "../tests/src/source_analysis.rs::visit_expr_li
 pub const VALUE_E26644F4: &str = "../tests/src/source_analysis.rs::visit_item_struct\n../tests/src/source_analysis.rs::visit_item_struct\n../tests/src/source_analysis.rs::visit_item_struct";
 pub const VALUE_AE96131E: &str = "../tests/trybuild/route_contract_wrong_request.rs::metadata\n../tests/trybuild/route_contract_wrong_response.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_transport.rs::metadata";
 pub const VALUE_413BDF99: &str =
-    "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2MacroTokens";
-pub const VALUE_EA3B0668: &str =
-    "../workspace_macro_helpers/src/domain_types.rs:ProcMacro2TopLevelCommaParts";
+    "../workspace_macro_helpers/src/domain_types/proc_macro2_macro_tokens.rs:ProcMacro2MacroTokens";
+pub const VALUE_EA3B0668: &str = "../workspace_macro_helpers/src/domain_types/proc_macro2_top_level_comma_parts.rs:ProcMacro2TopLevelCommaParts";
 pub const VALUE_CCA2C2FA: &str = "../workspace_scaffold/src/domain_types.rs";
 pub const VALUE_A7EBF5D2: &str = "../workspace_test_runner/src/execution.rs";
 pub const VALUE_C14CECEC: &str = "./";
@@ -1765,15 +1778,21 @@ pub const VALUE_8269812F: &str =
 pub const VALUE_E4FA4A90: &str = "persistence.error";
 pub const VALUE_D11DB134: &str = "pg_";
 pub const VALUE_BCE1238C: &str = "pg_crud_common/src/advisory_lock.rs";
+pub const VALUE_2CBAA4F4: &str = "pg_crud_common/src/pg_relation_lock_namespace.rs";
+pub const VALUE_D191EE7F: &str = "pg_crud_common/src/pg_relation_resource_ids.rs";
 pub const VALUE_E4B07557: &str = "pg_crud_common/src/bounded_btree_map.rs";
 pub const VALUE_A7D2D1E3: &str = "pg_crud_common/src/cardinality.rs";
 pub const VALUE_5549F923: &str = "pg_crud_common/src/cursor.rs";
+pub const VALUE_96B90C9B: &str = "pg_crud_common/src/cursor_signing_key.rs";
+pub const VALUE_E5C6D18E: &str = "pg_crud_common/src/cursor_codec.rs";
 pub const VALUE_3F67003B: &str = "pg_crud_common/src/date_sql_filter.rs";
+pub const VALUE_11F5A276: &str = "pg_crud_common/src/build_date_sql_filter.rs";
 pub const VALUE_A9465BB5: &str = "pg_crud_common/src/pg_values.rs";
 pub const VALUE_5036238B: &str = "pg_crud_common/src/query_collections.rs";
 pub const VALUE_D0A66D2F: &str = "pg_crud_common/src/query_fragment.rs";
 pub const VALUE_C71E84EC: &str = "pg_crud_common/src/query_pagination.rs";
 pub const VALUE_C85E36AA: &str = "pg_crud_common/src/read_query_plan.rs";
+pub const VALUE_46FA1B05: &str = "pg_crud_common/src/build_stable_read_query_plan.rs";
 pub const VALUE_11CDC13C: &str = "pg_crud_common_macros";
 pub const VALUE_BB268B0B: &str = "pg_crud_common_macros/src/lib.rs";
 pub const VALUE_2A9F7F88: &str = "pg_crud_macro_common";
@@ -1786,13 +1805,18 @@ pub const VALUE_1F61C5FC: &str = "pg_crud_macro_common/src/token_stream_helpers.
 pub const VALUE_62CE157E: &str = "pg_crud_macro_common_macros";
 pub const VALUE_1BEBF98C: &str = "pg_crud_macro_common_macros/src/lib.rs";
 pub const VALUE_AC77DBAA: &str = "pg_crud_pg_table/src/domain_types.rs";
+pub const VALUE_B29D07A8: &str =
+    "pg_crud_pg_table/src/domain_types/complete_pg_table_idempotency_in_connection.rs";
+pub const VALUE_A1750307: &str = "pg_crud_pg_table/src/domain_types/pg_table_idempotency_body.rs";
 pub const VALUE_426047D0: &str = "pg_crud_pg_table_generate/src/lib.rs";
 pub const VALUE_87B73E51: &str = "pg_crud_pg_table_generate_src/src/pipeline.rs";
-pub const VALUE_7FE2AF02: &str = "pg_crud_pg_table_generate_src/src/source.rs";
+pub const VALUE_7FE2AF02: &str =
+    "pg_crud_pg_table_generate_src/src/source/emit_generate_pg_table.rs";
 pub const VALUE_4A7BAF6A: &str = "pg_crud_pg_types_common/src/domain_types.rs";
 pub const VALUE_3282DD39: &str = "pg_crud_pg_types_common/src/lib.rs";
 pub const VALUE_BC1068F8: &str = "pg_crud_pg_types_generate/src/lib.rs";
-pub const VALUE_D405F3E1: &str = "pg_crud_pg_types_generate_src/src/source.rs";
+pub const VALUE_D405F3E1: &str =
+    "pg_crud_pg_types_generate_src/src/source/emit_generate_pg_types.rs";
 pub const VALUE_EFE7711A: &str = "pg_crud_where_filters/src/domain_types.rs";
 pub const VALUE_566A29FB: &str = "pg_crud_where_filters_generate/src/lib.rs";
 pub const VALUE_471AD9D4: &str = "pg_crud_where_filters_generate_src/src/source.rs";
@@ -1928,6 +1952,10 @@ pub const VALUE_D67F4595: &str = "server_admin/src/account.rs";
 pub const VALUE_DD6C0078: &str = "server_admin/src/api.rs";
 pub const VALUE_20A23EAF: &str = "server_admin/src/application_audit.rs";
 pub const VALUE_0690A45F: &str = "server_admin/src/application_auth.rs";
+pub const VALUE_DC454021: &str = "server_admin/src/enforce_rate_limit.rs";
+pub const VALUE_DC37304F: &str =
+    "server_admin/src/persistence/record_audit_success_in_connection.rs";
+pub const VALUE_939FFBC6: &str = "server_admin/src/persistence/load_authenticated_admin_from_db.rs";
 pub const VALUE_1CAAD2DE: &str = "server_admin/src/authn.rs";
 pub const VALUE_B852993C: &str = "server_admin/src/application_data_tables.rs";
 pub const VALUE_3EB7B056: &str = "server_admin/src/html.rs";
@@ -1973,6 +2001,10 @@ pub const VALUE_EC2A2742: &str = "server_runtime_core/src/resource_budget.rs";
 pub const VALUE_E56A7582: &str = "server_runtime_core/src/single_flight.rs";
 pub const VALUE_B4F499E2: &str = "server_runtime_http";
 pub const VALUE_12509C8A: &str = "server_runtime_http/src/domain_types.rs";
+pub const VALUE_9C3011F7: &str = "server_runtime_http/src/limits/arc_tokio_semaphore.rs";
+pub const VALUE_315FCF0A: &str = "server_runtime_http/src/health/shared_health_readiness_arc.rs";
+pub const VALUE_778833C1: &str =
+    "server_runtime_http/src/bounded_read/bounded_read_concurrency_arc_semaphore.rs";
 pub const VALUE_871375E9: &str = "server_runtime_http/src/child_process.rs";
 pub const VALUE_299CBC23: &str = "server_runtime_http/src/health.rs";
 pub const VALUE_EAC3A6DC: &str = "server_runtime_http/src/http_error_diagnostic.rs";
@@ -2304,6 +2336,8 @@ pub const VALUE_2900052A: &str = "workspace_macro_helpers/src/domain_types.rs";
 pub const VALUE_1A456B0D: &str = "workspace_scaffold/src/domain_types.rs";
 pub const VALUE_5FB76CAF: &str = "workspace_scaffold/src/service_catalog.rs";
 pub const VALUE_532433A4: &str = "workspace_test_runner/src/admin_fixture.rs";
+pub const VALUE_3930BC5E: &str =
+    "workspace_test_runner/src/admin_fixture/admin_fixture_string/admin_fixture_string.rs";
 pub const VALUE_392D41BA: &str = "workspace_test_runner/src/execution.rs";
 pub const VALUE_7841C081: &str = "workspace_test_runner/src/print_without_measurement_footer.rs";
 pub const VALUE_53C49EA1: &str = "workspace_test_runner/src/print_without_memusage_footer.rs";
@@ -2321,3 +2355,31 @@ pub const VALUE_1A46177C: &str = "}}]";
 pub const RS_EXTENSION: &str = ".rs";
 pub const TEST_MODULE_SUFFIX: &str = "_tests.rs";
 pub const TEST_FIXTURES_MODULE_SUFFIX: &str = "_fixtures";
+pub const SERVER_ADMIN_FRONTEND_SRC_ADMIN_FIELD_LABEL_RS: &str =
+    "server_admin_frontend/src/admin_field_label.rs";
+pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_ALERT_RS: &str =
+    "server_admin_frontend/src/domain_types_with_owner_alert.rs";
+pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BADGE_RS: &str =
+    "server_admin_frontend/src/domain_types_with_owner_badge.rs";
+pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BUTTON_RS: &str =
+    "server_admin_frontend/src/domain_types_with_owner_button.rs";
+pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_CARD_RS: &str =
+    "server_admin_frontend/src/domain_types_with_owner_card.rs";
+pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_FIELD_RS: &str =
+    "server_admin_frontend/src/domain_types_with_owner_field.rs";
+pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_INPUT_RS: &str =
+    "server_admin_frontend/src/domain_types_with_owner_input.rs";
+pub const CODE_STYLE_MACRO_CLIPPY_CHECK_COMMON_SRC: &str = "macro_clippy_check_common/src";
+pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 10] = [
+    "../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from",
+    "../pg_crud_common/src/cursor_payload.rs::try_from\n../pg_crud_common/src/signed_cursor.rs::try_from",
+    "../config_lib/src/domain_types.rs::try_from\n../config_lib/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types/pg_table_query_part_fragment.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from",
+    "../server_runtime_http/src/notification.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from",
+    "../pg_crud_common/src/pg_scoped_foreign_key_clause_text.rs::try_from\n../pg_crud_common/src/sql_identifier_list_text.rs::try_from\n../pg_crud_common/src/sql_query_text.rs::try_from",
+    "../pg_crud_common/src/pg_filter_text.rs::try_from\n../pg_crud_common/src/sql_like_pattern.rs::try_from\n../runtime_tests/src/domain_types.rs::try_from",
+    "../server_runtime_http/src/metrics_layer.rs::try_from\n../server_runtime_http/src/path_policy.rs::try_from",
+    "../frontend_contract/src/page_transport.rs::validate\n../frontend_contract/src/problem.rs::validate\n../frontend_contract_validation/src/openapi_validation.rs::validate\n../frontend_contract_validation/src/route_contract_validation.rs::validate",
+    "../pg_crud_common/src/pg_type_where.rs::visit_str\n../pg_crud_where_filters/src/domain_types.rs::visit_str",
+    "../pg_crud_pg_table/src/domain_types/pg_table_idempotency_actor.rs::try_from\n../pg_crud_pg_table/src/domain_types/pg_table_idempotency_key.rs::try_from",
+];
+pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrappers retain distinct types while sharing a small validated conversion shape";

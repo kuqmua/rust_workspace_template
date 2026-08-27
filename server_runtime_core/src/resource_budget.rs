@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "resource_budget/bulk_item_resource_budget_provider.rs"]
 mod bulk_item_resource_budget_provider;
 #[path = "resource_budget/idempotency_response_resource_budget_provider.rs"]

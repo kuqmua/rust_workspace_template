@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "bounded_unique_vec/bounded_unique_vec.rs"]
 mod bounded_unique_vec;
 #[path = "bounded_unique_vec/bounded_unique_vec_visitor_phantom_data.rs"]

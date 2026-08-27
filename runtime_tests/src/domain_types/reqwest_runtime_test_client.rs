@@ -2,6 +2,7 @@
 pub(crate) struct ReqwestRuntimeTestClient(reqwest::blocking::Client);
 
 impl ReqwestRuntimeTestClient {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn)]
     pub(crate) fn send_get(
         &self,
@@ -15,6 +16,7 @@ impl ReqwestRuntimeTestClient {
             .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
 
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn)]
     pub(crate) fn send_notification(
         &self,

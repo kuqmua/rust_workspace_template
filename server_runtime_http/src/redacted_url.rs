@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "redacted_url/redact_rtsp_url_userinfo.rs"]
 mod redact_rtsp_url_userinfo;
 #[path = "redacted_url/redact_url_userinfo.rs"]

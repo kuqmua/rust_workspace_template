@@ -11,22 +11,15 @@
 #[serde(try_from = "String")]
 pub struct SqlLikePattern(String);
 
-impl SqlLikePattern {
-    const fn validate(value: &str) -> Result<(), crate::domain_types::SqlLikePatternError> {
-        if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            Err(crate::domain_types::SqlLikePatternError)
-        } else {
-            Ok(())
-        }
-    }
-}
-
 impl TryFrom<String> for SqlLikePattern {
     type Error = crate::domain_types::SqlLikePatternError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::validate(value.as_str())?;
-        Ok(Self(value))
+        if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+            Err(crate::domain_types::SqlLikePatternError)
+        } else {
+            Ok(Self(value))
+        }
     }
 }
 

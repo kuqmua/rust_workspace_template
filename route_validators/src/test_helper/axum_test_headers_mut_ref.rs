@@ -1,3 +1,6 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
+#![allow(clippy::field_scoped_visibility_modifiers)] // split wrapper representation is consumed only by its parent test-helper facade
+
 use super::AxumTestHeaders;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]

@@ -48,10 +48,10 @@ impl RustOrClippy {
         }
     }
 }
-fn declared_child_matches(path: &str, owner: &str) -> bool {
+fn declared_children() -> &'static std::collections::BTreeSet<(String, String)> {
     static DECLARED_CHILDREN: std::sync::OnceLock<std::collections::BTreeSet<(String, String)>> =
         std::sync::OnceLock::new();
-    let declared_children = DECLARED_CHILDREN.get_or_init(|| {
+    DECLARED_CHILDREN.get_or_init(|| {
         fn collect_rs_paths(directory: &std::path::Path, paths: &mut Vec<std::path::PathBuf>) {
             let Ok(entries) = std::fs::read_dir(directory) else {
                 return;
@@ -122,14 +122,54 @@ fn declared_child_matches(path: &str, owner: &str) -> bool {
             });
         }
         declarations
-    });
-    declared_children.contains(&(
+    })
+}
+fn declared_child_matches(path: &str, owner: &str) -> bool {
+    declared_children().contains(&(
         owner
             .trim_start_matches(constants_str::TEXT_ALT_9)
+            .trim_start_matches('/')
             .to_owned(),
         path.trim_start_matches(constants_str::TEXT_ALT_9)
+            .trim_start_matches('/')
             .to_owned(),
     ))
+}
+fn declared_owner_path(path: &str) -> Option<types::SourceTextRef<'static>> {
+    let normalized_path = path
+        .trim_start_matches(constants_str::TEXT_ALT_9)
+        .trim_start_matches('/');
+    let mut owner = declared_children()
+        .iter()
+        .find_map(|(owner, child)| (child == normalized_path).then_some(owner.as_str()))?;
+    while let Some(parent) = declared_children()
+        .iter()
+        .find_map(|(parent, child)| (child == owner).then_some(parent.as_str()))
+    {
+        owner = parent;
+    }
+    Some(types::SourceTextRef::from(owner))
+}
+#[allow(clippy::single_call_fn)] // split-owner lookup keeps declaration traversal centralized
+fn declared_immediate_owner_path(path: &str) -> Option<types::SourceTextRef<'static>> {
+    let normalized_path = path
+        .trim_start_matches(constants_str::TEXT_ALT_9)
+        .trim_start_matches('/');
+    declared_children().iter().find_map(|(owner, child)| {
+        (child == normalized_path).then_some(types::SourceTextRef::from(owner.as_str()))
+    })
+}
+#[allow(clippy::single_call_fn)] // duplicate analysis reuses the shared declaration index
+fn declared_split_owner_path(path: &str) -> Option<types::SourceTextRef<'static>> {
+    let normalized_path = path
+        .trim_start_matches(constants_str::TEXT_ALT_9)
+        .trim_start_matches('/');
+    let owner = declared_immediate_owner_path(normalized_path)?;
+    let owner_stem = owner.get().strip_suffix(constants_str::RS_EXTENSION)?;
+    normalized_path
+        .strip_prefix(owner_stem)
+        .is_some_and(|remainder| remainder.starts_with('/'))
+        .then_some(owner)
 }
 fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
     let syn::Expr::Call(call) = expression else {
@@ -1095,6 +1135,11 @@ fn domain_type_policy_should_check_path(path: types::PathRef<'_>) -> types::Anal
         .starts_with(constants_str::CODE_STYLE_PG_CRUD_COMMON_BENCHES)
         || path
             .as_ref()
+            .to_string_lossy()
+            .trim_start_matches(constants_str::TEXT_ALT_9)
+            .starts_with(constants_str::CODE_STYLE_MACRO_CLIPPY_CHECK_COMMON_SRC)
+        || path
+            .as_ref()
             .starts_with(constants_str::CODE_STYLE_LOCATION_TEST_SRC)
         || path
             .as_ref()
@@ -1106,10 +1151,20 @@ fn domain_type_policy_should_check_path(path: types::PathRef<'_>) -> types::Anal
         || [
             constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_NAVIGATION_RS,
             constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_TABLE_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_ALERT_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BADGE_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BUTTON_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_CARD_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_FIELD_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_INPUT_RS,
             constants_str::SERVER_ADMIN_FRONTEND_SRC_WITH_OWNER_RS,
+            constants_str::SERVER_ADMIN_FRONTEND_SRC_ADMIN_FIELD_LABEL_RS,
         ]
         .iter()
-        .any(|owner| declared_child_matches(path.as_ref().to_string_lossy().as_ref(), owner))
+        .any(|owner| {
+            path.as_ref().ends_with(owner)
+                || declared_child_matches(path.as_ref().to_string_lossy().as_ref(), owner)
+        })
     {
         return types::AnalyzerBool::default();
     }
@@ -1619,7 +1674,9 @@ fn is_runtime_policy_source_path(path: types::PathRef<'_>) -> types::AnalyzerBoo
     }
     if constants_str::CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES
         .iter()
-        .any(|suffix| path_text.ends_with(suffix))
+        .any(|suffix| {
+            path_text.ends_with(suffix) || declared_child_matches(path_text.as_ref(), suffix)
+        })
     {
         return types::AnalyzerBool::default();
     }
@@ -1706,7 +1763,9 @@ fn is_direct_fs_owner_source_path(path: types::PathRef<'_>) -> types::AnalyzerBo
     types::AnalyzerBool::from(
         constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
             .iter()
-            .any(|suffix| path_text.ends_with(suffix)),
+            .any(|suffix| {
+                path_text.ends_with(suffix) || declared_child_matches(path_text.as_ref(), suffix)
+            }),
     )
 }
 fn has_test_only_cfg_attr(i: types::SynItemRef<'_>) -> types::AnalyzerBool {

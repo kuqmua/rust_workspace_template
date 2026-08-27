@@ -1,4 +1,6 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::single_call_fn)] // one bounded query serves the read-only table inspection boundary
+#![allow(clippy::field_scoped_visibility_modifiers, clippy::wildcard_imports)] // split repository adapters expose private wrappers and vocabulary only through this facade
 
 #[path = "adapters_repository_data_tables/base_sql.rs"]
 mod base_sql;

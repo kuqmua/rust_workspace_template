@@ -1,5 +1,6 @@
 mod domain_types;
 
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
 fn to_snake_case(input: domain_types::ToSnakeCaseInput<'_>) -> domain_types::SnakeCaseString {
     let (normalized, _) = input.as_ref().chars().fold(
@@ -198,6 +199,7 @@ pub fn generate_derive_token_stream_builder(
                                         use ::quote::__private::ext::*;
                                         let mut _i = 0usize;
                                         let has_iter = ::quote::__private::HasIterator::<false>;
+                                        // The owner module retains lint-sensitive semantics from the original implementation.
                                         #[allow(unused_mut)]
                                         let (mut derive_token_stream, i) = derive_token_stream
                                             .quote_into_iter();

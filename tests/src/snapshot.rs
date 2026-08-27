@@ -49,6 +49,7 @@ impl RsSourceFile {
     }
 }
 impl CodebaseSnapshot {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn)] // named constructor keeps snapshot initialization readable at the thread-local OnceCell call site
     fn build() -> Self {
         static SOURCE_SNAPSHOT: std::sync::OnceLock<std::sync::Arc<CodebaseSourceSnapshot>> =
@@ -129,6 +130,7 @@ impl CodebaseSnapshot {
     pub(super) fn rs_files(&self) -> &[RsSourceFile] {
         &self.rs_files
     }
+    // The snapshot exposes this derived workspace-name set through one policy consumer.
     #[allow(clippy::single_call_fn)]
     pub(super) fn workspace_crate_names(&self) -> super::types::SourceTextBTreeSet {
         self.source.workspace_crate_names.clone()

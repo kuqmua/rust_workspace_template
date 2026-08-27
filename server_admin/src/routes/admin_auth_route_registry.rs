@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::single_call_fn)] // public facade keeps stable auth module paths while this module owns router and OpenAPI composition
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::domain_types::route_registry(

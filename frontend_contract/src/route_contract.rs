@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "route_contract/action_contract.rs"]
 mod action_contract;
 #[path = "route_contract/action_contracts.rs"]

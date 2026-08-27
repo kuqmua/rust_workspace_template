@@ -13,7 +13,7 @@ impl TryFrom<String> for MetricsResponseBody {
     type Error = super::MetricsResponseBodyError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES {
+        if value.len() > constants_usize::VALUE_8_388_608 {
             Err(super::MetricsResponseBodyError)
         } else {
             Ok(Self(value))

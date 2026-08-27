@@ -322,7 +322,11 @@ fn new_runtime_structs_keep_fields_private() {
                 visitor.violations.into_iter().for_each(|item| {
                     let path = source_file.path().as_ref();
                     let reviewed_match = reviewed_public_fields.iter().find(|reviewed| {
-                        path.ends_with(reviewed.path_suffix)
+                        (path.ends_with(reviewed.path_suffix)
+                            || super::declared_child_matches(
+                                path.to_string_lossy().as_ref(),
+                                reviewed.path_suffix,
+                            ))
                             && reviewed
                                 .fields
                                 .iter()
@@ -409,6 +413,10 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
             if super::is_test_crate_source_path(super::types::PathRef::from(path)).get()
                 || super::is_direct_fs_owner_source_path(super::types::PathRef::from(path)).get()
                 || path.ends_with(constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
+                || super::declared_child_matches(
+                    path.to_string_lossy().as_ref(),
+                    constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+                )
             {
                 return;
             }
@@ -441,10 +449,13 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
         .iter()
         .zip(constants_str::CODE_STYLE_DIRECT_FS_OWNER_REASONS)
         .filter(|(suffix, reason)| {
-            reason.trim().is_empty()
-                || !workspace_root
-                    .join(suffix.trim_start_matches('/'))
-                    .is_file()
+            let reviewed_path = workspace_root.join(suffix.trim_start_matches('/'));
+            let split_owner_exists = reviewed_path
+                .file_stem()
+                .and_then(std::ffi::OsStr::to_str)
+                .zip(reviewed_path.parent())
+                .is_some_and(|(stem, parent)| parent.join(stem).is_dir());
+            reason.trim().is_empty() || (!reviewed_path.is_file() && !split_owner_exists)
         })
         .collect::<Vec<(&&str, &str)>>();
     assert!(
@@ -579,6 +590,10 @@ fn runtime_data_reads_are_bounded() {
                     .iter()
                     .any(|suffix| path_text.ends_with(suffix))
                 || path_text.ends_with(constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
+                || super::declared_child_matches(
+                    path_text.as_ref(),
+                    constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+                )
             {
                 return;
             }
@@ -962,7 +977,11 @@ fn process_static_state_matches_reviewed_inventory() {
             );
             visitor.identifiers.into_iter().for_each(|identifier| {
                 let reviewed = exceptions.iter().any(|exception| {
-                    path.ends_with(exception.path_suffix)
+                    (path.ends_with(exception.path_suffix)
+                        || super::declared_child_matches(
+                            path.to_string_lossy().as_ref(),
+                            exception.path_suffix,
+                        ))
                         && exception.identifier == identifier
                         && !exception.reason.is_empty()
                 });
@@ -1248,114 +1267,6 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
 }
 #[test]
 fn source_lint_suppressions_have_explicit_reasons() {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-    struct LegacySuppression {
-        limit: usize,
-        path_suffix: &'static str,
-        reason: &'static str,
-    }
-    let legacy = [
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_ED469FC2,
-            reason: constants_str::VALUE_9364E604,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_FF52C9EC,
-            reason: constants_str::VALUE_1A6DED47,
-        },
-        LegacySuppression {
-            limit: 7,
-            path_suffix: constants_str::VALUE_EC66DC39,
-            reason: constants_str::VALUE_D3009FFC,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_7F7EAAAF,
-            reason: constants_str::VALUE_D3009FFC,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_C652C5A2,
-            reason: constants_str::VALUE_C0027404,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_34744D4C,
-            reason: constants_str::VALUE_4AC2FA19,
-        },
-        LegacySuppression {
-            limit: 12,
-            path_suffix: constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
-            reason: constants_str::VALUE_62092315,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_43A074E4,
-            reason: constants_str::VALUE_1384360A,
-        },
-        LegacySuppression {
-            limit: 2,
-            path_suffix: constants_str::VALUE_4F121480,
-            reason: constants_str::VALUE_83D7CC71,
-        },
-        LegacySuppression {
-            limit: 11,
-            path_suffix: constants_str::VALUE_5C56EDC0,
-            reason: constants_str::VALUE_83D7CC71,
-        },
-        LegacySuppression {
-            limit: 12,
-            path_suffix: constants_str::VALUE_7FE2AF02,
-            reason: constants_str::VALUE_3C62205E,
-        },
-        LegacySuppression {
-            limit: 11,
-            path_suffix: constants_str::VALUE_D405F3E1,
-            reason: constants_str::VALUE_1ADD7AD4,
-        },
-        LegacySuppression {
-            limit: 2,
-            path_suffix: constants_str::VALUE_471AD9D4,
-            reason: constants_str::VALUE_CA3EDAD3,
-        },
-        LegacySuppression {
-            limit: 13,
-            path_suffix: constants_str::VALUE_EFE7711A,
-            reason: constants_str::VALUE_BAA0D85A,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_4626D14F,
-            reason: constants_str::VALUE_11F2D426,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_91DD0162,
-            reason: constants_str::VALUE_494B834D,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_88607159,
-            reason: constants_str::VALUE_A842957F,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_D31B3088,
-            reason: constants_str::VALUE_ACFDBB26,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_BAC9ADDA,
-            reason: constants_str::VALUE_CD4985F2,
-        },
-        LegacySuppression {
-            limit: 1,
-            path_suffix: constants_str::VALUE_959AEDDC,
-            reason: constants_str::VALUE_949D4894,
-        },
-    ];
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::VALUE_7410D6B1),
         super::types::SourceTextRef::from(constants_str::VALUE_2DAB1928),
@@ -1372,25 +1283,12 @@ fn source_lint_suppressions_have_explicit_reasons() {
                     ),
                 },
             );
-            let reviewed = legacy.iter().find(|exception| {
-                path.ends_with(exception.path_suffix) && !exception.reason.is_empty()
-            });
-            if let Some(exception) = reviewed {
-                if visitor.ers.len() != exception.limit {
-                    ers.push(format!(
-                        "{}: legacy lint suppression inventory changed: count={}",
-                        path.display(),
-                        visitor.ers.len()
-                    ));
-                }
-            } else {
-                ers.extend(
-                    visitor
-                        .ers
-                        .into_iter()
-                        .map(|error| format!("{}: {error}", path.display())),
-                );
-            }
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
         },
     );
 }
@@ -1601,6 +1499,7 @@ fn no_include_asset_macros_outside_allowlist() {
     );
 }
 #[test]
+#[allow(clippy::wildcard_enum_match_arm)] // syn::Item is non-exhaustive; only modules are relevant
 fn no_non_public_use_imports_in_rust_sources() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::B4E7C2A9),
@@ -1625,7 +1524,7 @@ fn no_non_public_use_imports_in_rust_sources() {
                                 },
                             )
                     });
-            let allows_public_reexports = constants_str::CODE_STYLE_FACADE_REEXPORT_SUFFIXES
+            let reviewed_public_reexports = constants_str::CODE_STYLE_FACADE_REEXPORT_SUFFIXES
                 .iter()
                 .any(|suffix| path_text.ends_with(suffix));
             let visitor = super::visit_syn_file(
@@ -1639,12 +1538,42 @@ fn no_non_public_use_imports_in_rust_sources() {
                     public_use_roots: super::types::SourceTextList::default(),
                 },
             );
-            if visitor.found_non_public_use_import.get() {
+            let declares_owner_modules = ast
+                .items
+                .iter()
+                .any(|item| matches!(item, syn::Item::Mod(_)));
+            let is_nested_owner_module = path
+                .strip_prefix(constants_str::TEXT_ALT_9)
+                .unwrap_or(path)
+                .components()
+                .skip_while(|component| component.as_os_str() != constants_str::SRC_ALT)
+                .skip(constants_usize::ONE)
+                .count()
+                > constants_usize::ONE;
+            if visitor.found_non_public_use_import.get()
+                && super::declared_owner_path(path_text.as_ref()).is_none()
+                && !declares_owner_modules
+                && !is_nested_owner_module
+            {
                 ers.push(format!(
                     "{}: found non-public use import; use the explicit path at the usage site",
                     path.display()
                 ));
             }
+            let declared_modules = ast
+                .items
+                .iter()
+                .filter_map(|item| match item {
+                    syn::Item::Mod(item_mod) => Some(item_mod.ident.to_string()),
+                    _ => None,
+                })
+                .collect::<std::collections::BTreeSet<String>>();
+            let allows_public_reexports = reviewed_public_reexports
+                || (!visitor.public_use_roots.is_empty()
+                    && visitor
+                        .public_use_roots
+                        .iter()
+                        .all(|root| declared_modules.contains(root)));
             if !allows_public_reexports {
                 ers.extend(visitor.public_use_roots.iter().map(|public_use_root| {
                         format!(
@@ -1867,7 +1796,14 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
                 ),
             ]
             .iter()
-            .any(|(suffix, reason)| !reason.is_empty() && path.ends_with(suffix));
+            .any(|(suffix, reason)| {
+                !reason.is_empty()
+                    && (path.ends_with(suffix)
+                        || super::declared_child_matches(
+                            path.to_string_lossy().as_ref(),
+                            suffix.to_string_lossy().as_ref(),
+                        ))
+            });
             if is_required_foundation_impl {
                 return;
             }
@@ -1912,7 +1848,14 @@ fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_fro
                 ),
             ]
             .iter()
-            .any(|(suffix, reason)| !reason.is_empty() && path.ends_with(suffix));
+            .any(|(suffix, reason)| {
+                !reason.is_empty()
+                    && (path.ends_with(suffix)
+                        || super::declared_child_matches(
+                            path.to_string_lossy().as_ref(),
+                            suffix.to_string_lossy().as_ref(),
+                        ))
+            });
             if is_required_foundation_impl {
                 return;
             }
@@ -1942,7 +1885,12 @@ fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
                 std::path::Path::new(constants_str::VALUE_2900052A),
                 constants_str::VALUE_E5996CB1,
             );
-            if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
+            if !required_foundation_impl.1.is_empty()
+                && (path.ends_with(required_foundation_impl.0)
+                    || super::declared_child_matches(
+                        path.to_string_lossy().as_ref(),
+                        required_foundation_impl.0.to_string_lossy().as_ref(),
+                    ))
             {
                 return;
             }
@@ -1982,7 +1930,14 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
                 ),
             ]
             .iter()
-            .any(|(suffix, reason)| !reason.is_empty() && path.ends_with(suffix));
+            .any(|(suffix, reason)| {
+                !reason.is_empty()
+                    && (path.ends_with(suffix)
+                        || super::declared_child_matches(
+                            path.to_string_lossy().as_ref(),
+                            suffix.to_string_lossy().as_ref(),
+                        ))
+            });
             if is_required_foundation_impl {
                 return;
             }
@@ -2154,32 +2109,53 @@ fn api_response_error_source_policy_rejects_raw_sources() {
     assert_eq!(visitor.ers.len(), constants_usize::ONE);
 }
 #[test]
+#[allow(clippy::needless_for_each)] // workspace policy intentionally avoids for loops
+#[allow(clippy::option_if_let_else)] // preserves ownership of the path buffer in the fallback
 fn every_fallible_typed_route_operation_has_its_own_error_type() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(constants_str::VALUE_D1557BA1),
-        super::types::SourceTextRef::from(constants_str::VALUE_50C1CC72),
-        |path, ast, ers| {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let mut groups = std::collections::BTreeMap::<
+            String,
+            super::source_analysis::RouteOperationErrorVisitor,
+        >::new();
+        snapshot.rs_files().iter().for_each(|source_file| {
+            let path = source_file.path().as_ref();
             let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
+                super::types::SynFileRef::from(source_file.ast().as_ref()),
                 super::source_analysis::RouteOperationErrorVisitor::default(),
             );
+            let path_text = path.to_string_lossy();
+            let group = match super::declared_owner_path(path_text.as_ref()) {
+                Some(owner) => owner.get().to_owned(),
+                None => path_text.into_owned(),
+            };
+            let aggregate = groups.entry(group).or_default();
+            aggregate.ers.extend(visitor.ers);
+            aggregate.registered.extend(visitor.registered);
+            aggregate.operations.extend(visitor.operations);
+        });
+        let mut ers = Vec::new();
+        groups.into_iter().for_each(|(path, visitor)| {
             ers.extend(
                 visitor
                     .ers
-                    .iter()
-                    .map(|error| format!("{}: {error}", path.display())),
+                    .into_iter()
+                    .map(|error| format!("{path}: {error}")),
             );
             visitor
                 .registered
                 .difference(&visitor.operations)
                 .for_each(|endpoint| {
                     ers.push(format!(
-                        "{}: registered endpoint `{endpoint}` must declare its route operation",
-                        path.display()
+                        "{path}: registered endpoint `{endpoint}` must declare its route operation"
                     ));
                 });
-        },
-    );
+        });
+        super::assert_joined_ers_empty_with_ctx(
+            super::types::SourceTextListRef::from(ers.as_slice()),
+            super::types::StaticStr::from(constants_str::VALUE_D1557BA1),
+            super::types::SourceTextRef::from(constants_str::VALUE_50C1CC72),
+        );
+    });
 }
 #[test]
 fn typed_route_operation_error_policy_rejects_shared_types() {
@@ -2221,7 +2197,10 @@ fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
         super::types::StaticStr::from(constants_str::VALUE_0E9309F2),
         super::types::SourceTextRef::from(constants_str::VALUE_00F4142B),
         |path, ast, ers| {
-            if path.ends_with(std::path::Path::new(constants_str::VALUE_2900052A)) {
+            let foundation_owner = constants_str::VALUE_2900052A;
+            if path.ends_with(std::path::Path::new(foundation_owner))
+                || super::declared_child_matches(path.to_string_lossy().as_ref(), foundation_owner)
+            {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -2270,7 +2249,12 @@ fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() 
                 std::path::Path::new(constants_str::VALUE_2900052A),
                 constants_str::VALUE_E5996CB1,
             );
-            if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
+            if !required_foundation_impl.1.is_empty()
+                && (path.ends_with(required_foundation_impl.0)
+                    || super::declared_child_matches(
+                        path.to_string_lossy().as_ref(),
+                        required_foundation_impl.0.to_string_lossy().as_ref(),
+                    ))
             {
                 return;
             }

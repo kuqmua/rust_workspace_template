@@ -1,6 +1,7 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::module_name_repetitions)] // callers need an unambiguous error name in public signatures
 pub enum BoundedVecError {
     #[error("bounded vector length {actual} exceeds limit {max}")]

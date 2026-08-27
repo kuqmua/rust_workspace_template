@@ -113,6 +113,10 @@ fn service_route_endpoint_composition_uses_shared_registries() {
                 .iter()
                 .filter(|file| {
                     file.path().as_ref().ends_with(path_suffix)
+                        || super::declared_child_matches(
+                            file.path().as_ref().to_string_lossy().as_ref(),
+                            path_suffix,
+                        )
                         || (*path_suffix == constants_str::VALUE_3EB7B056
                             && file
                                 .path()
@@ -189,28 +193,24 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
 fn generated_admin_table_consumers_use_the_shared_catalog() {
     super::snapshot::with_codebase_snapshot(|snapshot| {
         [
-            (
-                constants_str::VALUE_206B48D7,
-                constants_str::VALUE_41EC3410,
-            ),
-            (
-                constants_str::VALUE_8E182ED1,
-                constants_str::VALUE_D6BB9F39,
-            ),
-            (
-                constants_str::VALUE_8E182ED1,
-                constants_str::VALUE_78CE6024,
-            ),
+            (constants_str::VALUE_206B48D7, constants_str::VALUE_41EC3410),
+            (constants_str::VALUE_8E182ED1, constants_str::VALUE_D6BB9F39),
+            (constants_str::VALUE_8E182ED1, constants_str::VALUE_78CE6024),
         ]
         .iter()
         .for_each(|(path_suffix, forbidden)| {
             let source = snapshot
                 .rs_files()
                 .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("94a2f8c1 generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
-                .content()
-                .as_ref();
+                .filter(|file| {
+                    let path = file.path().as_ref().to_string_lossy();
+                    path.ends_with(path_suffix)
+                        || super::declared_child_matches(path.as_ref(), path_suffix)
+                })
+                .map(|file| file.content().as_ref())
+                .collect::<Vec<&str>>()
+                .join(constants_str::NEWLINE);
+            assert!(!source.is_empty(), "94a2f8c1");
             assert!(!source.contains(forbidden), "8b137dd2");
             assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
         });
@@ -271,14 +271,15 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
         let repository = snapshot
             .rs_files()
             .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(constants_str::VALUE_8E182ED1)
+            .filter(|file| {
+                let path = file.path().as_ref().to_string_lossy();
+                path.ends_with(constants_str::VALUE_8E182ED1)
+                    || super::declared_child_matches(path.as_ref(), constants_str::VALUE_8E182ED1)
             })
-            .expect("3ac24886 administrator_data_table_queries_come_from_the_typed_spec invariant must hold")
-            .content()
-            .as_ref();
+            .map(|file| file.content().as_ref())
+            .collect::<Vec<&str>>()
+            .join(constants_str::NEWLINE);
+        assert!(!repository.is_empty(), "3ac24886");
         let admin_api = snapshot
             .rs_files()
             .iter()

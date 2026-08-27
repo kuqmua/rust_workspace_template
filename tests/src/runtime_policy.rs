@@ -63,7 +63,13 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                     allow_arc_value_usage: super::types::AnalyzerBool::from(
                         constants_str::CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES
                             .iter()
-                            .any(|suffix| path.ends_with(suffix)),
+                            .any(|suffix| {
+                                path.ends_with(suffix)
+                                    || super::declared_child_matches(
+                                        path.to_string_lossy().as_ref(),
+                                        suffix,
+                                    )
+                            }),
                     ),
                     ers: super::types::DiagnosticMsgs::default(),
                 },

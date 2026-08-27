@@ -1,32 +1,125 @@
-const ADMIN_AUTH_COLLECTION_MAX_LEN: usize = 10_000usize;
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    serde::Serialize,
-    newtype::DerefInner,
-    newtype::FromInner,
-)]
-#[serde(transparent)]
-pub(crate) struct AdminPasswordChangeRequired(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum AdminSecretTextError {
-    #[error("administrator secret text has invalid bounds")]
-    InvalidBounds,
-    #[error("administrator secret text is too short")]
-    TooShort,
-    #[error("administrator secret text is too long")]
-    TooLong,
-    #[error("administrator secret text contains a NUL character")]
-    ContainsNul,
-    #[error("administrator secret text has an invalid value")]
-    InvalidValue,
-}
+#![allow(clippy::wildcard_imports)] // split security implementation modules share a private facade vocabulary
+#[path = "security/admin_auth_collection_max_len.rs"]
+mod admin_auth_collection_max_len;
+use admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN;
+#[path = "security/admin_password_change_required.rs"]
+mod admin_password_change_required;
+pub(crate) use admin_password_change_required::*;
+#[path = "security/admin_secret_text_error.rs"]
+mod admin_secret_text_error;
+pub use admin_secret_text_error::*;
+#[path = "security/admin_permissions.rs"]
+mod admin_permissions;
+pub(crate) use admin_permissions::*;
+#[path = "security/admin_role_names.rs"]
+mod admin_role_names;
+pub(crate) use admin_role_names::*;
+#[path = "security/admin_auth_collection_error.rs"]
+mod admin_auth_collection_error;
+pub(crate) use admin_auth_collection_error::*;
+#[path = "security/admin_shared_semaphore_arc.rs"]
+mod admin_shared_semaphore_arc;
+pub use admin_shared_semaphore_arc::*;
+#[path = "security/tokio_admin_join_error.rs"]
+mod tokio_admin_join_error;
+pub use tokio_admin_join_error::*;
+#[path = "security/tokio_admin_acquire_error.rs"]
+mod tokio_admin_acquire_error;
+pub use tokio_admin_acquire_error::*;
+#[path = "security/tokio_admin_owned_semaphore_permit.rs"]
+mod tokio_admin_owned_semaphore_permit;
+pub(crate) use tokio_admin_owned_semaphore_permit::*;
+#[path = "security/argon2_admin_password_hash_error.rs"]
+mod argon2_admin_password_hash_error;
+pub use argon2_admin_password_hash_error::*;
+#[path = "security/sqlx_admin_error.rs"]
+mod sqlx_admin_error;
+pub use sqlx_admin_error::*;
+#[path = "security/admin_password.rs"]
+mod admin_password;
+pub use admin_password::*;
+#[path = "security/admin_password_try_from_string_error.rs"]
+mod admin_password_try_from_string_error;
+pub use admin_password_try_from_string_error::*;
+#[path = "security/admin_password_hash.rs"]
+mod admin_password_hash;
+pub use admin_password_hash::*;
+#[path = "security/admin_jwt_secret.rs"]
+mod admin_jwt_secret;
+pub use admin_jwt_secret::*;
+#[path = "security/admin_opaque_token.rs"]
+mod admin_opaque_token;
+pub use admin_opaque_token::*;
+#[path = "security/admin_refresh_token.rs"]
+mod admin_refresh_token;
+pub use admin_refresh_token::*;
+#[path = "security/admin_token_hash.rs"]
+mod admin_token_hash;
+pub use admin_token_hash::*;
+#[path = "security/admin_generated_token.rs"]
+mod admin_generated_token;
+pub use admin_generated_token::*;
+#[path = "security/token.rs"]
+mod token;
+pub use token::*;
+#[path = "security/admin_cookie_secure.rs"]
+mod admin_cookie_secure;
+pub use admin_cookie_secure::*;
+#[path = "security/admin_cookie_max_age_seconds.rs"]
+mod admin_cookie_max_age_seconds;
+pub use admin_cookie_max_age_seconds::*;
+#[path = "security/std_admin_cookie.rs"]
+mod std_admin_cookie;
+pub use std_admin_cookie::*;
+#[path = "security/http_admin_header_map_ref.rs"]
+mod http_admin_header_map_ref;
+pub use http_admin_header_map_ref::*;
+#[path = "security/admin_cookie_kind.rs"]
+mod admin_cookie_kind;
+pub use admin_cookie_kind::*;
+#[path = "security/build_admin_cookie.rs"]
+mod build_admin_cookie;
+pub use build_admin_cookie::*;
+#[path = "security/clear_admin_cookie.rs"]
+mod clear_admin_cookie;
+pub use clear_admin_cookie::*;
+#[path = "security/find_admin_cookie.rs"]
+mod find_admin_cookie;
+pub use find_admin_cookie::*;
+#[path = "security/admin_password_hash_concurrency.rs"]
+mod admin_password_hash_concurrency;
+pub use admin_password_hash_concurrency::*;
+#[path = "security/admin_unix_token_stream.rs"]
+mod admin_unix_token_stream;
+pub use admin_unix_token_stream::*;
+#[path = "security/admin_session_id.rs"]
+mod admin_session_id;
+pub use admin_session_id::*;
+#[path = "security/admin_access_claims.rs"]
+mod admin_access_claims;
+pub use admin_access_claims::*;
+#[path = "security/admin_password_hash_error.rs"]
+mod admin_password_hash_error;
+pub use admin_password_hash_error::*;
+#[path = "security/admin_password_hasher.rs"]
+mod admin_password_hasher;
+pub use admin_password_hasher::*;
+#[path = "security/jsonwebtoken_admin_error.rs"]
+mod jsonwebtoken_admin_error;
+pub use jsonwebtoken_admin_error::*;
+#[path = "security/admin_access_token_error.rs"]
+mod admin_access_token_error;
+pub use admin_access_token_error::*;
+#[path = "security/std_admin_access_token.rs"]
+mod std_admin_access_token;
+pub use std_admin_access_token::*;
+#[path = "security/encode_access_token.rs"]
+mod encode_access_token;
+pub use encode_access_token::*;
+#[path = "security/decode_access_token.rs"]
+mod decode_access_token;
+pub use decode_access_token::*;
+
 impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
     for AdminSecretTextError
 {
@@ -50,22 +143,6 @@ impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
         }
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    serde::Serialize,
-    newtype::AsRefTarget,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub(crate) struct AdminPermissions(
-    bounded_types::domain_types::vector::BoundedVec<
-        super::AdminPermission,
-        0,
-        { ADMIN_AUTH_COLLECTION_MAX_LEN },
-    >,
-);
 impl utoipa::PartialSchema for AdminPermissions {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::domain_types::vector::BoundedVec<
@@ -76,22 +153,6 @@ impl utoipa::PartialSchema for AdminPermissions {
     }
 }
 impl utoipa::ToSchema for AdminPermissions {}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    serde::Serialize,
-    newtype::AsRefTarget,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub(crate) struct AdminRoleNames(
-    bounded_types::domain_types::vector::BoundedVec<
-        super::AdminRoleName,
-        0,
-        { ADMIN_AUTH_COLLECTION_MAX_LEN },
-    >,
-);
 impl utoipa::PartialSchema for AdminRoleNames {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::domain_types::vector::BoundedVec<
@@ -102,11 +163,6 @@ impl utoipa::PartialSchema for AdminRoleNames {
     }
 }
 impl utoipa::ToSchema for AdminRoleNames {}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("administrator authorization collection exceeds maximum length")]
-pub(crate) struct AdminAuthCollectionError;
 impl TryFrom<Vec<super::AdminPermission>> for AdminPermissions {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<super::AdminPermission>) -> Result<Self, Self::Error> {
@@ -128,38 +184,6 @@ impl From<bounded_types::domain_types::BoundedValueError> for AdminAuthCollectio
         Self
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct AdminSharedSemaphoreArc(std::sync::Arc<tokio::sync::Semaphore>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
-)]
-pub struct TokioAdminJoinError(tokio::task::JoinError);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
-)]
-pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-#[allow(
-    dead_code,
-    reason = "the owned permit is held for its drop semantics while password hashing runs"
-)]
-pub(crate) struct TokioAdminOwnedSemaphorePermit(tokio::sync::OwnedSemaphorePermit);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    newtype::DebugTransparent,
-    newtype::FromInner,
-)]
-pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DebugTransparent,
-    thiserror::Error,
-    newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct SqlxAdminError(sqlx::Error);
 impl SqlxAdminError {
     pub(crate) fn into_inner(self) -> sqlx::Error {
         self.0
@@ -174,21 +198,6 @@ impl From<server_admin_contract::domain_types::AdminIdTryFromI64Error> for SqlxA
     fn from(value: server_admin_contract::domain_types::AdminIdTryFromI64Error) -> Self {
         Self::from(sqlx::Error::Decode(Box::new(value)))
     }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DebugRedacted,
-    newtype::FromInner,
-    serde::Deserialize,
-)]
-#[serde(try_from = "String")]
-pub struct AdminPassword(super::SecrecyAdminString);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-pub enum AdminPasswordTryFromStringError {
-    #[error("{}", constants_str::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID)]
-    InvalidLength,
 }
 impl utoipa::PartialSchema for AdminPassword {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
@@ -242,10 +251,6 @@ impl AdminPassword {
         self.0
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
-)]
-pub struct AdminPasswordHash(pg_types_text_misc::StringAsNonNullTextSecret);
 impl AdminPasswordHash {
     #[must_use]
     pub(crate) fn expose(&self) -> super::StdAdminStrRef<'_> {
@@ -257,20 +262,12 @@ impl AdminPasswordHash {
         Self::from(value)
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
-)]
-pub struct AdminJwtSecret(super::SecrecyAdminString);
 impl AdminJwtSecret {
     #[must_use]
     pub fn new(value: super::SecrecyAdminString) -> Self {
         Self::from(value)
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
-)]
-pub struct AdminOpaqueToken(super::SecrecyAdminString);
 impl AdminOpaqueToken {
     #[must_use]
     pub fn new(value: super::SecrecyAdminString) -> Self {
@@ -286,10 +283,6 @@ impl AdminOpaqueToken {
         )))
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
-)]
-pub struct AdminRefreshToken(AdminOpaqueToken);
 impl AdminRefreshToken {
     #[must_use]
     pub fn new(value: AdminOpaqueToken) -> Self {
@@ -302,10 +295,6 @@ impl AdminRefreshToken {
         )
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
-)]
-pub struct AdminTokenHash(super::SecrecyAdminString);
 impl AdminTokenHash {
     #[must_use]
     #[allow(
@@ -319,11 +308,6 @@ impl AdminTokenHash {
     pub fn expose(&self) -> super::StdAdminStrRef<'_> {
         super::StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str())
     }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub struct AdminGeneratedToken {
-    hash: AdminTokenHash,
-    token: AdminOpaqueToken,
 }
 impl AdminGeneratedToken {
     pub fn generate() -> Result<Self, AdminSecretTextError> {
@@ -344,60 +328,10 @@ impl AdminGeneratedToken {
         &self.token
     }
 }
-pub fn token(token: &AdminOpaqueToken) -> Result<AdminTokenHash, AdminSecretTextError> {
-    super::hash_opaque_token::hash_opaque_token(token)
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-pub struct AdminCookieSecure(bool);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-pub struct AdminCookieMaxAgeSeconds(u64);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    newtype::BoundedString,
-    newtype::AsRefOwned,
-    newtype::IntoInner,
-)]
-#[bounded_string(max = 8192, description = "administrator cookie")]
-pub struct StdAdminCookie(String);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
-)]
-pub struct HttpAdminHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
 impl<'headers_lt> HttpAdminHeaderMapRef<'headers_lt> {
     pub(crate) const fn get(self) -> &'headers_lt http::HeaderMap {
         self.0
     }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AdminCookieKind {
-    Access,
-    Csrf,
-    Refresh,
 }
 impl AdminCookieKind {
     fn name(self) -> super::StdAdminStrRef<'static> {
@@ -408,124 +342,20 @@ impl AdminCookieKind {
         })
     }
 }
-#[must_use]
-pub fn build_admin_cookie(
-    kind: AdminCookieKind,
-    value: super::StdAdminStrRef<'_>,
-    max_age: AdminCookieMaxAgeSeconds,
-    secure: AdminCookieSecure,
-) -> StdAdminCookie {
-    let http_only = if matches!(kind, AdminCookieKind::Csrf) {
-        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
-    } else {
-        constants_str::HTTPONLY
-    };
-    let secure_attr = if secure.0 {
-        constants_str::SECURE
-    } else {
-        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
-    };
-    StdAdminCookie::try_from(format!(
-        "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attr}",
-        kind.name().as_ref(),
-        value.as_ref(),
-        max_age.0
-    ))
-    .unwrap_or_else(StdAdminCookie::from)
-}
-#[must_use]
-pub fn clear_admin_cookie(kind: AdminCookieKind, secure: AdminCookieSecure) -> StdAdminCookie {
-    build_admin_cookie(
-        kind,
-        super::StdAdminStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
-        AdminCookieMaxAgeSeconds::from(0),
-        secure,
-    )
-}
-#[must_use]
-pub fn find_admin_cookie(
-    headers: HttpAdminHeaderMapRef<'_>,
-    kind: AdminCookieKind,
-) -> Option<super::StdAdminStrRef<'_>> {
-    match server_runtime_http::domain_types::resolve_unique_cookie(
-        server_runtime_http::domain_types::HttpCookieHeadersRef::from(headers.0),
-        server_runtime_http::domain_types::HttpCookieNameRef::from(kind.name().as_ref()),
-    ) {
-        server_runtime_http::domain_types::CookieResolution::Resolved(value) => {
-            Some(super::StdAdminStrRef::from(<&str>::from(value)))
-        }
-        server_runtime_http::domain_types::CookieResolution::Invalid
-        | server_runtime_http::domain_types::CookieResolution::Missing => None,
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-pub struct AdminPasswordHashConcurrency(super::AdminNonZeroUsize);
 impl AdminPasswordHashConcurrency {
     pub(crate) const fn get(self) -> super::AdminNonZeroUsize {
         self.0
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::FromInner,
-)]
-#[serde(from = "u64")]
-pub struct AdminUnixTokenStream(u64);
 impl AdminUnixTokenStream {
     pub(crate) const fn get(self) -> u64 {
         self.0
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::FromInner,
-)]
-#[serde(from = "super::UuidAdminValue")]
-pub struct AdminSessionId(super::UuidAdminValue);
 impl AdminSessionId {
     pub(crate) const fn get(self) -> super::UuidAdminValue {
         self.0
     }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-)]
-pub struct AdminAccessClaims {
-    aud: config_lib::domain_types::AdminTokenAudience,
-    exp: AdminUnixTokenStream,
-    iat: AdminUnixTokenStream,
-    iss: config_lib::domain_types::AdminTokenIssuer,
-    sub: super::AdminUserId,
-    jti: AdminSessionId,
 }
 impl AdminAccessClaims {
     #[must_use]
@@ -555,19 +385,6 @@ impl AdminAccessClaims {
         self.jti
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum AdminPasswordHashError {
-    #[error("administrator password hashing task failed: {0:?}")]
-    Join(TokioAdminJoinError),
-    #[error("administrator password hashing failed: {0:?}")]
-    PasswordHash(Argon2AdminPasswordHashError),
-    #[error("administrator password hashing concurrency limiter was closed: {0:?}")]
-    SemaphoreClosed(TokioAdminAcquireError),
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-pub struct AdminPasswordHasher {
-    semaphore: AdminSharedSemaphoreArc,
-}
 #[allow(
     clippy::multiple_inherent_impl,
     reason = "semaphore acquisition stays with the security-owned wrapper while hashing behavior stays in the password module"
@@ -592,25 +409,6 @@ impl AdminPasswordHasher {
             })
     }
 }
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
-)]
-pub struct JsonwebtokenAdminError(jsonwebtoken::errors::Error);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error("administrator access token operation failed: {0:?}")]
-#[derive(newtype::FromInner)]
-pub struct AdminAccessTokenError(JsonwebtokenAdminError);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    PartialEq,
-    Eq,
-    newtype::BoundedString,
-    newtype::AsRefOwned,
-    newtype::IntoInner,
-)]
-#[bounded_string(max = 8192, description = "administrator access token")]
-pub struct StdAdminAccessToken(String);
 impl From<StdAdminAccessTokenTryFromStringError> for AdminSecretTextError {
     fn from(value: StdAdminAccessTokenTryFromStringError) -> Self {
         match value {
@@ -626,41 +424,6 @@ impl std::fmt::Debug for StdAdminAccessToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(constants_str::REDACTED_ALT_3)
     }
-}
-pub fn encode_access_token(
-    claims: &AdminAccessClaims,
-    secret: &AdminJwtSecret,
-) -> Result<StdAdminAccessToken, AdminAccessTokenError> {
-    jsonwebtoken::encode(
-        &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256),
-        claims,
-        &jsonwebtoken::EncodingKey::from_secret(
-            secrecy::ExposeSecret::expose_secret(secret.0.as_ref()).as_bytes(),
-        ),
-    )
-    .map(StdAdminAccessToken)
-    .map_err(JsonwebtokenAdminError::from)
-    .map_err(AdminAccessTokenError::from)
-}
-pub fn decode_access_token(
-    token: &StdAdminAccessToken,
-    secret: &AdminJwtSecret,
-    issuer: &config_lib::domain_types::AdminTokenIssuer,
-    audience: &config_lib::domain_types::AdminTokenAudience,
-) -> Result<AdminAccessClaims, AdminAccessTokenError> {
-    let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
-    validation.set_issuer(&[issuer.as_ref()]);
-    validation.set_audience(&[audience.as_ref()]);
-    jsonwebtoken::decode::<AdminAccessClaims>(
-        token.as_ref(),
-        &jsonwebtoken::DecodingKey::from_secret(
-            secrecy::ExposeSecret::expose_secret(secret.0.as_ref()).as_bytes(),
-        ),
-        &validation,
-    )
-    .map(|data| data.claims)
-    .map_err(JsonwebtokenAdminError::from)
-    .map_err(AdminAccessTokenError::from)
 }
 
 #[cfg(test)]

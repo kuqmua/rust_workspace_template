@@ -1,7 +1,7 @@
 #[test]
 fn contract_bodies_reject_values_above_shared_limit() {
     let oversized =
-        vec![constants_u8::ZERO; super::FRONTEND_CONTRACT_BODY_MAX_BYTES + constants_usize::ONE];
+        vec![constants_u8::ZERO; constants_usize::VALUE_16_777_216 + constants_usize::ONE];
     assert_eq!(
         super::TransportBody::try_from(oversized),
         Err(super::FrontendContractBodyError)

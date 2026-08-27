@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "axum_body.rs"]
 mod axum_body;
 #[path = "axum_body_size_error.rs"]

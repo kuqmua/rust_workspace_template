@@ -1,3 +1,7 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules stay paired with their facade imports and reexports"
+)]
 #[path = "openapi_validation/open_api_contract_text.rs"]
 mod open_api_contract_text;
 pub use open_api_contract_text::*;

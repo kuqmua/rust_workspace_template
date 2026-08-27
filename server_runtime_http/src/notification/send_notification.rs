@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)]
 pub(super) async fn send_notification<Sender>(
     state: super::AxumNotificationState<Sender>,

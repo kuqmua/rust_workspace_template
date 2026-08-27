@@ -5,6 +5,7 @@
 pub struct HttpContractStatus(u16);
 
 impl HttpContractStatus {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)]
     fn validate(
         value: &u16,

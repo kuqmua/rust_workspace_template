@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)]
 
 use super::create_notification::__path_create_notification;

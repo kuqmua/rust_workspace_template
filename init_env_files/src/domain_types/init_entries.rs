@@ -1,3 +1,7 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
 use super::InitializationEntry;
 use bounded_types::domain_types::vector::BoundedVec;
 

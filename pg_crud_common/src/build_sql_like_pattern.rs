@@ -7,13 +7,13 @@ pub fn build_sql_like_pattern(
         crate::domain_types::SqlLikeMatchMode::EndsWith
         | crate::domain_types::SqlLikeMatchMode::StartsWith => constants_usize::ONE,
     };
-    let input = input.get();
-    let reserved_count = input
+    let input_value = input.get();
+    let reserved_count = input_value
         .bytes()
         .filter(|byte| matches!(byte, b'\\' | b'%' | b'_'))
         .count();
     let mut output = String::with_capacity(
-        input
+        input_value
             .len()
             .saturating_add(reserved_count)
             .saturating_add(wildcard_count),
@@ -25,7 +25,7 @@ pub fn build_sql_like_pattern(
     ) {
         output.push('%');
     }
-    input.chars().for_each(|character| {
+    input_value.chars().for_each(|character| {
         if matches!(character, '\\' | '%' | '_') {
             output.push('\\');
         }

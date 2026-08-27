@@ -9,7 +9,7 @@ error[E0308]: mismatched types
    = note: expected reference `&u64`
               found reference `&String`
 note: function defined here
-  --> $WORKSPACE/frontend_contract/src/route.rs
+  --> $WORKSPACE/frontend_contract/src/route/typed_parameterized_route_path.rs
    |
    | pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> ParameterizedRoutePath
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "single_flight/arc_single_flight_rw_lock.rs"]
 mod arc_single_flight_rw_lock;
 #[path = "single_flight/single_flight.rs"]

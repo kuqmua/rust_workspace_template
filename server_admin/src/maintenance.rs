@@ -14,7 +14,7 @@ mod sqlx_admin_migrate_error;
 pub use sqlx_admin_migrate_error::*;
 #[path = "maintenance/admin_migrate_error_inner.rs"]
 mod admin_migrate_error_inner;
-use admin_migrate_error_inner::*;
+use admin_migrate_error_inner::AdminMigrateErrorInner;
 #[path = "maintenance/admin_migrate_error.rs"]
 mod admin_migrate_error;
 pub use admin_migrate_error::*;

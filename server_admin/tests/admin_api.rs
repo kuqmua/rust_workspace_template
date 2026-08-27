@@ -1,5 +1,7 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(unused_crate_dependencies)]
 // integration target inherits the library dependency graph while exercising the assembled public router
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::tests_outside_test_module)] // every item in this integration target is compiled exclusively by the test harness
 #[path = "admin_api/data_tables.rs"]
 mod data_tables;

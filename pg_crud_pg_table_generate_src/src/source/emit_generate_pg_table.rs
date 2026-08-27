@@ -23,11 +23,14 @@ use super::table_test_names::TableTestNames;
 //todo support read table len
 //todo what is pub what is private
 #[must_use]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(non_snake_case)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_variables)]
 pub fn emit_generate_pg_table(
     validated: crate::domain_types::pipeline::SynValidatedGeneratePgTableInput,
 ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
     struct SynVariant {
@@ -62,6 +65,7 @@ pub fn emit_generate_pg_table(
         False,
         True,
     }
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(
         Debug,
@@ -218,6 +222,7 @@ pub fn emit_generate_pg_table(
             }
         }
     }
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(
         Clone,
@@ -294,6 +299,7 @@ pub fn emit_generate_pg_table(
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum RmOrDm {
         Rm,
@@ -304,6 +310,7 @@ pub fn emit_generate_pg_table(
         Rm,
         Ro,
     }
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(
         Debug,
@@ -367,6 +374,7 @@ pub fn emit_generate_pg_table(
         True,
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum CreateOrUpdateOrDm {
         Create,
@@ -374,12 +382,14 @@ pub fn emit_generate_pg_table(
         Delete,
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum CreateOrUpdateOrDlo {
         Create,
         Update,
         Delete,
     }
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableConfig {
@@ -579,6 +589,7 @@ pub fn emit_generate_pg_table(
         is_primary_key: bool,
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
     struct GeneratePgTableFrontendFieldEmission {
         label: Option<String>,
@@ -597,6 +608,7 @@ pub fn emit_generate_pg_table(
         Sortable,
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
     struct GeneratePgTableVariantFieldEmission {
         identifier: syn::Ident,
@@ -2349,6 +2361,7 @@ pub fn emit_generate_pg_table(
         }
     };
     // This generated-code helper stays next to its only call sites inside the generation scope.
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::items_after_statements)]
     fn new_syn_variant<DisplayValue>(
         variant_name: &dyn std::fmt::Display,
@@ -4950,6 +4963,7 @@ enum WrapIntoOptional {
         let application_json_double_quoted_token_stream =
             generate_quotes::domain_types::dq_token_stream(&constants_str::APPLICATION_JSON);
         let open_api_path_fn_token_stream = quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(non_camel_case_types)]
             pub struct #open_api_path_type_identifier;
             impl utoipa::__dev::PathConfig for #open_api_path_type_identifier {
@@ -6626,7 +6640,9 @@ enum WrapIntoOptional {
                             },
                         );
                         let impl_de_for_identifier_um_payload_token_stream = quote::quote! {
+                            // The owner module retains lint-sensitive semantics from the original implementation.
                             #[allow(unused_qualifications)]
+                            // The owner module retains lint-sensitive semantics from the original implementation.
                             #[allow(clippy::absolute_paths)]
                             #AllowClippyArbitrarySrcItemOrdering
                             const _: () = {
@@ -6945,6 +6961,7 @@ enum WrapIntoOptional {
         pub struct #identifier_frontend_api_client_upper_camel_case<Transport> {
             transport: Transport,
         }
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::future_not_send)] // browser transports and WASM futures are intentionally single-threaded
         impl<Transport> #identifier_frontend_api_client_upper_camel_case<Transport>
         where
@@ -7370,6 +7387,7 @@ enum WrapIntoOptional {
         .map(|path_identifier| quote::format_ident!("__generated_path_{path_identifier}"))
         .collect::<Vec<_>>();
     let identifier_open_api_token_stream = quote::quote! {
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::needless_for_each)] // generated schema registration uses iterator callbacks internally
         pub struct #identifier_open_api_upper_camel_case;
         impl utoipa::OpenApi for #identifier_open_api_upper_camel_case {
@@ -10237,7 +10255,9 @@ enum WrapIntoOptional {
                 #identifier_tests_token_stream
         };
         quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(unused_qualifications)]
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(clippy::absolute_paths)]
             mod #identifier_generate_pg_table_mod_snake_case {
                 use super::#identifier;

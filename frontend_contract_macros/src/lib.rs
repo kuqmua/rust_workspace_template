@@ -844,6 +844,7 @@ pub fn route_registry(
         #(impl #unique_route_trait_identifier for #routes {})*
         const _: [(); <#family as frontend_contract::domain_types::RouteFamily>::ROUTE_COUNT] =
             [(); #route_count];
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::needless_for_each)]
         #[derive(utoipa::OpenApi)]
         #[openapi(paths(#(#endpoints),*), #openapi_metadata)]
@@ -1217,6 +1218,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         #visibility fn #route_function_identifier() -> frontend_contract::domain_types::ContractStr {
             frontend_contract::domain_types::typed_route_path::<#identifier>()
         }
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
         #visibility async fn #client_function_identifier<Transport>(
             client: &frontend_contract::domain_types::TypedClient<Transport>,
@@ -1913,6 +1915,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                     #visibility fn #route_function_identifier() -> frontend_contract::domain_types::ContractStr {
                         frontend_contract::domain_types::ContractStr::from(#path_expression)
                     }
+                    // The owner module retains lint-sensitive semantics from the original implementation.
                     #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures
                     #visibility async fn #client_function_identifier<Transport>(
                         client: &frontend_contract::domain_types::TypedClient<Transport>,

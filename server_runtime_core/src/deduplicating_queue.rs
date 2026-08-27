@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "deduplicating_queue/collections_hash_set.rs"]
 mod collections_hash_set;
 #[path = "deduplicating_queue/collections_vec_deque.rs"]

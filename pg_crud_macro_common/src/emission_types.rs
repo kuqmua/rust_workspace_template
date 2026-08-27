@@ -72,7 +72,7 @@ mod dimension_index_number;
 pub use dimension_index_number::*;
 #[path = "emission_types/is_nl_prefix_str_max_len.rs"]
 mod is_nl_prefix_str_max_len;
-use is_nl_prefix_str_max_len::*;
+use is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN;
 
 pg_crud_macro_common_macros::bool_enum_to_tokens!(AddOperatorUndrscr, false => naming::domain_types::AddOperatorSnakeCase, true => quote::quote! {_});
 pg_crud_macro_common_macros::bool_enum_to_tokens!(ColumnParameterUndrscr, false => naming::domain_types::ColumnSnakeCase, true => quote::quote! {_});

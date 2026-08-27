@@ -1,5 +1,7 @@
 #[must_use]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(non_snake_case)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_variables)]
 pub fn generate_pg_table(
     input: macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef<'_>,

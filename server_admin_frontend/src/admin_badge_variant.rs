@@ -6,7 +6,7 @@ pub(crate) enum AdminBadgeVariant {
 }
 
 impl AdminBadgeVariant {
-    pub(super) fn class(self) -> &'static str {
+    pub(super) const fn class(self) -> &'static str {
         match self {
             Self::Neutral => constants_str::VALUE_5386B853,
             Self::Success => constants_str::VALUE_01AFB233,

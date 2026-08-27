@@ -6,8 +6,7 @@ pub struct HttpMetricsLayer {
 impl Default for HttpMetricsLayer {
     fn default() -> Self {
         Self::new(super::HttpMetricsPathCacheMaximum::from(
-            std::num::NonZeroUsize::MIN
-                .saturating_add(super::DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM - 1usize),
+            std::num::NonZeroUsize::MIN.saturating_add(constants_usize::VALUE_4_096 - 1usize),
         ))
     }
 }

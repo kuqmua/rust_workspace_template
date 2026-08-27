@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(unused_crate_dependencies)] // integration test links the package dependency set while exercising the re-exported derive macro
 
 #[cfg(test)]

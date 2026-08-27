@@ -1,6 +1,13 @@
-const BASE_GIT_COMMIT_LINK_LEN: usize =
-    constants_str::NAMING_GITHUB_URL.len() + constants_str::GIT_INFO_TREE_SEGMENT.len();
-const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules stay paired with their facade imports and reexports"
+)]
+#[path = "domain_types/base_git_commit_link_len.rs"]
+mod base_git_commit_link_len;
+use base_git_commit_link_len::BASE_GIT_COMMIT_LINK_LEN;
+#[path = "domain_types/git_info_string_max_len.rs"]
+mod git_info_string_max_len;
+use git_info_string_max_len::GIT_INFO_STRING_MAX_LEN;
 #[path = "domain_types/git_commit_id_ref.rs"]
 mod git_commit_id_ref;
 pub use git_commit_id_ref::*;
@@ -33,7 +40,7 @@ mod git_commit_link_capacity;
 pub use git_commit_link_capacity::*;
 #[path = "domain_types/git_commit_link_output_ref_mut.rs"]
 mod git_commit_link_output_ref_mut;
-use git_commit_link_output_ref_mut::*;
+use git_commit_link_output_ref_mut::GitCommitLinkOutputRefMut;
 #[path = "domain_types/validate_project_commit_error.rs"]
 mod validate_project_commit_error;
 pub use validate_project_commit_error::*;

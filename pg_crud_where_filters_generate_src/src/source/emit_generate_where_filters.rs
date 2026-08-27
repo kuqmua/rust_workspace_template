@@ -11,12 +11,14 @@ pub fn emit_generate_where_filters(
             maybe_extra_traits_token_stream: Option<proc_macro2::TokenStream>,
         },
     }
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout)]
     enum PgTypePtrn {
         Standard,
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum PgTypeKind {
         Standard,
@@ -932,6 +934,7 @@ pub fn emit_generate_where_filters(
         gend
     };
     let imports_token_stream = quote::quote! {
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::wildcard_imports)]
         use super::*;
     };
@@ -953,9 +956,13 @@ pub fn emit_generate_where_filters(
     };
     let generate_where_filters_mod = quote::format_ident!("generate_where_filters_mod");
     let gend = quote::quote! {
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(unused_qualifications)]
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(unused_variables)]
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::absolute_paths)]
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::arbitrary_source_item_ordering)]
         mod #generate_where_filters_mod {
             #imports_token_stream

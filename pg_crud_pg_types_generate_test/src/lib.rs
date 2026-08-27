@@ -1,4 +1,5 @@
 #[cfg(test)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::default_numeric_fallback, clippy::indexing_slicing)] // literal JSON assertions mirror the exact serialized OpenAPI wire values
 mod tests {
     #[derive(

@@ -1,3 +1,11 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
 #[path = "mock_notification_provider/mock_notification_provider.rs"]
 mod mock_notification_provider;
 

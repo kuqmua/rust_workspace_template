@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "axum_commit_to_str_conversion_error.rs"]
 mod axum_commit_to_str_conversion_error;
 #[path = "check_commit/check_commit.rs"]

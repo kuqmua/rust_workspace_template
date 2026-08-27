@@ -1,4 +1,6 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::needless_for_each)] // utoipa 4 generated OpenAPI registration uses iterator callbacks
+#![allow(clippy::wildcard_imports)] // split authentication modules share a private facade vocabulary
 #[path = "account_change_own_password.rs"]
 mod account_change_own_password;
 #[path = "account_me.rs"]
@@ -95,6 +97,8 @@ mod data_tables_list;
 mod extractors;
 #[path = "html.rs"]
 mod html;
+#[path = "application_auth/jsonwebtoken_admin_encoding_key.rs"]
+mod jsonwebtoken_admin_encoding_key;
 #[path = "persistence.rs"]
 mod persistence;
 #[path = "application_roles.rs"]
@@ -121,456 +125,138 @@ mod shared;
 mod state;
 #[path = "application_users.rs"]
 mod users;
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
-)]
-pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::AsRefTarget, newtype::FromInner,
-)]
-struct JsonwebtokenAdminDecodingKeys(Vec<jsonwebtoken::DecodingKey>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-struct StdAdminAccessTtlSecondsNonZeroU64(std::num::NonZeroU64);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StdAdminAccessTtlSeconds(StdAdminAccessTtlSecondsNonZeroU64);
-impl TryFrom<u64> for StdAdminAccessTtlSeconds {
-    type Error = AdminAuthPositiveValueError;
+pub use jsonwebtoken_admin_encoding_key::*;
+#[path = "application_auth/std_admin_access_ttl_seconds.rs"]
+mod std_admin_access_ttl_seconds;
+pub use std_admin_access_ttl_seconds::*;
+#[path = "application_auth/std_admin_refresh_ttl_seconds.rs"]
+mod std_admin_refresh_ttl_seconds;
+pub use std_admin_refresh_ttl_seconds::*;
+#[path = "application_auth/std_admin_session_limit.rs"]
+mod std_admin_session_limit;
+pub use std_admin_session_limit::*;
+#[path = "application_auth/std_admin_failure_threshold.rs"]
+mod std_admin_failure_threshold;
+pub use std_admin_failure_threshold::*;
+#[path = "application_auth/admin_auth_positive_value_error.rs"]
+mod admin_auth_positive_value_error;
+pub use admin_auth_positive_value_error::*;
+#[path = "application_auth/std_admin_failure_delay_millis.rs"]
+mod std_admin_failure_delay_millis;
+pub use std_admin_failure_delay_millis::*;
+#[path = "application_auth/admin_auth_policy.rs"]
+mod admin_auth_policy;
+pub use admin_auth_policy::*;
+#[path = "application_auth/admin_auth_svc_state.rs"]
+mod admin_auth_svc_state;
+pub use admin_auth_svc_state::*;
+#[path = "application_auth/shared_admin_auth_svc_state_arc.rs"]
+mod shared_admin_auth_svc_state_arc;
+pub use shared_admin_auth_svc_state_arc::*;
+#[path = "application_auth/admin_auth_svc_state_build_error.rs"]
+mod admin_auth_svc_state_build_error;
+pub use admin_auth_svc_state_build_error::*;
+#[path = "application_auth/authenticated_admin.rs"]
+mod authenticated_admin;
+pub use authenticated_admin::*;
+#[path = "application_auth/admin_audit_query.rs"]
+mod admin_audit_query;
+pub use admin_audit_query::*;
+#[path = "application_auth/http_admin_header_map.rs"]
+mod http_admin_header_map;
+pub use http_admin_header_map::*;
+#[path = "application_auth/http_admin_header_value_error.rs"]
+mod http_admin_header_value_error;
+pub use http_admin_header_value_error::*;
+#[path = "application_auth/axum_admin_response.rs"]
+mod axum_admin_response;
+pub use axum_admin_response::*;
+#[path = "application_auth/axum_admin_auth_router.rs"]
+mod axum_admin_auth_router;
+pub use axum_admin_auth_router::*;
+#[path = "application_auth/utoipa_admin_auth_open_api.rs"]
+mod utoipa_admin_auth_open_api;
+pub use utoipa_admin_auth_open_api::*;
+#[path = "application_auth/html_routes.rs"]
+mod html_routes;
+pub use html_routes::*;
+#[path = "application_auth/admin_html_swagger_enabled.rs"]
+mod admin_html_swagger_enabled;
+pub use admin_html_swagger_enabled::*;
+#[path = "application_auth/html_routes_with_swagger.rs"]
+mod html_routes_with_swagger;
+pub use html_routes_with_swagger::*;
+#[path = "application_auth/admin_session_bundle.rs"]
+mod admin_session_bundle;
+pub use admin_session_bundle::*;
+#[path = "application_auth/admin_session_error.rs"]
+mod admin_session_error;
+pub use admin_session_error::*;
+#[path = "application_auth/std_admin_rate_limit_count.rs"]
+mod std_admin_rate_limit_count;
+pub(crate) use std_admin_rate_limit_count::*;
+#[path = "application_auth/std_admin_rate_limit_window_seconds.rs"]
+mod std_admin_rate_limit_window_seconds;
+pub(crate) use std_admin_rate_limit_window_seconds::*;
+#[path = "application_auth/admin_audit_query_parts.rs"]
+mod admin_audit_query_parts;
+pub(crate) use admin_audit_query_parts::*;
+#[path = "application_auth/admin_auth_req.rs"]
+mod admin_auth_req;
+pub(crate) use admin_auth_req::*;
+#[path = "application_auth/admin_peer_addr.rs"]
+mod admin_peer_addr;
+pub(crate) use admin_peer_addr::*;
+#[path = "application_auth/admin_sign_in_json.rs"]
+mod admin_sign_in_json;
+pub(crate) use admin_sign_in_json::*;
+#[path = "application_auth/axum_admin_json.rs"]
+mod axum_admin_json;
+pub(crate) use axum_admin_json::*;
+#[path = "application_auth/axum_admin_form.rs"]
+mod axum_admin_form;
+pub(crate) use axum_admin_form::*;
+#[path = "application_auth/axum_admin_path.rs"]
+mod axum_admin_path;
+pub(crate) use axum_admin_path::*;
+#[path = "application_auth/axum_admin_query.rs"]
+mod axum_admin_query;
+pub(crate) use axum_admin_query::*;
+#[path = "application_auth/admin_session_path.rs"]
+mod admin_session_path;
+pub(crate) use admin_session_path::*;
+#[path = "application_auth/admin_error.rs"]
+mod admin_error;
+pub(crate) use admin_error::*;
+#[path = "application_auth/axum_admin_state_router.rs"]
+mod axum_admin_state_router;
+pub(crate) use axum_admin_state_router::*;
+#[path = "application_auth/jsonwebtoken_admin_decoding_keys.rs"]
+mod jsonwebtoken_admin_decoding_keys;
+use jsonwebtoken_admin_decoding_keys::*;
+#[path = "application_auth/std_admin_access_ttl_seconds_non_zero_u64.rs"]
+mod std_admin_access_ttl_seconds_non_zero_u64;
+use std_admin_access_ttl_seconds_non_zero_u64::*;
+#[path = "application_auth/std_admin_refresh_ttl_seconds_non_zero_u64.rs"]
+mod std_admin_refresh_ttl_seconds_non_zero_u64;
+use std_admin_refresh_ttl_seconds_non_zero_u64::*;
+#[path = "application_auth/std_admin_session_limit_non_zero_usize.rs"]
+mod std_admin_session_limit_non_zero_usize;
+use std_admin_session_limit_non_zero_usize::*;
+#[path = "application_auth/admin_password_from_contract.rs"]
+mod admin_password_from_contract;
+use admin_password_from_contract::*;
+#[path = "application_auth/admin_new_password_from_contract.rs"]
+mod admin_new_password_from_contract;
+use admin_new_password_from_contract::*;
+#[path = "application_auth/authenticated_admin_contract.rs"]
+mod authenticated_admin_contract;
+use authenticated_admin_contract::*;
+#[path = "application_auth/admin_error_response_parts.rs"]
+mod admin_error_response_parts;
+use admin_error_response_parts::*;
+pub use routes::{open_api, routes};
 
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        std::num::NonZeroU64::new(value)
-            .map(Self::from)
-            .ok_or(AdminAuthPositiveValueError)
-    }
-}
-impl From<std::num::NonZeroU64> for StdAdminAccessTtlSeconds {
-    fn from(value: std::num::NonZeroU64) -> Self {
-        Self(StdAdminAccessTtlSecondsNonZeroU64::from(value))
-    }
-}
-impl StdAdminAccessTtlSeconds {
-    const fn get(self) -> u64 {
-        self.0.0.get()
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-struct StdAdminRefreshTtlSecondsNonZeroU64(std::num::NonZeroU64);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StdAdminRefreshTtlSeconds(StdAdminRefreshTtlSecondsNonZeroU64);
-impl TryFrom<u64> for StdAdminRefreshTtlSeconds {
-    type Error = AdminAuthPositiveValueError;
-
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        std::num::NonZeroU64::new(value)
-            .map(Self::from)
-            .ok_or(AdminAuthPositiveValueError)
-    }
-}
-impl From<std::num::NonZeroU64> for StdAdminRefreshTtlSeconds {
-    fn from(value: std::num::NonZeroU64) -> Self {
-        Self(StdAdminRefreshTtlSecondsNonZeroU64::from(value))
-    }
-}
-impl StdAdminRefreshTtlSeconds {
-    const fn get(self) -> u64 {
-        self.0.0.get()
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-struct StdAdminSessionLimitNonZeroUsize(std::num::NonZeroUsize);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StdAdminSessionLimit(StdAdminSessionLimitNonZeroUsize);
-impl TryFrom<usize> for StdAdminSessionLimit {
-    type Error = AdminAuthPositiveValueError;
-
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        std::num::NonZeroUsize::new(value)
-            .map(Self::from)
-            .ok_or(AdminAuthPositiveValueError)
-    }
-}
-impl From<std::num::NonZeroUsize> for StdAdminSessionLimit {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(StdAdminSessionLimitNonZeroUsize::from(value))
-    }
-}
-impl StdAdminSessionLimit {
-    const fn get(self) -> usize {
-        self.0.0.get()
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StdAdminFailureThreshold(server_admin_contract::domain_types::PositiveNonZeroI64);
-impl TryFrom<i64> for StdAdminFailureThreshold {
-    type Error = AdminAuthPositiveValueError;
-
-    fn try_from(value: i64) -> Result<Self, Self::Error> {
-        server_admin_contract::domain_types::PositiveNonZeroI64::try_from(value)
-            .map(Self)
-            .map_err(AdminAuthPositiveValueError::from)
-    }
-}
-impl StdAdminFailureThreshold {
-    pub(crate) const fn get(self) -> i64 {
-        self.0.get()
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
-)]
-#[error("{self:?}")]
-pub struct AdminAuthPositiveValueError;
-impl From<server_admin_contract::domain_types::AdminIdTryFromI64Error>
-    for AdminAuthPositiveValueError
-{
-    fn from(_value: server_admin_contract::domain_types::AdminIdTryFromI64Error) -> Self {
-        Self
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::FromInner,
-)]
-pub struct StdAdminFailureDelayMillis(u64);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub(crate) struct StdAdminRateLimitCount(i64);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    Copy,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-pub(crate) struct StdAdminRateLimitWindowSeconds(i32);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
-pub struct AdminAuthPolicy {
-    audit_export_limit: StdAdminRateLimitCount,
-    failure_delay: StdAdminFailureDelayMillis,
-    failure_threshold: StdAdminFailureThreshold,
-    mutation_limit: StdAdminRateLimitCount,
-    refresh_limit: StdAdminRateLimitCount,
-    sign_in_ip_limit: StdAdminRateLimitCount,
-    sign_in_limit: StdAdminRateLimitCount,
-    audit_export_window: StdAdminRateLimitWindowSeconds,
-    mutation_window: StdAdminRateLimitWindowSeconds,
-    refresh_window: StdAdminRateLimitWindowSeconds,
-    sign_in_window: StdAdminRateLimitWindowSeconds,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub struct AdminAuthSvcState {
-    access_ttl: StdAdminAccessTtlSeconds,
-    allowed_origins: server_runtime_http::domain_types::AllowedOrigins,
-    audience: config_lib::domain_types::AdminTokenAudience,
-    decoding_keys: JsonwebtokenAdminDecodingKeys,
-    encoding_key: JsonwebtokenAdminEncodingKey,
-    issuer: config_lib::domain_types::AdminTokenIssuer,
-    password_hasher: super::AdminPasswordHasher,
-    policy: AdminAuthPolicy,
-    pool: app_state::domain_types::SqlxPgPool,
-    refresh_ttl: StdAdminRefreshTtlSeconds,
-    session_limit: StdAdminSessionLimit,
-    cookie_secure: super::AdminCookieSecure,
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-)]
-pub struct SharedAdminAuthSvcStateArc(std::sync::Arc<AdminAuthSvcState>);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, thiserror::Error)]
-pub enum AdminAuthSvcStateBuildError {
-    #[error("administrator allowed origin is invalid")]
-    AllowedOrigin,
-    #[error("administrator JWT secret list is empty")]
-    JwtSecret,
-    #[error("administrator password hash concurrency is zero")]
-    PasswordHashConcurrency,
-    #[error("administrator authentication numeric value is not positive")]
-    PositiveValue(#[source] AdminAuthPositiveValueError),
-}
-fn admin_password_from_contract(
-    value: server_admin_contract::domain_types::AdminPassword,
-) -> Result<super::AdminPassword, super::AdminPasswordTryFromStringError> {
-    super::AdminPassword::try_from(value.into_inner())
-}
-fn admin_new_password_from_contract(
-    value: server_admin_contract::domain_types::AdminNewPassword,
-) -> Result<super::AdminPassword, super::AdminPasswordTryFromStringError> {
-    super::AdminPassword::try_from(value.into_inner())
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Serialize, utoipa::ToSchema)]
-pub struct AuthenticatedAdmin {
-    display_name: super::AdminDisplayName,
-    id: super::AdminUserId,
-    login: super::AdminLogin,
-    permissions: super::AdminPermissions,
-    roles: super::AdminRoleNames,
-    session_id: super::AdminSessionId,
-    #[schema(value_type = bool)]
-    password_change_required: super::AdminPasswordChangeRequired,
-}
-impl AuthenticatedAdmin {
-    #[must_use]
-    pub const fn id(&self) -> super::AdminUserId {
-        self.id
-    }
-    #[must_use]
-    pub(crate) const fn password_change_required(&self) -> super::AdminPasswordChangeRequired {
-        self.password_change_required
-    }
-}
-fn authenticated_admin_contract(
-    value: &AuthenticatedAdmin,
-) -> Result<server_admin_contract::domain_types::AuthenticatedAdmin, AdminError> {
-    let permissions = value
-        .permissions
-        .as_ref()
-        .iter()
-        .map(|permission| {
-            server_admin_contract::domain_types::AdminPermissionValue::try_from(
-                permission.as_str().as_ref().to_owned(),
-            )
-            .map_err(|_error| AdminError::Validation)
-        })
-        .collect::<Result<Vec<_>, AdminError>>()?;
-    let roles = value
-        .roles
-        .as_ref()
-        .iter()
-        .map(|role| {
-            server_admin_contract::domain_types::AdminRoleName::try_from(role.as_ref().to_owned())
-                .map_err(|_error| AdminError::Validation)
-        })
-        .collect::<Result<Vec<_>, AdminError>>()?;
-    Ok(
-        server_admin_contract::domain_types::AuthenticatedAdmin::new(
-            server_admin_contract::domain_types::AdminDisplayName::try_from(
-                value.display_name.as_ref().to_owned(),
-            )
-            .map_err(|_error| AdminError::Validation)?,
-            server_admin_contract::domain_types::AdminUserId::from(value.id.value()),
-            server_admin_contract::domain_types::AdminLogin::try_from(
-                value.login.as_ref().to_owned(),
-            )
-            .map_err(|_error| AdminError::Validation)?,
-            server_admin_contract::domain_types::AdminPermissionValues::try_from(permissions)
-                .map_err(|_error| AdminError::Validation)?,
-            server_admin_contract::domain_types::AdminRoleNames::try_from(roles)
-                .map_err(|_error| AdminError::Validation)?,
-        ),
-    )
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, utoipa::IntoParams,
-)]
-#[into_params(parameter_in = Query)]
-pub struct AdminAuditQuery {
-    created_after: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    created_before: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    cursor_created_at: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    cursor_id: Option<server_admin_contract::domain_types::AdminAuditLogId>,
-    resource_id: Option<server_admin_contract::domain_types::AdminText>,
-    #[param(inline)]
-    user_id: Option<super::AdminUserId>,
-    user_login: Option<server_admin_contract::domain_types::AdminLogin>,
-    #[serde(default)]
-    #[param(value_type = u32)]
-    offset: server_admin_contract::domain_types::AdminPageOffset,
-    #[serde(default)]
-    #[param(value_type = u16, minimum = 1, maximum = 100)]
-    limit: server_admin_contract::domain_types::AdminPageLimit,
-    #[param(inline)]
-    resource: Option<super::AdminAuditResource>,
-    succeeded: Option<server_admin_contract::domain_types::AdminBool>,
-    #[param(inline)]
-    action: Option<super::AdminAuditAction>,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[allow(clippy::field_scoped_visibility_modifiers)] // repository query binding consumes this internal cross-module DTO field-by-field
-pub(crate) struct AdminAuditQueryParts {
-    pub(crate) created_after: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    pub(crate) created_before: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    pub(crate) cursor_created_at: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    pub(crate) cursor_id: Option<server_admin_contract::domain_types::AdminAuditLogId>,
-    pub(crate) resource_id: Option<server_admin_contract::domain_types::AdminText>,
-    pub(crate) user_id: Option<super::AdminUserId>,
-    pub(crate) user_login: Option<server_admin_contract::domain_types::AdminLogin>,
-    pub(crate) offset: server_admin_contract::domain_types::AdminPageOffset,
-    pub(crate) limit: server_admin_contract::domain_types::AdminPageLimit,
-    pub(crate) resource: Option<super::AdminAuditResource>,
-    pub(crate) succeeded: Option<server_admin_contract::domain_types::AdminBool>,
-    pub(crate) action: Option<super::AdminAuditAction>,
-}
-impl AdminAuditQuery {
-    pub(crate) fn cursor_is_complete(&self) -> super::StdAdminBool {
-        super::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
-    }
-    pub(crate) fn into_parts(self) -> AdminAuditQueryParts {
-        AdminAuditQueryParts {
-            action: self.action,
-            created_after: self.created_after,
-            created_before: self.created_before,
-            cursor_created_at: self.cursor_created_at,
-            cursor_id: self.cursor_id,
-            limit: self.limit,
-            offset: self.offset,
-            resource: self.resource,
-            resource_id: self.resource_id,
-            succeeded: self.succeeded,
-            user_id: self.user_id,
-            user_login: self.user_login,
-        }
-    }
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Debug,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-)]
-pub struct HttpAdminHeaderMap(http::HeaderMap);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone)]
-pub(crate) struct AdminAuthReq {
-    headers: HttpAdminHeaderMap,
-    state: SharedAdminAuthSvcStateArc,
-    peer: AdminPeerAddr,
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub(crate) struct AdminPeerAddr(super::AdminSocketAddr);
-impl AdminPeerAddr {
-    pub(crate) const fn socket_addr(self) -> super::AdminSocketAddr {
-        self.0
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct AdminSignInJson(server_admin_contract::domain_types::AdminSignInReq);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct AxumAdminJson<Value>(Value);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct AxumAdminForm<Value>(Value);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct AxumAdminPath<Value>(Value);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct AxumAdminQuery<Value>(Value);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub(crate) struct AdminSessionPath(super::AdminSessionId);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DebugTransparent,
-    thiserror::Error,
-    newtype::FromInner,
-)]
-#[error(transparent)]
-pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub(crate) enum AdminError {
-    #[error("administrator authentication failed")]
-    Authentication,
-    #[error("administrator authentication secret text is invalid")]
-    AuthenticationSecretText(
-        #[source] server_runtime_http::domain_types::ObservedError<super::AdminSecretTextError>,
-    ),
-    #[error("administrator authorization failed")]
-    Authorization,
-    #[error("administrator operation conflicts with current state")]
-    Conflict,
-    #[error("administrator request failed CSRF validation")]
-    Csrf,
-    #[error("administrator CSRF secret text is invalid")]
-    CsrfSecretText(
-        #[source] server_runtime_http::domain_types::ObservedError<super::AdminSecretTextError>,
-    ),
-    #[error("administrator authentication is temporarily rate limited")]
-    RateLimited,
-    #[error("administrator request validation failed")]
-    Validation,
-    #[error("administrator API database operation failed: {0:?}")]
-    Pg(#[source] server_runtime_http::domain_types::ObservedError<super::SqlxAdminError>),
-    #[error("administrator password hashing failed: {0}")]
-    PasswordHash(
-        #[source] server_runtime_http::domain_types::ObservedError<super::AdminPasswordHashError>,
-    ),
-    #[error("administrator password text is invalid")]
-    PasswordText(
-        #[source]
-        server_runtime_http::domain_types::ObservedError<super::AdminPasswordTryFromStringError>,
-    ),
-    #[error("administrator request body is too large")]
-    PayloadTooLarge,
-    #[error("administrator secret text is invalid")]
-    SecretText(
-        #[source] server_runtime_http::domain_types::ObservedError<super::AdminSecretTextError>,
-    ),
-    #[error("administrator route does not support this HTTP method")]
-    MethodNotAllowed,
-    #[error("administrator session operation failed: {0}")]
-    Session(#[source] server_runtime_http::domain_types::ObservedError<AdminSessionError>),
-    #[error("administrator response header is invalid: {0:?}")]
-    Header(#[source] server_runtime_http::domain_types::ObservedError<HttpAdminHeaderValueError>),
-}
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::IntoInnerFrom, newtype::FromInner,
-)]
-pub struct AxumAdminResponse(axum::response::Response);
-fn admin_error_response_parts(
-    route_error_status: frontend_contract::domain_types::RouteErrorStatus,
-    optional_diagnostic: Option<server_runtime_http::domain_types::HttpErrorDiagnostic>,
-) -> axum::response::Response {
-    let problem_status = frontend_contract::domain_types::ApiProblemStatus::try_from(u16::from(
-        route_error_status.transport_status(),
-    ))
-    .unwrap_or_else(|_error| {
-        frontend_contract::domain_types::ApiProblemStatus::from(
-            frontend_contract::domain_types::KnownHttpStatus::InternalServerError,
-        )
-    });
-    let mut response = axum::response::IntoResponse::into_response(
-        frontend_contract::domain_types::ApiProblemError::from_status(problem_status),
-    );
-    if let Some(diagnostic) = optional_diagnostic {
-        let _previous_diagnostic = response.extensions_mut().insert(diagnostic);
-    }
-    response
-}
 frontend_contract::domain_types::api_operation_error!(AdminAuditLogError,);
 frontend_contract::domain_types::api_operation_error!(AdminAuditExportError,);
 frontend_contract::domain_types::api_operation_error!(AdminBrandingError,);
@@ -599,84 +285,6 @@ frontend_contract::domain_types::api_operation_error!(AdminSignOutError,);
 frontend_contract::domain_types::api_operation_error!(AdminUpdateRoleError,);
 frontend_contract::domain_types::api_operation_error!(AdminUpdateSettingsError,);
 frontend_contract::domain_types::api_operation_error!(AdminUpdateUserError,);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Debug,
-    Clone,
-    newtype::IntoInnerFrom,
-    newtype::FromInner,
-)]
-pub struct AxumAdminAuthRouter(axum::Router);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::IntoInnerFrom,
-)]
-pub(crate) struct AxumAdminStateRouter(axum::Router<SharedAdminAuthSvcStateArc>);
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::IntoInnerFrom, newtype::FromInner,
-)]
-pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
-impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::UTOIPAADMINAUTHOPENAPI)
-    }
-}
-#[must_use]
-pub fn open_api() -> UtoipaAdminAuthOpenApi {
-    routes::open_api()
-}
-#[must_use]
-pub fn routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
-    routes::routes(state)
-}
-#[must_use]
-pub fn html_routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
-    html::html_routes::html_routes(state, AdminHtmlSwaggerEnabled::from(true))
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct AdminHtmlSwaggerEnabled(bool);
-#[must_use]
-pub fn html_routes_with_swagger(
-    state: SharedAdminAuthSvcStateArc,
-    swagger_enabled: AdminHtmlSwaggerEnabled,
-) -> AxumAdminAuthRouter {
-    html::html_routes::html_routes(state, swagger_enabled)
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub struct AdminSessionBundle {
-    access_token: super::StdAdminAccessToken,
-    csrf_token: super::AdminOpaqueToken,
-    refresh_token: super::AdminRefreshToken,
-    session_id: super::AdminSessionId,
-}
-impl AdminSessionBundle {
-    #[must_use]
-    pub const fn access_token(&self) -> &super::StdAdminAccessToken {
-        &self.access_token
-    }
-    #[must_use]
-    pub const fn csrf_token(&self) -> &super::AdminOpaqueToken {
-        &self.csrf_token
-    }
-    #[must_use]
-    pub const fn refresh_token(&self) -> &super::AdminRefreshToken {
-        &self.refresh_token
-    }
-    #[must_use]
-    pub const fn session_id(&self) -> super::AdminSessionId {
-        self.session_id
-    }
-}
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-pub enum AdminSessionError {
-    #[error("administrator access token creation failed: {0:?}")]
-    AccessToken(super::AdminAccessTokenError),
-    #[error("administrator session database operation failed: {0:?}")]
-    Pg(super::SqlxAdminError),
-    #[error("administrator session secret text is invalid: {0}")]
-    SecretText(super::AdminSecretTextError),
-    #[error("system clock is before the Unix epoch")]
-    SystemClock,
-}
 #[path = "audit_export_log.rs"]
 mod audit_export_log;
 #[path = "audit_query_log.rs"]

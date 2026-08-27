@@ -293,7 +293,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
             syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1usize => fields
                 .unnamed
                 .first()
-                .is_some_and(|field| !matches!(field.vis, syn::Visibility::Inherited)),
+                .is_some_and(|field| matches!(field.vis, syn::Visibility::Public(_))),
             syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
         };
         if super::item_struct_is_single_field_tuple_wrapper(super::types::SynItemStructRef::from(i))
@@ -634,6 +634,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct DomainTypePolicyVisitor<'types> {
+    pub check_non_public: super::types::AnalyzerBool,
     pub closure_body_scan_depth: super::types::AnalyzerCount,
     pub ers: super::types::DiagnosticMsgs,
     pub generic_scopes: Vec<super::types::SourceTextBTreeSet>,
@@ -1013,10 +1014,12 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
         if super::item_fn_is_proc_macro(super::types::SynItemFnRef::from(i)).get() {
             return;
         }
-        self.check_sig(
-            super::types::SynSignatureRef::from(&i.sig),
-            super::types::SourceTextRef::from(format!("function `{}`", i.sig.ident).as_str()),
-        );
+        if self.check_non_public.get() || matches!(i.vis, syn::Visibility::Public(_)) {
+            self.check_sig(
+                super::types::SynSignatureRef::from(&i.sig),
+                super::types::SourceTextRef::from(format!("function `{}`", i.sig.ident).as_str()),
+            );
+        }
         self.scan_block_for_closure_inputs(super::types::SynBlockRef::from(&*i.block));
     }
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
@@ -1024,6 +1027,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             return;
         }
         self.push_generics(super::types::SynGenericsRef::from(&i.generics));
+        let check_non_public = self.check_non_public.get();
         i.items
             .iter()
             .filter_map(|item| match item {
@@ -1031,7 +1035,9 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
                     if !super::attrs_contain_test_only_cfg(
                         super::types::SynAttributeListRef::from(item_fn.attrs.as_slice()),
                     )
-                    .get() =>
+                    .get()
+                        && (check_non_public
+                            || matches!(item_fn.vis, syn::Visibility::Public(_))) =>
                 {
                     if super::method_is_explicit_wrapper_accessor(
                         super::types::SynIdentifierRef::from(&item_fn.sig.ident),

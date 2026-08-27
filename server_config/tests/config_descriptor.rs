@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(unused_crate_dependencies)] // integration target exercises generated descriptors through server_config while library-only dependencies remain linked by Cargo
 
 #[cfg(test)]

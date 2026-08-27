@@ -3,7 +3,7 @@ pub struct TrustedProxyRanges(
     bounded_types::domain_types::vector::BoundedVec<
         super::TrustedProxyRange,
         0,
-        { super::TRUSTED_PROXY_RANGES_MAX_ITEMS },
+        { constants_usize::VALUE_128 },
     >,
 );
 

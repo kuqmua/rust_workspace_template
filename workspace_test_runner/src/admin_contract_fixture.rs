@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)] // the mode dispatcher owns the single fixture-generation entry point
 pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
     (|| {

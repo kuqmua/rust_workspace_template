@@ -1,0 +1,21 @@
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ValueFormat {
+    Bool,
+    Bytes,
+    Date,
+    DateTime,
+    Float32,
+    Float64,
+    Inet,
+    Int16,
+    Int32,
+    Int64,
+    Interval,
+    Mac,
+    Range,
+    Text,
+    Time,
+    Timestamp,
+    TimestampTz,
+    Uuid,
+}

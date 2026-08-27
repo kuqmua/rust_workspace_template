@@ -1,3 +1,11 @@
+#![allow(
+    clippy::module_name_repetitions,
+    reason = "bounded vector companion types retain their established public names"
+)]
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "bounded_vec/bounded_vec.rs"]
 mod bounded_vec;
 #[path = "bounded_vec/bounded_vec_error.rs"]

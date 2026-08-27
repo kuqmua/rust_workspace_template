@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "location_syn_field/location_syn_field.rs"]
 mod location_syn_field;
 #[path = "location_syn_field/syn_location_field.rs"]

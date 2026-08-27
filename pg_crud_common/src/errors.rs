@@ -1,3 +1,7 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "split owner modules expose representation only within the crate"
+)]
 #[path = "make_query_bind_error.rs"]
 mod make_query_bind_error;
 #[path = "pg_crud_string_wrapper_try_from_string_error.rs"]

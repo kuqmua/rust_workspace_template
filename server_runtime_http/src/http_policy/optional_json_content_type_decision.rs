@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "optional_json_content_type_decision/optional_json_content_type_decision.rs"]
 mod optional_json_content_type_decision;
 

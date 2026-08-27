@@ -1,3 +1,6 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
+#![allow(clippy::arbitrary_source_item_ordering)] // keep each split module adjacent to the facade import that exposes it
+
 #[path = "domain_types/run_mode.rs"]
 mod run_mode;
 pub(crate) use run_mode::*;
@@ -54,7 +57,7 @@ mod initialize_error;
 pub(crate) use initialize_error::*;
 #[path = "domain_types/environment_keys.rs"]
 mod environment_keys;
-use environment_keys::*;
+use environment_keys::environment_keys;
 #[path = "domain_types/initialize.rs"]
 mod initialize;
 pub(crate) use initialize::*;

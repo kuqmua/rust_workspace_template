@@ -1,3 +1,9 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    clippy::module_name_repetitions,
+    reason = "the domain type and its error retain their established public names"
+)]
+use crate::domain_types::artifact::JsonContractSnapshotError;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -20,4 +26,3 @@ impl JsonContractSnapshot {
         }
     }
 }
-pub use crate::domain_types::artifact::JsonContractSnapshotError;

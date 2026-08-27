@@ -1,3 +1,8 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules and related behavior retain their intentional facade ordering"
+)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::module_name_repetitions)]
 const LOC_DISPLAY_UTC_OFFSET_SECS: i32 = 10_800;
 const LOC_FILE_MAX_LEN: usize = 1_048_576;
@@ -41,24 +46,25 @@ mod std_time_duration_nanos_try_from_u32_error;
 pub use std_time_duration_nanos_try_from_u32_error::*;
 #[path = "domain_types/location_line_non_zero_u32.rs"]
 mod location_line_non_zero_u32;
-use location_line_non_zero_u32::*;
+use location_line_non_zero_u32::LocationLineNonZeroU32;
 #[path = "domain_types/location_column_non_zero_u32.rs"]
 mod location_column_non_zero_u32;
-use location_column_non_zero_u32::*;
+use location_column_non_zero_u32::LocationColumnNonZeroU32;
 #[path = "domain_types/location_file_ref.rs"]
 mod location_file_ref;
-use location_file_ref::*;
+use location_file_ref::LocationFileRef;
 #[path = "domain_types/formatter_ref_mut.rs"]
 mod formatter_ref_mut;
-use formatter_ref_mut::*;
+use formatter_ref_mut::FormatterRefMut;
 #[path = "domain_types/chrono_location_display_timezone.rs"]
 mod chrono_location_display_timezone;
-use chrono_location_display_timezone::*;
+use chrono_location_display_timezone::ChronoLocationDisplayTimezone;
 #[path = "domain_types/chrono_location_date_time.rs"]
 mod chrono_location_date_time;
-use chrono_location_date_time::*;
+use chrono_location_date_time::ChronoLocationDateTime;
 
 #[cfg(test)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[path = "tests.rs"]
 mod tests;

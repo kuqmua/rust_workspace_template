@@ -1,6 +1,14 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules stay paired with their facade imports and reexports"
+)]
 #[path = "lease_registry/lease_entry.rs"]
 mod lease_entry;
-use lease_entry::*;
+use lease_entry::LeaseEntry;
 #[path = "lease_registry/lease_heartbeat.rs"]
 mod lease_heartbeat;
 pub use lease_heartbeat::*;
@@ -18,7 +26,7 @@ mod lease_registry;
 pub use lease_registry::*;
 #[path = "lease_registry/lease_registry_inner.rs"]
 mod lease_registry_inner;
-use lease_registry_inner::*;
+use lease_registry_inner::LeaseRegistryInner;
 #[path = "lease_registry/lease_registry_maximum_non_zero_usize.rs"]
 mod lease_registry_maximum_non_zero_usize;
 pub use lease_registry_maximum_non_zero_usize::*;
@@ -36,22 +44,22 @@ mod lease_text_error;
 pub use lease_text_error::*;
 #[path = "lease_registry/lease_text_maximum_bytes.rs"]
 mod lease_text_maximum_bytes;
-use lease_text_maximum_bytes::*;
+use lease_text_maximum_bytes::LEASE_TEXT_MAXIMUM_BYTES;
 #[path = "lease_registry/lease_text_ref.rs"]
 mod lease_text_ref;
-use lease_text_ref::*;
+use lease_text_ref::LeaseTextRef;
 #[path = "lease_registry/std_lease_stale_timeout_error.rs"]
 mod std_lease_stale_timeout_error;
 pub use std_lease_stale_timeout_error::*;
 #[path = "lease_registry/tokio_lease_instant.rs"]
 mod tokio_lease_instant;
-use tokio_lease_instant::*;
+use tokio_lease_instant::TokioLeaseInstant;
 #[path = "lease_registry/tokio_lease_registry_rw_lock_arc.rs"]
 mod tokio_lease_registry_rw_lock_arc;
-use tokio_lease_registry_rw_lock_arc::*;
+use tokio_lease_registry_rw_lock_arc::TokioLeaseRegistryRwLockArc;
 #[path = "lease_registry/validate_lease_text.rs"]
 mod validate_lease_text;
-use validate_lease_text::*;
+use validate_lease_text::validate_lease_text;
 
 #[cfg(test)]
 mod tests {

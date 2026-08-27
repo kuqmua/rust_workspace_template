@@ -12,6 +12,7 @@ impl EqOperatorVariant {
         import: &Import,
     ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
         let names = super::super::token_emission::NamesCtx::new();
+        // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(non_snake_case)]
         let (EqOperatorUpperCamelCase,) = (&names.EqOperatorUpperCamelCase,);
         let ts = match &self {

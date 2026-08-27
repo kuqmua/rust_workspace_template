@@ -4,6 +4,7 @@ use super::{
     PgTypeGreaterThanVariant, SelectAlias, V,
 };
 
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[cfg(feature = "test-utils")]
 pub trait PgTypeTestCases {

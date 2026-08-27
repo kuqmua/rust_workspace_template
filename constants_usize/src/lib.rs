@@ -8,12 +8,14 @@ pub const SEVEN: usize = 7usize;
 pub const EIGHT: usize = 8usize;
 pub const ELEVEN: usize = 11usize;
 pub const TWENTY: usize = 20usize;
+pub const VALUE_32: usize = 32usize;
 pub const VALUE_64: usize = 64usize;
 pub const VALUE_128: usize = 128usize;
 pub const VALUE_1_024: usize = 1_024usize;
 pub const VALUE_4_096: usize = 4_096usize;
 pub const VALUE_8_192: usize = 8_192usize;
 pub const VALUE_1_048_576: usize = 1_048_576usize;
+pub const VALUE_8_388_608: usize = 8_388_608usize;
 pub const VALUE_16_777_216: usize = 16_777_216usize;
 
 #[cfg(test)]
@@ -30,12 +32,14 @@ mod tests {
         assert_eq!(super::EIGHT, 8usize);
         assert_eq!(super::ELEVEN, 11usize);
         assert_eq!(super::TWENTY, 20usize);
+        assert_eq!(super::VALUE_32, 32usize);
         assert_eq!(super::VALUE_64, 64usize);
         assert_eq!(super::VALUE_128, 128usize);
         assert_eq!(super::VALUE_1_024, 1_024usize);
         assert_eq!(super::VALUE_4_096, 4_096usize);
         assert_eq!(super::VALUE_8_192, 8_192usize);
         assert_eq!(super::VALUE_1_048_576, 1_048_576usize);
+        assert_eq!(super::VALUE_8_388_608, 8_388_608usize);
         assert_eq!(super::VALUE_16_777_216, 16_777_216usize);
     }
 }

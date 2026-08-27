@@ -1,3 +1,7 @@
+#![allow(
+    clippy::items_after_test_module,
+    reason = "generated filter implementations remain after focused collection tests"
+)]
 #[derive(
     Debug,
     Clone,
@@ -192,7 +196,7 @@ mod tests_not_empty_unique_vec {
                 .expect_err(constants_str::ADF2B8C1);
         match error {
             crate::domain_types::NotEmptyUniqueVecTryNewError::NotUnique { v, .. } => {
-                assert_eq!(v, NonClone(1))
+                assert_eq!(v, NonClone(1));
             }
             crate::domain_types::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
             | crate::domain_types::NotEmptyUniqueVecTryNewError::TooLong { .. } => {

@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "auth_session_keep_alive/auth_session_instant.rs"]
 mod auth_session_instant;
 #[path = "auth_session_keep_alive/auth_session_keep_alive.rs"]

@@ -1,3 +1,5 @@
+#![allow(clippy::wildcard_imports)] // split test fixtures share the private facade vocabulary
+
 #[path = "domain_types/display_struct.rs"]
 mod display_struct;
 #[path = "domain_types/error_one.rs"]

@@ -9,9 +9,10 @@
     newtype::AsRefStr,
 )]
 pub struct SqlIdentifier(String);
-impl SqlIdentifier {
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
-    fn validate(value: &str) -> Result<(), crate::domain_types::SqlIdentifierError> {
+impl TryFrom<String> for SqlIdentifier {
+    type Error = crate::domain_types::SqlIdentifierError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > 128usize {
             return Err(crate::domain_types::SqlIdentifierError::Invalid);
         }
@@ -24,15 +25,6 @@ impl SqlIdentifier {
         {
             return Err(crate::domain_types::SqlIdentifierError::Invalid);
         }
-        Ok(())
-    }
-}
-
-impl TryFrom<String> for SqlIdentifier {
-    type Error = crate::domain_types::SqlIdentifierError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::validate(value.as_str())?;
         Ok(Self(value))
     }
 }

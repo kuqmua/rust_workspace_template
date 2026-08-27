@@ -1,3 +1,7 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -25,6 +29,7 @@ impl From<super::ResourceUtilizationKnownPercent> for ResourceUtilizationPercent
 }
 
 impl ResourceUtilizationPercent {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)]
     const fn validate(value: &u8) -> Result<(), super::ResourceUtilizationPercentTryFromU8Error> {
         if *value <= 100u8 {

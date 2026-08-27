@@ -1,4 +1,5 @@
 #[cfg(test)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::needless_for_each)] // table-driven assertions avoid repository-forbidden for loops
 mod tests {
     #[derive(

@@ -7,7 +7,7 @@ pub(crate) enum AdminAlertVariant {
 }
 
 impl AdminAlertVariant {
-    pub(super) fn class(self) -> &'static str {
+    pub(super) const fn class(self) -> &'static str {
         match self {
             Self::Error => constants_str::VALUE_6EFBABDA,
             #[cfg(not(target_arch = "wasm32"))]
@@ -15,7 +15,7 @@ impl AdminAlertVariant {
         }
     }
 
-    pub(super) fn role(self) -> &'static str {
+    pub(super) const fn role(self) -> &'static str {
         match self {
             Self::Error => constants_str::HTML_ALERT_ROLE,
             #[cfg(not(target_arch = "wasm32"))]

@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::field_scoped_visibility_modifiers)] // the private descriptor is constructed by its sibling catalog while fields remain hidden outside this generator
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(super) struct PgTypeSpec<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind> {

@@ -390,12 +390,11 @@ mod tests {
     }
     #[test]
     fn request_body_at_shared_limit_is_accepted() {
-        let value = constants_str::X
-            .repeat(crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES - 12usize);
+        let value = constants_str::X.repeat(constants_usize::VALUE_16_777_216 - 12usize);
         let transport = TestTransport {
             expected: ExpectedRequest::BodyLen(
                 transport_path(constants_str::VALUE_AFE0CD3C),
-                crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES,
+                constants_usize::VALUE_16_777_216,
             ),
             response: Ok(response(
                 match serde_json::to_vec(&Response { value: 7u64 }) {
@@ -415,8 +414,7 @@ mod tests {
     }
     #[test]
     fn request_body_above_shared_limit_is_an_encode_error() {
-        let value = constants_str::X
-            .repeat(crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES - 11usize);
+        let value = constants_str::X.repeat(constants_usize::VALUE_16_777_216 - 11usize);
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
             response: Ok(response(

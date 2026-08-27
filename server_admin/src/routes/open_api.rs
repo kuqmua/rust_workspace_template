@@ -1,4 +1,5 @@
-pub(in crate::domain_types::auth) fn open_api() -> super::super::UtoipaAdminAuthOpenApi {
+#[must_use]
+pub fn open_api() -> super::super::UtoipaAdminAuthOpenApi {
     let mut document = super::AdminAuthRouteRegistry::registry_open_api();
     let body_limit_description =
         <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()

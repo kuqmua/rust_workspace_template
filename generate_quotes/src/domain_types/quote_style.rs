@@ -1,3 +1,11 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
+#![allow(
+    clippy::module_inception,
+    reason = "the QuoteStyle type and quote_style function require distinct same-named owner modules"
+)]
 #[path = "quote_style/quote_style.rs"]
 mod quote_style;
 

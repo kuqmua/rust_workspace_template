@@ -17,14 +17,14 @@ pub fn resolve_client_ip(
             .get_all(constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;
-        if iter.next().is_some() || value.as_bytes().len() > super::MAX_FORWARDED_HEADER_BYTES {
+        if iter.next().is_some() || value.as_bytes().len() > constants_usize::VALUE_4_096 {
             return None;
         }
         let value_text = value.to_str().ok()?;
         let (count, first, rightmost_untrusted) = value_text.split(',').map(str::trim).try_fold(
             (constants_usize::ZERO, None, None),
             |(count, first, rightmost_untrusted), entry| {
-                if count >= super::MAX_FORWARDED_ENTRIES {
+                if count >= constants_usize::VALUE_32 {
                     return None;
                 }
                 let parsed = entry.parse::<std::net::IpAddr>().ok()?;
@@ -54,7 +54,7 @@ pub fn resolve_client_ip(
             .get_all(constants_str::RUNTIME_REAL_IP_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;
-        if iter.next().is_some() || value.as_bytes().len() > super::MAX_FORWARDED_HEADER_BYTES {
+        if iter.next().is_some() || value.as_bytes().len() > constants_usize::VALUE_4_096 {
             return None;
         }
         value.to_str().ok()?.trim().parse::<std::net::IpAddr>().ok()

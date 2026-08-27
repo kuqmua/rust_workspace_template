@@ -1,3 +1,9 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    clippy::field_scoped_visibility_modifiers,
+    clippy::module_inception,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
 #[derive(
     Debug,
     Clone,

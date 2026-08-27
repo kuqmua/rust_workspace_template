@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "outbound_address_disposition/outbound_address_disposition.rs"]
 mod outbound_address_disposition;
 

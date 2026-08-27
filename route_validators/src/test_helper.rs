@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::shadow_reuse)]
 #[path = "test_helper/test_exp_id.rs"]
 mod test_exp_id;

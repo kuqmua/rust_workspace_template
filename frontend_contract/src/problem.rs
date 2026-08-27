@@ -30,6 +30,7 @@ pub(crate) use api_problem_violations::ApiProblemViolations;
 #[cfg(test)]
 mod tests {
     #[test]
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::needless_for_each)]
     fn every_api_problem_error_is_an_error_enum_with_a_json_response() {
         fn assert_error<Error>()

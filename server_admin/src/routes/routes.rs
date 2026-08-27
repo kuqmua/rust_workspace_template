@@ -1,4 +1,5 @@
-pub(in crate::domain_types::auth) fn routes(
+#[must_use]
+pub fn routes(
     state: super::super::SharedAdminAuthSvcStateArc,
 ) -> super::super::AxumAdminAuthRouter {
     let base_router = super::AdminAuthRouteRegistry::registry_router()

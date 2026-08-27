@@ -89,6 +89,7 @@ impl<'text_lt> StaticStrSliceRef<'text_lt> {
 )]
 pub(super) struct SourceTextRef<'text_lt>(&'text_lt str);
 impl<'text_lt> SourceTextRef<'text_lt> {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::single_call_fn)] // preserves the source lifetime where AsRef would borrow the wrapper temporary
     pub(super) const fn get(self) -> &'text_lt str {
         self.0

@@ -1,9 +1,9 @@
 #[path = "admin_fixture/admin_fixture_string.rs"]
 mod admin_fixture_string;
 
-pub(crate) use admin_fixture_string::{
-    AdminFixtureString, AdminFixtureStringTryFromStringError, admin_fixture_string,
-};
+pub(crate) use admin_fixture_string::admin_fixture_string;
+#[cfg(test)]
+use admin_fixture_string::{AdminFixtureString, AdminFixtureStringTryFromStringError};
 
 #[cfg(test)]
 mod tests {

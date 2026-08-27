@@ -42,13 +42,13 @@ mod admin_table_sort_key;
 pub use admin_table_sort_key::*;
 #[path = "query/admin_default_page_limit.rs"]
 mod admin_default_page_limit;
-use admin_default_page_limit::*;
+use admin_default_page_limit::AdminDefaultPageLimit;
 #[path = "query/admin_page_limit_visitor.rs"]
 mod admin_page_limit_visitor;
-use admin_page_limit_visitor::*;
+use admin_page_limit_visitor::AdminPageLimitVisitor;
 #[path = "query/admin_page_offset_visitor.rs"]
 mod admin_page_offset_visitor;
-use admin_page_offset_visitor::*;
+use admin_page_offset_visitor::AdminPageOffsetVisitor;
 
 #[cfg(test)]
 #[path = "domain_types_query_tests.rs"]

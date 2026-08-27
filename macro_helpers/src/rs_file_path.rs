@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "rs_file_path/rs_file_path.rs"]
 mod rs_file_path;
 #[path = "rs_file_path/rs_file_path_buf.rs"]

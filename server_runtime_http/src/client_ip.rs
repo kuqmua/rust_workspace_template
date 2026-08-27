@@ -1,6 +1,7 @@
-const MAX_FORWARDED_HEADER_BYTES: usize = constants_usize::VALUE_4_096;
-const MAX_FORWARDED_ENTRIES: usize = 32usize;
-const TRUSTED_PROXY_RANGES_MAX_ITEMS: usize = constants_usize::VALUE_128;
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules and related behavior retain their intentional facade ordering"
+)]
 
 #[path = "client_ip/client_addr_parse_error.rs"]
 mod client_addr_parse_error;
@@ -81,8 +82,7 @@ mod tests {
     #[test]
     fn trusted_proxy_ranges_reject_oversized_lists() {
         let item = range(constants_str::VALUE_127_0_0_1_32);
-        let values =
-            vec![item; super::TRUSTED_PROXY_RANGES_MAX_ITEMS.saturating_add(constants_usize::ONE)];
+        let values = vec![item; constants_usize::VALUE_128.saturating_add(constants_usize::ONE)];
         assert_eq!(
             super::TrustedProxyRanges::try_from(values),
             Err(super::TrustedProxyRangesError)
@@ -205,7 +205,7 @@ mod tests {
     #[test]
     fn oversized_header_falls_back_without_reflecting_input() {
         let oversized = constants_str::VALUE_1
-            .repeat(super::MAX_FORWARDED_HEADER_BYTES.saturating_add(constants_usize::ONE));
+            .repeat(constants_usize::VALUE_4_096.saturating_add(constants_usize::ONE));
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,

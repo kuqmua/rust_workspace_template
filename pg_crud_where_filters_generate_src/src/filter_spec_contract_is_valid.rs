@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)] // validation remains an independently testable typed pipeline stage
 pub(super) fn filter_spec_contract_is_valid(
     spec: crate::domain_types::spec::FilterSpec,

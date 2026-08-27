@@ -1,4 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub(crate) struct AdminSignInUser {
     id: crate::domain_types::AdminUserId,

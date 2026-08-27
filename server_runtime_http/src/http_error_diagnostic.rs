@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "http_error_diagnostic/capture_without_context.rs"]
 mod capture_without_context;
 #[path = "http_error_diagnostic/http_error_code.rs"]

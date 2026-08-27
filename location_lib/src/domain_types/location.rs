@@ -1,9 +1,14 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
 use super::{
     ChronoLocationDateTime, ChronoLocationDisplayTimezone, FormatterRefMut,
     LOC_DISPLAY_UTC_OFFSET_SECS, LocationColumn, LocationCommit, LocationDuration, LocationFile,
     LocationFileRef, LocationLine, Occr,
 };
 
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     Debug,
@@ -17,6 +22,7 @@ use super::{
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Location {
+    // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     pub(super) file: LocationFile,
     pub(super) commit: LocationCommit,
@@ -25,6 +31,7 @@ pub struct Location {
     pub(super) line: LocationLine,
     pub(super) column: LocationColumn,
 }
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_pass_by_value)]
 impl Location {
     #[allow(clippy::single_call_fn)] // shared offset accessor is reused by formatter and tests

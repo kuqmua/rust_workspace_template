@@ -1,4 +1,12 @@
+#![allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "split owner modules expose representation only within the crate"
+)]
 #[must_use]
+#[allow(
+    clippy::single_call_fn,
+    reason = "SQLSTATE classification remains isolated in its named owner module"
+)]
 pub(crate) fn classify_pg_code(code: &str) -> crate::domain_types::PgErrorKind {
     match code {
         constants_str::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {

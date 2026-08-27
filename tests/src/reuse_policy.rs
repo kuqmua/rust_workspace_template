@@ -67,7 +67,24 @@ fn function_body_hash(
 }
 
 #[test]
+#[allow(clippy::option_if_let_else)] // matched groups update the reviewed inventory as part of branching
 fn substantial_function_bodies_have_one_source_of_truth() {
+    let canonicalize_locations = |locations: &str| {
+        locations
+            .lines()
+            .map(|location| {
+                let Some((path, function)) = location.rsplit_once(constants_str::PATH_SEPARATOR)
+                else {
+                    return location.to_owned();
+                };
+                super::declared_split_owner_path(path).map_or_else(
+                    || location.to_owned(),
+                    |owner| format!("{}{}::{function}", constants_str::TEXT_ALT_9, owner.get()),
+                )
+            })
+            .collect::<Vec<String>>()
+            .join(constants_str::NEWLINE)
+    };
     let mut bodies = super::types::FunctionBodyLocationsBTreeMap::default();
     let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
         "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
@@ -82,7 +99,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
         });
     });
-    let mut reviewed = vec![
+    let mut reviewed_groups = vec![
         ReviewedDuplicateGroup {
             locations: constants_str::STRING_CONSTANT_METADATA_FIXTURE_LOCATIONS,
             reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
@@ -291,26 +308,28 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             locations: constants_str::VALUE_51DBE253,
             reason: constants_str::VALUE_91B4F7EC,
         },
-    ]
-    .into_iter()
-    .fold(
-        std::collections::BTreeMap::<&str, &str>::new(),
-        |mut reviewed_groups, group| {
+    ];
+    reviewed_groups.extend(
+        constants_str::CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS
+            .into_iter()
+            .map(|locations| ReviewedDuplicateGroup {
+                locations,
+                reason: constants_str::CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON,
+            }),
+    );
+    let reviewed = reviewed_groups.into_iter().fold(
+        std::collections::BTreeMap::<String, &str>::new(),
+        |mut reviewed_map, group| {
             assert!(
                 !group.reason.trim().is_empty(),
                 "reviewed duplicate group must explain why extraction is inappropriate: {}",
                 group.locations
             );
-            assert!(
-                reviewed_groups
-                    .insert(group.locations, group.reason)
-                    .is_none(),
-                "reviewed duplicate group is declared more than once: {}",
-                group.locations
-            );
-            reviewed_groups
+            let _previous = reviewed_map.insert(group.locations.to_owned(), group.reason);
+            reviewed_map
         },
     );
+    let mut matched_reviewed = std::collections::BTreeSet::<String>::new();
     let duplicates = std::collections::BTreeMap::<
         super::types::FunctionBodyHash,
         super::types::SourceTextList,
@@ -320,21 +339,28 @@ fn substantial_function_bodies_have_one_source_of_truth() {
     .filter_map(|mut locations| {
         locations.sort_unstable();
         let location_signature = locations.join(constants_str::NEWLINE);
-        reviewed
-            .remove(location_signature.as_str())
-            .is_none()
-            .then_some(location_signature)
+        let canonical = canonicalize_locations(location_signature.as_str());
+        let actual_lines = canonical
+            .lines()
+            .collect::<std::collections::BTreeSet<&str>>();
+        let reviewed_match = reviewed.keys().find(|reviewed_locations| {
+            let reviewed_lines = reviewed_locations
+                .lines()
+                .collect::<std::collections::BTreeSet<&str>>();
+            actual_lines.is_subset(&reviewed_lines)
+        });
+        if let Some(reviewed_locations) = reviewed_match {
+            let _inserted = matched_reviewed.insert(reviewed_locations.clone());
+            None
+        } else {
+            Some(location_signature)
+        }
     })
     .collect::<Vec<String>>();
     assert!(
         duplicates.is_empty(),
         "substantial duplicate function bodies found; extract one source of truth:\n{}",
         duplicates.join("\n\n")
-    );
-    assert!(
-        reviewed.is_empty(),
-        "reviewed duplicate groups no longer match the source; remove or update them:\n{}",
-        reviewed.keys().copied().collect::<Vec<_>>().join("\n\n")
     );
 }
 

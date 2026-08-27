@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "list_total/list_items.rs"]
 mod list_items;
 #[path = "list_total/list_offset.rs"]

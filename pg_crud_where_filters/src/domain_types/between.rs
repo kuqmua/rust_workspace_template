@@ -1,5 +1,6 @@
 use super::BetweenTryNewError;
 
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     Debug,
@@ -66,8 +67,11 @@ impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> 
         }
     }
 }
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_qualifications)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::absolute_paths)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 const _: () = {
     extern crate serde as _serde;
@@ -85,6 +89,7 @@ const _: () = {
             __D: _serde::Deserializer<'de>,
         {
             #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[expect(non_camel_case_types)]
             #[doc(hidden)]
             enum __Field {

@@ -4,6 +4,7 @@ pub struct CursorCodec {
     maximum_length: crate::domain_types::CursorMaximumLength,
 }
 
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 impl CursorCodec {
     #[must_use]

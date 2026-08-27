@@ -1,3 +1,7 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules stay paired with their facade imports and reexports"
+)]
 const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
 const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
 const MAXIMUM_PATH_BYTES: usize = 4_096usize;

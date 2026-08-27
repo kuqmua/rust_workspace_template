@@ -1,5 +1,18 @@
 #[test]
 fn string_wrappers_do_not_use_from_string() {
+    let len_checked_function_names = super::snapshot::with_codebase_snapshot(|snapshot| {
+        super::types::SourceTextBTreeSet::from(
+            snapshot
+                .rs_files()
+                .iter()
+                .flat_map(|source_file| {
+                    super::len_checked_function_names(super::types::SynFileRef::from(
+                        source_file.ast().as_ref(),
+                    ))
+                })
+                .collect::<std::collections::BTreeSet<String>>(),
+        )
+    });
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::E2A6B9C4),
         super::types::SourceTextRef::from(constants_str::STRING_WRAPPERS_MUST_VALIDATE_LENGTH_USE_TRYFROM_STRING_WITH_A_LENGTH_CHECK),
@@ -11,8 +24,6 @@ fn string_wrappers_do_not_use_from_string() {
             }
             let string_wrapper_names =
                 super::string_wrapper_names(super::types::SynFileRef::from(ast));
-            let len_checked_function_names =
-                super::len_checked_function_names(super::types::SynFileRef::from(ast));
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::domain_analysis::StringWrapperFromVisitor {
@@ -531,6 +542,7 @@ fn domain_boundaries_use_repository_declared_types() {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::domain_analysis::DomainTypePolicyVisitor {
+                    check_non_public: super::types::AnalyzerBool::default(),
                     ers: super::types::DiagnosticMsgs::default(),
                     closure_body_scan_depth: super::types::AnalyzerCount::default(),
                     generic_scopes: Vec::new(),
@@ -645,6 +657,7 @@ fn domain_type_policy_reports_raw_browser_external_types_natively() {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::DomainTypePolicyVisitor {
+            check_non_public: super::types::AnalyzerBool::from(true),
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),
@@ -675,6 +688,7 @@ fn proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::DomainTypePolicyVisitor {
+            check_non_public: super::types::AnalyzerBool::from(true),
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),
@@ -701,6 +715,7 @@ fn domain_type_policy_checks_explicit_closure_parameter_types() {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::DomainTypePolicyVisitor {
+            check_non_public: super::types::AnalyzerBool::from(true),
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),
@@ -745,6 +760,7 @@ fn domain_type_policy_allows_only_option_and_result_containers() {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::domain_analysis::DomainTypePolicyVisitor {
+            check_non_public: super::types::AnalyzerBool::from(true),
             ers: super::types::DiagnosticMsgs::default(),
             closure_body_scan_depth: super::types::AnalyzerCount::default(),
             generic_scopes: Vec::new(),

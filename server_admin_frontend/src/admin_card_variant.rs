@@ -1,3 +1,7 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "component props and wire enum variants retain their semantic presentation order"
+)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) enum AdminCardVariant {
     #[default]
@@ -12,7 +16,7 @@ pub(crate) enum AdminCardVariant {
 }
 
 impl AdminCardVariant {
-    pub(super) fn class(self) -> &'static str {
+    pub(super) const fn class(self) -> &'static str {
         match self {
             Self::Default => constants_str::VALUE_417CCDBE,
             #[cfg(not(target_arch = "wasm32"))]

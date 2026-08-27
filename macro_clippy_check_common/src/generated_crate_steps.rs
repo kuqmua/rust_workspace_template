@@ -1,3 +1,7 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "the generated execution steps precede their supporting owner modules"
+)]
 #[cfg(feature = "test-utils")]
 pub(crate) const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
     GeneratedCrateStep::new(

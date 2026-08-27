@@ -1,3 +1,7 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules stay paired with their facade imports and reexports"
+)]
 #[path = "naming_capitalized_parts.rs"]
 mod naming_capitalized_parts;
 #[path = "naming_kebab_case.rs"]
@@ -80,43 +84,43 @@ mod scaffold_service;
 pub(crate) use scaffold_service::*;
 #[path = "domain_types/service_crate.rs"]
 mod service_crate;
-use service_crate::*;
+use service_crate::ServiceCrate;
 #[path = "domain_types/service_compose_name.rs"]
 mod service_compose_name;
-use service_compose_name::*;
+use service_compose_name::ServiceComposeName;
 #[path = "domain_types/service_compose_file.rs"]
 mod service_compose_file;
-use service_compose_file::*;
+use service_compose_file::ServiceComposeFile;
 #[path = "domain_types/service_dockerfile.rs"]
 mod service_dockerfile;
-use service_dockerfile::*;
+use service_dockerfile::ServiceDockerfile;
 #[path = "domain_types/service_image.rs"]
 mod service_image;
-use service_image::*;
+use service_image::ServiceImage;
 #[path = "domain_types/service_kubernetes_manifest.rs"]
 mod service_kubernetes_manifest;
-use service_kubernetes_manifest::*;
+use service_kubernetes_manifest::ServiceKubernetesManifest;
 #[path = "domain_types/service_socket_env.rs"]
 mod service_socket_env;
-use service_socket_env::*;
+use service_socket_env::ServiceSocketEnv;
 #[path = "domain_types/service_catalog_entries.rs"]
 mod service_catalog_entries;
-use service_catalog_entries::*;
+use service_catalog_entries::ServiceCatalogEntries;
 #[path = "domain_types/service_catalog_entries_ref.rs"]
 mod service_catalog_entries_ref;
-use service_catalog_entries_ref::*;
+use service_catalog_entries_ref::ServiceCatalogEntriesRef;
 #[path = "domain_types/service_catalog_entry.rs"]
 mod service_catalog_entry;
-use service_catalog_entry::*;
+use service_catalog_entry::ServiceCatalogEntry;
 #[path = "domain_types/should_release.rs"]
 mod should_release;
-use should_release::*;
+use should_release::ShouldRelease;
 #[path = "domain_types/service_catalog_draft.rs"]
 mod service_catalog_draft;
-use service_catalog_draft::*;
+use service_catalog_draft::ServiceCatalogDraft;
 #[path = "domain_types/synchronize_generated_file.rs"]
 mod synchronize_generated_file;
-use synchronize_generated_file::*;
+use synchronize_generated_file::synchronize_generated_file;
 
 #[cfg(test)]
 #[path = "tests.rs"]

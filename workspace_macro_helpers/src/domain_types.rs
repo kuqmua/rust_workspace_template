@@ -1,5 +1,13 @@
-const FIRST_IDENT_MAX_LEN: usize = 1_048_576;
-const COLLECTION_MAX_LEN: usize = 10_000usize;
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules stay paired with their facade imports and reexports"
+)]
+#[path = "domain_types/first_ident_max_len.rs"]
+mod first_ident_max_len;
+use first_ident_max_len::FIRST_IDENT_MAX_LEN;
+#[path = "domain_types/collection_max_len.rs"]
+mod collection_max_len;
+use collection_max_len::COLLECTION_MAX_LEN;
 #[path = "domain_types/syn_derive_input_ref.rs"]
 mod syn_derive_input_ref;
 pub use syn_derive_input_ref::*;
@@ -20,7 +28,7 @@ mod proc_macro2_top_level_comma_parts;
 pub use proc_macro2_top_level_comma_parts::*;
 #[path = "domain_types/top_level_comma_part.rs"]
 mod top_level_comma_part;
-use top_level_comma_part::*;
+use top_level_comma_part::TopLevelCommaPart;
 #[path = "domain_types/first_identifier.rs"]
 mod first_identifier;
 pub use first_identifier::*;

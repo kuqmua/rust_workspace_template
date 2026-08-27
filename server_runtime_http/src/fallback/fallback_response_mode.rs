@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "fallback_response_mode/fallback_response_mode.rs"]
 mod fallback_response_mode;
 

@@ -1,3 +1,4 @@
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::integer_division_remainder_used)]
 pub async fn serve_with_graceful_shutdown<Shutdown>(
     listener: super::TokioTcpListener,

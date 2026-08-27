@@ -1,6 +1,7 @@
-const DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM: usize = constants_usize::VALUE_4_096;
-const METRICS_RESPONSE_BODY_MAXIMUM_BYTES: usize =
-    8usize * constants_usize::VALUE_1_024 * constants_usize::VALUE_1_024;
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "owner modules and related behavior retain their intentional facade ordering"
+)]
 
 #[path = "metrics_layer/http_metrics_layer.rs"]
 mod http_metrics_layer;
@@ -69,14 +70,14 @@ mod tests {
     fn metrics_response_body_is_bounded() {
         let _empty_body = super::MetricsResponseBody::try_from(String::new())
             .expect("52410ad9 metrics_response_body_is_bounded invariant must hold");
-        let exact = String::from_utf8(vec![b'x'; super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES])
+        let exact = String::from_utf8(vec![b'x'; constants_usize::VALUE_8_388_608])
             .expect("560d1f1e metrics_response_body_is_bounded invariant must hold");
         let _exact_body = super::MetricsResponseBody::try_from(exact)
             .expect("2701b706 metrics_response_body_is_bounded invariant must hold");
         let _error = super::MetricsResponseBody::try_from(
             String::from_utf8(vec![
                 b'x';
-                super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES
+                constants_usize::VALUE_8_388_608
                     .saturating_add(constants_usize::ONE)
             ])
             .expect("329fb604 metrics_response_body_is_bounded invariant must hold"),

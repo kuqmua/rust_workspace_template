@@ -6,7 +6,7 @@ pub(crate) enum AdminButtonKind {
 }
 
 impl AdminButtonKind {
-    pub(super) fn value(self) -> &'static str {
+    pub(super) const fn value(self) -> &'static str {
         match self {
             Self::Button => constants_str::VALUE_C3E2D78F,
             Self::Submit => constants_str::VALUE_75490BD7,

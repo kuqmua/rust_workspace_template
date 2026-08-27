@@ -43,11 +43,8 @@ pub use transport_status::*;
 mod tests {
     #[test]
     fn transport_body_enforces_shared_limit() {
-        let oversized = vec![
-            constants_u8::ZERO;
-            crate::domain_types::FRONTEND_CONTRACT_BODY_MAX_BYTES
-                + constants_usize::ONE
-        ];
+        let oversized =
+            vec![constants_u8::ZERO; constants_usize::VALUE_16_777_216 + constants_usize::ONE];
         assert_eq!(
             super::TransportBody::try_from(oversized),
             Err(crate::domain_types::FrontendContractBodyError),

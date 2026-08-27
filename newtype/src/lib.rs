@@ -1,6 +1,7 @@
 mod domain_types;
 
 #[cfg(test)]
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(dead_code)] // dev dependencies are exercised by integration tests, not proc-macro unit code
 fn dependency_markers<Value>(
     _: Option<Value>,
@@ -800,6 +801,7 @@ fn generate_newtype_token_stream_with_attrs(
         .then(|| {
             let redacted = constants_str::REDACTED_ALT_3;
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::fmt::Debug for #identifier #ty_generics #where_clause {
                     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -815,6 +817,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::fmt::Display for #identifier #ty_generics #where_clause {
                     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -906,6 +909,7 @@ fn generate_newtype_token_stream_with_attrs(
         }
         let target_ty = &inner_ref_ty.elem;
         Some(quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
             impl #impl_generics AsMut<#target_ty> for #identifier #ty_generics #where_clause {
                 fn as_mut(&mut self) -> &mut #target_ty {
@@ -921,6 +925,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics AsRef<str> for #identifier #ty_generics #where_clause {
                     fn as_ref(&self) -> &str {
@@ -954,6 +959,7 @@ fn generate_newtype_token_stream_with_attrs(
         };
         let target_ty = &inner_ref_ty.elem;
         Some(quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
             impl #impl_generics AsRef<#target_ty> for #identifier #ty_generics #where_clause {
                 fn as_ref(&self) -> &#target_ty {
@@ -1003,6 +1009,7 @@ fn generate_newtype_token_stream_with_attrs(
         });
     let borrow_str_token_stream = attrs.contains(domain_types::NewtypeOption::BorrowStr).get().then(|| {
         quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
             impl #impl_generics std::borrow::Borrow<str> for #identifier #ty_generics #where_clause {
                 fn borrow(&self) -> &str {
@@ -1023,6 +1030,7 @@ fn generate_newtype_token_stream_with_attrs(
         };
         let target_ty = &inner_ref_ty.elem;
         Some(quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
             impl #impl_generics std::borrow::Borrow<#target_ty> for #identifier #ty_generics #where_clause {
                 fn borrow(&self) -> &#target_ty {
@@ -1035,6 +1043,7 @@ fn generate_newtype_token_stream_with_attrs(
     };
     let borrow_owned_token_stream = attrs.contains(domain_types::NewtypeOption::BorrowOwned).get().then(|| {
         quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
             impl #impl_generics std::borrow::Borrow<#inner_ty_ref> for #identifier #ty_generics #where_clause {
                 fn borrow(&self) -> &#inner_ty_ref {
@@ -1045,6 +1054,7 @@ fn generate_newtype_token_stream_with_attrs(
     });
     let borrow_path_token_stream = attrs.contains(domain_types::NewtypeOption::BorrowPath).get().then(|| {
         quote::quote! {
+            // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
             impl #impl_generics std::borrow::Borrow<std::path::Path> for #identifier #ty_generics #where_clause
             where
@@ -1061,6 +1071,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
                     type Target = #inner_ty_ref;
@@ -1075,6 +1086,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
                     type Target = <#inner_ty_ref as std::ops::Deref>::Target;
@@ -1089,6 +1101,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::ops::DerefMut for #identifier #ty_generics #where_clause {
                     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -1102,6 +1115,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics std::ops::DerefMut for #identifier #ty_generics #where_clause {
                     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -1209,6 +1223,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics IntoIterator for #identifier #ty_generics #where_clause {
                     type IntoIter = <#inner_ty_ref as IntoIterator>::IntoIter;
@@ -1237,6 +1252,7 @@ fn generate_newtype_token_stream_with_attrs(
         .get()
         .then(|| {
             quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
                 impl #impl_generics quote::ToTokens for #identifier #ty_generics #where_clause {
                     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
@@ -1311,6 +1327,7 @@ fn generate_newtype_token_stream_with_attrs(
         },
     ))
 }
+// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::single_call_fn)] // checked String wrapper generation is separate from forwarding newtype impls
 fn generate_bounded_string_token_stream(
     input: domain_types::SynDeriveInputRef<'_>,

@@ -1,3 +1,7 @@
+#![allow(
+    clippy::module_inception,
+    reason = "same-named type and function owners require nested modules under the facade"
+)]
 #[path = "source_selection/select_sources.rs"]
 mod select_sources;
 #[path = "source_selection/source_selection.rs"]
