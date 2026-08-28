@@ -2016,6 +2016,43 @@ impl ConstantInitializerStringLiteralVisitor {
         syn::visit::Visit::visit_expr(&mut visitor, expr);
         visitor.found
     }
+    fn static_type_is_string_constant(ty: super::types::SynTypeRef<'_>) -> bool {
+        match ty.get() {
+            syn::Type::Array(array) => Self::static_type_is_string_constant(
+                super::types::SynTypeRef::from(array.elem.as_ref()),
+            ),
+            syn::Type::Group(group) => Self::static_type_is_string_constant(
+                super::types::SynTypeRef::from(group.elem.as_ref()),
+            ),
+            syn::Type::Paren(paren) => Self::static_type_is_string_constant(
+                super::types::SynTypeRef::from(paren.elem.as_ref()),
+            ),
+            syn::Type::Path(path) => path.path.segments.last().is_some_and(|segment| {
+                matches!(
+                    segment.ident.to_string().as_str(),
+                    constants_str::STR_ALT | constants_str::STRING
+                )
+            }),
+            syn::Type::Reference(reference) => Self::static_type_is_string_constant(
+                super::types::SynTypeRef::from(reference.elem.as_ref()),
+            ),
+            syn::Type::Slice(slice) => Self::static_type_is_string_constant(
+                super::types::SynTypeRef::from(slice.elem.as_ref()),
+            ),
+            syn::Type::Tuple(tuple) => tuple.elems.iter().any(|element| {
+                Self::static_type_is_string_constant(super::types::SynTypeRef::from(element))
+            }),
+            syn::Type::FnPtr(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Verbatim(_)
+            | _ => false,
+        }
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for ConstantInitializerStringLiteralVisitor {
     fn visit_expr_closure(&mut self, _i: &'ast syn::ExprClosure) {}
@@ -2091,8 +2128,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_item_fn(self, i);
     }
     fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
-        if super::type_stores_string_text(super::types::SynTypeRef::from(i.ty.as_ref())).get()
-            || ConstantInitializerStringLiteralVisitor::contains(i.expr.as_ref()).get()
+        if ConstantInitializerStringLiteralVisitor::static_type_is_string_constant(
+            super::types::SynTypeRef::from(i.ty.as_ref()),
+        ) || ConstantInitializerStringLiteralVisitor::contains(i.expr.as_ref()).get()
         {
             self.ers.push(format!(
                 "string static `{}` must be declared in constants_str",

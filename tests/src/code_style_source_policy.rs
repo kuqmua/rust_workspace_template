@@ -2731,6 +2731,23 @@ fn all_string_constants_are_declared_in_str_constants() {
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
+            let declaration_visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::source_analysis::StringConstantDeclarationVisitor {
+                    allow_generated_string_constants: super::types::AnalyzerBool::from(
+                        path.ends_with(
+                            constants_str::CONSTANTS_STR_MACROS_SRC_DEFINE_STR_CONSTANTS_INPUT_RS,
+                        ),
+                    ),
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                declaration_visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
         },
     );
 }
