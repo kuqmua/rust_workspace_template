@@ -75,7 +75,7 @@ fn single_call_fn_is_never_allowed_for_a_whole_module() {
         super::assert_joined_ers_empty(
             super::types::SourceTextListRef::from(violations.as_slice()),
             super::types::StaticStr::from(
-                "single_call_fn suppressions must be attached to exact items",
+                constants_str::CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON,
             ),
         );
     });
@@ -540,10 +540,8 @@ fn new_runtime_structs_keep_fields_private() {
 }
 #[test]
 fn struct_field_visibility_policy_rejects_restricted_visibility() {
-    let ast = syn::parse_file(
-        "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 }",
-    )
-    .expect("8c99de4e struct field visibility fixture must parse");
+    let ast = syn::parse_file(constants_str::CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE)
+        .expect("8c99de4e struct field visibility fixture must parse");
     let mut visitor = super::source_analysis::PublicStructFieldVisitor::default();
     syn::visit::Visit::visit_file(&mut visitor, &ast);
     assert_eq!(
@@ -1788,12 +1786,12 @@ fn no_non_public_use_imports_in_rust_sources() {
 }
 #[test]
 fn declared_child_does_not_bypass_non_public_use_import_policy() {
-    let ast = syn::parse_file("use super::child::Item;").expect(
+    let ast = syn::parse_file(constants_str::CODE_STYLE_DECLARED_CHILD_USE_FIXTURE).expect(
         "b67d5cf1 declared_child_does_not_bypass_non_public_use_import_policy invariant must hold",
     );
     let mut ers = Vec::<String>::new();
     append_non_public_use_import_er(
-        std::path::Path::new("../fixture/src/declared_child.rs"),
+        std::path::Path::new(constants_str::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
         &ast,
         super::types::AnalyzerBool::from(true),
         &mut ers,

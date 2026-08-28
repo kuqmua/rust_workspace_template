@@ -67,10 +67,8 @@ fn custom_type_names_are_unique_across_workspace() {
 
 #[test]
 fn custom_type_name_visitor_covers_all_rust_type_declarations() {
-    let ast = syn::parse_file(
-        "struct StructName; enum EnumName {} union UnionName { value: u8 } trait TraitName {} type AliasName = u8; trait TraitAliasName = TraitName;",
-    )
-    .expect("a9ea85b6 custom type declaration fixture must parse");
+    let ast = syn::parse_file(constants_str::CODE_STYLE_TYPE_DECLARATIONS_FIXTURE)
+        .expect("a9ea85b6 custom type declaration fixture must parse");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::CustomTypeNameVisitor::default(),
@@ -92,10 +90,8 @@ fn custom_type_name_visitor_covers_all_rust_type_declarations() {
 
 #[test]
 fn free_function_name_visitor_excludes_methods() {
-    let ast = syn::parse_file(
-        "fn outer() { fn inner() {} } mod nested { fn module_function() {} } struct Example; impl Example { fn inherent_method() {} } trait ExampleTrait { fn required_method(); fn provided_method() {} }",
-    )
-    .expect("31495514 free function declaration fixture must parse");
+    let ast = syn::parse_file(constants_str::CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE)
+        .expect("31495514 free function declaration fixture must parse");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::FreeFnNameVisitor::default(),
@@ -199,13 +195,21 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                         let repository_qualified = inner_type.path.segments.len()
                             == constants_usize::ONE
                             || inner_type.path.segments.first().is_some_and(|segment| {
-                                matches!(segment.ident.to_string().as_str(), "crate" | "self" | "super")
+                                matches!(
+                                    segment.ident.to_string().as_str(),
+                                    constants_str::CODE_STYLE_CRATE_PATH_SEGMENT
+                                        | constants_str::CODE_STYLE_SELF_PATH_SEGMENT
+                                        | constants_str::CODE_STYLE_SUPER_PATH_SEGMENT
+                                )
                             })
                             || inner_type
                                 .path
                                 .segments
                                 .iter()
-                                .any(|segment| segment.ident == "domain_types");
+                                .any(|segment| {
+                                    segment.ident
+                                        == constants_str::CODE_STYLE_DOMAIN_TYPES_PATH_SEGMENT
+                                });
                         if !repository_qualified {
                             return None;
                         }
@@ -214,14 +218,21 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                             return None;
                         }
                         let adds_context = item_struct.attrs.iter().any(|attribute| {
-                            if !attribute.path().is_ident("error") {
+                            if !attribute
+                                .path()
+                                .is_ident(constants_str::CODE_STYLE_ERROR_ATTRIBUTE)
+                            {
                                 return false;
                             }
                             let syn::Meta::List(list) = &attribute.meta else {
                                 return false;
                             };
                             syn::parse2::<syn::LitStr>(list.tokens.clone()).is_ok_and(|message| {
-                                    !matches!(message.value().as_str(), "{0}" | "{0:?}")
+                                    !matches!(
+                                        message.value().as_str(),
+                                        constants_str::CODE_STYLE_TRANSPARENT_DISPLAY_FORMAT
+                                            | constants_str::CODE_STYLE_TRANSPARENT_DEBUG_FORMAT
+                                    )
                                 })
                         });
                         (!adds_context).then(|| {
@@ -269,8 +280,8 @@ fn domain_types_do_not_add_intermediate_representation_wrappers() {
                     .path
                     .segments
                     .iter()
-                    .any(|segment| segment.ident == "num")
-                    && inner_name.starts_with("NonZero"))
+                    .any(|segment| segment.ident == constants_str::CODE_STYLE_NUM_PATH_SEGMENT)
+                    && inner_name.starts_with(constants_str::CODE_STYLE_NON_ZERO_PREFIX))
                 .then(|| item_struct.ident.to_string())
             })
             .collect::<std::collections::BTreeSet<_>>();
@@ -633,9 +644,9 @@ fn workspace_has_no_reexport_only_modules() {
     fn is_reexport_only(items: &[syn::Item]) -> bool {
         !items.is_empty() && items.iter().all(|item| matches!(item, syn::Item::Use(_)))
     }
-    let reexports = syn::parse_file("pub use crate::first::*; pub(crate) use crate::second::Item;")
+    let reexports = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_ONLY_FIXTURE)
         .expect("f4a6c213 re-export-only module fixture must parse");
-    let module_with_logic = syn::parse_file("pub use crate::first::*; fn run() {}")
+    let module_with_logic = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
         .expect("875cd8ad module-with-logic fixture must parse");
     assert!(is_reexport_only(reexports.items.as_slice()), "fd841ceb");
     assert!(

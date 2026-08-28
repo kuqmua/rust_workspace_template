@@ -2396,3 +2396,22 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 27] = [
     "../pg_crud_pg_table/src/pg_table_idempotency_actor.rs::try_from\n../pg_crud_pg_table/src/pg_table_idempotency_key.rs::try_from",
 ];
 pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrappers retain distinct types while sharing a small validated conversion shape";
+pub const CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON: &str =
+    "single_call_fn suppressions must be attached to exact items";
+pub const CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE: &str = "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 }";
+pub const CODE_STYLE_DECLARED_CHILD_USE_FIXTURE: &str = "use super::child::Item;";
+pub const CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH: &str = "../fixture/src/declared_child.rs";
+pub const CODE_STYLE_TYPE_DECLARATIONS_FIXTURE: &str = "struct StructName; enum EnumName {} union UnionName { value: u8 } trait TraitName {} type AliasName = u8; trait TraitAliasName = TraitName;";
+pub const CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE: &str = "fn outer() { fn inner() {} } mod nested { fn module_function() {} } struct Example; impl Example { fn inherent_method() {} } trait ExampleTrait { fn required_method(); fn provided_method() {} }";
+pub const CODE_STYLE_CRATE_PATH_SEGMENT: &str = "crate";
+pub const CODE_STYLE_SELF_PATH_SEGMENT: &str = "self";
+pub const CODE_STYLE_SUPER_PATH_SEGMENT: &str = "super";
+pub const CODE_STYLE_DOMAIN_TYPES_PATH_SEGMENT: &str = "domain_types";
+pub const CODE_STYLE_ERROR_ATTRIBUTE: &str = "error";
+pub const CODE_STYLE_TRANSPARENT_DISPLAY_FORMAT: &str = "{0}";
+pub const CODE_STYLE_TRANSPARENT_DEBUG_FORMAT: &str = "{0:?}";
+pub const CODE_STYLE_NUM_PATH_SEGMENT: &str = "num";
+pub const CODE_STYLE_NON_ZERO_PREFIX: &str = "NonZero";
+pub const CODE_STYLE_REEXPORT_ONLY_FIXTURE: &str =
+    "pub use crate::first::*; pub(crate) use crate::second::Item;";
+pub const CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE: &str = "pub use crate::first::*; fn run() {}";
