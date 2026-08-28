@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn migrate_create_initial_administrator(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     login: crate::domain_types::AdminLogin,

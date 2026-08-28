@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn password_from_bytes(
     bytes: server_runtime_http::domain_types::BoundedBytes,
 ) -> Result<

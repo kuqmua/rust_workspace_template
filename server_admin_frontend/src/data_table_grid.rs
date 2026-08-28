@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn data_table_grid(
     view: &server_admin_contract::domain_types::AdminDataTableView,
     query: &server_admin_contract::domain_types::AdminDataTableQuery,

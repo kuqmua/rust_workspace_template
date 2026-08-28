@@ -192,7 +192,7 @@ mod tests {
             super::read_commit_header_str(crate::domain_types::header_value::AxumHeadersRef::from(
                 &headers,
             ))
-            .map(crate::domain_types::header_value::HeaderStrRef::get),
+            .map(|value| value.0),
             constants_str::E1D07F53,
             &git_info::domain_types::project_git_info_value()
                 .commit()

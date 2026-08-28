@@ -306,6 +306,7 @@ impl AdminAccessClaims {
     reason = "semaphore acquisition stays with the security-owned wrapper while hashing behavior stays in the password module"
 )]
 impl AdminPasswordHasher {
+    #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
     pub(crate) const fn from_semaphore(semaphore: AdminSharedSemaphoreArc) -> Self {
         Self { semaphore }
     }

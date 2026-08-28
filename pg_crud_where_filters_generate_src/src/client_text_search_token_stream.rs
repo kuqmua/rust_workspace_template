@@ -1,5 +1,4 @@
-#![allow(clippy::single_call_fn)] // client text-search emission has one source assembly owner
-
+#[allow(clippy::single_call_fn)] // client text-search emission has one source assembly owner
 pub(crate) fn client_text_search_token_stream(
     spec: crate::spec::FilterSpec,
 ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{

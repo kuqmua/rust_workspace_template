@@ -100,6 +100,7 @@ pub(crate) fn declared_child_matches(path: &str, owner: &str) -> bool {
             .to_owned(),
     ))
 }
+#[allow(clippy::single_call_fn)] // owner lookup keeps declaration traversal centralized
 pub(crate) fn declared_owner_path(path: &str) -> Option<types::SourceTextRef<'static>> {
     let normalized_path = path
         .trim_start_matches(constants_str::TEXT_ALT_9)
@@ -116,6 +117,7 @@ pub(crate) fn declared_owner_path(path: &str) -> Option<types::SourceTextRef<'st
     Some(types::SourceTextRef::from(owner))
 }
 
+#[allow(clippy::single_call_fn)] // split-owner lookup keeps declaration traversal centralized
 pub(crate) fn declared_immediate_owner_path(path: &str) -> Option<types::SourceTextRef<'static>> {
     let normalized_path = path
         .trim_start_matches(constants_str::TEXT_ALT_9)
@@ -125,6 +127,7 @@ pub(crate) fn declared_immediate_owner_path(path: &str) -> Option<types::SourceT
     })
 }
 
+#[allow(clippy::single_call_fn)] // duplicate analysis reuses the shared declaration index
 pub(crate) fn declared_split_owner_path(path: &str) -> Option<types::SourceTextRef<'static>> {
     let normalized_path = path
         .trim_start_matches(constants_str::TEXT_ALT_9)
@@ -249,6 +252,7 @@ pub(crate) fn scan_generated_diagnostic_tokens(
     });
 }
 
+#[allow(clippy::single_call_fn)] // centralizes cross-file uniqueness validation behind the public policy test
 pub(crate) fn check_expect_and_panic_contain_unique_diagnostic_ids() {
     let reviewed_interpolations = [
         (
@@ -375,6 +379,7 @@ pub(crate) fn assert_workspace_lints_match(
     assert!(outdated_lints_in_file.is_empty(), "93787d2d");
 }
 
+#[allow(clippy::single_call_fn)] // helper intentionally stays extracted so command parsing remains decoupled from lint comparison orchestration
 pub(crate) fn lints_from_help_cmd(
     tool: types::StaticStr,
     parse_only_clippy: types::AnalyzerBool,
@@ -412,6 +417,7 @@ pub(crate) fn lints_from_help_cmd(
         .into()
 }
 
+#[allow(clippy::single_call_fn)] // centralizes lint-name normalization used by command output parsing
 pub(crate) fn normalize_lint_name(v: types::SourceTextRef<'_>) -> types::SourceText {
     types::SourceText::try_from(v.as_ref().replace('-', constants_str::UNDERSCORE))
         .expect("f3d821a6 normalize_lint_name invariant must hold")
@@ -534,6 +540,7 @@ pub(crate) fn text_content_hygiene_ers(source: types::SourceTextRef<'_>) -> type
     ers
 }
 
+#[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable
 pub(crate) fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
@@ -561,6 +568,7 @@ pub(crate) fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
     }
 }
 
+#[allow(clippy::single_call_fn)] // extracted to avoid repeated feature-type checks for dependency tables
 pub(crate) fn validate_workspace_dep_features(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
@@ -624,6 +632,7 @@ pub(crate) fn collect_missing_key_ers(
     )
 }
 
+#[allow(clippy::single_call_fn)] // helper intentionally stays extracted so workspace-lints table parsing remains separate from test driver wiring
 pub(crate) fn lints_vec_from_cargo_toml_workspace(
     rust_or_clippy: RustOrClippy,
 ) -> types::SourceTextList {
@@ -742,6 +751,7 @@ pub(crate) fn read_toml_table(path: types::PathRef<'_>) -> Option<types::TomlTab
     snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
 }
 
+#[allow(clippy::single_call_fn)] // shared lookup avoids rereading crate manifests in text-based Cargo.toml style checks
 pub(crate) fn cargo_toml_content(path: types::PathRef<'_>) -> Option<types::SourceText> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
 }
@@ -777,6 +787,7 @@ pub(crate) fn path_has_segment(
     )
 }
 
+#[allow(clippy::single_call_fn)] // names the From<String> trait-shape check for the string-wrapper policy visitor
 pub(crate) fn item_impl_is_from_string(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path_ends_with(
@@ -788,6 +799,7 @@ pub(crate) fn item_impl_is_from_string(item: types::SynItemImplRef<'_>) -> types
     }))
 }
 
+#[allow(clippy::single_call_fn)] // names the TryFrom<String> trait-shape check for the string-wrapper policy visitor
 pub(crate) fn item_impl_is_try_from_string(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path_ends_with(
@@ -799,6 +811,7 @@ pub(crate) fn item_impl_is_try_from_string(item: types::SynItemImplRef<'_>) -> t
     }))
 }
 
+#[allow(clippy::single_call_fn)] // keeps length-check detection local to the string-wrapper TryFrom policy
 pub(crate) fn item_impl_contains_len_call(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
     let mut visitor = domain_analysis::LenMethodCallVisitor {
         found: types::AnalyzerBool::default(),
@@ -867,6 +880,7 @@ pub(crate) fn item_struct_is_single_field_tuple_wrapper(
     )
 }
 
+#[allow(clippy::single_call_fn)] // conversion derive recognition is kept separate from wrapper collection
 pub(crate) fn item_struct_derives_conversion(
     item: types::SynItemStructRef<'_>,
 ) -> types::AnalyzerBool {
@@ -886,6 +900,7 @@ pub(crate) fn item_struct_derives_conversion(
     }))
 }
 
+#[allow(clippy::single_call_fn)] // keeps TryFrom derive detection reusable inside wrapper conversion collection
 pub(crate) fn item_struct_derives_try_from(
     item: types::SynItemStructRef<'_>,
 ) -> types::AnalyzerBool {
@@ -905,6 +920,7 @@ pub(crate) fn item_struct_derives_try_from(
     }))
 }
 
+#[allow(clippy::single_call_fn)] // isolates From<T> impl detection for tuple-wrapper conversion analysis
 pub(crate) fn item_impl_is_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path.segments
@@ -913,6 +929,7 @@ pub(crate) fn item_impl_is_from(item: types::SynItemImplRef<'_>) -> types::Analy
     }))
 }
 
+#[allow(clippy::single_call_fn)] // isolates TryFrom<T> impl detection for tuple-wrapper conversion analysis
 pub(crate) fn item_impl_is_try_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
         path.segments
@@ -984,6 +1001,7 @@ pub(crate) fn type_path_ends_with_identifier(
     })
 }
 
+#[allow(clippy::single_call_fn)] // keeps FromInner derive detection reusable inside the string-wrapper policy
 pub(crate) fn attr_has_newtype_from_option(
     attr: types::SynAttributeRef<'_>,
 ) -> types::AnalyzerBool {
@@ -998,6 +1016,7 @@ pub(crate) fn attr_has_newtype_from_option(
     }))
 }
 
+#[allow(clippy::single_call_fn)] // keeps BoundedString derive parsing reusable inside the string-wrapper policy
 pub(crate) fn attr_has_bounded_string_derive(
     attr: types::SynAttributeRef<'_>,
 ) -> types::AnalyzerBool {
@@ -1072,6 +1091,7 @@ pub(crate) fn expr_call_path(call: types::SynExprCallRef<'_>) -> Option<types::S
     }
 }
 
+#[allow(clippy::single_call_fn)] // extracts repository macro domain type discovery from the visitor traversal
 pub(crate) fn collect_generate_pg_types_domain_names(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::SourceTextBTreeSet,
@@ -1642,6 +1662,7 @@ pub(crate) fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
     .expect("50c1e4a8 path_to_string invariant must hold")
 }
 
+#[allow(clippy::single_call_fn)] // keeps external-wrapper naming suggestion generation readable at the call site
 pub(crate) fn identifier_to_upper_camel_fragment(
     identifier: types::SynIdentifierRef<'_>,
 ) -> types::SourceText {

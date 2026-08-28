@@ -78,6 +78,10 @@ fn expression_acquires_lock(expression: &syn::Expr) -> bool {
     }
 }
 
+#[allow(
+    clippy::single_call_fn,
+    reason = "keeps dropped-identifier extraction separate from statement traversal"
+)]
 fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText> {
     let syn::Stmt::Expr(syn::Expr::Call(call), _) = statement else {
         return None;

@@ -7,9 +7,8 @@
     reason = "repository policy forbids for loops"
 )]
 #![allow(
-    clippy::single_call_fn,
     clippy::wildcard_imports,
-    reason = "root-owned runner modes retain independently named tool stages and the former domain facade vocabulary"
+    reason = "root-owned runner modes retain the former domain facade vocabulary"
 )]
 
 mod admin_contract_fixture;

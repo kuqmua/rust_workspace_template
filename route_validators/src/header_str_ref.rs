@@ -14,10 +14,3 @@
     newtype::FromInner,
 )]
 pub(crate) struct HeaderStrRef<'header_str_lt>(pub(super) &'header_str_lt str);
-
-#[cfg(test)]
-impl<'header_str_lt> HeaderStrRef<'header_str_lt> {
-    pub(crate) const fn get(self) -> &'header_str_lt str {
-        self.0
-    }
-}

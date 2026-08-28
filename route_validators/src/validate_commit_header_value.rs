@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // separates commit-value validation from header parsing for reuse and focused tests
 pub(crate) fn validate_commit_header_value(
     commit: crate::domain_types::header_value::HeaderStrRef<'_>,
 ) -> Result<(), super::CommitError> {

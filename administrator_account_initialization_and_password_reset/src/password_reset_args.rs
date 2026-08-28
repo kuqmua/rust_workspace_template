@@ -14,6 +14,7 @@ impl PasswordResetArgs {
         (self.login, self.password_file)
     }
 
+    #[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
     pub(crate) const fn new(
         login: server_admin::domain_types::AdminLogin,
         password_file: crate::domain_types::AdministratorPasswordFilePathBuf,

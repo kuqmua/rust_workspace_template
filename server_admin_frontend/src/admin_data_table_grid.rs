@@ -3,6 +3,7 @@
     reason = "the shared Leptos grid composes its column and row renderers once"
 )]
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_data_table_grid(
     view: &server_admin_contract::domain_types::AdminDataTableView,
     active_field: Option<&server_admin_contract::domain_types::AdminFilterField>,

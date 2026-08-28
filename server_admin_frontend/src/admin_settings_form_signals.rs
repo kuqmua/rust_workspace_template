@@ -9,6 +9,7 @@ pub(crate) struct AdminSettingsFormSignals(
         server_admin_contract::domain_types::AdminSetting::COUNT],
 );
 impl AdminSettingsFormSignals {
+    #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
     pub(crate) fn new(
         values: &super::values::admin_settings_form_values::AdminSettingsFormValues,
     ) -> Self {

@@ -24,6 +24,7 @@ use leptos::prelude::{AddAnyAttr};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminAlert(
     #[prop(default = super::AdminAlertVariant::default())] variant: super::AdminAlertVariant,
     #[prop(optional)] id: Option<&'static str>,

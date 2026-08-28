@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn parse_args()
 -> Result<crate::domain_types::AdminCommand, crate::domain_types::AdministratorCommandArgsError> {
     let mut args = std::env::args_os().skip(constants_usize::ONE);

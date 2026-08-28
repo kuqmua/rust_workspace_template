@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // names the traversal exclusion policy and keeps it independently testable
 pub(crate) fn template_fs_should_skip(
     path: crate::domain_types::ScaffoldPathRef<'_>,
 ) -> crate::domain_types::ShouldSkip {

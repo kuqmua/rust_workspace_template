@@ -21,6 +21,7 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn TableCell(
     #[prop(optional, into)] data_label: Option<std::borrow::Cow<'static, str>>,
     #[prop(optional, into)] data_field: Option<std::borrow::Cow<'static, str>>,

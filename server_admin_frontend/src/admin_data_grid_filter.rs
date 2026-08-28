@@ -3,6 +3,7 @@ use leptos::prelude::{
     StyleAttribute,
 };
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_data_grid_filter(
     view: &server_admin_contract::domain_types::AdminDataTableView,
     column: &server_admin_contract::domain_types::AdminDataColumn,

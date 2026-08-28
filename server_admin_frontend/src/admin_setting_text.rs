@@ -3,6 +3,7 @@
     reason = "the settings text input is composed by the setting input dispatcher"
 )]
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn admin_setting_text(
     field: server_admin_contract::domain_types::AdminSetting,
     value: crate::domain_types::with_owner::input::LeptosAdminInputSignal,

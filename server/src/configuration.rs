@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn configuration()
 -> Result<server_admin::domain_types::AdminCleanupCfg, crate::domain_types::RunServerError> {
     let batch_size = server_admin::domain_types::AdminCleanupBatchSize::try_from(1_000i64)

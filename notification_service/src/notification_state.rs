@@ -9,6 +9,7 @@ pub(crate) struct NotificationState {
     reason = "field access is intentionally encapsulated behind uniform getters"
 )]
 impl NotificationState {
+    #[allow(clippy::single_call_fn)] // service startup owns construction while tests reuse it under cfg(test)
     pub(crate) const fn new(
         metrics: super::MetricsExporterPrometheusRenderer,
         pool: app_state::domain_types::SqlxPgPool,

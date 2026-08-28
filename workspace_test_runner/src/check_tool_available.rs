@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn check_tool_available(
     path: crate::domain_types::ToolPath,
 ) -> crate::domain_types::ToolAvailable {

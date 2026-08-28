@@ -5,6 +5,7 @@
 
 use leptos::prelude::{AddAnyAttr, ElementChild};
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn admin_filter_range_end(
     filter: server_admin_contract::domain_types::AdminDataFilter,
     active_end: Option<&server_admin_contract::domain_types::AdminFilterValue>,

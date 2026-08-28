@@ -1,5 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn admin_contract_fixture() -> Result<(), ()> {
     (|| {
         let no_body_schema = serde_json::to_value(

@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) fn filtered_sql(
     count_sql: crate::domain_types::StdAdminStrRef<'_>,
     data_sql: crate::domain_types::StdAdminStrRef<'_>,

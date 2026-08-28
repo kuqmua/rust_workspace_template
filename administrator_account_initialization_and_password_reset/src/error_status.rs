@@ -2,6 +2,7 @@
     clippy::missing_const_for_fn,
     reason = "repository wrappers initialize through the non-const From trait"
 )]
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn error_status(
     error: &crate::domain_types::AdministratorAccountCommandError,
 ) -> crate::domain_types::AdministratorAccountCommandStatus {

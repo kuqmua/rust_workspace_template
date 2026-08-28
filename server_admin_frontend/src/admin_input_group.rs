@@ -16,6 +16,7 @@
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminInputGroup(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {

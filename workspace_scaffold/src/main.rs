@@ -1,8 +1,7 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::single_call_fn,
     clippy::wildcard_imports,
-    reason = "root-owned scaffold stages preserve the former owner-module grouping, independently named pipeline boundaries, and shared facade vocabulary"
+    reason = "root-owned scaffold stages preserve the former owner-module grouping and shared facade vocabulary"
 )]
 
 mod cargo_args_ref;
@@ -30,9 +29,7 @@ mod service_catalog_entries;
 mod service_catalog_entries_ref;
 mod service_catalog_entry;
 mod service_catalog_parse;
-mod service_catalog_render_ci_matrix;
 mod service_catalog_render_release_entries;
-mod service_catalog_render_release_matrix;
 mod service_catalog_string_value;
 mod service_compose_file;
 mod service_compose_name;

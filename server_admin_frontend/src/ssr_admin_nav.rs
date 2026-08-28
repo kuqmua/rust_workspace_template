@@ -5,6 +5,7 @@
 
 use leptos::prelude::{AriaAttributes, ClassAttribute, CustomAttribute, ElementChild};
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn ssr_admin_nav(
     page: server_admin_contract::domain_types::AdminPage,
     admin: Option<&server_admin_contract::domain_types::AuthenticatedAdmin>,

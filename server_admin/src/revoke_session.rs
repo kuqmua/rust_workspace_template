@@ -1,6 +1,7 @@
 pub(crate) use admin_html_session_action_route_registry::AdminHtmlSessionActionRouteRegistry;
 
 #[frontend_contract::domain_types::route_error(AdminHtmlRevokeSessionError)]
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn revoke_session(
     auth: crate::AdminAuthReq,
     crate::AxumAdminForm(form): crate::AxumAdminForm<crate::RevokeSessionForm>,

@@ -10,6 +10,7 @@ pub struct AdminCleanupReport {
     refresh_tokens: AdminCleanupRows,
 }
 impl AdminCleanupReport {
+    #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
     pub(crate) const fn new(
         access_sessions: AdminCleanupRows,
         audit_log: AdminCleanupRows,

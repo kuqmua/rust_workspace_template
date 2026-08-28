@@ -2,6 +2,7 @@
     clippy::panic_in_result_fn,
     reason = "the measurement fixture treats invalid compile-time generator inputs as diagnostic invariant failures"
 )]
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn measure_mode() -> Result<(), ()> {
     {
         let allocation_tools_printed: Result<(), std::convert::Infallible> =

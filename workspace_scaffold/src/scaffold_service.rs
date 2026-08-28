@@ -3,6 +3,7 @@ use super::{
     naming_kebab_case, naming_upper_camel_case, naming_validate_project_name,
 };
 
+#[allow(clippy::single_call_fn)] // service scaffolding is one complete CLI operation
 pub(crate) fn scaffold_service(
     root: ScaffoldPathRef<'_>,
     service_name: ProjectNameRef<'_>,

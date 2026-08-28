@@ -7,9 +7,8 @@
     clippy::needless_for_each,
     clippy::partial_pub_fields,
     clippy::shadow_reuse,
-    clippy::single_call_fn,
     clippy::wildcard_imports,
-    reason = "root-owned admin modules retain responsibility-based declaration ordering, internal cross-module DTO visibility, generated table field contracts, iterator-based generated/test traversal, single-owner route stages, local transformation naming, and vocabulary previously inherited from nested owner modules"
+    reason = "root-owned admin modules retain responsibility-based declaration ordering, internal cross-module DTO visibility, generated table field contracts, iterator-based generated/test traversal, local transformation naming, and vocabulary previously inherited from nested owner modules"
 )]
 
 mod account_change_own_password;
@@ -114,7 +113,6 @@ mod admin_html_action_router;
 pub(crate) use admin_html_action_router::*;
 mod admin_html_auth_action_route_registry;
 pub(crate) use admin_html_auth_action_route_registry::*;
-mod admin_html_auth_action_router;
 pub(crate) use admin_html_auth_action_router::*;
 mod admin_html_form_key;
 pub(crate) use admin_html_form_key::*;
@@ -134,17 +132,14 @@ mod admin_html_page_router;
 pub(crate) use admin_html_page_router::*;
 mod admin_html_role_action_route_registry;
 pub(crate) use admin_html_role_action_route_registry::*;
-mod admin_html_role_action_router;
 pub(crate) use admin_html_role_action_router::*;
 mod admin_html_session_action_route_registry;
 pub(crate) use admin_html_session_action_route_registry::*;
-mod admin_html_session_action_router;
 pub(crate) use admin_html_session_action_router::*;
 mod admin_html_sessions_page;
 pub(crate) use admin_html_sessions_page::*;
 mod admin_html_settings_action_route_registry;
 pub(crate) use admin_html_settings_action_route_registry::*;
-mod admin_html_settings_action_router;
 pub(crate) use admin_html_settings_action_router::*;
 mod admin_html_swagger_enabled;
 pub(crate) use admin_html_swagger_enabled::*;
@@ -152,7 +147,6 @@ mod admin_html_swagger_route_registry;
 pub(crate) use admin_html_swagger_route_registry::*;
 mod admin_html_user_action_route_registry;
 pub(crate) use admin_html_user_action_route_registry::*;
-mod admin_html_user_action_router;
 pub(crate) use admin_html_user_action_router::*;
 mod admin_jwt_secret;
 pub(crate) use admin_jwt_secret::*;
@@ -768,3 +762,8 @@ pub(crate) use version::*;
 pub mod domain_types;
 
 pub(crate) use domain_types::*;
+mod admin_html_auth_action_router;
+mod admin_html_role_action_router;
+mod admin_html_session_action_router;
+mod admin_html_settings_action_router;
+mod admin_html_user_action_router;

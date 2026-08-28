@@ -1,5 +1,6 @@
 use super::{AllocationTool, ToolName, ToolPath};
 
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn allocation_tools() -> [AllocationTool; 6] {
     [
         AllocationTool {

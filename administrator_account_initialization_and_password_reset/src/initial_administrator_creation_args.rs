@@ -16,6 +16,7 @@ impl InitialAdministratorCreationArgs {
         (self.display_name, self.login, self.password_file)
     }
 
+    #[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
     pub(crate) const fn new(
         display_name: server_admin::domain_types::AdminDisplayName,
         login: server_admin::domain_types::AdminLogin,

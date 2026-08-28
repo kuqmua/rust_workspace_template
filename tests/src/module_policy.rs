@@ -2,6 +2,7 @@ const PRODUCTION_MODULE_MAX_LINES: usize = 2_500usize;
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_024usize;
 
 #[allow(
+    clippy::single_call_fn,
     clippy::wildcard_enum_match_arm,
     reason = "keeps named-item selection separate and ignores future unnamed syn item variants"
 )]

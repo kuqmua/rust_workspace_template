@@ -25,6 +25,7 @@ fn admin_secret(value: &str) -> crate::SecrecyAdminString {
     crate::SecrecyAdminString::try_from(value.to_owned())
         .expect("c2116874 secret invariant must hold")
 }
+#[allow(clippy::single_call_fn)] // test helper intentionally names repeated fixture construction at its sole call site
 fn password_hasher() -> crate::AdminPasswordHasher {
     crate::AdminPasswordHasher::new(crate::AdminPasswordHashConcurrency::from(
         crate::AdminNonZeroUsize::from(
@@ -35,6 +36,7 @@ fn password_hasher() -> crate::AdminPasswordHasher {
 fn password(value: &str) -> crate::AdminPassword {
     crate::AdminPassword::new(admin_secret(value))
 }
+#[allow(clippy::single_call_fn)] // test helper intentionally names fixture construction at its sole call site
 fn jwt_secret() -> crate::AdminJwtSecret {
     crate::AdminJwtSecret::new(admin_secret(
         constants_str::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,

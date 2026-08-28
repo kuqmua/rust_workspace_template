@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // runtime mode has one process entrypoint
 pub(crate) async fn run_notification_service(
     config: notification_service_config::config::Config,
 ) -> Result<(), crate::domain_types::NotificationServiceError> {

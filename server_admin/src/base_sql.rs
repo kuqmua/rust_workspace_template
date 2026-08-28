@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) fn base_sql(
     table: server_admin_contract::domain_types::AdminDataTable,
 ) -> Result<

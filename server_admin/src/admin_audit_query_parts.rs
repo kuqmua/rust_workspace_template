@@ -25,6 +25,7 @@ impl AdminAuditQueryParts {
         clippy::too_many_arguments,
         reason = "constructor keeps private audit query fields inside the domain type"
     )]
+    #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
     pub(crate) const fn new(
         action: Option<crate::AdminAuditAction>,
         created_after: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,

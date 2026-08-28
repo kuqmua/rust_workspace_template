@@ -103,12 +103,14 @@ fn service_catalog_owns_ci_and_release_projection_values() {
     .expect("4e8b2d7a service_catalog_owns_ci_and_release_projection_values invariant must hold");
     let entries_ref = super::ServiceCatalogEntriesRef::from(entries.0.as_slice());
     assert_eq!(
-        super::service_catalog_render_ci_matrix::service_catalog_render_ci_matrix(entries_ref)
-            .as_ref(),
+        super::service_catalog_render_release_entries::service_catalog_render_release_entries(
+            entries_ref,
+        )
+        .as_ref(),
         "          - name: application\n            dockerfile: Dockerfile\n"
     );
     assert_eq!(
-        super::service_catalog_render_release_matrix::service_catalog_render_release_matrix(
+        super::service_catalog_render_release_entries::service_catalog_render_release_entries(
             entries_ref
         )
         .as_ref(),

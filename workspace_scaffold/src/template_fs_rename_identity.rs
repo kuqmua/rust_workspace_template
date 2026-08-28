@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "project command owns identity traversal"
+)]
 pub(crate) fn template_fs_rename_identity(
     root: crate::domain_types::ScaffoldPathRef<'_>,
     project_name: crate::domain_types::ProjectNameRef<'_>,

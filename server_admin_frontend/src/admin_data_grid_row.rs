@@ -3,6 +3,7 @@
     reason = "the Leptos data row is composed once by the shared grid"
 )]
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn admin_data_grid_row(
     view: &server_admin_contract::domain_types::AdminDataTableView,
     row: &server_admin_contract::domain_types::AdminDataRow,

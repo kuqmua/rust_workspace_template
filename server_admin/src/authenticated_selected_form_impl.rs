@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) fn authenticated_selected_form_impl<Ids, Parse>(
     auth: crate::AdminAuthReq,
     expected: &crate::AdminHtmlFormText,

@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(super) fn build_server_routes(
     admin_auth_state: server_admin::domain_types::auth::SharedAdminAuthSvcStateArc,
     app_state: &crate::domain_types::SharedServerAppStateArc,

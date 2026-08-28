@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) fn data_columns(
     table: server_admin_contract::domain_types::AdminDataTable,
     column_names: server_admin_contract::domain_types::AdminDataColumnsCsvRef<'_>,

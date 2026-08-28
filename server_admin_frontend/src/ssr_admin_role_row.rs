@@ -3,6 +3,7 @@
     reason = "the SSR role-row view is composed once by the roles screen"
 )]
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn ssr_admin_role_row(
     item: &server_admin_contract::domain_types::AdminRoleSummary,
     page: &server_admin_contract::domain_types::AdminRolesPage,

@@ -12,7 +12,6 @@
     clippy::option_if_let_else,
     clippy::same_name_method,
     clippy::shadow_reuse,
-    clippy::single_call_fn,
     clippy::tests_outside_test_module,
     clippy::unused_trait_names,
     clippy::wildcard_imports,

@@ -1,8 +1,7 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::shadow_reuse,
     clippy::wildcard_imports,
-    reason = "root-owned validator stages retain test-helper conversion naming, remain independently testable, and share the compatibility-facade vocabulary previously supplied by nested owner modules"
+    reason = "root-owned validator stages retain test-helper conversion naming and share the compatibility-facade vocabulary previously supplied by nested owner modules"
 )]
 
 #[cfg(test)]

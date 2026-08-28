@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) async fn run_admin_account_command() -> Result<
     server_admin::domain_types::AdminUserId,
     crate::domain_types::AdministratorAccountCommandError,

@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // test helper intentionally names repeated fixture construction at its sole call site
 fn auth_with_headers(headers: http::HeaderMap) -> crate::AdminAuthReq {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)

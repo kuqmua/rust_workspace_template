@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn mode() -> Option<crate::domain_types::RunnerMode> {
     std::env::args().nth(1).map(|value| {
         crate::domain_types::RunnerMode::try_from(value)

@@ -10,6 +10,7 @@ use leptos::prelude::{
 };
 
 #[must_use]
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn render_profile(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,

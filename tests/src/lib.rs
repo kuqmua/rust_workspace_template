@@ -1,8 +1,3 @@
-#![allow(
-    clippy::single_call_fn,
-    reason = "root-owned policy modules retain independently testable analysis stages previously scoped by the code-style owner module"
-)]
-
 #[cfg(test)]
 mod advanced_policy;
 #[cfg(test)]

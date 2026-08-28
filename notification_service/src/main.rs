@@ -1,6 +1,5 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#![allow(clippy::single_call_fn)] // binary composition functions intentionally have one startup or route registration owner
 #![allow(clippy::arbitrary_source_item_ordering)] // OpenAPI document stays next to its generated schema and operation marker
 #![allow(clippy::needless_for_each)] // utoipa OpenApi derive expands to an internal for_each
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling application and adapter modules consume these private binary domain models

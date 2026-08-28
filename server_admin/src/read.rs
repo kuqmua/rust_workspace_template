@@ -1,5 +1,6 @@
 use crate::{base_sql, data_columns, data_filter, filtered_sql};
 
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn read(
     pool: crate::SqlxAdminRepositoryPoolRef<'_>,
     table: server_admin_contract::domain_types::AdminDataTable,

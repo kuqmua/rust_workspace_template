@@ -11,6 +11,31 @@ struct HandwrittenFieldGetterVisitor {
     violations: super::types::SourceTextList,
 }
 
+#[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+struct ModuleWideSingleCallAllowVisitor {
+    violations: super::types::SourceTextList,
+}
+
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for ModuleWideSingleCallAllowVisitor {
+    fn visit_attribute(&mut self, i: &'ast_lt syn::Attribute) {
+        if matches!(&i.style, syn::AttrStyle::Inner(_))
+            && i.path().is_ident(constants_str::VALUE_41008373)
+            && matches!(&i.meta, syn::Meta::List(list) if list
+                .tokens
+                .to_string()
+                .split_whitespace()
+                .collect::<String>()
+                .contains(constants_str::SHARED_VALUES_CLIPPY_SINGLE_CALL_FN))
+        {
+            self.violations.push(format!(
+                "line {}: clippy::single_call_fn must be allowed only on the exact item",
+                syn::spanned::Spanned::span(i).start().line
+            ));
+        }
+        syn::visit::visit_attribute(self, i);
+    }
+}
+
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
     fn visit_item_impl(&mut self, i: &'ast_lt syn::ItemImpl) {
         if i.trait_.is_none() {
@@ -31,6 +56,29 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
         }
         syn::visit::visit_item_impl(self, i);
     }
+}
+
+#[test]
+fn single_call_fn_is_never_allowed_for_a_whole_module() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let mut visitor = ModuleWideSingleCallAllowVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor.violations.into_iter().map(|violation| {
+                    format!("{}:{violation}", source_file.path().as_ref().display())
+                })
+            })
+            .collect::<Vec<String>>();
+        super::assert_joined_ers_empty(
+            super::types::SourceTextListRef::from(violations.as_slice()),
+            super::types::StaticStr::from(
+                "single_call_fn suppressions must be attached to exact items",
+            ),
+        );
+    });
 }
 
 #[test]

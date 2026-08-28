@@ -1,4 +1,4 @@
-#![allow(
+#[allow(
     clippy::single_call_fn,
     reason = "the schema emitter boundary is intentionally isolated from descriptor and contract emitters"
 )]

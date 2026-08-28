@@ -9,6 +9,7 @@ pub(crate) struct AdminPageRange {
 }
 
 impl AdminPageRange {
+    #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
     pub(crate) fn new(
         offset: server_admin_contract::domain_types::AdminPageOffset,
         limit: server_admin_contract::domain_types::AdminPageLimit,

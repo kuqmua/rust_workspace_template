@@ -21,6 +21,7 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn TableFooter(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! { <singlestage::TableFooter attr:data-name="TableFooter" attr:class="font-medium border border-t bg-muted/50 [&>tr]:last:border-b-0">{children()}</singlestage::TableFooter> }
 }

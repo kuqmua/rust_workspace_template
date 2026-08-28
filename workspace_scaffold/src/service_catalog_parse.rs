@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // keeps catalog validation and parsing isolated from projection I/O
 pub(super) fn service_catalog_parse(
     source: super::ScaffoldTextRef<'_>,
 ) -> Result<super::ServiceCatalogEntries, super::ScaffoldError> {

@@ -1,5 +1,3 @@
-#![allow(clippy::single_call_fn)] // root-owned server construction stages each have one binary composition owner
-
 mod admin_metrics_error;
 mod axum_api_routes;
 mod configuration;

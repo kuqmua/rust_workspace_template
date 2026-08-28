@@ -1,4 +1,5 @@
 #[frontend_contract::domain_types::route_error(AdminHtmlUserPasswordError)]
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn user_password(
     auth: crate::AdminAuthReq,
     crate::AxumAdminForm(form): crate::AxumAdminForm<crate::UserPasswordForm>,

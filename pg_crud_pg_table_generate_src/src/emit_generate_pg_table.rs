@@ -4720,7 +4720,7 @@ enum WrapIntoOptional {
             format!("{identifier_snake_case_string}_{operation_snake_case_string}");
         let open_api_path_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&open_api_path);
         let open_api_tag_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&identifier_snake_case_string);
-        let open_api_http_method_token_stream = match crate::domain_types::openapi::openapi_http_method::openapi_http_method(operation_dsc) {
+        let open_api_http_method_token_stream = match crate::domain_types::route_http_method::route_http_method(operation_dsc) {
             OperationHttpMethod::Post => quote::quote! {utoipa::openapi::path::HttpMethod::Post},
             OperationHttpMethod::Patch => {
                 quote::quote! {utoipa::openapi::path::HttpMethod::Patch}
@@ -4729,7 +4729,7 @@ enum WrapIntoOptional {
                 quote::quote! {utoipa::openapi::path::HttpMethod::Delete}
             }
         };
-        let open_api_status = if crate::domain_types::openapi::openapi_success_status::openapi_success_status(operation_dsc)
+        let open_api_status = if crate::domain_types::route_success_status::route_success_status(operation_dsc)
             == macro_helpers::domain_types::status_code::StatusCode::Created201
         {
             constants_str::VALUE_201
@@ -5202,7 +5202,7 @@ enum WrapIntoOptional {
                 };
                 let future_token_stream = {
                     let operation_http_method_snake_case_token_stream =
-                        naming_common::domain_types::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::domain_types::http_method::http_method(operation_dsc));
+                        naming_common::domain_types::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::domain_types::route_http_method::route_http_method(operation_dsc));
                     let commit_header_addition_token_stream = quote::quote! {
                         .header(
                             &"commit".to_owned(),
@@ -6984,12 +6984,12 @@ enum WrapIntoOptional {
         .map(|operation_dsc| {
             let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
             let http_method =
-                match crate::domain_types::frontend_http_method::frontend_http_method(operation_dsc) {
+                match crate::domain_types::route_http_method::route_http_method(operation_dsc) {
                 OperationHttpMethod::Post => quote::format_ident!("Post"),
                 OperationHttpMethod::Patch => quote::format_ident!("Patch"),
                 OperationHttpMethod::Delete => quote::format_ident!("Delete"),
             };
-            let success_status = if crate::domain_types::frontend_success_status::frontend_success_status(operation_dsc)
+            let success_status = if crate::domain_types::route_success_status::route_success_status(operation_dsc)
                 == macro_helpers::domain_types::status_code::StatusCode::Created201
             {
                 quote::format_ident!("Code201")
@@ -7009,9 +7009,7 @@ enum WrapIntoOptional {
                     |permission_prefix| {
                         let permission = format!(
                             "{permission_prefix}:{}",
-                            crate::domain_types::frontend_permission_action::frontend_permission_action(
-                                operation_dsc,
-                            )
+                            operation_dsc.permission_action
                         );
                         quote::quote! {#identifier_auth_requirement_upper_camel_case::Permission(#permission)}
                     },
@@ -7056,7 +7054,7 @@ enum WrapIntoOptional {
     let route_contract_operation_kind_arms_token_stream = crate::domain_types::table::operation_dsc::OperationDsc::ALL.iter().map(|operation_dsc| {
         let operation = quote::format_ident!("{}", operation_dsc.operation.to_string());
         let operation_kind =
-            match crate::domain_types::frontend_operation_kind::frontend_operation_kind(operation_dsc) {
+            match operation_dsc.operation_kind {
             OperationKind::CreateMany => quote::format_ident!("CreateMany"),
             OperationKind::CreateOne => quote::format_ident!("CreateOne"),
             OperationKind::DeleteMany => quote::format_ident!("DeleteMany"),
@@ -7622,12 +7620,12 @@ enum WrapIntoOptional {
             let operation = operation_dsc.operation.self_snake_case_str();
             let open_api_operation_id = format!("{identifier_snake_case_string}_{operation}");
             let path = format!("/{identifier_snake_case_string}/{operation}");
-            let method = match crate::domain_types::contract_tests::contract_http_method(operation_dsc) {
+            let method = match crate::domain_types::route_http_method::route_http_method(operation_dsc) {
                 OperationHttpMethod::Post => constants_str::POST_ALT,
                 OperationHttpMethod::Patch => constants_str::PATCH_ALT,
                 OperationHttpMethod::Delete => constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
             };
-            let success_status = if crate::domain_types::contract_tests::contract_success_status(operation_dsc)
+            let success_status = if crate::domain_types::route_success_status::route_success_status(operation_dsc)
                 == macro_helpers::domain_types::status_code::StatusCode::Created201
             {
                 constants_str::VALUE_201

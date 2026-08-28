@@ -2,7 +2,6 @@
     unused_crate_dependencies,
     reason = "constants_str is used by binary unit tests"
 )]
-#![allow(clippy::single_call_fn)] // root-owned command parsing and execution stages each have one binary composition owner
 
 mod admin_command;
 mod administrator_account_command_error;

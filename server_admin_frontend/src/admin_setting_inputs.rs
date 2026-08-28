@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_setting_inputs(
     signals: crate::admin_settings_form_signals::AdminSettingsFormSignals,
     disabled: super::AdminSettingDisabled,

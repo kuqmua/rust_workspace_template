@@ -1,5 +1,6 @@
 const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(crate) fn interval() -> Result<
     server_runtime_http::domain_types::RunIntervalDuration,
     crate::domain_types::RunServerError,

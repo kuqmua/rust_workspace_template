@@ -1,7 +1,6 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
     clippy::items_after_statements,
-    clippy::single_call_fn,
     clippy::unreachable,
     clippy::wildcard_enum_match_arm,
     clippy::wildcard_imports

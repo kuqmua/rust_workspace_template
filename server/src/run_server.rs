@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(super) async fn run_server(
     config: server_config::domain_types::Config,
 ) -> Result<(), crate::domain_types::RunServerError> {

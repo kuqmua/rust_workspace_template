@@ -8,6 +8,7 @@ pub(crate) enum AdminRateLimitScope {
 }
 
 impl AdminRateLimitScope {
+    #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
     pub(crate) fn as_str(self) -> crate::StdAdminStrRef<'static> {
         match self {
             Self::AuditExport => {

@@ -4,6 +4,7 @@
     reason = "Leptos settings inputs convert signal values for event closures and are composed by the settings form"
 )]
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_setting_input(
     field: server_admin_contract::domain_types::AdminSetting,
     value: crate::domain_types::with_owner::input::LeptosAdminInputSignal,

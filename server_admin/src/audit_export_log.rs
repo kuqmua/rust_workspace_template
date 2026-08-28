@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn audit_export_log(
     auth: crate::AdminAuthReq,
     query: crate::AxumAdminQuery<crate::AdminAuditQuery>,

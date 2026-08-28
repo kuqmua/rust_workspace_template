@@ -1,7 +1,6 @@
 use super::{
     ScaffoldError, ScaffoldPathRef, ScaffoldTextRef, ServiceCatalogEntriesRef, ShouldWrite,
-    service_catalog_parse, service_catalog_render_ci_matrix, service_catalog_render_release_matrix,
-    synchronize_generated_file,
+    service_catalog_parse, service_catalog_render_release_entries, synchronize_generated_file,
 };
 
 pub(crate) fn synchronize_deployment_projections(
@@ -15,9 +14,10 @@ pub(crate) fn synchronize_deployment_projections(
     let entries =
         service_catalog_parse::service_catalog_parse(ScaffoldTextRef::from(catalog.as_ref()))?;
     let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
-    let ci = service_catalog_render_ci_matrix::service_catalog_render_ci_matrix(entries_ref);
+    let ci =
+        service_catalog_render_release_entries::service_catalog_render_release_entries(entries_ref);
     let release =
-        service_catalog_render_release_matrix::service_catalog_render_release_matrix(entries_ref);
+        service_catalog_render_release_entries::service_catalog_render_release_entries(entries_ref);
     let ci_path = root.0.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
     synchronize_generated_file(
         ScaffoldPathRef::from(ci_path.as_path()),

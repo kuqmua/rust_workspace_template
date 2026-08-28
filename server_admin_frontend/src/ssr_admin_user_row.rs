@@ -3,6 +3,7 @@
     reason = "the SSR user-row view is composed once by the users screen"
 )]
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(super) fn ssr_admin_user_row(
     item: &server_admin_contract::domain_types::AdminUserSummary,
     page: &server_admin_contract::domain_types::AdminUsersPage,

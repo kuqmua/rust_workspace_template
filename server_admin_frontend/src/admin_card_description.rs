@@ -19,6 +19,7 @@ use leptos::prelude::AddAnyAttr;
     unreachable_pub,
     reason = "Leptos component visibility is required for card composition"
 )]
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminCardDescription(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {

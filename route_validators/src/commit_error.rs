@@ -28,6 +28,7 @@ impl crate::domain_types::AxumHttpStatusCodeProvider for CommitError {
 }
 
 impl CommitError {
+    #[allow(clippy::single_call_fn)] // keeps mismatch error construction reusable and explicit
     pub(super) fn commit_not_eq(commit_to_use: super::CommitToUse) -> Self {
         Self::CommitNotEq {
             commit_not_eq: super::CommitNotEqMessage::from(
@@ -38,6 +39,7 @@ impl CommitError {
         }
     }
 
+    #[allow(clippy::single_call_fn)] // keeps header to-str conversion error construction reusable
     pub(super) fn commit_to_str_conversion(
         commit_to_str_conversion: super::AxumCommitToStrConversionError,
     ) -> Self {
@@ -47,6 +49,7 @@ impl CommitError {
         }
     }
 
+    #[allow(clippy::single_call_fn)] // keeps missing-commit-header error construction reusable
     pub(super) fn no_commit_header() -> Self {
         Self::NoCommitHeader {
             no_commit_header: super::NoCommitHeaderMessage::from(

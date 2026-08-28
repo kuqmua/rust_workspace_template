@@ -4,9 +4,3 @@
     (server_admin_contract::domain_types::AdminFrontendPath::Root, crate::root),
 )]
 pub(crate) struct AdminHtmlActionRouteRegistry;
-
-impl AdminHtmlActionRouteRegistry {
-    pub(crate) fn registry_router() -> axum::Router<crate::SharedAdminAuthSvcStateArc> {
-        Self::router()
-    }
-}

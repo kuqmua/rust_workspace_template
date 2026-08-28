@@ -97,13 +97,3 @@
     tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"), (name = "admin_tables", description = "Read-only administrator database views"))
 )]
 pub(crate) struct AdminAuthRouteRegistry;
-
-impl AdminAuthRouteRegistry {
-    pub(crate) fn registry_open_api() -> utoipa::openapi::OpenApi {
-        Self::open_api()
-    }
-
-    pub(crate) fn registry_router() -> axum::Router<crate::SharedAdminAuthSvcStateArc> {
-        Self::router()
-    }
-}

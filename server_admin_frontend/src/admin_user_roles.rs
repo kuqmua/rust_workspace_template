@@ -3,6 +3,7 @@
     reason = "CSR and SSR targets each compile one call site and Leptos cell rendering requires attribute traits in lexical scope"
 )]
 
+#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_user_roles(
     item: &server_admin_contract::domain_types::AdminUserSummary,
     page: &server_admin_contract::domain_types::AdminUsersPage,
