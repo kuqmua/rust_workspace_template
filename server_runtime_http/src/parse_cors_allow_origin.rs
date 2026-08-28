@@ -22,7 +22,7 @@ pub fn parse_cors_allow_origin(
         .map(str::trim)
         .map(|origin| {
             drop(
-                super::super::AllowedOrigin::try_from(origin.to_owned())
+                crate::AllowedOrigin::try_from(origin.to_owned())
                     .map_err(super::HttpCorsAllowOriginHeaderValuesError::from)?,
             );
             http::HeaderValue::try_from(origin)

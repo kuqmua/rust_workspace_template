@@ -1,33 +1,13 @@
-#[path = "display_plus_to_tokens.rs"]
-mod display_plus_to_tokens;
-#[path = "hash_map.rs"]
-mod hash_map;
-#[path = "hash_map_snake_case.rs"]
-mod hash_map_snake_case;
-#[path = "hash_map_upper_camel_case.rs"]
-mod hash_map_upper_camel_case;
-#[path = "parameter.rs"]
-pub mod parameter;
-#[path = "swagger_url_path_prefix.rs"]
-mod swagger_url_path_prefix;
-#[path = "swagger_url_path_self_quotes_str.rs"]
-mod swagger_url_path_self_quotes_str;
-#[path = "swagger_url_path_self_quotes_str_value.rs"]
-mod swagger_url_path_self_quotes_str_value;
-#[path = "swagger_url_path_self_quotes_token_stream.rs"]
-mod swagger_url_path_self_quotes_token_stream;
-#[path = "swagger_url_path_self_quotes_token_stream_value.rs"]
-mod swagger_url_path_self_quotes_token_stream_value;
-
-pub use display_plus_to_tokens::DisplayPlusToTokens;
-pub use hash_map::HashMap;
-pub use hash_map_snake_case::HashMapSnakeCase;
-pub use hash_map_upper_camel_case::HashMapUpperCamelCase;
-pub use swagger_url_path_prefix::SwaggerUrlPathPrefix;
-pub use swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr;
-pub use swagger_url_path_self_quotes_str_value::SwaggerUrlPathSelfQuotesStrValue;
-pub use swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream;
-pub use swagger_url_path_self_quotes_token_stream_value::SwaggerUrlPathSelfQuotesTokenStreamValue;
+pub use crate::display_plus_to_tokens::DisplayPlusToTokens;
+pub use crate::hash_map::HashMap;
+pub use crate::hash_map_snake_case::HashMapSnakeCase;
+pub use crate::hash_map_upper_camel_case::HashMapUpperCamelCase;
+pub use crate::parameter;
+pub use crate::swagger_url_path_prefix::SwaggerUrlPathPrefix;
+pub use crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr;
+pub use crate::swagger_url_path_self_quotes_str_value::SwaggerUrlPathSelfQuotesStrValue;
+pub use crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream;
+pub use crate::swagger_url_path_self_quotes_token_stream_value::SwaggerUrlPathSelfQuotesTokenStreamValue;
 
 naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["primary", "key"],

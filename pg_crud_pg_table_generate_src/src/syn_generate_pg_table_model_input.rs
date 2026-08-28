@@ -9,4 +9,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub(in super::super) struct SynGeneratePgTableModelInput(syn::DeriveInput);
+pub(crate) struct SynGeneratePgTableModelInput(syn::DeriveInput);

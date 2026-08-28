@@ -1,9 +1,5 @@
 const PASSWORD_FILE_MAX_BYTES: usize = 1_024usize;
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "the administrator account command keeps secret loading isolated"
-)]
 pub(crate) fn password_from_file(
     password_file: &crate::domain_types::AdministratorPasswordFilePathBuf,
 ) -> Result<

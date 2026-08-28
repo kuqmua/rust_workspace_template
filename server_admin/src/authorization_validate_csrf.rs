@@ -1,14 +1,14 @@
-pub(super) async fn authorization_validate_csrf(
-    state: &super::AdminAuthSvcState,
-    headers: super::super::HttpAdminHeaderMapRef<'_>,
-    authenticated: &super::AuthenticatedAdmin,
-) -> Result<(), super::AdminError> {
-    if !super::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
+pub(crate) async fn authorization_validate_csrf(
+    state: &crate::AdminAuthSvcState,
+    headers: crate::HttpAdminHeaderMapRef<'_>,
+    authenticated: &crate::AuthenticatedAdmin,
+) -> Result<(), crate::AdminError> {
+    if !crate::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state, headers,
     )
     .get()
     {
-        return Err(super::AdminError::Csrf);
+        return Err(crate::AdminError::Csrf);
     }
     let provided = headers
         .get()
@@ -16,13 +16,13 @@ pub(super) async fn authorization_validate_csrf(
             constants_str::X_CSRF_TOKEN_ALT,
         ))
         .and_then(|value| value.to_str().ok())
-        .ok_or(super::AdminError::Csrf)?;
-    let provided_token = super::super::SecrecyAdminString::try_from(provided.to_owned())
-        .map(super::super::AdminOpaqueToken::new)
-        .map_err(super::super::AdminSecretTextError::from)
-        .map_err(super::AdminError::csrf_secret_text)?;
-    let provided_hash = super::super::hash_opaque_token::hash_opaque_token(&provided_token)
-        .map_err(super::AdminError::csrf_secret_text)?;
+        .ok_or(crate::AdminError::Csrf)?;
+    let provided_token = crate::SecrecyAdminString::try_from(provided.to_owned())
+        .map(crate::AdminOpaqueToken::new)
+        .map_err(crate::AdminSecretTextError::from)
+        .map_err(crate::AdminError::csrf_secret_text)?;
+    let provided_hash = crate::hash_opaque_token::hash_opaque_token(&provided_token)
+        .map_err(crate::AdminError::csrf_secret_text)?;
     let expected = sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_CSRF_HASH_SQL)
         .bind(authenticated.session_id.get().get())
         .bind(authenticated.id.get())
@@ -42,24 +42,24 @@ pub(super) async fn authorization_validate_csrf(
                 })
                 .transpose()
         })
-        .map_err(super::AdminError::postgresql)?
-        .ok_or(super::AdminError::Csrf)?;
+        .map_err(crate::AdminError::postgresql)?
+        .ok_or(crate::AdminError::Csrf)?;
     let provided_text = provided_hash.expose();
     let provided_secret =
         match server_runtime_http::domain_types::SecretTextRef::try_from(provided_text.get()) {
             Ok(secret) => secret,
-            Err(_error) => return Err(super::AdminError::Csrf),
+            Err(_error) => return Err(crate::AdminError::Csrf),
         };
     let expected_text = expected.expose();
     let expected_secret =
         match server_runtime_http::domain_types::SecretTextRef::try_from(expected_text.get()) {
             Ok(secret) => secret,
-            Err(_error) => return Err(super::AdminError::Csrf),
+            Err(_error) => return Err(crate::AdminError::Csrf),
         };
     if server_runtime_http::domain_types::secret_texts_match(expected_secret, provided_secret)
         != server_runtime_http::domain_types::SecretTextMatch::Equal
     {
-        return Err(super::AdminError::Csrf);
+        return Err(crate::AdminError::Csrf);
     }
     Ok(())
 }

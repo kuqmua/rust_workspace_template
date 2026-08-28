@@ -1,7 +1,5 @@
-#![allow(clippy::single_call_fn)] // each typed function owns one SQL bind/result contract
-
 pub(crate) async fn insert_user(
-    connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
+    connection: crate::SqlxAdminRepositoryConnectionMutRef<'_>,
     login: &server_admin_contract::domain_types::AdminLogin,
     display_name: &server_admin_contract::domain_types::AdminDisplayName,
     password_hash: &crate::domain_types::AdminPasswordHash,

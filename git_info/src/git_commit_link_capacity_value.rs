@@ -1,4 +1,4 @@
-use super::super::{BASE_GIT_COMMIT_LINK_LEN, GitCommitIdRef, GitCommitLinkCapacity};
+use crate::domain_types::{BASE_GIT_COMMIT_LINK_LEN, GitCommitIdRef, GitCommitLinkCapacity};
 
 #[must_use]
 pub fn git_commit_link_capacity_value<'commit_lt, CommitIdTy>(

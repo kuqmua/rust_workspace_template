@@ -1,4 +1,3 @@
-#![allow(clippy::single_call_fn)] // separate same-named owner module preserves the migrations boundary
 pub(crate) async fn migrate_create_initial_administrator(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,
     login: crate::domain_types::AdminLogin,

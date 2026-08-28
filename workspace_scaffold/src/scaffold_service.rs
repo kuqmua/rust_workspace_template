@@ -3,10 +3,6 @@ use super::{
     naming_kebab_case, naming_upper_camel_case, naming_validate_project_name,
 };
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "service command owns complete scaffold composition"
-)]
 pub(crate) fn scaffold_service(
     root: ScaffoldPathRef<'_>,
     service_name: ProjectNameRef<'_>,

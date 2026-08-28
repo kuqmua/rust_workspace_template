@@ -4,10 +4,10 @@
 )]
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
-pub(in super::super) struct AdminAuditSuccessRef<'value_lt> {
-    pub(in super::super) action: super::super::super::AdminAuditAction,
-    pub(in super::super) login: &'value_lt super::super::super::AdminLogin,
-    pub(in super::super) resource: super::super::super::AdminAuditResource,
-    pub(in super::super) resource_id: super::AdminAuditResourceId,
-    pub(in super::super) user_id: super::super::super::AdminUserId,
+pub(crate) struct AdminAuditSuccessRef<'value_lt> {
+    pub(crate) action: crate::AdminAuditAction,
+    pub(crate) login: &'value_lt crate::AdminLogin,
+    pub(crate) resource: crate::AdminAuditResource,
+    pub(crate) resource_id: crate::AdminAuditResourceId,
+    pub(crate) user_id: crate::AdminUserId,
 }

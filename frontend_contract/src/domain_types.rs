@@ -3,36 +3,17 @@
     reason = "contract implementations keep constructors before accessors and fluent modifiers"
 )]
 
-#[path = "auth_session_keep_alive.rs"]
-mod auth_session_keep_alive;
-#[path = "client.rs"]
-mod client;
-#[path = "problem.rs"]
-mod problem;
-#[path = "route.rs"]
-mod route;
-#[path = "route_coverage.rs"]
-mod route_coverage;
-#[path = "route_registration_contract.rs"]
-mod route_registration_contract;
-#[path = "url_builder.rs"]
-mod url_builder;
-pub use auth_session_keep_alive::{
+pub use crate::auth_session_keep_alive::{
     AuthSessionInstant, AuthSessionKeepAlive, AuthSessionKeepAliveDecision,
     AuthSessionKeepAliveError, AuthSessionPresence, AuthSessionRefreshIntervalDuration,
     AuthSessionRefreshOutcome,
 };
-pub use client::TypedClient;
-pub use frontend_contract_macros::{
-    ContractStructApi, PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog,
-    UnitEnumIndex, api_operation_error, endpoint_registry, route_error, route_openapi,
-    route_operation, route_registry,
-};
-pub use problem::{
+pub use crate::client::TypedClient;
+pub use crate::problem::{
     ApiProblem, ApiProblemDetail, ApiProblemError, ApiProblemField, ApiProblemKind,
     ApiProblemRequestId, ApiProblemStatus, ApiProblemViolation,
 };
-pub use route::{
+pub use crate::route::{
     AuthenticatedTransport, CoveredRoute, OpenApiSecuritySchemeRef, ParameterizedRoute,
     ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError, PublicTransport,
     RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteInFamily, RouteMetadata,
@@ -46,8 +27,8 @@ pub use route::{
     server_route_metadata, typed_parameterized_route_path, typed_route_path,
 };
 #[cfg(not(target_arch = "wasm32"))]
-pub use route::{AxumMethodFilter, to_axum_method_filter};
-pub use route_coverage::{
+pub use crate::route::{AxumMethodFilter, to_axum_method_filter};
+pub use crate::route_coverage::{
     AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, RouteAccess, RouteCoverageDescriptor,
@@ -57,22 +38,18 @@ pub use route_coverage::{
     required_test_categories, validate_route_coverage,
 };
 #[cfg(not(target_arch = "wasm32"))]
-pub use route_registration_contract::{AxumRouteMethodRouter, route_method_router};
-pub use route_registration_contract::{RegisteredRoutePath, RouteRegistrationContract};
-pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
-#[path = "field_contract.rs"]
-mod field_contract;
-#[path = "http_status.rs"]
-mod http_status;
-#[path = "page_transport.rs"]
-mod page_transport;
-#[path = "route_contract.rs"]
-mod route_contract;
+pub use crate::route_registration_contract::{AxumRouteMethodRouter, route_method_router};
+pub use crate::route_registration_contract::{RegisteredRoutePath, RouteRegistrationContract};
+pub use crate::url_builder::{
+    ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef,
+};
+pub use frontend_contract_macros::{
+    ContractStructApi, PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog,
+    UnitEnumIndex, api_operation_error, endpoint_registry, route_error, route_openapi,
+    route_operation, route_registry,
+};
 
-pub use field_contract::*;
-pub use http_status::*;
-pub use page_transport::*;
-pub use route_contract::*;
-#[cfg(test)]
-#[path = "tests.rs"]
-mod tests;
+pub use crate::field_contract::*;
+pub use crate::http_status::*;
+pub use crate::page_transport::*;
+pub use crate::route_contract::*;

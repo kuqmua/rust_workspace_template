@@ -1,105 +1,129 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
 )]
 
-#[path = "admin_ssr_html_try_from_string_error.rs"]
-mod admin_ssr_html_try_from_string_error;
-#[path = "crud_render_role_create.rs"]
-mod crud_render_role_create;
-#[path = "crud_render_role_manage.rs"]
-mod crud_render_role_manage;
-#[path = "crud_render_shell.rs"]
-mod crud_render_shell;
-#[path = "crud_render_user_create.rs"]
-mod crud_render_user_create;
-#[path = "crud_render_user_manage.rs"]
-mod crud_render_user_manage;
-#[path = "data_table_grid.rs"]
-mod data_table_grid;
-#[path = "data_tables.rs"]
-mod data_tables;
-#[path = "domain_types_ssr_document.rs"]
-mod document;
-#[path = "render_permissions.rs"]
-mod render_permissions;
-#[path = "render_profile.rs"]
-mod render_profile;
-#[path = "render_roles.rs"]
-mod render_roles;
-#[path = "render_sessions.rs"]
-mod render_sessions;
-#[path = "render_settings.rs"]
-mod render_settings;
-#[path = "render_users.rs"]
-mod render_users;
-#[path = "table_pagination.rs"]
-mod table_pagination;
-#[path = "text_page.rs"]
-mod text_page;
-pub use admin_ssr_html_try_from_string_error::*;
-#[path = "admin_ssr_text_try_from_string_error.rs"]
-mod admin_ssr_text_try_from_string_error;
-pub use admin_ssr_text_try_from_string_error::*;
-#[path = "admin_ssr_error_message.rs"]
-mod admin_ssr_error_message;
-pub use admin_ssr_error_message::*;
-#[path = "admin_ssr_text.rs"]
-mod admin_ssr_text;
-pub use admin_ssr_text::*;
-#[path = "admin_ssr_html.rs"]
-mod admin_ssr_html;
-pub use admin_ssr_html::*;
-#[path = "render_user_create.rs"]
-mod render_user_create;
-pub use render_user_create::*;
-#[path = "render_user_manage.rs"]
-mod render_user_manage;
-pub use render_user_manage::*;
-#[path = "render_role_create.rs"]
-mod render_role_create;
-pub use render_role_create::*;
-#[path = "render_role_manage.rs"]
-mod render_role_manage;
-pub use render_role_manage::*;
-#[path = "render_admin_permissions_page.rs"]
-mod render_admin_permissions_page;
-pub use render_admin_permissions_page::*;
-#[path = "render_admin_sessions_page.rs"]
-mod render_admin_sessions_page;
-pub use render_admin_sessions_page::*;
-#[path = "render_admin_profile_page.rs"]
-mod render_admin_profile_page;
-pub use render_admin_profile_page::*;
-#[path = "render_admin_settings_page.rs"]
-mod render_admin_settings_page;
-pub use render_admin_settings_page::*;
-#[path = "render_view.rs"]
-mod render_view;
-use render_view::render_view;
+pub use crate::admin_ssr_error_message::*;
+pub use crate::admin_ssr_html::*;
+pub use crate::admin_ssr_html_try_from_string_error::*;
+pub use crate::admin_ssr_text::*;
+pub use crate::admin_ssr_text_try_from_string_error::*;
 #[cfg(test)]
-#[path = "admin_ssr_view_ext.rs"]
-mod admin_ssr_view_ext;
-#[cfg(test)]
-use admin_ssr_view_ext::*;
+use crate::admin_ssr_view_ext::*;
+pub use crate::render_admin_permissions_page::*;
+pub use crate::render_admin_profile_page::*;
+pub use crate::render_admin_sessions_page::*;
+pub use crate::render_admin_settings_page::*;
+pub use crate::render_role_create::*;
+pub use crate::render_role_manage::*;
+pub use crate::render_user_create::*;
+pub use crate::render_user_manage::*;
+use crate::render_view::render_view;
 
-pub use data_tables::render_admin_csr::render_admin_csr;
-pub use data_tables::render_data_tables::render_data_tables;
-pub use data_tables::render_data_tables_csr::render_data_tables_csr;
-pub use document::render_sign_in::render_sign_in;
-pub use render_roles::render_roles;
-pub use render_users::render_users;
-pub use text_page::render_text_page::render_text_page;
-pub use text_page::render_text_page_with_access::render_text_page_with_access;
+pub use self::data_tables::render_admin_csr::render_admin_csr;
+pub use self::data_tables::render_data_tables::render_data_tables;
+pub use self::data_tables::render_data_tables_csr::render_data_tables_csr;
+pub use self::document::render_sign_in::render_sign_in;
+pub use self::render_roles::render_roles;
+pub use self::render_users::render_users;
+pub use self::text_page::render_text_page::render_text_page;
+pub use self::text_page::render_text_page_with_access::render_text_page_with_access;
 
-use data_table_grid::data_table_grid;
-use document::render_admin_page::render_admin_page;
-use document::render_admin_page_with_access::render_admin_page_with_access;
-use document::render_admin_page_with_table_access::render_admin_page_with_table_access;
-use document::render_document::render_document;
-use table_pagination::table_pagination;
+use self::document::render_admin_page::render_admin_page;
+use self::document::render_admin_page_with_access::render_admin_page_with_access;
+use self::document::render_admin_page_with_table_access::render_admin_page_with_table_access;
+use self::document::render_document::render_document;
+use crate::data_table_grid::data_table_grid;
+use crate::table_pagination::table_pagination;
 
-#[cfg(test)]
-#[path = "domain_types_ssr_tests.rs"]
-mod tests;
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_ssr_html_try_from_string_error {
+    pub use crate::admin_ssr_html_try_from_string_error::*;
+}
+pub(crate) mod crud_render_role_create {
+    pub use crate::crud_render_role_create::*;
+}
+pub(crate) mod crud_render_role_manage {
+    pub use crate::crud_render_role_manage::*;
+}
+pub(crate) mod crud_render_shell {
+    pub use crate::crud_render_shell::*;
+}
+pub(crate) mod crud_render_user_create {
+    pub use crate::crud_render_user_create::*;
+}
+pub(crate) mod crud_render_user_manage {
+    pub use crate::crud_render_user_manage::*;
+}
+pub(crate) mod data_table_grid {
+    pub use crate::data_table_grid::*;
+}
+pub(crate) mod data_tables {
+    pub use crate::data_tables::*;
+}
+pub(crate) mod document {
+    pub use crate::domain_types_ssr_document::*;
+}
+pub(crate) mod render_permissions {
+    pub use crate::render_permissions::*;
+}
+pub(crate) mod render_profile {
+    pub use crate::render_profile::*;
+}
+pub(crate) mod render_roles {
+    pub use crate::render_roles::*;
+}
+pub(crate) mod render_sessions {
+    pub use crate::render_sessions::*;
+}
+pub(crate) mod render_settings {
+    pub use crate::render_settings::*;
+}
+pub(crate) mod render_users {
+    pub use crate::render_users::*;
+}
+pub(crate) mod table_pagination {
+    pub use crate::table_pagination::*;
+}
+pub(crate) mod text_page {
+    pub use crate::text_page::*;
+}
+pub(crate) mod admin_ssr_text_try_from_string_error {
+    pub use crate::admin_ssr_text_try_from_string_error::*;
+}
+pub(crate) mod admin_ssr_error_message {
+    pub use crate::admin_ssr_error_message::*;
+}
+pub(crate) mod admin_ssr_text {
+    pub use crate::admin_ssr_text::*;
+}
+pub(crate) mod admin_ssr_html {
+    pub use crate::admin_ssr_html::*;
+}
+pub(crate) mod render_user_create {
+    pub use crate::render_user_create::*;
+}
+pub(crate) mod render_user_manage {
+    pub use crate::render_user_manage::*;
+}
+pub(crate) mod render_role_create {
+    pub use crate::render_role_create::*;
+}
+pub(crate) mod render_role_manage {
+    pub use crate::render_role_manage::*;
+}
+pub(crate) mod render_admin_permissions_page {
+    pub use crate::render_admin_permissions_page::*;
+}
+pub(crate) mod render_admin_sessions_page {
+    pub use crate::render_admin_sessions_page::*;
+}
+pub(crate) mod render_admin_profile_page {
+    pub use crate::render_admin_profile_page::*;
+}
+pub(crate) mod render_admin_settings_page {
+    pub use crate::render_admin_settings_page::*;
+}
+pub(crate) mod render_view {
+    pub use crate::render_view::*;
+}

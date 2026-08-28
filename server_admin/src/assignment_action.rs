@@ -1,15 +1,7 @@
-pub(in crate::domain_types::auth::html::actions) async fn assignment_action<
-    Ids,
-    Parse,
-    Request,
-    BuildRequest,
-    Target,
-    Run,
-    RunFuture,
->(
-    auth: super::super::super::AdminAuthReq,
-    expected: &super::super::forms::AdminHtmlFormText,
-    selected: super::super::forms::StdAdminHtmlSelected,
+pub(crate) async fn assignment_action<Ids, Parse, Request, BuildRequest, Target, Run, RunFuture>(
+    auth: crate::AdminAuthReq,
+    expected: &crate::AdminHtmlFormText,
+    selected: crate::StdAdminHtmlSelected,
     parse: Parse,
     path: server_admin_contract::domain_types::AdminFrontendPath,
     build_request: BuildRequest,
@@ -17,30 +9,23 @@ pub(in crate::domain_types::auth::html::actions) async fn assignment_action<
     run: Run,
 ) -> axum::response::Response
 where
-    Parse:
-        Fn(&super::super::forms::AdminHtmlFormText) -> Result<Ids, super::super::super::AdminError>,
+    Parse: Fn(&crate::AdminHtmlFormText) -> Result<Ids, crate::AdminError>,
     BuildRequest: FnOnce(Ids, Ids) -> Request,
-    Run: FnOnce(
-        super::super::super::AdminAuthReq,
-        Target,
-        super::super::super::AxumAdminJson<Request>,
-    ) -> RunFuture,
-    RunFuture: Future<
-        Output = Result<super::super::super::AxumAdminResponse, super::super::super::AdminError>,
-    >,
+    Run: FnOnce(crate::AdminAuthReq, Target, crate::AxumAdminJson<Request>) -> RunFuture,
+    RunFuture: Future<Output = Result<crate::AxumAdminResponse, crate::AdminError>>,
 {
     let (auth, expected, selected) =
-        match super::super::authenticated_selected_form_impl::authenticated_selected_form_impl(
+        match crate::authenticated_selected_form_impl::authenticated_selected_form_impl(
             auth, expected, selected, parse,
         ) {
             Ok(values) => values,
             Err(error) => return axum::response::IntoResponse::into_response(error),
         };
-    super::super::action_result_impl::action_result_impl(
+    crate::action_result_impl::action_result_impl(
         run(
             auth,
             target,
-            super::super::super::AxumAdminJson(build_request(expected, selected)),
+            crate::AxumAdminJson(build_request(expected, selected)),
         )
         .await,
         path,

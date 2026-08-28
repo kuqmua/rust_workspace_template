@@ -1,27 +1,9 @@
-#[path = "create_mock_notification_provider.rs"]
-mod create_mock_notification_provider;
-#[path = "mock_notification_inbox.rs"]
-mod mock_notification_inbox;
-#[path = "mock_notification_provider.rs"]
-mod mock_notification_provider;
-#[path = "mock_notification_provider_closed.rs"]
-mod mock_notification_provider_closed;
-#[path = "remote_sync_request_count.rs"]
-mod remote_sync_request_count;
-#[path = "remote_sync_source.rs"]
-mod remote_sync_source;
-#[path = "tokio_mock_notification_receiver.rs"]
-mod tokio_mock_notification_receiver;
-#[path = "tokio_mock_notification_sender.rs"]
-mod tokio_mock_notification_sender;
-pub use create_mock_notification_provider::create_mock_notification_provider;
-pub use mock_notification_inbox::MockNotificationInbox;
-pub use mock_notification_provider::MockNotificationProvider;
-pub use mock_notification_provider_closed::MockNotificationProviderClosed;
-pub use remote_sync_request_count::RemoteSyncRequestCount;
-pub use remote_sync_source::RemoteSyncSource;
-use tokio_mock_notification_receiver::TokioMockNotificationReceiver;
-use tokio_mock_notification_sender::TokioMockNotificationSender;
+pub use crate::create_mock_notification_provider::create_mock_notification_provider;
+pub use crate::mock_notification_inbox::MockNotificationInbox;
+pub use crate::mock_notification_provider::MockNotificationProvider;
+pub use crate::mock_notification_provider_closed::MockNotificationProviderClosed;
+pub use crate::remote_sync_request_count::RemoteSyncRequestCount;
+pub use crate::remote_sync_source::RemoteSyncSource;
 
 #[cfg(test)]
 mod tests {

@@ -1,4 +1,4 @@
-use super::super::{
+use crate::domain_types::{
     BASE_GIT_COMMIT_LINK_LEN, GIT_INFO_STRING_MAX_LEN, GitCommitIdRef, GitCommitLinkCow,
     GitCommitLinkOutputRefMut, GitInfoStringTryFromStringError, check_is_project_commit,
     git_commit_link_capacity_value, project_git_commit_link_ref_value, write_git_commit_link,

@@ -1,23 +1,10 @@
-#[path = "development_identity_count.rs"]
-mod development_identity_count;
-#[path = "development_identity_creation_plan.rs"]
-mod development_identity_creation_plan;
-#[path = "development_identity_creation_summary.rs"]
-mod development_identity_creation_summary;
-#[path = "development_identity_specs.rs"]
-mod development_identity_specs;
-#[path = "development_identity_specs_error.rs"]
-mod development_identity_specs_error;
-#[path = "development_identity_specs_max_len.rs"]
-mod development_identity_specs_max_len;
-
-pub use development_identity_count::DevelopmentIdentityCount;
-pub use development_identity_creation_plan::DevelopmentIdentityCreationPlan;
-pub use development_identity_creation_summary::DevelopmentIdentityCreationSummary;
-pub use development_identity_specs::DevelopmentIdentitySpecs;
-pub use development_identity_specs_error::DevelopmentIdentitySpecsError;
+pub use crate::development_identity_count::DevelopmentIdentityCount;
+pub use crate::development_identity_creation_plan::DevelopmentIdentityCreationPlan;
+pub use crate::development_identity_creation_summary::DevelopmentIdentityCreationSummary;
+pub use crate::development_identity_specs::DevelopmentIdentitySpecs;
+pub use crate::development_identity_specs_error::DevelopmentIdentitySpecsError;
 #[cfg(test)]
-use development_identity_specs_max_len::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN;
+use crate::development_identity_specs_max_len::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN;
 
 #[cfg(test)]
 mod tests {

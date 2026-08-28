@@ -1,5 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub(in crate::domain_types) enum AdminPageTitle {
+pub(crate) enum AdminPageTitle {
     Api,
     Metrics,
     Permissions,

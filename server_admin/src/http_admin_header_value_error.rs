@@ -9,4 +9,4 @@
     newtype::FromInner,
 )]
 #[error(transparent)]
-pub struct HttpAdminHeaderValueError(pub(super) http::header::InvalidHeaderValue);
+pub struct HttpAdminHeaderValueError(pub(crate) http::header::InvalidHeaderValue);

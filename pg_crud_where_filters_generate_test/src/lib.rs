@@ -101,14 +101,14 @@ mod tests {
         miri,
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
-    fn clippy() {
+    fn where_filters_generate_clippy() {
         macro_clippy_check_common::clippy_check(
             constants_str::GENERATE_WHERE_FLTS_TEST_CNT,
             constants_str::PG_CRUD_WHERE_FILTERS,
             constants_str::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE,
             &format!(
                 "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse where_filters::domain_types::*;\n{}",
-                generate_where_filters_src::domain_types::source::generate_where_filters(
+                generate_where_filters_src::domain_types::source::generate_where_filters_source(
                     generate_where_filters_src::domain_types::source::ProcMacro2GenerateWhereFiltersInput::from(
                         &quote::quote! {
                             {

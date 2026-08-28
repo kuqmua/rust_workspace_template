@@ -1,5 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-pub(super) enum AdminCrudPage {
+pub(crate) enum AdminCrudPage {
     RoleCreate,
     RoleManage,
     UserCreate,

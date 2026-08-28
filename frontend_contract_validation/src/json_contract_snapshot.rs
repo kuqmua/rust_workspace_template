@@ -17,7 +17,10 @@ use crate::domain_types::artifact::JsonContractSnapshotError;
 pub struct JsonContractSnapshot(String);
 
 impl JsonContractSnapshot {
-    #[allow(clippy::single_call_fn)] // derive-generated TryFrom owns the single validator call
+    #[allow(
+        clippy::single_call_fn,
+        reason = "derive-generated TryFrom owns the single validation call"
+    )]
     const fn validate(value: &str) -> Result<(), JsonContractSnapshotError> {
         if value.len() > constants_usize::VALUE_1_048_576 {
             Err(JsonContractSnapshotError::TooLong)

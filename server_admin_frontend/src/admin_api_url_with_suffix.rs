@@ -1,4 +1,4 @@
-pub(in crate::domain_types::start) fn admin_api_url_with_suffix(
+pub(crate) fn admin_api_url_with_suffix(
     route: server_admin_contract::domain_types::AdminRoute,
     suffix: super::AdminCsrApiUrlSuffixRef<'_>,
 ) -> Result<

@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "service scaffold owns title case conversion"
-)]
 pub(crate) fn naming_title_case(value: super::ProjectNameRef<'_>) -> super::ScaffoldText {
     super::naming_capitalized_parts::naming_capitalized_parts(
         value,

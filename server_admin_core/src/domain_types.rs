@@ -1,49 +1,17 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
-
-#[path = "admin_audit_log_id.rs"]
-mod admin_audit_log_id;
-#[path = "admin_id_try_from_i64_error.rs"]
-mod admin_id_try_from_i64_error;
-#[path = "admin_non_zero_usize.rs"]
-mod admin_non_zero_usize;
-#[path = "admin_permission_id.rs"]
-mod admin_permission_id;
-#[path = "admin_permission_name.rs"]
-mod admin_permission_name;
-#[path = "admin_resource_text.rs"]
-mod admin_resource_text;
-#[path = "admin_role_id.rs"]
-mod admin_role_id;
-#[path = "admin_socket_addr.rs"]
-mod admin_socket_addr;
-#[path = "admin_user_id.rs"]
-mod admin_user_id;
-#[path = "secrecy_admin_string.rs"]
-mod secrecy_admin_string;
-#[path = "std_admin_bool.rs"]
-mod std_admin_bool;
-#[path = "std_admin_str_ref.rs"]
-mod std_admin_str_ref;
-#[path = "std_admin_string.rs"]
-mod std_admin_string;
-#[path = "uuid_admin_value.rs"]
-mod uuid_admin_value;
-
-pub use admin_audit_log_id::AdminAuditLogId;
-pub use admin_id_try_from_i64_error::AdminIdTryFromI64Error;
-pub use admin_non_zero_usize::AdminNonZeroUsize;
-pub use admin_permission_id::AdminPermissionId;
-pub use admin_permission_name::AdminPermissionName;
-use admin_resource_text::AdminResourceText;
-pub use admin_role_id::AdminRoleId;
-pub use admin_socket_addr::AdminSocketAddr;
-pub use admin_user_id::AdminUserId;
-pub use secrecy_admin_string::SecrecyAdminString;
-pub use std_admin_bool::StdAdminBool;
-pub use std_admin_str_ref::StdAdminStrRef;
-pub use std_admin_string::*;
-pub use uuid_admin_value::UuidAdminValue;
+pub use crate::admin_audit_log_id::AdminAuditLogId;
+pub use crate::admin_id_try_from_i64_error::AdminIdTryFromI64Error;
+pub use crate::admin_non_zero_usize::AdminNonZeroUsize;
+pub use crate::admin_permission_id::AdminPermissionId;
+pub use crate::admin_permission_name::AdminPermissionName;
+pub(crate) use crate::admin_resource_text::AdminResourceText;
+pub use crate::admin_role_id::AdminRoleId;
+pub use crate::admin_socket_addr::AdminSocketAddr;
+pub use crate::admin_user_id::AdminUserId;
+pub use crate::secrecy_admin_string::SecrecyAdminString;
+pub use crate::std_admin_bool::StdAdminBool;
+pub use crate::std_admin_str_ref::StdAdminStrRef;
+pub use crate::std_admin_string::*;
+pub use crate::uuid_admin_value::UuidAdminValue;
 
 #[cfg(test)]
 mod tests {

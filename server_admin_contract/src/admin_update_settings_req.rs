@@ -9,29 +9,29 @@
 #[serde(deny_unknown_fields)]
 pub struct AdminUpdateSettingsReq {
     #[schema(max_items = 6)]
-    clear: super::super::AdminOptionalSettings,
-    default_admin_route: Option<super::super::AdminDefaultRoute>,
-    main_logo: Option<super::super::AdminMainLogo>,
-    organization_contacts: Option<super::super::AdminOrganizationContacts>,
-    organization_name: Option<super::super::AdminOrganizationName>,
-    primary_color: Option<super::super::AdminPrimaryColor>,
-    site_name: Option<super::super::AdminSiteName>,
-    support_url: Option<super::super::AdminSupportUrl>,
-    tab_title: Option<super::super::AdminTabTitle>,
+    clear: crate::AdminOptionalSettings,
+    default_admin_route: Option<crate::AdminDefaultRoute>,
+    main_logo: Option<crate::AdminMainLogo>,
+    organization_contacts: Option<crate::AdminOrganizationContacts>,
+    organization_name: Option<crate::AdminOrganizationName>,
+    primary_color: Option<crate::AdminPrimaryColor>,
+    site_name: Option<crate::AdminSiteName>,
+    support_url: Option<crate::AdminSupportUrl>,
+    tab_title: Option<crate::AdminTabTitle>,
 }
 
 impl AdminUpdateSettingsReq {
     #[must_use]
     pub const fn new(
-        default_admin_route: Option<super::super::AdminDefaultRoute>,
-        main_logo: Option<super::super::AdminMainLogo>,
-        organization_contacts: Option<super::super::AdminOrganizationContacts>,
-        organization_name: Option<super::super::AdminOrganizationName>,
-        primary_color: Option<super::super::AdminPrimaryColor>,
-        site_name: Option<super::super::AdminSiteName>,
-        support_url: Option<super::super::AdminSupportUrl>,
-        tab_title: Option<super::super::AdminTabTitle>,
-        clear: super::super::AdminOptionalSettings,
+        default_admin_route: Option<crate::AdminDefaultRoute>,
+        main_logo: Option<crate::AdminMainLogo>,
+        organization_contacts: Option<crate::AdminOrganizationContacts>,
+        organization_name: Option<crate::AdminOrganizationName>,
+        primary_color: Option<crate::AdminPrimaryColor>,
+        site_name: Option<crate::AdminSiteName>,
+        support_url: Option<crate::AdminSupportUrl>,
+        tab_title: Option<crate::AdminTabTitle>,
+        clear: crate::AdminOptionalSettings,
     ) -> Self {
         Self {
             clear,
@@ -49,15 +49,15 @@ impl AdminUpdateSettingsReq {
     pub fn into_parts(
         self,
     ) -> (
-        Option<super::super::AdminDefaultRoute>,
-        Option<super::super::AdminMainLogo>,
-        Option<super::super::AdminOrganizationContacts>,
-        Option<super::super::AdminOrganizationName>,
-        Option<super::super::AdminPrimaryColor>,
-        Option<super::super::AdminSiteName>,
-        Option<super::super::AdminSupportUrl>,
-        Option<super::super::AdminTabTitle>,
-        super::super::AdminOptionalSettings,
+        Option<crate::AdminDefaultRoute>,
+        Option<crate::AdminMainLogo>,
+        Option<crate::AdminOrganizationContacts>,
+        Option<crate::AdminOrganizationName>,
+        Option<crate::AdminPrimaryColor>,
+        Option<crate::AdminSiteName>,
+        Option<crate::AdminSupportUrl>,
+        Option<crate::AdminTabTitle>,
+        crate::AdminOptionalSettings,
     ) {
         (
             self.default_admin_route,
@@ -72,8 +72,8 @@ impl AdminUpdateSettingsReq {
         )
     }
     #[must_use]
-    pub fn has_fields(&self) -> super::super::AdminBool {
-        super::super::AdminBool::from(
+    pub fn has_fields(&self) -> crate::AdminBool {
+        crate::AdminBool::from(
             self.default_admin_route.is_some()
                 || self.main_logo.is_some()
                 || self.organization_contacts.is_some()
@@ -86,14 +86,14 @@ impl AdminUpdateSettingsReq {
         )
     }
     #[must_use]
-    pub fn is_valid(&self) -> super::super::AdminBool {
+    pub fn is_valid(&self) -> crate::AdminBool {
         let unique = self
             .clear
             .as_ref()
             .iter()
             .copied()
             .collect::<std::collections::HashSet<_>>();
-        super::super::AdminBool::from(
+        crate::AdminBool::from(
             unique.len() == self.clear.as_ref().len()
                 && self.clear.as_ref().len() <= super::AdminOptionalSetting::ALL.len()
                 && !(self.main_logo.is_some()

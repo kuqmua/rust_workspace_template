@@ -1,40 +1,15 @@
-#[path = "outbound_address_disposition.rs"]
-mod outbound_address_disposition;
-#[path = "outbound_allowed_host.rs"]
-mod outbound_allowed_host;
-#[path = "outbound_host_allowlist.rs"]
-mod outbound_host_allowlist;
-#[path = "outbound_host_allowlist_error.rs"]
-mod outbound_host_allowlist_error;
-#[path = "outbound_host_policy.rs"]
-mod outbound_host_policy;
-#[path = "outbound_ip_addr.rs"]
-mod outbound_ip_addr;
-#[path = "outbound_url_error.rs"]
-mod outbound_url_error;
-#[path = "outbound_url_policy.rs"]
-mod outbound_url_policy;
-#[path = "outbound_url_scheme.rs"]
-mod outbound_url_scheme;
-#[path = "outbound_url_text_ref.rs"]
-mod outbound_url_text_ref;
-#[path = "reqwest_outbound_url.rs"]
-mod reqwest_outbound_url;
-#[path = "resolve_outbound_address_disposition.rs"]
-mod resolve_outbound_address_disposition;
-
-use outbound_address_disposition::OutboundAddressDisposition;
-pub use outbound_allowed_host::OutboundAllowedHost;
-pub use outbound_host_allowlist::OutboundHostAllowlist;
-pub use outbound_host_allowlist_error::OutboundHostAllowlistError;
-pub use outbound_host_policy::OutboundHostPolicy;
-pub use outbound_ip_addr::OutboundIpAddr;
-pub use outbound_url_error::OutboundUrlError;
-pub use outbound_url_policy::OutboundUrlPolicy;
-pub use outbound_url_scheme::OutboundUrlScheme;
-pub use outbound_url_text_ref::OutboundUrlTextRef;
-pub use reqwest_outbound_url::ReqwestOutboundUrl;
-use resolve_outbound_address_disposition::resolve_outbound_address_disposition;
+use crate::outbound_address_disposition::OutboundAddressDisposition;
+pub use crate::outbound_allowed_host::OutboundAllowedHost;
+pub use crate::outbound_host_allowlist::OutboundHostAllowlist;
+pub use crate::outbound_host_allowlist_error::OutboundHostAllowlistError;
+pub use crate::outbound_host_policy::OutboundHostPolicy;
+pub use crate::outbound_ip_addr::OutboundIpAddr;
+pub use crate::outbound_url_error::OutboundUrlError;
+pub use crate::outbound_url_policy::OutboundUrlPolicy;
+pub use crate::outbound_url_scheme::OutboundUrlScheme;
+pub use crate::outbound_url_text_ref::OutboundUrlTextRef;
+pub use crate::reqwest_outbound_url::ReqwestOutboundUrl;
+use crate::resolve_outbound_address_disposition::resolve_outbound_address_disposition;
 
 #[cfg(test)]
 mod tests {
@@ -161,4 +136,42 @@ mod tests {
             Err(super::OutboundUrlError::UserInfo)
         ));
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod outbound_address_disposition {
+    pub use crate::outbound_address_disposition::*;
+}
+mod outbound_allowed_host {
+    pub use crate::outbound_allowed_host::*;
+}
+mod outbound_host_allowlist {
+    pub use crate::outbound_host_allowlist::*;
+}
+mod outbound_host_allowlist_error {
+    pub use crate::outbound_host_allowlist_error::*;
+}
+mod outbound_host_policy {
+    pub use crate::outbound_host_policy::*;
+}
+mod outbound_ip_addr {
+    pub use crate::outbound_ip_addr::*;
+}
+mod outbound_url_error {
+    pub use crate::outbound_url_error::*;
+}
+mod outbound_url_policy {
+    pub use crate::outbound_url_policy::*;
+}
+mod outbound_url_scheme {
+    pub use crate::outbound_url_scheme::*;
+}
+mod outbound_url_text_ref {
+    pub use crate::outbound_url_text_ref::*;
+}
+mod reqwest_outbound_url {
+    pub use crate::reqwest_outbound_url::*;
+}
+mod resolve_outbound_address_disposition {
+    pub use crate::resolve_outbound_address_disposition::*;
 }

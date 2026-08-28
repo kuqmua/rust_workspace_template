@@ -8,5 +8,5 @@
     newtype::FromInner,
 )]
 pub(crate) struct SqlxAdminRepositoryConnectionMutRef<'connection_lt>(
-    pub(super) &'connection_lt mut sqlx::PgConnection,
+    pub(crate) &'connection_lt mut sqlx::PgConnection,
 );

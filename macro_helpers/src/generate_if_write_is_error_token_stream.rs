@@ -17,6 +17,4 @@ pub fn generate_if_write_is_error_token_stream(
     }
     .into()
 }
-#[path = "proc_macro2_if_write_is_err_token_stream.rs"]
-mod proc_macro2_if_write_is_err_token_stream;
-pub use proc_macro2_if_write_is_err_token_stream::ProcMacro2IfWriteIsErrTokenStream;
+pub use crate::proc_macro2_if_write_is_err_token_stream::ProcMacro2IfWriteIsErrTokenStream;

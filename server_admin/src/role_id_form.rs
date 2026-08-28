@@ -1,8 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(in crate::domain_types::auth::html) struct RoleIdForm {
-    pub(in crate::domain_types::auth::html) role_id:
-        server_admin_contract::domain_types::AdminRoleId,
-    pub(in crate::domain_types::auth::html) confirmation:
-        server_admin_contract::domain_types::AdminBool,
+pub(crate) struct RoleIdForm {
+    pub(crate) role_id: server_admin_contract::domain_types::AdminRoleId,
+    pub(crate) confirmation: server_admin_contract::domain_types::AdminBool,
 }

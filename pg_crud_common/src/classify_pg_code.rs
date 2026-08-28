@@ -5,7 +5,7 @@
 #[must_use]
 #[allow(
     clippy::single_call_fn,
-    reason = "SQLSTATE classification remains isolated in its named owner module"
+    reason = "SQLSTATE classification remains independently testable from database error extraction"
 )]
 pub(crate) fn classify_pg_code(code: &str) -> crate::domain_types::PgErrorKind {
     match code {

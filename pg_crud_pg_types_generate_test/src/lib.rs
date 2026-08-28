@@ -96,7 +96,7 @@ mod tests {
         miri,
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
-    fn clippy() {
+    fn pg_types_generate_clippy() {
         macro_clippy_check_common::clippy_check(
             constants_str::GENERATE_PG_TYPES_TEST_CNT,
             constants_str::PG_CRUD_PG_TYPES,

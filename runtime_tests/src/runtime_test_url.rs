@@ -8,11 +8,11 @@
 pub(crate) struct RuntimeTestUrl(pub(super) String);
 
 impl TryFrom<String> for RuntimeTestUrl {
-    type Error = super::ServiceBaseUrlError;
+    type Error = crate::domain_types::ServiceBaseUrlError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > constants_usize::VALUE_8_192 {
-            Err(super::ServiceBaseUrlError::Length)
+            Err(crate::domain_types::ServiceBaseUrlError::Length)
         } else {
             Ok(Self(value))
         }

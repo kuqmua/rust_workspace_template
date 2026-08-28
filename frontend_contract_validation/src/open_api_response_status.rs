@@ -11,7 +11,11 @@
 )]
 pub struct OpenApiResponseStatus(pub(super) u16);
 impl OpenApiResponseStatus {
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)] // derive-generated TryFrom owns the single call and borrows the inner value
+    #[allow(
+        clippy::single_call_fn,
+        clippy::trivially_copy_pass_by_ref,
+        reason = "derive-generated TryFrom owns the single validation call"
+    )]
     fn validate(
         value: &u16,
     ) -> Result<(), frontend_contract::domain_types::HttpStatusTryFromU16Error> {

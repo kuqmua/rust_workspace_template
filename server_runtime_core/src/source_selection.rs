@@ -3,8 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "select_sources.rs"]
-mod select_sources;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SourceSelection<'source_lt, LocalSource, RemoteSource> {
     Local(&'source_lt LocalSource),
@@ -14,11 +12,9 @@ pub enum SourceSelection<'source_lt, LocalSource, RemoteSource> {
     },
     Remote(&'source_lt RemoteSource),
 }
-#[path = "source_selection_error.rs"]
-mod source_selection_error;
 
-pub use select_sources::select_sources;
-pub use source_selection_error::SourceSelectionError;
+pub use crate::select_sources::select_sources;
+pub use crate::source_selection_error::SourceSelectionError;
 
 #[cfg(test)]
 mod tests {

@@ -1,10 +1,10 @@
-pub(in super::super) async fn load_authenticated_admin(
-    state: &super::super::AdminAuthSvcState,
-    user_id: super::super::super::AdminUserId,
-    session_id: super::super::super::AdminSessionId,
-) -> Result<super::super::AuthenticatedAdmin, super::super::AdminError> {
-    let mut db = super::AdminDbRef::Pool(crate::repository::SqlxAdminRepositoryPoolRef::from(
+pub(crate) async fn load_authenticated_admin(
+    state: &crate::AdminAuthSvcState,
+    user_id: crate::AdminUserId,
+    session_id: crate::AdminSessionId,
+) -> Result<crate::AuthenticatedAdmin, crate::AdminError> {
+    let mut db = crate::AdminDbRef::Pool(crate::repository::SqlxAdminRepositoryPoolRef::from(
         state.pool.as_ref(),
     ));
-    super::load_authenticated_admin_from_db(&mut db, user_id, session_id).await
+    crate::load_authenticated_admin_from_db(&mut db, user_id, session_id).await
 }

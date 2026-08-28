@@ -9,4 +9,4 @@
     newtype::DebugTransparent,
     newtype::FromInner,
 )]
-pub struct Argon2AdminPasswordHashError(pub(super) argon2::password_hash::Error);
+pub struct Argon2AdminPasswordHashError(pub(crate) argon2::password_hash::Error);

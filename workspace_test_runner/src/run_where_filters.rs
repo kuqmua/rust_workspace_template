@@ -1,4 +1,3 @@
-#[allow(clippy::single_call_fn)] // the mode dispatcher owns this allocation workload entry point
 pub(crate) fn run_where_filters() -> Result<(), ()> {
     (|| {
         let where_filters_values = (constants_i32::ZERO..64i32).collect::<Vec<i32>>();

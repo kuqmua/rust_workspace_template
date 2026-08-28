@@ -3,4 +3,4 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct AxumAdminJson<Value>(pub(super) Value);
+pub(crate) struct AxumAdminJson<Value>(pub(crate) Value);

@@ -4,13 +4,16 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DatabasePreparationSpec {
-    pub(super) migrations_source: super::MigrationsSource,
-    pub(super) url: super::DatabaseUrl,
+    pub(super) migrations_source: crate::domain_types::MigrationsSource,
+    pub(super) url: crate::domain_types::DatabaseUrl,
 }
 
 impl DatabasePreparationSpec {
     #[must_use]
-    pub const fn new(url: super::DatabaseUrl, migrations_source: super::MigrationsSource) -> Self {
+    pub const fn new(
+        url: crate::domain_types::DatabaseUrl,
+        migrations_source: crate::domain_types::MigrationsSource,
+    ) -> Self {
         Self {
             migrations_source,
             url,

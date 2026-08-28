@@ -3,8 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "proc_macro2_derive_tokens_ref.rs"]
-mod proc_macro2_derive_tokens_ref;
 #[must_use]
 pub fn wrap_derive(
     v: ProcMacro2DeriveTokensRef<'_>,
@@ -14,7 +12,7 @@ pub fn wrap_derive(
     quote::quote! {#[derive(#(#tokens),*)]}.into()
 }
 
-pub use proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef;
+pub use crate::proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef;
 #[cfg(test)]
 mod tests {
     #[test]

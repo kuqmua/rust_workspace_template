@@ -1,14 +1,11 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
-#[path = "csr_admin_role_row.rs"]
-mod csr_admin_role_row;
-
 #[leptos::component]
 #[allow(
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the shell module"
 )]
-pub(in crate::domain_types::start) fn AdminRolesView(
+pub(crate) fn AdminRolesView(
     admin: server_admin_contract::domain_types::AuthenticatedAdmin,
     page: server_admin_contract::domain_types::AdminRolesPage,
     query: super::admin_csr_query::AdminCsrQuery,
@@ -38,4 +35,9 @@ pub(in crate::domain_types::start) fn AdminRolesView(
             <super::admin_pagination::AdminPagination action=server_admin_contract::domain_types::AdminFrontendPath::Roles query=query total=total />
         </section>
     }
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod csr_admin_role_row {
+    pub use crate::csr_admin_role_row::*;
 }

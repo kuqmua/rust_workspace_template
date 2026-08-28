@@ -1,33 +1,3 @@
-#[cfg(any(target_arch = "wasm32", test))]
-#[path = "admin_alert_dialog.rs"]
-pub(crate) mod admin_alert_dialog;
-#[cfg(not(target_arch = "wasm32"))]
-#[path = "admin_checkbox.rs"]
-pub(crate) mod admin_checkbox;
-#[cfg(any(target_arch = "wasm32", test))]
-#[path = "admin_empty.rs"]
-pub(crate) mod admin_empty;
-#[path = "admin_spinner.rs"]
-pub(crate) mod admin_spinner;
-#[path = "admin_textarea.rs"]
-pub(crate) mod admin_textarea;
-#[path = "domain_types_with_owner_alert.rs"]
-pub(crate) mod alert;
-#[path = "domain_types_with_owner_badge.rs"]
-pub(crate) mod badge;
-#[path = "domain_types_with_owner_button.rs"]
-pub(crate) mod button;
-#[path = "domain_types_with_owner_card.rs"]
-pub(crate) mod card;
-#[path = "domain_types_with_owner_field.rs"]
-pub(crate) mod field;
-#[path = "domain_types_with_owner_input.rs"]
-pub(crate) mod input;
-#[path = "domain_types_with_owner_navigation.rs"]
-pub(crate) mod navigation;
-#[path = "domain_types_with_owner_table.rs"]
-pub(crate) mod tables;
-
 pub(crate) fn with_owner<View>(build: impl FnOnce() -> View) -> impl leptos::prelude::IntoView
 where
     View: leptos::prelude::IntoView,
@@ -37,6 +7,46 @@ where
     leptos::tachys::reactive_graph::OwnedView::new_with_owner(view, owner)
 }
 
-#[cfg(test)]
-#[path = "domain_types_with_owner_tests.rs"]
-mod tests;
+// Root-owned module compatibility wrappers.
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) mod admin_alert_dialog {
+    pub use crate::admin_alert_dialog::*;
+}
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) mod admin_checkbox {
+    pub use crate::admin_checkbox::*;
+}
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) mod admin_empty {
+    pub use crate::admin_empty::*;
+}
+pub(crate) mod admin_spinner {
+    pub use crate::admin_spinner::*;
+}
+pub(crate) mod admin_textarea {
+    pub use crate::admin_textarea::*;
+}
+pub(crate) mod alert {
+    pub use crate::domain_types_with_owner_alert::*;
+}
+pub(crate) mod badge {
+    pub use crate::domain_types_with_owner_badge::*;
+}
+pub(crate) mod button {
+    pub use crate::domain_types_with_owner_button::*;
+}
+pub(crate) mod card {
+    pub use crate::domain_types_with_owner_card::*;
+}
+pub(crate) mod field {
+    pub use crate::domain_types_with_owner_field::*;
+}
+pub(crate) mod input {
+    pub use crate::domain_types_with_owner_input::*;
+}
+pub(crate) mod navigation {
+    pub use crate::domain_types_with_owner_navigation::*;
+}
+pub(crate) mod tables {
+    pub use crate::domain_types_with_owner_table::*;
+}

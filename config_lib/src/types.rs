@@ -1,47 +1,18 @@
-#[path = "env_parse_error.rs"]
-mod env_parse_error;
-#[path = "env_var_error.rs"]
-mod env_var_error;
-#[path = "env_var_result_var_error.rs"]
-mod env_var_result_var_error;
-#[path = "env_var_value_ref.rs"]
-mod env_var_value_ref;
-#[path = "parse_ctx_ref.rs"]
-mod parse_ctx_ref;
-#[path = "parse_env_var_name_ref.rs"]
-mod parse_env_var_name_ref;
-#[path = "parse_from_env_var_from_str.rs"]
-mod parse_from_env_var_from_str;
-#[path = "parse_from_env_var_with.rs"]
-mod parse_from_env_var_with;
-#[path = "parse_from_str_with_ctx.rs"]
-mod parse_from_str_with_ctx;
-#[path = "src_place_type.rs"]
-mod src_place_type;
-#[path = "svc_mode.rs"]
-mod svc_mode;
-#[path = "tracing_format.rs"]
-mod tracing_format;
-#[path = "tracing_level.rs"]
-mod tracing_level;
-#[path = "tracing_level_name.rs"]
-mod tracing_level_name;
-
-use super::{ConfigLibStringWrapperTryFromStringError, EnvVarName, StdEnvVarOk};
-use env_parse_error::EnvParseError;
-use env_var_error::EnvVarError;
-use env_var_result_var_error::EnvVarResultVarError;
-use env_var_value_ref::EnvVarValueRef;
-use parse_ctx_ref::ParseCtxRef;
-use parse_env_var_name_ref::ParseEnvVarNameRef;
-use parse_from_env_var_from_str::parse_from_env_var_from_str;
-use parse_from_env_var_with::parse_from_env_var_with;
-use parse_from_str_with_ctx::parse_from_str_with_ctx;
-pub use src_place_type::*;
-pub use svc_mode::SvcMode;
-pub use tracing_format::TracingFormat;
-pub use tracing_level::*;
-use tracing_level_name::TracingLevelName;
+use crate::env_parse_error::EnvParseError;
+use crate::env_var_error::EnvVarError;
+use crate::env_var_result_var_error::EnvVarResultVarError;
+use crate::env_var_value_ref::EnvVarValueRef;
+use crate::parse_ctx_ref::ParseCtxRef;
+use crate::parse_env_var_name_ref::ParseEnvVarNameRef;
+use crate::parse_from_env_var_from_str::parse_from_env_var_from_str;
+use crate::parse_from_env_var_with::parse_from_env_var_with;
+use crate::parse_from_str_with_ctx::parse_from_str_with_ctx;
+pub use crate::src_place_type::*;
+pub use crate::svc_mode::SvcMode;
+pub use crate::tracing_format::TracingFormat;
+pub use crate::tracing_level::*;
+use crate::tracing_level_name::TracingLevelName;
+use crate::{ConfigLibStringWrapperTryFromStringError, EnvVarName, StdEnvVarOk};
 
 #[cfg(test)]
 mod tests {
@@ -51,9 +22,8 @@ mod tests {
     }
     #[test]
     fn environment_result_rejects_values_above_shared_limit() {
-        let value = constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(
-            super::super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(constants_usize::ONE),
-        );
+        let value = constants_str::TEST_JWT_SECRET_CHARACTER_A
+            .repeat(crate::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(constants_usize::ONE));
         let Err(_error) = super::EnvVarResultVarError::try_from(Ok(value)) else {
             panic!("3ee39bcb");
         };

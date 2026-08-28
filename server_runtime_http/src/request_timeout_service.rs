@@ -5,7 +5,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(super) struct RequestTimeoutService<Service> {
     pub(super) inner: Service,
-    pub(super) timeout: super::super::RequestTimeoutDuration,
+    pub(super) timeout: crate::RequestTimeoutDuration,
 }
 
 impl<Service> tower::Service<axum::extract::Request> for RequestTimeoutService<Service>

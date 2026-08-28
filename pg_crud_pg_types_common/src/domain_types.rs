@@ -1,21 +1,8 @@
-#[path = "is_primary_key.rs"]
-mod is_primary_key;
-#[path = "maybe_primary_key.rs"]
-mod maybe_primary_key;
-#[path = "pagination_starts_with_one.rs"]
-mod pagination_starts_with_one;
-#[path = "pagination_starts_with_one_raw.rs"]
-mod pagination_starts_with_one_raw;
-#[path = "pagination_starts_with_one_try_new_error.rs"]
-mod pagination_starts_with_one_try_new_error;
-#[path = "pagination_starts_with_one_value.rs"]
-mod pagination_starts_with_one_value;
-
-pub use is_primary_key::IsPrimaryKey;
-pub use maybe_primary_key::maybe_primary_key;
-pub use pagination_starts_with_one::PaginationStartsWithOne;
-pub use pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError;
-pub use pagination_starts_with_one_value::PaginationStartsWithOneValue;
+pub use crate::is_primary_key::IsPrimaryKey;
+pub use crate::maybe_primary_key::maybe_primary_key;
+pub use crate::pagination_starts_with_one::PaginationStartsWithOne;
+pub use crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError;
+pub use crate::pagination_starts_with_one_value::PaginationStartsWithOneValue;
 #[cfg(test)]
 mod tests {
     #[test]

@@ -1,2 +1,11 @@
-#[path = "domain_types.rs"]
+mod create_notification_req;
+mod create_notification_res;
+mod create_notification_route;
 pub mod domain_types;
+mod notification_api_body_max_bytes;
+mod notification_message;
+mod notification_message_max_len;
+mod notification_message_try_from_string_error;
+mod notification_operational_route;
+mod notification_route;
+mod uuid_notification_id;

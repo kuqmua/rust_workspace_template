@@ -1,4 +1,3 @@
-#![allow(clippy::single_call_fn)] // reporting stays independent from command execution so diagnostics have one owner
 pub(crate) fn print_without_measurement_footer(stderr: crate::domain_types::StderrTextRef<'_>) {
     stderr
         .get()

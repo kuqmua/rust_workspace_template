@@ -1,4 +1,4 @@
-pub(in crate::domain_types::start) fn csr_page_from_location() -> Result<
+pub(crate) fn csr_page_from_location() -> Result<
     server_admin_contract::domain_types::AdminPage,
     crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError,
 > {

@@ -1,4 +1,4 @@
-use super::{StdBool, SynType};
+use crate::domain_types::{StdBool, SynType};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 #[allow(

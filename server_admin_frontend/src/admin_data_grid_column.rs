@@ -1,11 +1,7 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the Leptos column heading is composed once by the shared grid"
 )]
-
-#[path = "filter.rs"]
-mod filter;
 
 use leptos::prelude::{ClassAttribute, ElementChild};
 
@@ -38,4 +34,9 @@ pub(super) fn admin_data_grid_column(
             </div>
         </crate::domain_types::with_owner::tables::table_head::TableHead>
     }
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod filter {
+    pub use crate::filter::*;
 }

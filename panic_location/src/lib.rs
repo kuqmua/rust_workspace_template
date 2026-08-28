@@ -1,5 +1,8 @@
-#[path = "domain_types.rs"]
 mod domain_types;
+mod panic_column;
+mod panic_file;
+mod panic_line;
+mod panic_with_location_message;
 
 // Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
 // prevents repeatedly replacing that hook from proc-macro entrypoints.

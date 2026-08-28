@@ -1,34 +1,13 @@
-#[path = "http_allowed_path_prefix_ref.rs"]
-mod http_allowed_path_prefix_ref;
-#[path = "http_normalized_path.rs"]
-mod http_normalized_path;
-#[path = "http_normalized_path_error.rs"]
-mod http_normalized_path_error;
-#[path = "http_proxy_path.rs"]
-mod http_proxy_path;
-#[path = "http_proxy_path_error.rs"]
-mod http_proxy_path_error;
-#[path = "http_proxy_path_prefix_match.rs"]
-mod http_proxy_path_prefix_match;
-#[path = "http_proxy_path_ref.rs"]
-mod http_proxy_path_ref;
-#[path = "http_request_path_ref.rs"]
-mod http_request_path_ref;
-#[path = "normalize_identifier_path.rs"]
-mod normalize_identifier_path;
-#[path = "proxy_path_matches_prefix.rs"]
-mod proxy_path_matches_prefix;
-
-pub use http_allowed_path_prefix_ref::HttpAllowedPathPrefixRef;
-pub use http_normalized_path::HttpNormalizedPath;
-pub use http_normalized_path_error::HttpNormalizedPathError;
-pub use http_proxy_path::HttpProxyPath;
-pub use http_proxy_path_error::HttpProxyPathError;
-pub use http_proxy_path_prefix_match::HttpProxyPathPrefixMatch;
-pub use http_proxy_path_ref::HttpProxyPathRef;
-pub use http_request_path_ref::HttpRequestPathRef;
-pub use normalize_identifier_path::normalize_identifier_path;
-pub use proxy_path_matches_prefix::proxy_path_matches_prefix;
+pub use crate::http_allowed_path_prefix_ref::HttpAllowedPathPrefixRef;
+pub use crate::http_normalized_path::HttpNormalizedPath;
+pub use crate::http_normalized_path_error::HttpNormalizedPathError;
+pub use crate::http_proxy_path::HttpProxyPath;
+pub use crate::http_proxy_path_error::HttpProxyPathError;
+pub use crate::http_proxy_path_prefix_match::HttpProxyPathPrefixMatch;
+pub use crate::http_proxy_path_ref::HttpProxyPathRef;
+pub use crate::http_request_path_ref::HttpRequestPathRef;
+pub use crate::normalize_identifier_path::normalize_identifier_path;
+pub use crate::proxy_path_matches_prefix::proxy_path_matches_prefix;
 
 #[cfg(test)]
 mod tests {
@@ -63,4 +42,36 @@ mod tests {
             constants_str::TEST_NORMALIZED_IDENTIFIER_PATH
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod http_allowed_path_prefix_ref {
+    pub use crate::http_allowed_path_prefix_ref::*;
+}
+mod http_normalized_path {
+    pub use crate::http_normalized_path::*;
+}
+mod http_normalized_path_error {
+    pub use crate::http_normalized_path_error::*;
+}
+mod http_proxy_path {
+    pub use crate::http_proxy_path::*;
+}
+mod http_proxy_path_error {
+    pub use crate::http_proxy_path_error::*;
+}
+mod http_proxy_path_prefix_match {
+    pub use crate::http_proxy_path_prefix_match::*;
+}
+mod http_proxy_path_ref {
+    pub use crate::http_proxy_path_ref::*;
+}
+mod http_request_path_ref {
+    pub use crate::http_request_path_ref::*;
+}
+mod normalize_identifier_path {
+    pub use crate::normalize_identifier_path::*;
+}
+mod proxy_path_matches_prefix {
+    pub use crate::proxy_path_matches_prefix::*;
 }

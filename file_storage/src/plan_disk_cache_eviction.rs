@@ -1,4 +1,6 @@
-use super::{DiskCacheBudgetError, DiskCacheEntry, DiskCacheEvictionPlan, StdDiskCacheSize};
+use crate::domain_types::{
+    DiskCacheBudgetError, DiskCacheEntry, DiskCacheEvictionPlan, StdDiskCacheSize,
+};
 
 pub fn plan_disk_cache_eviction(
     entries: &[DiskCacheEntry],

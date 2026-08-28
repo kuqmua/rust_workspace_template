@@ -1,26 +1,22 @@
-#[path = "csr_page_from_location.rs"]
-pub(in crate::domain_types::start) mod csr_page_from_location;
-
-#[path = "location.rs"]
-mod location;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
-pub(in crate::domain_types::start) struct AdminCsrQuery {
-    pub(in crate::domain_types::start) direction:
-        Option<server_admin_contract::domain_types::AdminText>,
-    pub(in crate::domain_types::start) filter_end:
-        Option<server_admin_contract::domain_types::AdminFilterValue>,
-    pub(in crate::domain_types::start) filter_field:
-        Option<server_admin_contract::domain_types::AdminFilterField>,
-    pub(in crate::domain_types::start) filter_operation:
+pub(crate) struct AdminCsrQuery {
+    pub(crate) direction: Option<server_admin_contract::domain_types::AdminText>,
+    pub(crate) filter_end: Option<server_admin_contract::domain_types::AdminFilterValue>,
+    pub(crate) filter_field: Option<server_admin_contract::domain_types::AdminFilterField>,
+    pub(crate) filter_operation:
         Option<server_admin_contract::domain_types::AdminFilterOperationKey>,
-    pub(in crate::domain_types::start) filter_value:
-        Option<server_admin_contract::domain_types::AdminFilterValue>,
-    pub(in crate::domain_types::start) limit: server_admin_contract::domain_types::AdminPageLimit,
-    pub(in crate::domain_types::start) offset: server_admin_contract::domain_types::AdminPageOffset,
-    pub(in crate::domain_types::start) search:
-        server_admin_contract::domain_types::AdminTableSearch,
-    pub(in crate::domain_types::start) sort: server_admin_contract::domain_types::AdminTableSortKey,
-    pub(in crate::domain_types::start) table:
-        Option<server_admin_contract::domain_types::AdminDataTable>,
+    pub(crate) filter_value: Option<server_admin_contract::domain_types::AdminFilterValue>,
+    pub(crate) limit: server_admin_contract::domain_types::AdminPageLimit,
+    pub(crate) offset: server_admin_contract::domain_types::AdminPageOffset,
+    pub(crate) search: server_admin_contract::domain_types::AdminTableSearch,
+    pub(crate) sort: server_admin_contract::domain_types::AdminTableSortKey,
+    pub(crate) table: Option<server_admin_contract::domain_types::AdminDataTable>,
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod csr_page_from_location {
+    pub use crate::csr_page_from_location::*;
+}
+pub(crate) mod location {
+    pub use crate::location::*;
 }

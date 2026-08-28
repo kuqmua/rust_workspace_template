@@ -1,17 +1,17 @@
-pub(in crate::domain_types::auth) async fn queries_users_page(
-    auth: super::super::AdminAuthReq,
-    query: super::super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
-) -> Result<server_admin_contract::domain_types::AdminUsersPage, super::super::AdminError> {
+pub(crate) async fn queries_users_page(
+    auth: crate::AdminAuthReq,
+    query: crate::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
+) -> Result<server_admin_contract::domain_types::AdminUsersPage, crate::AdminError> {
     let _actor =
-        super::super::authorization_authorize_generated_request::authorization_authorize_generated_request(
+        crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
             auth.state.as_ref(),
-            super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+            crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
             auth.peer,
-            super::super::super::AdminPermission::UsersRead.as_str(),
-            super::super::super::StdAdminBool::from(false),
+            crate::AdminPermission::UsersRead.as_str(),
+            crate::StdAdminBool::from(false),
         )
         .await?;
-    super::super::shared::validate_table_sort::validate_table_sort(
+    crate::shared::validate_table_sort::validate_table_sort(
         &query.0,
         &server_admin_contract::domain_types::AdminTableSortField::USER,
     )?;
@@ -89,7 +89,7 @@ pub(in crate::domain_types::auth) async fn queries_users_page(
         ))
     }
     .await
-    .map_err(super::super::shared::map_repository_error::map_repository_error)?;
+    .map_err(crate::shared::map_repository_error::map_repository_error)?;
     let roles = async {
         let role_catalog_pool = auth.state.as_ref().pool.as_ref();
         let rows =
@@ -144,10 +144,10 @@ pub(in crate::domain_types::auth) async fn queries_users_page(
             .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)
     }
     .await
-    .map_err(super::super::shared::map_repository_error::map_repository_error)?;
+    .map_err(crate::shared::map_repository_error::map_repository_error)?;
     Ok(server_admin_contract::domain_types::AdminUsersPage::new(
         users,
         roles,
-        super::super::shared::page_total::page_total(total)?,
+        crate::shared::page_total::page_total(total)?,
     ))
 }

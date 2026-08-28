@@ -18,10 +18,10 @@ impl TryFrom<String> for ContentSecurityPolicy {
     }
 }
 
-impl super::super::TryFromStdEnvVarOk for ContentSecurityPolicy {
+impl crate::TryFromStdEnvVarOk for ContentSecurityPolicy {
     type Error = super::ContentSecurityPolicyError;
 
-    fn try_from_std_env_var_ok(v: super::super::StdEnvVarOk) -> Result<Self, Self::Error> {
+    fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
         Self::try_from(v.0)
     }
 }

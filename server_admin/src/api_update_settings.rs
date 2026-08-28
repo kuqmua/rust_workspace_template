@@ -1,11 +1,11 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)] // Axum route endpoint is registered once by the route inventory
+
 #[frontend_contract::domain_types::route_openapi(
-    delegate = super::settings_update::settings_update,
+    delegate = crate::settings_update::settings_update,
     tag = "admin_settings"
 )]
-pub(super) async fn api_update_settings(
-    auth: super::AdminAuthReq,
-    request: super::AxumAdminJson<server_admin_contract::domain_types::AdminUpdateSettingsReq>,
-) -> Result<super::AxumAdminResponse, super::AdminUpdateSettingsError> {
+pub(crate) async fn api_update_settings(
+    auth: crate::AdminAuthReq,
+    request: crate::AxumAdminJson<server_admin_contract::domain_types::AdminUpdateSettingsReq>,
+) -> Result<crate::AxumAdminResponse, crate::AdminUpdateSettingsError> {
 }

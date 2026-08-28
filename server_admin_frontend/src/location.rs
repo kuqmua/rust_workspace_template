@@ -1,5 +1,5 @@
 impl super::AdminCsrQuery {
-    pub(in crate::domain_types::start) fn from_location()
+    pub(crate) fn from_location()
     -> Result<Self, crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError>
     {
         let window = web_sys::window().ok_or(

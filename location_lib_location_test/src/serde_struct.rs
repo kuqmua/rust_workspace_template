@@ -4,9 +4,9 @@
     Debug, serde::Serialize, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct SerdeStruct {
-    pub one: super::LocationTestText,
-    pub three: super::LocationTestCount,
-    pub two: super::LocationTestFlag,
+    pub one: crate::domain_types::LocationTestText,
+    pub three: crate::domain_types::LocationTestCount,
+    pub two: crate::domain_types::LocationTestFlag,
 }
 
 impl to_err_string::domain_types::ToErrString for SerdeStruct {

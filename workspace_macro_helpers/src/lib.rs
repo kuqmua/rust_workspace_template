@@ -1,2 +1,26 @@
-#[path = "domain_types.rs"]
+mod closure_identifier_and_body;
+mod collection_max_len;
+mod compile_error_token_stream;
 pub mod domain_types;
+mod first_comma_stripped;
+mod first_ident_max_len;
+mod first_identifier;
+mod first_identifier_at;
+mod first_identifierifier_try_from_string_error;
+mod functions;
+mod parse_first_identifier;
+mod part_at;
+mod part_index;
+mod proc_macro2_macro_tokens;
+mod proc_macro2_top_level_comma_parts;
+mod split_fat_arrow;
+mod split_top_level_commas;
+mod std_unique_option_set_contains;
+mod std_unique_option_set_is_empty;
+mod strip_first_comma;
+mod syn_derive_input_ref;
+mod syn_fields_named_ref;
+mod syn_fields_unnamed_ref;
+mod syn_struct_shape_ref;
+mod top_level_comma_part;
+mod unique_option_b_tree_set;

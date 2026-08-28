@@ -7,7 +7,7 @@ pub struct PgRelationResourceIds(
     pub(super)  bounded_types::domain_types::vector::BoundedVec<
         crate::domain_types::PgRelationResourceId,
         { constants_usize::ZERO },
-        { crate::domain_types::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },
+        { crate::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },
     >,
 );
 
@@ -20,7 +20,7 @@ impl TryFrom<Vec<crate::domain_types::PgRelationResourceId>> for PgRelationResou
         let mut resources = bounded_types::domain_types::vector::BoundedVec::<
             crate::domain_types::PgRelationResourceId,
             { constants_usize::ZERO },
-            { crate::domain_types::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },
+            { crate::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },
         >::try_from(value)
         .map_err(|_error| crate::domain_types::PgRelationLockError::TooManyResources)?
         .into_inner();

@@ -1,8 +1,6 @@
-use super::MetricsExporterPrometheusRenderer;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_accessor::Getters)]
 pub(crate) struct NotificationState {
-    metrics: MetricsExporterPrometheusRenderer,
+    metrics: super::MetricsExporterPrometheusRenderer,
     pool: app_state::domain_types::SqlxPgPool,
     project_git_info: git_info::domain_types::ProjectGitInfo<'static>,
 }
@@ -12,7 +10,7 @@ pub(crate) struct NotificationState {
 )]
 impl NotificationState {
     pub(crate) const fn new(
-        metrics: MetricsExporterPrometheusRenderer,
+        metrics: super::MetricsExporterPrometheusRenderer,
         pool: app_state::domain_types::SqlxPgPool,
         project_git_info: git_info::domain_types::ProjectGitInfo<'static>,
     ) -> Self {

@@ -5,7 +5,7 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the parent app module"
 )]
-pub(in crate::domain_types::start) fn AdminPermissionsView(
+pub(crate) fn AdminPermissionsView(
     page: server_admin_contract::domain_types::AdminPermissionsPage,
     query: super::admin_csr_query::AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {

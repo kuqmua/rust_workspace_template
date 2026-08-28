@@ -2,5 +2,5 @@ use crate::domain_types::generated_tables::StdOptionalOptionalAdminRolePermissio
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataRolePermissionsFlt(
-    pub(super) StdOptionalOptionalAdminRolePermissionsWhereMany,
+    pub(crate) StdOptionalOptionalAdminRolePermissionsWhereMany,
 );

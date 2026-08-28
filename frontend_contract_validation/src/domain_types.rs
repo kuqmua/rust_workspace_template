@@ -1,6 +1,9 @@
-#[path = "artifact.rs"]
-pub mod artifact;
-#[path = "openapi_validation.rs"]
-pub mod openapi_validation;
-#[path = "route_contract_validation.rs"]
-pub mod route_contract_validation;
+pub mod artifact {
+    pub use crate::artifact::*;
+}
+pub mod openapi_validation {
+    pub use crate::openapi_validation::*;
+}
+pub mod route_contract_validation {
+    pub use crate::route_contract_validation::*;
+}

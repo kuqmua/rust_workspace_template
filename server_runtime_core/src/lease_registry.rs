@@ -3,21 +3,11 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "lease_entry.rs"]
-mod lease_entry;
-use lease_entry::LeaseEntry;
-#[path = "lease_heartbeat.rs"]
-mod lease_heartbeat;
-pub use lease_heartbeat::*;
-#[path = "lease_id.rs"]
-mod lease_id;
-pub use lease_id::*;
-#[path = "lease_ids.rs"]
-mod lease_ids;
-pub use lease_ids::*;
-#[path = "lease_key.rs"]
-mod lease_key;
-pub use lease_key::*;
+use crate::lease_entry::LeaseEntry;
+pub use crate::lease_heartbeat::*;
+pub use crate::lease_id::*;
+pub use crate::lease_ids::*;
+pub use crate::lease_key::*;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub struct LeaseRegistry {
     inner: TokioLeaseRegistryRwLockArc,
@@ -133,49 +123,25 @@ impl LeaseRegistry {
         })
     }
 }
-#[path = "lease_registry_inner.rs"]
-mod lease_registry_inner;
-use lease_registry_inner::LeaseRegistryInner;
-#[path = "lease_registry_maximum_non_zero_usize.rs"]
-mod lease_registry_maximum_non_zero_usize;
-pub use lease_registry_maximum_non_zero_usize::*;
-#[path = "lease_reservation.rs"]
-mod lease_reservation;
-pub use lease_reservation::*;
-#[path = "lease_stale_timeout_duration.rs"]
-mod lease_stale_timeout_duration;
-pub use lease_stale_timeout_duration::*;
-#[path = "lease_state.rs"]
-mod lease_state;
-pub use lease_state::*;
-#[path = "lease_text_error.rs"]
-mod lease_text_error;
-pub use lease_text_error::*;
-#[path = "lease_text_maximum_bytes.rs"]
-mod lease_text_maximum_bytes;
-use lease_text_maximum_bytes::LEASE_TEXT_MAXIMUM_BYTES;
-#[path = "lease_text_ref.rs"]
-mod lease_text_ref;
-use lease_text_ref::LeaseTextRef;
-#[path = "std_lease_stale_timeout_error.rs"]
-mod std_lease_stale_timeout_error;
-pub use std_lease_stale_timeout_error::*;
-#[path = "tokio_lease_instant.rs"]
-mod tokio_lease_instant;
-use tokio_lease_instant::TokioLeaseInstant;
-#[path = "tokio_lease_registry_rw_lock_arc.rs"]
-mod tokio_lease_registry_rw_lock_arc;
-use tokio_lease_registry_rw_lock_arc::TokioLeaseRegistryRwLockArc;
-#[path = "validate_lease_text.rs"]
-mod validate_lease_text;
-use validate_lease_text::validate_lease_text;
+use crate::lease_registry_inner::LeaseRegistryInner;
+pub use crate::lease_registry_maximum_non_zero_usize::*;
+pub use crate::lease_reservation::*;
+pub use crate::lease_stale_timeout_duration::*;
+pub use crate::lease_state::*;
+pub use crate::lease_text_error::*;
+use crate::lease_text_maximum_bytes::LEASE_TEXT_MAXIMUM_BYTES;
+use crate::lease_text_ref::LeaseTextRef;
+pub use crate::std_lease_stale_timeout_error::*;
+use crate::tokio_lease_instant::TokioLeaseInstant;
+use crate::tokio_lease_registry_rw_lock_arc::TokioLeaseRegistryRwLockArc;
+use crate::validate_lease_text::validate_lease_text;
 
 #[cfg(test)]
 mod tests {
     fn id(value: &str) -> super::LeaseId {
         super::LeaseId::try_from(value.to_owned()).expect("f1f58adc id invariant must hold")
     }
-    fn key(value: &str) -> super::LeaseKey {
+    fn lease_key(value: &str) -> super::LeaseKey {
         super::LeaseKey::try_from(value.to_owned()).expect("699f4283 key invariant must hold")
     }
     fn maximum() -> super::LeaseRegistryMaximumNonZeroUsize {
@@ -186,7 +152,7 @@ mod tests {
     async fn reservation_is_unique_by_key_and_limit() {
         let registry = super::LeaseRegistry::new();
         let first_id = id(constants_str::TEST_LEASE_ID_ONE);
-        let first_key = key(constants_str::TEST_LEASE_KEY_ONE);
+        let first_key = lease_key(constants_str::TEST_LEASE_KEY_ONE);
         assert_eq!(
             registry
                 .reserve(first_id.clone(), first_key.clone(), maximum())
@@ -203,7 +169,7 @@ mod tests {
             registry
                 .reserve(
                     id(constants_str::TEST_LEASE_ID_TWO),
-                    key(constants_str::TEST_LEASE_KEY_TWO),
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
                     maximum(),
                 )
                 .await,
@@ -218,7 +184,7 @@ mod tests {
         let _reservation = registry
             .reserve(
                 lease_id.clone(),
-                key(constants_str::TEST_LEASE_KEY_ONE),
+                lease_key(constants_str::TEST_LEASE_KEY_ONE),
                 maximum(),
             )
             .await;

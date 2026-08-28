@@ -1,4 +1,4 @@
-pub(in crate::domain_types::start) fn reload_after<RequestBody>(
+pub(crate) fn reload_after<RequestBody>(
     method: crate::domain_types::start::mutation::AdminMutationMethod,
     path: crate::domain_types::start::http::url::AdminCsrApiUrl,
     request_body: RequestBody,

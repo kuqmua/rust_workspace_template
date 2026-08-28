@@ -1,4 +1,4 @@
-pub(super) fn admin_error_response_parts(
+pub(crate) fn admin_error_response_parts(
     route_error_status: frontend_contract::domain_types::RouteErrorStatus,
     optional_diagnostic: Option<server_runtime_http::domain_types::HttpErrorDiagnostic>,
 ) -> axum::response::Response {

@@ -7,7 +7,7 @@
 )]
 pub struct AdminJwtSecret(
     bounded_types::domain_types::vector::BoundedVec<
-        super::super::SecrecySecretBoxString,
+        crate::SecrecySecretBoxString,
         1,
         { super::ADMIN_JWT_SECRET_MAX_COUNT },
     >,
@@ -15,20 +15,20 @@ pub struct AdminJwtSecret(
 
 impl AdminJwtSecret {
     #[must_use]
-    pub fn primary(&self) -> Option<&super::super::SecrecySecretBoxString> {
+    pub fn primary(&self) -> Option<&crate::SecrecySecretBoxString> {
         self.0.first()
     }
 
     #[must_use]
-    pub const fn verification_secrets(&self) -> &[super::super::SecrecySecretBoxString] {
+    pub const fn verification_secrets(&self) -> &[crate::SecrecySecretBoxString] {
         self.0.as_slice()
     }
 }
 
-impl super::super::TryFromStdEnvVarOk for AdminJwtSecret {
+impl crate::TryFromStdEnvVarOk for AdminJwtSecret {
     type Error = super::TryFromStdEnvVarOkAdminJwtSecretError;
 
-    fn try_from_std_env_var_ok(v: super::super::StdEnvVarOk) -> Result<Self, Self::Error> {
+    fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
         if v.0.split(',').map(str::trim).all(str::is_empty) {
             return Err(Self::Error::Empty);
         }
@@ -45,7 +45,7 @@ impl super::super::TryFromStdEnvVarOk for AdminJwtSecret {
                 } else if value.len() < super::ADMIN_JWT_SECRET_MIN_LEN {
                     Err(Self::Error::TooShort)
                 } else {
-                    super::super::SecrecySecretBoxString::try_from(value.to_owned())
+                    crate::SecrecySecretBoxString::try_from(value.to_owned())
                         .map_err(|_error| Self::Error::TooLong)
                 }
             })

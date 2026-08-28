@@ -201,7 +201,7 @@ fn route_contract_keeps_custom_action_policy_and_path_together() {
     assert_eq!(route.path().as_ref(), "/v1/admin/users/7/ban");
     assert_eq!(
         route.contract().method(),
-        frontend_contract::domain_types::HttpMethod::Post
+        frontend_contract::domain_types::RouteMethod::Post
     );
     assert_eq!(
         route.contract().mutation(),

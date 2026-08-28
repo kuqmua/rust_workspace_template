@@ -1,30 +1,37 @@
-#[path = "add_status_route.rs"]
-mod add_status_route;
-#[path = "serve_io_error.rs"]
-mod serve_io_error;
-#[path = "serve_with_graceful_shutdown.rs"]
-mod serve_with_graceful_shutdown;
-#[path = "serve_with_graceful_shutdown_error.rs"]
-mod serve_with_graceful_shutdown_error;
-#[path = "service_runtime.rs"]
-mod service_runtime;
-#[path = "tokio_tcp_listener.rs"]
-mod tokio_tcp_listener;
-
-pub use add_status_route::add_status_route;
-pub use serve_io_error::ServeIoError;
-pub use serve_with_graceful_shutdown::serve_with_graceful_shutdown;
-pub use serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError;
-pub use service_runtime::ServiceRuntime;
-pub use tokio_tcp_listener::TokioTcpListener;
+pub use crate::add_status_route::add_status_route;
+pub use crate::serve_io_error::ServeIoError;
+pub use crate::serve_with_graceful_shutdown::serve_with_graceful_shutdown;
+pub use crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError;
+pub use crate::service_runtime::ServiceRuntime;
+pub use crate::tokio_tcp_listener::TokioTcpListener;
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn service_runtime_returns_owned_parts() {
         let runtime =
-            super::ServiceRuntime::new(super::super::AxumRouter::from(axum::Router::new()), None);
+            super::ServiceRuntime::new(crate::AxumRouter::from(axum::Router::new()), None);
         let (_router, optional_task) = runtime.into_parts();
         assert!(optional_task.is_none());
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod add_status_route {
+    pub use crate::add_status_route::*;
+}
+mod serve_io_error {
+    pub use crate::serve_io_error::*;
+}
+mod serve_with_graceful_shutdown {
+    pub use crate::serve_with_graceful_shutdown::*;
+}
+mod serve_with_graceful_shutdown_error {
+    pub use crate::serve_with_graceful_shutdown_error::*;
+}
+mod service_runtime {
+    pub use crate::service_runtime::*;
+}
+mod tokio_tcp_listener {
+    pub use crate::tokio_tcp_listener::*;
 }

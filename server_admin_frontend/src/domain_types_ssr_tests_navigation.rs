@@ -1,9 +1,9 @@
 #[cfg(test)]
-use super::super::AdminSsrViewExt;
+use crate::AdminSsrViewExt;
 
 #[test]
 fn pagination_preserves_server_side_navigation() {
-    let html = super::super::table_pagination(
+    let html = crate::table_pagination(
         server_admin_contract::domain_types::AdminPage::Users,
         &server_admin_contract::domain_types::AdminTableQuery::default(),
         server_admin_contract::domain_types::AdminPageTotal::from(101u64),
@@ -36,7 +36,7 @@ fn pagination_preserves_server_side_navigation() {
         ),
         None,
     );
-    let filtered_html = super::super::table_pagination(
+    let filtered_html = crate::table_pagination(
         server_admin_contract::domain_types::AdminPage::Tables,
         &server_admin_contract::domain_types::AdminTableQuery::default(),
         server_admin_contract::domain_types::AdminPageTotal::from(101u64),
@@ -114,9 +114,9 @@ fn navigation_only_contains_accessible_pages() {
         server_admin_contract::domain_types::AdminRoleNames::try_from(Vec::new())
             .expect("f1ec0093 navigation_only_contains_accessible_pages invariant must hold"),
     );
-    let html = super::super::render_admin_page_with_access(
+    let html = crate::render_admin_page_with_access(
         server_admin_contract::domain_types::AdminPage::Users,
-        super::super::AdminSsrHtml::try_from(String::new())
+        crate::AdminSsrHtml::try_from(String::new())
             .expect("aa3fa21e navigation_only_contains_accessible_pages invariant must hold"),
         Some(&admin),
         None,
@@ -215,7 +215,7 @@ fn sign_in_uses_server_side_color_without_logo() {
         None,
     );
     let branding = server_admin_contract::domain_types::AdminBrandingView::from_settings(&settings);
-    let html = super::super::render_sign_in(None, Some(&branding));
+    let html = crate::render_sign_in(None, Some(&branding));
     assert!(!html.as_ref().contains("Custom Admin"));
     assert!(!html.as_ref().contains("auth-brand"));
     assert!(!html.as_ref().contains("brand-mark"));

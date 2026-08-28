@@ -1,6 +1,6 @@
-pub(super) fn optional_setting_impl<Value, Error>(
-    value: super::forms::AdminHtmlFormText,
-) -> Result<Option<Value>, super::super::AdminError>
+pub(crate) fn optional_setting_impl<Value, Error>(
+    value: crate::AdminHtmlFormText,
+) -> Result<Option<Value>, crate::AdminError>
 where
     Value: TryFrom<String, Error = Error>,
 {
@@ -15,6 +15,6 @@ where
             .into_inner(),
         )
         .map(Some)
-        .map_err(|_error| super::super::AdminError::Validation)
+        .map_err(|_error| crate::AdminError::Validation)
     }
 }

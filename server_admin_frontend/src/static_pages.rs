@@ -19,7 +19,7 @@ fn static_pages() {
         server_admin_contract::domain_types::AdminPageTotal::from(1u64),
     );
     let permissions_html =
-        super::super::render_admin_permissions_page(&permissions, &query, &admin, &branding);
+        crate::render_admin_permissions_page(&permissions, &query, &admin, &branding);
     assert!(permissions_html.as_ref().contains("data-label=\"id\""));
     assert!(permissions_html.as_ref().contains(">7</td>"));
     assert!(permissions_html.as_ref().contains(">users.read</td>"));
@@ -50,7 +50,7 @@ fn static_pages() {
         .expect("2a9f75c1 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
         server_admin_contract::domain_types::AdminPageTotal::from(1u64),
     );
-    let users_html = super::super::render_users(&users, &query, &admin, &branding);
+    let users_html = crate::render_users(&users, &query, &admin, &branding);
     assert!(users_html.as_ref().contains("data-label=\"login\""));
     assert!(users_html.as_ref().contains(">bob</td>"));
     assert!(users_html.as_ref().contains("data-label=\"banned\""));
@@ -64,7 +64,7 @@ fn static_pages() {
             .expect("c306d98a typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
         server_admin_contract::domain_types::AdminPageTotal::from(1u64),
     );
-    let roles_html = super::super::render_roles(&roles, &query, &admin, &branding);
+    let roles_html = crate::render_roles(&roles, &query, &admin, &branding);
     assert!(roles_html.as_ref().contains("data-label=\"name\""));
     assert!(roles_html.as_ref().contains(">reviewer</td>"));
     assert!(roles_html.as_ref().contains(">users.read</td>"));
@@ -88,8 +88,7 @@ fn static_pages() {
         .expect("bc30f861 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
         server_admin_contract::domain_types::AdminPageTotal::from(1u64),
     );
-    let sessions_html =
-        super::super::render_admin_sessions_page(&sessions, &query, &admin, &branding);
+    let sessions_html = crate::render_admin_sessions_page(&sessions, &query, &admin, &branding);
     assert!(sessions_html.as_ref().contains("value=\"session-1\""));
     assert!(
         sessions_html
@@ -114,20 +113,20 @@ fn static_pages() {
             .contains(">Confirm session revocation</label>")
     );
 
-    let profile_html = super::super::render_admin_profile_page(&admin, &branding);
+    let profile_html = crate::render_admin_profile_page(&admin, &branding);
     assert!(profile_html.as_ref().contains(">operator, auditor</p>"));
     assert!(profile_html.as_ref().contains("name=\"current_password\""));
 
-    let public_text = super::super::render_text_page(
+    let public_text = crate::render_text_page(
         server_admin_contract::domain_types::AdminPage::Metrics,
-        super::super::AdminSsrText::try_from(String::from(constants_str::METRICS_ALT)).expect("e5a204bd typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
-        super::super::AdminSsrText::try_from(String::from(constants_str::VALUE_242C81E4)).expect("107cde83 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        crate::AdminSsrText::try_from(String::from(constants_str::METRICS_ALT)).expect("e5a204bd typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        crate::AdminSsrText::try_from(String::from(constants_str::VALUE_242C81E4)).expect("107cde83 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
     );
     assert!(public_text.as_ref().contains("&lt;ready&gt;"));
-    let private_text = super::super::render_text_page_with_access(
+    let private_text = crate::render_text_page_with_access(
         server_admin_contract::domain_types::AdminPage::OpenApi,
-        super::super::AdminSsrText::try_from(String::from(constants_str::VALUE_39732416)).expect("48a0fc36 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
-        super::super::AdminSsrText::try_from(String::from(constants_str::VALUE_95ADE925)).expect("b7d3640e typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        crate::AdminSsrText::try_from(String::from(constants_str::VALUE_39732416)).expect("48a0fc36 typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
+        crate::AdminSsrText::try_from(String::from(constants_str::VALUE_95ADE925)).expect("b7d3640e typed_static_pages_render_rows_actions_roles_and_escaped_text invariant must hold"),
         &admin,
         &branding,
     );

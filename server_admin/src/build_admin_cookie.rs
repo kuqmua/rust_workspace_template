@@ -1,8 +1,8 @@
-use super::*;
+use crate::*;
 #[must_use]
 pub fn build_admin_cookie(
     kind: AdminCookieKind,
-    value: super::super::StdAdminStrRef<'_>,
+    value: StdAdminStrRef<'_>,
     max_age: AdminCookieMaxAgeSeconds,
     secure: AdminCookieSecure,
 ) -> StdAdminCookie {

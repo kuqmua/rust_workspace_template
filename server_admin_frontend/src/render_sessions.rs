@@ -1,6 +1,5 @@
 #![allow(
     unused_imports,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the screen-local Leptos view branches require different attribute traits after macro expansion"
 )]

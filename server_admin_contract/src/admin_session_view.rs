@@ -11,7 +11,7 @@ pub struct AdminSessionView {
     expires_at: super::admin_session_timestamp::AdminSessionTimestamp,
     id: super::admin_session_identifier::AdminSessionIdentifier,
     #[serde(default)]
-    is_current: super::super::AdminBool,
+    is_current: crate::AdminBool,
 }
 impl AdminSessionView {
     #[must_use]
@@ -19,7 +19,7 @@ impl AdminSessionView {
         created_at: super::admin_session_timestamp::AdminSessionTimestamp,
         expires_at: super::admin_session_timestamp::AdminSessionTimestamp,
         id: super::admin_session_identifier::AdminSessionIdentifier,
-        is_current: super::super::AdminBool,
+        is_current: crate::AdminBool,
     ) -> Self {
         Self {
             created_at,
@@ -41,7 +41,7 @@ impl AdminSessionView {
         &self.id
     }
     #[must_use]
-    pub const fn is_current(&self) -> super::super::AdminBool {
+    pub const fn is_current(&self) -> crate::AdminBool {
         self.is_current
     }
 }

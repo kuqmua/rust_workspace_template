@@ -1,22 +1,9 @@
-#[path = "field_location_column.rs"]
-mod field_location_column;
-#[path = "field_location_column_non_zero_u32.rs"]
-mod field_location_column_non_zero_u32;
-#[path = "field_location_coordinate_try_from_u32_error.rs"]
-mod field_location_coordinate_try_from_u32_error;
-#[path = "field_location_file.rs"]
-mod field_location_file;
-#[path = "field_location_line.rs"]
-mod field_location_line;
-#[path = "field_location_line_non_zero_u32.rs"]
-mod field_location_line_non_zero_u32;
-
-pub use field_location_column::FieldLocationColumn;
-use field_location_column_non_zero_u32::FieldLocationColumnNonZeroU32;
-pub use field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
-pub use field_location_file::FieldLocationFile;
-pub use field_location_line::FieldLocationLine;
-use field_location_line_non_zero_u32::FieldLocationLineNonZeroU32;
+pub use crate::field_location_column::FieldLocationColumn;
+use crate::field_location_column_non_zero_u32::FieldLocationColumnNonZeroU32;
+pub use crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
+pub use crate::field_location_file::FieldLocationFile;
+pub use crate::field_location_line::FieldLocationLine;
+use crate::field_location_line_non_zero_u32::FieldLocationLineNonZeroU32;
 #[must_use]
 pub fn generate_field_location_new_token_stream(
     file: FieldLocationFile,

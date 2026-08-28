@@ -1,4 +1,7 @@
-#[path = "render_text_page.rs"]
-pub(in crate::domain_types::ssr) mod render_text_page;
-#[path = "render_text_page_with_access.rs"]
-pub(in crate::domain_types::ssr) mod render_text_page_with_access;
+// Root-owned module compatibility wrappers.
+pub(crate) mod render_text_page {
+    pub use crate::render_text_page::*;
+}
+pub(crate) mod render_text_page_with_access {
+    pub use crate::render_text_page_with_access::*;
+}

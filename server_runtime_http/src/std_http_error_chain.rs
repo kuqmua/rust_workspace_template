@@ -1,4 +1,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::Display, newtype::FromInner,
 )]
-pub(in crate::domain_types) struct StdHttpErrorChain(Box<str>);
+pub(crate) struct StdHttpErrorChain(Box<str>);

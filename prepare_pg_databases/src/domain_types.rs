@@ -1,46 +1,17 @@
-#[path = "database_preparation_spec.rs"]
-mod database_preparation_spec;
-#[path = "database_url.rs"]
-mod database_url;
-#[path = "database_url_error.rs"]
-mod database_url_error;
-#[path = "migration_commands.rs"]
-mod migration_commands;
-#[path = "migrations_source.rs"]
-mod migrations_source;
-#[path = "migrations_source_error.rs"]
-mod migrations_source_error;
-#[path = "process_argument.rs"]
-mod process_argument;
-#[path = "process_arguments.rs"]
-mod process_arguments;
-#[path = "process_command.rs"]
-mod process_command;
-#[path = "process_commands.rs"]
-mod process_commands;
-#[path = "process_program.rs"]
-mod process_program;
-#[path = "process_static_argument.rs"]
-mod process_static_argument;
-#[path = "validate_database_url.rs"]
-mod validate_database_url;
-#[path = "validate_migrations_source.rs"]
-mod validate_migrations_source;
-
-pub use database_preparation_spec::DatabasePreparationSpec;
-pub use database_url::DatabaseUrl;
-pub use database_url_error::DatabaseUrlError;
-pub use migration_commands::migration_commands;
-pub use migrations_source::MigrationsSource;
-pub use migrations_source_error::MigrationsSourceError;
-pub use process_argument::ProcessArgument;
-pub use process_arguments::ProcessArguments;
-pub use process_command::ProcessCommand;
-pub use process_commands::ProcessCommands;
-pub use process_program::ProcessProgram;
-pub use process_static_argument::ProcessStaticArgument;
-use validate_database_url::validate_database_url;
-use validate_migrations_source::validate_migrations_source;
+pub use crate::database_preparation_spec::DatabasePreparationSpec;
+pub use crate::database_url::DatabaseUrl;
+pub use crate::database_url_error::DatabaseUrlError;
+pub use crate::migration_commands::migration_commands;
+pub use crate::migrations_source::MigrationsSource;
+pub use crate::migrations_source_error::MigrationsSourceError;
+pub use crate::process_argument::ProcessArgument;
+pub use crate::process_arguments::ProcessArguments;
+pub use crate::process_command::ProcessCommand;
+pub use crate::process_commands::ProcessCommands;
+pub use crate::process_program::ProcessProgram;
+pub use crate::process_static_argument::ProcessStaticArgument;
+pub(crate) use crate::validate_database_url::validate_database_url;
+pub(crate) use crate::validate_migrations_source::validate_migrations_source;
 
 #[cfg(test)]
 mod tests {

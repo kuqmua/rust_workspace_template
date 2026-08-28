@@ -1,6 +1,9 @@
-use super::{EnvParseError, EnvVarError, EnvVarResultVarError, EnvVarValueRef, ParseEnvVarNameRef};
+use crate::{EnvParseError, EnvVarError, EnvVarResultVarError, EnvVarValueRef, ParseEnvVarNameRef};
 
-#[allow(clippy::single_call_fn)] // helper centralizes env var context mapping for string parsers and is reused by enum parsing
+#[allow(
+    clippy::single_call_fn,
+    reason = "shared environment parsing boundary is also exercised directly by tests"
+)]
 pub(super) fn parse_from_env_var_with<T>(
     env_v: EnvVarResultVarError,
     env_var_name: ParseEnvVarNameRef<'static>,

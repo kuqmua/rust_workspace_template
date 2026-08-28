@@ -17,6 +17,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 constants_usize = { workspace = true }
 constants_u32 = { workspace = true }
+frontend_contract = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 server_admin_contract = { workspace = true }
@@ -53,7 +54,6 @@ web-sys = { workspace = true, features = [
 [dev-dependencies]
 constants_i64 = { workspace = true }
 constants_u64 = { workspace = true }
-frontend_contract = { workspace = true }
 
 [lints]
 workspace = true

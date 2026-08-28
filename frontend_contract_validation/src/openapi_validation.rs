@@ -2,57 +2,23 @@
     clippy::arbitrary_source_item_ordering,
     reason = "owner modules stay paired with their facade imports and reexports"
 )]
-#[path = "open_api_contract_text.rs"]
-mod open_api_contract_text;
-pub use open_api_contract_text::*;
-#[path = "open_api_contract_text_error.rs"]
-mod open_api_contract_text_error;
-pub use open_api_contract_text_error::*;
-#[path = "open_api_operation_expectation.rs"]
-mod open_api_operation_expectation;
-pub use open_api_operation_expectation::*;
-#[path = "open_api_operation_validation_error.rs"]
-mod open_api_operation_validation_error;
-pub use open_api_operation_validation_error::*;
-#[path = "open_api_payload_validation_error.rs"]
-mod open_api_payload_validation_error;
-pub use open_api_payload_validation_error::*;
-#[path = "open_api_response_status.rs"]
-mod open_api_response_status;
-pub use open_api_response_status::*;
-#[path = "open_api_schema_mismatch.rs"]
-mod open_api_schema_mismatch;
-pub use open_api_schema_mismatch::*;
-#[path = "open_api_schema_references_b_tree_set.rs"]
-mod open_api_schema_references_b_tree_set;
-use open_api_schema_references_b_tree_set::OpenApiSchemaReferencesBTreeSet;
-#[path = "open_api_security_expectation.rs"]
-mod open_api_security_expectation;
-pub use open_api_security_expectation::*;
-#[path = "open_api_validation_error.rs"]
-mod open_api_validation_error;
-pub use open_api_validation_error::*;
-#[path = "openapi_schema_references.rs"]
-mod openapi_schema_references;
-use openapi_schema_references::openapi_schema_references;
-#[path = "runtime_routes_ref.rs"]
-mod runtime_routes_ref;
-pub use runtime_routes_ref::*;
-#[path = "serde_json_open_api_serialization_error.rs"]
-mod serde_json_open_api_serialization_error;
-pub use serde_json_open_api_serialization_error::*;
-#[path = "validate_openapi_contract.rs"]
-mod validate_openapi_contract;
-pub use validate_openapi_contract::*;
-#[path = "validate_openapi_json_payload.rs"]
-mod validate_openapi_json_payload;
-pub use validate_openapi_json_payload::*;
-#[path = "validate_openapi_operations.rs"]
-mod validate_openapi_operations;
-pub use validate_openapi_operations::*;
-#[path = "validate_openapi_schema_references.rs"]
-mod validate_openapi_schema_references;
-pub use validate_openapi_schema_references::*;
+pub use crate::open_api_contract_text::*;
+pub use crate::open_api_contract_text_error::*;
+pub use crate::open_api_operation_expectation::*;
+pub use crate::open_api_operation_validation_error::*;
+pub use crate::open_api_payload_validation_error::*;
+pub use crate::open_api_response_status::*;
+pub use crate::open_api_schema_mismatch::*;
+pub(crate) use crate::open_api_schema_references_b_tree_set::OpenApiSchemaReferencesBTreeSet;
+pub use crate::open_api_security_expectation::*;
+pub use crate::open_api_validation_error::*;
+pub(crate) use crate::openapi_schema_references::openapi_schema_references;
+pub use crate::runtime_routes_ref::*;
+pub use crate::serde_json_open_api_serialization_error::*;
+pub use crate::validate_openapi_contract::*;
+pub use crate::validate_openapi_json_payload::*;
+pub use crate::validate_openapi_operations::*;
+pub use crate::validate_openapi_schema_references::*;
 
 #[cfg(test)]
 mod tests {

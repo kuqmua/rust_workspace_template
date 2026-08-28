@@ -1,53 +1,22 @@
-#[path = "missing_required_test_categories.rs"]
-mod missing_required_test_categories;
-#[path = "required_test_categories.rs"]
-mod required_test_categories;
-#[path = "route_access.rs"]
-mod route_access;
-#[path = "route_coverage_descriptor.rs"]
-mod route_coverage_descriptor;
-#[path = "route_coverage_error.rs"]
-mod route_coverage_error;
-#[path = "route_coverage_evidence.rs"]
-mod route_coverage_evidence;
-#[path = "route_coverage_obligation.rs"]
-mod route_coverage_obligation;
-#[path = "route_database_usage.rs"]
-mod route_database_usage;
-#[path = "route_json_body_usage.rs"]
-mod route_json_body_usage;
-#[path = "route_mutation.rs"]
-mod route_mutation;
-#[path = "route_response_kind.rs"]
-mod route_response_kind;
-#[path = "route_test_capabilities.rs"]
-mod route_test_capabilities;
-#[path = "route_test_categories.rs"]
-mod route_test_categories;
-#[path = "route_test_category.rs"]
-mod route_test_category;
-#[path = "validate_route_coverage.rs"]
-mod validate_route_coverage;
-
-pub use missing_required_test_categories::missing_required_test_categories;
-pub use required_test_categories::required_test_categories;
-pub use route_access::RouteAccess;
-pub use route_coverage_descriptor::RouteCoverageDescriptor;
-pub use route_coverage_error::RouteCoverageError;
-pub use route_coverage_evidence::RouteCoverageEvidence;
-pub use route_coverage_obligation::*;
-pub use route_database_usage::RouteDatabaseUsage;
-pub use route_json_body_usage::RouteJsonBodyUsage;
-pub use route_mutation::RouteMutation;
-pub use route_response_kind::RouteResponseKind;
-pub use route_test_capabilities::RouteTestCapabilities;
-pub use route_test_categories::RouteTestCategories;
-pub use route_test_category::RouteTestCategory;
-pub use validate_route_coverage::validate_route_coverage;
+pub use crate::missing_required_test_categories::missing_required_test_categories;
+pub use crate::required_test_categories::required_test_categories;
+pub use crate::route_access::RouteAccess;
+pub use crate::route_coverage_descriptor::RouteCoverageDescriptor;
+pub use crate::route_coverage_error::RouteCoverageError;
+pub use crate::route_coverage_evidence::RouteCoverageEvidence;
+pub use crate::route_coverage_obligation::*;
+pub use crate::route_database_usage::RouteDatabaseUsage;
+pub use crate::route_json_body_usage::RouteJsonBodyUsage;
+pub use crate::route_mutation::RouteMutation;
+pub use crate::route_response_kind::RouteResponseKind;
+pub use crate::route_test_capabilities::RouteTestCapabilities;
+pub use crate::route_test_categories::RouteTestCategories;
+pub use crate::route_test_category::RouteTestCategory;
+pub use crate::validate_route_coverage::validate_route_coverage;
 
 #[cfg(test)]
 mod tests {
-    fn metadata() -> crate::domain_types::RouteMetadata {
+    fn route_coverage_metadata() -> crate::domain_types::RouteMetadata {
         crate::domain_types::RouteMetadata::new(
             crate::domain_types::RouteMethod::Post,
             constants_str::ROUTE_READ.into(),
@@ -58,7 +27,7 @@ mod tests {
     #[test]
     fn complete_mutating_authenticated_route_is_covered() {
         let descriptors = [super::RouteCoverageDescriptor::new(
-            metadata(),
+            route_coverage_metadata(),
             super::RouteAccess::Authenticated,
             super::RouteMutation::Mutating,
             super::RouteCoverageEvidence::new(&[
@@ -75,7 +44,7 @@ mod tests {
     #[test]
     fn mutating_route_requires_replay_validation() {
         let descriptors = [super::RouteCoverageDescriptor::new(
-            metadata(),
+            route_coverage_metadata(),
             super::RouteAccess::Public,
             super::RouteMutation::Mutating,
             super::RouteCoverageEvidence::new(&[
@@ -96,7 +65,7 @@ mod tests {
     #[test]
     fn duplicate_route_is_rejected() {
         let descriptor = super::RouteCoverageDescriptor::new(
-            metadata(),
+            route_coverage_metadata(),
             super::RouteAccess::Public,
             super::RouteMutation::ReadOnly,
             super::RouteCoverageEvidence::new(&[

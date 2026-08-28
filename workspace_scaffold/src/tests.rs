@@ -1,4 +1,4 @@
-fn assert_file_content(path: &std::path::Path, expected: &str) {
+fn assert_scaffold_file_content(path: &std::path::Path, expected: &str) {
     let actual =
         std::fs::read_to_string(path).expect("371dbe92 assert_file_content invariant must hold");
     assert_eq!(actual, expected, "239c17b0: {}", path.display());
@@ -188,35 +188,35 @@ fn service_scaffold_registers_all_artifacts() {
         super::ServicePort::from(8082u16),
     )
     .expect("4bff1d79 insert_sql invariant must hold");
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::CARGO_TOML).as_path(),
         constants_str::VALUE_ADF1A200,
     );
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::VALUE_7654C453).as_path(),
         constants_str::VALUE_2120BC93,
     );
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::VALUE_D3EA3646).as_path(),
         constants_str::VALUE_77C620D8,
     );
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::VALUE_0626DBBE).as_path(),
         constants_str::VALUE_6DC62C71,
     );
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::VALUE_83CBEECD).as_path(),
         constants_str::VALUE_7602E17D,
     );
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::VALUE_13A8EB94).as_path(),
         constants_str::VALUE_9A2A3063,
     );
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::VALUE_7D4D7140).as_path(),
         constants_str::VALUE_499A1FF6,
     );
-    assert_file_content(
+    assert_scaffold_file_content(
         root.join(constants_str::VALUE_C1590960).as_path(),
         constants_str::VALUE_142D5AD3,
     );

@@ -11,4 +11,4 @@
     Eq,
     newtype::FromInner,
 )]
-pub struct AdminCookieMaxAgeSeconds(pub(super) u64);
+pub struct AdminCookieMaxAgeSeconds(pub(crate) u64);

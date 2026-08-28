@@ -1,17 +1,4 @@
-#[path = "crud.rs"]
-mod crud;
-#[path = "data_grid.rs"]
-mod data_grid;
-#[path = "domain_types_ssr_tests_document.rs"]
-mod document;
-#[path = "domain_types_ssr_tests_navigation.rs"]
-mod navigation;
-#[path = "domain_types_ssr_tests_settings.rs"]
-mod settings;
-#[path = "static_pages.rs"]
-mod static_pages;
-
-fn test_admin() -> server_admin_contract::domain_types::AuthenticatedAdmin {
+pub(crate) fn test_admin() -> server_admin_contract::domain_types::AuthenticatedAdmin {
     server_admin_contract::domain_types::AuthenticatedAdmin::new(
         server_admin_contract::domain_types::AdminDisplayName::try_from(String::from(
             constants_str::VALUE_A31B31EA,
@@ -39,7 +26,7 @@ fn test_admin() -> server_admin_contract::domain_types::AuthenticatedAdmin {
     )
 }
 
-fn test_branding() -> server_admin_contract::domain_types::AdminBrandingView {
+pub(crate) fn test_branding() -> server_admin_contract::domain_types::AdminBrandingView {
     server_admin_contract::domain_types::AdminBrandingView::from_settings(
         &server_admin_contract::domain_types::AdminSettingsView::new(
             server_admin_contract::domain_types::AdminDefaultRoute::try_from(String::from(
@@ -58,4 +45,24 @@ fn test_branding() -> server_admin_contract::domain_types::AdminBrandingView {
             None,
         ),
     )
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod crud {
+    pub use crate::crud::*;
+}
+pub(crate) mod data_grid {
+    pub use crate::data_grid::*;
+}
+pub(crate) mod document {
+    pub use crate::domain_types_ssr_tests_document::*;
+}
+pub(crate) mod navigation {
+    pub use crate::domain_types_ssr_tests_navigation::*;
+}
+pub(crate) mod settings {
+    pub use crate::domain_types_ssr_tests_settings::*;
+}
+pub(crate) mod static_pages {
+    pub use crate::static_pages::*;
 }

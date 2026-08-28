@@ -1,18 +1,16 @@
-#![allow(clippy::single_call_fn)] // route inventory registers this user operation once
-
-pub(in crate::domain_types::auth) async fn mutations_set_ban(
-    auth: super::super::AdminAuthReq,
-    path: super::super::AxumAdminPath<super::super::super::AdminUserId>,
-    request: super::super::AxumAdminJson<server_admin_contract::domain_types::AdminSetUserBanReq>,
-) -> Result<super::super::AxumAdminResponse, super::super::AdminError> {
-    let actor = super::super::shared::authorize_custom::authorize_custom(
+pub(crate) async fn mutations_set_ban(
+    auth: crate::AdminAuthReq,
+    path: crate::AxumAdminPath<crate::AdminUserId>,
+    request: crate::AxumAdminJson<server_admin_contract::domain_types::AdminSetUserBanReq>,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    let actor = crate::shared::authorize_custom::authorize_custom(
         &auth,
-        super::super::super::AdminPermission::UsersUpdate,
+        crate::AdminPermission::UsersUpdate,
     )
     .await?;
     let is_banned = bool::from(request.0.is_banned());
     if is_banned && actor.id == path.0 {
-        return Err(super::super::AdminError::Conflict);
+        return Err(crate::AdminError::Conflict);
     }
     let mut tx = auth
         .state
@@ -21,21 +19,21 @@ pub(in crate::domain_types::auth) async fn mutations_set_ban(
         .as_ref()
         .begin()
         .await
-        .map_err(super::super::AdminError::from)?;
+        .map_err(crate::AdminError::from)?;
     crate::repository::roles::lock_last_admin(
         crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
     )
     .await
-    .map_err(super::super::AdminError::from)?;
+    .map_err(crate::AdminError::from)?;
     if is_banned {
         let last_admin_state = crate::repository::roles::read_last_admin_state(
             crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             path.0,
         )
         .await
-        .map_err(super::super::AdminError::from)?;
+        .map_err(crate::AdminError::from)?;
         if last_admin_state.would_remove_last().get() {
-            return Err(super::super::AdminError::Conflict);
+            return Err(crate::AdminError::Conflict);
         }
     }
     sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_USER_BAN_SQL)
@@ -44,32 +42,32 @@ pub(in crate::domain_types::auth) async fn mutations_set_ban(
         .fetch_optional(&mut *tx)
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
-        .map(|value| super::super::super::StdAdminBool::from(value.is_some()))
-        .map_err(super::super::AdminError::from)?
+        .map(|value| crate::StdAdminBool::from(value.is_some()))
+        .map_err(crate::AdminError::from)?
         .get()
         .then_some(())
-        .ok_or(super::super::AdminError::Conflict)?;
+        .ok_or(crate::AdminError::Conflict)?;
     if is_banned {
         crate::repository::revoke_user_sessions::revoke_user_sessions(
             crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             path.0,
         )
         .await
-        .map_err(super::super::AdminError::from)?;
+        .map_err(crate::AdminError::from)?;
     }
-    super::super::persistence::record_audit_success_in_connection(
-        super::super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::super::persistence::AdminAuditSuccessRef {
-            action: super::super::super::AdminAuditAction::Update,
+    crate::persistence::record_audit_success_in_connection(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::persistence::AdminAuditSuccessRef {
+            action: crate::AdminAuditAction::Update,
             login: &actor.login,
-            resource: super::super::super::AdminAuditResource::User,
-            resource_id: super::super::persistence::AdminAuditResourceId::User(path.0),
+            resource: crate::AdminAuditResource::User,
+            resource_id: crate::persistence::AdminAuditResourceId::User(path.0),
             user_id: actor.id,
         },
     )
     .await?;
-    tx.commit().await.map_err(super::super::AdminError::from)?;
-    Ok(super::super::AxumAdminResponse(
+    tx.commit().await.map_err(crate::AdminError::from)?;
+    Ok(crate::AxumAdminResponse(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

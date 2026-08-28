@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::single_call_fn,
     reason = "the settings signal collection keeps construction before indexed access and centralizes form state for CSR and SSR consumers"
 )]
 

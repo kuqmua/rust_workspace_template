@@ -1,35 +1,8 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::single_call_fn)] // one bounded query serves the read-only table inspection boundary
+
 #![allow(clippy::field_scoped_visibility_modifiers, clippy::wildcard_imports)] // split repository adapters expose private wrappers and vocabulary only through this facade
 
-#[path = "base_sql.rs"]
-mod base_sql;
-#[path = "data_columns.rs"]
-mod data_columns;
-#[path = "data_filter.rs"]
-mod data_filter;
-#[path = "data_flt.rs"]
-mod data_flt;
-#[path = "data_flt_json.rs"]
-mod data_flt_json;
-#[path = "data_permissions_flt.rs"]
-mod data_permissions_flt;
-#[path = "data_role_permissions_flt.rs"]
-mod data_role_permissions_flt;
-#[path = "data_roles_flt.rs"]
-mod data_roles_flt;
-#[path = "data_system_settings_flt.rs"]
-mod data_system_settings_flt;
-#[path = "data_user_roles_flt.rs"]
-mod data_user_roles_flt;
-#[path = "data_users_flt.rs"]
-mod data_users_flt;
-#[path = "filtered_sql.rs"]
-mod filtered_sql;
-#[path = "read.rs"]
-mod read;
-
-use super::{
+use crate::{
     AdminPageTotalCount, AdminRepositoryError, SqlxAdminRepositoryPoolRef, repository_page_total,
 };
 use base_sql::base_sql;
@@ -46,6 +19,43 @@ pub(crate) use data_users_flt::DataUsersFlt;
 use filtered_sql::filtered_sql;
 pub(crate) use read::read;
 
-#[cfg(test)]
-#[path = "adapters_repository_data_tables_tests.rs"]
-mod tests;
+// Root-owned module compatibility wrappers.
+mod base_sql {
+    pub use crate::base_sql::*;
+}
+mod data_columns {
+    pub use crate::data_columns::*;
+}
+mod data_filter {
+    pub use crate::data_filter::*;
+}
+mod data_flt {
+    pub use crate::data_flt::*;
+}
+mod data_flt_json {
+    pub use crate::data_flt_json::*;
+}
+mod data_permissions_flt {
+    pub use crate::data_permissions_flt::*;
+}
+mod data_role_permissions_flt {
+    pub use crate::data_role_permissions_flt::*;
+}
+mod data_roles_flt {
+    pub use crate::data_roles_flt::*;
+}
+mod data_system_settings_flt {
+    pub use crate::data_system_settings_flt::*;
+}
+mod data_user_roles_flt {
+    pub use crate::data_user_roles_flt::*;
+}
+mod data_users_flt {
+    pub use crate::data_users_flt::*;
+}
+mod filtered_sql {
+    pub use crate::filtered_sql::*;
+}
+mod read {
+    pub use crate::read::*;
+}

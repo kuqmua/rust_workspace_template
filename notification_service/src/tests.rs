@@ -53,7 +53,7 @@ async fn default_service_routes_return_success_statuses() {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("52a25be1 default_service_routes_return_success_statuses invariant must hold");
-    let router = crate::routes::router(
+    let router = crate::routes::build_notification_router(
         state(pool),
         super::NotificationBodyMaximumBytes::from(
             notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
@@ -296,7 +296,7 @@ async fn create_notification_persists_through_http_route() {
         .body(axum::body::Body::from(body))
         .expect("f8d2ab0b create_notification_persists_through_http_route invariant must hold");
     let response = tower::ServiceExt::oneshot(
-        crate::routes::router(
+        crate::routes::build_notification_router(
             state(pool),
             super::NotificationBodyMaximumBytes::from(
                 notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,

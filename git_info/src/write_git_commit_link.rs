@@ -1,7 +1,10 @@
-use super::super::{GitCommitIdRef, GitCommitLinkOutputRefMut};
+use crate::domain_types::{GitCommitIdRef, GitCommitLinkOutputRefMut};
 
-#[allow(clippy::single_call_fn)] // shared writer keeps link assembly consistent across builders and tests
-pub(in crate::domain_types) fn write_git_commit_link<'commit_lt, CommitIdTy>(
+#[allow(
+    clippy::single_call_fn,
+    reason = "shared writer remains directly testable without duplicating commit-link assembly"
+)]
+pub(crate) fn write_git_commit_link<'commit_lt, CommitIdTy>(
     output: &mut GitCommitLinkOutputRefMut<'_>,
     commit_id: CommitIdTy,
 ) where

@@ -1,66 +1,26 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::arbitrary_source_item_ordering)] // keep each split module adjacent to the facade import that exposes it
 
-#[path = "run_mode.rs"]
-mod run_mode;
-pub(crate) use run_mode::*;
-#[path = "initialization_status.rs"]
-mod initialization_status;
-pub(crate) use initialization_status::*;
-#[path = "initialization_entry.rs"]
-mod initialization_entry;
-pub(crate) use initialization_entry::*;
-#[path = "env_content.rs"]
-mod env_content;
-pub(crate) use env_content::*;
-#[path = "env_content_ref.rs"]
-mod env_content_ref;
-pub(crate) use env_content_ref::*;
-#[path = "env_key.rs"]
-mod env_key;
-pub(crate) use env_key::*;
-#[path = "env_keys.rs"]
-mod env_keys;
-pub(crate) use env_keys::*;
-#[path = "workspace_member.rs"]
-mod workspace_member;
-pub(crate) use workspace_member::*;
-#[path = "workspace_root_path_ref.rs"]
-mod workspace_root_path_ref;
-pub(crate) use workspace_root_path_ref::*;
-#[path = "init_path_ref.rs"]
-mod init_path_ref;
-pub(crate) use init_path_ref::*;
-#[path = "init_max_bytes.rs"]
-mod init_max_bytes;
-pub(crate) use init_max_bytes::*;
-#[path = "init_path_exists.rs"]
-mod init_path_exists;
-pub(crate) use init_path_exists::*;
-#[path = "init_entries.rs"]
-mod init_entries;
-pub(crate) use init_entries::*;
-#[path = "init_io_error.rs"]
-mod init_io_error;
-pub(crate) use init_io_error::*;
-#[path = "server_runtime_bounded_read_error.rs"]
-mod server_runtime_bounded_read_error;
-pub(crate) use server_runtime_bounded_read_error::*;
-#[path = "toml_init_error.rs"]
-mod toml_init_error;
-pub(crate) use toml_init_error::*;
-#[path = "init_string_error.rs"]
-mod init_string_error;
-pub(crate) use init_string_error::*;
-#[path = "initialize_error.rs"]
-mod initialize_error;
-pub(crate) use initialize_error::*;
-#[path = "environment_keys.rs"]
-mod environment_keys;
-use environment_keys::environment_keys;
-#[path = "initialize.rs"]
-mod initialize;
-pub(crate) use initialize::*;
+pub(crate) use crate::env_content::*;
+pub(crate) use crate::env_content_ref::*;
+pub(crate) use crate::env_key::*;
+pub(crate) use crate::env_keys::*;
+pub(crate) use crate::environment_keys::environment_keys;
+pub(crate) use crate::init_entries::*;
+pub(crate) use crate::init_io_error::*;
+pub(crate) use crate::init_max_bytes::*;
+pub(crate) use crate::init_path_exists::*;
+pub(crate) use crate::init_path_ref::*;
+pub(crate) use crate::init_string_error::*;
+pub(crate) use crate::initialization_entry::*;
+pub(crate) use crate::initialization_status::*;
+pub(crate) use crate::initialize::*;
+pub(crate) use crate::initialize_error::*;
+pub(crate) use crate::run_mode::*;
+pub(crate) use crate::server_runtime_bounded_read_error::*;
+pub(crate) use crate::toml_init_error::*;
+pub(crate) use crate::workspace_member::*;
+pub(crate) use crate::workspace_root_path_ref::*;
 
 #[cfg(test)]
 mod tests {

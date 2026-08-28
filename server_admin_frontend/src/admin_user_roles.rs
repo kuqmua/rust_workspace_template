@@ -1,5 +1,4 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "CSR and SSR targets each compile one call site and Leptos cell rendering requires attribute traits in lexical scope"
 )]
@@ -105,7 +104,7 @@ mod tests {
         );
 
         let html =
-            super::super::admin_role_permissions::admin_role_permissions(page.items().first().expect("719cb4e0 role_permissions_render_matching_names_with_stable_separator invariant must hold"), &page).to_html();
+            crate::admin_role_permissions::admin_role_permissions(page.items().first().expect("719cb4e0 role_permissions_render_matching_names_with_stable_separator invariant must hold"), &page).to_html();
         assert!(html.contains(">users.read, users.write</td>"));
     }
 }

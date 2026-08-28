@@ -1,13 +1,7 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the shared Leptos grid composes its column and row renderers once"
 )]
-
-#[path = "admin_data_grid_column.rs"]
-mod admin_data_grid_column;
-#[path = "admin_data_grid_row.rs"]
-mod admin_data_grid_row;
 
 pub(crate) fn admin_data_table_grid(
     view: &server_admin_contract::domain_types::AdminDataTableView,
@@ -43,4 +37,12 @@ pub(crate) fn admin_data_table_grid(
             <crate::domain_types::with_owner::tables::table_body::TableBody>{rows}</crate::domain_types::with_owner::tables::table_body::TableBody>
         </crate::domain_types::with_owner::tables::table::Table></crate::domain_types::with_owner::tables::table_wrapper::TableWrapper>
     }
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_data_grid_column {
+    pub use crate::admin_data_grid_column::*;
+}
+pub(crate) mod admin_data_grid_row {
+    pub use crate::admin_data_grid_row::*;
 }

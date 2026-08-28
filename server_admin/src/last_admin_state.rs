@@ -4,8 +4,8 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(crate) struct LastAdminState {
-    pub(super) active_count: super::AdminActiveAdministratorCount,
-    pub(super) target_is_admin: crate::domain_types::StdAdminBool,
+    pub(crate) active_count: crate::AdminActiveAdministratorCount,
+    pub(crate) target_is_admin: crate::domain_types::StdAdminBool,
 }
 
 impl LastAdminState {

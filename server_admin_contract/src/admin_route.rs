@@ -48,7 +48,7 @@ pub enum AdminRoute {
     #[route_catalog_route(
         contract = frontend_contract::domain_types::RouteContract::new(
             admin_permission_requirement(crate::domain_types::AdminPermission::MetricsRead),
-            frontend_contract::domain_types::HttpMethod::Get,
+            frontend_contract::domain_types::RouteMethod::Get,
             frontend_contract::domain_types::MutationKind::ReadOnly,
             frontend_contract::domain_types::ContractStr::from(constants_str::METRICS),
             frontend_contract::domain_types::SuccessStatus::Code200,
@@ -60,7 +60,7 @@ pub enum AdminRoute {
     #[route_catalog_route(
         contract = frontend_contract::domain_types::RouteContract::new(
             admin_permission_requirement(crate::domain_types::AdminPermission::OpenApiRead),
-            frontend_contract::domain_types::HttpMethod::Get,
+            frontend_contract::domain_types::RouteMethod::Get,
             frontend_contract::domain_types::MutationKind::ReadOnly,
             frontend_contract::domain_types::ContractStr::from(constants_str::OPENAPI_JSON),
             frontend_contract::domain_types::SuccessStatus::Code200,
@@ -106,7 +106,7 @@ pub enum AdminRoute {
     #[route_catalog_route(
         contract = frontend_contract::domain_types::RouteContract::new(
             frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::HttpMethod::Get,
+            frontend_contract::domain_types::RouteMethod::Get,
             frontend_contract::domain_types::MutationKind::ReadOnly,
             frontend_contract::domain_types::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO),
             frontend_contract::domain_types::SuccessStatus::Code200,

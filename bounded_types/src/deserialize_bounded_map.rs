@@ -1,4 +1,4 @@
-pub(super) fn deserialize_bounded_map<'de, Map, Key, Value, Values, Insert, const MAX: usize>(
+pub(crate) fn deserialize_bounded_map<'de, Map, Key, Value, Values, Insert, const MAX: usize>(
     mut map: Map,
     mut values: Values,
     mut insert: Insert,

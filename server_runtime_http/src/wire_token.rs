@@ -1,10 +1,5 @@
-#[path = "versioned_url_safe_wire_token_text.rs"]
-mod versioned_url_safe_wire_token_text;
-#[path = "versioned_url_safe_wire_token_text_error.rs"]
-mod versioned_url_safe_wire_token_text_error;
-
-pub use versioned_url_safe_wire_token_text::VersionedUrlSafeWireTokenText;
-pub use versioned_url_safe_wire_token_text_error::VersionedUrlSafeWireTokenTextError;
+pub use crate::versioned_url_safe_wire_token_text::VersionedUrlSafeWireTokenText;
+pub use crate::versioned_url_safe_wire_token_text_error::VersionedUrlSafeWireTokenTextError;
 
 #[cfg(test)]
 mod tests {
@@ -24,4 +19,12 @@ mod tests {
             constants_str::TEST_TOKEN_SIGNATURE
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod versioned_url_safe_wire_token_text {
+    pub use crate::versioned_url_safe_wire_token_text::*;
+}
+mod versioned_url_safe_wire_token_text_error {
+    pub use crate::versioned_url_safe_wire_token_text_error::*;
 }

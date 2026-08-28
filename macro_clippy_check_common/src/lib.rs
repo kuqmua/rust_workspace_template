@@ -1,5 +1,10 @@
-#[path = "generated_crate_steps.rs"]
+#[cfg(feature = "test-utils")]
+mod generated_crate_phase;
+#[cfg(feature = "test-utils")]
+mod generated_crate_step;
 mod generated_crate_steps;
+#[cfg(feature = "test-utils")]
+mod remove_dir_on_drop;
 
 #[cfg(feature = "test-utils")]
 impl Drop for generated_crate_steps::RemoveDirOnDrop {

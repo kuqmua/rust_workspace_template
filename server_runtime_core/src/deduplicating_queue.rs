@@ -3,10 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "collections_hash_set.rs"]
-mod collections_hash_set;
-#[path = "collections_vec_deque.rs"]
-mod collections_vec_deque;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct DeduplicatingQueue<Item>
 where
@@ -52,15 +48,11 @@ where
         }
     }
 }
-#[path = "queue_maximum_non_zero_usize.rs"]
-mod queue_maximum_non_zero_usize;
-#[path = "queue_push.rs"]
-mod queue_push;
 
-use collections_hash_set::CollectionsHashSet;
-use collections_vec_deque::CollectionsVecDeque;
-pub use queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize;
-pub use queue_push::QueuePush;
+use crate::collections_hash_set::CollectionsHashSet;
+use crate::collections_vec_deque::CollectionsVecDeque;
+pub use crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize;
+pub use crate::queue_push::QueuePush;
 
 #[cfg(test)]
 mod tests {

@@ -1,16 +1,7 @@
-#[path = "sanitized_database_target.rs"]
-mod sanitized_database_target;
-#[path = "url_error.rs"]
-mod url_error;
-#[path = "url_ref.rs"]
-mod url_ref;
-#[path = "validate_test_database_url.rs"]
-mod validate_test_database_url;
-
-pub use sanitized_database_target::SanitizedDatabaseTarget;
-pub use url_error::UrlError;
-pub use url_ref::UrlRef;
-pub use validate_test_database_url::validate_test_database_url;
+pub use crate::sanitized_database_target::SanitizedDatabaseTarget;
+pub use crate::url_error::UrlError;
+pub use crate::url_ref::UrlRef;
+pub use crate::validate_test_database_url::validate_test_database_url;
 #[cfg(test)]
 mod tests {
     #[test]

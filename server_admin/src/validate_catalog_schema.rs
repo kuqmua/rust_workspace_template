@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     AdminGeneratedTable, AdminGeneratedTablesValidationError, AdminPermissions,
     AdminRolePermissions, AdminRoles, AdminSystemSettings, AdminUserRoles, AdminUsers,
 };
@@ -11,7 +11,7 @@ pub async fn validate_catalog_schema(
         let table_pool = pool;
         let table_schema = schema;
         async move {
-            async fn validate<Table>(
+            async fn validate_generated_table<Table>(
                 pool: pg_crud_common::domain_types::SqlxPgPoolRef<'_>,
                 schema: pg_crud_common::domain_types::DbSchemaNameRef<'_>,
             ) -> Result<(), AdminGeneratedTablesValidationError>
@@ -26,22 +26,22 @@ pub async fn validate_catalog_schema(
             }
             match table {
                 AdminGeneratedTable::Roles => {
-                    validate::<AdminRoles>(table_pool, table_schema).await
+                    validate_generated_table::<AdminRoles>(table_pool, table_schema).await
                 }
                 AdminGeneratedTable::RolePermissions => {
-                    validate::<AdminRolePermissions>(table_pool, table_schema).await
+                    validate_generated_table::<AdminRolePermissions>(table_pool, table_schema).await
                 }
                 AdminGeneratedTable::Users => {
-                    validate::<AdminUsers>(table_pool, table_schema).await
+                    validate_generated_table::<AdminUsers>(table_pool, table_schema).await
                 }
                 AdminGeneratedTable::Permissions => {
-                    validate::<AdminPermissions>(table_pool, table_schema).await
+                    validate_generated_table::<AdminPermissions>(table_pool, table_schema).await
                 }
                 AdminGeneratedTable::SystemSettings => {
-                    validate::<AdminSystemSettings>(table_pool, table_schema).await
+                    validate_generated_table::<AdminSystemSettings>(table_pool, table_schema).await
                 }
                 AdminGeneratedTable::UserRoles => {
-                    validate::<AdminUserRoles>(table_pool, table_schema).await
+                    validate_generated_table::<AdminUserRoles>(table_pool, table_schema).await
                 }
             }
         }

@@ -1,13 +1,16 @@
 pub fn validate_generate_pg_table(
-    built: super::SynBuiltGeneratePgTableInput,
-) -> Result<super::SynValidatedGeneratePgTableInput, super::GeneratePgTablePipelineError> {
+    built: crate::pipeline::SynBuiltGeneratePgTableInput,
+) -> Result<
+    crate::pipeline::SynValidatedGeneratePgTableInput,
+    crate::pipeline::GeneratePgTablePipelineError,
+> {
     built
         .0
         .validate()
-        .map(super::SynValidatedGeneratePgTableInput::from)
+        .map(crate::pipeline::SynValidatedGeneratePgTableInput::from)
         .map_err(|error| {
-            super::GeneratePgTablePipelineError::Validate(
-                super::SynGeneratePgTablePipelineError::from(syn::Error::from(error)),
+            crate::pipeline::GeneratePgTablePipelineError::Validate(
+                crate::pipeline::SynGeneratePgTablePipelineError::from(syn::Error::from(error)),
             )
         })
 }

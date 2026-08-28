@@ -1,10 +1,10 @@
-use super::{base_sql, data_columns, data_filter, filtered_sql};
+use crate::{base_sql, data_columns, data_filter, filtered_sql};
 
 pub(crate) async fn read(
-    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    pool: crate::SqlxAdminRepositoryPoolRef<'_>,
     table: server_admin_contract::domain_types::AdminDataTable,
     query: &server_admin_contract::domain_types::AdminDataTableQuery,
-) -> Result<server_admin_contract::domain_types::AdminDataTableView, super::AdminRepositoryError> {
+) -> Result<server_admin_contract::domain_types::AdminDataTableView, crate::AdminRepositoryError> {
     let spec = table.spec();
     let columns = data_columns(table, spec.columns())?;
     let (base_count_sql, base_sql) = base_sql(table)?;
@@ -14,14 +14,14 @@ pub(crate) async fn read(
         .as_ref()
         .map(|value| value.query_part(&mut increment))
         .transpose()
-        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+        .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?;
     let (count_sql, sql) = fragment.as_ref().map_or_else(
         || {
             Ok((
                 crate::domain_types::StdAdminString::try_from(base_count_sql.as_ref().to_owned())
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 crate::domain_types::StdAdminString::try_from(base_sql.as_ref().to_owned())
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
             ))
         },
         |filter_fragment| {
@@ -42,7 +42,7 @@ pub(crate) async fn read(
             ))
         })
         .transpose()
-        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?
+        .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?
         .map_or_else(
             || sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str())),
             pg_crud_common::domain_types::SqlxPostgresQuery::into_inner,
@@ -61,7 +61,7 @@ pub(crate) async fn read(
             ))
         })
         .transpose()
-        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?
+        .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?
         .map_or_else(
             || sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str())),
             pg_crud_common::domain_types::SqlxPostgresQuery::into_inner,
@@ -87,21 +87,21 @@ pub(crate) async fn read(
                     server_admin_contract::domain_types::AdminText::try_from(
                         value.unwrap_or_else(|| constants_str::SERVER_ADMIN_DATA_NULL.to_owned()),
                     )
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)
                 })
-                .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+                .collect::<Result<Vec<_>, crate::AdminRepositoryError>>()?;
             server_admin_contract::domain_types::AdminTexts::try_from(values)
                 .map(server_admin_contract::domain_types::AdminDataRow::new)
-                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+                .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)
         })
-        .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+        .collect::<Result<Vec<_>, crate::AdminRepositoryError>>()?;
     Ok(
         server_admin_contract::domain_types::AdminDataTableView::new(
             columns,
             server_admin_contract::domain_types::AdminDataRows::try_from(items)
-                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
             table,
-            super::repository_page_total(super::AdminPageTotalCount::from(total))?,
+            crate::repository_page_total(crate::AdminPageTotalCount::from(total))?,
         ),
     )
 }

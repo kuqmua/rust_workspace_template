@@ -5,11 +5,11 @@ pub struct HttpErrorTelemetry {
 }
 
 impl HttpErrorTelemetry {
-    pub(in crate::domain_types) const fn error_code(self) -> super::HttpErrorCode {
+    pub(crate) const fn error_code(self) -> super::HttpErrorCode {
         self.error_code
     }
 
-    pub(in crate::domain_types) const fn error_type(self) -> super::HttpErrorType {
+    pub(crate) const fn error_type(self) -> super::HttpErrorType {
         self.error_type
     }
 

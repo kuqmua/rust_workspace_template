@@ -1,21 +1,21 @@
-pub(super) fn form_auth_impl(
-    mut auth: super::super::AdminAuthReq,
-) -> Result<super::super::AdminAuthReq, super::super::AdminError> {
-    if !super::super::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
+pub(crate) fn form_auth_impl(
+    mut auth: crate::AdminAuthReq,
+) -> Result<crate::AdminAuthReq, crate::AdminError> {
+    if !crate::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         auth.state.as_ref(),
-        super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
     )
     .get()
     {
-        return Err(super::super::AdminError::Csrf);
+        return Err(crate::AdminError::Csrf);
     }
-    let token = super::super::super::find_admin_cookie(
-        super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        super::super::super::AdminCookieKind::Csrf,
+    let token = crate::find_admin_cookie(
+        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::AdminCookieKind::Csrf,
     )
-    .ok_or(super::super::AdminError::Csrf)?;
+    .ok_or(crate::AdminError::Csrf)?;
     let value = http::HeaderValue::from_str(token.as_ref()).map_err(|error| {
-        super::super::AdminError::header(super::super::HttpAdminHeaderValueError::from(error))
+        crate::AdminError::header(crate::HttpAdminHeaderValueError::from(error))
     })?;
     let _previous = auth.headers.0.insert(
         http::HeaderName::from_static(constants_str::X_CSRF_TOKEN_ALT),

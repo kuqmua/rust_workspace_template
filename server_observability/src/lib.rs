@@ -1,2 +1,16 @@
-#[path = "service_tracing_format.rs"]
+pub mod capture;
+mod init_service_observability;
+pub mod initialization;
+mod observability_guard;
+mod observability_init_error;
+mod observed_error;
+mod observed_error_backtrace;
+mod observed_error_code;
+mod opentelemetry_otlp_exporter_build_error;
+mod opentelemetry_sdk_observability_shutdown_error;
+mod opentelemetry_sdk_tracer_provider;
+mod service_name;
 pub mod service_tracing_format;
+mod std_panic_location;
+mod tracing_observed_error_span_trace;
+mod tracing_subscriber_init_error;

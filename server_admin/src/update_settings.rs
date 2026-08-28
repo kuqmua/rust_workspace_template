@@ -1,42 +1,35 @@
-#[path = "admin_html_settings_action_route_registry.rs"]
-mod admin_html_settings_action_route_registry;
-
-pub(in crate::domain_types::auth::html::actions) use admin_html_settings_action_route_registry::AdminHtmlSettingsActionRouteRegistry;
+pub(crate) use admin_html_settings_action_route_registry::AdminHtmlSettingsActionRouteRegistry;
 
 #[frontend_contract::domain_types::route_error(AdminHtmlUpdateSettingsError)]
-pub(in crate::domain_types::auth::html::actions) async fn update_settings(
-    auth: super::super::super::super::AdminAuthReq,
-    super::super::super::super::AxumAdminForm(form): super::super::super::super::AxumAdminForm<
-        super::super::super::forms::SettingsForm,
-    >,
+pub(crate) async fn update_settings(
+    auth: crate::AdminAuthReq,
+    crate::AxumAdminForm(form): crate::AxumAdminForm<crate::SettingsForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = super::super::super::form_auth_impl::form_auth_impl(auth) else {
-        return axum::response::IntoResponse::into_response(
-            super::super::super::super::AdminError::Csrf,
-        );
+    let Ok(auth) = crate::form_auth_impl::form_auth_impl(auth) else {
+        return axum::response::IntoResponse::into_response(crate::AdminError::Csrf);
     };
     let parsed = (
-        super::super::super::optional_setting_impl::optional_setting_impl::<
+        crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminMainLogo,
             _,
         >(form.main_logo),
-        super::super::super::optional_setting_impl::optional_setting_impl::<
+        crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminOrganizationContacts,
             _,
         >(form.organization_contacts),
-        super::super::super::optional_setting_impl::optional_setting_impl::<
+        crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminOrganizationName,
             _,
         >(form.organization_name),
-        super::super::super::optional_setting_impl::optional_setting_impl::<
+        crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminPrimaryColor,
             _,
         >(form.primary_color),
-        super::super::super::optional_setting_impl::optional_setting_impl::<
+        crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminSupportUrl,
             _,
         >(form.support_url),
-        super::super::super::optional_setting_impl::optional_setting_impl::<
+        crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::domain_types::AdminTabTitle,
             _,
         >(form.tab_title),
@@ -50,9 +43,7 @@ pub(in crate::domain_types::auth::html::actions) async fn update_settings(
         Ok(tab_title),
     ) = parsed
     else {
-        return axum::response::IntoResponse::into_response(
-            super::super::super::super::AdminError::Validation,
-        );
+        return axum::response::IntoResponse::into_response(crate::AdminError::Validation);
     };
     let mut clear = Vec::new();
     [
@@ -86,9 +77,7 @@ pub(in crate::domain_types::auth::html::actions) async fn update_settings(
     .for_each(|setting| clear.push(setting));
     let Ok(clear) = server_admin_contract::domain_types::AdminOptionalSettings::try_from(clear)
     else {
-        return axum::response::IntoResponse::into_response(
-            super::super::super::super::AdminError::Validation,
-        );
+        return axum::response::IntoResponse::into_response(crate::AdminError::Validation);
     };
     let request = server_admin_contract::domain_types::AdminUpdateSettingsReq::new(
         Some(form.default_admin_route),
@@ -101,12 +90,13 @@ pub(in crate::domain_types::auth::html::actions) async fn update_settings(
         tab_title,
         clear,
     );
-    super::super::super::action_result_impl::action_result_impl(
-        super::super::super::super::settings_update::settings_update(
-            auth,
-            super::super::super::super::AxumAdminJson(request),
-        )
-        .await,
+    crate::action_result_impl::action_result_impl(
+        crate::settings_update::settings_update(auth, crate::AxumAdminJson(request)).await,
         server_admin_contract::domain_types::AdminFrontendPath::Settings,
     )
+}
+
+// Root-owned module compatibility wrappers.
+mod admin_html_settings_action_route_registry {
+    pub use crate::admin_html_settings_action_route_registry::*;
 }

@@ -3,10 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "redact_rtsp_url_userinfo.rs"]
-mod redact_rtsp_url_userinfo;
-#[path = "redact_url_userinfo.rs"]
-mod redact_url_userinfo;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::FromInner)]
 pub struct RedactedUrl(Option<crate::domain_types::RequiredNulFreeBoundedText>);
 
@@ -31,12 +27,10 @@ impl std::fmt::Debug for RedactedUrl {
             .finish()
     }
 }
-#[path = "redacted_url_text_ref.rs"]
-mod redacted_url_text_ref;
 
-pub use redact_rtsp_url_userinfo::redact_rtsp_url_userinfo;
-pub use redact_url_userinfo::redact_url_userinfo;
-pub use redacted_url_text_ref::RedactedUrlTextRef;
+pub use crate::redact_rtsp_url_userinfo::redact_rtsp_url_userinfo;
+pub use crate::redact_url_userinfo::redact_url_userinfo;
+pub use crate::redacted_url_text_ref::RedactedUrlTextRef;
 
 #[cfg(test)]
 mod tests {
@@ -91,4 +85,15 @@ mod tests {
                 .starts_with(constants_str::RTSP_SCHEME_PREFIX)
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod redact_rtsp_url_userinfo {
+    pub use crate::redact_rtsp_url_userinfo::*;
+}
+mod redact_url_userinfo {
+    pub use crate::redact_url_userinfo::*;
+}
+mod redacted_url_text_ref {
+    pub use crate::redacted_url_text_ref::*;
 }

@@ -1,27 +1,21 @@
-use super::{
-    MetricsExporterPrometheusNotificationBuildError, NotificationConfigError, NotificationIoError,
-    NotificationObservabilityInitError, NotificationObservabilityShutdownError,
-    NotificationServeError, SqlxNotificationDatabaseError, SqlxNotificationMigrationError,
-};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum NotificationServiceError {
     #[error("notification service configuration failed: {0}")]
-    Config(NotificationConfigError),
+    Config(super::NotificationConfigError),
     #[error("notification database connection failed: {0}")]
-    Database(SqlxNotificationDatabaseError),
+    Database(super::SqlxNotificationDatabaseError),
     #[error("notification metrics recorder initialization failed: {0}")]
-    Metrics(MetricsExporterPrometheusNotificationBuildError),
+    Metrics(super::MetricsExporterPrometheusNotificationBuildError),
     #[error("notification observability initialization failed: {0}")]
-    ObservabilityInit(NotificationObservabilityInitError),
+    ObservabilityInit(super::NotificationObservabilityInitError),
     #[error("notification observability shutdown failed: {0}")]
-    ObservabilityShutdown(NotificationObservabilityShutdownError),
+    ObservabilityShutdown(super::NotificationObservabilityShutdownError),
     #[error("notification database migration failed: {0}")]
-    Migration(SqlxNotificationMigrationError),
+    Migration(super::SqlxNotificationMigrationError),
     #[error("notification service failed: {0}")]
-    Serve(NotificationServeError),
+    Serve(super::NotificationServeError),
     #[error("notification service socket bind failed: {0}")]
-    Socket(NotificationIoError),
+    Socket(super::NotificationIoError),
     #[error("notification service timeout configuration is invalid")]
     Timeout,
 }

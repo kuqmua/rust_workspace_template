@@ -1,6 +1,9 @@
-use super::{EnvParseError, EnvVarValueRef, ParseCtxRef};
+use crate::{EnvParseError, EnvVarValueRef, ParseCtxRef};
 
-#[allow(clippy::single_call_fn)] // helper centralizes std::str::FromStr context formatting and keeps per-type parsing helpers minimal
+#[allow(
+    clippy::single_call_fn,
+    reason = "shared typed parsing boundary is also exercised directly by tests"
+)]
 pub(super) fn parse_from_str_with_ctx<T>(
     v: EnvVarValueRef<'_>,
     parse_ctx: ParseCtxRef,

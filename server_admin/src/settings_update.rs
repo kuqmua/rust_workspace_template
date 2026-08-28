@@ -1,16 +1,14 @@
-#![allow(clippy::single_call_fn)] // route inventory and HTML composition each register focused settings operations once
-
-pub(super) async fn settings_update(
-    auth: super::AdminAuthReq,
-    request: super::AxumAdminJson<server_admin_contract::domain_types::AdminUpdateSettingsReq>,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let actor = super::shared::authorize_custom::authorize_custom(
+pub(crate) async fn settings_update(
+    auth: crate::AdminAuthReq,
+    request: crate::AxumAdminJson<server_admin_contract::domain_types::AdminUpdateSettingsReq>,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    let actor = crate::shared::authorize_custom::authorize_custom(
         &auth,
-        super::super::AdminPermission::SystemSettingsUpdate,
+        crate::AdminPermission::SystemSettingsUpdate,
     )
     .await?;
     if !bool::from(request.0.has_fields()) || !bool::from(request.0.is_valid()) {
-        return Err(super::AdminError::Validation);
+        return Err(crate::AdminError::Validation);
     }
     let mut tx = auth
         .state
@@ -19,7 +17,7 @@ pub(super) async fn settings_update(
         .as_ref()
         .begin()
         .await
-        .map_err(super::AdminError::from)?;
+        .map_err(crate::AdminError::from)?;
     let (
         default_admin_route,
         main_logo,
@@ -71,24 +69,24 @@ pub(super) async fn settings_update(
         .fetch_optional(&mut *tx)
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
-        .map(|value| super::super::StdAdminBool::from(value.is_some()))
-        .map_err(super::AdminError::from)?
+        .map(|value| crate::StdAdminBool::from(value.is_some()))
+        .map_err(crate::AdminError::from)?
         .get()
         .then_some(())
-        .ok_or(super::AdminError::Conflict)?;
-    super::persistence::record_audit_success_in_connection(
-        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::persistence::AdminAuditSuccessRef {
-            action: super::super::AdminAuditAction::Update,
+        .ok_or(crate::AdminError::Conflict)?;
+    crate::persistence::record_audit_success_in_connection(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::persistence::AdminAuditSuccessRef {
+            action: crate::AdminAuditAction::Update,
             login: &actor.login,
-            resource: super::super::AdminAuditResource::SystemSettings,
-            resource_id: super::persistence::AdminAuditResourceId::SystemSettings,
+            resource: crate::AdminAuditResource::SystemSettings,
+            resource_id: crate::persistence::AdminAuditResourceId::SystemSettings,
             user_id: actor.id,
         },
     )
     .await?;
-    tx.commit().await.map_err(super::AdminError::from)?;
-    Ok(super::AxumAdminResponse(
+    tx.commit().await.map_err(crate::AdminError::from)?;
+    Ok(crate::AxumAdminResponse(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

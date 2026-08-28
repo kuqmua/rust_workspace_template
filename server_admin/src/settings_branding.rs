@@ -1,9 +1,7 @@
-#![allow(clippy::single_call_fn)] // route inventory registers this branding operation once
-
-pub(super) async fn settings_branding(
-    auth: super::AdminAuthReq,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    super::settings_branding_view::settings_branding_view(auth)
+pub(crate) async fn settings_branding(
+    auth: crate::AdminAuthReq,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    crate::settings_branding_view::settings_branding_view(auth)
         .await
-        .map(super::shared::json_response::json_response)
+        .map(crate::shared::json_response::json_response)
 }

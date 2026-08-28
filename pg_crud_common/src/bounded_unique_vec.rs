@@ -44,22 +44,14 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
         Deserializer: serde::Deserializer<'de>,
     {
         deserializer.deserialize_seq(
-            bounded_unique_vec_visitor_phantom_data::BoundedUniqueVecVisitorPhantomData::from(
+            crate::bounded_unique_vec_visitor_phantom_data::BoundedUniqueVecVisitorPhantomData::from(
                 std::marker::PhantomData,
             ),
         )
     }
 }
-#[path = "bounded_unique_vec_visitor_phantom_data.rs"]
-mod bounded_unique_vec_visitor_phantom_data;
-#[path = "serde_prealloc_max_items.rs"]
-mod serde_prealloc_max_items;
-#[path = "unique_vec_error.rs"]
-mod unique_vec_error;
-#[path = "unique_vec_len.rs"]
-mod unique_vec_len;
-pub use unique_vec_error::UniqueVecError;
-pub use unique_vec_len::UniqueVecLen;
+pub use crate::unique_vec_error::UniqueVecError;
+pub use crate::unique_vec_len::UniqueVecLen;
 
 #[cfg(test)]
 mod tests {

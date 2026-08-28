@@ -5,7 +5,7 @@ use leptos::prelude::{ClassAttribute, ElementChild};
     unreachable_pub,
     reason = "Leptos root component visibility is required by the app entry point"
 )]
-pub(in crate::domain_types::start) fn AdminApp() -> impl leptos::prelude::IntoView {
+pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
     let query_result = super::admin_csr_query::AdminCsrQuery::from_location();
     let page_result = super::admin_csr_query::csr_page_from_location::csr_page_from_location();
     let initial_state = match (&page_result, &query_result) {

@@ -1,34 +1,13 @@
-#[path = "add_health_routes.rs"]
-mod add_health_routes;
-#[path = "health_component_status.rs"]
-mod health_component_status;
-#[path = "health_probe_succeeded.rs"]
-mod health_probe_succeeded;
-#[path = "health_probe_timeout_duration.rs"]
-mod health_probe_timeout_duration;
-#[path = "health_readiness.rs"]
-mod health_readiness;
-#[path = "health_ready_error.rs"]
-mod health_ready_error;
-#[path = "health_snapshot.rs"]
-mod health_snapshot;
-#[path = "run_health_probe.rs"]
-mod run_health_probe;
-#[path = "service_liveness_snapshot.rs"]
-mod service_liveness_snapshot;
-#[path = "shared_health_readiness_arc.rs"]
-mod shared_health_readiness_arc;
-
-pub use add_health_routes::add_health_routes;
-pub use health_component_status::HealthComponentStatus;
-pub use health_probe_succeeded::HealthProbeSucceeded;
-pub use health_probe_timeout_duration::HealthProbeTimeoutDuration;
-pub use health_readiness::HealthReadiness;
-use health_ready_error::HealthReadyError;
-pub use health_snapshot::HealthSnapshot;
-pub use run_health_probe::run_health_probe;
-pub use service_liveness_snapshot::ServiceLivenessSnapshot;
-use shared_health_readiness_arc::SharedHealthReadinessArc;
+pub use crate::add_health_routes::add_health_routes;
+pub use crate::health_component_status::HealthComponentStatus;
+pub use crate::health_probe_succeeded::HealthProbeSucceeded;
+pub use crate::health_probe_timeout_duration::HealthProbeTimeoutDuration;
+pub use crate::health_readiness::HealthReadiness;
+use crate::health_ready_error::HealthReadyError;
+pub use crate::health_snapshot::HealthSnapshot;
+pub use crate::run_health_probe::run_health_probe;
+pub use crate::service_liveness_snapshot::ServiceLivenessSnapshot;
+use crate::shared_health_readiness_arc::SharedHealthReadinessArc;
 #[cfg(test)]
 mod tests {
     #[tokio::test(start_paused = true)]
@@ -102,4 +81,36 @@ mod tests {
         .expect("7cf14a1f health_routes_distinguish_live_and_ready_statuses invariant must hold");
         assert_eq!(ready_response.status(), http::StatusCode::OK);
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod add_health_routes {
+    pub use crate::add_health_routes::*;
+}
+mod health_component_status {
+    pub use crate::health_component_status::*;
+}
+mod health_probe_succeeded {
+    pub use crate::health_probe_succeeded::*;
+}
+mod health_probe_timeout_duration {
+    pub use crate::health_probe_timeout_duration::*;
+}
+mod health_readiness {
+    pub use crate::health_readiness::*;
+}
+mod health_ready_error {
+    pub use crate::health_ready_error::*;
+}
+mod health_snapshot {
+    pub use crate::health_snapshot::*;
+}
+mod run_health_probe {
+    pub use crate::run_health_probe::*;
+}
+mod service_liveness_snapshot {
+    pub use crate::service_liveness_snapshot::*;
+}
+mod shared_health_readiness_arc {
+    pub use crate::shared_health_readiness_arc::*;
 }

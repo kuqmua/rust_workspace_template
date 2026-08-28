@@ -10,7 +10,7 @@
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(super) struct QuoteStyle {
-    pub(super) panic_id: super::QuotePanicId,
-    pub(super) prefix: super::QuotePrefix,
-    pub(super) quote_ch: super::QuoteChar,
+    pub(super) panic_id: crate::domain_types::QuotePanicId,
+    pub(super) prefix: crate::domain_types::QuotePrefix,
+    pub(super) quote_ch: crate::domain_types::QuoteChar,
 }

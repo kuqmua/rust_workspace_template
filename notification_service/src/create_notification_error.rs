@@ -1,10 +1,9 @@
-use super::{NotificationErrorCode, SqlxNotificationDatabaseError};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum CreateNotificationError {
     #[error("notification persistence failed: {0}")]
     Persistence(
-        #[source] server_runtime_http::domain_types::ObservedError<SqlxNotificationDatabaseError>,
+        #[source]
+        server_runtime_http::domain_types::ObservedError<super::SqlxNotificationDatabaseError>,
     ),
     #[error("notification request validation failed")]
     Validation,
@@ -29,7 +28,7 @@ impl axum::response::IntoResponse for CreateNotificationError {
         let telemetry = server_runtime_http::domain_types::HttpErrorTelemetry::new(
             error_type,
             server_runtime_http::domain_types::HttpErrorCode::from(
-                NotificationErrorCode::Validation.get(),
+                super::NotificationErrorCode::Validation.get(),
             ),
         );
         let problem_status =

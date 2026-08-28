@@ -1,6 +1,5 @@
-pub(in super::super) fn admin_html_user_action_router()
--> super::super::super::super::AxumAdminStateRouter {
-    super::super::super::super::AxumAdminStateRouter::from(
-        super::admin_html_user_action_route_registry::AdminHtmlUserActionRouteRegistry::router(),
+pub(crate) fn admin_html_user_action_router() -> crate::AxumAdminStateRouter {
+    crate::AxumAdminStateRouter::from(
+        crate::admin_html_user_action_route_registry::AdminHtmlUserActionRouteRegistry::router(),
     )
 }

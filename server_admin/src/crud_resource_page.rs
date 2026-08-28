@@ -1,7 +1,7 @@
-use super::{AdminCrudPage, crud_page};
+use crate::{AdminCrudPage, crud_page};
 
-pub(super) async fn crud_resource_page(
-    auth: super::super::super::AdminAuthReq,
+pub(crate) async fn crud_resource_page(
+    auth: crate::AdminAuthReq,
     page: AdminCrudPage,
 ) -> axum::response::Response {
     match page {
@@ -24,9 +24,9 @@ pub(super) async fn crud_resource_page(
                     server_admin_contract::domain_types::AdminPermission::UsersDelete,
                 ],
                 |auth| {
-                    super::super::super::users::queries_users_page::queries_users_page(
+                    crate::queries_users_page::queries_users_page(
                         auth,
-                        super::super::super::AxumAdminQuery(
+                        crate::AxumAdminQuery(
                             server_admin_contract::domain_types::AdminTableQuery::default(),
                         ),
                     )
@@ -54,9 +54,9 @@ pub(super) async fn crud_resource_page(
                     server_admin_contract::domain_types::AdminPermission::RolesDelete,
                 ],
                 |auth| {
-                    super::super::super::roles::queries_roles_page::queries_roles_page(
+                    crate::queries_roles_page::queries_roles_page(
                         auth,
-                        super::super::super::AxumAdminQuery(
+                        crate::AxumAdminQuery(
                             server_admin_contract::domain_types::AdminTableQuery::default(),
                         ),
                     )

@@ -3,12 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "generation.rs"]
-mod generation;
-#[path = "generation_atomic_u64.rs"]
-mod generation_atomic_u64;
-#[path = "generation_commit.rs"]
-mod generation_commit;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 pub struct GenerationGate {
     current: GenerationAtomicU64,
@@ -35,9 +29,9 @@ impl GenerationGate {
     }
 }
 
-pub use generation::Generation;
-use generation_atomic_u64::GenerationAtomicU64;
-pub use generation_commit::GenerationCommit;
+pub use crate::generation::Generation;
+use crate::generation_atomic_u64::GenerationAtomicU64;
+pub use crate::generation_commit::GenerationCommit;
 #[cfg(test)]
 mod tests {
     #[test]

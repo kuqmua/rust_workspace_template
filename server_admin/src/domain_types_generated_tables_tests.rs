@@ -79,35 +79,35 @@ fn assert_local_references_resolve(document: &serde_json::Value, value: &serde_j
 fn generated_table_catalog_maps_every_supported_data_table_once() {
     let expected = [
         (
-            super::AdminGeneratedTable::Roles,
+            crate::AdminGeneratedTable::Roles,
             server_admin_contract::domain_types::AdminDataTable::Roles,
         ),
         (
-            super::AdminGeneratedTable::RolePermissions,
+            crate::AdminGeneratedTable::RolePermissions,
             server_admin_contract::domain_types::AdminDataTable::RolePermissions,
         ),
         (
-            super::AdminGeneratedTable::Users,
+            crate::AdminGeneratedTable::Users,
             server_admin_contract::domain_types::AdminDataTable::Users,
         ),
         (
-            super::AdminGeneratedTable::Permissions,
+            crate::AdminGeneratedTable::Permissions,
             server_admin_contract::domain_types::AdminDataTable::Permissions,
         ),
         (
-            super::AdminGeneratedTable::SystemSettings,
+            crate::AdminGeneratedTable::SystemSettings,
             server_admin_contract::domain_types::AdminDataTable::SystemSettings,
         ),
         (
-            super::AdminGeneratedTable::UserRoles,
+            crate::AdminGeneratedTable::UserRoles,
             server_admin_contract::domain_types::AdminDataTable::UserRoles,
         ),
     ];
-    assert_eq!(super::AdminGeneratedTable::ALL.len(), expected.len());
+    assert_eq!(crate::AdminGeneratedTable::ALL.len(), expected.len());
     expected.into_iter().for_each(|(generated, data_table)| {
-        assert!(super::AdminGeneratedTable::ALL.contains(&generated));
+        assert!(crate::AdminGeneratedTable::ALL.contains(&generated));
         assert_eq!(
-            super::AdminGeneratedTable::for_data_table(data_table),
+            crate::AdminGeneratedTable::for_data_table(data_table),
             Some(generated)
         );
     });
@@ -121,14 +121,14 @@ fn generated_table_catalog_maps_every_supported_data_table_once() {
     ]
     .into_iter()
     .for_each(|data_table| {
-        assert_eq!(super::AdminGeneratedTable::for_data_table(data_table), None);
+        assert_eq!(crate::AdminGeneratedTable::for_data_table(data_table), None);
     });
 }
 
 #[test]
 fn generated_admin_open_api_has_no_unresolved_local_references() {
     let document = serde_json::to_value(
-        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+        utoipa::openapi::OpenApi::from(crate::generated_open_api()),
     )
     .expect(
         "f514a558 generated_admin_open_api_has_no_unresolved_local_references invariant must hold",
@@ -139,7 +139,7 @@ fn generated_admin_open_api_has_no_unresolved_local_references() {
 #[test]
 fn every_typed_route_path_and_each_path_parameter_match_open_api() {
     let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+        serde_json::to_value(utoipa::openapi::OpenApi::from(crate::generated_open_api()))
             .expect("ab2e610c every_typed_route_path_and_each_path_parameter_match_open_api invariant must hold");
     <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::route_metadata()
             .as_ref()
@@ -191,7 +191,7 @@ fn every_typed_route_path_and_each_path_parameter_match_open_api() {
 #[test]
 fn every_typed_route_query_parameter_matches_open_api_individually() {
     let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+        serde_json::to_value(utoipa::openapi::OpenApi::from(crate::generated_open_api()))
             .expect("d083c1a9 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
     <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::route_metadata()
             .as_ref()
@@ -247,7 +247,7 @@ fn every_typed_route_query_parameter_matches_open_api_individually() {
 #[test]
 fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
     let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+        serde_json::to_value(utoipa::openapi::OpenApi::from(crate::generated_open_api()))
             .expect("40a639b7 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
     let no_body_schema = serde_json::to_value(
         <server_admin_contract::domain_types::AdminNoBody as utoipa::PartialSchema>::schema(),
@@ -294,7 +294,7 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
 #[test]
 fn proc_macro_generated_response_contracts_match_open_api() {
     let document = serde_json::to_value(
-        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+        utoipa::openapi::OpenApi::from(crate::generated_open_api()),
     )
     .expect("c4ddf19e proc_macro_generated_response_contracts_match_open_api invariant must hold");
     <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::schema_contracts()
@@ -326,7 +326,7 @@ fn proc_macro_generated_response_contracts_match_open_api() {
 #[test]
 fn generated_admin_open_api_combines_enabled_routes_only() {
     let document = serde_json::to_value(
-        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+        utoipa::openapi::OpenApi::from(crate::generated_open_api()),
     )
     .expect("87b2e8fb generated_admin_open_api_combines_enabled_routes_only invariant must hold");
     let paths = document
@@ -358,52 +358,52 @@ fn generated_admin_open_api_combines_enabled_routes_only() {
 fn generated_payload_example_routes_have_contracts_and_named_clients() {
     [
         (
-            super::AdminUsers::rm_route(),
-            super::AdminUsers::rm_payload_example_route(),
+            crate::AdminUsers::rm_route(),
+            crate::AdminUsers::rm_payload_example_route(),
         ),
         (
-            super::AdminUsers::ro_route(),
-            super::AdminUsers::ro_payload_example_route(),
+            crate::AdminUsers::ro_route(),
+            crate::AdminUsers::ro_payload_example_route(),
         ),
         (
-            super::AdminUserRoles::rm_route(),
-            super::AdminUserRoles::rm_payload_example_route(),
+            crate::AdminUserRoles::rm_route(),
+            crate::AdminUserRoles::rm_payload_example_route(),
         ),
         (
-            super::AdminUserRoles::ro_route(),
-            super::AdminUserRoles::ro_payload_example_route(),
+            crate::AdminUserRoles::ro_route(),
+            crate::AdminUserRoles::ro_payload_example_route(),
         ),
         (
-            super::AdminRolePermissions::rm_route(),
-            super::AdminRolePermissions::rm_payload_example_route(),
+            crate::AdminRolePermissions::rm_route(),
+            crate::AdminRolePermissions::rm_payload_example_route(),
         ),
         (
-            super::AdminRolePermissions::ro_route(),
-            super::AdminRolePermissions::ro_payload_example_route(),
+            crate::AdminRolePermissions::ro_route(),
+            crate::AdminRolePermissions::ro_payload_example_route(),
         ),
         (
-            super::AdminRoles::rm_route(),
-            super::AdminRoles::rm_payload_example_route(),
+            crate::AdminRoles::rm_route(),
+            crate::AdminRoles::rm_payload_example_route(),
         ),
         (
-            super::AdminRoles::ro_route(),
-            super::AdminRoles::ro_payload_example_route(),
+            crate::AdminRoles::ro_route(),
+            crate::AdminRoles::ro_payload_example_route(),
         ),
         (
-            super::AdminPermissions::rm_route(),
-            super::AdminPermissions::rm_payload_example_route(),
+            crate::AdminPermissions::rm_route(),
+            crate::AdminPermissions::rm_payload_example_route(),
         ),
         (
-            super::AdminPermissions::ro_route(),
-            super::AdminPermissions::ro_payload_example_route(),
+            crate::AdminPermissions::ro_route(),
+            crate::AdminPermissions::ro_payload_example_route(),
         ),
         (
-            super::AdminSystemSettings::rm_route(),
-            super::AdminSystemSettings::rm_payload_example_route(),
+            crate::AdminSystemSettings::rm_route(),
+            crate::AdminSystemSettings::rm_payload_example_route(),
         ),
         (
-            super::AdminSystemSettings::ro_route(),
-            super::AdminSystemSettings::ro_payload_example_route(),
+            crate::AdminSystemSettings::ro_route(),
+            crate::AdminSystemSettings::ro_payload_example_route(),
         ),
     ]
     .into_iter()
@@ -413,39 +413,39 @@ fn generated_payload_example_routes_have_contracts_and_named_clients() {
             format!("{}_payload_example", operation.as_ref())
         );
     });
-    let contract = super::AdminUsersRouteContract::for_path(
-        super::AdminUsers::rm_payload_example_route().as_ref(),
+    let contract = crate::AdminUsersRouteContract::for_path(
+        crate::AdminUsers::rm_payload_example_route().as_ref(),
     )
     .expect("8fb87492 generated_payload_example_routes_have_contracts_and_named_clients invariant must hold");
     assert_eq!(
         contract.frontend_contract().method(),
-        frontend_contract::domain_types::HttpMethod::Get
+        frontend_contract::domain_types::RouteMethod::Get
     );
     assert!(!contract.mutates());
     [
-        size_of_val(&super::AdminUsersFrontendApiClient::<ClientTransport>::rm_payload_example),
-        size_of_val(&super::AdminUsersFrontendApiClient::<ClientTransport>::ro_payload_example),
-        size_of_val(&super::AdminUserRolesFrontendApiClient::<ClientTransport>::rm_payload_example),
-        size_of_val(&super::AdminUserRolesFrontendApiClient::<ClientTransport>::ro_payload_example),
+        size_of_val(&crate::AdminUsersFrontendApiClient::<ClientTransport>::rm_payload_example),
+        size_of_val(&crate::AdminUsersFrontendApiClient::<ClientTransport>::ro_payload_example),
+        size_of_val(&crate::AdminUserRolesFrontendApiClient::<ClientTransport>::rm_payload_example),
+        size_of_val(&crate::AdminUserRolesFrontendApiClient::<ClientTransport>::ro_payload_example),
         size_of_val(
-            &super::AdminRolePermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
+            &crate::AdminRolePermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
         ),
         size_of_val(
-            &super::AdminRolePermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            &crate::AdminRolePermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
         ),
-        size_of_val(&super::AdminRolesFrontendApiClient::<ClientTransport>::rm_payload_example),
-        size_of_val(&super::AdminRolesFrontendApiClient::<ClientTransport>::ro_payload_example),
+        size_of_val(&crate::AdminRolesFrontendApiClient::<ClientTransport>::rm_payload_example),
+        size_of_val(&crate::AdminRolesFrontendApiClient::<ClientTransport>::ro_payload_example),
         size_of_val(
-            &super::AdminPermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
-        ),
-        size_of_val(
-            &super::AdminPermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            &crate::AdminPermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
         ),
         size_of_val(
-            &super::AdminSystemSettingsFrontendApiClient::<ClientTransport>::rm_payload_example,
+            &crate::AdminPermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
         ),
         size_of_val(
-            &super::AdminSystemSettingsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            &crate::AdminSystemSettingsFrontendApiClient::<ClientTransport>::rm_payload_example,
+        ),
+        size_of_val(
+            &crate::AdminSystemSettingsFrontendApiClient::<ClientTransport>::ro_payload_example,
         ),
     ]
     .into_iter()
@@ -454,7 +454,7 @@ fn generated_payload_example_routes_have_contracts_and_named_clients() {
 #[test]
 fn every_admin_open_api_operation_has_a_unique_identifier() {
     let document = serde_json::to_value(
-        utoipa::openapi::OpenApi::from(super::generated_open_api()),
+        utoipa::openapi::OpenApi::from(crate::generated_open_api()),
     )
     .expect("c731d604 every_admin_open_api_operation_has_a_unique_identifier invariant must hold");
     let operation_ids = document
@@ -480,7 +480,7 @@ fn every_admin_open_api_operation_has_a_unique_identifier() {
 #[test]
 fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
     let document =
-        serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+        serde_json::to_value(utoipa::openapi::OpenApi::from(crate::generated_open_api()))
             .expect("8457a8ca generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     let paths = document
         .get(constants_str::PATHS)
@@ -541,7 +541,7 @@ fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
 }
 #[test]
 fn generated_frontend_filter_metadata_matches_api_filter_schema() {
-    let fields = super::AdminUsers::frontend_fields();
+    let fields = crate::AdminUsers::frontend_fields();
     let login = fields
         .as_ref()
         .iter()

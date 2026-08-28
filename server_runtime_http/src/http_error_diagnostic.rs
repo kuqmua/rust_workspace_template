@@ -3,10 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "capture_without_context.rs"]
-mod capture_without_context;
-#[path = "http_error_code.rs"]
-mod http_error_code;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpErrorDiagnostic {
     backtrace: StdHttpErrorBacktrace,
@@ -17,7 +13,7 @@ pub struct HttpErrorDiagnostic {
 }
 
 impl HttpErrorDiagnostic {
-    pub(in crate::domain_types) const fn backtrace(&self) -> &StdHttpErrorBacktrace {
+    pub(crate) const fn backtrace(&self) -> &StdHttpErrorBacktrace {
         &self.backtrace
     }
 
@@ -56,7 +52,7 @@ impl HttpErrorDiagnostic {
         StdHttpErrorChain::from(error_chain.into_boxed_str())
     }
 
-    pub(in crate::domain_types) const fn error_chain_text(&self) -> &StdHttpErrorChain {
+    pub(crate) const fn error_chain_text(&self) -> &StdHttpErrorChain {
         &self.error_chain
     }
 
@@ -80,41 +76,33 @@ impl HttpErrorDiagnostic {
         }
     }
 
-    pub(in crate::domain_types) const fn location(&self) -> &super::StdPanicLocation {
+    pub(crate) const fn location(&self) -> &super::StdPanicLocation {
         &self.location
     }
 
-    pub(in crate::domain_types) const fn span_trace(&self) -> &TracingHttpSpanTrace {
+    pub(crate) const fn span_trace(&self) -> &TracingHttpSpanTrace {
         &self.span_trace
     }
 
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::single_call_fn)]
-    pub(in crate::domain_types) const fn telemetry(&self) -> HttpErrorTelemetry {
+
+    #[allow(
+        clippy::single_call_fn,
+        reason = "typed telemetry accessor keeps private representation out of middleware"
+    )]
+    pub(crate) const fn telemetry(&self) -> HttpErrorTelemetry {
         self.telemetry
     }
 }
-#[path = "http_error_telemetry.rs"]
-mod http_error_telemetry;
-#[path = "http_error_type.rs"]
-mod http_error_type;
-#[path = "http_error_without_diagnostic_context.rs"]
-mod http_error_without_diagnostic_context;
-#[path = "std_http_error_backtrace.rs"]
-mod std_http_error_backtrace;
-#[path = "std_http_error_chain.rs"]
-mod std_http_error_chain;
-#[path = "tracing_http_span_trace.rs"]
-mod tracing_http_span_trace;
 
-pub(super) use capture_without_context::capture_without_context;
-pub use http_error_code::HttpErrorCode;
-pub use http_error_telemetry::HttpErrorTelemetry;
-pub use http_error_type::HttpErrorType;
-use http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext;
-pub(super) use std_http_error_backtrace::StdHttpErrorBacktrace;
-pub(super) use std_http_error_chain::StdHttpErrorChain;
-pub(super) use tracing_http_span_trace::TracingHttpSpanTrace;
+pub(super) use crate::capture_without_context::capture_without_context;
+pub use crate::http_error_code::HttpErrorCode;
+pub use crate::http_error_telemetry::HttpErrorTelemetry;
+pub use crate::http_error_type::HttpErrorType;
+use crate::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext;
+pub(super) use crate::std_http_error_backtrace::StdHttpErrorBacktrace;
+pub(super) use crate::std_http_error_chain::StdHttpErrorChain;
+pub(super) use crate::tracing_http_span_trace::TracingHttpSpanTrace;
 
 #[cfg(test)]
 mod tests {
@@ -134,4 +122,30 @@ mod tests {
             "test.error"
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod capture_without_context {
+    pub use crate::capture_without_context::*;
+}
+mod http_error_code {
+    pub use crate::http_error_code::*;
+}
+mod http_error_telemetry {
+    pub use crate::http_error_telemetry::*;
+}
+mod http_error_type {
+    pub use crate::http_error_type::*;
+}
+mod http_error_without_diagnostic_context {
+    pub use crate::http_error_without_diagnostic_context::*;
+}
+mod std_http_error_backtrace {
+    pub use crate::std_http_error_backtrace::*;
+}
+mod std_http_error_chain {
+    pub use crate::std_http_error_chain::*;
+}
+mod tracing_http_span_trace {
+    pub use crate::tracing_http_span_trace::*;
 }

@@ -10,4 +10,4 @@
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub struct HttpAdminHeaderMapRef<'headers_lt>(pub(super) &'headers_lt http::HeaderMap);
+pub struct HttpAdminHeaderMapRef<'headers_lt>(pub(crate) &'headers_lt http::HeaderMap);

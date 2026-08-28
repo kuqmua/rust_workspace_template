@@ -3,7 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub(super) struct RequestTimeoutTowerLayer(pub(super) super::super::RequestTimeoutDuration);
+pub(super) struct RequestTimeoutTowerLayer(pub(super) crate::RequestTimeoutDuration);
 
 impl<Service> tower::Layer<Service> for RequestTimeoutTowerLayer {
     type Service = super::RequestTimeoutService<Service>;

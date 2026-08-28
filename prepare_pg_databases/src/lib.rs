@@ -1,2 +1,15 @@
-#[path = "domain_types.rs"]
+mod database_preparation_spec;
+mod database_url;
+mod database_url_error;
 pub mod domain_types;
+mod migration_commands;
+mod migrations_source;
+mod migrations_source_error;
+mod process_argument;
+mod process_arguments;
+mod process_command;
+mod process_commands;
+mod process_program;
+mod process_static_argument;
+mod validate_database_url;
+mod validate_migrations_source;

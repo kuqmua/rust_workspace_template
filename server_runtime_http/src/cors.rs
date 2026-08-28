@@ -1,25 +1,10 @@
-#[path = "cors_allow_origin_max_bytes.rs"]
-mod cors_allow_origin_max_bytes;
-#[path = "cors_allow_origin_max_items.rs"]
-mod cors_allow_origin_max_items;
-#[path = "cors_allow_origin_split_ch.rs"]
-mod cors_allow_origin_split_ch;
-#[path = "http_cors_allow_origin_header_values.rs"]
-mod http_cors_allow_origin_header_values;
-#[path = "http_cors_allow_origin_header_values_error.rs"]
-mod http_cors_allow_origin_header_values_error;
-#[path = "http_cors_allow_origin_text_ref.rs"]
-mod http_cors_allow_origin_text_ref;
-#[path = "parse_cors_allow_origin.rs"]
-mod parse_cors_allow_origin;
-
-use cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES;
-use cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS;
-use cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH;
-pub use http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues;
-pub use http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError;
-pub use http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef;
-pub use parse_cors_allow_origin::parse_cors_allow_origin;
+use crate::cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES;
+use crate::cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS;
+use crate::cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH;
+pub use crate::http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues;
+pub use crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError;
+pub use crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef;
+pub use crate::parse_cors_allow_origin::parse_cors_allow_origin;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -80,4 +65,27 @@ mod tests {
             Err(super::HttpCorsAllowOriginHeaderValuesError::TooManyItems)
         ));
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod cors_allow_origin_max_bytes {
+    pub use crate::cors_allow_origin_max_bytes::*;
+}
+mod cors_allow_origin_max_items {
+    pub use crate::cors_allow_origin_max_items::*;
+}
+mod cors_allow_origin_split_ch {
+    pub use crate::cors_allow_origin_split_ch::*;
+}
+mod http_cors_allow_origin_header_values {
+    pub use crate::http_cors_allow_origin_header_values::*;
+}
+mod http_cors_allow_origin_header_values_error {
+    pub use crate::http_cors_allow_origin_header_values_error::*;
+}
+mod http_cors_allow_origin_text_ref {
+    pub use crate::http_cors_allow_origin_text_ref::*;
+}
+mod parse_cors_allow_origin {
+    pub use crate::parse_cors_allow_origin::*;
 }

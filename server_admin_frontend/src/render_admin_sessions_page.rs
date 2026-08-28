@@ -7,5 +7,5 @@ pub fn render_admin_sessions_page(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    render_sessions::render_sessions(page, query, admin, branding)
+    render_sessions(page, query, admin, branding)
 }

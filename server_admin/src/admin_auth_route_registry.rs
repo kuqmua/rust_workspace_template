@@ -1,8 +1,8 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::single_call_fn)] // public facade keeps stable auth module paths while this module owns router and OpenAPI composition
+
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::domain_types::route_registry(
-    state = super::super::SharedAdminAuthSvcStateArc,
+    state = crate::SharedAdminAuthSvcStateArc,
     family = server_admin_contract::domain_types::AdminAuthenticationRouteFamily;
     (constants_str::ADMIN_COOKIE, constants_str::ADMIN_CSRF);
     schemas(
@@ -20,7 +20,7 @@
         server_admin_contract::domain_types::AdminDataColumns,
         server_admin_contract::domain_types::AdminDataFilter,
         server_admin_contract::domain_types::AdminDataFilters,
-        server_admin_contract::domain_types::AdminDataInputKind,
+        frontend_contract::domain_types::InputKind,
         server_admin_contract::domain_types::AdminDataRows,
         server_admin_contract::domain_types::AdminDataTables,
         server_admin_contract::domain_types::AdminOptionalSettings,
@@ -64,46 +64,46 @@
         crate::domain_types::AdminAuditAction,
         crate::domain_types::AdminAuditResource
     );
-    (server_admin_contract::domain_types::AdminSignInRoute, super::super::api_sign_in::api_sign_in),
-    (server_admin_contract::domain_types::AdminRefreshRoute, super::super::api_refresh::api_refresh),
-    (server_admin_contract::domain_types::AdminSignOutRoute, super::super::api_sign_out::api_sign_out),
-    (server_admin_contract::domain_types::AdminMeRoute, super::super::api_me::api_me),
-    (server_admin_contract::domain_types::AdminChangeOwnPasswordRoute, super::super::api_change_own_password::api_change_own_password),
-    (server_admin_contract::domain_types::AdminSessionsRoute, super::super::api_sessions::api_sessions),
-    (server_admin_contract::domain_types::AdminRevokeSessionRoute, super::super::api_revoke_session::api_revoke_session),
-    (server_admin_contract::domain_types::AdminRevokeAllSessionsRoute, super::super::api_revoke_all_sessions::api_revoke_all_sessions),
-    (server_admin_contract::domain_types::AdminListUsersRoute, super::super::api_list_users::api_list_users),
-    (server_admin_contract::domain_types::AdminCreateUserRoute, super::super::api_create_user::api_create_user),
-    (server_admin_contract::domain_types::AdminUpdateUserRoute, super::super::api_update_user::api_update_user),
-    (server_admin_contract::domain_types::AdminDeleteUserRoute, super::super::api_delete_user::api_delete_user),
-    (server_admin_contract::domain_types::AdminSetUserPasswordRoute, super::super::api_set_user_password::api_set_user_password),
-    (server_admin_contract::domain_types::AdminSetUserBanRoute, super::super::api_set_user_ban::api_set_user_ban),
-    (server_admin_contract::domain_types::AdminSetUserRolesRoute, super::super::api_set_user_roles::api_set_user_roles),
-    (server_admin_contract::domain_types::AdminListRolesRoute, super::super::api_list_roles::api_list_roles),
-    (server_admin_contract::domain_types::AdminCreateRoleRoute, super::super::api_create_role::api_create_role),
-    (server_admin_contract::domain_types::AdminUpdateRoleRoute, super::super::api_update_role::api_update_role),
-    (server_admin_contract::domain_types::AdminDeleteRoleRoute, super::super::api_delete_role::api_delete_role),
-    (server_admin_contract::domain_types::AdminSetRolePermissionsRoute, super::super::api_set_role_permissions::api_set_role_permissions),
-    (server_admin_contract::domain_types::AdminListPermissionsRoute, super::super::api_list_permissions::api_list_permissions),
-    (server_admin_contract::domain_types::AdminAuditLogRoute, super::super::api_audit_log::api_audit_log),
-    (server_admin_contract::domain_types::AdminAuditExportRoute, super::super::api_export_audit_log::api_export_audit_log),
-    (server_admin_contract::domain_types::AdminBrandingRoute, super::super::api_branding::api_branding),
-    (server_admin_contract::domain_types::AdminSettingsRoute, super::super::api_settings::api_settings),
-    (server_admin_contract::domain_types::AdminUpdateSettingsRoute, super::super::api_update_settings::api_update_settings),
-    (server_admin_contract::domain_types::AdminDataTablesRoute, super::super::api_data_tables::api_data_tables),
-    (server_admin_contract::domain_types::AdminDataTableRoute, super::super::api_data_table::api_data_table),
+    (server_admin_contract::domain_types::AdminSignInRoute, crate::api_sign_in::api_sign_in),
+    (server_admin_contract::domain_types::AdminRefreshRoute, crate::api_refresh::api_refresh),
+    (server_admin_contract::domain_types::AdminSignOutRoute, crate::api_sign_out::api_sign_out),
+    (server_admin_contract::domain_types::AdminMeRoute, crate::api_me::api_me),
+    (server_admin_contract::domain_types::AdminChangeOwnPasswordRoute, crate::api_change_own_password::api_change_own_password),
+    (server_admin_contract::domain_types::AdminSessionsRoute, crate::api_sessions::api_sessions),
+    (server_admin_contract::domain_types::AdminRevokeSessionRoute, crate::api_revoke_session::api_revoke_session),
+    (server_admin_contract::domain_types::AdminRevokeAllSessionsRoute, crate::api_revoke_all_sessions::api_revoke_all_sessions),
+    (server_admin_contract::domain_types::AdminListUsersRoute, crate::api_list_users::api_list_users),
+    (server_admin_contract::domain_types::AdminCreateUserRoute, crate::api_create_user::api_create_user),
+    (server_admin_contract::domain_types::AdminUpdateUserRoute, crate::api_update_user::api_update_user),
+    (server_admin_contract::domain_types::AdminDeleteUserRoute, crate::api_delete_user::api_delete_user),
+    (server_admin_contract::domain_types::AdminSetUserPasswordRoute, crate::api_set_user_password::api_set_user_password),
+    (server_admin_contract::domain_types::AdminSetUserBanRoute, crate::api_set_user_ban::api_set_user_ban),
+    (server_admin_contract::domain_types::AdminSetUserRolesRoute, crate::api_set_user_roles::api_set_user_roles),
+    (server_admin_contract::domain_types::AdminListRolesRoute, crate::api_list_roles::api_list_roles),
+    (server_admin_contract::domain_types::AdminCreateRoleRoute, crate::api_create_role::api_create_role),
+    (server_admin_contract::domain_types::AdminUpdateRoleRoute, crate::api_update_role::api_update_role),
+    (server_admin_contract::domain_types::AdminDeleteRoleRoute, crate::api_delete_role::api_delete_role),
+    (server_admin_contract::domain_types::AdminSetRolePermissionsRoute, crate::api_set_role_permissions::api_set_role_permissions),
+    (server_admin_contract::domain_types::AdminListPermissionsRoute, crate::api_list_permissions::api_list_permissions),
+    (server_admin_contract::domain_types::AdminAuditLogRoute, crate::api_audit_log::api_audit_log),
+    (server_admin_contract::domain_types::AdminAuditExportRoute, crate::api_export_audit_log::api_export_audit_log),
+    (server_admin_contract::domain_types::AdminBrandingRoute, crate::api_branding::api_branding),
+    (server_admin_contract::domain_types::AdminSettingsRoute, crate::api_settings::api_settings),
+    (server_admin_contract::domain_types::AdminUpdateSettingsRoute, crate::api_update_settings::api_update_settings),
+    (server_admin_contract::domain_types::AdminDataTablesRoute, crate::api_data_tables::api_data_tables),
+    (server_admin_contract::domain_types::AdminDataTableRoute, crate::api_data_table::api_data_table),
 )]
 #[openapi(
     tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"), (name = "admin_tables", description = "Read-only administrator database views"))
 )]
-pub(super) struct AdminAuthRouteRegistry;
+pub(crate) struct AdminAuthRouteRegistry;
 
 impl AdminAuthRouteRegistry {
-    pub(super) fn registry_open_api() -> utoipa::openapi::OpenApi {
+    pub(crate) fn registry_open_api() -> utoipa::openapi::OpenApi {
         Self::open_api()
     }
 
-    pub(super) fn registry_router() -> axum::Router<super::super::SharedAdminAuthSvcStateArc> {
+    pub(crate) fn registry_router() -> axum::Router<crate::SharedAdminAuthSvcStateArc> {
         Self::router()
     }
 }

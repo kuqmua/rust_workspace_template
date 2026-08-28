@@ -4,7 +4,7 @@ pub const ONE: i64 = 1i64;
 #[cfg(test)]
 mod tests {
     #[test]
-    fn values_match_primitives() {
+    fn i64_values_match_primitives() {
         assert_eq!(super::ZERO, 0i64);
         assert_eq!(super::ONE, 1i64);
     }

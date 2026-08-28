@@ -3,8 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "axum_commit_to_str_conversion_error.rs"]
-mod axum_commit_to_str_conversion_error;
 pub fn check_commit(
     enable_api_git_commit_check: EnableApiGitCommitCheck,
     headers: crate::domain_types::header_value::AxumHeadersRef<'_>,
@@ -14,34 +12,16 @@ pub fn check_commit(
     }
     validate_commit_header(headers)
 }
-#[path = "commit_error.rs"]
-mod commit_error;
-#[path = "commit_header_name.rs"]
-mod commit_header_name;
-#[path = "commit_not_eq_message.rs"]
-mod commit_not_eq_message;
-#[path = "commit_to_use.rs"]
-mod commit_to_use;
-#[path = "enable_api_git_commit_check.rs"]
-mod enable_api_git_commit_check;
-#[path = "no_commit_header_message.rs"]
-mod no_commit_header_message;
-#[path = "read_commit_header_str.rs"]
-mod read_commit_header_str;
-#[path = "validate_commit_header.rs"]
-mod validate_commit_header;
-#[path = "validate_commit_header_value.rs"]
-mod validate_commit_header_value;
 
-pub use axum_commit_to_str_conversion_error::AxumCommitToStrConversionError;
-pub use commit_error::{CommitError, CommitErrorWithSerde};
-pub use commit_not_eq_message::CommitNotEqMessage;
-pub use commit_to_use::CommitToUse;
-pub use enable_api_git_commit_check::EnableApiGitCommitCheck;
-pub use no_commit_header_message::NoCommitHeaderMessage;
-pub(super) use read_commit_header_str::read_commit_header_str;
-pub(super) use validate_commit_header::validate_commit_header;
-pub(super) use validate_commit_header_value::validate_commit_header_value;
+pub use crate::axum_commit_to_str_conversion_error::AxumCommitToStrConversionError;
+pub use crate::commit_error::{CommitError, CommitErrorWithSerde};
+pub use crate::commit_not_eq_message::CommitNotEqMessage;
+pub use crate::commit_to_use::CommitToUse;
+pub use crate::enable_api_git_commit_check::EnableApiGitCommitCheck;
+pub use crate::no_commit_header_message::NoCommitHeaderMessage;
+pub(super) use crate::read_commit_header_str::read_commit_header_str;
+pub(super) use crate::validate_commit_header::validate_commit_header;
+pub(super) use crate::validate_commit_header_value::validate_commit_header_value;
 #[cfg(test)]
 mod tests {
     fn check_commit_enabled(headers: &axum::http::HeaderMap) -> Result<(), super::CommitError> {
@@ -57,7 +37,7 @@ mod tests {
         ValueTy: Into<crate::domain_types::test_helper::AxumTestHeaderValue>,
     {
         crate::domain_types::test_helper::make_headers_with_entry(
-            super::commit_header_name::COMMIT_HEADER_NAME,
+            crate::commit_header_name::COMMIT_HEADER_NAME,
             value,
         )
     }
@@ -317,7 +297,7 @@ mod tests {
         let mut headers = make_headers_with_project_commit();
         crate::domain_types::test_helper::replace_header_name(
             &mut headers,
-            super::commit_header_name::COMMIT_HEADER_NAME,
+            crate::commit_header_name::COMMIT_HEADER_NAME,
             constants_str::COMMIT,
             constants_str::VALUE_12653C9A,
         );

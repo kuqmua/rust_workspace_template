@@ -1,5 +1,5 @@
 #[must_use]
-pub fn routes() -> crate::domain_types::AxumAdminFrontendRouter {
+pub fn admin_frontend_routes() -> crate::domain_types::AxumAdminFrontendRouter {
     let static_dir = option_env!("ADMIN_FRONTEND_STATIC_DIR")
         .unwrap_or(concat!(env!("CARGO_MANIFEST_DIR"), "/static"));
     crate::domain_types::AxumAdminFrontendRouter::from(axum::Router::new().nest(
@@ -22,6 +22,6 @@ pub fn routes() -> crate::domain_types::AxumAdminFrontendRouter {
 mod tests {
     #[test]
     fn routes_build_static_asset_router() {
-        let _router = super::routes();
+        let _router = super::admin_frontend_routes();
     }
 }

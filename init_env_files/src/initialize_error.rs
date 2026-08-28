@@ -1,4 +1,4 @@
-use super::{
+use crate::domain_types::{
     InitIoError, InitStringError, ServerRuntimeBoundedReadError, TomlInitError, WorkspaceMember,
 };
 

@@ -1,6 +1,5 @@
 #![allow(
     unused_imports,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the server-rendered CRUD forms require Leptos attribute traits after macro expansion"
 )]

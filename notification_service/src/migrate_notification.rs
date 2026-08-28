@@ -1,5 +1,3 @@
-#![allow(clippy::single_call_fn)] // migration mode has one process entrypoint
-
 pub(crate) async fn migrate_notification(
     config: &notification_service_config::config::Config,
 ) -> Result<(), crate::domain_types::NotificationServiceError> {

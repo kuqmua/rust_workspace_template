@@ -24,14 +24,14 @@ impl TryFrom<usize> for MaximumSizeOfHttpBodyInBytes {
     }
 }
 
-impl super::super::TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
+impl crate::TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
     type Error = super::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError;
 
-    fn try_from_std_env_var_ok(v: super::super::StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed: usize = super::super::parse_from_str_with_error(
-            super::super::StdEnvVarOkRef::from(v.0.as_str()),
+    fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
+        let parsed: usize = crate::parse_from_str_with_error(
+            crate::StdEnvVarOkRef::from(v.0.as_str()),
             |usize_parsing| Self::Error::UsizeParsing {
-                usize_parsing: super::super::UsizeParseIntError::from(usize_parsing),
+                usize_parsing: crate::UsizeParseIntError::from(usize_parsing),
             },
         )?;
         Self::try_from(parsed).map_err(|maximum_size_of_http_body_in_bytes| {

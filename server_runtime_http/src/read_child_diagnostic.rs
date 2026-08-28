@@ -1,5 +1,9 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)]
+
+#[allow(
+    clippy::single_call_fn,
+    reason = "bounded diagnostic reader remains directly exercised by focused tests"
+)]
 pub(super) async fn read_child_diagnostic<Reader>(
     mut reader: Reader,
     maximum: super::ChildDiagnosticMaximumNonZeroUsize,

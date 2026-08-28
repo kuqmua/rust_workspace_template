@@ -7,16 +7,16 @@ pub(super) enum AdminDataGridInputType {
     Time,
 }
 
-impl From<server_admin_contract::domain_types::AdminDataInputKind> for AdminDataGridInputType {
-    fn from(value: server_admin_contract::domain_types::AdminDataInputKind) -> Self {
+impl From<frontend_contract::domain_types::InputKind> for AdminDataGridInputType {
+    fn from(value: frontend_contract::domain_types::InputKind) -> Self {
         match value {
-            server_admin_contract::domain_types::AdminDataInputKind::Date => Self::Date,
-            server_admin_contract::domain_types::AdminDataInputKind::DateTime => Self::DateTime,
-            server_admin_contract::domain_types::AdminDataInputKind::Number => Self::Number,
-            server_admin_contract::domain_types::AdminDataInputKind::Time => Self::Time,
-            server_admin_contract::domain_types::AdminDataInputKind::Checkbox
-            | server_admin_contract::domain_types::AdminDataInputKind::Text
-            | server_admin_contract::domain_types::AdminDataInputKind::Uuid => Self::Text,
+            frontend_contract::domain_types::InputKind::Date => Self::Date,
+            frontend_contract::domain_types::InputKind::DateTime => Self::DateTime,
+            frontend_contract::domain_types::InputKind::Number => Self::Number,
+            frontend_contract::domain_types::InputKind::Time => Self::Time,
+            frontend_contract::domain_types::InputKind::Checkbox
+            | frontend_contract::domain_types::InputKind::Text
+            | frontend_contract::domain_types::InputKind::Uuid => Self::Text,
         }
     }
 }
@@ -39,31 +39,31 @@ mod tests {
     fn maps_contract_input_kinds_to_html_input_types() {
         [
             (
-                server_admin_contract::domain_types::AdminDataInputKind::Date,
+                frontend_contract::domain_types::InputKind::Date,
                 constants_str::HTML_DATE_INPUT_TYPE,
             ),
             (
-                server_admin_contract::domain_types::AdminDataInputKind::DateTime,
+                frontend_contract::domain_types::InputKind::DateTime,
                 constants_str::HTML_DATETIME_LOCAL_INPUT_TYPE,
             ),
             (
-                server_admin_contract::domain_types::AdminDataInputKind::Number,
+                frontend_contract::domain_types::InputKind::Number,
                 constants_str::HTML_NUMBER_INPUT_TYPE,
             ),
             (
-                server_admin_contract::domain_types::AdminDataInputKind::Time,
+                frontend_contract::domain_types::InputKind::Time,
                 constants_str::HTML_TIME_INPUT_TYPE,
             ),
             (
-                server_admin_contract::domain_types::AdminDataInputKind::Checkbox,
+                frontend_contract::domain_types::InputKind::Checkbox,
                 constants_str::HTML_TEXT_INPUT_TYPE,
             ),
             (
-                server_admin_contract::domain_types::AdminDataInputKind::Text,
+                frontend_contract::domain_types::InputKind::Text,
                 constants_str::HTML_TEXT_INPUT_TYPE,
             ),
             (
-                server_admin_contract::domain_types::AdminDataInputKind::Uuid,
+                frontend_contract::domain_types::InputKind::Uuid,
                 constants_str::HTML_TEXT_INPUT_TYPE,
             ),
         ]

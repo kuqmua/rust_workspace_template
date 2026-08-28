@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "project command owns repository URL validation"
-)]
 pub(crate) fn naming_validate_repository_url(
     value: super::RepositoryUrlRef<'_>,
 ) -> Result<(), super::ScaffoldError> {

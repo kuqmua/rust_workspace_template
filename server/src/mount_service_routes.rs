@@ -1,5 +1,3 @@
-#![allow(clippy::single_call_fn)] // service route composition has one application owner
-
 pub(crate) fn mount_service_routes(
     operational_routes: server_runtime_http::domain_types::AxumRouter,
     api_routes: crate::domain_types::AxumApiRoutes,

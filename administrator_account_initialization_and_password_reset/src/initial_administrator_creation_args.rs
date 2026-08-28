@@ -2,7 +2,7 @@
 pub(crate) struct InitialAdministratorCreationArgs {
     display_name: server_admin::domain_types::AdminDisplayName,
     login: server_admin::domain_types::AdminLogin,
-    password_file: super::AdministratorPasswordFilePathBuf,
+    password_file: crate::domain_types::AdministratorPasswordFilePathBuf,
 }
 
 impl InitialAdministratorCreationArgs {
@@ -11,16 +11,15 @@ impl InitialAdministratorCreationArgs {
     ) -> (
         server_admin::domain_types::AdminDisplayName,
         server_admin::domain_types::AdminLogin,
-        super::AdministratorPasswordFilePathBuf,
+        crate::domain_types::AdministratorPasswordFilePathBuf,
     ) {
         (self.display_name, self.login, self.password_file)
     }
 
-    #[allow(clippy::single_call_fn)] // the application parser has one construction site for this command model
     pub(crate) const fn new(
         display_name: server_admin::domain_types::AdminDisplayName,
         login: server_admin::domain_types::AdminLogin,
-        password_file: super::AdministratorPasswordFilePathBuf,
+        password_file: crate::domain_types::AdministratorPasswordFilePathBuf,
     ) -> Self {
         Self {
             display_name,

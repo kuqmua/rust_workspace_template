@@ -1,14 +1,22 @@
-#[path = "mutations_set_permissions.rs"]
-pub(super) mod mutations_set_permissions;
-#[path = "queries_list_permissions.rs"]
-pub(super) mod queries_list_permissions;
-#[path = "queries_roles_page.rs"]
-pub(super) mod queries_roles_page;
-#[path = "role_mutations_create.rs"]
-pub(super) mod role_mutations_create;
-#[path = "role_mutations_delete.rs"]
-pub(super) mod role_mutations_delete;
-#[path = "role_mutations_update.rs"]
-pub(super) mod role_mutations_update;
-#[path = "role_queries_list.rs"]
-pub(super) mod role_queries_list;
+// Root-owned module compatibility wrappers.
+pub(crate) mod mutations_set_permissions {
+    pub use crate::mutations_set_permissions::*;
+}
+pub(crate) mod queries_list_permissions {
+    pub use crate::queries_list_permissions::*;
+}
+pub(crate) mod queries_roles_page {
+    pub use crate::queries_roles_page::*;
+}
+pub(crate) mod role_mutations_create {
+    pub use crate::role_mutations_create::*;
+}
+pub(crate) mod role_mutations_delete {
+    pub use crate::role_mutations_delete::*;
+}
+pub(crate) mod role_mutations_update {
+    pub use crate::role_mutations_update::*;
+}
+pub(crate) mod role_queries_list {
+    pub use crate::role_queries_list::*;
+}

@@ -1,7 +1,8 @@
 pub fn init_service_observability(
     format: crate::service_tracing_format::ServiceTracingFormat,
-    service_name: super::ServiceName,
-) -> Result<super::ObservabilityGuard, super::ObservabilityInitError> {
+    service_name: crate::initialization::ServiceName,
+) -> Result<crate::initialization::ObservabilityGuard, crate::initialization::ObservabilityInitError>
+{
     opentelemetry::global::set_text_map_propagator(
         opentelemetry_sdk::propagation::TraceContextPropagator::new(),
     );
@@ -9,8 +10,8 @@ pub fn init_service_observability(
         .with_http()
         .build()
         .map_err(|error| {
-            super::ObservabilityInitError::Exporter(
-                super::OpentelemetryOtlpExporterBuildError::from(error),
+            crate::initialization::ObservabilityInitError::Exporter(
+                crate::initialization::OpentelemetryOtlpExporterBuildError::from(error),
             )
         })?;
     let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
@@ -63,11 +64,13 @@ pub fn init_service_observability(
                 "OpenTelemetry cleanup after subscriber initialization failure failed"
             );
         }
-        return Err(super::ObservabilityInitError::Subscriber(
-            super::TracingSubscriberInitError::from(error),
+        return Err(crate::initialization::ObservabilityInitError::Subscriber(
+            crate::initialization::TracingSubscriberInitError::from(error),
         ));
     }
-    Ok(super::ObservabilityGuard {
-        tracer_provider: Some(super::OpentelemetrySdkTracerProvider::from(tracer_provider)),
+    Ok(crate::initialization::ObservabilityGuard {
+        tracer_provider: Some(crate::initialization::OpentelemetrySdkTracerProvider::from(
+            tracer_provider,
+        )),
     })
 }

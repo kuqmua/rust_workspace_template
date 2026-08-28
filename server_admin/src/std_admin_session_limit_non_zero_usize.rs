@@ -11,4 +11,4 @@
     Eq,
     newtype::FromInner,
 )]
-pub(super) struct StdAdminSessionLimitNonZeroUsize(pub(super) std::num::NonZeroUsize);
+pub(crate) struct StdAdminSessionLimitNonZeroUsize(pub(crate) std::num::NonZeroUsize);

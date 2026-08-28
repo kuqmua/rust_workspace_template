@@ -1,4 +1,4 @@
-use super::LOC_COMMIT_MAX_LEN;
+use crate::domain_types::LOC_COMMIT_MAX_LEN;
 
 #[derive(
     Debug,

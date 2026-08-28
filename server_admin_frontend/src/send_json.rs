@@ -2,7 +2,7 @@
     clippy::future_not_send,
     reason = "browser mutation requests run exclusively on wasm_bindgen_futures::spawn_local"
 )]
-pub(in crate::domain_types::start) async fn send_json<RequestBody>(
+pub(crate) async fn send_json<RequestBody>(
     method: crate::domain_types::start::mutation::AdminMutationMethod,
     path: &crate::domain_types::start::http::url::AdminCsrApiUrl,
     request_body: &RequestBody,

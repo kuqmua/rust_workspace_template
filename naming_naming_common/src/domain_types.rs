@@ -1,31 +1,8 @@
-#[path = "case_from_string.rs"]
-mod case_from_string;
-#[path = "case_string.rs"]
-mod case_string;
-#[path = "case_string_max_len.rs"]
-mod case_string_max_len;
-#[path = "convert_case_kind.rs"]
-mod convert_case_kind;
-#[path = "display_case_str.rs"]
-mod display_case_str;
-#[path = "proc_macro2_case_token_stream.rs"]
-mod proc_macro2_case_token_stream;
-#[path = "str_case.rs"]
-mod str_case;
-#[path = "to_token_stream_or_panic.rs"]
-mod to_token_stream_or_panic;
-#[path = "tokenized_case_str.rs"]
-mod tokenized_case_str;
-
-use case_from_string::case_from_string;
-use case_string::CaseString;
-use case_string_max_len::CASE_STRING_MAX_LEN;
-use convert_case_kind::ConvertCaseKind;
-use display_case_str::display_case_str;
-use proc_macro2_case_token_stream::ProcMacro2CaseTokenStream;
-use str_case::str_case;
-use to_token_stream_or_panic::to_token_stream_or_panic;
-use tokenized_case_str::tokenized_case_str;
+use crate::convert_case_kind::ConvertCaseKind;
+use crate::display_case_str::display_case_str;
+use crate::str_case::str_case;
+use crate::to_token_stream_or_panic::to_token_stream_or_panic;
+use crate::tokenized_case_str::tokenized_case_str;
 
 naming_common_macros::case_trait_pair!(
     AsRefStrToUpperCamelCaseStr,

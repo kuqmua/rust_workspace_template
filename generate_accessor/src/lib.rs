@@ -20,7 +20,7 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
 #[allow(
     clippy::single_call_fn,
-    reason = "token generation is kept separate from the proc-macro boundary adapter"
+    reason = "fallible token generation remains separate from the proc-macro boundary"
 )]
 fn generate_accessor_token_stream(
     input: &syn::DeriveInput,
@@ -71,7 +71,23 @@ fn generate_accessor_token_stream(
             let (field_member, field_name) = match &field.ident {
                 Some(field_identifier) => (
                     quote::quote!(#field_identifier),
-                    quote::format_ident!("get_{}", to_snake_case(field_identifier)),
+                    quote::format_ident!(
+                        "get_{}",
+                        field_identifier.to_string().chars().enumerate().fold(
+                            String::new(),
+                            |mut snake_case, (character_index, character)| {
+                                if character.is_uppercase() {
+                                    if character_index != constants_usize::ZERO {
+                                        snake_case.push('_');
+                                    }
+                                    snake_case.extend(character.to_lowercase());
+                                } else {
+                                    snake_case.push(character);
+                                }
+                                snake_case
+                            }
+                        )
+                    ),
                 ),
                 None if data.fields.len() == constants_usize::ONE => {
                     let syn_index = syn::Index::from(index);
@@ -125,27 +141,4 @@ fn generate_accessor_token_stream(
             #(#methods)*
         }
     })
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "identifier normalization is a distinct generation responsibility"
-)]
-fn to_snake_case(identifier: &syn::Ident) -> String {
-    let mut snake_case = String::new();
-    identifier
-        .to_string()
-        .chars()
-        .enumerate()
-        .for_each(|(index, character)| {
-            if character.is_uppercase() {
-                if index != constants_usize::ZERO {
-                    snake_case.push('_');
-                }
-                snake_case.extend(character.to_lowercase());
-            } else {
-                snake_case.push(character);
-            }
-        });
-    snake_case
 }

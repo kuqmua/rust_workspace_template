@@ -1,18 +1,17 @@
-#[allow(clippy::single_call_fn)] // typed-route delegate owns permissions query transport workflow
-pub(in crate::domain_types::auth) async fn queries_list_permissions(
-    auth: super::super::AdminAuthReq,
-    query: super::super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
-) -> Result<super::super::AxumAdminResponse, super::super::AdminError> {
+pub(crate) async fn queries_list_permissions(
+    auth: crate::AdminAuthReq,
+    query: crate::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
     let _actor =
-        super::super::authorization_authorize_generated_request::authorization_authorize_generated_request(
+        crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
             auth.state.as_ref(),
-            super::super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+            crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
             auth.peer,
-            super::super::super::AdminPermission::PermissionsRead.as_str(),
-            super::super::super::StdAdminBool::from(false),
+            crate::AdminPermission::PermissionsRead.as_str(),
+            crate::StdAdminBool::from(false),
         )
         .await?;
-    super::super::shared::validate_table_sort::validate_table_sort(
+    crate::shared::validate_table_sort::validate_table_sort(
         &query.0,
         &server_admin_contract::domain_types::AdminTableSortField::PERMISSION,
     )?;
@@ -24,7 +23,7 @@ pub(in crate::domain_types::auth) async fn queries_list_permissions(
             .fetch_one(permission_pool)
             .await
             .map_err(crate::domain_types::SqlxAdminError::from)
-            .map_err(super::super::AdminError::from)?;
+            .map_err(crate::AdminError::from)?;
     let items =
         sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_PAGE_PERMISSIONS_SQL)
             .bind(search)
@@ -35,28 +34,28 @@ pub(in crate::domain_types::auth) async fn queries_list_permissions(
             .fetch_all(permission_pool)
             .await
             .map_err(crate::domain_types::SqlxAdminError::from)
-            .map_err(super::super::AdminError::from)?
+            .map_err(crate::AdminError::from)?
             .into_iter()
             .map(|(id, name)| {
                 Ok(
                     server_admin_contract::domain_types::AdminPermissionSummary::new(
                         server_admin_contract::domain_types::AdminPermissionId::try_from(id)
-                            .map_err(|_error| super::super::AdminError::Validation)?,
+                            .map_err(|_error| crate::AdminError::Validation)?,
                         server_admin_contract::domain_types::AdminPermissionValue::try_from(name)
-                            .map_err(|_error| super::super::AdminError::Validation)?,
+                            .map_err(|_error| crate::AdminError::Validation)?,
                     ),
                 )
             })
-            .collect::<Result<Vec<_>, super::super::AdminError>>()?;
+            .collect::<Result<Vec<_>, crate::AdminError>>()?;
     let permissions =
         server_admin_contract::domain_types::AdminPermissionSummaries::try_from(items)
-            .map_err(|_error| super::super::AdminError::Validation)?;
-    Ok(super::super::shared::json_response::json_response(
+            .map_err(|_error| crate::AdminError::Validation)?;
+    Ok(crate::shared::json_response::json_response(
         server_admin_contract::domain_types::AdminPermissionsPage::new(
             permissions,
-            super::super::shared::page_total::page_total(
-                crate::repository::AdminPageTotalCount::from(total),
-            )?,
+            crate::shared::page_total::page_total(crate::repository::AdminPageTotalCount::from(
+                total,
+            ))?,
         ),
     ))
 }

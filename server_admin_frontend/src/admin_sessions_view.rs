@@ -5,7 +5,7 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the parent app module"
 )]
-pub(in crate::domain_types::start) fn AdminSessionsView(
+pub(crate) fn AdminSessionsView(
     page: server_admin_contract::domain_types::AdminSessionsPage,
 ) -> impl leptos::prelude::IntoView {
     let total = page.total();

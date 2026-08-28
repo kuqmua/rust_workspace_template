@@ -1,7 +1,7 @@
-impl super::AdminAuditAction {
+impl crate::AdminAuditAction {
     #[must_use]
-    pub fn as_str(self) -> super::StdAdminStrRef<'static> {
-        super::StdAdminStrRef::from(match self {
+    pub fn as_str(self) -> crate::StdAdminStrRef<'static> {
+        crate::StdAdminStrRef::from(match self {
             Self::Create => constants_str::PG_CRUD_CREATE_PERMISSION_ACTION,
             Self::Delete => constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
             Self::Refresh => constants_str::REFRESH,
@@ -11,10 +11,10 @@ impl super::AdminAuditAction {
         })
     }
 }
-impl super::AdminAuditResource {
+impl crate::AdminAuditResource {
     #[must_use]
-    pub fn as_str(self) -> super::StdAdminStrRef<'static> {
-        super::StdAdminStrRef::from(match self {
+    pub fn as_str(self) -> crate::StdAdminStrRef<'static> {
+        crate::StdAdminStrRef::from(match self {
             Self::AuditLog => constants_str::AUDIT_LOG_ALT,
             Self::Permission => constants_str::PERMISSION,
             Self::Role => constants_str::ROLE,
@@ -30,12 +30,12 @@ mod tests {
     #[test]
     fn audit_action_wire_values_cover_every_variant() {
         let actual = [
-            super::super::AdminAuditAction::Create.as_str(),
-            super::super::AdminAuditAction::Delete.as_str(),
-            super::super::AdminAuditAction::Refresh.as_str(),
-            super::super::AdminAuditAction::SignIn.as_str(),
-            super::super::AdminAuditAction::SignOut.as_str(),
-            super::super::AdminAuditAction::Update.as_str(),
+            crate::AdminAuditAction::Create.as_str(),
+            crate::AdminAuditAction::Delete.as_str(),
+            crate::AdminAuditAction::Refresh.as_str(),
+            crate::AdminAuditAction::SignIn.as_str(),
+            crate::AdminAuditAction::SignOut.as_str(),
+            crate::AdminAuditAction::Update.as_str(),
         ];
         assert_eq!(
             actual.map(server_admin_core::domain_types::StdAdminStrRef::get),
@@ -53,12 +53,12 @@ mod tests {
     #[test]
     fn audit_resource_wire_values_cover_every_variant() {
         let actual = [
-            super::super::AdminAuditResource::AuditLog.as_str(),
-            super::super::AdminAuditResource::Permission.as_str(),
-            super::super::AdminAuditResource::Role.as_str(),
-            super::super::AdminAuditResource::Session.as_str(),
-            super::super::AdminAuditResource::SystemSettings.as_str(),
-            super::super::AdminAuditResource::User.as_str(),
+            crate::AdminAuditResource::AuditLog.as_str(),
+            crate::AdminAuditResource::Permission.as_str(),
+            crate::AdminAuditResource::Role.as_str(),
+            crate::AdminAuditResource::Session.as_str(),
+            crate::AdminAuditResource::SystemSettings.as_str(),
+            crate::AdminAuditResource::User.as_str(),
         ];
         assert_eq!(
             actual.map(server_admin_core::domain_types::StdAdminStrRef::get),

@@ -1,4 +1,4 @@
-fn env<Value>(value: &str) -> Value
+fn admin_app_test_env<Value>(value: &str) -> Value
 where
     Value: config_lib::domain_types::TryFromStdEnvVarOk,
     Value::Error: std::fmt::Debug,
@@ -10,22 +10,22 @@ where
     .expect("135a22e8 env invariant must hold")
 }
 
-pub(in crate::domain_types::auth) fn auth_state(
+pub(crate) fn auth_state(
     pool: sqlx::PgPool,
     allowed_origin: &str,
-) -> Result<super::super::AdminAuthSvcState, super::super::AdminAuthSvcStateBuildError> {
-    super::super::AdminAuthSvcState::try_new(
+) -> Result<crate::AdminAuthSvcState, crate::AdminAuthSvcStateBuildError> {
+    crate::AdminAuthSvcState::try_new(
         app_state::domain_types::SqlxPgPool::from(pool),
-        &env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
-        &env(constants_str::VALUE_900),
-        &env(constants_str::VALUE_3600),
-        &env(constants_str::VALUE_20),
-        &env(constants_str::VALUE_2),
-        &env(constants_str::VALUE_10),
-        &env(constants_str::VALUE_1),
-        &env(constants_str::FALSE),
-        &env(constants_str::INTEGRATION_TEST),
-        &env(constants_str::INTEGRATION_TEST_ADMIN),
+        &admin_app_test_env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
+        &admin_app_test_env(constants_str::VALUE_900),
+        &admin_app_test_env(constants_str::VALUE_3600),
+        &admin_app_test_env(constants_str::VALUE_20),
+        &admin_app_test_env(constants_str::VALUE_2),
+        &admin_app_test_env(constants_str::VALUE_10),
+        &admin_app_test_env(constants_str::VALUE_1),
+        &admin_app_test_env(constants_str::FALSE),
+        &admin_app_test_env(constants_str::INTEGRATION_TEST),
+        &admin_app_test_env(constants_str::INTEGRATION_TEST_ADMIN),
         &config_lib::domain_types::CorsAllowOrigin(allowed_origin.to_owned()),
     )
 }

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::single_call_fn,
-    reason = "frontend contract emission has a private physical boundary from route metadata"
-)]
 pub(super) const fn frontend_http_method<
     Capability,
     HttpMethod,

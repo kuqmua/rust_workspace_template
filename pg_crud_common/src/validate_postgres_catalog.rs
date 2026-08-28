@@ -2,7 +2,7 @@
     clippy::wildcard_imports,
     reason = "split schema owner modules import the private facade vocabulary used by validation"
 )]
-use super::*;
+use crate::*;
 
 pub fn validate_postgres_catalog(
     expected: DbCatalogSnapshot,

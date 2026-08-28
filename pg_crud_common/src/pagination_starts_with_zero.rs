@@ -11,9 +11,7 @@
     schemars::JsonSchema,
     optimal_memory_layout::OptimalMemoryLayout,
 )]
-#[serde(
-    try_from = "crate::domain_types::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw"
-)]
+#[serde(try_from = "crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw")]
 #[derive(newtype::FromInner)]
 pub struct PaginationStartsWithZero(crate::domain_types::PaginationBase);
 
@@ -64,13 +62,13 @@ impl PaginationStartsWithZero {
     }
 }
 
-impl TryFrom<crate::domain_types::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw>
+impl TryFrom<crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw>
     for PaginationStartsWithZero
 {
     type Error = crate::domain_types::PaginationStartsWithZeroTryNewError;
 
     fn try_from(
-        value: crate::domain_types::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw,
+        value: crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw,
     ) -> Result<Self, Self::Error> {
         Self::try_new(*value.get_limit(), *value.get_offset())
     }

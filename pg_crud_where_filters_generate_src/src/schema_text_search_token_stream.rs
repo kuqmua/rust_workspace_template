@@ -2,10 +2,10 @@
     clippy::single_call_fn,
     reason = "the schema emitter boundary is intentionally isolated from descriptor and contract emitters"
 )]
-pub(in crate::domain_types) fn schema_text_search_token_stream(
-    spec: crate::domain_types::spec::FilterSpec,
+pub(crate) fn schema_text_search_token_stream(
+    spec: crate::spec::FilterSpec,
 ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-    if !crate::domain_types::schema::schema_uses_text_value::schema_uses_text_value(spec).get() {
+    if !crate::schema_uses_text_value::schema_uses_text_value(spec).get() {
         return quote::quote! {compile_error!("text search schema requires text value shape");}
             .into();
     }

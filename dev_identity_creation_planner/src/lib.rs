@@ -1,15 +1,24 @@
-#[path = "domain_types.rs"]
+mod development_identity_count;
+mod development_identity_creation_plan;
+mod development_identity_creation_summary;
+mod development_identity_specs;
+mod development_identity_specs_error;
+mod development_identity_specs_max_len;
 pub mod domain_types;
+pub(crate) use domain_types::{
+    DevelopmentIdentityCount, DevelopmentIdentityCreationSummary, DevelopmentIdentitySpecs,
+    DevelopmentIdentitySpecsError,
+};
 
 #[must_use]
 pub fn summarize_identity_creation_decisions<Reports>(
     reports: Reports,
-) -> domain_types::DevelopmentIdentityCreationSummary
+) -> DevelopmentIdentityCreationSummary
 where
     Reports: IntoIterator<Item = server_runtime_http::domain_types::IdentityCreationDecision>,
 {
     reports.into_iter().fold(
-        domain_types::DevelopmentIdentityCreationSummary::default(),
+        DevelopmentIdentityCreationSummary::default(),
         |mut summary, decision| {
             summary.record(decision);
             summary

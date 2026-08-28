@@ -9,7 +9,7 @@ enum AdminObservedErrorCode {
     SecretText,
     Session,
 }
-impl super::AdminError {
+impl crate::AdminError {
     #[track_caller]
     fn observed<Source>(
         source: Source,
@@ -68,14 +68,14 @@ impl super::AdminError {
     }
 
     #[track_caller]
-    pub(super) fn authentication_secret_text(source: super::super::AdminSecretTextError) -> Self {
+    pub(crate) fn authentication_secret_text(source: crate::AdminSecretTextError) -> Self {
         Self::AuthenticationSecretText(Self::observed(
             source,
             AdminObservedErrorCode::AuthenticationSecretText,
         ))
     }
 
-    pub(super) const fn body_rejection(is_payload_too_large: super::super::StdAdminBool) -> Self {
+    pub(crate) const fn body_rejection(is_payload_too_large: crate::StdAdminBool) -> Self {
         if is_payload_too_large.get() {
             Self::PayloadTooLarge
         } else {
@@ -84,7 +84,7 @@ impl super::AdminError {
     }
 
     #[track_caller]
-    pub(super) fn csrf_secret_text(source: super::super::AdminSecretTextError) -> Self {
+    pub(crate) fn csrf_secret_text(source: crate::AdminSecretTextError) -> Self {
         Self::CsrfSecretText(Self::observed(
             source,
             AdminObservedErrorCode::CsrfSecretText,
@@ -92,46 +92,46 @@ impl super::AdminError {
     }
 
     #[track_caller]
-    pub(super) fn header(source: super::HttpAdminHeaderValueError) -> Self {
+    pub(crate) fn header(source: crate::HttpAdminHeaderValueError) -> Self {
         Self::Header(Self::observed(source, AdminObservedErrorCode::Header))
     }
 
     #[track_caller]
-    pub(super) fn password_hash(source: super::super::AdminPasswordHashError) -> Self {
+    pub(crate) fn password_hash(source: crate::AdminPasswordHashError) -> Self {
         Self::PasswordHash(Self::observed(source, AdminObservedErrorCode::PasswordHash))
     }
 
     #[track_caller]
-    pub(super) fn password_text(source: super::super::AdminPasswordTryFromStringError) -> Self {
+    pub(crate) fn password_text(source: crate::AdminPasswordTryFromStringError) -> Self {
         Self::PasswordText(Self::observed(source, AdminObservedErrorCode::PasswordText))
     }
 
     #[track_caller]
-    pub(super) fn postgresql(source: super::super::SqlxAdminError) -> Self {
+    pub(crate) fn postgresql(source: crate::SqlxAdminError) -> Self {
         Self::Pg(Self::observed(source, AdminObservedErrorCode::Database))
     }
 
     #[track_caller]
-    pub(super) fn session(source: super::AdminSessionError) -> Self {
+    pub(crate) fn session(source: crate::AdminSessionError) -> Self {
         Self::Session(Self::observed(source, AdminObservedErrorCode::Session))
     }
 
     #[track_caller]
-    pub(super) fn secret_text(source: super::super::AdminSecretTextError) -> Self {
+    pub(crate) fn secret_text(source: crate::AdminSecretTextError) -> Self {
         Self::SecretText(Self::observed(source, AdminObservedErrorCode::SecretText))
     }
 }
-impl From<sqlx::Error> for super::AdminError {
+impl From<sqlx::Error> for crate::AdminError {
     fn from(value: sqlx::Error) -> Self {
-        Self::postgresql(super::super::SqlxAdminError::from(value))
+        Self::postgresql(crate::SqlxAdminError::from(value))
     }
 }
-impl From<super::super::SqlxAdminError> for super::AdminError {
-    fn from(value: super::super::SqlxAdminError) -> Self {
+impl From<crate::SqlxAdminError> for crate::AdminError {
+    fn from(value: crate::SqlxAdminError) -> Self {
         Self::postgresql(value)
     }
 }
-impl axum::response::IntoResponse for super::AdminError {
+impl axum::response::IntoResponse for crate::AdminError {
     fn into_response(self) -> axum::response::Response {
         let route_error_status = self.route_error_status();
         let error_type = server_runtime_http::domain_types::HttpErrorType::from(
@@ -179,10 +179,10 @@ impl axum::response::IntoResponse for super::AdminError {
             | Self::RateLimited
             | Self::Validation => None,
         };
-        super::admin_error_response_parts(route_error_status, optional_diagnostic)
+        crate::admin_error_response_parts(route_error_status, optional_diagnostic)
     }
 }
-impl axum::response::IntoResponse for super::AxumAdminResponse {
+impl axum::response::IntoResponse for crate::AxumAdminResponse {
     fn into_response(self) -> axum::response::Response {
         self.0
     }

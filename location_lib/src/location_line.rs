@@ -1,4 +1,4 @@
-use super::{LocationCoordinateTryFromU32Error, LocationLineNonZeroU32};
+use crate::domain_types::{LocationCoordinateTryFromU32Error, LocationLineNonZeroU32};
 
 #[derive(
     Debug,

@@ -1,25 +1,10 @@
-#[path = "fallback_response_mode.rs"]
-mod fallback_response_mode;
-#[path = "http_accept_header_maximum_bytes.rs"]
-mod http_accept_header_maximum_bytes;
-#[path = "http_fallback_api_prefix_ref.rs"]
-mod http_fallback_api_prefix_ref;
-#[path = "http_fallback_metrics_path_ref.rs"]
-mod http_fallback_metrics_path_ref;
-#[path = "http_fallback_request_path_ref.rs"]
-mod http_fallback_request_path_ref;
-#[path = "http_optional_accept_header_ref.rs"]
-mod http_optional_accept_header_ref;
-#[path = "resolve_fallback_response_mode.rs"]
-mod resolve_fallback_response_mode;
-
-pub use fallback_response_mode::FallbackResponseMode;
-pub use http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes;
-pub use http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef;
-pub use http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef;
-pub use http_fallback_request_path_ref::HttpFallbackRequestPathRef;
-pub use http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef;
-pub use resolve_fallback_response_mode::resolve_fallback_response_mode;
+pub use crate::fallback_response_mode::FallbackResponseMode;
+pub use crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes;
+pub use crate::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef;
+pub use crate::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef;
+pub use crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef;
+pub use crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef;
+pub use crate::resolve_fallback_response_mode::resolve_fallback_response_mode;
 
 #[cfg(test)]
 mod tests {
@@ -51,4 +36,27 @@ mod tests {
             super::FallbackResponseMode::HumanReadable
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod fallback_response_mode {
+    pub use crate::fallback_response_mode::*;
+}
+mod http_accept_header_maximum_bytes {
+    pub use crate::http_accept_header_maximum_bytes::*;
+}
+mod http_fallback_api_prefix_ref {
+    pub use crate::http_fallback_api_prefix_ref::*;
+}
+mod http_fallback_metrics_path_ref {
+    pub use crate::http_fallback_metrics_path_ref::*;
+}
+mod http_fallback_request_path_ref {
+    pub use crate::http_fallback_request_path_ref::*;
+}
+mod http_optional_accept_header_ref {
+    pub use crate::http_optional_accept_header_ref::*;
+}
+mod resolve_fallback_response_mode {
+    pub use crate::resolve_fallback_response_mode::*;
 }

@@ -9,5 +9,5 @@ pub enum AdminCleanupError {
         #[from] pg_table::domain_types::PgTableIdempotencyCleanupValueTryFromI64Error,
     ),
     #[error("administrator table cleanup failed: {0:?}")]
-    Pg(#[source] super::SqlxAdminError),
+    Pg(#[source] crate::SqlxAdminError),
 }

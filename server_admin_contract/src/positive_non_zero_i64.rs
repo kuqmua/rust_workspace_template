@@ -29,13 +29,13 @@ impl utoipa::PartialSchema for PositiveNonZeroI64 {
 impl utoipa::ToSchema for PositiveNonZeroI64 {}
 
 impl TryFrom<i64> for PositiveNonZeroI64 {
-    type Error = super::super::AdminIdTryFromI64Error;
+    type Error = crate::AdminIdTryFromI64Error;
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         std::num::NonZeroI64::new(value)
             .filter(|non_zero| non_zero.get().is_positive())
             .map(Self)
-            .ok_or(super::super::AdminIdTryFromI64Error)
+            .ok_or(crate::AdminIdTryFromI64Error)
     }
 }
 

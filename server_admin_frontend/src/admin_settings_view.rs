@@ -1,16 +1,11 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, OnAttribute};
 
-#[path = "reset.rs"]
-mod reset;
-#[path = "save.rs"]
-mod save;
-
 #[leptos::component]
 #[allow(
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the parent app module"
 )]
-pub(in crate::domain_types::start) fn AdminSettingsView(
+pub(crate) fn AdminSettingsView(
     admin: server_admin_contract::domain_types::AuthenticatedAdmin,
     page: server_admin_contract::domain_types::AdminSettingsView,
 ) -> impl leptos::prelude::IntoView {
@@ -35,4 +30,12 @@ pub(in crate::domain_types::start) fn AdminSettingsView(
             </crate::domain_types::with_owner::card::AdminCardFooter>
         </form></crate::domain_types::with_owner::card::AdminCard></section>
     }
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod reset {
+    pub use crate::reset::*;
+}
+pub(crate) mod save {
+    pub use crate::save::*;
 }

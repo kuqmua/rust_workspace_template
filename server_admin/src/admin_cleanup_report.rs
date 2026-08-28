@@ -1,4 +1,4 @@
-use super::AdminCleanupRows;
+use crate::AdminCleanupRows;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupReport {
@@ -10,10 +10,6 @@ pub struct AdminCleanupReport {
     refresh_tokens: AdminCleanupRows,
 }
 impl AdminCleanupReport {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "cleanup adapter constructs the complete typed report through one invariant boundary"
-    )]
     pub(crate) const fn new(
         access_sessions: AdminCleanupRows,
         audit_log: AdminCleanupRows,

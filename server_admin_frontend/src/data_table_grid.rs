@@ -1,5 +1,3 @@
-#![allow(clippy::single_call_fn)] // SSR data-table facade has one renderer owner
-
 pub(super) fn data_table_grid(
     view: &server_admin_contract::domain_types::AdminDataTableView,
     query: &server_admin_contract::domain_types::AdminDataTableQuery,

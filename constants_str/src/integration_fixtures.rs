@@ -91,6 +91,7 @@ constants_str_macros::define_str_constants! {
         YML = ["yml"];
         YAML = ["yaml"];
         JSON = ["json"];
+        MD = ["md"];
         BLOCKING_RECV = ["blocking_recv"];
         BLOCKING_SEND = ["blocking_send"];
         TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR = ["tracing::dispatcher::SetGlobalDefaultError"];

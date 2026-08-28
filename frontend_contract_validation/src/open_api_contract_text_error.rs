@@ -1,4 +1,4 @@
-use super::OpenApiContractTextTryFromStringError;
+use crate::openapi_validation::OpenApiContractTextTryFromStringError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

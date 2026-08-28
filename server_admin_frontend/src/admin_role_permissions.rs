@@ -1,5 +1,4 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "CSR and SSR targets each compile one call site and Leptos cell rendering requires attribute traits"
 )]

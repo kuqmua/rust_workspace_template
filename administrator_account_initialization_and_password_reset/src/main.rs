@@ -2,19 +2,23 @@
     unused_crate_dependencies,
     reason = "constants_str is used by binary unit tests"
 )]
+#![allow(clippy::single_call_fn)] // root-owned command parsing and execution stages each have one binary composition owner
 
-#[path = "domain_types.rs"]
+mod admin_command;
+mod administrator_account_command_error;
+mod administrator_account_command_exit_code;
+mod administrator_account_command_status;
+mod administrator_command_args_error;
+mod administrator_password_file_path_buf;
 mod domain_types;
-#[path = "error_status.rs"]
 mod error_status;
-#[path = "parse_args.rs"]
+mod initial_administrator_creation_args;
 mod parse_args;
-#[path = "password_from_bytes.rs"]
 mod password_from_bytes;
-#[path = "password_from_file.rs"]
 mod password_from_file;
-#[path = "run.rs"]
+mod password_reset_args;
 mod run;
+mod sqlx_administrator_database_connection_error;
 
 fn main() -> domain_types::AdministratorAccountCommandExitCode {
     let runtime = match tokio::runtime::Builder::new_current_thread()
@@ -29,7 +33,7 @@ fn main() -> domain_types::AdministratorAccountCommandExitCode {
             );
         }
     };
-    match runtime.block_on(run::run()) {
+    match runtime.block_on(run::run_admin_account_command()) {
         Ok(user_id) => {
             tracing::info!(user_id = %user_id, "administrator operation completed");
             domain_types::AdministratorAccountCommandExitCode::from(std::process::ExitCode::SUCCESS)

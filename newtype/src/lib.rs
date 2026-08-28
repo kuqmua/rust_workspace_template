@@ -1,10 +1,29 @@
-#[path = "domain_types.rs"]
+mod bounded_string_attrs;
+mod bounded_string_option;
 mod domain_types;
+mod newtype_attrs;
+mod newtype_bool;
+mod newtype_option;
+mod newtype_try_from_attrs;
+mod proc_macro2_generated_token_stream;
+mod proc_macro_input_token_stream;
+mod snake_ident_max_len;
+mod snake_identifier;
+mod snake_identifierifier_len;
+mod snake_identifierifier_try_from_string_error;
+mod syn_derive_input_ref;
+mod syn_expr;
+mod syn_identifier;
+mod syn_identifier_ref;
+mod syn_type;
+mod syn_type_ref;
+mod to_err_string_mode;
+mod wire_enum_attrs;
 
 #[cfg(test)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(dead_code)] // dev dependencies are exercised by integration tests, not proc-macro unit code
-fn dependency_markers<Value>(
+fn newtype_dependency_markers<Value>(
     _: Option<Value>,
     _: Option<serde_json::Value>,
     _: Option<utoipa::openapi::OpenApi>,
@@ -1322,7 +1341,11 @@ fn generate_newtype_token_stream_with_attrs(
     ))
 }
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)] // checked String wrapper generation is separate from forwarding newtype impls
+
+#[allow(
+    clippy::single_call_fn,
+    reason = "bounded-string token generation remains separate from the proc-macro boundary"
+)]
 fn generate_bounded_string_token_stream(
     input: domain_types::SynDeriveInputRef<'_>,
 ) -> syn::Result<domain_types::ProcMacro2GeneratedTokenStream> {
@@ -1657,5 +1680,4 @@ fn identifier_to_snake(
         .expect("2e7a9c4f identifier_to_snake invariant must hold")
 }
 #[cfg(test)]
-#[path = "tests.rs"]
 mod tests;

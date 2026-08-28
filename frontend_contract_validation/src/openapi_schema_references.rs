@@ -1,4 +1,4 @@
-use super::{
+use crate::openapi_validation::{
     OpenApiContractText, OpenApiContractTextError, OpenApiSchemaReferencesBTreeSet,
     OpenApiValidationError, SerdeJsonOpenApiSerializationError,
 };

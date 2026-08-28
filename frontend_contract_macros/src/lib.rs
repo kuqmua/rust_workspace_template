@@ -2,11 +2,37 @@
     clippy::arbitrary_source_item_ordering,
     reason = "proc-macro parser models precede their entrypoints while related derive parsers remain adjacent"
 )]
-#[path = "domain_types.rs"]
+mod contract_struct_api_args;
+mod contract_struct_api_field_args;
 mod domain_types;
+mod endpoint_registry_args;
+mod endpoint_registry_binding;
+mod page_catalog_args;
+mod page_catalog_page_args;
+mod route_catalog_args;
+mod route_catalog_route_args;
+mod route_registry_args;
+mod route_registry_binding;
+mod std_bool;
+mod syn_attributes_ref;
+mod syn_endpoint_registry_bindings;
+mod syn_endpoint_registry_contract;
+mod syn_endpoint_registry_endpoint;
+mod syn_endpoint_registry_state;
+mod syn_expr;
+mod syn_ident;
+mod syn_route_registry_bindings;
+mod syn_route_registry_endpoint;
+mod syn_route_registry_family;
+mod syn_route_registry_route;
+mod syn_route_registry_schemas;
+mod syn_route_registry_state;
+mod syn_type;
+mod syn_typed_route_errors;
+mod typed_route_args;
 #[allow(
     clippy::single_call_fn,
-    reason = "a named parser keeps derive expansion focused and is exercised directly by parser tests"
+    reason = "fallible attribute parsing remains separate from macro expansion"
 )]
 fn parse_contract_struct_api_args(
     attributes: domain_types::SynAttributesRef<'_>,
@@ -43,7 +69,7 @@ fn parse_contract_struct_api_args(
 }
 #[allow(
     clippy::single_call_fn,
-    reason = "a named parser keeps derive expansion focused and is exercised directly by parser tests"
+    reason = "fallible field-attribute parsing remains separate from macro expansion"
 )]
 fn parse_contract_struct_api_field_args(
     attributes: domain_types::SynAttributesRef<'_>,
@@ -1444,7 +1470,7 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
     }
     quote::quote! {
         #[derive(Debug, thiserror::Error)]
-        enum #error {
+        pub(crate) enum #error {
             #[error("administrator authentication failed")]
             Authentication,
             #[error("administrator authentication secret text is invalid")]
@@ -2292,5 +2318,4 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
 }
 
 #[cfg(test)]
-#[path = "tests.rs"]
 mod tests;

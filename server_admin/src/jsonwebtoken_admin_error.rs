@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct JsonwebtokenAdminError(pub(super) jsonwebtoken::errors::Error);
+pub struct JsonwebtokenAdminError(pub(crate) jsonwebtoken::errors::Error);

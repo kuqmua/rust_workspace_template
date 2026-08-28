@@ -12,4 +12,4 @@
     newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator access token")]
-pub struct StdAdminAccessToken(pub(super) String);
+pub struct StdAdminAccessToken(pub(crate) String);

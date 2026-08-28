@@ -1,4 +1,4 @@
-use super::super::{GitCommitIdRef, IsProjectCommit, project_git_info_value};
+use crate::domain_types::{GitCommitIdRef, IsProjectCommit, project_git_info_value};
 
 #[must_use]
 pub fn check_is_project_commit<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> IsProjectCommit

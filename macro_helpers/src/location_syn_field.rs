@@ -33,6 +33,4 @@ pub fn location_syn_field() -> SynLocationField {
         }),
     })
 }
-#[path = "syn_location_field.rs"]
-mod syn_location_field;
-pub use syn_location_field::SynLocationField;
+pub use crate::syn_location_field::SynLocationField;

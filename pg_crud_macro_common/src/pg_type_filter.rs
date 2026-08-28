@@ -79,7 +79,7 @@ pub enum PgTypeFilter {
     RangeLen,
     //BitVecPositionEq,//currently deactivated
 }
-impl super::PgFilter for PgTypeFilter {
+impl crate::pg_filter::PgFilter for PgTypeFilter {
     fn maybe_generic(
         &self,
     ) -> Option<macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream>

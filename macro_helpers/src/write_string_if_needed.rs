@@ -1,5 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)]
+
+#[allow(clippy::single_call_fn)] // atomic mutation remains separate from the metadata comparison stage
 pub(super) fn write_string_if_needed(
     path: super::WrittenFilePathRef<'_>,
     string_cnt: super::StringFileContentRef<'_>,

@@ -1,4 +1,4 @@
-use super::{AdminDataFilter, AdminDataFilters, AdminDataInputKind};
+use super::{AdminDataFilter, AdminDataFilters};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -12,13 +12,13 @@ pub struct AdminDataColumn {
     filters: AdminDataFilters,
     label: crate::domain_types::AdminText,
     name: crate::domain_types::AdminText,
-    input_kind: AdminDataInputKind,
+    input_kind: frontend_contract::domain_types::InputKind,
 }
 impl AdminDataColumn {
     #[must_use]
     pub const fn new(
         filters: AdminDataFilters,
-        input_kind: AdminDataInputKind,
+        input_kind: frontend_contract::domain_types::InputKind,
         label: crate::domain_types::AdminText,
         name: crate::domain_types::AdminText,
     ) -> Self {
@@ -34,7 +34,7 @@ impl AdminDataColumn {
         self.filters.as_slice()
     }
     #[must_use]
-    pub const fn input_kind(&self) -> AdminDataInputKind {
+    pub const fn input_kind(&self) -> frontend_contract::domain_types::InputKind {
         self.input_kind
     }
     #[must_use]

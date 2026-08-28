@@ -6,4 +6,4 @@
     newtype::Display,
     newtype::FromInner,
 )]
-pub(in crate::domain_types::start) struct AdminHttpStatus(u16);
+pub(crate) struct AdminHttpStatus(u16);

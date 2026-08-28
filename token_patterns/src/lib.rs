@@ -1,4 +1,3 @@
-#[path = "proc_macro2_tokens_mut.rs"]
 mod proc_macro2_tokens_mut;
 
 token_patterns_macros::tp!(SqlxAcquire, sqlx::Acquire);

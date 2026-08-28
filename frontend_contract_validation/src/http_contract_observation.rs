@@ -4,17 +4,17 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractObservation {
-    pub(super) body: super::HttpContractBody,
+    pub(super) body: crate::route_contract_validation::HttpContractBody,
     pub(super) metadata: frontend_contract::domain_types::RouteMetadata,
-    pub(super) status: super::HttpContractStatus,
+    pub(super) status: crate::route_contract_validation::HttpContractStatus,
 }
 
 impl HttpContractObservation {
     #[must_use]
     pub const fn new(
         metadata: frontend_contract::domain_types::RouteMetadata,
-        status: super::HttpContractStatus,
-        body: super::HttpContractBody,
+        status: crate::route_contract_validation::HttpContractStatus,
+        body: crate::route_contract_validation::HttpContractBody,
     ) -> Self {
         Self {
             body,

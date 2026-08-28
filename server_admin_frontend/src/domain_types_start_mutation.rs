@@ -1,9 +1,13 @@
-#[path = "admin_mutation_method.rs"]
-mod admin_mutation_method;
-#[path = "reload_after.rs"]
-mod reload_after;
-#[path = "show_mutation_error.rs"]
-pub(in crate::domain_types::start) mod show_mutation_error;
+pub(crate) use crate::admin_mutation_method::AdminMutationMethod;
+pub(crate) use crate::reload_after::reload_after;
 
-pub(in crate::domain_types::start) use admin_mutation_method::AdminMutationMethod;
-pub(in crate::domain_types::start) use reload_after::reload_after;
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_mutation_method {
+    pub use crate::admin_mutation_method::*;
+}
+pub(crate) mod reload_after {
+    pub use crate::reload_after::*;
+}
+pub(crate) mod show_mutation_error {
+    pub use crate::show_mutation_error::*;
+}

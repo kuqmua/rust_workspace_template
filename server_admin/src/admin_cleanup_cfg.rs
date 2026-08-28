@@ -1,4 +1,4 @@
-use super::{AdminCleanupBatchSize, AdminCleanupRetentionSeconds};
+use crate::{AdminCleanupBatchSize, AdminCleanupRetentionSeconds};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupCfg {

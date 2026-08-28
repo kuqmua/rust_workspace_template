@@ -1,17 +1,38 @@
-#[path = "configuration.rs"]
+#![allow(clippy::single_call_fn)] // root-owned server construction stages each have one binary composition owner
+
+mod admin_metrics_error;
+mod axum_api_routes;
 mod configuration;
-#[path = "domain_types.rs"]
 mod domain_types;
-#[path = "frontend_fallback_routes.rs"]
 mod frontend_fallback_routes;
-#[path = "interval.rs"]
+mod http_body_maximum_bytes;
 mod interval;
-#[path = "make_postgresql_pool.rs"]
 mod make_postgresql_pool;
-#[path = "mount_service_routes.rs"]
+mod metrics_exporter_prometheus_build_error;
+mod metrics_exporter_prometheus_renderer;
+pub(crate) mod migrate_server;
 mod mount_service_routes;
-#[path = "run_server.rs"]
+mod routes;
 mod run_server;
+mod run_server_error;
+mod server_admin_auth_svc_state_build_error;
+mod server_admin_cleanup_cfg_error;
+mod server_admin_migrate_error;
+mod server_config_error;
+mod server_config_production_error;
+mod server_exit_code;
+mod server_io_error;
+mod server_observability_init_error;
+mod server_observability_shutdown_error;
+mod server_runtime_background_task_shutdown_error;
+mod server_runtime_content_security_policy_error;
+mod server_runtime_request_timeout_error;
+mod server_runtime_run_interval_error;
+mod server_runtime_serve_error;
+mod server_runtime_trusted_proxy_ranges_parse_error;
+mod shared_server_app_state_arc;
+mod sqlx_server_pg_connect_error;
+mod tokio_server_runtime;
 
 fn main() -> domain_types::ServerExitCode {
     let config = match server_config::domain_types::Config::try_from_env() {
@@ -61,7 +82,7 @@ fn main() -> domain_types::ServerExitCode {
         .and_then(|runtime| match config.svc_mode {
             config_lib::domain_types::types::SvcMode::Migrate => {
                 tokio::runtime::Runtime::from(runtime)
-                    .block_on(run_server::migrate_server::migrate_server(&config))
+                    .block_on(migrate_server::migrate_server(&config))
             }
             config_lib::domain_types::types::SvcMode::Serve => {
                 tokio::runtime::Runtime::from(runtime).block_on(run_server::run_server(config))

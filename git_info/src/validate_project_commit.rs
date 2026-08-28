@@ -1,4 +1,4 @@
-use super::super::{
+use crate::domain_types::{
     GitCommitIdRef, ValidateProjectCommitError, check_is_project_commit,
     project_git_commit_link_ref_value,
 };

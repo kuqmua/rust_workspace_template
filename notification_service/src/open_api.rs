@@ -1,8 +1,7 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::single_call_fn)]
 
 #[frontend_contract::domain_types::route_operation]
-pub(super) async fn open_api() -> crate::domain_types::AxumNotificationResponse {
+pub(super) async fn notification_open_api() -> crate::domain_types::AxumNotificationResponse {
     let mut document =
         super::notification_api_route_registry::NotificationApiRouteRegistry::open_api();
     document.merge(utoipa::openapi::OpenApi::from(

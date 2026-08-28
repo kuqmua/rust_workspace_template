@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
 )]
-pub struct AdminJwtSecret(pub(super) super::super::SecrecyAdminString);
+pub struct AdminJwtSecret(pub(crate) crate::SecrecyAdminString);

@@ -5,6 +5,6 @@ pub struct CommonRoutesOpenApi;
 impl CommonRoutesOpenApi {
     #[must_use]
     pub fn open_api() -> UtoipaCommonRoutesOpenApiDocument {
-        crate::adapters::open_api()
+        crate::adapters::common_routes_open_api()
     }
 }

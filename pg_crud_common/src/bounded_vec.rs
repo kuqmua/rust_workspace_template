@@ -108,12 +108,8 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
         std::borrow::Cow::Borrowed(constants_str::BOUNDEDVEC)
     }
 }
-#[path = "bounded_vec_error.rs"]
-mod bounded_vec_error;
-#[path = "bounded_vec_len.rs"]
-mod bounded_vec_len;
-pub use bounded_vec_error::BoundedVecError;
-pub use bounded_vec_len::BoundedVecLen;
+pub use crate::bounded_vec_error::BoundedVecError;
+pub use crate::bounded_vec_len::BoundedVecLen;
 #[cfg(test)]
 mod tests {
     #[test]

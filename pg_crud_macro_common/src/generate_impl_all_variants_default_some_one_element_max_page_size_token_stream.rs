@@ -2,7 +2,7 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use super::super::*;
+use crate::domain_types::*;
 
 pub fn generate_impl_all_variants_default_some_one_element_max_page_size_token_stream(
     import: &Import,

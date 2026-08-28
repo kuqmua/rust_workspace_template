@@ -15,8 +15,8 @@ impl From<super::ForwardedProtoTrust> for SecurityHeadersLayer {
 
 impl SecurityHeadersLayer {
     #[must_use]
-    pub fn apply(self, router: super::super::AxumRouter) -> super::super::AxumRouter {
-        super::super::AxumRouter::from(axum::Router::from(router).layer(
+    pub fn apply(self, router: crate::AxumRouter) -> crate::AxumRouter {
+        crate::AxumRouter::from(axum::Router::from(router).layer(
             super::SecurityHeadersTowerLayer {
                 content_security_policy: self.content_security_policy,
                 forwarded_proto_trust: self.forwarded_proto_trust,

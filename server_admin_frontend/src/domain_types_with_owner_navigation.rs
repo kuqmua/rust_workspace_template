@@ -1,6 +1,10 @@
-#[path = "admin_navigation_link.rs"]
-pub(crate) mod admin_navigation_link;
-#[path = "admin_sidebar.rs"]
-pub(crate) mod admin_sidebar;
-#[path = "admin_sidebar_item.rs"]
-pub(crate) mod admin_sidebar_item;
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_navigation_link {
+    pub use crate::admin_navigation_link::*;
+}
+pub(crate) mod admin_sidebar {
+    pub use crate::admin_sidebar::*;
+}
+pub(crate) mod admin_sidebar_item {
+    pub use crate::admin_sidebar_item::*;
+}

@@ -113,13 +113,13 @@ fn route_contract_keeps_transport_policy_together() {
         super::AuthenticationRequirement::Permission(super::ContractStr::from(
             constants_str::PERMISSION,
         )),
-        super::HttpMethod::Patch,
+        super::RouteMethod::Patch,
         super::MutationKind::Mutating,
         super::ContractStr::from(constants_str::USERS_ID),
         super::SuccessStatus::Code204,
     );
     assert_eq!(route.mutation(), super::MutationKind::Mutating);
-    assert_eq!(route.method(), super::HttpMethod::Patch);
+    assert_eq!(route.method(), super::RouteMethod::Patch);
     assert_eq!(route.path().as_ref(), "/users/{id}");
 }
 #[test]

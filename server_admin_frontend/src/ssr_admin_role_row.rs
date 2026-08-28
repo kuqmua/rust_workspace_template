@@ -1,5 +1,4 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the SSR role-row view is composed once by the roles screen"
 )]

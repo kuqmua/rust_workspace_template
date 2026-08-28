@@ -9,4 +9,4 @@
     newtype::FromInner,
 )]
 #[error(transparent)]
-pub struct SqlxAdminError(pub(super) sqlx::Error);
+pub struct SqlxAdminError(pub(crate) sqlx::Error);

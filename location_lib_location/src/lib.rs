@@ -1,4 +1,3 @@
-#[path = "syn_item_enum_mut_ref.rs"]
 mod syn_item_enum_mut_ref;
 #[proc_macro_attribute]
 pub fn errors_with_location(
@@ -23,6 +22,7 @@ pub fn errors_with_location(
     }
 }
 // The owner module retains lint-sensitive semantics from the original implementation.
+
 #[allow(clippy::single_call_fn)] // isolated transformation is unit-tested independently from proc-macro parsing
 fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> syn::Result<()> {
     let item_ref = item.into_inner();
@@ -65,7 +65,7 @@ fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> sy
         location_to_schema,
     )
 )]
-pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout)]
     enum SuportedEnumVariant {
         Named,

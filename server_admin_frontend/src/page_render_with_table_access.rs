@@ -1,12 +1,8 @@
 #![allow(
     unused_imports,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the administrator page shell requires its local set of document attribute traits"
 )]
-
-#[path = "ssr_admin_nav.rs"]
-mod ssr_admin_nav;
 
 use leptos::prelude::{
     AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
@@ -15,11 +11,11 @@ use leptos::prelude::{
 
 pub(super) fn page_render_with_table_access(
     page: server_admin_contract::domain_types::AdminPage,
-    content: super::super::AdminSsrHtml,
+    content: crate::AdminSsrHtml,
     admin: Option<&server_admin_contract::domain_types::AuthenticatedAdmin>,
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
     active_table: Option<server_admin_contract::domain_types::AdminDataTable>,
-) -> super::super::AdminSsrHtml {
+) -> crate::AdminSsrHtml {
     let spec = page.spec();
     let title = spec.title();
     let document_title = branding
@@ -32,8 +28,7 @@ pub(super) fn page_render_with_table_access(
         .and_then(server_admin_contract::domain_types::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
     super::render_document::render_document(
-        &super::super::AdminSsrText::try_from(document_title)
-            .unwrap_or_else(super::super::AdminSsrText::from),
+        &crate::AdminSsrText::try_from(document_title).unwrap_or_else(crate::AdminSsrText::from),
         leptos::view! {
             <div class="app-shell" style=primary_color>
                 <header class="topbar">
@@ -43,4 +38,9 @@ pub(super) fn page_render_with_table_access(
             </div>
         },
     )
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod ssr_admin_nav {
+    pub use crate::ssr_admin_nav::*;
 }

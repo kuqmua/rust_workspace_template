@@ -1,5 +1,4 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the change-password card is composed once by the profile screen"
 )]

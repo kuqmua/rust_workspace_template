@@ -30,7 +30,7 @@ impl TryFrom<String> for SqlIdentifier {
 }
 #[cfg(test)]
 mod tests {
-    fn identifier(value: &str) -> super::SqlIdentifier {
+    fn sql_identifier_fixture(value: &str) -> super::SqlIdentifier {
         super::SqlIdentifier::try_from(value.to_owned())
             .expect("940eb924 identifier invariant must hold")
     }
@@ -68,12 +68,12 @@ mod tests {
     fn query_builder_accepts_only_validated_identifiers() {
         let builder = crate::domain_types::SqlSelectBuilder::new(
             crate::domain_types::SqlQualifiedIdentifier::new(
-                identifier(constants_str::PUBLIC),
-                identifier(constants_str::USERS_ALT),
+                sql_identifier_fixture(constants_str::PUBLIC),
+                sql_identifier_fixture(constants_str::USERS_ALT),
             ),
             crate::domain_types::SqlIdentifiers::try_from(vec![
-                identifier(constants_str::SQL_NAMES_ID),
-                identifier(constants_str::LOGIN),
+                sql_identifier_fixture(constants_str::SQL_NAMES_ID),
+                sql_identifier_fixture(constants_str::LOGIN),
             ])
             .expect(
                 "c4cf723e query_builder_accepts_only_validated_identifiers invariant must hold",

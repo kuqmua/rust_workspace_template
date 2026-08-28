@@ -1,4 +1,4 @@
-use super::super::*;
+use super::*;
 
 pub async fn begin_pg_table_idempotency(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,

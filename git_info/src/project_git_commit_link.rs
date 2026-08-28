@@ -1,4 +1,4 @@
-use super::super::{GitCommitLink, project_git_commit_link_ref_value};
+use crate::domain_types::{GitCommitLink, project_git_commit_link_ref_value};
 
 #[must_use]
 pub fn project_git_commit_link() -> GitCommitLink {

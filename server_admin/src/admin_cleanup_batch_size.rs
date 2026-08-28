@@ -1,4 +1,4 @@
-use super::AdminCleanupCfgError;
+use crate::AdminCleanupCfgError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupBatchSize(i64);

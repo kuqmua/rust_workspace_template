@@ -1,30 +1,30 @@
 #[test]
 fn validates_string_and_header_boundaries() {
     assert_eq!(
-        super::super::RequestId::try_from(String::new()),
-        Err(super::super::RequestIdTryFromStringError)
+        crate::RequestId::try_from(String::new()),
+        Err(crate::RequestIdTryFromStringError)
     );
     let maximum = constants_str::A_ALT.repeat(128usize);
-    let request_id = super::super::RequestId::try_from(maximum.clone())
+    let request_id = crate::RequestId::try_from(maximum.clone())
         .expect("3ff39236 validates_string_and_header_boundaries invariant must hold");
     assert_eq!(request_id.to_string(), maximum);
     assert_eq!(
-        super::super::RequestId::try_from("a".repeat(129usize)),
-        Err(super::super::RequestIdTryFromStringError)
+        crate::RequestId::try_from("a".repeat(129usize)),
+        Err(crate::RequestIdTryFromStringError)
     );
     assert_eq!(
-        super::super::RequestId::try_from(
+        crate::RequestId::try_from(
             String::from_utf8(vec![0xc3u8, 0xa9u8])
                 .expect("f246e4f8 validates_string_and_header_boundaries invariant must hold")
         ),
-        Err(super::super::RequestIdTryFromStringError)
+        Err(crate::RequestIdTryFromStringError)
     );
     assert!(matches!(
-        super::super::RequestId::try_from(
+        crate::RequestId::try_from(
             &http::HeaderValue::from_bytes(&[0xffu8])
                 .expect("dcb3f9a8 validates_string_and_header_boundaries invariant must hold")
         ),
-        Err(super::super::RequestIdTryFromHttpHeaderValueError::ToStr(_))
+        Err(crate::RequestIdTryFromHttpHeaderValueError::ToStr(_))
     ));
     assert_eq!(
         http::HeaderValue::try_from(&request_id)
@@ -37,12 +37,14 @@ fn validates_string_and_header_boundaries() {
 #[tokio::test]
 async fn layer_propagates_existing_and_generated_values() {
     let make_router = || {
-        axum::Router::from(super::super::RequestIdLayer::default().apply(
-            super::super::AxumRouter::from(axum::Router::new().route(
-                constants_str::SLASH,
-                axum::routing::get(async || http::StatusCode::OK),
+        axum::Router::from(
+            crate::RequestIdLayer::default().apply(crate::AxumRouter::from(
+                axum::Router::new().route(
+                    constants_str::SLASH,
+                    axum::routing::get(async || http::StatusCode::OK),
+                ),
             )),
-        ))
+        )
     };
     let existing = http::HeaderValue::from_static(constants_str::EXISTING_REQUEST_ID);
     let existing_response = tower::ServiceExt::oneshot(

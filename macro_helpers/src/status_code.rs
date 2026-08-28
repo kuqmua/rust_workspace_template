@@ -446,16 +446,9 @@ impl TryFrom<&String> for StatusCode {
         }
     }
 }
-#[path = "only_one.rs"]
-mod only_one;
-#[path = "only_one_status_code_error.rs"]
-mod only_one_status_code_error;
-#[path = "syn_status_code_variant_ref.rs"]
-mod syn_status_code_variant_ref;
 
-pub use only_one::only_one;
-pub use only_one_status_code_error::OnlyOneStatusCodeError;
-pub use syn_status_code_variant_ref::SynStatusCodeVariantRef;
+pub use crate::only_one::only_one;
+pub use crate::only_one_status_code_error::OnlyOneStatusCodeError;
 
 #[cfg(test)]
 mod tests {
@@ -552,7 +545,9 @@ mod tests {
             Variant
         };
         assert_eq!(
-            super::only_one(super::SynStatusCodeVariantRef::from(&one)),
+            super::only_one(crate::domain_types::location_data::SynVariantRef::from(
+                &one
+            )),
             Ok(super::StatusCode::NotFound404)
         );
         let missing: syn::Variant = syn::parse_quote! {
@@ -560,7 +555,9 @@ mod tests {
             Variant
         };
         assert_eq!(
-            super::only_one(super::SynStatusCodeVariantRef::from(&missing)),
+            super::only_one(crate::domain_types::location_data::SynVariantRef::from(
+                &missing
+            )),
             Err(super::OnlyOneStatusCodeError::NotFound)
         );
         let multiple: syn::Variant = syn::parse_quote! {
@@ -569,7 +566,9 @@ mod tests {
             Variant
         };
         assert_eq!(
-            super::only_one(super::SynStatusCodeVariantRef::from(&multiple)),
+            super::only_one(crate::domain_types::location_data::SynVariantRef::from(
+                &multiple
+            )),
             Err(super::OnlyOneStatusCodeError::MoreThanOne)
         );
     }

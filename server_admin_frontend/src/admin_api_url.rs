@@ -1,4 +1,4 @@
-pub(in crate::domain_types::start) fn admin_api_url(
+pub(crate) fn admin_api_url(
     route: server_admin_contract::domain_types::AdminRoute,
 ) -> Result<
     super::AdminCsrApiUrl,

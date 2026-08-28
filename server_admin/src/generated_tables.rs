@@ -1,35 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::needless_for_each, clippy::partial_pub_fields)] // generated contracts expose operation fields while source table fields stay private to protect password hashes
 
-#[path = "admin_generated_route_contract.rs"]
-mod admin_generated_route_contract;
-#[path = "admin_generated_table.rs"]
-mod admin_generated_table;
-#[path = "admin_generated_tables_validation_error.rs"]
-mod admin_generated_tables_validation_error;
-#[path = "admin_permissions.rs"]
-mod admin_permissions;
-#[path = "admin_role_permissions.rs"]
-mod admin_role_permissions;
-#[path = "admin_roles.rs"]
-mod admin_roles;
-#[path = "admin_system_settings.rs"]
-mod admin_system_settings;
-#[path = "admin_user_roles.rs"]
-mod admin_user_roles;
-#[path = "admin_users.rs"]
-mod admin_users;
-#[path = "generated_open_api.rs"]
-mod generated_open_api;
-#[path = "generated_routes.rs"]
-mod generated_routes;
-#[path = "shared_admin_generated_table_state_arc.rs"]
-mod shared_admin_generated_table_state_arc;
-#[path = "utoipa_admin_open_api.rs"]
-mod utoipa_admin_open_api;
-#[path = "validate_catalog_schema.rs"]
-mod validate_catalog_schema;
-
 pub(crate) use admin_generated_route_contract::AdminGeneratedRouteContract;
 pub(crate) use admin_generated_table::AdminGeneratedTable;
 pub use admin_generated_tables_validation_error::AdminGeneratedTablesValidationError;
@@ -45,6 +16,46 @@ pub use shared_admin_generated_table_state_arc::SharedAdminGeneratedTableStateAr
 pub use utoipa_admin_open_api::*;
 pub use validate_catalog_schema::validate_catalog_schema;
 
-#[cfg(test)]
-#[path = "domain_types_generated_tables_tests.rs"]
-mod tests;
+// Root-owned module compatibility wrappers.
+mod admin_generated_route_contract {
+    pub use crate::admin_generated_route_contract::*;
+}
+mod admin_generated_table {
+    pub use crate::admin_generated_table::*;
+}
+mod admin_generated_tables_validation_error {
+    pub use crate::admin_generated_tables_validation_error::*;
+}
+mod admin_permissions {
+    pub use crate::admin_permissions::*;
+}
+mod admin_role_permissions {
+    pub use crate::admin_role_permissions::*;
+}
+mod admin_roles {
+    pub use crate::admin_roles::*;
+}
+mod admin_system_settings {
+    pub use crate::admin_system_settings::*;
+}
+mod admin_user_roles {
+    pub use crate::admin_user_roles::*;
+}
+mod admin_users {
+    pub use crate::admin_users::*;
+}
+mod generated_open_api {
+    pub use crate::generated_open_api::*;
+}
+mod generated_routes {
+    pub use crate::generated_routes::*;
+}
+mod shared_admin_generated_table_state_arc {
+    pub use crate::shared_admin_generated_table_state_arc::*;
+}
+mod utoipa_admin_open_api {
+    pub use crate::utoipa_admin_open_api::*;
+}
+mod validate_catalog_schema {
+    pub use crate::validate_catalog_schema::*;
+}

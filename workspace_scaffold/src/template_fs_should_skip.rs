@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "identity traversal owns ignored directory policy"
-)]
 pub(crate) fn template_fs_should_skip(
     path: crate::domain_types::ScaffoldPathRef<'_>,
 ) -> crate::domain_types::ShouldSkip {

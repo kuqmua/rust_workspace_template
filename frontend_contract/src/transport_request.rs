@@ -2,7 +2,7 @@
 pub struct TransportRequest {
     body: super::TransportBody,
     path: super::TransportPath,
-    route: super::super::RouteContract,
+    route: crate::RouteContract,
     idempotency_key: Option<super::TransportIdempotencyKey>,
     if_match: Option<super::TransportIfMatch>,
 }
@@ -12,7 +12,7 @@ impl TransportRequest {
     pub const fn new(
         body: super::TransportBody,
         path: super::TransportPath,
-        route: super::super::RouteContract,
+        route: crate::RouteContract,
     ) -> Self {
         Self {
             body,
@@ -31,7 +31,7 @@ impl TransportRequest {
         &self.path
     }
     #[must_use]
-    pub const fn route(&self) -> super::super::RouteContract {
+    pub const fn route(&self) -> crate::RouteContract {
         self.route
     }
     #[must_use]

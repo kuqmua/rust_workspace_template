@@ -1,13 +1,6 @@
-#[path = "classify_http_error_status.rs"]
-mod classify_http_error_status;
-#[path = "http_error_class.rs"]
-mod http_error_class;
-#[path = "http_error_status.rs"]
-mod http_error_status;
-
-pub use classify_http_error_status::classify_http_error_status;
-pub use http_error_class::HttpErrorClass;
-pub use http_error_status::HttpErrorStatus;
+pub use crate::classify_http_error_status::classify_http_error_status;
+pub use crate::http_error_class::HttpErrorClass;
+pub use crate::http_error_status::HttpErrorStatus;
 
 #[cfg(test)]
 mod tests {
@@ -67,4 +60,15 @@ mod tests {
             assert_eq!(super::classify_http_error_status(status.into()), expected);
         });
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod classify_http_error_status {
+    pub use crate::classify_http_error_status::*;
+}
+mod http_error_class {
+    pub use crate::http_error_class::*;
+}
+mod http_error_status {
+    pub use crate::http_error_status::*;
 }

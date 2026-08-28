@@ -1,6 +1,5 @@
 use super::{AllocationTool, ToolName, ToolPath};
 
-#[allow(clippy::single_call_fn)] // runtime construction keeps wrapper initialization on From while centralizing tool metadata
 pub(crate) fn allocation_tools() -> [AllocationTool; 6] {
     [
         AllocationTool {

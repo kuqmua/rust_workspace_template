@@ -1,4 +1,4 @@
-use super::{BoundedStringOption, SynExpr};
+use crate::domain_types::{BoundedStringOption, SynExpr};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 #[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module incrementally builds this parsed domain model

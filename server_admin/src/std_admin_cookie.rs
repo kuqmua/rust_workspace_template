@@ -13,4 +13,4 @@
     newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator cookie")]
-pub struct StdAdminCookie(pub(super) String);
+pub struct StdAdminCookie(pub(crate) String);

@@ -1,17 +1,5 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::arbitrary_source_item_ordering)] // domain declarations are grouped by authentication and authorization responsibility
-#[path = "application_auth.rs"]
-pub mod auth;
-#[path = "generated_auth.rs"]
-mod generated_auth;
-#[path = "generated_tables.rs"]
-pub mod generated_tables;
-#[path = "hash_opaque_token.rs"]
-mod hash_opaque_token;
-#[path = "password.rs"]
-mod password;
-#[path = "rbac.rs"]
-mod rbac;
 pub use generated_auth::admin_generated_auth_layer::AdminGeneratedAuthLayer;
 pub use generated_auth::admin_generated_auth_service::AdminGeneratedAuthService;
 pub use pg_table::domain_types::CombinationOfAppStateLogicTraits;
@@ -23,18 +11,32 @@ pub use server_admin_core::domain_types::{
     AdminPermissionName, AdminRoleId, AdminSocketAddr, AdminUserId, SecrecyAdminString,
     StdAdminBool, StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
-#[path = "maintenance.rs"]
-mod maintenance;
-#[path = "security.rs"]
-mod security;
 
 pub use maintenance::*;
 pub use security::*;
-#[cfg(test)]
-#[allow(
-    clippy::needless_for_each,
-    clippy::single_call_fn,
-    reason = "repository policy forbids for loops and compact fixtures keep secret setup deterministic"
-)]
-#[path = "domain_types_tests.rs"]
-mod tests;
+
+// Root-owned module compatibility wrappers.
+pub mod auth {
+    pub use crate::application_auth::*;
+}
+mod generated_auth {
+    pub use crate::generated_auth::*;
+}
+pub mod generated_tables {
+    pub use crate::generated_tables::*;
+}
+mod hash_opaque_token {
+    pub use crate::hash_opaque_token::*;
+}
+mod password {
+    pub use crate::password::*;
+}
+mod rbac {
+    pub use crate::rbac::*;
+}
+mod maintenance {
+    pub use crate::maintenance::*;
+}
+mod security {
+    pub use crate::security::*;
+}

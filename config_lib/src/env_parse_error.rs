@@ -1,4 +1,4 @@
-use super::{EnvVarError, ParseCtxRef};
+use crate::{EnvVarError, ParseCtxRef};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, thiserror::Error)]
 pub(super) enum EnvParseError {

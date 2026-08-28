@@ -1,5 +1,14 @@
-#[path = "domain_types.rs"]
 pub mod domain_types;
+mod http_runtime_test_status;
+mod reqwest_runtime_test_client;
+mod reqwest_runtime_test_response;
+mod runtime_test_config;
+mod runtime_test_error;
+mod runtime_test_kind;
+mod runtime_test_report;
+mod runtime_test_url;
+mod service_base_url;
+mod service_base_url_error;
 
 pub fn local_config() -> Result<domain_types::RuntimeTestConfig, domain_types::ServiceBaseUrlError>
 {

@@ -1,28 +1,11 @@
-#[path = "build_secure_strict_cookie.rs"]
-mod build_secure_strict_cookie;
-#[path = "http_cookie_access.rs"]
-mod http_cookie_access;
-#[path = "http_cookie_name.rs"]
-mod http_cookie_name;
-#[path = "http_cookie_secure.rs"]
-mod http_cookie_secure;
-#[path = "http_cookie_value.rs"]
-mod http_cookie_value;
-#[path = "http_secure_cookie_error.rs"]
-mod http_secure_cookie_error;
-#[path = "http_set_cookie_header_value.rs"]
-mod http_set_cookie_header_value;
-#[path = "std_cookie_max_age_seconds.rs"]
-mod std_cookie_max_age_seconds;
-
-pub use build_secure_strict_cookie::build_secure_strict_cookie;
-pub use http_cookie_access::HttpCookieAccess;
-pub use http_cookie_name::HttpCookieName;
-pub use http_cookie_secure::HttpCookieSecure;
-pub use http_cookie_value::HttpCookieValue;
-pub use http_secure_cookie_error::HttpSecureCookieError;
-pub use http_set_cookie_header_value::HttpSetCookieHeaderValue;
-pub use std_cookie_max_age_seconds::StdCookieMaxAgeSeconds;
+pub use crate::build_secure_strict_cookie::build_secure_strict_cookie;
+pub use crate::http_cookie_access::HttpCookieAccess;
+pub use crate::http_cookie_name::HttpCookieName;
+pub use crate::http_cookie_secure::HttpCookieSecure;
+pub use crate::http_cookie_value::HttpCookieValue;
+pub use crate::http_secure_cookie_error::HttpSecureCookieError;
+pub use crate::http_set_cookie_header_value::HttpSetCookieHeaderValue;
+pub use crate::std_cookie_max_age_seconds::StdCookieMaxAgeSeconds;
 
 #[cfg(test)]
 mod tests {
@@ -90,4 +73,30 @@ mod tests {
                 .contains(u64::MAX.to_string().as_str())
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod build_secure_strict_cookie {
+    pub use crate::build_secure_strict_cookie::*;
+}
+mod http_cookie_access {
+    pub use crate::http_cookie_access::*;
+}
+mod http_cookie_name {
+    pub use crate::http_cookie_name::*;
+}
+mod http_cookie_secure {
+    pub use crate::http_cookie_secure::*;
+}
+mod http_cookie_value {
+    pub use crate::http_cookie_value::*;
+}
+mod http_secure_cookie_error {
+    pub use crate::http_secure_cookie_error::*;
+}
+mod http_set_cookie_header_value {
+    pub use crate::http_set_cookie_header_value::*;
+}
+mod std_cookie_max_age_seconds {
+    pub use crate::std_cookie_max_age_seconds::*;
 }

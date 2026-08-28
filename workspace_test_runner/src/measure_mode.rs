@@ -1,6 +1,5 @@
 #[allow(
     clippy::panic_in_result_fn,
-    clippy::single_call_fn,
     reason = "the measurement fixture treats invalid compile-time generator inputs as diagnostic invariant failures"
 )]
 pub(crate) fn measure_mode() -> Result<(), ()> {
@@ -414,7 +413,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
                     ),
                     |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                         let started = std::time::Instant::now();
-                        let output = generate_where_filters_src::domain_types::source::generate_where_filters(
+                        let output = generate_where_filters_src::domain_types::source::generate_where_filters_source(
                             generate_where_filters_src::domain_types::source::ProcMacro2GenerateWhereFiltersInput::from(
                                 &generate_where_filters_input_token_stream,
                             ),

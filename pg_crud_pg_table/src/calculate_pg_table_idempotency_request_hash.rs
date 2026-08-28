@@ -1,4 +1,4 @@
-use super::super::*;
+use super::*;
 
 #[must_use]
 pub fn calculate_pg_table_idempotency_request_hash(

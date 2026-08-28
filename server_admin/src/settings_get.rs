@@ -1,20 +1,18 @@
-#![allow(clippy::single_call_fn)] // route inventory registers this settings operation once
-
-pub(super) async fn settings_get(
-    auth: super::AdminAuthReq,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let _actor = super::authorization_authorize_generated_request::authorization_authorize_generated_request(
+pub(crate) async fn settings_get(
+    auth: crate::AdminAuthReq,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    let _actor = crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
         auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
-        super::super::AdminPermission::SystemSettingsRead.as_str(),
-        super::super::StdAdminBool::from(false),
+        crate::AdminPermission::SystemSettingsRead.as_str(),
+        crate::StdAdminBool::from(false),
     )
     .await?;
     let settings = crate::repository::read_settings::read_settings(
         crate::repository::SqlxAdminRepositoryPoolRef::from(auth.state.as_ref().pool.as_ref()),
     )
     .await
-    .map_err(super::shared::map_repository_error::map_repository_error)?;
-    Ok(super::shared::json_response::json_response(settings))
+    .map_err(crate::shared::map_repository_error::map_repository_error)?;
+    Ok(crate::shared::json_response::json_response(settings))
 }

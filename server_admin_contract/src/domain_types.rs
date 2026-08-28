@@ -3,70 +3,51 @@
     reason = "DTO implementations keep constructors adjacent to their accessors and route metadata grouped by concern"
 )]
 
-#[path = "audit_branding.rs"]
-mod audit_branding;
-#[path = "authorization_catalog.rs"]
-mod authorization_catalog;
-#[path = "identifier.rs"]
-mod identifier;
-#[path = "identity.rs"]
-mod identity;
-#[path = "table_sort.rs"]
-mod table_sort;
+pub mod collections {
+    pub use crate::collections::*;
+}
 
-pub use audit_branding::*;
-pub use authorization_catalog::*;
-pub use identifier::*;
-pub use identity::*;
-pub use table_sort::*;
-#[path = "query.rs"]
-mod query;
-pub use query::{
+pub use crate::audit_branding::*;
+pub use crate::authorization_catalog::*;
+pub use crate::identifier::*;
+pub use crate::identity::*;
+pub use crate::query::{
     AdminBool, AdminDataTableFilterQuery, AdminDataTableQuery, AdminFilterField,
     AdminFilterOperationKey, AdminFilterValue, AdminPageLimit, AdminPageLimitError,
     AdminPageOffset, AdminPageTotal, AdminSortDirection, AdminTableQuery, AdminTableSearch,
     AdminTableSortKey,
 };
+pub use crate::table_sort::*;
 
-#[path = "collections.rs"]
-mod collections;
 #[cfg(test)]
-use collections::ADMIN_COLLECTION_MAX_ITEMS;
-pub use collections::{
+use crate::collections::ADMIN_COLLECTION_MAX_ITEMS;
+pub use crate::collections::{
     AdminAuditViews, AdminCollectionError, AdminDataRows, AdminDataTables, AdminOptionalSettings,
     AdminPermissionIds, AdminPermissionSummaries, AdminPermissionValues, AdminRoleIds,
     AdminRoleNames, AdminRoleSummaries, AdminSessionViews, AdminTexts, AdminUserSummaries,
 };
-#[path = "dto.rs"]
-mod dto;
-pub use dto::{
+pub use crate::dto::{
     AdminAuditCursor, AdminAuditExport, AdminAuditExportCsv, AdminAuditPage, AdminAuditView,
     AdminChangeOwnPasswordReq, AdminCreateRoleReq, AdminCreateRoleRes, AdminCreateUserReq,
     AdminCreateUserRes, AdminDataColumn, AdminDataColumns, AdminDataFilter, AdminDataFilters,
-    AdminDataInputKind, AdminDataRow, AdminDataTableCatalog, AdminDataTableView,
-    AdminPermissionSummary, AdminPermissionsPage, AdminRoleSummary, AdminRolesPage,
-    AdminSetRolePermissionsReq, AdminSetUserBanReq, AdminSetUserPasswordReq, AdminSetUserRolesReq,
-    AdminSignInReq, AdminSignInRes, AdminUpdateRoleReq, AdminUpdateUserReq, AdminUserSummary,
-    AdminUsersPage, AuthenticatedAdmin,
+    AdminDataRow, AdminDataTableCatalog, AdminDataTableView, AdminPermissionSummary,
+    AdminPermissionsPage, AdminRoleSummary, AdminRolesPage, AdminSetRolePermissionsReq,
+    AdminSetUserBanReq, AdminSetUserPasswordReq, AdminSetUserRolesReq, AdminSignInReq,
+    AdminSignInRes, AdminUpdateRoleReq, AdminUpdateUserReq, AdminUserSummary, AdminUsersPage,
+    AuthenticatedAdmin, InputKind,
 };
 
-#[path = "settings.rs"]
-mod settings;
-pub use settings::{
+pub use crate::settings::{
     AdminBrandingView, AdminOptionalSetting, AdminSetting, AdminSettingInputKind,
     AdminSettingLabel, AdminSettingName, AdminSettingOptionality, AdminSettingSpec,
     AdminSettingsView, AdminUpdateSettingsReq,
 };
 
-#[path = "sessions.rs"]
-mod sessions;
-pub use sessions::{
+pub use crate::sessions::{
     AdminNoBody, AdminSessionIdentifier, AdminSessionTimestamp, AdminSessionView, AdminSessionsPage,
 };
 
-#[path = "routes.rs"]
-mod routes;
-pub use routes::{
+pub use crate::routes::{
     AdminAuditExportRoute, AdminAuditLogRoute, AdminAuthenticationRouteFamily, AdminBrandingRoute,
     AdminChangeOwnPasswordRoute, AdminCreateRoleRoute, AdminCreateUserRoute,
     AdminDataTableFrontendPath, AdminDataTableRoute, AdminDataTablesRoute, AdminDeleteRoleRoute,
@@ -93,6 +74,3 @@ pub use routes::{
     sign_out_client, sign_out_route, update_role_client, update_role_route, update_settings_client,
     update_settings_route, update_user_client, update_user_route, version_client, version_route,
 };
-#[cfg(test)]
-#[path = "domain_types_tests.rs"]
-mod tests;

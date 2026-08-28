@@ -28,15 +28,9 @@ where
     }
     SynPathSegments::from(accumulator)
 }
-#[path = "string_syn_punct.rs"]
-mod string_syn_punct;
-#[path = "syn_path_segment.rs"]
-mod syn_path_segment;
-#[path = "syn_path_segments.rs"]
-mod syn_path_segments;
-pub use string_syn_punct::string_syn_punct;
-pub use syn_path_segment::SynPathSegment;
-pub use syn_path_segments::SynPathSegments;
+pub use crate::string_syn_punct::string_syn_punct;
+pub use crate::syn_path_segment::SynPathSegment;
+pub use crate::syn_path_segments::SynPathSegments;
 #[cfg(test)]
 mod tests {
     #[test]

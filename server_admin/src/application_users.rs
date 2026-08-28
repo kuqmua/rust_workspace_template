@@ -1,16 +1,25 @@
-#[path = "mutations_set_ban.rs"]
-pub(super) mod mutations_set_ban;
-#[path = "mutations_set_password.rs"]
-pub(super) mod mutations_set_password;
-#[path = "mutations_set_roles.rs"]
-pub(super) mod mutations_set_roles;
-#[path = "queries_users_page.rs"]
-pub(super) mod queries_users_page;
-#[path = "user_mutations_create.rs"]
-pub(super) mod user_mutations_create;
-#[path = "user_mutations_delete.rs"]
-pub(super) mod user_mutations_delete;
-#[path = "user_mutations_update.rs"]
-pub(super) mod user_mutations_update;
-#[path = "user_queries_list.rs"]
-pub(super) mod user_queries_list;
+// Root-owned module compatibility wrappers.
+pub(crate) mod mutations_set_ban {
+    pub use crate::mutations_set_ban::*;
+}
+pub(crate) mod mutations_set_password {
+    pub use crate::mutations_set_password::*;
+}
+pub(crate) mod mutations_set_roles {
+    pub use crate::mutations_set_roles::*;
+}
+pub(crate) mod queries_users_page {
+    pub use crate::queries_users_page::*;
+}
+pub(crate) mod user_mutations_create {
+    pub use crate::user_mutations_create::*;
+}
+pub(crate) mod user_mutations_delete {
+    pub use crate::user_mutations_delete::*;
+}
+pub(crate) mod user_mutations_update {
+    pub use crate::user_mutations_update::*;
+}
+pub(crate) mod user_queries_list {
+    pub use crate::user_queries_list::*;
+}

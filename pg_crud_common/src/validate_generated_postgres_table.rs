@@ -2,7 +2,7 @@
     clippy::wildcard_imports,
     reason = "split schema owner modules import the private facade vocabulary used by validation"
 )]
-use super::*;
+use crate::*;
 
 pub async fn validate_generated_postgres_table<Table>(
     pool: SqlxPgPoolRef<'_>,

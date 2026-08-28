@@ -1,4 +1,6 @@
-use super::{UrlSafeTokenPartMaximumBytes, UrlSafeTokenPartRef, UrlSafeTokenPartTextError};
+use crate::domain_types::{
+    UrlSafeTokenPartMaximumBytes, UrlSafeTokenPartRef, UrlSafeTokenPartTextError,
+};
 
 pub fn validate_url_safe_token_part(
     value: UrlSafeTokenPartRef<'_>,

@@ -1,48 +1,59 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct DatetimeFmt<'location_lt> {
-    location: &'location_lt super::Location,
+    location: &'location_lt crate::domain_types::Location,
 }
 impl std::fmt::Display for DatetimeFmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.location.fmt_datetime(super::FormatterRefMut::from(f))
+        self.location
+            .fmt_datetime(crate::domain_types::FormatterRefMut::from(f))
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct PlaceFmt<'location_lt> {
-    location: &'location_lt super::Location,
+    location: &'location_lt crate::domain_types::Location,
     src_place_type: config_lib::domain_types::types::SrcPlaceType,
 }
 impl std::fmt::Display for PlaceFmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.location
-            .fmt_place(self.src_place_type, super::FormatterRefMut::from(f))
+        self.location.fmt_place(
+            self.src_place_type,
+            crate::domain_types::FormatterRefMut::from(f),
+        )
     }
 }
-fn test_location(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Location {
-    super::Location {
-        file: super::LocationFile::try_from(String::from(constants_str::SRC_LIB_RS))
-            .unwrap_or_else(super::LocationFile::from),
-        commit: super::LocationCommit::try_from(String::from(constants_str::TEST_VALUES_COMMIT))
-            .unwrap_or_else(super::LocationCommit::from),
-        duration: super::LocationDuration::from(duration),
+fn test_location(
+    duration: std::time::Duration,
+    occr: Option<crate::domain_types::Occr>,
+) -> crate::domain_types::Location {
+    crate::domain_types::Location {
+        file: crate::domain_types::LocationFile::try_from(String::from(constants_str::SRC_LIB_RS))
+            .unwrap_or_else(crate::domain_types::LocationFile::from),
+        commit: crate::domain_types::LocationCommit::try_from(String::from(
+            constants_str::TEST_VALUES_COMMIT,
+        ))
+        .unwrap_or_else(crate::domain_types::LocationCommit::from),
+        duration: crate::domain_types::LocationDuration::from(duration),
         occr,
-        line: super::LocationLine::try_from(10)
+        line: crate::domain_types::LocationLine::try_from(10)
             .expect("fc5a52e8 test_location invariant must hold"),
-        column: super::LocationColumn::try_from(20)
+        column: crate::domain_types::LocationColumn::try_from(20)
             .expect("8a180198 test_location invariant must hold"),
     }
 }
-fn test_occr() -> super::Occr {
-    super::Occr {
-        file: super::LocationFile::try_from(String::from(constants_str::SRC_ERROR_RS))
-            .unwrap_or_else(super::LocationFile::from),
-        line: super::LocationLine::try_from(30).expect("1fbd3424 test_occr invariant must hold"),
-        column: super::LocationColumn::try_from(40)
+fn test_occr() -> crate::domain_types::Occr {
+    crate::domain_types::Occr {
+        file: crate::domain_types::LocationFile::try_from(String::from(
+            constants_str::SRC_ERROR_RS,
+        ))
+        .unwrap_or_else(crate::domain_types::LocationFile::from),
+        line: crate::domain_types::LocationLine::try_from(30)
+            .expect("1fbd3424 test_occr invariant must hold"),
+        column: crate::domain_types::LocationColumn::try_from(40)
             .expect("44a1f8ca test_occr invariant must hold"),
     }
 }
 fn fmt_place(
-    location: &super::Location,
+    location: &crate::domain_types::Location,
     src_place_type: config_lib::domain_types::types::SrcPlaceType,
 ) -> String {
     format!(
@@ -128,31 +139,32 @@ fn datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
 }
 #[test]
 fn location_display_timezone_uses_expected_offset() {
-    let offset = super::Location::location_display_timezone()
+    let offset = crate::domain_types::Location::location_display_timezone()
         .expect("5c53d969 location_display_timezone_uses_expected_offset invariant must hold");
     assert_eq!(
         offset.0.local_minus_utc(),
-        super::LOC_DISPLAY_UTC_OFFSET_SECS
+        crate::domain_types::LOC_DISPLAY_UTC_OFFSET_SECS
     );
 }
 #[test]
 fn location_text_deserialization_uses_bounded_try_from() {
-    let oversized = constants_str::X.repeat(super::LOC_FILE_MAX_LEN + constants_usize::ONE);
-    let _file_error = <super::LocationFile as serde::Deserialize>::deserialize(
+    let oversized =
+        constants_str::X.repeat(crate::domain_types::LOC_FILE_MAX_LEN + constants_usize::ONE);
+    let _file_error = <crate::domain_types::LocationFile as serde::Deserialize>::deserialize(
         serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized.clone()),
     )
     .expect_err(constants_str::VALUE_AC9468A7);
-    let _commit_error = <super::LocationCommit as serde::Deserialize>::deserialize(
+    let _commit_error = <crate::domain_types::LocationCommit as serde::Deserialize>::deserialize(
         serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized),
     )
     .expect_err(constants_str::VALUE_1E61B1AF);
 }
 #[test]
 fn coordinates_and_nanoseconds_reject_zero_based_or_overflowing_values() {
-    let _line_error = super::LocationLine::try_from(constants_u32::ZERO)
+    let _line_error = crate::domain_types::LocationLine::try_from(constants_u32::ZERO)
         .expect_err(constants_str::VALUE_3AF5C47B);
-    let _column_error = super::LocationColumn::try_from(constants_u32::ZERO)
+    let _column_error = crate::domain_types::LocationColumn::try_from(constants_u32::ZERO)
         .expect_err(constants_str::VALUE_B0E3542F);
-    let _nanos_error = super::StdTimeDurationNanos::try_from(1_000_000_000u32)
+    let _nanos_error = crate::domain_types::StdTimeDurationNanos::try_from(1_000_000_000u32)
         .expect_err(constants_str::VALUE_EB22AFCB);
 }

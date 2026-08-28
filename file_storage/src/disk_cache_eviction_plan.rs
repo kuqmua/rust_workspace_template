@@ -1,4 +1,4 @@
-use super::StorageRelativePathBuf;
+use crate::domain_types::StorageRelativePathBuf;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

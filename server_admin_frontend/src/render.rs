@@ -1,6 +1,5 @@
 #![allow(
     unused_imports,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the sign-in Leptos view requires its local set of document attribute traits"
 )]
@@ -10,9 +9,9 @@ use leptos::prelude::{
 };
 
 pub(super) fn render(
-    error: Option<super::super::AdminSsrErrorMessage>,
+    error: Option<crate::AdminSsrErrorMessage>,
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
-) -> super::super::AdminSsrHtml {
+) -> crate::AdminSsrHtml {
     let tab_title = branding
         .and_then(server_admin_contract::domain_types::AdminBrandingView::tab_title)
         .map_or_else(
@@ -23,8 +22,7 @@ pub(super) fn render(
         .and_then(server_admin_contract::domain_types::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
     super::render_document::render_document(
-        &super::super::AdminSsrText::try_from(tab_title)
-            .unwrap_or_else(super::super::AdminSsrText::from),
+        &crate::AdminSsrText::try_from(tab_title).unwrap_or_else(crate::AdminSsrText::from),
         leptos::view! {
             <main class="auth-layout" style=primary_color>
                 <crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Auth>

@@ -1,19 +1,8 @@
-#[path = "identity_creation_decision.rs"]
-mod identity_creation_decision;
-#[path = "identity_presence.rs"]
-mod identity_presence;
-#[path = "identity_role_presence.rs"]
-mod identity_role_presence;
-#[path = "identity_spec.rs"]
-mod identity_spec;
-#[path = "plan_identity_creation.rs"]
-mod plan_identity_creation;
-
-pub use identity_creation_decision::IdentityCreationDecision;
-pub use identity_presence::IdentityPresence;
-pub use identity_role_presence::IdentityRolePresence;
-pub use identity_spec::IdentitySpec;
-pub use plan_identity_creation::plan_identity_creation;
+pub use crate::identity_creation_decision::IdentityCreationDecision;
+pub use crate::identity_presence::IdentityPresence;
+pub use crate::identity_role_presence::IdentityRolePresence;
+pub use crate::identity_spec::IdentitySpec;
+pub use crate::plan_identity_creation::plan_identity_creation;
 
 #[cfg(test)]
 mod tests {

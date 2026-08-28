@@ -11,7 +11,11 @@ pub(super) struct HttpMetricsPathCache {
 
 impl HttpMetricsPathCache {
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::single_call_fn)]
+
+    #[allow(
+        clippy::single_call_fn,
+        reason = "cache construction remains directly exercised by focused tests"
+    )]
     pub(super) fn new(maximum: super::HttpMetricsPathCacheMaximum) -> Self {
         Self {
             entries: super::HttpMetricsPathEntriesRwLock::from(std::sync::RwLock::new(

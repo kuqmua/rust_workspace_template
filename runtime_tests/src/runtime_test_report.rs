@@ -3,7 +3,7 @@
 )]
 pub struct RuntimeTestReport(
     bounded_types::domain_types::vector::BoundedVec<
-        super::RuntimeTestKind,
+        crate::domain_types::RuntimeTestKind,
         { constants_usize::ZERO },
         5usize,
     >,
@@ -11,7 +11,7 @@ pub struct RuntimeTestReport(
 
 impl RuntimeTestReport {
     #[must_use]
-    pub const fn passed(&self) -> &[super::RuntimeTestKind] {
+    pub const fn passed(&self) -> &[crate::domain_types::RuntimeTestKind] {
         self.0.as_slice()
     }
 }

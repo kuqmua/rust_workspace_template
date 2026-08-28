@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct JsonwebtokenAdminEncodingKey(pub(super) jsonwebtoken::EncodingKey);
+pub struct JsonwebtokenAdminEncodingKey(pub(crate) jsonwebtoken::EncodingKey);

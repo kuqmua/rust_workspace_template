@@ -1,49 +1,18 @@
-#[path = "bearer_authorization_resolution.rs"]
-mod bearer_authorization_resolution;
-#[path = "classify_optional_json_content_type.rs"]
-mod classify_optional_json_content_type;
-#[path = "cookie_resolution.rs"]
-mod cookie_resolution;
-#[path = "http_authorization_header_text_ref.rs"]
-mod http_authorization_header_text_ref;
-#[path = "http_bearer_token_ref.rs"]
-mod http_bearer_token_ref;
-#[path = "http_content_type_text_ref.rs"]
-mod http_content_type_text_ref;
-#[path = "http_cookie_headers_ref.rs"]
-mod http_cookie_headers_ref;
-#[path = "http_cookie_name_ref.rs"]
-mod http_cookie_name_ref;
-#[path = "http_cookie_value_ref.rs"]
-mod http_cookie_value_ref;
-#[path = "optional_json_body_presence.rs"]
-mod optional_json_body_presence;
-#[path = "optional_json_content_type.rs"]
-mod optional_json_content_type;
-#[path = "optional_json_content_type_decision.rs"]
-mod optional_json_content_type_decision;
-#[path = "resolve_bearer_authorization.rs"]
-mod resolve_bearer_authorization;
-#[path = "resolve_optional_json_content_type_decision.rs"]
-mod resolve_optional_json_content_type_decision;
-#[path = "resolve_unique_cookie.rs"]
-mod resolve_unique_cookie;
-
-pub use bearer_authorization_resolution::BearerAuthorizationResolution;
-pub use classify_optional_json_content_type::classify_optional_json_content_type;
-pub use cookie_resolution::CookieResolution;
-pub use http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef;
-pub use http_bearer_token_ref::HttpBearerTokenRef;
-pub use http_content_type_text_ref::HttpContentTypeTextRef;
-pub use http_cookie_headers_ref::HttpCookieHeadersRef;
-pub use http_cookie_name_ref::HttpCookieNameRef;
-pub use http_cookie_value_ref::HttpCookieValueRef;
-pub use optional_json_body_presence::OptionalJsonBodyPresence;
-pub use optional_json_content_type::OptionalJsonContentType;
-pub use optional_json_content_type_decision::OptionalJsonContentTypeDecision;
-pub use resolve_bearer_authorization::resolve_bearer_authorization;
-pub use resolve_optional_json_content_type_decision::resolve_optional_json_content_type_decision;
-pub use resolve_unique_cookie::resolve_unique_cookie;
+pub use crate::bearer_authorization_resolution::BearerAuthorizationResolution;
+pub use crate::classify_optional_json_content_type::classify_optional_json_content_type;
+pub use crate::cookie_resolution::CookieResolution;
+pub use crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef;
+pub use crate::http_bearer_token_ref::HttpBearerTokenRef;
+pub use crate::http_content_type_text_ref::HttpContentTypeTextRef;
+pub use crate::http_cookie_headers_ref::HttpCookieHeadersRef;
+pub use crate::http_cookie_name_ref::HttpCookieNameRef;
+pub use crate::http_cookie_value_ref::HttpCookieValueRef;
+pub use crate::optional_json_body_presence::OptionalJsonBodyPresence;
+pub use crate::optional_json_content_type::OptionalJsonContentType;
+pub use crate::optional_json_content_type_decision::OptionalJsonContentTypeDecision;
+pub use crate::resolve_bearer_authorization::resolve_bearer_authorization;
+pub use crate::resolve_optional_json_content_type_decision::resolve_optional_json_content_type_decision;
+pub use crate::resolve_unique_cookie::resolve_unique_cookie;
 
 #[cfg(test)]
 mod tests {
@@ -93,4 +62,51 @@ mod tests {
             super::OptionalJsonContentTypeDecision::RejectUnsupportedMediaType
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod bearer_authorization_resolution {
+    pub use crate::bearer_authorization_resolution::*;
+}
+mod classify_optional_json_content_type {
+    pub use crate::classify_optional_json_content_type::*;
+}
+mod cookie_resolution {
+    pub use crate::cookie_resolution::*;
+}
+mod http_authorization_header_text_ref {
+    pub use crate::http_authorization_header_text_ref::*;
+}
+mod http_bearer_token_ref {
+    pub use crate::http_bearer_token_ref::*;
+}
+mod http_content_type_text_ref {
+    pub use crate::http_content_type_text_ref::*;
+}
+mod http_cookie_headers_ref {
+    pub use crate::http_cookie_headers_ref::*;
+}
+mod http_cookie_name_ref {
+    pub use crate::http_cookie_name_ref::*;
+}
+mod http_cookie_value_ref {
+    pub use crate::http_cookie_value_ref::*;
+}
+mod optional_json_body_presence {
+    pub use crate::optional_json_body_presence::*;
+}
+mod optional_json_content_type {
+    pub use crate::optional_json_content_type::*;
+}
+mod optional_json_content_type_decision {
+    pub use crate::optional_json_content_type_decision::*;
+}
+mod resolve_bearer_authorization {
+    pub use crate::resolve_bearer_authorization::*;
+}
+mod resolve_optional_json_content_type_decision {
+    pub use crate::resolve_optional_json_content_type_decision::*;
+}
+mod resolve_unique_cookie {
+    pub use crate::resolve_unique_cookie::*;
 }

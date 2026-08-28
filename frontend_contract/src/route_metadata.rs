@@ -95,17 +95,7 @@ impl RouteMetadata {
     pub const fn contract(self) -> crate::domain_types::RouteContract {
         crate::domain_types::RouteContract::new(
             self.authentication,
-            match self.method {
-                RouteMethod::Connect => crate::domain_types::HttpMethod::Connect,
-                RouteMethod::Delete => crate::domain_types::HttpMethod::Delete,
-                RouteMethod::Get => crate::domain_types::HttpMethod::Get,
-                RouteMethod::Head => crate::domain_types::HttpMethod::Head,
-                RouteMethod::Options => crate::domain_types::HttpMethod::Options,
-                RouteMethod::Patch => crate::domain_types::HttpMethod::Patch,
-                RouteMethod::Post => crate::domain_types::HttpMethod::Post,
-                RouteMethod::Put => crate::domain_types::HttpMethod::Put,
-                RouteMethod::Trace => crate::domain_types::HttpMethod::Trace,
-            },
+            self.method,
             match self.mutation {
                 crate::domain_types::RouteMutation::ReadOnly => {
                     crate::domain_types::MutationKind::ReadOnly

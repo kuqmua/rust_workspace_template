@@ -3,7 +3,7 @@ pub(crate) struct ReqwestRuntimeTestResponse(reqwest::blocking::Response);
 
 impl ReqwestRuntimeTestResponse {
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::single_call_fn)]
+
     pub(crate) fn into_health_report(
         self,
     ) -> Result<
@@ -15,7 +15,7 @@ impl ReqwestRuntimeTestResponse {
             .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::single_call_fn)]
+
     pub(crate) fn into_notification_res(
         self,
     ) -> Result<
@@ -27,7 +27,7 @@ impl ReqwestRuntimeTestResponse {
             .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
     #[must_use]
-    pub(crate) fn status(&self) -> super::HttpRuntimeTestStatus {
-        super::HttpRuntimeTestStatus::from(self.0.status().as_u16())
+    pub(crate) fn status(&self) -> crate::domain_types::HttpRuntimeTestStatus {
+        crate::domain_types::HttpRuntimeTestStatus::from(self.0.status().as_u16())
     }
 }

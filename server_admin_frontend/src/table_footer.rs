@@ -8,7 +8,6 @@
     clippy::needless_pass_by_value,
     clippy::same_name_method,
     clippy::shadow_reuse,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     unreachable_pub,
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"

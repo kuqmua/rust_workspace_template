@@ -1,4 +1,4 @@
-use super::pagination_starts_with_one_raw::PaginationStartsWithOneRaw;
+use crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw;
 
 #[derive(
     Debug,
@@ -19,34 +19,34 @@ pub struct PaginationStartsWithOne(pg_crud_common::domain_types::PaginationBase)
 
 impl PaginationStartsWithOne {
     #[must_use]
-    pub fn end(&self) -> super::PaginationStartsWithOneValue {
-        super::PaginationStartsWithOneValue::from(self.0.end().get())
+    pub fn end(&self) -> crate::domain_types::PaginationStartsWithOneValue {
+        crate::domain_types::PaginationStartsWithOneValue::from(self.0.end().get())
     }
     #[must_use]
-    pub fn start(&self) -> super::PaginationStartsWithOneValue {
-        super::PaginationStartsWithOneValue::from(self.0.start().get())
+    pub fn start(&self) -> crate::domain_types::PaginationStartsWithOneValue {
+        crate::domain_types::PaginationStartsWithOneValue::from(self.0.start().get())
     }
     pub fn try_new<L, O>(
         limit: L,
         offset: O,
-    ) -> Result<Self, super::PaginationStartsWithOneTryNewError>
+    ) -> Result<Self, crate::domain_types::PaginationStartsWithOneTryNewError>
     where
-        L: Into<super::PaginationStartsWithOneValue>,
-        O: Into<super::PaginationStartsWithOneValue>,
+        L: Into<crate::domain_types::PaginationStartsWithOneValue>,
+        O: Into<crate::domain_types::PaginationStartsWithOneValue>,
     {
         let limit_value = limit.into();
         let offset_value = offset.into();
         if limit_value.get() <= 0 || offset_value.get() < 1 {
             if limit_value.get() <= 0 {
                 Err(
-                    super::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero {
+                    crate::domain_types::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero {
                         limit: limit_value,
                         location: location_macros::location!(),
                     },
                 )
             } else {
                 Err(
-                    super::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne {
+                    crate::domain_types::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne {
                         offset: offset_value,
                         location: location_macros::location!(),
                     },
@@ -61,7 +61,7 @@ impl PaginationStartsWithOne {
             ))
         } else {
             Err(
-                super::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow {
+                crate::domain_types::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow {
                     limit: limit_value,
                     offset: offset_value,
                     location: location_macros::location!(),
@@ -72,7 +72,7 @@ impl PaginationStartsWithOne {
 }
 
 impl TryFrom<PaginationStartsWithOneRaw> for PaginationStartsWithOne {
-    type Error = super::PaginationStartsWithOneTryNewError;
+    type Error = crate::domain_types::PaginationStartsWithOneTryNewError;
     fn try_from(v: PaginationStartsWithOneRaw) -> Result<Self, Self::Error> {
         Self::try_new(v.limit, v.offset)
     }

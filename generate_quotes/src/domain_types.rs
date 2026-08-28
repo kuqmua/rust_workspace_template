@@ -1,73 +1,26 @@
-#[path = "binary_double_quote_style.rs"]
-mod binary_double_quote_style;
-#[path = "binary_double_quoted_str.rs"]
-mod binary_double_quoted_str;
-#[path = "binary_double_quoted_token_stream.rs"]
-mod binary_double_quoted_token_stream;
-#[path = "binary_single_quote_style.rs"]
-mod binary_single_quote_style;
-#[path = "binary_single_quotes_str.rs"]
-mod binary_single_quotes_str;
-#[path = "binary_single_quotes_token_stream.rs"]
-mod binary_single_quotes_token_stream;
-#[path = "build_quote_style.rs"]
-mod build_quote_style;
-#[path = "double_quote_style.rs"]
-mod double_quote_style;
-#[path = "double_quoted_string.rs"]
-mod double_quoted_string;
-#[path = "dq_token_stream.rs"]
-mod dq_token_stream;
-#[path = "proc_macro2_quoted_literal_token_stream.rs"]
-mod proc_macro2_quoted_literal_token_stream;
-#[path = "quote_char.rs"]
-mod quote_char;
-#[path = "quote_literal.rs"]
-mod quote_literal;
-#[path = "quote_panic_id.rs"]
-mod quote_panic_id;
-#[path = "quote_prefix.rs"]
-mod quote_prefix;
-#[path = "quote_str.rs"]
-mod quote_str;
-#[path = "quote_style.rs"]
-mod quote_style;
-#[path = "quote_token_stream.rs"]
-mod quote_token_stream;
-#[path = "quoted_literal.rs"]
-mod quoted_literal;
-#[path = "quoted_literal_max_len.rs"]
-mod quoted_literal_max_len;
-#[path = "single_quote_style.rs"]
-mod single_quote_style;
-#[path = "single_quotes_str.rs"]
-mod single_quotes_str;
-#[path = "single_quotes_token_stream.rs"]
-mod single_quotes_token_stream;
-
-use binary_double_quote_style::binary_double_quote_style;
-pub use binary_double_quoted_str::binary_double_quoted_str;
-pub use binary_double_quoted_token_stream::binary_double_quoted_token_stream;
-use binary_single_quote_style::binary_single_quote_style;
-pub use binary_single_quotes_str::binary_single_quotes_str;
-pub use binary_single_quotes_token_stream::binary_single_quotes_token_stream;
-use build_quote_style::build_quote_style;
-use double_quote_style::double_quote_style;
-pub use double_quoted_string::double_quoted_string;
-pub use dq_token_stream::dq_token_stream;
-pub use proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream;
-use quote_char::QuoteChar;
-use quote_literal::quote_literal;
-use quote_panic_id::QuotePanicId;
-use quote_prefix::QuotePrefix;
-use quote_str::quote_str;
-use quote_style::QuoteStyle;
-use quote_token_stream::quote_token_stream;
-pub use quoted_literal::QuotedLiteral;
-use quoted_literal_max_len::QUOTED_LITERAL_MAX_LEN;
-use single_quote_style::single_quote_style;
-pub use single_quotes_str::single_quotes_str;
-pub use single_quotes_token_stream::single_quotes_token_stream;
+pub(crate) use crate::binary_double_quote_style::binary_double_quote_style;
+pub use crate::binary_double_quoted_str::binary_double_quoted_str;
+pub use crate::binary_double_quoted_token_stream::binary_double_quoted_token_stream;
+pub(crate) use crate::binary_single_quote_style::binary_single_quote_style;
+pub use crate::binary_single_quotes_str::binary_single_quotes_str;
+pub use crate::binary_single_quotes_token_stream::binary_single_quotes_token_stream;
+pub(crate) use crate::build_quote_style::build_quote_style;
+pub(crate) use crate::double_quote_style::double_quote_style;
+pub use crate::double_quoted_string::double_quoted_string;
+pub use crate::dq_token_stream::dq_token_stream;
+pub use crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream;
+pub(crate) use crate::quote_char::QuoteChar;
+pub(crate) use crate::quote_literal::quote_literal;
+pub(crate) use crate::quote_panic_id::QuotePanicId;
+pub(crate) use crate::quote_prefix::QuotePrefix;
+pub(crate) use crate::quote_str::quote_str;
+pub(crate) use crate::quote_style::QuoteStyle;
+pub(crate) use crate::quote_token_stream::quote_token_stream;
+pub use crate::quoted_literal::QuotedLiteral;
+pub(crate) use crate::quoted_literal_max_len::QUOTED_LITERAL_MAX_LEN;
+pub(crate) use crate::single_quote_style::single_quote_style;
+pub use crate::single_quotes_str::single_quotes_str;
+pub use crate::single_quotes_token_stream::single_quotes_token_stream;
 
 #[cfg(test)]
 mod tests {

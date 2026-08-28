@@ -1,6 +1,5 @@
-use super::{CommandText, CommandTexts, TextRef};
+use crate::execution::{CommandText, CommandTexts, TextRef};
 
-#[allow(clippy::single_call_fn)] // log parsing stays independently unit-testable
 pub(super) fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
     let mut names = log_text
         .get()

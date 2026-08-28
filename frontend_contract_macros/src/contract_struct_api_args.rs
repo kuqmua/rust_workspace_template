@@ -1,4 +1,4 @@
-use super::StdBool;
+use crate::domain_types::StdBool;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default, generate_accessor::Getters)]
 #[getters(get_mut)]

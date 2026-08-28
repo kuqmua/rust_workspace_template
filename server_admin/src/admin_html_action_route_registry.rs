@@ -1,13 +1,12 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::domain_types::endpoint_registry(
-    state = super::super::super::super::SharedAdminAuthSvcStateArc;
-    (server_admin_contract::domain_types::AdminFrontendPath::Root, super::root),
+    state = crate::SharedAdminAuthSvcStateArc;
+    (server_admin_contract::domain_types::AdminFrontendPath::Root, crate::root),
 )]
-pub(in crate::domain_types::auth::html) struct AdminHtmlActionRouteRegistry;
+pub(crate) struct AdminHtmlActionRouteRegistry;
 
 impl AdminHtmlActionRouteRegistry {
-    pub(in crate::domain_types::auth::html) fn registry_router()
-    -> axum::Router<super::super::super::super::SharedAdminAuthSvcStateArc> {
+    pub(crate) fn registry_router() -> axum::Router<crate::SharedAdminAuthSvcStateArc> {
         Self::router()
     }
 }

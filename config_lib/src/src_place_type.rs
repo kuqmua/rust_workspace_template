@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     EnvParseError, EnvVarResultVarError, ParseCtxRef, ParseEnvVarNameRef,
     parse_from_env_var_from_str,
 };
@@ -50,7 +50,11 @@ impl SrcPlaceType {
             }
         }
     }
-    #[allow(clippy::single_call_fn)] // helper keeps env-read error context centralized and deterministic for tests
+
+    #[allow(
+        clippy::single_call_fn,
+        reason = "fallible parser remains directly testable behind the defaulting facade"
+    )]
     pub(super) fn parse_src_place_type_from_env_var(
         v: EnvVarResultVarError,
     ) -> Result<Self, EnvParseError> {

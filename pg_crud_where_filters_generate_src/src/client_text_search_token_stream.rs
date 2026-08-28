@@ -1,9 +1,9 @@
 #![allow(clippy::single_call_fn)] // client text-search emission has one source assembly owner
 
-pub(in crate::domain_types) fn client_text_search_token_stream(
-    spec: crate::domain_types::spec::FilterSpec,
+pub(crate) fn client_text_search_token_stream(
+    spec: crate::spec::FilterSpec,
 ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-    if !crate::domain_types::client::client_uses_text_value::client_uses_text_value(spec).get() {
+    if !crate::client_uses_text_value::client_uses_text_value(spec).get() {
         return quote::quote! {compile_error!("text search client requires text value shape");}
             .into();
     }

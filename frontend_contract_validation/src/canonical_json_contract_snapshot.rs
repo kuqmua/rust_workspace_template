@@ -42,7 +42,7 @@ where
 mod tests {
     #[test]
     fn dynamic_fields_are_normalized_recursively() {
-        let snapshot = super::canonical_json_contract_snapshot(
+        let snapshot = crate::artifact::canonical_json_contract_snapshot(
             &serde_json::json!({
                 constants_str::TEST_JSON_REQUEST_ID: constants_str::TEST_JSON_FIRST,
                 constants_str::ITEMS: [{ constants_str::TEST_JSON_REQUEST_ID: constants_str::TEST_JSON_SECOND }],

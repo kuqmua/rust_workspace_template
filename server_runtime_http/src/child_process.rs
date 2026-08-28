@@ -1,67 +1,24 @@
-#[path = "child_diagnostic.rs"]
-mod child_diagnostic;
-#[path = "child_diagnostic_maximum_non_zero_usize.rs"]
-mod child_diagnostic_maximum_non_zero_usize;
-#[path = "child_exit_status.rs"]
-mod child_exit_status;
-#[path = "child_process_completion.rs"]
-mod child_process_completion;
-#[path = "child_process_error.rs"]
-mod child_process_error;
-#[path = "child_process_id.rs"]
-mod child_process_id;
-#[path = "child_process_io_error.rs"]
-mod child_process_io_error;
-#[path = "child_process_report.rs"]
-mod child_process_report;
-#[path = "child_process_reports.rs"]
-mod child_process_reports;
-#[path = "child_process_set.rs"]
-mod child_process_set;
-#[path = "child_process_set_error.rs"]
-mod child_process_set_error;
-#[path = "child_process_set_maximum_non_zero_usize.rs"]
-mod child_process_set_maximum_non_zero_usize;
-#[path = "child_process_succeeded.rs"]
-mod child_process_succeeded;
-#[path = "child_process_supervisor.rs"]
-mod child_process_supervisor;
-#[path = "join_diagnostic.rs"]
-mod join_diagnostic;
-#[path = "read_child_diagnostic.rs"]
-mod read_child_diagnostic;
-#[path = "std_collections_child_process_map.rs"]
-mod std_collections_child_process_map;
-#[path = "tokio_child_diagnostic_task.rs"]
-mod tokio_child_diagnostic_task;
-#[path = "tokio_child_process.rs"]
-mod tokio_child_process;
-#[path = "tokio_child_process_join_error.rs"]
-mod tokio_child_process_join_error;
-#[path = "tokio_managed_child.rs"]
-mod tokio_managed_child;
-
-pub use child_diagnostic::ChildDiagnostic;
-pub use child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize;
-pub use child_exit_status::ChildExitStatus;
-pub use child_process_completion::ChildProcessCompletion;
-pub use child_process_error::ChildProcessError;
-pub use child_process_id::ChildProcessId;
-pub use child_process_io_error::ChildProcessIoError;
-pub use child_process_report::ChildProcessReport;
-pub use child_process_reports::ChildProcessReports;
-pub use child_process_set::ChildProcessSet;
-pub use child_process_set_error::ChildProcessSetError;
-pub use child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize;
-pub use child_process_succeeded::ChildProcessSucceeded;
-pub use child_process_supervisor::ChildProcessSupervisor;
-use join_diagnostic::join_diagnostic;
-use read_child_diagnostic::read_child_diagnostic;
-use std_collections_child_process_map::StdCollectionsChildProcessMap;
-use tokio_child_diagnostic_task::TokioChildDiagnosticTask;
-pub use tokio_child_process::TokioChildProcess;
-pub use tokio_child_process_join_error::TokioChildProcessJoinError;
-use tokio_managed_child::TokioManagedChild;
+pub use crate::child_diagnostic::ChildDiagnostic;
+pub use crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize;
+pub use crate::child_exit_status::ChildExitStatus;
+pub use crate::child_process_completion::ChildProcessCompletion;
+pub use crate::child_process_error::ChildProcessError;
+pub use crate::child_process_id::ChildProcessId;
+pub use crate::child_process_io_error::ChildProcessIoError;
+pub use crate::child_process_report::ChildProcessReport;
+pub use crate::child_process_reports::ChildProcessReports;
+pub use crate::child_process_set::ChildProcessSet;
+pub use crate::child_process_set_error::ChildProcessSetError;
+pub use crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize;
+pub use crate::child_process_succeeded::ChildProcessSucceeded;
+pub use crate::child_process_supervisor::ChildProcessSupervisor;
+use crate::join_diagnostic::join_diagnostic;
+use crate::read_child_diagnostic::read_child_diagnostic;
+use crate::std_collections_child_process_map::StdCollectionsChildProcessMap;
+use crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask;
+pub use crate::tokio_child_process::TokioChildProcess;
+pub use crate::tokio_child_process_join_error::TokioChildProcessJoinError;
+use crate::tokio_managed_child::TokioManagedChild;
 
 #[cfg(test)]
 mod tests {
@@ -176,4 +133,69 @@ mod tests {
             .expect("f859fb47 diagnostic_read_is_bounded invariant must hold");
         assert_eq!(diagnostic.as_ref(), b"1234");
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod child_diagnostic {
+    pub use crate::child_diagnostic::*;
+}
+mod child_diagnostic_maximum_non_zero_usize {
+    pub use crate::child_diagnostic_maximum_non_zero_usize::*;
+}
+mod child_exit_status {
+    pub use crate::child_exit_status::*;
+}
+mod child_process_completion {
+    pub use crate::child_process_completion::*;
+}
+mod child_process_error {
+    pub use crate::child_process_error::*;
+}
+mod child_process_id {
+    pub use crate::child_process_id::*;
+}
+mod child_process_io_error {
+    pub use crate::child_process_io_error::*;
+}
+mod child_process_report {
+    pub use crate::child_process_report::*;
+}
+mod child_process_reports {
+    pub use crate::child_process_reports::*;
+}
+mod child_process_set {
+    pub use crate::child_process_set::*;
+}
+mod child_process_set_error {
+    pub use crate::child_process_set_error::*;
+}
+mod child_process_set_maximum_non_zero_usize {
+    pub use crate::child_process_set_maximum_non_zero_usize::*;
+}
+mod child_process_succeeded {
+    pub use crate::child_process_succeeded::*;
+}
+mod child_process_supervisor {
+    pub use crate::child_process_supervisor::*;
+}
+mod join_diagnostic {
+    pub use crate::join_diagnostic::*;
+}
+mod read_child_diagnostic {
+    pub use crate::read_child_diagnostic::*;
+}
+mod std_collections_child_process_map {
+    pub use crate::std_collections_child_process_map::*;
+}
+mod tokio_child_diagnostic_task {
+    pub use crate::tokio_child_diagnostic_task::*;
+}
+mod tokio_child_process {
+    pub use crate::tokio_child_process::*;
+}
+mod tokio_child_process_join_error {
+    pub use crate::tokio_child_process_join_error::*;
+}
+mod tokio_managed_child {
+    pub use crate::tokio_managed_child::*;
 }

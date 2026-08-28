@@ -1,8 +1,4 @@
-#![allow(
-    clippy::single_call_fn,
-    reason = "generated contract-test emission has a private physical boundary from route metadata"
-)]
-pub(super) const fn http_method<
+pub(super) const fn contract_http_method<
     Capability,
     HttpMethod,
     Operation,
@@ -24,7 +20,7 @@ where
 {
     crate::domain_types::route_http_method::route_http_method(dsc)
 }
-pub(super) const fn success_status<
+pub(super) const fn contract_success_status<
     Capability,
     HttpMethod,
     Operation,

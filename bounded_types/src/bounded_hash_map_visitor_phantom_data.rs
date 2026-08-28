@@ -23,10 +23,10 @@ impl<
             .size_hint()
             .unwrap_or(constants_usize::ZERO)
             .min(MAX)
-            .min(super::super::SERDE_PREALLOC_MAX_ITEMS);
+            .min(crate::SERDE_PREALLOC_MAX_ITEMS);
         let mut values = super::bounded_hash_map::BoundedHashMap::default();
         values.reserve(capacity);
-        super::super::deserialize_bounded_map::<_, K, V, _, _, MAX>(
+        crate::deserialize_bounded_map::<_, K, V, _, _, MAX>(
             map,
             values,
             |bounded_values, key, value| bounded_values.try_insert(key, value).map(|_previous| ()),

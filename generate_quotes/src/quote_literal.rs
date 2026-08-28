@@ -1,8 +1,8 @@
 pub(super) fn quote_literal<Dsp>(
-    prefix: super::QuotePrefix,
-    quote_ch: super::QuoteChar,
+    prefix: crate::domain_types::QuotePrefix,
+    quote_ch: crate::domain_types::QuoteChar,
     v: &Dsp,
-) -> super::QuotedLiteral
+) -> crate::domain_types::QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
@@ -10,12 +10,13 @@ where
     out.push_str(prefix.0);
     out.push(quote_ch.0);
     if std::fmt::Write::write_fmt(&mut out, format_args!("{v}")).is_err() {
-        return super::QuotedLiteral::try_from(format!(
+        return crate::domain_types::QuotedLiteral::try_from(format!(
             "{}{}{v}{}",
             prefix.0, quote_ch.0, quote_ch.0
         ))
-        .unwrap_or_else(super::QuotedLiteral::from);
+        .unwrap_or_else(crate::domain_types::QuotedLiteral::from);
     }
     out.push(quote_ch.0);
-    super::QuotedLiteral::try_from(out).unwrap_or_else(super::QuotedLiteral::from)
+    crate::domain_types::QuotedLiteral::try_from(out)
+        .unwrap_or_else(crate::domain_types::QuotedLiteral::from)
 }

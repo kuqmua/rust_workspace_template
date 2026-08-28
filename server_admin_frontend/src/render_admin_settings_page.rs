@@ -6,5 +6,5 @@ pub fn render_admin_settings_page(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    render_settings::render_settings(view, admin, branding)
+    render_settings(view, admin, branding)
 }

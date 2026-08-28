@@ -23,18 +23,8 @@ pub(crate) const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
 ];
 
 #[cfg(feature = "test-utils")]
-#[path = "generated_crate_phase.rs"]
-mod generated_crate_phase;
+pub(crate) use crate::generated_crate_phase::GeneratedCratePhase;
 #[cfg(feature = "test-utils")]
-#[path = "generated_crate_step.rs"]
-mod generated_crate_step;
+pub(crate) use crate::generated_crate_step::GeneratedCrateStep;
 #[cfg(feature = "test-utils")]
-#[path = "remove_dir_on_drop.rs"]
-mod remove_dir_on_drop;
-
-#[cfg(feature = "test-utils")]
-pub(crate) use generated_crate_phase::GeneratedCratePhase;
-#[cfg(feature = "test-utils")]
-pub(crate) use generated_crate_step::GeneratedCrateStep;
-#[cfg(feature = "test-utils")]
-pub(crate) use remove_dir_on_drop::RemoveDirOnDrop;
+pub(crate) use crate::remove_dir_on_drop::RemoveDirOnDrop;

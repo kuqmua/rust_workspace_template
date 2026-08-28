@@ -1,4 +1,4 @@
-fn render<View>(view: View) -> String
+fn render_owned_view<View>(view: View) -> String
 where
     View: leptos::prelude::IntoAny,
 {
@@ -7,7 +7,7 @@ where
 
 #[test]
 fn owned_singlestage_context_renders_without_an_external_owner() {
-    let html = render(super::with_owner(|| {
+    let html = render_owned_view(crate::with_owner::with_owner(|| {
         leptos::view! { <singlestage::Popover>"Owned popover"</singlestage::Popover> }
     }));
 
@@ -16,28 +16,29 @@ fn owned_singlestage_context_renders_without_an_external_owner() {
 
 #[test]
 fn primitives_render_semantic_accessible_markup() {
-    let owned_label =
-        super::field::AdminFieldLabel::from(String::from(constants_str::VALUE_9E41A9D1));
+    let owned_label = crate::with_owner::field::AdminFieldLabel::from(String::from(
+        constants_str::VALUE_9E41A9D1,
+    ));
     assert_eq!(owned_label.as_ref(), "Owned label");
-    let html = render(leptos::view! {
-        <super::card::AdminCard variant=super::card::AdminCardVariant::Settings>
-            <super::card::AdminCardHeader><super::card::AdminCardTitle>"Settings"</super::card::AdminCardTitle></super::card::AdminCardHeader>
-            <super::alert::AdminAlert>"Invalid value"</super::alert::AdminAlert>
-        <super::field::AdminField label="Login">
-            <super::input::AdminInput name="login" required=true />
+    let html = render_owned_view(leptos::view! {
+        <crate::with_owner::card::AdminCard variant=crate::with_owner::card::AdminCardVariant::Settings>
+            <crate::with_owner::card::AdminCardHeader><crate::with_owner::card::AdminCardTitle>"Settings"</crate::with_owner::card::AdminCardTitle></crate::with_owner::card::AdminCardHeader>
+            <crate::with_owner::alert::AdminAlert>"Invalid value"</crate::with_owner::alert::AdminAlert>
+        <crate::with_owner::field::AdminField label="Login">
+            <crate::with_owner::input::AdminInput name="login" required=true />
             <singlestage::FieldDescription>"Account login"</singlestage::FieldDescription>
             <singlestage::FieldError>"Login is invalid"</singlestage::FieldError>
-        </super::field::AdminField>
-        <super::field::AdminField label=String::from("Owned label")>
-            <super::admin_empty::AdminEmpty>"Owned value"</super::admin_empty::AdminEmpty>
-        </super::field::AdminField>
-            <super::button::AdminButton kind=super::button::AdminButtonKind::Button>"Save"</super::button::AdminButton>
-            <super::badge::AdminBadge variant=super::badge::AdminBadgeVariant::Success>"Active"</super::badge::AdminBadge>
-            <super::admin_textarea::AdminTextarea name="notes" />
-            <super::admin_alert_dialog::AdminAlertDialog id=String::from("test-alert-dialog") title="Confirm action?" description="This action changes data." trigger="Delete" confirm="Confirm" on_confirm=leptos::prelude::Callback::new(|()| {}) />
-        </super::card::AdminCard>
-        <super::admin_empty::AdminEmpty>"Nothing here"</super::admin_empty::AdminEmpty>
-        <super::admin_spinner::AdminSpinner />
+        </crate::with_owner::field::AdminField>
+        <crate::with_owner::field::AdminField label=String::from("Owned label")>
+            <crate::with_owner::admin_empty::AdminEmpty>"Owned value"</crate::with_owner::admin_empty::AdminEmpty>
+        </crate::with_owner::field::AdminField>
+            <crate::with_owner::button::AdminButton kind=crate::with_owner::button::AdminButtonKind::Button>"Save"</crate::with_owner::button::AdminButton>
+            <crate::with_owner::badge::AdminBadge variant=crate::with_owner::badge::AdminBadgeVariant::Success>"Active"</crate::with_owner::badge::AdminBadge>
+            <crate::with_owner::admin_textarea::AdminTextarea name="notes" />
+            <crate::with_owner::admin_alert_dialog::AdminAlertDialog id=String::from("test-alert-dialog") title="Confirm action?" description="This action changes data." trigger="Delete" confirm="Confirm" on_confirm=leptos::prelude::Callback::new(|()| {}) />
+        </crate::with_owner::card::AdminCard>
+        <crate::with_owner::admin_empty::AdminEmpty>"Nothing here"</crate::with_owner::admin_empty::AdminEmpty>
+        <crate::with_owner::admin_spinner::AdminSpinner />
     });
 
     assert!(html.contains("data-name=\"Card\""));
@@ -82,26 +83,26 @@ fn primitives_render_semantic_accessible_markup() {
 
 #[test]
 fn button_variants_preserve_native_control_attributes() {
-    let html = render(leptos::view! {
-        <super::button::AdminButton disabled=true>"Primary"</super::button::AdminButton>
-        <super::button::AdminButton
-            variant=super::button::AdminButtonVariant::Secondary
-            kind=super::button::AdminButtonKind::Button
+    let html = render_owned_view(leptos::view! {
+        <crate::with_owner::button::AdminButton disabled=true>"Primary"</crate::with_owner::button::AdminButton>
+        <crate::with_owner::button::AdminButton
+            variant=crate::with_owner::button::AdminButtonVariant::Secondary
+            kind=crate::with_owner::button::AdminButtonKind::Button
             popover_target=String::from("filters")
             popover_target_action="hide"
             aria_label=String::from("Close filters")
             style=String::from("width:100%")
         >
             "Secondary"
-        </super::button::AdminButton>
-        <super::button::AdminButton
-            variant=super::button::AdminButtonVariant::Danger
-            kind=super::button::AdminButtonKind::Button
+        </crate::with_owner::button::AdminButton>
+        <crate::with_owner::button::AdminButton
+            variant=crate::with_owner::button::AdminButtonVariant::Danger
+            kind=crate::with_owner::button::AdminButtonKind::Button
             command_for=String::from("confirmation")
             command="show-modal"
         >
             "Danger"
-        </super::button::AdminButton>
+        </crate::with_owner::button::AdminButton>
     });
 
     assert!(html.contains("ui-button ui-button-primary "));
@@ -119,8 +120,8 @@ fn button_variants_preserve_native_control_attributes() {
 
 #[test]
 fn form_controls_render_every_supported_kind_and_constraint() {
-    let html = render(leptos::view! {
-        <super::input::AdminInput
+    let html = render_owned_view(leptos::view! {
+        <crate::with_owner::input::AdminInput
             name="login"
             autocomplete="username"
             required=true
@@ -128,20 +129,20 @@ fn form_controls_render_every_supported_kind_and_constraint() {
             maxlength=32
             initial_value=String::from("alice")
         />
-        <super::input::AdminInput
+        <crate::with_owner::input::AdminInput
             name="password"
-            kind=super::input::AdminInputKind::Password
+            kind=crate::with_owner::input::AdminInputKind::Password
             disabled=true
         />
-        <super::input::AdminInput
+        <crate::with_owner::input::AdminInput
             name="limit"
-            kind=super::input::AdminInputKind::Number
+            kind=crate::with_owner::input::AdminInputKind::Number
             min=1
             max=100
         />
-        <super::input::AdminInput name="url" kind=super::input::AdminInputKind::Url />
-        <super::admin_textarea::AdminTextarea name="notes" required=true disabled=true />
-        <super::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />
+        <crate::with_owner::input::AdminInput name="url" kind=crate::with_owner::input::AdminInputKind::Url />
+        <crate::with_owner::admin_textarea::AdminTextarea name="notes" required=true disabled=true />
+        <crate::with_owner::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />
     });
 
     assert!(html.contains("name=\"login\""));
@@ -169,15 +170,15 @@ fn form_controls_render_every_supported_kind_and_constraint() {
 fn bound_form_controls_render_signal_values() {
     let owner = leptos::prelude::Owner::new();
     let html = owner.with(|| {
-        let input = super::input::LeptosAdminInputSignal::from(leptos::prelude::RwSignal::new(
+        let input = crate::with_owner::input::LeptosAdminInputSignal::from(leptos::prelude::RwSignal::new(
             String::from(constants_str::VALUE_14527724),
         ));
-        let textarea = super::input::LeptosAdminInputSignal::from(leptos::prelude::RwSignal::new(
+        let textarea = crate::with_owner::input::LeptosAdminInputSignal::from(leptos::prelude::RwSignal::new(
             String::from(constants_str::VALUE_F013164D),
         ));
-        render(leptos::view! {
-            <super::input::AdminInput name="bound_input" bind_value=input />
-            <super::admin_textarea::AdminTextarea name="bound_textarea" bind_value=textarea />
+        render_owned_view(leptos::view! {
+            <crate::with_owner::input::AdminInput name="bound_input" bind_value=input />
+            <crate::with_owner::admin_textarea::AdminTextarea name="bound_textarea" bind_value=textarea />
         })
     });
 
@@ -188,15 +189,15 @@ fn bound_form_controls_render_signal_values() {
 
 #[test]
 fn visual_variants_keep_their_rust_ui_contracts() {
-    let html = render(leptos::view! {
-        <super::alert::AdminAlert variant=super::alert::AdminAlertVariant::Success id="saved">"Saved"</super::alert::AdminAlert>
-        <super::badge::AdminBadge>"Neutral"</super::badge::AdminBadge>
-        <super::badge::AdminBadge variant=super::badge::AdminBadgeVariant::Success>"Success"</super::badge::AdminBadge>
-        <super::card::AdminCard>"Default"</super::card::AdminCard>
-        <super::card::AdminCard variant=super::card::AdminCardVariant::Auth>"Auth"</super::card::AdminCard>
-        <super::card::AdminCard variant=super::card::AdminCardVariant::Code>"Code"</super::card::AdminCard>
-        <super::card::AdminCard variant=super::card::AdminCardVariant::Profile>"Profile"</super::card::AdminCard>
-        <super::card::AdminCard variant=super::card::AdminCardVariant::Security>"Security"</super::card::AdminCard>
+    let html = render_owned_view(leptos::view! {
+        <crate::with_owner::alert::AdminAlert variant=crate::with_owner::alert::AdminAlertVariant::Success id="saved">"Saved"</crate::with_owner::alert::AdminAlert>
+        <crate::with_owner::badge::AdminBadge>"Neutral"</crate::with_owner::badge::AdminBadge>
+        <crate::with_owner::badge::AdminBadge variant=crate::with_owner::badge::AdminBadgeVariant::Success>"Success"</crate::with_owner::badge::AdminBadge>
+        <crate::with_owner::card::AdminCard>"Default"</crate::with_owner::card::AdminCard>
+        <crate::with_owner::card::AdminCard variant=crate::with_owner::card::AdminCardVariant::Auth>"Auth"</crate::with_owner::card::AdminCard>
+        <crate::with_owner::card::AdminCard variant=crate::with_owner::card::AdminCardVariant::Code>"Code"</crate::with_owner::card::AdminCard>
+        <crate::with_owner::card::AdminCard variant=crate::with_owner::card::AdminCardVariant::Profile>"Profile"</crate::with_owner::card::AdminCard>
+        <crate::with_owner::card::AdminCard variant=crate::with_owner::card::AdminCardVariant::Security>"Security"</crate::with_owner::card::AdminCard>
     });
 
     assert!(html.contains("id=\"saved\""));
@@ -213,9 +214,9 @@ fn visual_variants_keep_their_rust_ui_contracts() {
 
 #[test]
 fn navigation_distinguishes_current_and_inactive_destinations() {
-    let html = render(leptos::view! {
-        <super::navigation::admin_navigation_link::AdminNavigationLink href=String::from("/admin/users") active=true>"Users"</super::navigation::admin_navigation_link::AdminNavigationLink>
-        <super::navigation::admin_navigation_link::AdminNavigationLink href=String::from("/admin/roles") active=false>"Roles"</super::navigation::admin_navigation_link::AdminNavigationLink>
+    let html = render_owned_view(leptos::view! {
+        <crate::with_owner::navigation::admin_navigation_link::AdminNavigationLink href=String::from("/admin/users") active=true>"Users"</crate::with_owner::navigation::admin_navigation_link::AdminNavigationLink>
+        <crate::with_owner::navigation::admin_navigation_link::AdminNavigationLink href=String::from("/admin/roles") active=false>"Roles"</crate::with_owner::navigation::admin_navigation_link::AdminNavigationLink>
     });
 
     assert!(html.contains("data-name=\"NavigationMenuLink\""));
@@ -229,25 +230,25 @@ fn navigation_distinguishes_current_and_inactive_destinations() {
 
 #[test]
 fn table_primitives_preserve_structure_and_class_merging() {
-    let html = render(leptos::view! {
-        <super::tables::table_wrapper::TableWrapper>
-            <super::tables::table::Table>
-                <super::tables::table_caption::TableCaption>"Identifiers"</super::tables::table_caption::TableCaption>
-                <super::tables::table_header::TableHeader>
-                    <super::tables::table_row::TableRow>
-                        <super::tables::table_head::TableHead>"Identifier"</super::tables::table_head::TableHead>
-                    </super::tables::table_row::TableRow>
-                </super::tables::table_header::TableHeader>
-                <super::tables::table_body::TableBody>
-                    <super::tables::table_row::TableRow>
-                        <super::tables::table_cell::TableCell class="numeric-cell">"42"</super::tables::table_cell::TableCell>
-                    </super::tables::table_row::TableRow>
-                </super::tables::table_body::TableBody>
-                <super::tables::table_footer::TableFooter>
-                    <super::tables::table_row::TableRow><super::tables::table_cell::TableCell>"1"</super::tables::table_cell::TableCell></super::tables::table_row::TableRow>
-                </super::tables::table_footer::TableFooter>
-            </super::tables::table::Table>
-        </super::tables::table_wrapper::TableWrapper>
+    let html = render_owned_view(leptos::view! {
+        <crate::with_owner::tables::table_wrapper::TableWrapper>
+            <crate::with_owner::tables::table::Table>
+                <crate::with_owner::tables::table_caption::TableCaption>"Identifiers"</crate::with_owner::tables::table_caption::TableCaption>
+                <crate::with_owner::tables::table_header::TableHeader>
+                    <crate::with_owner::tables::table_row::TableRow>
+                        <crate::with_owner::tables::table_head::TableHead>"Identifier"</crate::with_owner::tables::table_head::TableHead>
+                    </crate::with_owner::tables::table_row::TableRow>
+                </crate::with_owner::tables::table_header::TableHeader>
+                <crate::with_owner::tables::table_body::TableBody>
+                    <crate::with_owner::tables::table_row::TableRow>
+                        <crate::with_owner::tables::table_cell::TableCell class="numeric-cell">"42"</crate::with_owner::tables::table_cell::TableCell>
+                    </crate::with_owner::tables::table_row::TableRow>
+                </crate::with_owner::tables::table_body::TableBody>
+                <crate::with_owner::tables::table_footer::TableFooter>
+                    <crate::with_owner::tables::table_row::TableRow><crate::with_owner::tables::table_cell::TableCell>"1"</crate::with_owner::tables::table_cell::TableCell></crate::with_owner::tables::table_row::TableRow>
+                </crate::with_owner::tables::table_footer::TableFooter>
+            </crate::with_owner::tables::table::Table>
+        </crate::with_owner::tables::table_wrapper::TableWrapper>
     });
 
     assert!(html.contains("data-name=\"TableWrapper\""));
@@ -262,8 +263,8 @@ fn table_primitives_preserve_structure_and_class_merging() {
 
 #[test]
 fn alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
-    let html = render(leptos::view! {
-        <super::admin_alert_dialog::AdminAlertDialog
+    let html = render_owned_view(leptos::view! {
+        <crate::with_owner::admin_alert_dialog::AdminAlertDialog
             id=String::from("delete-dialog")
             title="Delete item?"
             description="The item will be removed."

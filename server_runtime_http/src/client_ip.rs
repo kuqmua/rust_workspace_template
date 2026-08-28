@@ -3,58 +3,23 @@
     reason = "owner modules and related behavior retain their intentional facade ordering"
 )]
 
-#[path = "client_addr_parse_error.rs"]
-mod client_addr_parse_error;
-#[path = "client_socket_addr.rs"]
-mod client_socket_addr;
-#[path = "http_header_map_ref.rs"]
-mod http_header_map_ref;
-#[path = "ipnet_network.rs"]
-mod ipnet_network;
-#[path = "parse_int_error.rs"]
-mod parse_int_error;
-#[path = "parse_trusted_proxy_ranges.rs"]
-mod parse_trusted_proxy_ranges;
-#[path = "parsed_ip_addr.rs"]
-mod parsed_ip_addr;
-#[path = "resolve_client_ip.rs"]
-mod resolve_client_ip;
-#[path = "resolve_header_text.rs"]
-mod resolve_header_text;
-#[path = "resolved_client_ip_addr.rs"]
-mod resolved_client_ip_addr;
-#[path = "std_range_contains.rs"]
-mod std_range_contains;
-#[path = "trusted_proxy_range.rs"]
-mod trusted_proxy_range;
-#[path = "trusted_proxy_range_parse_error.rs"]
-mod trusted_proxy_range_parse_error;
-#[path = "trusted_proxy_ranges.rs"]
-mod trusted_proxy_ranges;
-#[path = "trusted_proxy_ranges_error.rs"]
-mod trusted_proxy_ranges_error;
-#[path = "trusted_proxy_ranges_parse_error.rs"]
-mod trusted_proxy_ranges_parse_error;
-#[path = "trusted_proxy_ranges_text_ref.rs"]
-mod trusted_proxy_ranges_text_ref;
-
-pub use client_addr_parse_error::ClientAddrParseError;
-pub use client_socket_addr::ClientSocketAddr;
-pub use http_header_map_ref::HttpHeaderMapRef;
-use ipnet_network::IpnetNetwork;
-pub use parse_int_error::ParseIntError;
-pub use parse_trusted_proxy_ranges::parse_trusted_proxy_ranges;
-use parsed_ip_addr::ParsedIpAddr;
-pub use resolve_client_ip::resolve_client_ip;
-pub use resolve_header_text::resolve_header_text;
-pub use resolved_client_ip_addr::ResolvedClientIpAddr;
-use std_range_contains::StdRangeContains;
-pub use trusted_proxy_range::TrustedProxyRange;
-pub use trusted_proxy_range_parse_error::TrustedProxyRangeParseError;
-pub use trusted_proxy_ranges::TrustedProxyRanges;
-pub use trusted_proxy_ranges_error::TrustedProxyRangesError;
-pub use trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError;
-pub use trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef;
+pub use crate::client_addr_parse_error::ClientAddrParseError;
+pub use crate::client_socket_addr::ClientSocketAddr;
+pub use crate::http_header_map_ref::HttpHeaderMapRef;
+use crate::ipnet_network::IpnetNetwork;
+pub use crate::parse_int_error::ParseIntError;
+pub use crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges;
+use crate::parsed_ip_addr::ParsedIpAddr;
+pub use crate::resolve_client_ip::resolve_client_ip;
+pub use crate::resolve_header_text::resolve_header_text;
+pub use crate::resolved_client_ip_addr::ResolvedClientIpAddr;
+use crate::std_range_contains::StdRangeContains;
+pub use crate::trusted_proxy_range::TrustedProxyRange;
+pub use crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError;
+pub use crate::trusted_proxy_ranges::TrustedProxyRanges;
+pub use crate::trusted_proxy_ranges_error::TrustedProxyRangesError;
+pub use crate::trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError;
+pub use crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef;
 
 #[cfg(test)]
 mod tests {
@@ -229,4 +194,57 @@ mod tests {
             Err(super::TrustedProxyRangeParseError::PrefixExceedsAddressWidth)
         ));
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod client_addr_parse_error {
+    pub use crate::client_addr_parse_error::*;
+}
+mod client_socket_addr {
+    pub use crate::client_socket_addr::*;
+}
+mod http_header_map_ref {
+    pub use crate::http_header_map_ref::*;
+}
+mod ipnet_network {
+    pub use crate::ipnet_network::*;
+}
+mod parse_int_error {
+    pub use crate::parse_int_error::*;
+}
+mod parse_trusted_proxy_ranges {
+    pub use crate::parse_trusted_proxy_ranges::*;
+}
+mod parsed_ip_addr {
+    pub use crate::parsed_ip_addr::*;
+}
+mod resolve_client_ip {
+    pub use crate::resolve_client_ip::*;
+}
+mod resolve_header_text {
+    pub use crate::resolve_header_text::*;
+}
+mod resolved_client_ip_addr {
+    pub use crate::resolved_client_ip_addr::*;
+}
+mod std_range_contains {
+    pub use crate::std_range_contains::*;
+}
+mod trusted_proxy_range {
+    pub use crate::trusted_proxy_range::*;
+}
+mod trusted_proxy_range_parse_error {
+    pub use crate::trusted_proxy_range_parse_error::*;
+}
+mod trusted_proxy_ranges {
+    pub use crate::trusted_proxy_ranges::*;
+}
+mod trusted_proxy_ranges_error {
+    pub use crate::trusted_proxy_ranges_error::*;
+}
+mod trusted_proxy_ranges_parse_error {
+    pub use crate::trusted_proxy_ranges_parse_error::*;
+}
+mod trusted_proxy_ranges_text_ref {
+    pub use crate::trusted_proxy_ranges_text_ref::*;
 }

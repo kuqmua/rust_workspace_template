@@ -1,21 +1,14 @@
-#[path = "exclusive_run_already_active.rs"]
-mod exclusive_run_already_active;
-#[path = "exclusive_run_atomic_bool.rs"]
-mod exclusive_run_atomic_bool;
-#[path = "exclusive_run_guard.rs"]
-mod exclusive_run_guard;
-
-pub use exclusive_run_already_active::ExclusiveRunAlreadyActive;
-pub use exclusive_run_guard::ExclusiveRunGuard;
+pub use crate::exclusive_run_already_active::ExclusiveRunAlreadyActive;
+pub use crate::exclusive_run_guard::ExclusiveRunGuard;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ExclusiveRun {
-    active: exclusive_run_atomic_bool::ExclusiveRunAtomicBool,
+    active: crate::exclusive_run_atomic_bool::ExclusiveRunAtomicBool,
 }
 impl ExclusiveRun {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            active: exclusive_run_atomic_bool::ExclusiveRunAtomicBool::from(
+            active: crate::exclusive_run_atomic_bool::ExclusiveRunAtomicBool::from(
                 std::sync::atomic::AtomicBool::new(false),
             ),
         }

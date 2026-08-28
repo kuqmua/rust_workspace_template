@@ -1,5 +1,3 @@
-#![allow(clippy::single_call_fn)] // data-table CSR facade has one SSR owner
-
 #[must_use]
 pub fn render_data_tables_csr(
     active_table: Option<server_admin_contract::domain_types::AdminDataTable>,

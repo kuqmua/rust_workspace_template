@@ -3,8 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "auth_session_instant.rs"]
-mod auth_session_instant;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AuthSessionKeepAlive {
     interval: AuthSessionRefreshIntervalDuration,
@@ -64,26 +62,14 @@ impl AuthSessionKeepAlive {
         }
     }
 }
-#[path = "auth_session_keep_alive_decision.rs"]
-mod auth_session_keep_alive_decision;
-#[path = "auth_session_keep_alive_error.rs"]
-mod auth_session_keep_alive_error;
-#[path = "auth_session_presence.rs"]
-mod auth_session_presence;
-#[path = "auth_session_refresh_interval_duration.rs"]
-mod auth_session_refresh_interval_duration;
-#[path = "auth_session_refresh_outcome.rs"]
-mod auth_session_refresh_outcome;
-#[path = "auth_session_refresh_state.rs"]
-mod auth_session_refresh_state;
 
-pub use auth_session_instant::AuthSessionInstant;
-pub use auth_session_keep_alive_decision::AuthSessionKeepAliveDecision;
-pub use auth_session_keep_alive_error::AuthSessionKeepAliveError;
-pub use auth_session_presence::AuthSessionPresence;
-pub use auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration;
-pub use auth_session_refresh_outcome::AuthSessionRefreshOutcome;
-use auth_session_refresh_state::AuthSessionRefreshState;
+pub use crate::auth_session_instant::AuthSessionInstant;
+pub use crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision;
+pub use crate::auth_session_keep_alive_error::AuthSessionKeepAliveError;
+pub use crate::auth_session_presence::AuthSessionPresence;
+pub use crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration;
+pub use crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome;
+use crate::auth_session_refresh_state::AuthSessionRefreshState;
 
 #[cfg(test)]
 mod tests {

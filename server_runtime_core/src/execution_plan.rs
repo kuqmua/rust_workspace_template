@@ -1,13 +1,6 @@
-#[path = "execute_plan.rs"]
-mod execute_plan;
-#[path = "execution_mode.rs"]
-mod execution_mode;
-#[path = "execution_report.rs"]
-mod execution_report;
-
-pub use execute_plan::execute_plan;
-pub use execution_mode::ExecutionMode;
-pub use execution_report::ExecutionReport;
+pub use crate::execute_plan::execute_plan;
+pub use crate::execution_mode::ExecutionMode;
+pub use crate::execution_report::ExecutionReport;
 
 #[cfg(test)]
 mod tests {

@@ -1,49 +1,18 @@
-#[path = "axum_notification_json.rs"]
-mod axum_notification_json;
-#[path = "axum_notification_router.rs"]
-mod axum_notification_router;
-#[path = "axum_notification_state.rs"]
-mod axum_notification_state;
-#[path = "http_notification_header_map.rs"]
-mod http_notification_header_map;
-#[path = "notification_api_token.rs"]
-mod notification_api_token;
-#[path = "notification_api_token_authorized.rs"]
-mod notification_api_token_authorized;
-#[path = "notification_api_token_error.rs"]
-mod notification_api_token_error;
-#[path = "notification_api_token_ref.rs"]
-mod notification_api_token_ref;
-#[path = "notification_message.rs"]
-mod notification_message;
-#[path = "notification_message_error.rs"]
-mod notification_message_error;
-#[path = "notification_request.rs"]
-mod notification_request;
-#[path = "notification_router.rs"]
-mod notification_router;
-#[path = "notification_sender.rs"]
-mod notification_sender;
-#[path = "notification_service_state.rs"]
-mod notification_service_state;
-#[path = "send_notification.rs"]
-mod send_notification;
-
-use axum_notification_json::AxumNotificationJson;
-pub use axum_notification_router::AxumNotificationRouter;
-use axum_notification_state::AxumNotificationState;
-use http_notification_header_map::HttpNotificationHeaderMap;
-pub use notification_api_token::NotificationApiToken;
-pub use notification_api_token_authorized::NotificationApiTokenAuthorized;
-pub use notification_api_token_error::NotificationApiTokenError;
-pub use notification_api_token_ref::NotificationApiTokenRef;
-pub use notification_message::NotificationMessage;
-pub use notification_message_error::NotificationMessageError;
-pub use notification_request::NotificationRequest;
-pub use notification_router::notification_router;
-pub use notification_sender::NotificationSender;
-pub use notification_service_state::NotificationServiceState;
-use send_notification::send_notification;
+use crate::axum_notification_json::AxumNotificationJson;
+pub use crate::axum_notification_router::AxumNotificationRouter;
+use crate::axum_notification_state::AxumNotificationState;
+use crate::http_notification_header_map::HttpNotificationHeaderMap;
+pub use crate::notification_api_token::NotificationApiToken;
+pub use crate::notification_api_token_authorized::NotificationApiTokenAuthorized;
+pub use crate::notification_api_token_error::NotificationApiTokenError;
+pub use crate::notification_api_token_ref::NotificationApiTokenRef;
+pub use crate::notification_message::NotificationMessage;
+pub use crate::notification_message_error::NotificationMessageError;
+pub use crate::notification_request::NotificationRequest;
+pub use crate::notification_router::notification_router;
+pub use crate::notification_sender::NotificationSender;
+pub use crate::notification_service_state::NotificationServiceState;
+use crate::send_notification::send_notification;
 
 #[cfg(test)]
 mod tests {
@@ -118,4 +87,51 @@ mod tests {
         );
         assert_eq!(response.status(), http::StatusCode::NO_CONTENT);
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod axum_notification_json {
+    pub use crate::axum_notification_json::*;
+}
+mod axum_notification_router {
+    pub use crate::axum_notification_router::*;
+}
+mod axum_notification_state {
+    pub use crate::axum_notification_state::*;
+}
+mod http_notification_header_map {
+    pub use crate::http_notification_header_map::*;
+}
+mod notification_api_token {
+    pub use crate::notification_api_token::*;
+}
+mod notification_api_token_authorized {
+    pub use crate::notification_api_token_authorized::*;
+}
+mod notification_api_token_error {
+    pub use crate::notification_api_token_error::*;
+}
+mod notification_api_token_ref {
+    pub use crate::notification_api_token_ref::*;
+}
+mod notification_message {
+    pub use crate::notification_message::*;
+}
+mod notification_message_error {
+    pub use crate::notification_message_error::*;
+}
+mod notification_request {
+    pub use crate::notification_request::*;
+}
+mod notification_router {
+    pub use crate::notification_router::*;
+}
+mod notification_sender {
+    pub use crate::notification_sender::*;
+}
+mod notification_service_state {
+    pub use crate::notification_service_state::*;
+}
+mod send_notification {
+    pub use crate::send_notification::*;
 }

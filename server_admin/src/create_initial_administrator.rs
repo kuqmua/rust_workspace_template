@@ -1,12 +1,12 @@
-use super::InitialAdministratorCreationError;
+use crate::InitialAdministratorCreationError;
 
 pub async fn create_initial_administrator(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,
-    login: super::AdminLogin,
-    display_name: super::AdminDisplayName,
+    login: crate::AdminLogin,
+    display_name: crate::AdminDisplayName,
     password: server_admin_contract::domain_types::AdminNewPassword,
-    password_hasher: &super::AdminPasswordHasher,
-) -> Result<super::AdminUserId, InitialAdministratorCreationError> {
+    password_hasher: &crate::AdminPasswordHasher,
+) -> Result<crate::AdminUserId, InitialAdministratorCreationError> {
     crate::migrations::migrate_create_initial_administrator(
         pool,
         login,

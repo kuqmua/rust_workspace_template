@@ -4,6 +4,55 @@ pub(super) struct DbgVisitor {
 }
 
 #[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+pub(super) struct CustomTypeNameVisitor {
+    pub names: super::types::SourceTextList,
+}
+
+impl<'ast> syn::visit::Visit<'ast> for CustomTypeNameVisitor {
+    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+        self.names.push(i.ident.to_string());
+        syn::visit::visit_item_enum(self, i);
+    }
+
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        self.names.push(i.ident.to_string());
+        syn::visit::visit_item_struct(self, i);
+    }
+
+    fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+        self.names.push(i.ident.to_string());
+        syn::visit::visit_item_trait(self, i);
+    }
+
+    fn visit_item_trait_alias(&mut self, i: &'ast syn::ItemTraitAlias) {
+        self.names.push(i.ident.to_string());
+        syn::visit::visit_item_trait_alias(self, i);
+    }
+
+    fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
+        self.names.push(i.ident.to_string());
+        syn::visit::visit_item_type(self, i);
+    }
+
+    fn visit_item_union(&mut self, i: &'ast syn::ItemUnion) {
+        self.names.push(i.ident.to_string());
+        syn::visit::visit_item_union(self, i);
+    }
+}
+
+#[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+pub(super) struct FreeFnNameVisitor {
+    pub names: super::types::SourceTextList,
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FreeFnNameVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        self.names.push(i.sig.ident.to_string());
+        syn::visit::visit_item_fn(self, i);
+    }
+}
+
+#[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct OptimalMemoryLayoutVisitor {
     pub ers: super::types::DiagnosticMsgs,
 }
@@ -189,7 +238,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicStructFieldVisitor {
         i.fields
             .iter()
             .enumerate()
-            .filter(|(_, field)| matches!(field.vis, syn::Visibility::Public(_)))
+            .filter(|(_, field)| !matches!(field.vis, syn::Visibility::Inherited))
             .for_each(|(index, field)| {
                 let field_name = field
                     .ident

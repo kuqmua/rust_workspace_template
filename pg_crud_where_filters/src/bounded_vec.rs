@@ -1,4 +1,4 @@
-use super::{BoundedVecLen, BoundedVecTryNewError, Variant};
+use crate::domain_types::{BoundedVecLen, BoundedVecTryNewError, Variant};
 
 #[derive(
     Debug,

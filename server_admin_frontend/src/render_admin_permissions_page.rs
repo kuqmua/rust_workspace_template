@@ -7,5 +7,5 @@ pub fn render_admin_permissions_page(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    render_permissions::render_permissions(page, query, admin, branding)
+    render_permissions(page, query, admin, branding)
 }

@@ -1,22 +1,9 @@
-#[path = "find_macro_attribute.rs"]
-mod find_macro_attribute;
-#[path = "macro_attr_error.rs"]
-mod macro_attr_error;
-#[path = "proc_macro2_macro_attr_meta_list_token_stream_ref.rs"]
-mod proc_macro2_macro_attr_meta_list_token_stream_ref;
-#[path = "syn_macro_attr_ref.rs"]
-mod syn_macro_attr_ref;
-#[path = "try_get_macro_attr_meta_list_token_stream.rs"]
-mod try_get_macro_attr_meta_list_token_stream;
-#[path = "try_get_macro_attribute.rs"]
-mod try_get_macro_attribute;
-
-pub use find_macro_attribute::find_macro_attribute;
-pub use macro_attr_error::MacroAttrError;
-pub use proc_macro2_macro_attr_meta_list_token_stream_ref::ProcMacro2MacroAttrMetaListTokenStreamRef;
-pub use syn_macro_attr_ref::SynMacroAttrRef;
-pub use try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream;
-pub use try_get_macro_attribute::try_get_macro_attribute;
+pub use crate::find_macro_attribute::find_macro_attribute;
+pub use crate::macro_attr_error::MacroAttrError;
+pub use crate::proc_macro2_macro_attr_meta_list_token_stream_ref::ProcMacro2MacroAttrMetaListTokenStreamRef;
+pub use crate::syn_macro_attr_ref::SynMacroAttrRef;
+pub use crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream;
+pub use crate::try_get_macro_attribute::try_get_macro_attribute;
 #[cfg(test)]
 mod tests {
     fn attrs() -> Vec<syn::Attribute> {

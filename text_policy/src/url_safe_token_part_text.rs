@@ -1,4 +1,4 @@
-use super::{
+use crate::domain_types::{
     URL_SAFE_TOKEN_PART_MAXIMUM_BYTES, UrlSafeTokenPartMaximumBytes, UrlSafeTokenPartRef,
     UrlSafeTokenPartTextError, validate_url_safe_token_part,
 };

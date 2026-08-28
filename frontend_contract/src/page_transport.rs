@@ -1,43 +1,16 @@
-#[path = "client_error.rs"]
-mod client_error;
-#[path = "decode_api_problem.rs"]
-mod decode_api_problem;
-#[path = "page_contract.rs"]
-mod page_contract;
-#[path = "transport.rs"]
-mod transport;
-#[path = "transport_body.rs"]
-mod transport_body;
-#[path = "transport_error.rs"]
-mod transport_error;
-#[path = "transport_idempotency_key.rs"]
-mod transport_idempotency_key;
-#[path = "transport_if_match.rs"]
-mod transport_if_match;
-#[path = "transport_path.rs"]
-mod transport_path;
-#[path = "transport_request.rs"]
-mod transport_request;
-#[path = "transport_response.rs"]
-mod transport_response;
-#[path = "transport_retry_after.rs"]
-mod transport_retry_after;
-#[path = "transport_status.rs"]
-mod transport_status;
-
-pub use client_error::ClientError;
-pub use decode_api_problem::decode_api_problem;
-pub use page_contract::PageContract;
-pub use transport::Transport;
-pub use transport_body::TransportBody;
-pub use transport_error::TransportError;
-pub use transport_idempotency_key::*;
-pub use transport_if_match::*;
-pub use transport_path::*;
-pub use transport_request::TransportRequest;
-pub use transport_response::TransportResponse;
-pub use transport_retry_after::*;
-pub use transport_status::*;
+pub use crate::client_error::ClientError;
+pub use crate::decode_api_problem::decode_api_problem;
+pub use crate::page_contract::PageContract;
+pub use crate::transport::Transport;
+pub use crate::transport_body::TransportBody;
+pub use crate::transport_error::TransportError;
+pub use crate::transport_idempotency_key::*;
+pub use crate::transport_if_match::*;
+pub use crate::transport_path::*;
+pub use crate::transport_request::TransportRequest;
+pub use crate::transport_response::TransportResponse;
+pub use crate::transport_retry_after::*;
+pub use crate::transport_status::*;
 
 #[cfg(test)]
 mod tests {

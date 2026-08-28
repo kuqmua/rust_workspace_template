@@ -16,90 +16,34 @@ mod tests {
         assert_eq!(contract.format(), super::ValueFormat::Int64);
     }
 }
-#[path = "contract_str.rs"]
-mod contract_str;
-pub use contract_str::*;
-#[path = "input_kind.rs"]
-mod input_kind;
-pub use input_kind::*;
-#[path = "value_format.rs"]
-mod value_format;
-pub use value_format::*;
-#[path = "nullability.rs"]
-mod nullability;
-pub use nullability::*;
-#[path = "capability_support.rs"]
-mod capability_support;
-pub use capability_support::*;
-#[path = "filter_operation.rs"]
-mod filter_operation;
-pub use filter_operation::*;
-#[path = "filter_value_shape.rs"]
-mod filter_value_shape;
-pub use filter_value_shape::*;
-#[path = "filter_contracts.rs"]
-mod filter_contracts;
-pub use filter_contracts::*;
-#[path = "has_filter_contracts.rs"]
-mod has_filter_contracts;
-pub use has_filter_contracts::*;
-#[path = "input_step.rs"]
-mod input_step;
-pub use input_step::*;
-#[path = "numeric_bound.rs"]
-mod numeric_bound;
-pub use numeric_bound::*;
-#[path = "contract_i64.rs"]
-mod contract_i64;
-pub use contract_i64::*;
-#[path = "value_example.rs"]
-mod value_example;
-pub use value_example::*;
-#[path = "type_contract.rs"]
-mod type_contract;
-pub use type_contract::*;
-#[path = "has_type_contract.rs"]
-mod has_type_contract;
-pub use has_type_contract::*;
-#[path = "form_value.rs"]
-mod form_value;
-pub use form_value::*;
-#[path = "form_value_ref.rs"]
-mod form_value_ref;
-pub use form_value_ref::*;
-#[path = "form_field_name_ref.rs"]
-mod form_field_name_ref;
-pub use form_field_name_ref::*;
-#[path = "form_value_error.rs"]
-mod form_value_error;
-pub use form_value_error::*;
-#[path = "filter_wire_json.rs"]
-mod filter_wire_json;
-pub use filter_wire_json::*;
-#[path = "form_value_contract.rs"]
-mod form_value_contract;
-pub use form_value_contract::*;
-#[path = "filter_form_value_contract.rs"]
-mod filter_form_value_contract;
-pub use filter_form_value_contract::*;
-#[path = "form_field_error.rs"]
-mod form_field_error;
-pub use form_field_error::*;
-#[path = "field_capability.rs"]
-mod field_capability;
-pub use field_capability::*;
-#[path = "primary_key_kind.rs"]
-mod primary_key_kind;
-pub use primary_key_kind::*;
-#[path = "field_order.rs"]
-mod field_order;
-pub use field_order::*;
-#[path = "field_visibility.rs"]
-mod field_visibility;
-pub use field_visibility::*;
-#[path = "field_placeholder.rs"]
-mod field_placeholder;
-pub use field_placeholder::*;
+pub use crate::capability_support::*;
+pub use crate::contract_i64::*;
+pub use crate::contract_str::*;
+pub use crate::field_capability::*;
+pub use crate::field_order::*;
+pub use crate::field_placeholder::*;
+pub use crate::field_visibility::*;
+pub use crate::filter_contracts::*;
+pub use crate::filter_form_value_contract::*;
+pub use crate::filter_operation::*;
+pub use crate::filter_value_shape::*;
+pub use crate::filter_wire_json::*;
+pub use crate::form_field_error::*;
+pub use crate::form_field_name_ref::*;
+pub use crate::form_value::*;
+pub use crate::form_value_contract::*;
+pub use crate::form_value_error::*;
+pub use crate::form_value_ref::*;
+pub use crate::has_filter_contracts::*;
+pub use crate::has_type_contract::*;
+pub use crate::input_kind::*;
+pub use crate::input_step::*;
+pub use crate::nullability::*;
+pub use crate::numeric_bound::*;
+pub use crate::primary_key_kind::*;
+pub use crate::type_contract::*;
+pub use crate::value_example::*;
+pub use crate::value_format::*;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FieldContract {
     filters: FilterContracts,
@@ -238,9 +182,5 @@ impl FieldContract {
         self
     }
 }
-#[path = "field_contracts.rs"]
-mod field_contracts;
-pub use field_contracts::*;
-#[path = "empty_filter_contracts.rs"]
-mod empty_filter_contracts;
-use empty_filter_contracts::EMPTY_FILTER_CONTRACTS;
+use crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS;
+pub use crate::field_contracts::*;

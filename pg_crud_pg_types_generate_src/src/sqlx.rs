@@ -1,4 +1,6 @@
-#[path = "pg_type_can_be_nullable.rs"]
-pub(in crate::domain_types) mod pg_type_can_be_nullable;
-#[path = "pg_type_can_be_primary_key.rs"]
-pub(in crate::domain_types) mod pg_type_can_be_primary_key;
+pub(crate) mod pg_type_can_be_nullable {
+    pub(crate) use crate::pg_type_can_be_nullable::*;
+}
+pub(crate) mod pg_type_can_be_primary_key {
+    pub(crate) use crate::pg_type_can_be_primary_key::*;
+}

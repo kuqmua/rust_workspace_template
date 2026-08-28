@@ -14,19 +14,19 @@
 #[contract_struct_api(new)]
 pub struct AdminSettingsView {
     #[contract_struct_api(borrow)]
-    pub(super) default_admin_route: super::super::AdminDefaultRoute,
+    pub(super) default_admin_route: crate::AdminDefaultRoute,
     #[contract_struct_api(option_borrow)]
-    pub(super) main_logo: Option<super::super::AdminMainLogo>,
+    pub(super) main_logo: Option<crate::AdminMainLogo>,
     #[contract_struct_api(option_borrow)]
-    organization_contacts: Option<super::super::AdminOrganizationContacts>,
+    organization_contacts: Option<crate::AdminOrganizationContacts>,
     #[contract_struct_api(option_borrow)]
-    organization_name: Option<super::super::AdminOrganizationName>,
+    organization_name: Option<crate::AdminOrganizationName>,
     #[contract_struct_api(option_borrow)]
-    pub(super) primary_color: Option<super::super::AdminPrimaryColor>,
+    pub(super) primary_color: Option<crate::AdminPrimaryColor>,
     #[contract_struct_api(borrow)]
-    pub(super) site_name: super::super::AdminSiteName,
+    pub(super) site_name: crate::AdminSiteName,
     #[contract_struct_api(option_borrow)]
-    pub(super) support_url: Option<super::super::AdminSupportUrl>,
+    pub(super) support_url: Option<crate::AdminSupportUrl>,
     #[contract_struct_api(option_borrow)]
-    pub(super) tab_title: Option<super::super::AdminTabTitle>,
+    pub(super) tab_title: Option<crate::AdminTabTitle>,
 }

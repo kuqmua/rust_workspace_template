@@ -1,8 +1,6 @@
 #[frontend_contract::domain_types::route_error(AdminVersionPageError)]
-pub(in crate::domain_types::auth::html) async fn version(
-    auth: super::super::super::AdminAuthReq,
-) -> axum::response::Response {
-    match super::super::page_context_impl::page_context_impl(&auth).await {
+pub(crate) async fn version(auth: crate::AdminAuthReq) -> axum::response::Response {
+    match crate::page_context_impl::page_context_impl(&auth).await {
         Ok((_admin, _branding, password_change_required)) if *password_change_required => {
             axum::response::IntoResponse::into_response(axum::response::Redirect::to(
                 server_admin_contract::domain_types::AdminFrontendPath::Profile.get(),
@@ -18,7 +16,7 @@ pub(in crate::domain_types::auth::html) async fn version(
                     .to_string(),
             ),
         ) {
-            (Ok(title), Ok(text)) => super::super::html_response_impl::html_response_impl(
+            (Ok(title), Ok(text)) => crate::html_response_impl::html_response_impl(
                 server_admin_frontend::domain_types::ssr::render_text_page_with_access(
                     server_admin_contract::domain_types::AdminPage::Version,
                     title,
@@ -31,6 +29,6 @@ pub(in crate::domain_types::auth::html) async fn version(
                 axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR)
             }
         },
-        Err(error) => super::super::html_page_error_impl::html_page_error_impl(error),
+        Err(error) => crate::html_page_error_impl::html_page_error_impl(error),
     }
 }

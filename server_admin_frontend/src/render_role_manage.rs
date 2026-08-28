@@ -6,5 +6,5 @@ pub fn render_role_manage(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    crud_render_role_manage::crud_render_role_manage(page, admin, branding)
+    crud_render_role_manage(page, admin, branding)
 }

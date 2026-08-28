@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     DataPermissionsFlt, DataRolePermissionsFlt, DataRolesFlt, DataSystemSettingsFlt,
     DataUserRolesFlt, DataUsersFlt,
 };
@@ -14,7 +14,7 @@ pub(crate) enum DataFlt {
 }
 
 impl DataFlt {
-    pub(super) fn query_bind(
+    pub(crate) fn query_bind(
         self,
         query: pg_crud_common::domain_types::SqlxPostgresQuery<'_>,
     ) -> Result<
@@ -42,7 +42,7 @@ impl DataFlt {
             }
         }
     }
-    pub(super) fn query_part(
+    pub(crate) fn query_part(
         &self,
         increment: &mut pg_crud_common::domain_types::QueryPartIncrement,
     ) -> Result<

@@ -3,4 +3,4 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct AdminSharedSemaphoreArc(pub(super) std::sync::Arc<tokio::sync::Semaphore>);
+pub struct AdminSharedSemaphoreArc(pub(crate) std::sync::Arc<tokio::sync::Semaphore>);

@@ -5,7 +5,7 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the parent app module"
 )]
-pub(in crate::domain_types::start) fn AdminDataGrid(
+pub(crate) fn AdminDataGrid(
     query: super::admin_csr_query::AdminCsrQuery,
     view: server_admin_contract::domain_types::AdminDataTableView,
 ) -> impl leptos::prelude::IntoView {

@@ -8,8 +8,8 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthService<Service> {
-    pub(super) inner: Service,
-    pub(super) state: crate::domain_types::auth::SharedAdminAuthSvcStateArc,
+    pub(crate) inner: Service,
+    pub(crate) state: crate::domain_types::auth::SharedAdminAuthSvcStateArc,
 }
 impl<Service> tower::Service<axum::extract::Request> for AdminGeneratedAuthService<Service>
 where
@@ -50,7 +50,7 @@ where
                                 .get(),
                         )),
                         crate::domain_types::StdAdminBool::from(false),
-                        frontend_contract::domain_types::HttpMethod::Get,
+                        frontend_contract::domain_types::RouteMethod::Get,
                     ))
                 })
                 .or_else(|| {
@@ -64,7 +64,7 @@ where
                                 .get(),
                         )),
                         crate::domain_types::StdAdminBool::from(false),
-                        frontend_contract::domain_types::HttpMethod::Get,
+                        frontend_contract::domain_types::RouteMethod::Get,
                     ))
                 });
             let Some((Some(permission), mutates, method)) = contract else {
@@ -76,19 +76,19 @@ where
                 (req.method(), method),
                 (
                     &http::Method::DELETE,
-                    frontend_contract::domain_types::HttpMethod::Delete
+                    frontend_contract::domain_types::RouteMethod::Delete
                 ) | (
                     &http::Method::GET,
-                    frontend_contract::domain_types::HttpMethod::Get
+                    frontend_contract::domain_types::RouteMethod::Get
                 ) | (
                     &http::Method::PATCH,
-                    frontend_contract::domain_types::HttpMethod::Patch
+                    frontend_contract::domain_types::RouteMethod::Patch
                 ) | (
                     &http::Method::POST,
-                    frontend_contract::domain_types::HttpMethod::Post
+                    frontend_contract::domain_types::RouteMethod::Post
                 ) | (
                     &http::Method::PUT,
-                    frontend_contract::domain_types::HttpMethod::Put
+                    frontend_contract::domain_types::RouteMethod::Put
                 )
             ) {
                 return Ok(axum::response::IntoResponse::into_response(

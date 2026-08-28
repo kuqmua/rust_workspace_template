@@ -5,7 +5,7 @@ use leptos::prelude::{ClassAttribute, ElementChild, OnAttribute};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the shell module"
 )]
-pub(in crate::domain_types::start) fn CsrAdminNav(
+pub(crate) fn CsrAdminNav(
     admin: Option<server_admin_contract::domain_types::AuthenticatedAdmin>,
 ) -> impl leptos::prelude::IntoView {
     let pathname = web_sys::window()

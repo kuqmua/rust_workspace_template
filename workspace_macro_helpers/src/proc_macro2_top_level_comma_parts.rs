@@ -1,4 +1,4 @@
-use super::{COLLECTION_MAX_LEN, TopLevelCommaPart};
+use crate::domain_types::{COLLECTION_MAX_LEN, TopLevelCommaPart};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]

@@ -8,7 +8,6 @@
     clippy::option_if_let_else,
     clippy::same_name_method,
     clippy::shadow_reuse,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
@@ -23,10 +22,12 @@ use leptos::prelude::{AddAnyAttr};
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
 pub(crate) fn AdminTextarea(
-    #[prop(into)] name: super::input::AdminInputName,
+    #[prop(into)] name: crate::admin_input_name::AdminInputName,
     #[prop(optional)] required: bool,
     #[prop(optional)] disabled: bool,
-    #[prop(optional, into)] bind_value: Option<super::input::LeptosAdminInputSignal>,
+    #[prop(optional, into)] bind_value: Option<
+        crate::leptos_admin_input_signal::LeptosAdminInputSignal,
+    >,
 ) -> impl leptos::prelude::IntoView {
     match bind_value {
         Some(value) => leptos::prelude::IntoAny::into_any(leptos::view! {

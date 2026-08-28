@@ -1,4 +1,4 @@
-use super::{FirstIdentifier, ProcMacro2MacroTokens};
+use crate::domain_types::{FirstIdentifier, ProcMacro2MacroTokens};
 
 #[must_use]
 pub fn closure_identifier_and_body<T>(input: T) -> Option<(FirstIdentifier, ProcMacro2MacroTokens)>

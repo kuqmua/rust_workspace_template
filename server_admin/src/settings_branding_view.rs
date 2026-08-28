@@ -1,7 +1,5 @@
-#![allow(clippy::single_call_fn)] // HTML composition owns the branding view operation
-
-pub(super) async fn settings_branding_view(
-    auth: super::AdminAuthReq,
-) -> Result<server_admin_contract::domain_types::AdminBrandingView, super::AdminError> {
-    super::settings_branding_view_ref::settings_branding_view_ref(&auth).await
+pub(crate) async fn settings_branding_view(
+    auth: crate::AdminAuthReq,
+) -> Result<server_admin_contract::domain_types::AdminBrandingView, crate::AdminError> {
+    crate::settings_branding_view_ref::settings_branding_view_ref(&auth).await
 }

@@ -10,4 +10,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub(crate) struct StdAdminRateLimitCount(pub(super) i64);
+pub(crate) struct StdAdminRateLimitCount(pub(crate) i64);

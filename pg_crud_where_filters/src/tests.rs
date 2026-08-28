@@ -3,7 +3,8 @@ struct NonClone(u8);
 
 #[test]
 fn pg_type_not_empty_unique_vec_try_from_ok() {
-    let rslt = super::PgTypeNotEmptyUniqueVec::<i32>::try_from(vec![1i32, 2i32, 3i32]);
+    let rslt =
+        crate::domain_types::PgTypeNotEmptyUniqueVec::<i32>::try_from(vec![1i32, 2i32, 3i32]);
     if let Err(error) = rslt {
         panic!("5a6afcfa {error:?}");
     }
@@ -11,7 +12,7 @@ fn pg_type_not_empty_unique_vec_try_from_ok() {
 
 #[test]
 fn pg_type_not_empty_unique_vec_try_from_empty() {
-    let rslt = super::PgTypeNotEmptyUniqueVec::<i32>::try_from(Vec::new());
+    let rslt = crate::domain_types::PgTypeNotEmptyUniqueVec::<i32>::try_from(Vec::new());
     assert!(matches!(
         rslt,
         Err(pg_crud_common::domain_types::NotEmptyUniqueVecTryNewError::IsEmpty { .. })
@@ -20,7 +21,8 @@ fn pg_type_not_empty_unique_vec_try_from_empty() {
 
 #[test]
 fn pg_type_not_empty_unique_vec_try_from_not_unique() {
-    let rslt = super::PgTypeNotEmptyUniqueVec::<i32>::try_from(vec![1i32, 2i32, 1i32]);
+    let rslt =
+        crate::domain_types::PgTypeNotEmptyUniqueVec::<i32>::try_from(vec![1i32, 2i32, 1i32]);
     assert!(matches!(
         rslt,
         Err(pg_crud_common::domain_types::NotEmptyUniqueVecTryNewError::NotUnique { v: 1i32, .. })
@@ -29,7 +31,7 @@ fn pg_type_not_empty_unique_vec_try_from_not_unique() {
 
 #[test]
 fn pg_type_not_empty_unique_vec_try_from_too_long() {
-    let rslt = super::PgTypeNotEmptyUniqueVec::<usize>::try_from(
+    let rslt = crate::domain_types::PgTypeNotEmptyUniqueVec::<usize>::try_from(
         (constants_usize::ZERO..=10_000usize).collect::<Vec<_>>(),
     );
     assert!(matches!(
@@ -40,8 +42,9 @@ fn pg_type_not_empty_unique_vec_try_from_too_long() {
 
 #[test]
 fn pg_type_not_empty_unique_vec_try_from_by_hash_not_unique() {
-    let rslt =
-        super::PgTypeNotEmptyUniqueVec::<i32>::try_from_by_hash(vec![1i32, 2i32, 1i32].into());
+    let rslt = crate::domain_types::PgTypeNotEmptyUniqueVec::<i32>::try_from_by_hash(
+        vec![1i32, 2i32, 1i32].into(),
+    );
     assert!(matches!(
         rslt,
         Err(pg_crud_common::domain_types::NotEmptyUniqueVecTryNewError::NotUnique { v: 1i32, .. })
@@ -50,7 +53,7 @@ fn pg_type_not_empty_unique_vec_try_from_by_hash_not_unique() {
 
 #[test]
 fn pg_type_not_empty_unique_vec_try_from_supports_non_clone_values() {
-    let rslt = super::PgTypeNotEmptyUniqueVec::<NonClone>::try_from(vec![
+    let rslt = crate::domain_types::PgTypeNotEmptyUniqueVec::<NonClone>::try_from(vec![
         NonClone(1),
         NonClone(2),
         NonClone(1),
@@ -68,18 +71,24 @@ fn pg_type_not_empty_unique_vec_try_from_supports_non_clone_values() {
 
 #[test]
 fn encode_format_display_is_stable() {
-    assert_eq!(super::EncodeFormat::Base64.to_string(), "base64");
-    assert_eq!(super::EncodeFormat::Escape.to_string(), "escape");
-    assert_eq!(super::EncodeFormat::Hex.to_string(), "hex");
+    assert_eq!(
+        crate::domain_types::EncodeFormat::Base64.to_string(),
+        "base64"
+    );
+    assert_eq!(
+        crate::domain_types::EncodeFormat::Escape.to_string(),
+        "escape"
+    );
+    assert_eq!(crate::domain_types::EncodeFormat::Hex.to_string(), "hex");
 }
 
 #[test]
 fn regex_regex_eq_compares_pattern_content() {
-    let left = super::RegexRegex::try_from(String::from(constants_str::D_PLUS))
+    let left = crate::domain_types::RegexRegex::try_from(String::from(constants_str::D_PLUS))
         .expect("8342ad27 regex_regex_eq_compares_pattern_content invariant must hold");
-    let right = super::RegexRegex::try_from(String::from(constants_str::D_PLUS))
+    let right = crate::domain_types::RegexRegex::try_from(String::from(constants_str::D_PLUS))
         .expect("4d0fa8e3 regex_regex_eq_compares_pattern_content invariant must hold");
-    let other = super::RegexRegex::try_from(String::from(constants_str::A_Z_PLUS))
+    let other = crate::domain_types::RegexRegex::try_from(String::from(constants_str::A_Z_PLUS))
         .expect("abcc9a72 regex_regex_eq_compares_pattern_content invariant must hold");
     assert_eq!(left, right);
     assert_ne!(left, other);

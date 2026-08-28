@@ -1,5 +1,5 @@
-pub(super) fn compile_error_token_stream(
-    message: super::compile_error_message::CompileErrorMessage<'_>,
+pub(super) fn pg_table_compile_error_tokens(
+    message: crate::compile_error_message::CompileErrorMessage<'_>,
 ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
 {
     let message_value = message.0;

@@ -1,4 +1,4 @@
-use super::{MigrationsSourceError, validate_migrations_source};
+use crate::domain_types::{MigrationsSourceError, validate_migrations_source};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

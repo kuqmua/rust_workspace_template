@@ -20,7 +20,7 @@ impl AdminCleanupRows {
         self.0
     }
 
-    pub(super) fn saturating_add(self, rhs: Self) -> Self {
+    pub(crate) fn saturating_add(self, rhs: Self) -> Self {
         Self::from(self.0.saturating_add(rhs.0))
     }
 }

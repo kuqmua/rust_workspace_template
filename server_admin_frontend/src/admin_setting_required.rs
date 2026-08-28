@@ -6,4 +6,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub(in crate::domain_types::shared::settings) struct AdminSettingRequired(bool);
+pub(crate) struct AdminSettingRequired(bool);

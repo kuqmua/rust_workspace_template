@@ -69,7 +69,7 @@ pub(super) fn save(
             .then(|| server_admin_contract::domain_types::AdminTabTitle::try_from(tab_title_value))
             .transpose(),
         clear,
-        super::super::http::url::admin_api_url(
+        crate::http::url::admin_api_url(
             server_admin_contract::domain_types::AdminRoute::UpdateSettings,
         ),
     );
@@ -86,8 +86,8 @@ pub(super) fn save(
         Ok(path),
     ) = values
     {
-        super::super::mutation::reload_after(
-            super::super::mutation::AdminMutationMethod::Patch,
+        crate::mutation::reload_after(
+            crate::mutation::AdminMutationMethod::Patch,
             path,
             server_admin_contract::domain_types::AdminUpdateSettingsReq::new(
                 Some(request_default_route),

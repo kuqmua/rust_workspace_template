@@ -1,17 +1,17 @@
-fn auth_with_headers(headers: http::HeaderMap) -> super::super::AdminAuthReq {
+fn auth_with_headers(headers: http::HeaderMap) -> crate::AdminAuthReq {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("1c2a7f54 auth_with_headers invariant must hold");
-    let state = super::super::tests::helper::auth_state(pool, constants_str::HTTP_LOCALHOST)
+    let state = crate::auth_state(pool, constants_str::HTTP_LOCALHOST)
         .expect("adf9c06e auth_with_headers invariant must hold");
-    super::super::AdminAuthReq {
-        headers: super::super::HttpAdminHeaderMap::from(headers),
-        peer: super::super::AdminPeerAddr::from(super::super::super::AdminSocketAddr::from(
+    crate::AdminAuthReq {
+        headers: crate::HttpAdminHeaderMap::from(headers),
+        peer: crate::AdminPeerAddr::from(crate::AdminSocketAddr::from(
             constants_str::VALUE_127_0_0_1_43210
                 .parse::<std::net::SocketAddr>()
                 .expect("0ce8ff47 auth_with_headers invariant must hold"),
         )),
-        state: super::super::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
+        state: crate::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
     }
 }
 
@@ -23,14 +23,14 @@ async fn html_form_auth_rejects_cookie_without_trusted_origin() {
         http::HeaderValue::from_static(constants_str::VALUE_BF7FDCFF),
     );
     assert!(matches!(
-        super::form_auth_impl::form_auth_impl(auth_with_headers(headers)),
-        Err(super::super::AdminError::Csrf)
+        crate::form_auth_impl::form_auth_impl(auth_with_headers(headers)),
+        Err(crate::AdminError::Csrf)
     ));
 }
 
 #[tokio::test]
 async fn admin_root_redirects_to_users() {
-    let response = super::actions::root().await;
+    let response = crate::root().await;
     assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
     assert_eq!(
         response.headers().get(http::header::LOCATION),
@@ -40,7 +40,7 @@ async fn admin_root_redirects_to_users() {
 
 #[test]
 fn successful_mutation_redirects_to_visible_server_feedback() {
-    let response = super::success_redirect_impl::success_redirect_impl(
+    let response = crate::success_redirect_impl::success_redirect_impl(
         server_admin_contract::domain_types::AdminFrontendPath::Users,
     );
     assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
@@ -52,27 +52,26 @@ fn successful_mutation_redirects_to_visible_server_feedback() {
 
 #[test]
 fn assignment_id_lists_reject_empty_entries() {
-    let empty = super::forms::AdminHtmlFormText::try_from(String::new())
+    let empty = crate::AdminHtmlFormText::try_from(String::new())
         .expect("1a37ef06 assignment_id_lists_reject_empty_entries invariant must hold");
     assert!(matches!(
-        super::role_ids_impl::role_ids_impl(&empty),
+        crate::role_ids_impl::role_ids_impl(&empty),
         Ok(_ids)
     ));
     assert!(matches!(
-        super::permission_ids_impl::permission_ids_impl(&empty),
+        crate::permission_ids_impl::permission_ids_impl(&empty),
         Ok(_ids)
     ));
 
-    let malformed =
-        super::forms::AdminHtmlFormText::try_from(String::from(constants_str::VALUE_A2688517))
-            .expect("c2d76f19 assignment_id_lists_reject_empty_entries invariant must hold");
+    let malformed = crate::AdminHtmlFormText::try_from(String::from(constants_str::VALUE_A2688517))
+        .expect("c2d76f19 assignment_id_lists_reject_empty_entries invariant must hold");
     assert!(matches!(
-        super::role_ids_impl::role_ids_impl(&malformed),
-        Err(super::super::AdminError::Validation)
+        crate::role_ids_impl::role_ids_impl(&malformed),
+        Err(crate::AdminError::Validation)
     ));
     assert!(matches!(
-        super::permission_ids_impl::permission_ids_impl(&malformed),
-        Err(super::super::AdminError::Validation)
+        crate::permission_ids_impl::permission_ids_impl(&malformed),
+        Err(crate::AdminError::Validation)
     ));
 }
 
@@ -89,11 +88,11 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
         panic!("6f44bd85");
     };
     let result =
-        <super::super::AxumAdminForm<super::forms::UserRolesForm> as axum::extract::FromRequest<
+        <crate::AxumAdminForm<crate::UserRolesForm> as axum::extract::FromRequest<
             (),
         >>::from_request(request, &())
         .await;
-    let Ok(super::super::AxumAdminForm(form)) = result else {
+    let Ok(crate::AxumAdminForm(form)) = result else {
         panic!("f639d7d1");
     };
 
@@ -104,19 +103,19 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
 
 #[test]
 fn selected_form_fields_reject_oversized_maps() {
-    let values = (constants_usize::ZERO..=super::forms::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
+    let values = (constants_usize::ZERO..=crate::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
         .map(|idx| {
             (
-                super::forms::AdminHtmlFormKey::try_from(idx.to_string()).expect(
+                crate::AdminHtmlFormKey::try_from(idx.to_string()).expect(
                     "763b9ec0 selected_form_fields_reject_oversized_maps invariant must hold",
                 ),
-                super::forms::AdminHtmlFormText::try_from(String::new()).expect(
+                crate::AdminHtmlFormText::try_from(String::new()).expect(
                     "ef54739a selected_form_fields_reject_oversized_maps invariant must hold",
                 ),
             )
         })
         .collect::<std::collections::BTreeMap<_, _>>();
-    let Err(_error) = super::forms::StdAdminHtmlSelected::try_from(values) else {
+    let Err(_error) = crate::StdAdminHtmlSelected::try_from(values) else {
         panic!("c86589e3");
     };
 }

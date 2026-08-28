@@ -1,18 +1,28 @@
-#[path = "table.rs"]
-pub(crate) mod table;
-#[path = "table_body.rs"]
-pub(crate) mod table_body;
-#[path = "table_caption.rs"]
-pub(crate) mod table_caption;
-#[path = "table_cell.rs"]
-pub(crate) mod table_cell;
-#[path = "table_footer.rs"]
-pub(crate) mod table_footer;
-#[path = "table_head.rs"]
-pub(crate) mod table_head;
-#[path = "table_header.rs"]
-pub(crate) mod table_header;
-#[path = "table_row.rs"]
-pub(crate) mod table_row;
-#[path = "table_wrapper.rs"]
-pub(crate) mod table_wrapper;
+// Root-owned module compatibility wrappers.
+pub(crate) mod table {
+    pub use crate::table::*;
+}
+pub(crate) mod table_body {
+    pub use crate::table_body::*;
+}
+pub(crate) mod table_caption {
+    pub use crate::table_caption::*;
+}
+pub(crate) mod table_cell {
+    pub use crate::table_cell::*;
+}
+pub(crate) mod table_footer {
+    pub use crate::table_footer::*;
+}
+pub(crate) mod table_head {
+    pub use crate::table_head::*;
+}
+pub(crate) mod table_header {
+    pub use crate::table_header::*;
+}
+pub(crate) mod table_row {
+    pub use crate::table_row::*;
+}
+pub(crate) mod table_wrapper {
+    pub use crate::table_wrapper::*;
+}

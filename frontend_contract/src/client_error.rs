@@ -1,8 +1,8 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub enum ClientError {
-    Decode(super::super::FormValueError),
-    Encode(super::super::FormValueError),
-    Problem(super::super::ApiProblem),
+    Decode(crate::FormValueError),
+    Encode(crate::FormValueError),
+    Problem(crate::ApiProblem),
     Status {
         actual: super::TransportStatus,
         expected: super::TransportStatus,

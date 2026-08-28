@@ -1,13 +1,13 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdministratorAccountCommandError {
     #[error(transparent)]
-    Args(super::AdministratorCommandArgsError),
+    Args(crate::domain_types::AdministratorCommandArgsError),
     #[error("failed to read configuration: {0}")]
     Config(server_config::domain_types::ConfigTryFromEnvError),
     #[error("unsafe production configuration: {0}")]
     ConfigProduction(server_config::domain_types::ProductionConfigError),
     #[error("failed to connect to postgres: {0}")]
-    Connect(super::SqlxAdministratorDatabaseConnectionError),
+    Connect(crate::domain_types::SqlxAdministratorDatabaseConnectionError),
     #[error("failed to create the first administrator: {0}")]
     InitialAdministratorCreation(server_admin::domain_types::InitialAdministratorCreationError),
     #[error("failed to prepare administrator schema: {0}")]

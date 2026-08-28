@@ -1,7 +1,7 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)]
+
 pub(crate) async fn lock_last_admin(
-    connection: super::super::SqlxAdminRepositoryConnectionMutRef<'_>,
+    connection: crate::SqlxAdminRepositoryConnectionMutRef<'_>,
 ) -> Result<(), crate::domain_types::SqlxAdminError> {
     sqlx::query(constants_str::SERVER_ADMIN_LOCK_LAST_ADMIN_SQL)
         .execute(connection.0)

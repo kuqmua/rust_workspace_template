@@ -1,13 +1,16 @@
 #[frontend_contract::domain_types::route_openapi(tag = "service")]
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)]
+#[allow(
+    clippy::single_call_fn,
+    reason = "route registry owns this Axum handler"
+)]
 pub(super) async fn health_ready(
     app_state: crate::domain_types::ArcCommonRoutesAppState,
 ) -> Result<
     crate::domain_types::JsonRes<crate::domain_types::HealthReport>,
-    crate::domain_types::HealthReadyError,
+    crate::domain_types::HealthError,
 > {
     super::readiness_report::readiness_report(&app_state)
         .await
-        .ok_or(crate::domain_types::HealthReadyError::Unavailable)
+        .ok_or(crate::domain_types::HealthError::Unavailable)
 }

@@ -3,20 +3,18 @@
     reason = "the bind emitter boundary is intentionally isolated from descriptor and contract emitters"
 )]
 pub(super) fn text_search_token_stream(
-    spec: crate::domain_types::spec::FilterSpec,
+    spec: crate::spec::FilterSpec,
 ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-    if !crate::domain_types::bind_count_matches::bind_count_matches(
+    if !crate::bind_count_matches::bind_count_matches(
         spec,
-        crate::domain_types::filter_placeholder_count::FilterPlaceholderCount::one(),
+        crate::filter_placeholder_count::FilterPlaceholderCount::one(),
     )
     .get()
     {
         return quote::quote! {compile_error!("text search bind count must match one placeholder");}.into();
     }
-    let sql_operator =
-        crate::domain_types::sql::filter_sql_operator_value::filter_sql_operator_value(spec);
-    let sql_suffix =
-        crate::domain_types::sql::filter_sql_suffix_value::filter_sql_suffix_value(spec);
+    let sql_operator = crate::filter_sql_operator_value::filter_sql_operator_value(spec);
+    let sql_suffix = crate::filter_sql_suffix_value::filter_sql_suffix_value(spec);
     quote::quote! {
         impl<'query_lt> pg_crud_common::domain_types::PgTypeWhereFilter<'query_lt> for PgTypeWhereTextSearch {
             fn query_bind(self, mut query: pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>) -> Result<pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>, pg_crud_common::domain_types::SqlxPostgresQueryBindError> {

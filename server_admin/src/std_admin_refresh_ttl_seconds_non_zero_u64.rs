@@ -11,4 +11,4 @@
     Eq,
     newtype::FromInner,
 )]
-pub(super) struct StdAdminRefreshTtlSecondsNonZeroU64(pub(super) std::num::NonZeroU64);
+pub(crate) struct StdAdminRefreshTtlSecondsNonZeroU64(pub(crate) std::num::NonZeroU64);

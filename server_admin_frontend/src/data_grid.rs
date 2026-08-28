@@ -1,7 +1,7 @@
 #[cfg(test)]
-use super::super::AdminSsrViewExt;
-#[cfg(test)]
 use super::{test_admin, test_branding};
+#[cfg(test)]
+use crate::AdminSsrViewExt;
 
 #[test]
 fn data_grid() {
@@ -9,7 +9,7 @@ fn data_grid() {
         server_admin_contract::domain_types::AdminDataColumn::new(
             server_admin_contract::domain_types::AdminDataFilters::try_from(Vec::new())
                 .expect(constants_str::VALUE_D0BD1ECC),
-            server_admin_contract::domain_types::AdminDataInputKind::Number,
+            frontend_contract::domain_types::InputKind::Number,
             server_admin_contract::domain_types::AdminText::try_from(String::from(
                 constants_str::VALUE_1D438D9B,
             ))
@@ -32,7 +32,7 @@ fn data_grid() {
                 ),
             ])
             .expect(constants_str::VALUE_4C7734E6),
-            server_admin_contract::domain_types::AdminDataInputKind::Text,
+            frontend_contract::domain_types::InputKind::Text,
             server_admin_contract::domain_types::AdminText::try_from(String::from(
                 constants_str::VALUE_B2D6201D,
             ))
@@ -73,7 +73,7 @@ fn data_grid() {
     );
 
     let default_query = server_admin_contract::domain_types::AdminDataTableQuery::default();
-    let html = super::super::data_table_grid(&view, &default_query).render_admin_ssr();
+    let html = crate::data_table_grid(&view, &default_query).render_admin_ssr();
 
     assert!(html.as_ref().contains("data-field=\"id\""));
     assert!(html.as_ref().contains("data-name=\"TableWrapper\""));
@@ -104,7 +104,7 @@ fn data_grid() {
         ),
         server_admin_contract::domain_types::AdminTableQuery::default(),
     );
-    let filters_html = super::super::data_table_grid(&filter_view, &query).render_admin_ssr();
+    let filters_html = crate::data_table_grid(&filter_view, &query).render_admin_ssr();
     assert!(
         filters_html
             .as_ref()
@@ -224,14 +224,14 @@ fn data_grid() {
 
     let admin = test_admin();
     let branding = test_branding();
-    let page_html = super::super::render_data_tables(Some(&filter_view), &query, &admin, &branding);
+    let page_html = crate::render_data_tables(Some(&filter_view), &query, &admin, &branding);
     assert!(page_html.as_ref().contains("data-field=\"login\""));
     assert!(
         page_html
             .as_ref()
             .contains("action=\"/admin/role_permissions\"")
     );
-    let empty_html = super::super::render_data_tables(None, &query, &admin, &branding);
+    let empty_html = crate::render_data_tables(None, &query, &admin, &branding);
     assert!(!empty_html.as_ref().contains("class=\"table-scroll\""));
     assert!(
         empty_html

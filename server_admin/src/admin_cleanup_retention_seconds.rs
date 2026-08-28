@@ -1,4 +1,4 @@
-use super::AdminCleanupCfgError;
+use crate::AdminCleanupCfgError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupRetentionSeconds(server_admin_contract::domain_types::PositiveNonZeroI64);

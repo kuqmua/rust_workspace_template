@@ -1,44 +1,39 @@
-#![allow(clippy::single_call_fn)] // public facade preserves session API while this module owns persistence and rotation
-pub(super) async fn create_session_in_connection(
-    state: &super::AdminAuthSvcState,
-    user_id: super::super::AdminUserId,
-    context_hash: &super::super::AdminTokenHash,
-    mut connection: super::persistence::SqlxAdminPgConnectionRef<'_>,
-) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
+pub(crate) async fn create_session_in_connection(
+    state: &crate::AdminAuthSvcState,
+    user_id: crate::AdminUserId,
+    context_hash: &crate::AdminTokenHash,
+    mut connection: crate::repository::SqlxAdminRepositoryConnectionMutRef<'_>,
+) -> Result<crate::AdminSessionBundle, crate::AdminSessionError> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|duration| super::super::AdminUnixTokenStream::from(duration.as_secs()))
-        .map_err(|_error| super::AdminSessionError::SystemClock)?;
+        .map(|duration| crate::AdminUnixTokenStream::from(duration.as_secs()))
+        .map_err(|_error| crate::AdminSessionError::SystemClock)?;
     let session_uuid = uuid::Uuid::new_v4();
-    let session_id =
-        super::super::AdminSessionId::from(super::super::UuidAdminValue::from(session_uuid));
-    let refresh_generated = super::super::AdminGeneratedToken::generate()
-        .map_err(super::AdminSessionError::SecretText)?;
+    let session_id = crate::AdminSessionId::from(crate::UuidAdminValue::from(session_uuid));
+    let refresh_generated =
+        crate::AdminGeneratedToken::generate().map_err(crate::AdminSessionError::SecretText)?;
     let refresh_hash =
-        super::authorization_hash_refresh_token_with_context::authorization_hash_refresh_token_with_context(
+        crate::authorization_hash_refresh_token_with_context::authorization_hash_refresh_token_with_context(
             refresh_generated.token(),
             context_hash,
         )
-        .map_err(super::AdminSessionError::SecretText)?;
-    let refresh_token = super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
+        .map_err(crate::AdminSessionError::SecretText)?;
+    let refresh_token = crate::AdminRefreshToken::new(crate::AdminOpaqueToken::new(
         refresh_generated.token().clone_secret(),
     ));
-    let csrf_generated = super::super::AdminGeneratedToken::generate()
-        .map_err(super::AdminSessionError::SecretText)?;
-    let token_identifier = super::super::SecrecyAdminString::try_from(
-        super::super::UuidAdminValue::from(session_uuid)
-            .get()
-            .to_string(),
+    let csrf_generated =
+        crate::AdminGeneratedToken::generate().map_err(crate::AdminSessionError::SecretText)?;
+    let token_identifier = crate::SecrecyAdminString::try_from(
+        crate::UuidAdminValue::from(session_uuid).get().to_string(),
     )
-    .map(super::super::AdminOpaqueToken::new)
-    .map_err(super::super::AdminSecretTextError::from)
-    .map_err(super::AdminSessionError::SecretText)?;
-    let token_identifier_hash =
-        super::super::hash_opaque_token::hash_opaque_token(&token_identifier)
-            .map_err(super::AdminSessionError::SecretText)?;
+    .map(crate::AdminOpaqueToken::new)
+    .map_err(crate::AdminSecretTextError::from)
+    .map_err(crate::AdminSessionError::SecretText)?;
+    let token_identifier_hash = crate::hash_opaque_token::hash_opaque_token(&token_identifier)
+        .map_err(crate::AdminSessionError::SecretText)?;
     let expires_at =
-        super::super::AdminUnixTokenStream::from(now.get().saturating_add(state.access_ttl.get()));
-    let claims = super::super::AdminAccessClaims::new(
+        crate::AdminUnixTokenStream::from(now.get().saturating_add(state.access_ttl.get()));
+    let claims = crate::AdminAccessClaims::new(
         user_id,
         session_id,
         now,
@@ -51,13 +46,13 @@ pub(super) async fn create_session_in_connection(
         &claims,
         &state.encoding_key.0,
     )
-    .map_err(super::super::JsonwebtokenAdminError::from)
-    .map_err(super::super::AdminAccessTokenError::from)
-    .map_err(super::AdminSessionError::AccessToken)
+    .map_err(crate::JsonwebtokenAdminError::from)
+    .map_err(crate::AdminAccessTokenError::from)
+    .map_err(crate::AdminSessionError::AccessToken)
     .and_then(|value| {
-        super::super::StdAdminAccessToken::try_from(value)
-            .map_err(super::super::AdminSecretTextError::from)
-            .map_err(super::AdminSessionError::SecretText)
+        crate::StdAdminAccessToken::try_from(value)
+            .map_err(crate::AdminSecretTextError::from)
+            .map_err(crate::AdminSessionError::SecretText)
     })?;
     let session_offset = i64::try_from(
         state
@@ -72,14 +67,14 @@ pub(super) async fn create_session_in_connection(
         .execute(connection.as_mut())
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
-        .map_err(super::AdminSessionError::Pg)?;
+        .map_err(crate::AdminSessionError::Pg)?;
     let _refresh_result = sqlx::query(constants_str::SERVER_ADMIN_REVOKE_EXCESS_REFRESH_TOKENS_SQL)
         .bind(user_id.get())
         .bind(session_offset)
         .execute(connection.as_mut())
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
-        .map_err(super::AdminSessionError::Pg)?;
+        .map_err(crate::AdminSessionError::Pg)?;
     sqlx::query(constants_str::SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL)
         .bind(session_id.get().get())
         .bind(user_id.get())
@@ -90,21 +85,21 @@ pub(super) async fn create_session_in_connection(
         .execute(connection.as_mut())
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
-        .map_err(super::AdminSessionError::Pg)
+        .map_err(crate::AdminSessionError::Pg)
         .map(drop)?;
     sqlx::query(constants_str::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
-        .bind(super::super::UuidAdminValue::from(uuid::Uuid::new_v4()).get())
+        .bind(crate::UuidAdminValue::from(uuid::Uuid::new_v4()).get())
         .bind(user_id.get())
         .bind(refresh_hash.expose().as_ref())
         .bind(i64::try_from(state.refresh_ttl.get()).unwrap_or(i64::MAX))
         .execute(connection.as_mut())
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
-        .map_err(super::AdminSessionError::Pg)
+        .map_err(crate::AdminSessionError::Pg)
         .map(drop)?;
-    Ok(super::AdminSessionBundle {
+    Ok(crate::AdminSessionBundle {
         access_token,
-        csrf_token: super::super::AdminOpaqueToken::new(csrf_generated.token().clone_secret()),
+        csrf_token: crate::AdminOpaqueToken::new(csrf_generated.token().clone_secret()),
         refresh_token,
         session_id,
     })

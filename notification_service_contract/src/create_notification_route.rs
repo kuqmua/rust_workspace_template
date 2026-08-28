@@ -1,4 +1,4 @@
-use super::{CreateNotificationReq, CreateNotificationRes};
+use crate::domain_types::{CreateNotificationReq, CreateNotificationRes};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

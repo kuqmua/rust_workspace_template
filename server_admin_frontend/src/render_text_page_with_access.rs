@@ -1,6 +1,5 @@
 #![allow(
     unused_imports,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the screen-local Leptos view requires attribute traits after macro expansion"
 )]
@@ -13,14 +12,14 @@ use leptos::prelude::{
 #[must_use]
 pub fn render_text_page_with_access(
     page: server_admin_contract::domain_types::AdminPage,
-    _title: super::super::AdminSsrText,
-    text: super::super::AdminSsrText,
+    _title: crate::AdminSsrText,
+    text: crate::AdminSsrText,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
-) -> super::super::AdminSsrHtml {
+) -> crate::AdminSsrHtml {
     let content_view = leptos::view! {
         <section><crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::domain_types::with_owner::card::AdminCard></section>
     };
-    let content = super::super::render_view(content_view);
-    super::super::render_admin_page_with_access(page, content, Some(admin), Some(branding))
+    let content = crate::render_view(content_view);
+    crate::render_admin_page_with_access(page, content, Some(admin), Some(branding))
 }

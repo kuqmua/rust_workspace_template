@@ -2,78 +2,30 @@
     clippy::arbitrary_source_item_ordering,
     reason = "owner modules stay paired with their facade imports and reexports"
 )]
-#[path = "first_ident_max_len.rs"]
-mod first_ident_max_len;
-use first_ident_max_len::FIRST_IDENT_MAX_LEN;
-#[path = "collection_max_len.rs"]
-mod collection_max_len;
-use collection_max_len::COLLECTION_MAX_LEN;
-#[path = "syn_derive_input_ref.rs"]
-mod syn_derive_input_ref;
-pub use syn_derive_input_ref::*;
-#[path = "syn_struct_shape_ref.rs"]
-mod syn_struct_shape_ref;
-pub use syn_struct_shape_ref::*;
-#[path = "syn_fields_named_ref.rs"]
-mod syn_fields_named_ref;
-pub use syn_fields_named_ref::*;
-#[path = "syn_fields_unnamed_ref.rs"]
-mod syn_fields_unnamed_ref;
-pub use syn_fields_unnamed_ref::*;
-#[path = "proc_macro2_macro_tokens.rs"]
-mod proc_macro2_macro_tokens;
-pub use proc_macro2_macro_tokens::*;
-#[path = "proc_macro2_top_level_comma_parts.rs"]
-mod proc_macro2_top_level_comma_parts;
-pub use proc_macro2_top_level_comma_parts::*;
-#[path = "top_level_comma_part.rs"]
-mod top_level_comma_part;
-use top_level_comma_part::TopLevelCommaPart;
-#[path = "first_identifier.rs"]
-mod first_identifier;
-pub use first_identifier::*;
-#[path = "first_identifierifier_try_from_string_error.rs"]
-mod first_identifierifier_try_from_string_error;
-pub use first_identifierifier_try_from_string_error::*;
-#[path = "unique_option_b_tree_set.rs"]
-mod unique_option_b_tree_set;
-pub use unique_option_b_tree_set::*;
-#[path = "std_unique_option_set_contains.rs"]
-mod std_unique_option_set_contains;
-pub use std_unique_option_set_contains::*;
-#[path = "std_unique_option_set_is_empty.rs"]
-mod std_unique_option_set_is_empty;
-pub use std_unique_option_set_is_empty::*;
-#[path = "first_comma_stripped.rs"]
-mod first_comma_stripped;
-pub use first_comma_stripped::*;
-#[path = "part_index.rs"]
-mod part_index;
-pub use part_index::*;
-#[path = "compile_error_token_stream.rs"]
-mod compile_error_token_stream;
-pub use compile_error_token_stream::*;
-#[path = "split_top_level_commas.rs"]
-mod split_top_level_commas;
-pub use split_top_level_commas::*;
-#[path = "functions.rs"]
-mod functions;
-pub use functions::*;
-#[path = "strip_first_comma.rs"]
-mod strip_first_comma;
-pub use strip_first_comma::*;
-#[path = "part_at.rs"]
-mod part_at;
-pub use part_at::*;
-#[path = "first_identifier_at.rs"]
-mod first_identifier_at;
-pub use first_identifier_at::*;
-#[path = "split_fat_arrow.rs"]
-mod split_fat_arrow;
-pub use split_fat_arrow::*;
-#[path = "closure_identifier_and_body.rs"]
-mod closure_identifier_and_body;
-pub use closure_identifier_and_body::*;
+pub use crate::closure_identifier_and_body::*;
+pub(crate) use crate::collection_max_len::COLLECTION_MAX_LEN;
+pub use crate::compile_error_token_stream::*;
+pub use crate::first_comma_stripped::*;
+pub(crate) use crate::first_ident_max_len::FIRST_IDENT_MAX_LEN;
+pub use crate::first_identifier::*;
+pub use crate::first_identifier_at::*;
+pub use crate::first_identifierifier_try_from_string_error::*;
+pub use crate::functions::*;
+pub use crate::part_at::*;
+pub use crate::part_index::*;
+pub use crate::proc_macro2_macro_tokens::*;
+pub use crate::proc_macro2_top_level_comma_parts::*;
+pub use crate::split_fat_arrow::*;
+pub use crate::split_top_level_commas::*;
+pub use crate::std_unique_option_set_contains::*;
+pub use crate::std_unique_option_set_is_empty::*;
+pub use crate::strip_first_comma::*;
+pub use crate::syn_derive_input_ref::*;
+pub use crate::syn_fields_named_ref::*;
+pub use crate::syn_fields_unnamed_ref::*;
+pub use crate::syn_struct_shape_ref::*;
+pub(crate) use crate::top_level_comma_part::TopLevelCommaPart;
+pub use crate::unique_option_b_tree_set::*;
 
 #[cfg(test)]
 mod tests {

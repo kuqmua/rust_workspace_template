@@ -5,5 +5,5 @@ pub fn render_admin_profile_page(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> AdminSsrHtml {
-    render_profile::render_profile(admin, branding)
+    render_profile(admin, branding)
 }

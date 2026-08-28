@@ -1,18 +1,7 @@
-#[path = "synchronization_payload.rs"]
-mod synchronization_payload;
-#[path = "synchronization_payload_max_bytes.rs"]
-mod synchronization_payload_max_bytes;
-#[path = "synchronization_payload_too_large.rs"]
-mod synchronization_payload_too_large;
-#[path = "synchronization_runtime_configuration.rs"]
-mod synchronization_runtime_configuration;
-#[path = "synchronization_source.rs"]
-mod synchronization_source;
-
-pub use synchronization_payload::SynchronizationPayload;
-pub use synchronization_payload_too_large::SynchronizationPayloadTooLarge;
-pub use synchronization_runtime_configuration::SynchronizationRuntimeConfiguration;
-pub use synchronization_source::SynchronizationSource;
+pub use crate::synchronization_payload::SynchronizationPayload;
+pub use crate::synchronization_payload_too_large::SynchronizationPayloadTooLarge;
+pub use crate::synchronization_runtime_configuration::SynchronizationRuntimeConfiguration;
+pub use crate::synchronization_source::SynchronizationSource;
 
 #[cfg(test)]
 mod tests {

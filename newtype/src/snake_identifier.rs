@@ -1,4 +1,6 @@
-use super::{SNAKE_IDENT_MAX_LEN, SnakeIdentifierifierLen, SnakeIdentifierifierTryFromStringError};
+use crate::domain_types::{
+    SNAKE_IDENT_MAX_LEN, SnakeIdentifierifierLen, SnakeIdentifierifierTryFromStringError,
+};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) struct SnakeIdentifier(String);

@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "deployment synchronization owns catalog parsing"
-)]
 pub(super) fn service_catalog_parse(
     source: super::ScaffoldTextRef<'_>,
 ) -> Result<super::ServiceCatalogEntries, super::ScaffoldError> {

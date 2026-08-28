@@ -1,9 +1,9 @@
-use super::csr_page;
+use crate::csr_page;
 
 #[frontend_contract::domain_types::route_error(AdminDataTablesPageError)]
-pub(in crate::domain_types::auth::html) async fn data_tables(
-    auth: super::super::super::AdminAuthReq,
-    super::super::super::AxumAdminPath(table): super::super::super::AxumAdminPath<
+pub(crate) async fn data_tables(
+    auth: crate::AdminAuthReq,
+    crate::AxumAdminPath(table): crate::AxumAdminPath<
         server_admin_contract::domain_types::AdminDataTable,
     >,
 ) -> axum::response::Response {

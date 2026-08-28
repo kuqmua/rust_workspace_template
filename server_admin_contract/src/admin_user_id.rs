@@ -14,11 +14,11 @@
 )]
 #[serde(try_from = "i64")]
 #[schema(value_type = i64)]
-pub struct AdminUserId(super::super::PositiveNonZeroI64);
+pub struct AdminUserId(crate::domain_types::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminUserId {
     type Error = super::admin_id_try_from_i64_error::AdminIdTryFromI64Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        super::super::PositiveNonZeroI64::try_from(value).map(Self)
+        crate::domain_types::PositiveNonZeroI64::try_from(value).map(Self)
     }
 }
 impl From<AdminUserId> for i64 {
@@ -28,7 +28,7 @@ impl From<AdminUserId> for i64 {
 }
 impl AdminUserId {
     #[must_use]
-    pub const fn value(self) -> super::super::PositiveNonZeroI64 {
+    pub const fn value(self) -> crate::domain_types::PositiveNonZeroI64 {
         self.0
     }
 }

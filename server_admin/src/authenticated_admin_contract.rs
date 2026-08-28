@@ -1,6 +1,6 @@
-use super::{AdminError, AuthenticatedAdmin};
+use crate::{AdminError, AuthenticatedAdmin};
 
-pub(super) fn authenticated_admin_contract(
+pub(crate) fn authenticated_admin_contract(
     value: &AuthenticatedAdmin,
 ) -> Result<server_admin_contract::domain_types::AuthenticatedAdmin, AdminError> {
     let permissions = value

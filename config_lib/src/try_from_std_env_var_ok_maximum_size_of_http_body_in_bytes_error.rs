@@ -6,6 +6,6 @@ pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError {
     },
     #[error("{:?}", .usize_parsing)]
     UsizeParsing {
-        usize_parsing: super::super::UsizeParseIntError,
+        usize_parsing: crate::UsizeParseIntError,
     },
 }

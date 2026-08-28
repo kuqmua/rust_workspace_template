@@ -3,7 +3,7 @@
     reason = "sibling emitters read this private operation descriptor directly"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-pub(in super::super) struct OperationDsc<
+pub(crate) struct OperationDsc<
     Capability,
     HttpMethod,
     Operation,
@@ -11,13 +11,13 @@ pub(in super::super) struct OperationDsc<
     PermissionAction,
     StatusCode,
 > {
-    pub(in super::super) http_method: HttpMethod,
-    pub(in super::super) idempotency_capable: Capability,
-    pub(in super::super) operation: Operation,
-    pub(in super::super) operation_kind: OperationKind,
-    pub(in super::super) optimistic_concurrency_capable: Capability,
-    pub(in super::super) permission_action: PermissionAction,
-    pub(in super::super) success_status_code: StatusCode,
+    pub(crate) http_method: HttpMethod,
+    pub(crate) idempotency_capable: Capability,
+    pub(crate) operation: Operation,
+    pub(crate) operation_kind: OperationKind,
+    pub(crate) optimistic_concurrency_capable: Capability,
+    pub(crate) permission_action: PermissionAction,
+    pub(crate) success_status_code: StatusCode,
 }
 #[cfg(test)]
 mod tests {

@@ -1,16 +1,14 @@
-use super::AdminHtmlFormText;
+use crate::AdminHtmlFormText;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(in crate::domain_types::auth::html) struct SettingsForm {
-    pub(in crate::domain_types::auth::html) default_admin_route:
-        server_admin_contract::domain_types::AdminDefaultRoute,
-    pub(in crate::domain_types::auth::html) main_logo: AdminHtmlFormText,
-    pub(in crate::domain_types::auth::html) organization_contacts: AdminHtmlFormText,
-    pub(in crate::domain_types::auth::html) organization_name: AdminHtmlFormText,
-    pub(in crate::domain_types::auth::html) primary_color: AdminHtmlFormText,
-    pub(in crate::domain_types::auth::html) site_name:
-        server_admin_contract::domain_types::AdminSiteName,
-    pub(in crate::domain_types::auth::html) support_url: AdminHtmlFormText,
-    pub(in crate::domain_types::auth::html) tab_title: AdminHtmlFormText,
+pub(crate) struct SettingsForm {
+    pub(crate) default_admin_route: server_admin_contract::domain_types::AdminDefaultRoute,
+    pub(crate) main_logo: AdminHtmlFormText,
+    pub(crate) organization_contacts: AdminHtmlFormText,
+    pub(crate) organization_name: AdminHtmlFormText,
+    pub(crate) primary_color: AdminHtmlFormText,
+    pub(crate) site_name: server_admin_contract::domain_types::AdminSiteName,
+    pub(crate) support_url: AdminHtmlFormText,
+    pub(crate) tab_title: AdminHtmlFormText,
 }

@@ -5,6 +5,11 @@ pub fn emit_generate_pg_types(
     validated: ValidatedGeneratePgTypesConfig,
 ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
     panic_location::panic_location();
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    enum DateOrTime {
+        Date,
+        Time,
+    }
     let generate_pg_types_config = validated.config;
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
@@ -107,7 +112,7 @@ pub fn emit_generate_pg_types(
                 <PgType as strum::IntoEnumIterator>::iter().filter(|element| should_include(element));
             let capacity = pg_type_iter.size_hint().1.unwrap_or_default().saturating_mul(2);
             pg_type_iter.fold(Vec::with_capacity(capacity), |mut acc0, element| {
-                match &crate::domain_types::sqlx::pg_type_can_be_nullable::pg_type_can_be_nullable(element.spec()) {
+                match &domain_types::sqlx::pg_type_can_be_nullable::pg_type_can_be_nullable(element.spec()) {
                     CanBeNullable::False => {
                         acc0.push(PgTypeRecord {
                             pg_type: element,
@@ -350,7 +355,7 @@ pub(super) enum IntRangeType {
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>>},
         };
         let pg_type_dsc = pg_type.spec();
-        let pg_name = crate::domain_types::pg_name::pg_name(pg_type_dsc);
+        let pg_name = domain_types::pg_name::pg_name(pg_type_dsc);
         let open_api_object_builder_token_stream = |schema_type: &dyn quote::ToTokens,
                                           extra: &dyn quote::ToTokens| {
             quote::quote! {
@@ -361,7 +366,7 @@ pub(super) enum IntRangeType {
                     .build()
             }
         };
-        let non_null_open_api_schema_token_stream = match crate::domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
+        let non_null_open_api_schema_token_stream = match domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
             WireKind::Int16 => open_api_object_builder_token_stream(
                 &quote::quote! {Integer},
                 &quote::quote! {
@@ -431,14 +436,14 @@ pub(super) enum IntRangeType {
                 },
             ),
             WireKind::Bytes | WireKind::Mac => {
-                let limits_token_stream = match crate::domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
+                let limits_token_stream = match domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
                     WireKind::Mac => quote::quote! {
                         .min_items(Some(6))
                         .max_items(Some(6))
                     },
                     _ => proc_macro2::TokenStream::new(),
                 };
-                let example_token_stream = if matches!(crate::domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc), WireKind::Mac) {
+                let example_token_stream = if matches!(domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc), WireKind::Mac) {
                     quote::quote! {[0, 17, 34, 51, 68, 85]}
                 } else {
                     quote::quote! {[1, 2, 3]}
@@ -455,7 +460,7 @@ pub(super) enum IntRangeType {
                 }
             }
             WireKind::TimeChrono | WireKind::TimeTime => {
-                let (minute_name, second_name, microsecond_name) = match crate::domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
+                let (minute_name, second_name, microsecond_name) = match domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
                     WireKind::TimeChrono => (constants_str::MIN, constants_str::SEC, constants_str::MICRO),
                     WireKind::TimeTime => (constants_str::MINUTE, constants_str::SECOND_ALT, constants_str::MICROSECOND),
                     _ => unreachable!(),
@@ -493,7 +498,7 @@ pub(super) enum IntRangeType {
                     .build()
             },
             WireKind::Timestamp | WireKind::TimestampTz => {
-                let date_name = match crate::domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
+                let date_name = match domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
                     WireKind::Timestamp => constants_str::PG_CRUD_PG_DATE,
                     WireKind::TimestampTz => constants_str::DATE_NAIVE,
                     _ => unreachable!(),
@@ -519,12 +524,12 @@ pub(super) enum IntRangeType {
                 }
             }
             WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeDate | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
-                let range_value_schema_token_stream = match crate::domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
+                let range_value_schema_token_stream = match domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
                     WireKind::RangeInt32 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))},
                     WireKind::RangeInt64 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))},
                     WireKind::RangeDate => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::schema::Type::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
                     WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
-                        let date_name = match crate::domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
+                        let date_name = match domain_types::schema_wire_kind::schema_wire_kind(pg_type_dsc) {
                             WireKind::RangeTimestamp => constants_str::PG_CRUD_PG_DATE,
                             WireKind::RangeTimestampTz => constants_str::DATE_NAIVE,
                             _ => unreachable!(),
@@ -611,7 +616,7 @@ pub(super) enum IntRangeType {
             },
         };
         let pg_type_can_be_primary_key =
-            crate::domain_types::sqlx::pg_type_can_be_primary_key::pg_type_can_be_primary_key(pg_type.spec());
+            domain_types::sqlx::pg_type_can_be_primary_key::pg_type_can_be_primary_key(pg_type.spec());
         let is_standard_non_null = if matches!((&pg_type_pattern, &is_nullable), (PgTypePattern::Standard, pg_crud_macro_common::domain_types::IsNullable::False)) {
             pg_crud_macro_common::domain_types::IsStandardNonNull::True
         } else {
@@ -847,11 +852,6 @@ pub(super) enum IntRangeType {
                             }
                         }))),
                         PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macro_common::domain_types::DeriveOrImpl::Impl(macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(super) enum DateOrTime {
-                                Date,
-                                Time,
-                            }
                             let generate_ser_field_try_new_unwrap_token_stream = |date_or_time: &DateOrTime| {
                                 let date_or_time_token_stream: &dyn naming::domain_types::DisplayPlusToTokens = match &date_or_time {
                                     DateOrTime::Date => &date_snake_case,
@@ -882,26 +882,21 @@ pub(super) enum DateOrTime {
                             }
                         }))),
                         PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macro_common::domain_types::DeriveOrImpl::Impl(macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
-                            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(super) enum DateNaiveOrTime {
-                                Date,
-                                Time,
-                            }
-                            let generate_ser_field_try_new_unwrap_token_stream = |date_naive_or_time: &DateNaiveOrTime| {
+                            let generate_ser_field_try_new_unwrap_token_stream = |date_naive_or_time: &DateOrTime| {
                                 let date_naive_or_time_token_stream: &dyn naming::domain_types::DisplayPlusToTokens = match &date_naive_or_time {
-                                    DateNaiveOrTime::Date => &date_naive_snake_case,
-                                    DateNaiveOrTime::Time => &time_snake_case,
+                                    DateOrTime::Date => &date_naive_snake_case,
+                                    DateOrTime::Time => &time_snake_case,
                                 };
                                 generate_ser_field_token_stream(&date_naive_or_time_token_stream, &{
                                     let identifier_token_stream_time: &dyn quote::ToTokens = match &date_naive_or_time {
-                                        DateNaiveOrTime::Date => &sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case,
-                                        DateNaiveOrTime::Time => &sqlx_types_chrono_naive_time_as_non_null_time_origin_upper_camel_case,
+                                        DateOrTime::Date => &sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case,
+                                        DateOrTime::Time => &sqlx_types_chrono_naive_time_as_non_null_time_origin_upper_camel_case,
                                     };
                                     quote::quote! {&#identifier_token_stream_time::#try_new_snake_case(self.0.#date_naive_or_time_token_stream()).map_err(_serde::ser::Error::custom)?}
                                 })
                             };
-                            let date_naive_ser_field_token_stream = generate_ser_field_try_new_unwrap_token_stream(&DateNaiveOrTime::Date);
-                            let time_ser_field_token_stream = generate_ser_field_try_new_unwrap_token_stream(&DateNaiveOrTime::Time);
+                            let date_naive_ser_field_token_stream = generate_ser_field_try_new_unwrap_token_stream(&DateOrTime::Date);
+                            let time_ser_field_token_stream = generate_ser_field_try_new_unwrap_token_stream(&DateOrTime::Time);
                             quote::quote! {
                                 #serde_state_initialization_two_fields_token_stream
                                 #date_naive_ser_field_token_stream
@@ -1547,7 +1542,7 @@ pub(super) enum IsConst {
         let sqlx_encode_self_dot_zero_token_stream = quote::quote! {#self_snake_case.0};
         let identifier_origin_token_stream = {
             let identifier_origin_wire_token_stream = if matches!(&is_standard_non_null, pg_crud_macro_common::domain_types::IsStandardNonNull::True) {
-                match crate::domain_types::serde_wire_kind::serde_wire_kind(pg_type_dsc) {
+                match domain_types::serde_wire_kind::serde_wire_kind(pg_type_dsc) {
                     WireKind::TimeChrono => quote::quote! {
                         #[derive(serde::Deserialize)]
                         struct #identifier_origin_wire_upper_camel_case {
@@ -3030,7 +3025,7 @@ pub(super) enum IsConst {
                                 pg_crud_macro_common::domain_types::filters::PgTypeFilter::RangeLen,
                             ])
                         };
-                        match crate::domain_types::pg_type_filter_kind::pg_type_filter_kind(pg_type.spec()) {
+                        match domain_types::pg_type_filter_kind::pg_type_filter_kind(pg_type.spec()) {
                             FilterKind::Number => generate_common_standard_pg_type_number_filters(),
                             FilterKind::Money | FilterKind::Uuid | FilterKind::Bool => generate_flts_with(generate_common_pg_type_filters(), [generate_in_filter()]),
                             FilterKind::Bytes => generate_flts_with(generate_common_pg_type_filters(), [pg_crud_macro_common::domain_types::filters::PgTypeFilter::EqToEncodedStringRepresentation]),
@@ -4629,7 +4624,7 @@ pub(super) enum CreateReadIds {
             | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
             | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
             | PgType::StdVecVecU8AsBytea
-            | PgType::StringAsText => crate::domain_types::pg_name::pg_name(pg_type_dsc),
+            | PgType::StringAsText => domain_types::pg_name::pg_name(pg_type_dsc),
         };
         let db_has_server_default = matches!(
             pg_type,
@@ -4638,7 +4633,7 @@ pub(super) enum CreateReadIds {
                 | PgType::I64AsBigSerialInitializationByPg
                 | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
         );
-        let (frontend_input_kind_token_stream, frontend_value_format_token_stream, frontend_step_token_stream, frontend_example_token_stream) = match crate::domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
+        let (frontend_input_kind_token_stream, frontend_value_format_token_stream, frontend_step_token_stream, frontend_example_token_stream) = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
             WireKind::Bool => (quote::quote! {frontend_contract::domain_types::InputKind::Checkbox}, quote::quote! {frontend_contract::domain_types::ValueFormat::Bool}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Boolean}),
             WireKind::Bytes => (quote::quote! {frontend_contract::domain_types::InputKind::Text}, quote::quote! {frontend_contract::domain_types::ValueFormat::Bytes}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Text}),
             WireKind::Date => (quote::quote! {frontend_contract::domain_types::InputKind::Date}, quote::quote! {frontend_contract::domain_types::ValueFormat::Date}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Date}),
@@ -4657,7 +4652,7 @@ pub(super) enum CreateReadIds {
             WireKind::TimestampTz => (quote::quote! {frontend_contract::domain_types::InputKind::DateTime}, quote::quote! {frontend_contract::domain_types::ValueFormat::TimestampTz}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::DateTime}),
             WireKind::Uuid => (quote::quote! {frontend_contract::domain_types::InputKind::Uuid}, quote::quote! {frontend_contract::domain_types::ValueFormat::Uuid}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Uuid}),
         };
-        let frontend_bounds_token_stream = match crate::domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
+        let frontend_bounds_token_stream = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
             WireKind::Int16 => quote::quote! {.with_minimum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i16_min())).with_maximum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i16_max()))},
             WireKind::Int32 => quote::quote! {.with_minimum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i32_min())).with_maximum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i32_max()))},
             WireKind::Int64 => quote::quote! {.with_minimum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::min())).with_maximum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::max()))},
@@ -4709,12 +4704,12 @@ pub(super) enum CreateReadIds {
                 serde_json::json!({"hour": hour, #minute_name: minute, #second_name: second, #microsecond_name: microsecond})
             }}
         };
-        let frontend_parse_json_value_token_stream = match crate::domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
+        let frontend_parse_json_value_token_stream = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
             WireKind::Date | WireKind::Inet | WireKind::Mac | WireKind::String | WireKind::Uuid => quote::quote! {serde_json::Value::String(value.as_ref().to_owned())},
             WireKind::TimeChrono => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, constants_str::MIN, constants_str::SEC, constants_str::MICRO),
             WireKind::TimeTime => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, constants_str::MINUTE, constants_str::SECOND_ALT, constants_str::MICROSECOND),
             WireKind::Timestamp | WireKind::TimestampTz => {
-                let date_name = match crate::domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
+                let date_name = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
                     WireKind::Timestamp => constants_str::PG_CRUD_PG_DATE,
                     WireKind::TimestampTz => constants_str::DATE_NAIVE,
                     _ => unreachable!(),
@@ -4752,11 +4747,11 @@ pub(super) enum CreateReadIds {
                 format!("{hour:02}:{minute:02}:{second:02}.{fraction}")
             }
         }};
-        let frontend_format_value_token_stream = match crate::domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
+        let frontend_format_value_token_stream = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
             WireKind::TimeChrono => frontend_format_time_token_stream(&quote::quote! {value}, constants_str::MIN, constants_str::SEC, constants_str::MICRO),
             WireKind::TimeTime => frontend_format_time_token_stream(&quote::quote! {value}, constants_str::MINUTE, constants_str::SECOND_ALT, constants_str::MICROSECOND),
             WireKind::Timestamp | WireKind::TimestampTz => {
-                let date_name = match crate::domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
+                let date_name = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
                     WireKind::Timestamp => constants_str::PG_CRUD_PG_DATE,
                     WireKind::TimestampTz => constants_str::DATE_NAIVE,
                     _ => unreachable!(),

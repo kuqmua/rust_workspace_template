@@ -1,4 +1,4 @@
-pub(in crate::domain_types::start) fn show_mutation_error(
+pub(crate) fn show_mutation_error(
     error: &crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError,
 ) {
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {

@@ -1,4 +1,4 @@
-pub(in crate::domain_types) const fn optimistic_concurrency_capable<
+pub(crate) const fn optimistic_concurrency_capable<
     Capability,
     HttpMethod,
     Operation,

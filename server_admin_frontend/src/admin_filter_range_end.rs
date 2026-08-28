@@ -1,5 +1,4 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the filter range-end control is composed once by its range operation"
 )]
@@ -9,8 +8,8 @@ use leptos::prelude::{AddAnyAttr, ElementChild};
 pub(super) fn admin_filter_range_end(
     filter: server_admin_contract::domain_types::AdminDataFilter,
     active_end: Option<&server_admin_contract::domain_types::AdminFilterValue>,
-    input_type: super::super::admin_data_grid_input_type::AdminDataGridInputType,
-    selected_operation: super::super::LeptosAdminFilterOperationSignal,
+    input_type: crate::admin_data_grid_input_type::AdminDataGridInputType,
+    selected_operation: crate::LeptosAdminFilterOperationSignal,
 ) -> impl leptos::prelude::IntoView + use<> {
     let end = active_end.map(ToString::to_string).unwrap_or_default();
     let operation =

@@ -1,5 +1,3 @@
-#![allow(clippy::single_call_fn)] // frontend projection is a private physical emitter boundary
-
 pub(super) const fn frontend_operation_kind<
     Capability,
     HttpMethod,

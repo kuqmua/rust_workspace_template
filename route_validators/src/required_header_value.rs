@@ -1,4 +1,3 @@
-#[allow(clippy::single_call_fn)] // shared helper centralizes required-header extraction and no-header error mapping
 pub(super) fn required_header_value<E>(
     headers: super::AxumHeadersRef<'_>,
     header_name: impl axum::http::header::AsHeaderName,

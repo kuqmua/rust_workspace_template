@@ -1,7 +1,7 @@
-pub(super) fn data_columns(
+pub(crate) fn data_columns(
     table: server_admin_contract::domain_types::AdminDataTable,
     column_names: server_admin_contract::domain_types::AdminDataColumnsCsvRef<'_>,
-) -> Result<server_admin_contract::domain_types::AdminDataColumns, super::AdminRepositoryError> {
+) -> Result<server_admin_contract::domain_types::AdminDataColumns, crate::AdminRepositoryError> {
     let generated_fields =
         crate::domain_types::generated_tables::AdminGeneratedTable::for_data_table(table)
             .map(crate::domain_types::generated_tables::AdminGeneratedTable::field_contracts);
@@ -18,14 +18,10 @@ pub(super) fn data_columns(
                 || raw_name.to_owned(),
                 |field| field.label().as_ref().to_owned(),
             );
-            let input_kind = generated_field.map_or(
-                server_admin_contract::domain_types::AdminDataInputKind::Text,
-                |field| {
-                    server_admin_contract::domain_types::AdminDataInputKind::from(
-                        field.type_contract().input_kind(),
-                    )
-                },
-            );
+            let input_kind = generated_field
+                .map_or(frontend_contract::domain_types::InputKind::Text, |field| {
+                    field.type_contract().input_kind()
+                });
             let raw_filters = generated_field.map_or_else(Vec::new, |field| {
                 field
                     .filters()
@@ -36,17 +32,17 @@ pub(super) fn data_columns(
             });
             let filters =
                 server_admin_contract::domain_types::AdminDataFilters::try_from(raw_filters)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?;
             let label = server_admin_contract::domain_types::AdminText::try_from(label_text)
-                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+                .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?;
             let name =
                 server_admin_contract::domain_types::AdminText::try_from(raw_name.to_owned())
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?;
             Ok(server_admin_contract::domain_types::AdminDataColumn::new(
                 filters, input_kind, label, name,
             ))
         })
-        .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+        .collect::<Result<Vec<_>, crate::AdminRepositoryError>>()?;
     server_admin_contract::domain_types::AdminDataColumns::try_from(columns)
-        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+        .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)
 }

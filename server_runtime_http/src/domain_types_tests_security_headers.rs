@@ -8,21 +8,21 @@ async fn only_trusts_forwarded_proto_when_configured() {
             .expect("94149bdd only_trusts_forwarded_proto_when_configured invariant must hold")
     };
     let make_router = |trust| {
-        let policy = super::super::HttpContentSecurityPolicy::try_from(
+        let policy = crate::HttpContentSecurityPolicy::try_from(
             constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
         )
         .expect("abf8cd24 only_trusts_forwarded_proto_when_configured invariant must hold");
         axum::Router::from(
-            super::super::SecurityHeadersLayer::from(trust)
+            crate::SecurityHeadersLayer::from(trust)
                 .with_content_security_policy(policy)
-                .apply(super::super::AxumRouter::from(axum::Router::new().route(
+                .apply(crate::AxumRouter::from(axum::Router::new().route(
                     constants_str::V1_TEST,
                     axum::routing::get(async || http::StatusCode::OK),
                 ))),
         )
     };
     let ignored_response = tower::ServiceExt::oneshot(
-        make_router(super::super::ForwardedProtoTrust::Ignore),
+        make_router(crate::ForwardedProtoTrust::Ignore),
         make_request(),
     )
     .await
@@ -34,7 +34,7 @@ async fn only_trusts_forwarded_proto_when_configured() {
             .is_none()
     );
     let trusted_response = tower::ServiceExt::oneshot(
-        make_router(super::super::ForwardedProtoTrust::Trust),
+        make_router(crate::ForwardedProtoTrust::Trust),
         make_request(),
     )
     .await
@@ -74,8 +74,8 @@ async fn only_trusts_forwarded_proto_when_configured() {
 #[tokio::test]
 async fn marks_credentials_as_sensitive() {
     let router = axum::Router::from(
-        super::super::SecurityHeadersLayer::from(super::super::ForwardedProtoTrust::Ignore).apply(
-            super::super::AxumRouter::from(axum::Router::new().route(
+        crate::SecurityHeadersLayer::from(crate::ForwardedProtoTrust::Ignore).apply(
+            crate::AxumRouter::from(axum::Router::new().route(
                 constants_str::V1_TEST,
                 axum::routing::get(async |headers: http::HeaderMap| {
                     assert!(

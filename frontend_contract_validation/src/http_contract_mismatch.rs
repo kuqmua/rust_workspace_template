@@ -2,9 +2,9 @@
 pub enum HttpContractMismatch {
     BodyExpectedEmpty,
     BodyExpectedJson,
-    Metadata(super::RouteContractMismatches),
+    Metadata(crate::route_contract_validation::RouteContractMismatches),
     Status {
-        expected: super::HttpContractStatus,
-        observed: super::HttpContractStatus,
+        expected: crate::route_contract_validation::HttpContractStatus,
+        observed: crate::route_contract_validation::HttpContractStatus,
     },
 }

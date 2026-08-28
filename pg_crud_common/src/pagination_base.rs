@@ -93,7 +93,3 @@ impl Default for PaginationBase {
         )
     }
 }
-
-#[cfg(test)]
-#[path = "domain_types_query_pagination_tests.rs"]
-mod tests;

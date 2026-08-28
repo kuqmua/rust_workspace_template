@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::{SNAKE_IDENT_MAX_LEN, SnakeIdentifierifierLen};
+use crate::domain_types::{SNAKE_IDENT_MAX_LEN, SnakeIdentifierifierLen};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(crate) struct SnakeIdentifierifierTryFromStringError(pub(super) SnakeIdentifierifierLen);

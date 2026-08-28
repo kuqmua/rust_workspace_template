@@ -9,12 +9,12 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminRefreshTokenTtlSeconds(super::super::ConfigNonZeroU64);
+pub struct AdminRefreshTokenTtlSeconds(crate::ConfigNonZeroU64);
 
-impl super::super::TryFromStdEnvVarOk for AdminRefreshTokenTtlSeconds {
+impl crate::TryFromStdEnvVarOk for AdminRefreshTokenTtlSeconds {
     type Error = super::TryFromStdEnvVarOkAdminPositiveU64Error;
 
-    fn try_from_std_env_var_ok(v: super::super::StdEnvVarOk) -> Result<Self, Self::Error> {
+    fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
         super::parse_admin_positive_u64::parse_admin_positive_u64(&v).map(Self)
     }
 }

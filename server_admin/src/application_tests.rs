@@ -1,16 +1,13 @@
-#[path = "application_tests_helper.rs"]
-pub(super) mod helper;
-
 #[test]
 fn rate_limit_scopes_are_distinct() {
     let scopes = [
-        super::rate_limit::AdminRateLimitScope::AuditExport,
-        super::rate_limit::AdminRateLimitScope::Mutation,
-        super::rate_limit::AdminRateLimitScope::RefreshIp,
-        super::rate_limit::AdminRateLimitScope::SignInIp,
-        super::rate_limit::AdminRateLimitScope::SignInIpLogin,
+        crate::rate_limit::AdminRateLimitScope::AuditExport,
+        crate::rate_limit::AdminRateLimitScope::Mutation,
+        crate::rate_limit::AdminRateLimitScope::RefreshIp,
+        crate::rate_limit::AdminRateLimitScope::SignInIp,
+        crate::rate_limit::AdminRateLimitScope::SignInIpLogin,
     ]
-    .map(super::rate_limit::AdminRateLimitScope::as_str);
+    .map(crate::rate_limit::AdminRateLimitScope::as_str);
     assert_eq!(
         scopes[0].as_ref(),
         constants_str::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT
@@ -20,7 +17,7 @@ fn rate_limit_scopes_are_distinct() {
 }
 #[test]
 fn rate_limited_error_includes_retry_after_header() {
-    let response = axum::response::IntoResponse::into_response(super::AdminError::RateLimited);
+    let response = axum::response::IntoResponse::into_response(crate::AdminError::RateLimited);
     assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
     assert_eq!(
         response.headers().get(http::header::RETRY_AFTER),
@@ -35,8 +32,8 @@ fn rate_limited_error_includes_retry_after_header() {
 }
 #[test]
 fn server_error_response_preserves_http_diagnostic() {
-    let response = axum::response::IntoResponse::into_response(super::AdminError::postgresql(
-        super::super::SqlxAdminError::from(sqlx::Error::RowNotFound),
+    let response = axum::response::IntoResponse::into_response(crate::AdminError::postgresql(
+        crate::SqlxAdminError::from(sqlx::Error::RowNotFound),
     ));
     assert_eq!(response.status(), http::StatusCode::INTERNAL_SERVER_ERROR);
     assert!(
@@ -81,7 +78,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         http::header::USER_AGENT,
         http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_1),
     );
-    let first_peer = super::AdminPeerAddr::from(super::super::AdminSocketAddr::from(
+    let first_peer = crate::AdminPeerAddr::from(crate::AdminSocketAddr::from(
         constants_str::VALUE_192_0_2_10_443
             .parse::<std::net::SocketAddr>()
             .expect(
@@ -89,16 +86,16 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
             ),
     ));
     let same_context_hash =
-        super::authorization_session_context_hash::authorization_session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&first_headers),
+        crate::authorization_session_context_hash::authorization_session_context_hash(
+            crate::HttpAdminHeaderMapRef::from(&first_headers),
             first_peer,
         )
         .expect(
             "14f0aa2d session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
         );
     let repeated_context_hash =
-        super::authorization_session_context_hash::authorization_session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&first_headers),
+        crate::authorization_session_context_hash::authorization_session_context_hash(
+            crate::HttpAdminHeaderMapRef::from(&first_headers),
             first_peer,
         )
         .expect(
@@ -108,7 +105,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         same_context_hash.expose().as_ref(),
         repeated_context_hash.expose().as_ref(),
     );
-    let other_peer = super::AdminPeerAddr::from(super::super::AdminSocketAddr::from(
+    let other_peer = crate::AdminPeerAddr::from(crate::AdminSocketAddr::from(
         constants_str::VALUE_192_0_2_11_443
             .parse::<std::net::SocketAddr>()
             .expect(
@@ -116,8 +113,8 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
             ),
     ));
     let other_peer_hash =
-        super::authorization_session_context_hash::authorization_session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&first_headers),
+        crate::authorization_session_context_hash::authorization_session_context_hash(
+            crate::HttpAdminHeaderMapRef::from(&first_headers),
             other_peer,
         )
         .expect(
@@ -133,8 +130,8 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_2),
     );
     let other_user_agent_hash =
-        super::authorization_session_context_hash::authorization_session_context_hash(
-            super::super::HttpAdminHeaderMapRef::from(&other_headers),
+        crate::authorization_session_context_hash::authorization_session_context_hash(
+            crate::HttpAdminHeaderMapRef::from(&other_headers),
             first_peer,
         )
         .expect(
@@ -148,7 +145,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
 #[test]
 fn audit_resource_identifier_uses_target_identifier() {
     assert_eq!(
-        super::persistence::AdminAuditResourceId::User(
+        crate::persistence::AdminAuditResourceId::User(
             crate::domain_types::AdminUserId::try_from(42i64).expect(
                 "423b91b9 audit_resource_identifier_uses_target_identifier invariant must hold"
             ),
@@ -158,7 +155,7 @@ fn audit_resource_identifier_uses_target_identifier() {
         "42"
     );
     assert_eq!(
-        super::persistence::AdminAuditResourceId::Role(
+        crate::persistence::AdminAuditResourceId::Role(
             crate::domain_types::AdminRoleId::try_from(7i64).expect(
                 "af8df9d2 audit_resource_identifier_uses_target_identifier invariant must hold"
             ),
@@ -168,7 +165,7 @@ fn audit_resource_identifier_uses_target_identifier() {
         "7"
     );
     assert_eq!(
-        super::persistence::AdminAuditResourceId::SystemSettings
+        crate::persistence::AdminAuditResourceId::SystemSettings
             .value()
             .as_ref(),
         "1"
@@ -177,11 +174,11 @@ fn audit_resource_identifier_uses_target_identifier() {
 #[test]
 fn open_api_contains_auth_and_user_security_contracts() {
     frontend_contract_validation::domain_types::openapi_validation::validate_openapi_schema_references(
-        &utoipa::openapi::OpenApi::from(super::admin_api_open_api()),
+        &utoipa::openapi::OpenApi::from(crate::admin_api_open_api()),
     )
     .expect("2151641d open_api_contains_auth_and_user_security_contracts invariant must hold");
     let document = serde_json::to_value(
-        utoipa::openapi::OpenApi::from(super::admin_api_open_api()),
+        utoipa::openapi::OpenApi::from(crate::admin_api_open_api()),
     )
     .expect("869d28d7 open_api_contains_auth_and_user_security_contracts invariant must hold");
     let paths = document
@@ -311,4 +308,9 @@ fn open_api_contains_auth_and_user_security_contracts() {
             .into_iter()
             .all(|description| description == expected_body_limit_description)
     );
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod helper {
+    pub use crate::application_tests_helper::*;
 }

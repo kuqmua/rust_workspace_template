@@ -1,7 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum RuntimeTestError {
     #[error("runtime service URL is invalid: {0}")]
-    BaseUrl(#[from] super::ServiceBaseUrlError),
+    BaseUrl(#[from] crate::domain_types::ServiceBaseUrlError),
     #[error("runtime HTTP client could not be built: {0}")]
     Client(#[source] server_runtime_http::domain_types::ReqwestError),
     #[error("runtime notification test message is invalid: {0}")]
@@ -15,20 +15,22 @@ pub enum RuntimeTestError {
     Request {
         #[source]
         source: server_runtime_http::domain_types::ReqwestError,
-        test: super::RuntimeTestKind,
+        test: crate::domain_types::RuntimeTestKind,
     },
     #[error("{test} response could not be decoded: {source}")]
     Response {
         #[source]
         source: server_runtime_http::domain_types::ReqwestError,
-        test: super::RuntimeTestKind,
+        test: crate::domain_types::RuntimeTestKind,
     },
     #[error("{test} returned HTTP {actual}; expected {expected}")]
     Status {
-        actual: super::HttpRuntimeTestStatus,
-        expected: super::HttpRuntimeTestStatus,
-        test: super::RuntimeTestKind,
+        actual: crate::domain_types::HttpRuntimeTestStatus,
+        expected: crate::domain_types::HttpRuntimeTestStatus,
+        test: crate::domain_types::RuntimeTestKind,
     },
     #[error("{test} reported an unhealthy service")]
-    Unhealthy { test: super::RuntimeTestKind },
+    Unhealthy {
+        test: crate::domain_types::RuntimeTestKind,
+    },
 }

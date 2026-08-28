@@ -1,4 +1,4 @@
-use super::{
+use crate::domain_types::{
     GitCommitId, GitCommitIdCow, GitCommitIdFallback, GitCommitIdRef, with_git_commit_id_ref_or,
 };
 

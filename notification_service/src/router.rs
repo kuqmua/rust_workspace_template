@@ -1,7 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::single_call_fn)]
 
-pub(crate) fn router(
+pub(crate) fn build_notification_router(
     state: crate::domain_types::NotificationState,
     body_maximum_bytes: crate::domain_types::NotificationBodyMaximumBytes,
 ) -> crate::domain_types::AxumNotificationRouter {

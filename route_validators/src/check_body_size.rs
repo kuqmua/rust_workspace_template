@@ -3,16 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "axum_body.rs"]
-mod axum_body;
-#[path = "axum_body_size_error.rs"]
-mod axum_body_size_error;
-#[path = "body_size_error.rs"]
-mod body_size_error;
-#[path = "body_size_limit_bytes.rs"]
-mod body_size_limit_bytes;
-#[path = "bytes_body_bytes.rs"]
-mod bytes_body_bytes;
 pub async fn check_body_size<BodyTy, LimitTy>(
     body: BodyTy,
     limit: LimitTy,
@@ -34,15 +24,13 @@ where
             location: location_macros::location!(),
         })
 }
-#[path = "http_body_size_hint.rs"]
-mod http_body_size_hint;
 
-pub use axum_body::AxumBody;
-pub use axum_body_size_error::AxumBodySizeError;
-pub use body_size_error::{BodySizeError, BodySizeErrorWithSerde};
-pub use body_size_limit_bytes::BodySizeLimitBytes;
-pub use bytes_body_bytes::BytesBodyBytes;
-pub use http_body_size_hint::HttpBodySizeHint;
+pub use crate::axum_body::AxumBody;
+pub use crate::axum_body_size_error::AxumBodySizeError;
+pub use crate::body_size_error::{BodySizeError, BodySizeErrorWithSerde};
+pub use crate::body_size_limit_bytes::BodySizeLimitBytes;
+pub use crate::bytes_body_bytes::BytesBodyBytes;
+pub use crate::http_body_size_hint::HttpBodySizeHint;
 #[cfg(test)]
 mod tests {
     fn expect_reached_max_size(
@@ -51,7 +39,7 @@ mod tests {
         exp_id: &'static str,
     ) -> (usize, Option<u64>) {
         crate::domain_types::test_helper::assert_err_status_code_variant_ref(
-            crate::domain_types::test_helper::block_on(super::check_body_size(body, limit)),
+            crate::domain_types::test_helper::poll_test_future(super::check_body_size(body, limit)),
             exp_id,
             crate::domain_types::AxumHttpStatusCode::payload_too_large(),
             |v| {
@@ -76,7 +64,7 @@ mod tests {
         exp: &'static [u8],
     ) {
         let actual = crate::domain_types::test_helper::expect_ok(
-            crate::domain_types::test_helper::block_on(super::check_body_size(body, limit)),
+            crate::domain_types::test_helper::poll_test_future(super::check_body_size(body, limit)),
             exp_id,
         );
         assert_eq!(actual.0, bytes::Bytes::from_static(exp));
@@ -137,7 +125,7 @@ mod tests {
     #[test]
     fn body_size_error_maps_to_payload_too_large() {
         crate::domain_types::test_helper::assert_err_status_code_only(
-            crate::domain_types::test_helper::block_on(super::check_body_size(
+            crate::domain_types::test_helper::poll_test_future(super::check_body_size(
                 axum::body::Body::from(constants_str::TOO_BIG),
                 1,
             )),

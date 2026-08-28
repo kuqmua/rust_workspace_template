@@ -1,52 +1,19 @@
-#[path = "extract_remote_trace_context.rs"]
-mod extract_remote_trace_context;
-#[path = "http_header_extractor.rs"]
-mod http_header_extractor;
-#[path = "http_header_injector.rs"]
-mod http_header_injector;
-#[path = "http_host_ref.rs"]
-mod http_host_ref;
-#[path = "http_method_ref.rs"]
-mod http_method_ref;
-#[path = "http_opentelemetry_header_map_mut.rs"]
-mod http_opentelemetry_header_map_mut;
-#[path = "http_opentelemetry_header_map_ref.rs"]
-mod http_opentelemetry_header_map_ref;
-#[path = "http_trace_parent.rs"]
-mod http_trace_parent;
-#[path = "http_trace_parent_error.rs"]
-mod http_trace_parent_error;
-#[path = "http_trace_state.rs"]
-mod http_trace_state;
-#[path = "http_trace_state_error.rs"]
-mod http_trace_state_error;
-#[path = "inject_trace_context.rs"]
-mod inject_trace_context;
-#[path = "opentelemetry_context.rs"]
-mod opentelemetry_context;
-#[path = "outbound_trace_context.rs"]
-mod outbound_trace_context;
-#[path = "reqwest_request.rs"]
-mod reqwest_request;
-#[path = "reqwest_request_builder.rs"]
-mod reqwest_request_builder;
-
-pub use extract_remote_trace_context::extract_remote_trace_context;
-use http_header_extractor::HttpHeaderExtractor;
-use http_header_injector::HttpHeaderInjector;
-pub use http_host_ref::HttpHostRef;
-pub use http_method_ref::HttpMethodRef;
-pub use http_opentelemetry_header_map_mut::HttpOpentelemetryHeaderMapMut;
-pub use http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef;
-pub use http_trace_parent::HttpTraceParent;
-pub use http_trace_parent_error::HttpTraceParentError;
-pub use http_trace_state::HttpTraceState;
-pub use http_trace_state_error::HttpTraceStateError;
-pub use inject_trace_context::inject_trace_context;
-pub use opentelemetry_context::OpentelemetryContext;
-pub use outbound_trace_context::OutboundTraceContext;
-pub use reqwest_request::ReqwestRequest;
-pub use reqwest_request_builder::ReqwestRequestBuilder;
+pub use crate::extract_remote_trace_context::extract_remote_trace_context;
+use crate::http_header_extractor::HttpHeaderExtractor;
+use crate::http_header_injector::HttpHeaderInjector;
+pub use crate::http_host_ref::HttpHostRef;
+pub use crate::http_method_ref::HttpMethodRef;
+pub use crate::http_opentelemetry_header_map_mut::HttpOpentelemetryHeaderMapMut;
+pub use crate::http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef;
+pub use crate::http_trace_parent::HttpTraceParent;
+pub use crate::http_trace_parent_error::HttpTraceParentError;
+pub use crate::http_trace_state::HttpTraceState;
+pub use crate::http_trace_state_error::HttpTraceStateError;
+pub use crate::inject_trace_context::inject_trace_context;
+pub use crate::opentelemetry_context::OpentelemetryContext;
+pub use crate::outbound_trace_context::OutboundTraceContext;
+pub use crate::reqwest_request::ReqwestRequest;
+pub use crate::reqwest_request_builder::ReqwestRequestBuilder;
 
 #[cfg(test)]
 mod tests {
@@ -170,4 +137,54 @@ mod tests {
             ))
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod extract_remote_trace_context {
+    pub use crate::extract_remote_trace_context::*;
+}
+mod http_header_extractor {
+    pub use crate::http_header_extractor::*;
+}
+mod http_header_injector {
+    pub use crate::http_header_injector::*;
+}
+mod http_host_ref {
+    pub use crate::http_host_ref::*;
+}
+mod http_method_ref {
+    pub use crate::http_method_ref::*;
+}
+mod http_opentelemetry_header_map_mut {
+    pub use crate::http_opentelemetry_header_map_mut::*;
+}
+mod http_opentelemetry_header_map_ref {
+    pub use crate::http_opentelemetry_header_map_ref::*;
+}
+mod http_trace_parent {
+    pub use crate::http_trace_parent::*;
+}
+mod http_trace_parent_error {
+    pub use crate::http_trace_parent_error::*;
+}
+mod http_trace_state {
+    pub use crate::http_trace_state::*;
+}
+mod http_trace_state_error {
+    pub use crate::http_trace_state_error::*;
+}
+mod inject_trace_context {
+    pub use crate::inject_trace_context::*;
+}
+mod opentelemetry_context {
+    pub use crate::opentelemetry_context::*;
+}
+mod outbound_trace_context {
+    pub use crate::outbound_trace_context::*;
+}
+mod reqwest_request {
+    pub use crate::reqwest_request::*;
+}
+mod reqwest_request_builder {
+    pub use crate::reqwest_request_builder::*;
 }

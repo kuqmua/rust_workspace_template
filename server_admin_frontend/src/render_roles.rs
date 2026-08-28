@@ -1,12 +1,5 @@
-#[path = "ssr_admin_role_row.rs"]
-mod ssr_admin_role_row;
-
 use leptos::prelude::{ClassAttribute, ElementChild};
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "the screen renderer is isolated behind the stable public SSR facade"
-)]
 #[must_use]
 pub fn render_roles(
     page: &server_admin_contract::domain_types::AdminRolesPage,
@@ -45,4 +38,9 @@ pub fn render_roles(
         Some(admin),
         Some(branding),
     )
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod ssr_admin_role_row {
+    pub use crate::ssr_admin_role_row::*;
 }

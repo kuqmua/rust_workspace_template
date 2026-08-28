@@ -79,14 +79,14 @@ fn crud() {
         server_admin_contract::domain_types::AdminPageTotal::from(1u64),
     );
 
-    let user_create = super::super::render_user_create(&admin, &branding);
+    let user_create = crate::render_user_create(&admin, &branding);
     assert!(user_create.as_ref().contains("Create user"));
     assert!(
         user_create
             .as_ref()
             .contains(server_admin_contract::domain_types::AdminHtmlAction::UserCreate.get())
     );
-    let user_manage = super::super::render_user_manage(&users, &admin, &branding);
+    let user_manage = crate::render_user_manage(&users, &admin, &branding);
     assert!(user_manage.as_ref().contains("managed_user"));
     assert!(
         user_manage
@@ -99,9 +99,9 @@ fn crud() {
             .contains(server_admin_contract::domain_types::AdminHtmlAction::UserDelete.get())
     );
 
-    let role_create = super::super::render_role_create(&admin, &branding);
+    let role_create = crate::render_role_create(&admin, &branding);
     assert!(role_create.as_ref().contains("Create role"));
-    let role_manage = super::super::render_role_manage(&roles, &admin, &branding);
+    let role_manage = crate::render_role_manage(&roles, &admin, &branding);
     assert!(role_manage.as_ref().contains("managed_role"));
     assert!(
         role_manage

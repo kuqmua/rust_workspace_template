@@ -12,14 +12,14 @@ pub(super) fn reset() {
             constants_str::ADMIN.to_owned(),
         ),
         clear,
-        super::super::http::url::admin_api_url(
+        crate::http::url::admin_api_url(
             server_admin_contract::domain_types::AdminRoute::UpdateSettings,
         ),
     );
     if let (Ok(request_default_route), Ok(request_site_name), Ok(request_clear), Ok(path)) = values
     {
-        super::super::mutation::reload_after(
-            super::super::mutation::AdminMutationMethod::Patch,
+        crate::mutation::reload_after(
+            crate::mutation::AdminMutationMethod::Patch,
             path,
             server_admin_contract::domain_types::AdminUpdateSettingsReq::new(
                 Some(request_default_route),

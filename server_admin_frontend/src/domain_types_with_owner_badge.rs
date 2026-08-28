@@ -1,7 +1,10 @@
-#[path = "admin_badge.rs"]
-mod admin_badge;
-#[path = "admin_badge_variant.rs"]
-mod admin_badge_variant;
+pub(crate) use crate::admin_badge::AdminBadge;
+pub(crate) use crate::admin_badge_variant::AdminBadgeVariant;
 
-pub(crate) use admin_badge::AdminBadge;
-pub(crate) use admin_badge_variant::AdminBadgeVariant;
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_badge {
+    pub use crate::admin_badge::*;
+}
+pub(crate) mod admin_badge_variant {
+    pub use crate::admin_badge_variant::*;
+}

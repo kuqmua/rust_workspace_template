@@ -275,7 +275,3 @@ async fn default_service_routes_return_success_statuses_and_match_openapi() {
     .expect("d2b9cc45 default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
     assert_eq!(not_found.status(), axum::http::StatusCode::NOT_FOUND);
 }
-#[path = "domain_types_tests_health.rs"]
-mod health;
-#[path = "domain_types_tests_route_contract.rs"]
-mod route_contract;

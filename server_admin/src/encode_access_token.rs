@@ -1,4 +1,4 @@
-use super::*;
+use crate::*;
 pub fn encode_access_token(
     claims: &AdminAccessClaims,
     secret: &AdminJwtSecret,

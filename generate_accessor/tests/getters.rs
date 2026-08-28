@@ -16,6 +16,9 @@ mod tests {
         RouteTypeUpperCamelCase: u32,
     }
 
+    #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+    struct TupleField(u64);
+
     #[test]
     fn generates_named_optional_mutable_and_snake_case_getters() {
         let _proc_macro2_marker: Option<proc_macro2::TokenStream> = None;
@@ -35,6 +38,7 @@ mod tests {
             .get_route_type_upper_camel_case(),
             13
         );
+        assert_eq!(*TupleField(21).get_inner(), 21);
     }
 
     const _: usize = constants_str::DOT.len();

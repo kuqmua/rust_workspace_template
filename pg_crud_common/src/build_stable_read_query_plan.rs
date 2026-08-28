@@ -51,7 +51,7 @@ pub fn build_stable_read_query_plan(
 
 #[cfg(test)]
 mod tests {
-    fn identifier(value: &str) -> crate::domain_types::SqlIdentifier {
+    fn stable_read_identifier(value: &str) -> crate::domain_types::SqlIdentifier {
         crate::domain_types::SqlIdentifier::try_from(value.to_owned())
             .expect("cd7c83ed identifier invariant must hold")
     }
@@ -63,8 +63,8 @@ mod tests {
                 constants_str::TEST_READ_QUERY_BASE,
             ))
             .expect("ef7cd3e2 stable_plan_appends_tie_break_limit_and_offset invariant must hold"),
-            &identifier(constants_str::CREATED_AT),
-            &identifier(constants_str::SQL_NAMES_ID),
+            &stable_read_identifier(constants_str::CREATED_AT),
+            &stable_read_identifier(constants_str::SQL_NAMES_ID),
             crate::domain_types::QuerySortOrder::Descending,
             std::num::NonZeroU32::new(1u32)
                 .expect(

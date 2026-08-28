@@ -1,4 +1,4 @@
-use super::{
+use crate::domain_types::{
     SynExpr, SynRouteRegistryBindings, SynRouteRegistryFamily, SynRouteRegistrySchemas,
     SynRouteRegistryState,
 };

@@ -1,11 +1,9 @@
 #[frontend_contract::domain_types::route_error(AdminOpenApiPageError)]
-pub(in crate::domain_types::auth::html) async fn admin_html_open_api(
-    auth: super::super::super::AdminAuthReq,
-) -> axum::response::Response {
+pub(crate) async fn admin_html_open_api(auth: crate::AdminAuthReq) -> axum::response::Response {
     let branding_result =
-        super::super::super::settings_branding_view_ref::settings_branding_view_ref(&auth).await;
+        crate::settings_branding_view_ref::settings_branding_view_ref(&auth).await;
     let authorized =
-        super::super::super::authorization_authorize_generated_request::authorization_authorize_generated_request(
+        crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
             auth.state.as_ref(),
             crate::domain_types::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
             auth.peer,
@@ -15,10 +13,10 @@ pub(in crate::domain_types::auth::html) async fn admin_html_open_api(
         .await;
     match (authorized, branding_result) {
         (Ok(admin), Ok(branding)) => {
-            let admin = match super::super::super::authenticated_admin_contract(&admin) {
+            let admin = match crate::authenticated_admin_contract(&admin) {
                 Ok(value) => value,
                 Err(error) => {
-                    return super::super::html_page_error_impl::html_page_error_impl(error);
+                    return crate::html_page_error_impl::html_page_error_impl(error);
                 }
             };
             let document = utoipa::openapi::OpenApi::from(
@@ -31,7 +29,7 @@ pub(in crate::domain_types::auth::html) async fn admin_html_open_api(
                     ),
                     server_admin_frontend::domain_types::ssr::AdminSsrText::try_from(text),
                 ) {
-                    (Ok(title), Ok(text)) => super::super::html_response_impl::html_response_impl(
+                    (Ok(title), Ok(text)) => crate::html_response_impl::html_response_impl(
                         server_admin_frontend::domain_types::ssr::render_text_page_with_access(
                             server_admin_contract::domain_types::AdminPage::OpenApi,
                             title,
@@ -52,7 +50,7 @@ pub(in crate::domain_types::auth::html) async fn admin_html_open_api(
             }
         }
         (Err(error), _) | (_, Err(error)) => {
-            super::super::html_page_error_impl::html_page_error_impl(error)
+            crate::html_page_error_impl::html_page_error_impl(error)
         }
     }
 }

@@ -1,4 +1,4 @@
-use super::RegexCasePostgreqlSyntax;
+use crate::domain_types::RegexCasePostgreqlSyntax;
 
 #[derive(
     Debug,

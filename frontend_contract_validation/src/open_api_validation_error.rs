@@ -1,4 +1,6 @@
-use super::{OpenApiContractText, OpenApiContractTextError, SerdeJsonOpenApiSerializationError};
+use crate::openapi_validation::{
+    OpenApiContractText, OpenApiContractTextError, SerdeJsonOpenApiSerializationError,
+};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay, thiserror::Error,

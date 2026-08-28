@@ -4,10 +4,6 @@ use super::{
     synchronize_generated_file,
 };
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "the deployment command owns all generated projections"
-)]
 pub(crate) fn synchronize_deployment_projections(
     root: ScaffoldPathRef<'_>,
     write_changes: ShouldWrite,

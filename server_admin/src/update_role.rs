@@ -1,22 +1,16 @@
 #[frontend_contract::domain_types::route_error(AdminHtmlUpdateRoleError)]
-pub(super) async fn update_role(
-    auth: super::super::super::super::AdminAuthReq,
-    super::super::super::super::AxumAdminForm(form): super::super::super::super::AxumAdminForm<
-        super::super::super::forms::UpdateRoleForm,
-    >,
+pub(crate) async fn update_role(
+    auth: crate::AdminAuthReq,
+    crate::AxumAdminForm(form): crate::AxumAdminForm<crate::UpdateRoleForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = super::super::super::form_auth_impl::form_auth_impl(auth) else {
-        return axum::response::IntoResponse::into_response(
-            super::super::super::super::AdminError::Csrf,
-        );
+    let Ok(auth) = crate::form_auth_impl::form_auth_impl(auth) else {
+        return axum::response::IntoResponse::into_response(crate::AdminError::Csrf);
     };
-    super::super::super::action_result_impl::action_result_impl(
-        super::super::super::super::roles::role_mutations_update::role_mutations_update(
+    crate::action_result_impl::action_result_impl(
+        crate::role_mutations_update::role_mutations_update(
             auth,
-            super::super::super::super::AxumAdminPath(
-                super::super::super::role_path_impl::role_path_impl(form.role_id),
-            ),
-            super::super::super::super::AxumAdminJson(
+            crate::AxumAdminPath(crate::role_path_impl::role_path_impl(form.role_id)),
+            crate::AxumAdminJson(
                 server_admin_contract::domain_types::AdminUpdateRoleReq::new(form.name),
             ),
         )

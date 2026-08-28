@@ -1,21 +1,8 @@
-#[path = "axum_header_value_ref.rs"]
-mod axum_header_value_ref;
-#[path = "axum_headers_ref.rs"]
-mod axum_headers_ref;
-#[path = "header_str_ref.rs"]
-mod header_str_ref;
-#[path = "required_header_str.rs"]
-mod required_header_str;
-#[path = "required_header_str_parsed.rs"]
-mod required_header_str_parsed;
-#[path = "required_header_value.rs"]
-mod required_header_value;
-
-pub(crate) use axum_header_value_ref::AxumHeaderValueRef;
-pub use axum_headers_ref::AxumHeadersRef;
-pub(crate) use header_str_ref::HeaderStrRef;
-pub(crate) use required_header_str::required_header_str;
-pub(crate) use required_header_str_parsed::required_header_str_parsed;
+pub(crate) use crate::axum_header_value_ref::AxumHeaderValueRef;
+pub use crate::axum_headers_ref::AxumHeadersRef;
+pub(crate) use crate::header_str_ref::HeaderStrRef;
+pub(crate) use crate::required_header_str::required_header_str;
+pub(crate) use crate::required_header_str_parsed::required_header_str_parsed;
 #[cfg(test)]
 mod tests {
     const TEST_HEADER_NAME: axum::http::HeaderName =
@@ -41,7 +28,7 @@ mod tests {
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<super::AxumHeaderValueRef<'_>, TestError> {
-        super::required_header_value::required_header_value(
+        crate::required_header_value::required_header_value(
             super::AxumHeadersRef::from(headers),
             name,
             || TestError::NoHeader,
@@ -133,7 +120,7 @@ mod tests {
     #[test]
     fn required_header_mapped_applies_mapping_for_present_header() {
         let headers = make_test_headers_static(constants_str::ABC_ALT_3);
-        let actual = super::required_header_value::required_header_value(
+        let actual = crate::required_header_value::required_header_value(
             super::AxumHeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestError::NoHeader,

@@ -1,2 +1,100 @@
-#[path = "domain_types.rs"]
+#![allow(
+    clippy::wildcard_imports,
+    reason = "root-owned token emitters share the compatibility facade vocabulary"
+)]
+
+mod common_d_token_stream_builder;
+mod de_len;
+mod default_some_one_or_default_some_one_with_max_page_size;
+mod derive_or_impl;
+mod dimension;
+mod dimension_index_number;
+mod dimension_number;
+#[cfg(test)]
+mod domain_types_tests;
+#[cfg(test)]
+mod domain_types_token_emission_tests;
+mod emission_types;
+mod eq_operator_variant;
+mod eq_or_eq_using_fields;
+mod error_enum_d_token_stream_builder;
+mod filters;
+mod generate_de_double_quoted_token_stream;
+mod generate_dimension_number_pagination_token_stream;
+mod generate_if_let_some_match_ok_assign_query_or_return_err_token_stream;
+mod generate_impl_all_variants_default_some_one_element_max_page_size_token_stream;
+mod generate_impl_all_variants_default_some_one_element_token_stream;
+mod generate_impl_crate_is_string_empty_for_identifier_token_stream;
+mod generate_impl_de_for_struct_by_fields_token_stream;
+mod generate_impl_de_for_struct_token_stream;
+mod generate_impl_default_some_one_element_max_page_size_token_stream;
+mod generate_impl_default_some_one_element_token_stream;
+mod generate_impl_display_and_to_err_string_debug_token_stream;
+mod generate_impl_pg_crud_all_variants_default_some_one_element_max_page_size_token_stream;
+mod generate_impl_pg_crud_all_variants_default_some_one_element_token_stream;
+mod generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream;
+mod generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream;
+mod generate_impl_pg_crud_common_default_some_one_element_token_stream;
+mod generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream;
+mod generate_impl_pg_crud_default_some_one_element_token_stream;
+mod generate_impl_pg_type_not_primary_key_for_identifier_token_stream;
+mod generate_impl_pg_type_test_cases_for_identifier_token_stream;
+mod generate_impl_pg_type_token_stream;
+mod generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream;
+mod generate_impl_sqlx_encode_sqlx_pg_for_identifier_token_stream;
+mod generate_impl_sqlx_type_and_encode_for_identifier_token_stream;
+mod generate_impl_sqlx_type_for_identifier_token_stream;
+mod generate_impl_to_err_string_no_generics_token_stream;
+mod generate_match_not_empty_unique_vec_try_new_some_or_none_token_stream;
+mod generate_match_ok_assign_or_return_err_token_stream;
+mod generate_match_ok_or_return_err_token_stream;
+mod generate_match_try_new_in_de_token_stream;
+mod generate_mod_with_pub_use_token_stream;
+mod generate_optional_type_declaration_token_stream;
+mod generate_pg_type_where_token_stream;
+mod generate_query_part_error_write_into_buffer_token_stream;
+mod generate_read_ids_and_create_into_vec_where_eq_using_fields_token_stream;
+mod generate_read_ids_and_create_into_where_eq_token_stream;
+mod generate_read_inner_into_read_or_update_with_new_or_try_new_unwraped_token_stream;
+mod generate_return_err_query_part_error_write_into_buffer_token_stream;
+mod generate_sqlx_types_json_type_declaration_token_stream;
+mod generate_struct_identifier_double_quoted_token_stream;
+mod generate_struct_identifier_with_number_els_double_quoted_token_stream;
+mod generate_v_declaration_token_stream;
+mod generate_v_initialization_token_stream;
+mod generate_vec_tokens_declaration_token_stream;
+mod impl_pg_type_eq_operator_for_identifier_token_stream;
+mod impl_pg_type_where_filter_for_identifier_token_stream;
+mod import;
+mod import_path_str;
+mod import_snake_case_str;
+mod is_nl_prefix_str_max_len;
+mod is_nullable;
+mod is_nullable_prefix_str;
+mod is_standard_non_null;
+mod maybe_wrap_into_braces_token_stream;
+mod names_ctx;
+mod non_null_or_nullable_str;
+mod panic_uuid_ref;
+mod parse_error_id_ref;
+mod parse_strs_to_ts2_vec;
+mod parse_token_stream_strings;
+mod pg_crud_common_query_part_error_checked_add_initialization_token_stream;
+mod pg_crud_common_query_part_error_token_stream;
+mod pg_filter;
+mod pg_type_filter;
+mod pg_type_test_cases;
+mod proc_macro2_generated_rust_token_stream_vec;
+mod read_or_update;
+mod serde_error_enum_d_token_stream_builder;
+mod struct_els_len;
+mod syn_field_refs;
+mod syn_identifier_type_refs;
+mod token_emission;
+mod token_stream_helpers;
+mod wrap_into_braces;
+mod wrap_into_scopes_token_stream;
+
 pub mod domain_types;
+
+pub(crate) use domain_types::*;

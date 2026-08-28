@@ -1,6 +1,5 @@
-use super::AdminHtmlPageRouteRegistry;
+use crate::AdminHtmlPageRouteRegistry;
 
-pub(in crate::domain_types::auth::html) fn admin_html_page_router()
--> super::super::super::AxumAdminStateRouter {
-    super::super::super::AxumAdminStateRouter::from(AdminHtmlPageRouteRegistry::router())
+pub(crate) fn admin_html_page_router() -> crate::AxumAdminStateRouter {
+    crate::AxumAdminStateRouter::from(AdminHtmlPageRouteRegistry::router())
 }

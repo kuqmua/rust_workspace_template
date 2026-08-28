@@ -2,10 +2,10 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::{AdminAuthPositiveValueError, StdAdminSessionLimitNonZeroUsize};
+use crate::{AdminAuthPositiveValueError, StdAdminSessionLimitNonZeroUsize};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StdAdminSessionLimit(pub(super) StdAdminSessionLimitNonZeroUsize);
+pub struct StdAdminSessionLimit(pub(crate) StdAdminSessionLimitNonZeroUsize);
 impl TryFrom<usize> for StdAdminSessionLimit {
     type Error = AdminAuthPositiveValueError;
 
@@ -21,7 +21,7 @@ impl From<std::num::NonZeroUsize> for StdAdminSessionLimit {
     }
 }
 impl StdAdminSessionLimit {
-    pub(super) const fn get(self) -> usize {
+    pub(crate) const fn get(self) -> usize {
         self.0.0.get()
     }
 }

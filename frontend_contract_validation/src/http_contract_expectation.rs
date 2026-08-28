@@ -7,16 +7,16 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct HttpContractExpectation {
     pub(super) metadata: frontend_contract::domain_types::RouteMetadata,
-    pub(super) status: super::HttpContractStatus,
-    pub(super) body_kind: super::HttpContractBodyKind,
+    pub(super) status: crate::route_contract_validation::HttpContractStatus,
+    pub(super) body_kind: crate::route_contract_validation::HttpContractBodyKind,
 }
 
 impl HttpContractExpectation {
     #[must_use]
     pub const fn new(
         metadata: frontend_contract::domain_types::RouteMetadata,
-        status: super::HttpContractStatus,
-        body_kind: super::HttpContractBodyKind,
+        status: crate::route_contract_validation::HttpContractStatus,
+        body_kind: crate::route_contract_validation::HttpContractBodyKind,
     ) -> Self {
         Self {
             metadata,

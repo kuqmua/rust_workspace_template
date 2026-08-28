@@ -1,47 +1,60 @@
-#![allow(clippy::single_call_fn)] // each server-rendered HTML endpoint is registered once in the Axum route inventory
 #![allow(
     clippy::shadow_reuse,
     reason = "form adapters deliberately replace unvalidated extractor values with validated domain values"
 )]
 
-#[path = "application_html_actions.rs"]
-mod actions;
-#[path = "application_html_forms.rs"]
-mod forms;
-#[path = "application_html_pages.rs"]
-mod pages;
-
-#[path = "action_result_impl.rs"]
-mod action_result_impl;
-#[path = "assignment_ids_impl.rs"]
-mod assignment_ids_impl;
-#[path = "authenticated_action_impl.rs"]
-mod authenticated_action_impl;
-#[path = "authenticated_selected_form_impl.rs"]
-mod authenticated_selected_form_impl;
-#[path = "form_auth_impl.rs"]
-mod form_auth_impl;
-#[path = "html_page_error_impl.rs"]
-mod html_page_error_impl;
-#[path = "html_response_impl.rs"]
-mod html_response_impl;
-#[path = "html_routes.rs"]
-pub(super) mod html_routes;
-#[path = "optional_setting_impl.rs"]
-mod optional_setting_impl;
-#[path = "page_context_impl.rs"]
-mod page_context_impl;
-#[path = "permission_ids_impl.rs"]
-mod permission_ids_impl;
-#[path = "role_ids_impl.rs"]
-mod role_ids_impl;
-#[path = "role_path_impl.rs"]
-mod role_path_impl;
-#[path = "success_redirect_impl.rs"]
-mod success_redirect_impl;
-#[path = "user_path_impl.rs"]
-mod user_path_impl;
-
-#[cfg(test)]
-#[path = "application_html_tests.rs"]
-mod tests;
+// Root-owned module compatibility wrappers.
+mod actions {
+    pub use crate::application_html_actions::*;
+}
+mod forms {
+    pub use crate::application_html_forms::*;
+}
+mod pages {
+    pub use crate::application_html_pages::*;
+}
+mod action_result_impl {
+    pub use crate::action_result_impl::*;
+}
+mod assignment_ids_impl {
+    pub use crate::assignment_ids_impl::*;
+}
+mod authenticated_action_impl {
+    pub use crate::authenticated_action_impl::*;
+}
+mod authenticated_selected_form_impl {
+    pub use crate::authenticated_selected_form_impl::*;
+}
+mod form_auth_impl {
+    pub use crate::form_auth_impl::*;
+}
+mod html_page_error_impl {
+    pub use crate::html_page_error_impl::*;
+}
+mod html_response_impl {
+    pub use crate::html_response_impl::*;
+}
+pub(crate) mod html_routes {
+    pub use crate::html_routes::*;
+}
+mod optional_setting_impl {
+    pub use crate::optional_setting_impl::*;
+}
+mod page_context_impl {
+    pub use crate::page_context_impl::*;
+}
+mod permission_ids_impl {
+    pub use crate::permission_ids_impl::*;
+}
+mod role_ids_impl {
+    pub use crate::role_ids_impl::*;
+}
+mod role_path_impl {
+    pub use crate::role_path_impl::*;
+}
+mod success_redirect_impl {
+    pub use crate::success_redirect_impl::*;
+}
+mod user_path_impl {
+    pub use crate::user_path_impl::*;
+}

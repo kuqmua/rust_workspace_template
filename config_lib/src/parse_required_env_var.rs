@@ -1,4 +1,4 @@
-use super::{EnvVarName, EnvVarNameRef, StdEnvVarOk};
+use crate::{EnvVarName, EnvVarNameRef, StdEnvVarOk};
 
 pub fn parse_required_env_var<T, ParseError, Error, MapEnvVarError, Parse, MapParseError>(
     env_var_name: EnvVarNameRef<'_>,

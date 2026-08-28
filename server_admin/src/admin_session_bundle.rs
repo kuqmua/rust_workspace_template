@@ -4,26 +4,26 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct AdminSessionBundle {
-    pub(super) access_token: super::super::StdAdminAccessToken,
-    pub(super) csrf_token: super::super::AdminOpaqueToken,
-    pub(super) refresh_token: super::super::AdminRefreshToken,
-    pub(super) session_id: super::super::AdminSessionId,
+    pub(crate) access_token: crate::StdAdminAccessToken,
+    pub(crate) csrf_token: crate::AdminOpaqueToken,
+    pub(crate) refresh_token: crate::AdminRefreshToken,
+    pub(crate) session_id: crate::AdminSessionId,
 }
 impl AdminSessionBundle {
     #[must_use]
-    pub const fn access_token(&self) -> &super::super::StdAdminAccessToken {
+    pub const fn access_token(&self) -> &crate::StdAdminAccessToken {
         &self.access_token
     }
     #[must_use]
-    pub const fn csrf_token(&self) -> &super::super::AdminOpaqueToken {
+    pub const fn csrf_token(&self) -> &crate::AdminOpaqueToken {
         &self.csrf_token
     }
     #[must_use]
-    pub const fn refresh_token(&self) -> &super::super::AdminRefreshToken {
+    pub const fn refresh_token(&self) -> &crate::AdminRefreshToken {
         &self.refresh_token
     }
     #[must_use]
-    pub const fn session_id(&self) -> super::super::AdminSessionId {
+    pub const fn session_id(&self) -> crate::AdminSessionId {
         self.session_id
     }
 }

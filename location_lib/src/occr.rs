@@ -1,4 +1,4 @@
-use super::{LocationColumn, LocationFile, LocationLine};
+use crate::domain_types::{LocationColumn, LocationFile, LocationLine};
 
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]

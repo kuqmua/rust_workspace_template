@@ -1,4 +1,3 @@
-#[allow(clippy::single_call_fn)] // the mode dispatcher owns each allocation workload entry point
 pub(crate) fn run_pg_crud_common() -> Result<(), ()> {
     (|| {
         let output_bytes = (0..crate::domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)

@@ -1,8 +1,8 @@
-use super::csr_page;
+use crate::csr_page;
 
 #[frontend_contract::domain_types::route_error(AdminSessionsPageError)]
-pub(in crate::domain_types::auth::html) async fn admin_html_sessions_page(
-    auth: super::super::super::AdminAuthReq,
+pub(crate) async fn admin_html_sessions_page(
+    auth: crate::AdminAuthReq,
 ) -> axum::response::Response {
     csr_page(
         auth,

@@ -1,6 +1,6 @@
 #[cfg(not(target_arch = "wasm32"))]
 pub fn route_method_router<State, Endpoint, Marker>(
-    method: super::super::RouteMethod,
+    method: crate::RouteMethod,
     endpoint: Endpoint,
 ) -> super::AxumRouteMethodRouter<State>
 where
@@ -9,14 +9,14 @@ where
     Marker: 'static,
 {
     super::AxumRouteMethodRouter::from(match method {
-        super::super::RouteMethod::Connect => axum::routing::connect(endpoint),
-        super::super::RouteMethod::Delete => axum::routing::delete(endpoint),
-        super::super::RouteMethod::Get => axum::routing::get(endpoint),
-        super::super::RouteMethod::Head => axum::routing::head(endpoint),
-        super::super::RouteMethod::Options => axum::routing::options(endpoint),
-        super::super::RouteMethod::Patch => axum::routing::patch(endpoint),
-        super::super::RouteMethod::Post => axum::routing::post(endpoint),
-        super::super::RouteMethod::Put => axum::routing::put(endpoint),
-        super::super::RouteMethod::Trace => axum::routing::trace(endpoint),
+        crate::RouteMethod::Connect => axum::routing::connect(endpoint),
+        crate::RouteMethod::Delete => axum::routing::delete(endpoint),
+        crate::RouteMethod::Get => axum::routing::get(endpoint),
+        crate::RouteMethod::Head => axum::routing::head(endpoint),
+        crate::RouteMethod::Options => axum::routing::options(endpoint),
+        crate::RouteMethod::Patch => axum::routing::patch(endpoint),
+        crate::RouteMethod::Post => axum::routing::post(endpoint),
+        crate::RouteMethod::Put => axum::routing::put(endpoint),
+        crate::RouteMethod::Trace => axum::routing::trace(endpoint),
     })
 }

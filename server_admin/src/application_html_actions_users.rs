@@ -1,18 +1,27 @@
-#[path = "admin_html_user_action_route_registry.rs"]
-mod admin_html_user_action_route_registry;
-#[path = "admin_html_user_action_router.rs"]
-mod admin_html_user_action_router;
-#[path = "create_user.rs"]
-mod create_user;
-#[path = "delete_user.rs"]
-mod delete_user;
-#[path = "update_user.rs"]
-mod update_user;
-#[path = "user_ban.rs"]
-mod user_ban;
-#[path = "user_password.rs"]
-mod user_password;
-#[path = "user_roles.rs"]
-mod user_roles;
+pub(crate) use admin_html_user_action_router::admin_html_user_action_router;
 
-pub(super) use admin_html_user_action_router::admin_html_user_action_router;
+// Root-owned module compatibility wrappers.
+mod admin_html_user_action_route_registry {
+    pub use crate::admin_html_user_action_route_registry::*;
+}
+mod admin_html_user_action_router {
+    pub use crate::admin_html_user_action_router::*;
+}
+mod create_user {
+    pub use crate::create_user::*;
+}
+mod delete_user {
+    pub use crate::delete_user::*;
+}
+mod update_user {
+    pub use crate::update_user::*;
+}
+mod user_ban {
+    pub use crate::user_ban::*;
+}
+mod user_password {
+    pub use crate::user_password::*;
+}
+mod user_roles {
+    pub use crate::user_roles::*;
+}

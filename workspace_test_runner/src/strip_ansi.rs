@@ -1,6 +1,5 @@
-use super::{CommandText, TextRef};
+use crate::execution::{CommandText, TextRef};
 
-#[allow(clippy::single_call_fn)] // summary sanitization stays independently unit-testable
 pub(super) fn strip_ansi(value: TextRef<'_>) -> CommandText {
     let output = value
         .get()

@@ -4,10 +4,11 @@ pub fn build_pg_scoped_foreign_key_clause(
     crate::domain_types::QueryPartFragment,
     crate::domain_types::PgCrudStringWrapperTryFromStringError,
 > {
-    let mut clause = crate::domain_types::pg_scoped_foreign_key_clause_text::PgScopedForeignKeyClauseText::try_from(
-        String::from(constants_str::FOREIGN_KEY_OPENING),
-    )?;
-    crate::domain_types::push_identifier_list::push_identifier_list(
+    let mut clause =
+        crate::pg_scoped_foreign_key_clause_text::PgScopedForeignKeyClauseText::try_from(
+            String::from(constants_str::FOREIGN_KEY_OPENING),
+        )?;
+    crate::push_identifier_list::push_identifier_list(
         &mut clause,
         foreign_key.local_columns.0.as_slice(),
     );
@@ -16,7 +17,7 @@ pub fn build_pg_scoped_foreign_key_clause(
         .0
         .push_str(foreign_key.referenced_table.to_string().as_str());
     clause.0.push('(');
-    crate::domain_types::push_identifier_list::push_identifier_list(
+    crate::push_identifier_list::push_identifier_list(
         &mut clause,
         foreign_key.referenced_columns.0.as_slice(),
     );
@@ -34,7 +35,7 @@ pub fn build_pg_scoped_foreign_key_clause(
 
 #[cfg(test)]
 mod tests {
-    fn identifier(value: &str) -> crate::domain_types::SqlIdentifier {
+    fn scoped_foreign_key_identifier(value: &str) -> crate::domain_types::SqlIdentifier {
         crate::domain_types::SqlIdentifier::try_from(value.to_owned())
             .expect("2ec15e48 identifier invariant must hold")
     }
@@ -43,17 +44,17 @@ mod tests {
     fn scoped_foreign_key_uses_validated_composite_columns() {
         let foreign_key = crate::domain_types::PgScopedForeignKey::new(
             vec![
-                identifier(constants_str::PG_TEST_FEATURE_ID),
-                identifier(constants_str::PG_TEST_LAYER_ID),
+                scoped_foreign_key_identifier(constants_str::PG_TEST_FEATURE_ID),
+                scoped_foreign_key_identifier(constants_str::PG_TEST_LAYER_ID),
             ]
             .into(),
             crate::domain_types::SqlQualifiedIdentifier::new(
-                identifier(constants_str::PUBLIC),
-                identifier(constants_str::PG_TEST_FEATURES),
+                scoped_foreign_key_identifier(constants_str::PUBLIC),
+                scoped_foreign_key_identifier(constants_str::PG_TEST_FEATURES),
             ),
             vec![
-                identifier(constants_str::SQL_NAMES_ID),
-                identifier(constants_str::PG_TEST_LAYER_ID),
+                scoped_foreign_key_identifier(constants_str::SQL_NAMES_ID),
+                scoped_foreign_key_identifier(constants_str::PG_TEST_LAYER_ID),
             ]
             .into(),
             crate::domain_types::PgScopedForeignKeyOnDelete::Cascade,

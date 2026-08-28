@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     AdminGeneratedRouteContract, AdminPermissions, AdminPermissionsOpenApi,
     AdminPermissionsRouteContract, AdminRolePermissions, AdminRolePermissionsOpenApi,
     AdminRolePermissionsRouteContract, AdminRoles, AdminRolesOpenApi, AdminRolesRouteContract,
@@ -125,7 +125,7 @@ impl AdminGeneratedTable {
         }
     }
 
-    pub(super) fn open_api(self) -> UtoipaAdminOpenApi {
+    pub(crate) fn open_api(self) -> UtoipaAdminOpenApi {
         UtoipaAdminOpenApi::from(match self {
             Self::Roles => AdminRolesOpenApi::open_api(),
             Self::RolePermissions => AdminRolePermissionsOpenApi::open_api(),
@@ -136,7 +136,7 @@ impl AdminGeneratedTable {
         })
     }
 
-    pub(super) fn routes(
+    pub(crate) fn routes(
         self,
         app_state: &SharedAdminGeneratedTableStateArc,
     ) -> server_runtime_http::domain_types::AxumRouter {

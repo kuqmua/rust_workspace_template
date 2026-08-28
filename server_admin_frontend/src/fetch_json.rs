@@ -2,7 +2,7 @@
     clippy::future_not_send,
     reason = "browser fetch futures run exclusively on wasm_bindgen_futures::spawn_local"
 )]
-pub(in crate::domain_types::start) async fn fetch_json<Response>(
+pub(crate) async fn fetch_json<Response>(
     url: &super::url::AdminCsrApiUrl,
 ) -> Result<Response, crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError>
 where

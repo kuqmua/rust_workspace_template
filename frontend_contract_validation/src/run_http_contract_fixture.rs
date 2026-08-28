@@ -1,29 +1,37 @@
 pub async fn run_http_contract_fixture<Send, SendFuture>(
-    expectation: super::HttpContractExpectation,
+    expectation: crate::route_contract_validation::HttpContractExpectation,
     send: Send,
-) -> Result<(), super::HttpContractMismatch>
+) -> Result<(), crate::route_contract_validation::HttpContractMismatch>
 where
     Send: FnOnce(frontend_contract::domain_types::RouteMetadata) -> SendFuture,
-    SendFuture: Future<Output = super::HttpContractObservation>,
+    SendFuture: Future<Output = crate::route_contract_validation::HttpContractObservation>,
 {
     let observation = send(expectation.metadata).await;
-    super::validate_route_contract_metadata(expectation.metadata, observation.metadata)
-        .map_err(super::HttpContractMismatch::Metadata)?;
+    crate::route_contract_validation::validate_route_contract_metadata(
+        expectation.metadata,
+        observation.metadata,
+    )
+    .map_err(crate::route_contract_validation::HttpContractMismatch::Metadata)?;
     if expectation.status != observation.status {
-        return Err(super::HttpContractMismatch::Status {
-            expected: expectation.status,
-            observed: observation.status,
-        });
+        return Err(
+            crate::route_contract_validation::HttpContractMismatch::Status {
+                expected: expectation.status,
+                observed: observation.status,
+            },
+        );
     }
     match expectation.body_kind {
-        super::HttpContractBodyKind::Empty if !observation.body.0.is_empty() => {
-            Err(super::HttpContractMismatch::BodyExpectedEmpty)
+        crate::route_contract_validation::HttpContractBodyKind::Empty
+            if !observation.body.0.is_empty() =>
+        {
+            Err(crate::route_contract_validation::HttpContractMismatch::BodyExpectedEmpty)
         }
-        super::HttpContractBodyKind::Json
+        crate::route_contract_validation::HttpContractBodyKind::Json
             if serde_json::from_slice::<serde_json::Value>(&observation.body.0).is_err() =>
         {
-            Err(super::HttpContractMismatch::BodyExpectedJson)
+            Err(crate::route_contract_validation::HttpContractMismatch::BodyExpectedJson)
         }
-        super::HttpContractBodyKind::Empty | super::HttpContractBodyKind::Json => Ok(()),
+        crate::route_contract_validation::HttpContractBodyKind::Empty
+        | crate::route_contract_validation::HttpContractBodyKind::Json => Ok(()),
     }
 }

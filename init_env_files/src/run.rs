@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // the binary entrypoint has one application composition owner
 
-pub(crate) fn run() -> Result<(), crate::domain_types::InitializeError> {
+pub(crate) fn run_env_file_initialization() -> Result<(), crate::domain_types::InitializeError> {
     let mode = if std::env::args().any(|argument| argument == constants_str::DRY_RUN) {
         crate::domain_types::RunMode::DryRun
     } else {

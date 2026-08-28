@@ -1,6 +1,6 @@
 use super::{AdminFrontendPath, AdminRoutePath};
 
-pub(in crate::domain_types) fn admin_api_route_path(
+pub(crate) fn admin_api_route_path(
     suffix: frontend_contract::domain_types::ParameterizedRoutePath,
 ) -> AdminRoutePath {
     AdminRoutePath::try_from(format!(

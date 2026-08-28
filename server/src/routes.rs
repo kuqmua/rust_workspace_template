@@ -1,5 +1,4 @@
-#[allow(clippy::single_call_fn)] // The API composition boundary is invoked once during server startup.
-pub(super) fn routes(
+pub(super) fn build_server_routes(
     admin_auth_state: server_admin::domain_types::auth::SharedAdminAuthSvcStateArc,
     app_state: &crate::domain_types::SharedServerAppStateArc,
     metrics_renderer: crate::domain_types::MetricsExporterPrometheusRenderer,
@@ -72,7 +71,9 @@ pub(super) fn routes(
         axum::Router::new()
             .nest(
                 server_admin_contract::domain_types::AdminFrontendPath::Root.get(),
-                axum::Router::from(server_admin::domain_types::auth::routes(admin_auth_state)),
+                axum::Router::from(server_admin::domain_types::auth::admin_auth_routes(
+                    admin_auth_state,
+                )),
             )
             .nest(
                 server_admin_contract::domain_types::AdminFrontendPath::Root.get(),

@@ -1,22 +1,18 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
-pub(in super::super) enum AdminAuditResourceId {
-    Role(super::super::super::AdminRoleId),
-    Session(super::super::super::AdminSessionId),
+pub(crate) enum AdminAuditResourceId {
+    Role(crate::AdminRoleId),
+    Session(crate::AdminSessionId),
     SystemSettings,
-    User(super::super::super::AdminUserId),
+    User(crate::AdminUserId),
 }
 
 impl AdminAuditResourceId {
-    pub(in super::super) fn value(self) -> super::super::super::StdAdminString {
+    pub(crate) fn value(self) -> crate::StdAdminString {
         match self {
-            Self::User(value) => {
-                super::super::super::StdAdminString::from_positive_i64(value.value())
-            }
-            Self::Role(value) => {
-                super::super::super::StdAdminString::from_positive_i64(value.value())
-            }
-            Self::Session(value) => super::super::super::StdAdminString::from_uuid(value.get()),
-            Self::SystemSettings => super::super::super::StdAdminString::system_settings_resource(),
+            Self::User(value) => crate::StdAdminString::from_positive_i64(value.value()),
+            Self::Role(value) => crate::StdAdminString::from_positive_i64(value.value()),
+            Self::Session(value) => crate::StdAdminString::from_uuid(value.get()),
+            Self::SystemSettings => crate::StdAdminString::system_settings_resource(),
         }
     }
 }

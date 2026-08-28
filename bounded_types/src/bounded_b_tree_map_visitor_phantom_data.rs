@@ -15,7 +15,7 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
     where
         Map: serde::de::MapAccess<'de>,
     {
-        super::super::deserialize_bounded_map::<_, K, V, _, _, MAX>(
+        crate::deserialize_bounded_map::<_, K, V, _, _, MAX>(
             map,
             super::bounded_b_tree_map::BoundedBTreeMap::default(),
             |values, key, value| values.try_insert(key, value).map(|_previous| ()),

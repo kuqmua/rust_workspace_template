@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
 )]
-pub(in super::super) struct SynGeneratePgTableModelError(syn::Error);
+pub(crate) struct SynGeneratePgTableModelError(syn::Error);

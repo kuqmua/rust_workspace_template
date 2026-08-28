@@ -1,5 +1,5 @@
 pub fn only_one(
-    variant_ref: super::SynStatusCodeVariantRef<'_>,
+    variant_ref: crate::domain_types::location_data::SynVariantRef<'_>,
 ) -> Result<super::StatusCode, super::OnlyOneStatusCodeError> {
     let variant = variant_ref.0;
     let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {

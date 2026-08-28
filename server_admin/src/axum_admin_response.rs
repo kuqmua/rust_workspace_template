@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::IntoInnerFrom, newtype::FromInner,
 )]
-pub struct AxumAdminResponse(pub(super) axum::response::Response);
+pub struct AxumAdminResponse(pub(crate) axum::response::Response);

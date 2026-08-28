@@ -1,78 +1,28 @@
-#[path = "derive_or_impl.rs"]
-mod derive_or_impl;
-pub use derive_or_impl::*;
-#[path = "proc_macro2_generated_rust_token_stream_vec.rs"]
-mod proc_macro2_generated_rust_token_stream_vec;
-pub use proc_macro2_generated_rust_token_stream_vec::*;
-#[path = "non_null_or_nullable_str.rs"]
-mod non_null_or_nullable_str;
-pub use non_null_or_nullable_str::*;
-#[path = "is_nullable_prefix_str.rs"]
-mod is_nullable_prefix_str;
-pub use is_nullable_prefix_str::*;
-#[path = "import_snake_case_str.rs"]
-mod import_snake_case_str;
-pub use import_snake_case_str::*;
-#[path = "import_path_str.rs"]
-mod import_path_str;
-pub use import_path_str::*;
-#[path = "dimension_number.rs"]
-mod dimension_number;
-pub use dimension_number::*;
-#[path = "struct_els_len.rs"]
-mod struct_els_len;
-pub use struct_els_len::*;
-#[path = "de_len.rs"]
-mod de_len;
-pub use de_len::*;
-#[path = "wrap_into_braces.rs"]
-mod wrap_into_braces;
-pub use wrap_into_braces::*;
-#[path = "parse_token_stream_strings.rs"]
-mod parse_token_stream_strings;
-pub use parse_token_stream_strings::*;
-#[path = "parse_error_id_ref.rs"]
-mod parse_error_id_ref;
-pub use parse_error_id_ref::*;
-#[path = "panic_uuid_ref.rs"]
-mod panic_uuid_ref;
-pub use panic_uuid_ref::*;
-#[path = "syn_identifier_type_refs.rs"]
-mod syn_identifier_type_refs;
-pub use syn_identifier_type_refs::*;
-#[path = "syn_field_refs.rs"]
-mod syn_field_refs;
-pub use syn_field_refs::*;
-#[path = "is_standard_non_null.rs"]
-mod is_standard_non_null;
-pub use is_standard_non_null::*;
-#[path = "is_nullable.rs"]
-mod is_nullable;
-pub use is_nullable::*;
-#[path = "import.rs"]
-mod import;
-pub use import::*;
-#[path = "read_or_update.rs"]
-mod read_or_update;
-pub use read_or_update::*;
-#[path = "default_some_one_or_default_some_one_with_max_page_size.rs"]
-mod default_some_one_or_default_some_one_with_max_page_size;
-pub use default_some_one_or_default_some_one_with_max_page_size::*;
-#[path = "eq_or_eq_using_fields.rs"]
-mod eq_or_eq_using_fields;
-pub use eq_or_eq_using_fields::*;
-#[path = "eq_operator_variant.rs"]
-mod eq_operator_variant;
-pub use eq_operator_variant::*;
-#[path = "dimension.rs"]
-mod dimension;
-pub use dimension::*;
-#[path = "dimension_index_number.rs"]
-mod dimension_index_number;
-pub use dimension_index_number::*;
-#[path = "is_nl_prefix_str_max_len.rs"]
-mod is_nl_prefix_str_max_len;
-use is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN;
+pub use crate::de_len::*;
+pub use crate::default_some_one_or_default_some_one_with_max_page_size::*;
+pub use crate::derive_or_impl::*;
+pub use crate::dimension::*;
+pub use crate::dimension_index_number::*;
+pub use crate::dimension_number::*;
+pub use crate::eq_operator_variant::*;
+pub use crate::eq_or_eq_using_fields::*;
+pub use crate::import::*;
+pub use crate::import_path_str::*;
+pub use crate::import_snake_case_str::*;
+pub(crate) use crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN;
+pub use crate::is_nullable::*;
+pub use crate::is_nullable_prefix_str::*;
+pub use crate::is_standard_non_null::*;
+pub use crate::non_null_or_nullable_str::*;
+pub use crate::panic_uuid_ref::*;
+pub use crate::parse_error_id_ref::*;
+pub use crate::parse_token_stream_strings::*;
+pub use crate::proc_macro2_generated_rust_token_stream_vec::*;
+pub use crate::read_or_update::*;
+pub use crate::struct_els_len::*;
+pub use crate::syn_field_refs::*;
+pub use crate::syn_identifier_type_refs::*;
+pub use crate::wrap_into_braces::*;
 
 pg_crud_macro_common_macros::bool_enum_to_tokens!(AddOperatorUndrscr, false => naming::domain_types::AddOperatorSnakeCase, true => quote::quote! {_});
 pg_crud_macro_common_macros::bool_enum_to_tokens!(ColumnParameterUndrscr, false => naming::domain_types::ColumnSnakeCase, true => quote::quote! {_});

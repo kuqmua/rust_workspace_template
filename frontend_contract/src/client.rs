@@ -1,10 +1,5 @@
-#[path = "create_form_value_error.rs"]
-mod create_form_value_error;
-#[path = "typed_client.rs"]
-mod typed_client;
-
-use create_form_value_error::create_form_value_error;
-pub use typed_client::TypedClient;
+use crate::create_form_value_error::create_form_value_error;
+pub use crate::typed_client::TypedClient;
 
 #[cfg(test)]
 mod tests {

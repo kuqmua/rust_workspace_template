@@ -1,25 +1,10 @@
-#[path = "http_header_name.rs"]
-mod http_header_name;
-#[path = "http_header_text_bytes.rs"]
-mod http_header_text_bytes;
-#[path = "http_header_text_maximum_bytes.rs"]
-mod http_header_text_maximum_bytes;
-#[path = "http_header_text_maximum_bytes_error.rs"]
-mod http_header_text_maximum_bytes_error;
-#[path = "http_header_text_maximum_bytes_non_zero_usize.rs"]
-mod http_header_text_maximum_bytes_non_zero_usize;
-#[path = "http_header_text_ref.rs"]
-mod http_header_text_ref;
-#[path = "http_header_text_resolution.rs"]
-mod http_header_text_resolution;
-
-pub use http_header_name::HttpHeaderName;
-pub use http_header_text_bytes::HttpHeaderTextBytes;
-pub use http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes;
-pub use http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError;
-use http_header_text_maximum_bytes_non_zero_usize::HttpHeaderTextMaximumBytesNonZeroUsize;
-pub use http_header_text_ref::HttpHeaderTextRef;
-pub use http_header_text_resolution::HttpHeaderTextResolution;
+pub use crate::http_header_name::HttpHeaderName;
+pub use crate::http_header_text_bytes::HttpHeaderTextBytes;
+pub use crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes;
+pub use crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError;
+use crate::http_header_text_maximum_bytes_non_zero_usize::HttpHeaderTextMaximumBytesNonZeroUsize;
+pub use crate::http_header_text_ref::HttpHeaderTextRef;
+pub use crate::http_header_text_resolution::HttpHeaderTextResolution;
 
 #[cfg(test)]
 mod tests {
@@ -85,4 +70,27 @@ mod tests {
             Err(super::HttpHeaderTextMaximumBytesError)
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod http_header_name {
+    pub use crate::http_header_name::*;
+}
+mod http_header_text_bytes {
+    pub use crate::http_header_text_bytes::*;
+}
+mod http_header_text_maximum_bytes {
+    pub use crate::http_header_text_maximum_bytes::*;
+}
+mod http_header_text_maximum_bytes_error {
+    pub use crate::http_header_text_maximum_bytes_error::*;
+}
+mod http_header_text_maximum_bytes_non_zero_usize {
+    pub use crate::http_header_text_maximum_bytes_non_zero_usize::*;
+}
+mod http_header_text_ref {
+    pub use crate::http_header_text_ref::*;
+}
+mod http_header_text_resolution {
+    pub use crate::http_header_text_resolution::*;
 }

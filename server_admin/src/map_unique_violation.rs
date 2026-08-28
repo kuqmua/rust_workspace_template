@@ -1,6 +1,4 @@
-pub(in crate::domain_types::auth) fn map_unique_violation<Error>(
-    value: Error,
-) -> super::super::AdminError
+pub(crate) fn map_unique_violation<Error>(value: Error) -> crate::AdminError
 where
     Error: Into<sqlx::Error>,
 {
@@ -9,8 +7,8 @@ where
         pg_crud_common::domain_types::SqlxPgErrorRef::from(&error),
     ) == pg_crud_common::domain_types::PgErrorKind::UniqueViolation
     {
-        super::super::AdminError::Conflict
+        crate::AdminError::Conflict
     } else {
-        super::super::AdminError::from(error)
+        crate::AdminError::from(error)
     }
 }

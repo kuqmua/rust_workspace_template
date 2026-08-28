@@ -1,7 +1,10 @@
-#[path = "admin_field.rs"]
-mod admin_field;
-#[path = "admin_field_label.rs"]
-mod admin_field_label;
+pub(crate) use crate::admin_field::AdminField;
+pub(crate) use crate::admin_field_label::AdminFieldLabel;
 
-pub(crate) use admin_field::AdminField;
-pub(crate) use admin_field_label::AdminFieldLabel;
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_field {
+    pub use crate::admin_field::*;
+}
+pub(crate) mod admin_field_label {
+    pub use crate::admin_field_label::*;
+}

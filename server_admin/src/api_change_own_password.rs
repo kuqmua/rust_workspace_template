@@ -1,11 +1,11 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)] // Axum route endpoint is registered once by the route inventory
+
 #[frontend_contract::domain_types::route_openapi(
-    delegate = super::account_change_own_password::account_change_own_password,
+    delegate = crate::account_change_own_password::account_change_own_password,
     tag = "admin_auth"
 )]
-pub(super) async fn api_change_own_password(
-    auth: super::AdminAuthReq,
-    request: super::AxumAdminJson<server_admin_contract::domain_types::AdminChangeOwnPasswordReq>,
-) -> Result<super::AxumAdminResponse, super::AdminChangeOwnPasswordError> {
+pub(crate) async fn api_change_own_password(
+    auth: crate::AdminAuthReq,
+    request: crate::AxumAdminJson<server_admin_contract::domain_types::AdminChangeOwnPasswordReq>,
+) -> Result<crate::AxumAdminResponse, crate::AdminChangeOwnPasswordError> {
 }

@@ -11,4 +11,4 @@
     Eq,
     newtype::FromInner,
 )]
-pub struct StdAdminFailureDelayMillis(pub(super) u64);
+pub struct StdAdminFailureDelayMillis(pub(crate) u64);

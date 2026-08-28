@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "project command owns identity traversal"
-)]
 pub(crate) fn template_fs_rename_identity(
     root: crate::domain_types::ScaffoldPathRef<'_>,
     project_name: crate::domain_types::ProjectNameRef<'_>,
@@ -18,13 +14,13 @@ pub(crate) fn template_fs_rename_identity(
         ),
         (
             constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
-            crate::domain_types::naming_kebab_case::naming_kebab_case(project_name)
+            crate::naming_kebab_case::naming_kebab_case(project_name)
                 .as_ref()
                 .to_owned(),
         ),
         (
             constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE,
-            crate::domain_types::naming_title_case::naming_title_case(project_name)
+            crate::naming_title_case::naming_title_case(project_name)
                 .as_ref()
                 .to_owned(),
         ),

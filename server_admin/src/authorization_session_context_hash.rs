@@ -1,7 +1,7 @@
-pub(super) fn authorization_session_context_hash(
-    headers: super::super::HttpAdminHeaderMapRef<'_>,
-    peer: super::AdminPeerAddr,
-) -> Result<super::super::AdminTokenHash, super::super::AdminSecretTextError> {
+pub(crate) fn authorization_session_context_hash(
+    headers: crate::HttpAdminHeaderMapRef<'_>,
+    peer: crate::AdminPeerAddr,
+) -> Result<crate::AdminTokenHash, crate::AdminSecretTextError> {
     let mut context = String::with_capacity(352usize);
     context.push_str(constants_str::CLIENT_ADDRESS);
     let client_address = peer.0.as_ref().ip().to_string();
@@ -21,7 +21,6 @@ pub(super) fn authorization_session_context_hash(
         }
         None => context.push_str(constants_str::UNKNOWN_USER_AGENT),
     }
-    let token = super::super::SecrecyAdminString::try_from(context)
-        .map(super::super::AdminOpaqueToken::new)?;
-    super::super::hash_opaque_token::hash_opaque_token(&token)
+    let token = crate::SecrecyAdminString::try_from(context).map(crate::AdminOpaqueToken::new)?;
+    crate::hash_opaque_token::hash_opaque_token(&token)
 }

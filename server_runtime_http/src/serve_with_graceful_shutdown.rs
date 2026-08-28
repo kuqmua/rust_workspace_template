@@ -2,9 +2,9 @@
 #[allow(clippy::integer_division_remainder_used)]
 pub async fn serve_with_graceful_shutdown<Shutdown>(
     listener: super::TokioTcpListener,
-    router: super::super::AxumRouter,
+    router: crate::AxumRouter,
     shutdown: Shutdown,
-    shutdown_timeout: super::super::RequestTimeoutDuration,
+    shutdown_timeout: crate::RequestTimeoutDuration,
 ) -> Result<(), super::ServeWithGracefulShutdownError>
 where
     Shutdown: Future<Output = ()> + Send + 'static,

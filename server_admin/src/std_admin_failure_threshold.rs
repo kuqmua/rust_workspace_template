@@ -2,11 +2,11 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::AdminAuthPositiveValueError;
+use crate::AdminAuthPositiveValueError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StdAdminFailureThreshold(
-    pub(super) server_admin_contract::domain_types::PositiveNonZeroI64,
+    pub(crate) server_admin_contract::domain_types::PositiveNonZeroI64,
 );
 impl TryFrom<i64> for StdAdminFailureThreshold {
     type Error = AdminAuthPositiveValueError;

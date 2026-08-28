@@ -1,4 +1,4 @@
-use super::super::ProjectGitCommitLinkRef;
+use crate::domain_types::ProjectGitCommitLinkRef;
 
 #[must_use]
 pub fn project_git_commit_link_ref_value() -> ProjectGitCommitLinkRef {

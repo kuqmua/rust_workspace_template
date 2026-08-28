@@ -1,4 +1,4 @@
-pub(super) fn validate_len<const MIN: usize, const MAX: usize>(
+pub(crate) fn validate_len<const MIN: usize, const MAX: usize>(
     len: crate::domain_types::BoundedLen,
 ) -> Result<(), crate::domain_types::BoundedValueError> {
     if MIN > MAX {

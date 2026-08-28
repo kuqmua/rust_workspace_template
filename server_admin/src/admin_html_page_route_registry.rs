@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     admin_html_sessions_page, data_tables, permissions, profile, roles, roles_create_page,
     roles_manage_page, settings, sign_in_page, users, users_create_page, users_manage_page,
     version,
@@ -6,7 +6,7 @@ use super::{
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::domain_types::endpoint_registry(
-    state = super::super::super::SharedAdminAuthSvcStateArc;
+    state = crate::SharedAdminAuthSvcStateArc;
     (server_admin_contract::domain_types::AdminFrontendPath::SignIn, sign_in_page),
     (server_admin_contract::domain_types::AdminFrontendPath::Tables, data_tables),
     (server_admin_contract::domain_types::AdminFrontendPath::Users, users),
@@ -21,4 +21,4 @@ use super::{
     (server_admin_contract::domain_types::AdminFrontendPath::Settings, settings),
     (server_admin_contract::domain_types::AdminFrontendPath::Version, version),
 )]
-pub(super) struct AdminHtmlPageRouteRegistry;
+pub(crate) struct AdminHtmlPageRouteRegistry;

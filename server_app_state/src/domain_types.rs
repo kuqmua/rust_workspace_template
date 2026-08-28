@@ -1,15 +1,8 @@
-#[path = "make_test_server_app_state.rs"]
-mod make_test_server_app_state;
-#[path = "server_app_state.rs"]
-mod server_app_state;
-#[path = "test_env.rs"]
-mod test_env;
-
 #[cfg(feature = "test-utils")]
-pub use make_test_server_app_state::make_test_server_app_state;
-pub use server_app_state::ServerAppState;
+pub use crate::make_test_server_app_state::make_test_server_app_state;
+pub use crate::server_app_state::ServerAppState;
 #[cfg(feature = "test-utils")]
-use test_env::test_env;
+pub(crate) use crate::test_env::test_env;
 
 #[cfg(test)]
 mod tests {
@@ -18,7 +11,7 @@ mod tests {
             constants_str::TEST_VALUES_COMMIT,
         ))
     }
-    fn env<T>(value: &str) -> T
+    fn app_state_test_env<T>(value: &str) -> T
     where
         T: config_lib::domain_types::TryFromStdEnvVarOk,
         T::Error: std::fmt::Debug,
@@ -42,19 +35,23 @@ mod tests {
                 cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(
                     constants_str::ASTERISK.to_owned(),
                 ),
-                content_security_policy: env(constants_str::TEST_CONTENT_SECURITY_POLICY),
-                database_url: env(constants_str::POSTGRES_DB),
-                admin_jwt_secret: env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
-                admin_token_audience: env(constants_str::TEST_AUDIENCE),
-                admin_token_issuer: env(constants_str::TEST_ISSUER),
-                admin_access_token_ttl_seconds: env(constants_str::VALUE_900),
-                admin_login_failure_limit: env(constants_str::VALUE_10),
-                admin_password_hash_concurrency: env(constants_str::VALUE_4),
-                admin_refresh_token_ttl_seconds: env(constants_str::VALUE_2592000),
-                admin_session_limit: env(constants_str::VALUE_20),
-                admin_sign_in_rate_limit: env(constants_str::VALUE_10),
-                admin_swagger_enabled: env(constants_str::TRUE),
-                http_gzip_enabled: env(constants_str::TRUE),
+                content_security_policy: app_state_test_env(
+                    constants_str::TEST_CONTENT_SECURITY_POLICY,
+                ),
+                database_url: app_state_test_env(constants_str::POSTGRES_DB),
+                admin_jwt_secret: app_state_test_env(
+                    constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES,
+                ),
+                admin_token_audience: app_state_test_env(constants_str::TEST_AUDIENCE),
+                admin_token_issuer: app_state_test_env(constants_str::TEST_ISSUER),
+                admin_access_token_ttl_seconds: app_state_test_env(constants_str::VALUE_900),
+                admin_login_failure_limit: app_state_test_env(constants_str::VALUE_10),
+                admin_password_hash_concurrency: app_state_test_env(constants_str::VALUE_4),
+                admin_refresh_token_ttl_seconds: app_state_test_env(constants_str::VALUE_2592000),
+                admin_session_limit: app_state_test_env(constants_str::VALUE_20),
+                admin_sign_in_rate_limit: app_state_test_env(constants_str::VALUE_10),
+                admin_swagger_enabled: app_state_test_env(constants_str::TRUE),
+                http_gzip_enabled: app_state_test_env(constants_str::TRUE),
                 production_mode: config_lib::domain_types::ProductionMode::from(false),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::domain_types::MaximumSizeOfHttpBodyInBytes::try_from(16_384)
@@ -68,11 +65,11 @@ mod tests {
                     7,
                 )
                 .expect("f20c4a91 make_structure invariant must hold"),
-                pg_pool_min_connections: env(constants_str::VALUE_0),
-                pg_pool_acquire_timeout_seconds: env(constants_str::TEST_VALUE_30),
-                pg_pool_idle_timeout_seconds: env(constants_str::TEST_VALUE_30),
-                pg_pool_max_lifetime_seconds: env(constants_str::TEST_VALUE_30),
-                request_timeout_seconds: env(constants_str::TEST_VALUE_30),
+                pg_pool_min_connections: app_state_test_env(constants_str::VALUE_0),
+                pg_pool_acquire_timeout_seconds: app_state_test_env(constants_str::TEST_VALUE_30),
+                pg_pool_idle_timeout_seconds: app_state_test_env(constants_str::TEST_VALUE_30),
+                pg_pool_max_lifetime_seconds: app_state_test_env(constants_str::TEST_VALUE_30),
+                request_timeout_seconds: app_state_test_env(constants_str::TEST_VALUE_30),
                 timezone: config_lib::domain_types::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32)
                         .expect("a95d3c17 make_structure invariant must hold"),
@@ -91,7 +88,7 @@ mod tests {
                 enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck(
                     true,
                 ),
-                admin_cookie_secure: env(constants_str::FALSE),
+                admin_cookie_secure: app_state_test_env(constants_str::FALSE),
             },
             pg_pool: app_state::domain_types::SqlxPgPool::from(
                 sqlx::PgPool::connect_lazy(constants_str::POSTGRES_USR_PWD_LOCALHOST_5432_DB)

@@ -1,7 +1,9 @@
 #[cfg(feature = "test-utils")]
-use super::{
+use crate::domain_types::SelectAlias;
+#[cfg(feature = "test-utils")]
+use crate::{
     DefaultSomeOneElementMaxPageSize, NotEmptyUniqueVec, PgType, PgTypeGreaterThanTest,
-    PgTypeGreaterThanVariant, SelectAlias, V,
+    PgTypeGreaterThanVariant, V,
 };
 
 // The owner module retains lint-sensitive semantics from the original implementation.

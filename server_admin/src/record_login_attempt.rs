@@ -1,9 +1,9 @@
-pub(in super::super) async fn record_login_attempt(
-    state: &super::super::AdminAuthSvcState,
-    login: &super::super::super::AdminLogin,
-    peer: super::super::AdminPeerAddr,
-    succeeded: super::super::super::StdAdminBool,
-) -> Result<(), super::super::AdminError> {
+pub(crate) async fn record_login_attempt(
+    state: &crate::AdminAuthSvcState,
+    login: &crate::AdminLogin,
+    peer: crate::AdminPeerAddr,
+    succeeded: crate::StdAdminBool,
+) -> Result<(), crate::AdminError> {
     sqlx::query(constants_str::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
         .bind(login.as_ref())
         .bind(peer.socket_addr().get().ip())
@@ -11,7 +11,7 @@ pub(in super::super) async fn record_login_attempt(
         .bind(uuid::Uuid::new_v4())
         .execute(state.pool.as_ref())
         .await
-        .map_err(super::super::super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map(drop)
-        .map_err(super::super::AdminError::postgresql)
+        .map_err(crate::AdminError::postgresql)
 }

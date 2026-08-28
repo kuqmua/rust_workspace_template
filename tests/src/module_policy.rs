@@ -2,7 +2,6 @@ const PRODUCTION_MODULE_MAX_LINES: usize = 2_500usize;
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_024usize;
 
 #[allow(
-    clippy::single_call_fn,
     clippy::wildcard_enum_match_arm,
     reason = "keeps named-item selection separate and ignores future unnamed syn item variants"
 )]
@@ -21,10 +20,6 @@ fn named_item_identifier(syn_item: &syn::Item) -> Option<&syn::Ident> {
     }
 }
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "keeps case conversion separate from module traversal"
-)]
 fn identifier_snake_case(identifier: &syn::Ident) -> super::types::SourceText {
     let characters = identifier.to_string().chars().collect::<Vec<_>>();
     super::types::SourceText::try_from(characters.iter().enumerate().fold(
@@ -51,6 +46,222 @@ fn identifier_snake_case(identifier: &syn::Ident) -> super::types::SourceText {
         },
     ))
     .expect("3c8a729e identifier snake case must fit the source text bound")
+}
+
+#[test]
+fn custom_type_names_are_unique_across_workspace() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let mut declarations = std::collections::BTreeMap::<String, Vec<String>>::new();
+        snapshot.rs_files().iter().for_each(|source_file| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(source_file.ast().as_ref()),
+                super::source_analysis::CustomTypeNameVisitor::default(),
+            );
+            visitor.names.into_iter().for_each(|name| {
+                declarations
+                    .entry(name)
+                    .or_default()
+                    .push(source_file.path().as_ref().display().to_string());
+            });
+        });
+        let violations = declarations
+            .into_iter()
+            .filter_map(|(name, mut paths)| {
+                (paths.len() > constants_usize::ONE).then(|| {
+                    paths.sort();
+                    format!(
+                        "custom type name `{name}` is declared more than once across the workspace: {}",
+                        paths.join(", ")
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(
+            violations.is_empty(),
+            "c036c2fb custom type names must be unique across all workspace modules and crates:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
+fn custom_type_name_visitor_covers_all_rust_type_declarations() {
+    let ast = syn::parse_file(
+        "struct StructName; enum EnumName {} union UnionName { value: u8 } trait TraitName {} type AliasName = u8; trait TraitAliasName = TraitName;",
+    )
+    .expect("a9ea85b6 custom type declaration fixture must parse");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::source_analysis::CustomTypeNameVisitor::default(),
+    );
+    assert_eq!(
+        visitor.names.into_iter().collect::<Vec<String>>(),
+        [
+            "StructName",
+            "EnumName",
+            "UnionName",
+            "TraitName",
+            "AliasName",
+            "TraitAliasName",
+        ]
+        .map(String::from),
+        "29e8555b"
+    );
+}
+
+#[test]
+fn free_function_name_visitor_excludes_methods() {
+    let ast = syn::parse_file(
+        "fn outer() { fn inner() {} } mod nested { fn module_function() {} } struct Example; impl Example { fn inherent_method() {} } trait ExampleTrait { fn required_method(); fn provided_method() {} }",
+    )
+    .expect("31495514 free function declaration fixture must parse");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::source_analysis::FreeFnNameVisitor::default(),
+    );
+    assert_eq!(
+        visitor.names.into_iter().collect::<Vec<String>>(),
+        ["outer", "inner", "module_function"].map(String::from),
+        "6d857f95"
+    );
+}
+
+#[test]
+fn free_function_names_are_unique_across_workspace() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let mut declarations = std::collections::BTreeMap::<String, Vec<String>>::new();
+        snapshot.rs_files().iter().for_each(|source_file| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(source_file.ast().as_ref()),
+                super::source_analysis::FreeFnNameVisitor::default(),
+            );
+            visitor
+                .names
+                .into_iter()
+                .filter(|name| name != constants_str::MAIN)
+                .for_each(|name| {
+                    declarations
+                        .entry(name)
+                        .or_default()
+                        .push(source_file.path().as_ref().display().to_string());
+                });
+        });
+        let violations = declarations
+            .into_iter()
+            .filter_map(|(name, mut paths)| {
+                (paths.len() > constants_usize::ONE).then(|| {
+                    paths.sort();
+                    format!(
+                        "free function name `{name}` is declared more than once across the workspace: {}",
+                        paths.join(", ")
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(
+            violations.is_empty(),
+            "31495514 free function names must be unique across all workspace modules and crates:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
+fn module_declarations_do_not_use_path_attributes() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let source_path = source_file.path().as_ref();
+                source_file
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(|item| {
+                        let syn::Item::Mod(item_mod) = item else {
+                            return None;
+                        };
+                        let explicit_path_text = item_mod.attrs.iter().find_map(|attribute| {
+                            if !attribute.path().is_ident(constants_str::PATH_ALT_5) {
+                                return None;
+                            }
+                            let syn::Meta::NameValue(name_value) = &attribute.meta else {
+                                return None;
+                            };
+                            let syn::Expr::Lit(expression_literal) = &name_value.value else {
+                                return None;
+                            };
+                            let syn::Lit::Str(path_literal) = &expression_literal.lit else {
+                                return None;
+                            };
+                            Some(path_literal.value())
+                        })?;
+                        Some(format!(
+                            "{}: `#[path = \"{}\"]` on module `{}` is unnecessary: Rust automatically loads `{}` from `{}.rs`; move `mod {};` to the crate root, rename the source file to `{}.rs` if necessary, reference it through `crate::{}`, and remove the `#[path]` attribute",
+                            source_path.display(),
+                            explicit_path_text,
+                            item_mod.ident,
+                            item_mod.ident,
+                            item_mod.ident,
+                            item_mod.ident,
+                            item_mod.ident,
+                            item_mod.ident,
+                        ))
+                    })
+                    .collect::<Vec<String>>()
+                    .into_iter()
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "1be5bba1 {violations:#?}");
+    });
+}
+
+#[test]
+fn external_module_declarations_exist_only_in_crate_roots() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let mut violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !matches!(
+                    source_file
+                        .path()
+                        .as_ref()
+                        .file_stem()
+                        .and_then(std::ffi::OsStr::to_str),
+                    Some(constants_str::LIB | constants_str::MAIN)
+                )
+            })
+            .flat_map(|source_file| {
+                source_file
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(|item| {
+                        let syn::Item::Mod(item_mod) = item else {
+                            return None;
+                        };
+                        item_mod.content.is_none().then(|| {
+                            format!(
+                                "{}: external module `{}` must be declared in lib.rs or main.rs",
+                                source_file.path().as_ref().display(),
+                                item_mod.ident
+                            )
+                        })
+                    })
+                    .collect::<Vec<String>>()
+            })
+            .collect::<Vec<String>>();
+        violations.sort_unstable();
+        assert!(
+            violations.is_empty(),
+            "c6014d50 external module declarations must exist only in crate roots:\n{}",
+            violations.join("\n")
+        );
+    });
 }
 
 #[test]

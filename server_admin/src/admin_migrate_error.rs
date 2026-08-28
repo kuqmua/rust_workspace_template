@@ -1,4 +1,4 @@
-use super::{AdminMigrateErrorInner, SqlxAdminMigrateError};
+use crate::{AdminMigrateErrorInner, SqlxAdminMigrateError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("failed to prepare administrator schema: {0}")]
@@ -9,8 +9,8 @@ impl From<SqlxAdminMigrateError> for AdminMigrateError {
         Self(AdminMigrateErrorInner::Migration(error))
     }
 }
-impl From<super::SqlxAdminError> for AdminMigrateError {
-    fn from(error: super::SqlxAdminError) -> Self {
+impl From<crate::SqlxAdminError> for AdminMigrateError {
+    fn from(error: crate::SqlxAdminError) -> Self {
         Self(AdminMigrateErrorInner::Reconciliation(error))
     }
 }

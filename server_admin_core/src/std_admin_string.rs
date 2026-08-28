@@ -1,4 +1,4 @@
-use super::{AdminResourceText, UuidAdminValue};
+use crate::domain_types::{AdminResourceText, UuidAdminValue};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

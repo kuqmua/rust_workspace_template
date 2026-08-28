@@ -1,4 +1,4 @@
-use super::super::*;
+use crate::*;
 
 #[must_use]
 pub fn generate_pg_types_tokens(

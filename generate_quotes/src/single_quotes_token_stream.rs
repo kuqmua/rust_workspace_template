@@ -1,7 +1,9 @@
 #[must_use]
-pub fn single_quotes_token_stream<Dsp>(v: &Dsp) -> super::ProcMacro2QuotedLiteralTokenStream
+pub fn single_quotes_token_stream<Dsp>(
+    v: &Dsp,
+) -> crate::domain_types::ProcMacro2QuotedLiteralTokenStream
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    super::quote_token_stream(super::single_quote_style(), v)
+    crate::domain_types::quote_token_stream(crate::domain_types::single_quote_style(), v)
 }

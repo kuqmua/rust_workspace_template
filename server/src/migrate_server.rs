@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "migration mode remains isolated from the long-running service startup path"
-)]
 pub(crate) async fn migrate_server(
     config: &server_config::domain_types::Config,
 ) -> Result<(), crate::domain_types::RunServerError> {

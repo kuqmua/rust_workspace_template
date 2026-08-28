@@ -11,36 +11,34 @@ impl RouteErrorPolicy {
     pub const fn statuses(
         self,
         authentication: super::AuthenticationRequirement,
-        mutation: super::super::RouteMutation,
+        mutation: crate::RouteMutation,
     ) -> &'static [super::RouteErrorStatus] {
         match self {
             Self::Authentication => super::PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
             Self::Delete => super::AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES,
             Self::ValidatedRead => super::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES,
             Self::Default => match (authentication, mutation) {
-                (
-                    super::AuthenticationRequirement::Public,
-                    super::super::RouteMutation::ReadOnly,
-                ) => super::PUBLIC_READ_ROUTE_ERROR_STATUSES,
-                (
-                    super::AuthenticationRequirement::Public,
-                    super::super::RouteMutation::Mutating,
-                ) => super::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+                (super::AuthenticationRequirement::Public, crate::RouteMutation::ReadOnly) => {
+                    super::PUBLIC_READ_ROUTE_ERROR_STATUSES
+                }
+                (super::AuthenticationRequirement::Public, crate::RouteMutation::Mutating) => {
+                    super::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES
+                }
                 (
                     super::AuthenticationRequirement::Authenticated,
-                    super::super::RouteMutation::ReadOnly,
+                    crate::RouteMutation::ReadOnly,
                 ) => super::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES,
                 (
                     super::AuthenticationRequirement::Authenticated,
-                    super::super::RouteMutation::Mutating,
+                    crate::RouteMutation::Mutating,
                 ) => super::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES,
                 (
                     super::AuthenticationRequirement::Permission(_),
-                    super::super::RouteMutation::ReadOnly,
+                    crate::RouteMutation::ReadOnly,
                 ) => super::AUTHORIZED_READ_ROUTE_ERROR_STATUSES,
                 (
                     super::AuthenticationRequirement::Permission(_),
-                    super::super::RouteMutation::Mutating,
+                    crate::RouteMutation::Mutating,
                 ) => super::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES,
             },
         }

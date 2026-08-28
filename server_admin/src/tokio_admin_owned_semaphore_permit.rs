@@ -7,4 +7,4 @@
     dead_code,
     reason = "the owned permit is held for its drop semantics while password hashing runs"
 )]
-pub(crate) struct TokioAdminOwnedSemaphorePermit(pub(super) tokio::sync::OwnedSemaphorePermit);
+pub(crate) struct TokioAdminOwnedSemaphorePermit(pub(crate) tokio::sync::OwnedSemaphorePermit);

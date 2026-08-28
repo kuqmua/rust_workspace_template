@@ -1,4 +1,4 @@
-use super::{ListOffset, ListRowsPresence, ListTotalSource, WindowTotalPresence};
+use crate::{ListOffset, ListRowsPresence, ListTotalSource, WindowTotalPresence};
 
 #[must_use]
 pub const fn resolve_list_total_source(

@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct TokioAdminAcquireError(pub(super) tokio::sync::AcquireError);
+pub struct TokioAdminAcquireError(pub(crate) tokio::sync::AcquireError);

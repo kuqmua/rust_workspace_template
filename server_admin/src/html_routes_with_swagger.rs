@@ -1,4 +1,4 @@
-use super::{AdminHtmlSwaggerEnabled, AxumAdminAuthRouter, SharedAdminAuthSvcStateArc, html};
+use crate::{AdminHtmlSwaggerEnabled, AxumAdminAuthRouter, SharedAdminAuthSvcStateArc, html};
 
 #[must_use]
 pub fn html_routes_with_swagger(

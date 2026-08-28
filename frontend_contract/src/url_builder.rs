@@ -1,19 +1,8 @@
-#[path = "api_url.rs"]
-mod api_url;
-#[path = "api_url_build_error.rs"]
-mod api_url_build_error;
-#[path = "api_url_component_encode_set.rs"]
-mod api_url_component_encode_set;
-#[path = "api_url_path_segment_ref.rs"]
-mod api_url_path_segment_ref;
-#[path = "api_url_query_component_ref.rs"]
-mod api_url_query_component_ref;
-
-pub use api_url::ApiUrl;
-pub use api_url_build_error::ApiUrlBuildError;
-use api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET;
-pub use api_url_path_segment_ref::ApiUrlPathSegmentRef;
-pub use api_url_query_component_ref::ApiUrlQueryComponentRef;
+pub use crate::api_url::ApiUrl;
+pub use crate::api_url_build_error::ApiUrlBuildError;
+use crate::api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET;
+pub use crate::api_url_path_segment_ref::ApiUrlPathSegmentRef;
+pub use crate::api_url_query_component_ref::ApiUrlQueryComponentRef;
 
 #[cfg(test)]
 mod tests {

@@ -1,6 +1,5 @@
 #![allow(
     unused_imports,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the CSR loading-shell Leptos view requires attribute traits after macro expansion"
 )]
@@ -23,7 +22,7 @@ pub fn render_admin_csr(
     let primary_color = branding
         .primary_color()
         .map(|value| format!("--accent:{}", value.as_ref()));
-    crate::domain_types::ssr::render_document(
+    crate::render_document(
         &crate::domain_types::ssr::AdminSsrText::try_from(title)
             .unwrap_or_else(crate::domain_types::ssr::AdminSsrText::from),
         leptos::view! {

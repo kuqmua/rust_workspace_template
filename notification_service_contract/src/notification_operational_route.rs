@@ -1,4 +1,4 @@
-use super::NOTIFICATION_API_BODY_MAX_BYTES;
+use crate::domain_types::NOTIFICATION_API_BODY_MAX_BYTES;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -17,7 +17,7 @@ pub enum NotificationOperationalRoute {
     #[route_catalog_route(
         contract = frontend_contract::domain_types::RouteContract::new(
             frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::HttpMethod::Get,
+            frontend_contract::domain_types::RouteMethod::Get,
             frontend_contract::domain_types::MutationKind::ReadOnly,
             frontend_contract::domain_types::ContractStr::from("/metrics"),
             frontend_contract::domain_types::SuccessStatus::Code200,
@@ -29,7 +29,7 @@ pub enum NotificationOperationalRoute {
     #[route_catalog_route(
         contract = frontend_contract::domain_types::RouteContract::new(
             frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::HttpMethod::Get,
+            frontend_contract::domain_types::RouteMethod::Get,
             frontend_contract::domain_types::MutationKind::ReadOnly,
             frontend_contract::domain_types::ContractStr::from("/openapi.json"),
             frontend_contract::domain_types::SuccessStatus::Code200,

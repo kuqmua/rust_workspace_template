@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "the administrator account command keeps argument parsing isolated"
-)]
 pub(crate) fn parse_args()
 -> Result<crate::domain_types::AdminCommand, crate::domain_types::AdministratorCommandArgsError> {
     let mut args = std::env::args_os().skip(constants_usize::ONE);

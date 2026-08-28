@@ -1,21 +1,19 @@
 #[frontend_contract::domain_types::route_error(AdminHtmlSignInError)]
-pub(super) async fn sign_in(
-    auth: super::super::super::super::AdminAuthReq,
-    peer: super::super::super::super::AdminPeerAddr,
-    super::super::super::super::AxumAdminForm(form): super::super::super::super::AxumAdminForm<
-        super::super::super::forms::SignInForm,
-    >,
+pub(crate) async fn sign_in(
+    auth: crate::AdminAuthReq,
+    peer: crate::AdminPeerAddr,
+    crate::AxumAdminForm(form): crate::AxumAdminForm<crate::SignInForm>,
 ) -> axum::response::Response {
-    let branding =
-        super::super::super::super::settings_branding_view_ref::settings_branding_view_ref(&auth)
-            .await
-            .ok();
-    match super::super::super::super::authn_sign_in::authn_sign_in(
+    let branding = crate::settings_branding_view_ref::settings_branding_view_ref(&auth)
+        .await
+        .ok();
+    match crate::authn_sign_in::authn_sign_in(
         auth,
         peer,
-        super::super::super::super::AdminSignInJson(
-            server_admin_contract::domain_types::AdminSignInReq::new(form.login, form.password),
-        ),
+        crate::AdminSignInJson(server_admin_contract::domain_types::AdminSignInReq::new(
+            form.login,
+            form.password,
+        )),
     )
     .await
     {

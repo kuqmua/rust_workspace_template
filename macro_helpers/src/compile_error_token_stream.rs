@@ -1,4 +1,4 @@
-pub(super) fn compile_error_token_stream(
+pub(super) fn macro_compile_error_tokens(
     message: super::compile_error_message::CompileErrorMessage<'_>,
 ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
 {

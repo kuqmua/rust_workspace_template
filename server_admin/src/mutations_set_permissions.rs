@@ -1,15 +1,11 @@
-#![allow(clippy::single_call_fn)] // route inventory registers this role operation once
-
-pub(in crate::domain_types::auth) async fn mutations_set_permissions(
-    auth: super::super::AdminAuthReq,
-    path: super::super::AxumAdminPath<super::super::super::AdminRoleId>,
-    request: super::super::AxumAdminJson<
-        server_admin_contract::domain_types::AdminSetRolePermissionsReq,
-    >,
-) -> Result<super::super::AxumAdminResponse, super::super::AdminError> {
-    let actor = super::super::shared::authorize_custom::authorize_custom(
+pub(crate) async fn mutations_set_permissions(
+    auth: crate::AdminAuthReq,
+    path: crate::AxumAdminPath<crate::AdminRoleId>,
+    request: crate::AxumAdminJson<server_admin_contract::domain_types::AdminSetRolePermissionsReq>,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    let actor = crate::shared::authorize_custom::authorize_custom(
         &auth,
-        super::super::super::AdminPermission::RolePermissionsUpdate,
+        crate::AdminPermission::RolePermissionsUpdate,
     )
     .await?;
     let (expected_permission_ids, contract_permission_ids) = request.0.into_parts();
@@ -34,7 +30,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_permissions(
             )
             .len()
     {
-        return Err(super::super::AdminError::Validation);
+        return Err(crate::AdminError::Validation);
     }
     let mut tx = auth
         .state
@@ -43,7 +39,7 @@ pub(in crate::domain_types::auth) async fn mutations_set_permissions(
         .as_ref()
         .begin()
         .await
-        .map_err(super::super::AdminError::from)?;
+        .map_err(crate::AdminError::from)?;
     let outcome = async {
         let inlined_role_permission_role_id = path.0;
         let inlined_expected_permission_ids = expected_permission_ids.as_ref();
@@ -115,31 +111,31 @@ pub(in crate::domain_types::auth) async fn mutations_set_permissions(
         )
     }
     .await
-    .map_err(super::super::AdminError::from)?;
+    .map_err(crate::AdminError::from)?;
     match outcome {
         crate::repository::ReplaceRolePermissionsOutcome::Updated => {}
         crate::repository::ReplaceRolePermissionsOutcome::UnknownPermission => {
-            return Err(super::super::AdminError::Validation);
+            return Err(crate::AdminError::Validation);
         }
         crate::repository::ReplaceRolePermissionsOutcome::MissingRole
         | crate::repository::ReplaceRolePermissionsOutcome::StaleAssignment
         | crate::repository::ReplaceRolePermissionsOutcome::SystemRole => {
-            return Err(super::super::AdminError::Conflict);
+            return Err(crate::AdminError::Conflict);
         }
     }
-    super::super::persistence::record_audit_success_in_connection(
-        super::super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::super::persistence::AdminAuditSuccessRef {
-            action: super::super::super::AdminAuditAction::Update,
+    crate::persistence::record_audit_success_in_connection(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::persistence::AdminAuditSuccessRef {
+            action: crate::AdminAuditAction::Update,
             login: &actor.login,
-            resource: super::super::super::AdminAuditResource::Role,
-            resource_id: super::super::persistence::AdminAuditResourceId::Role(path.0),
+            resource: crate::AdminAuditResource::Role,
+            resource_id: crate::persistence::AdminAuditResourceId::Role(path.0),
             user_id: actor.id,
         },
     )
     .await?;
-    tx.commit().await.map_err(super::super::AdminError::from)?;
-    Ok(super::super::AxumAdminResponse(
+    tx.commit().await.map_err(crate::AdminError::from)?;
+    Ok(crate::AxumAdminResponse(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

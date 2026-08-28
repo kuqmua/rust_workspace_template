@@ -1,4 +1,4 @@
-use super::{AdminCleanupCfg, AdminCleanupError, AdminCleanupReport, AdminCleanupRows};
+use crate::{AdminCleanupCfg, AdminCleanupError, AdminCleanupReport, AdminCleanupRows};
 
 pub async fn cleanup_admin_tables(
     pool: app_state::domain_types::SqlxPgPoolRef<'_>,
@@ -9,7 +9,7 @@ pub async fn cleanup_admin_tables(
         .bind(cfg.batch_size().get())
         .execute(pool.as_ref())
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?
         .rows_affected();
     let refresh_tokens = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_REFRESH_TOKENS_SQL)
@@ -17,7 +17,7 @@ pub async fn cleanup_admin_tables(
         .bind(cfg.batch_size().get())
         .execute(pool.as_ref())
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?
         .rows_affected();
     let login_attempts = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_LOGIN_ATTEMPTS_SQL)
@@ -25,38 +25,38 @@ pub async fn cleanup_admin_tables(
         .bind(cfg.batch_size().get())
         .execute(pool.as_ref())
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?
         .rows_affected();
     let mut audit_tx = sqlx::Acquire::begin(pool.as_ref())
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?;
     let _audit_cleanup_permission =
         sqlx::query(constants_str::SERVER_ADMIN_ENABLE_AUDIT_CLEANUP_SQL)
             .execute(&mut *audit_tx)
             .await
-            .map_err(super::SqlxAdminError::from)
+            .map_err(crate::SqlxAdminError::from)
             .map_err(AdminCleanupError::Pg)?;
     let audit_log = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_AUDIT_LOG_SQL)
         .bind(cfg.audit_retention().get())
         .bind(cfg.batch_size().get())
         .execute(&mut *audit_tx)
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?
         .rows_affected();
     audit_tx
         .commit()
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?;
     let rate_limits = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_RATE_LIMITS_SQL)
         .bind(cfg.rate_limit_retention().get())
         .bind(cfg.batch_size().get())
         .execute(pool.as_ref())
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?
         .rows_affected();
     let idempotency = pg_table::domain_types::cleanup_pg_table_idempotency(
@@ -87,7 +87,7 @@ pub async fn cleanup_admin_tables(
         .bind(stored_rows)
         .execute(pool.as_ref())
         .await
-        .map_err(super::SqlxAdminError::from)
+        .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)
         .map(drop)?;
     Ok(report)

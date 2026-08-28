@@ -1,5 +1,5 @@
 #[test]
-fn tests() {
+fn route_contract_tests() {
     let metadata =
         <super::AdminSignInRoute as frontend_contract::domain_types::TypedRoute>::metadata();
     assert_eq!(

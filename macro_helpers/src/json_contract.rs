@@ -1,16 +1,7 @@
-#[path = "contract_error.rs"]
-mod contract_error;
-#[path = "ensure_json_contract_round_trip.rs"]
-mod ensure_json_contract_round_trip;
-#[path = "json_fixture_ref.rs"]
-mod json_fixture_ref;
-#[path = "serde_json_error.rs"]
-mod serde_json_error;
-
-pub use contract_error::ContractError;
-pub use ensure_json_contract_round_trip::ensure_json_contract_round_trip;
-pub use json_fixture_ref::JsonFixtureRef;
-pub use serde_json_error::SerdeJsonError;
+pub use crate::contract_error::ContractError;
+pub use crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip;
+pub use crate::json_fixture_ref::JsonFixtureRef;
+pub use crate::serde_json_error::SerdeJsonError;
 #[cfg(test)]
 mod tests {
     #[derive(

@@ -1,12 +1,10 @@
-#![allow(clippy::single_call_fn)] // route inventory and HTML composition each register focused session operations once
-
-pub(super) async fn sessions(
-    auth: super::AdminAuthReq,
-    query: super::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let authenticated = super::authorization_authenticate::authorization_authenticate(
+pub(crate) async fn sessions(
+    auth: crate::AdminAuthReq,
+    query: crate::AxumAdminQuery<server_admin_contract::domain_types::AdminTableQuery>,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    let authenticated = crate::authorization_authenticate::authorization_authenticate(
         auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
     )
     .await?;
@@ -15,7 +13,7 @@ pub(super) async fn sessions(
         .fetch_one(auth.state.as_ref().pool.as_ref())
         .await
         .map_err(crate::domain_types::SqlxAdminError::from)
-        .map_err(super::AdminError::from)?;
+        .map_err(crate::AdminError::from)?;
     let items = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
         constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
@@ -25,7 +23,7 @@ pub(super) async fn sessions(
     .fetch_all(auth.state.as_ref().pool.as_ref())
     .await
     .map_err(crate::domain_types::SqlxAdminError::from)
-    .map_err(super::AdminError::from)?
+    .map_err(crate::AdminError::from)?
     .into_iter()
     .map(|(id, created_at, expires_at)| {
         Ok(server_admin_contract::domain_types::AdminSessionView::new(
@@ -41,15 +39,15 @@ pub(super) async fn sessions(
         ))
     })
     .collect::<Result<Vec<_>, crate::repository::AdminRepositoryError>>()
-    .map_err(super::shared::map_repository_error::map_repository_error)?;
+    .map_err(crate::shared::map_repository_error::map_repository_error)?;
     let page = server_admin_contract::domain_types::AdminSessionsPage::new(
         server_admin_contract::domain_types::AdminSessionViews::try_from(items)
             .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)
-            .map_err(super::shared::map_repository_error::map_repository_error)?,
+            .map_err(crate::shared::map_repository_error::map_repository_error)?,
         crate::repository::repository_page_total(crate::repository::AdminPageTotalCount::from(
             total,
         ))
-        .map_err(super::shared::map_repository_error::map_repository_error)?,
+        .map_err(crate::shared::map_repository_error::map_repository_error)?,
     );
-    Ok(super::shared::json_response::json_response(page))
+    Ok(crate::shared::json_response::json_response(page))
 }

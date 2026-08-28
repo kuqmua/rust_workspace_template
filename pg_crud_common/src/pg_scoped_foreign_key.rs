@@ -22,18 +22,18 @@ impl PgScopedForeignKey {
         if local_columns.0.len() != referenced_columns.0.len() {
             return Err(crate::domain_types::PgScopedForeignKeyError::ColumnCountMismatch);
         }
-        if !(crate::domain_types::minimum_scoped_foreign_key_columns::MINIMUM_SCOPED_FOREIGN_KEY_COLUMNS
-            ..=crate::domain_types::maximum_scoped_foreign_key_columns::MAXIMUM_SCOPED_FOREIGN_KEY_COLUMNS)
+        if !(crate::minimum_scoped_foreign_key_columns::MINIMUM_SCOPED_FOREIGN_KEY_COLUMNS
+            ..=crate::maximum_scoped_foreign_key_columns::MAXIMUM_SCOPED_FOREIGN_KEY_COLUMNS)
             .contains(&local_columns.0.len())
         {
             return Err(crate::domain_types::PgScopedForeignKeyError::InvalidColumnCount);
         }
-        if crate::domain_types::contains_duplicate_identifier::contains_duplicate_identifier(
+        if crate::contains_duplicate_identifier::contains_duplicate_identifier(
             local_columns.0.as_slice(),
-        ) == crate::domain_types::pg_duplicate_identifier_presence::PgDuplicateIdentifierPresence::Present
-            || crate::domain_types::contains_duplicate_identifier::contains_duplicate_identifier(
+        ) == crate::pg_duplicate_identifier_presence::PgDuplicateIdentifierPresence::Present
+            || crate::contains_duplicate_identifier::contains_duplicate_identifier(
                 referenced_columns.0.as_slice(),
-            ) == crate::domain_types::pg_duplicate_identifier_presence::PgDuplicateIdentifierPresence::Present
+            ) == crate::pg_duplicate_identifier_presence::PgDuplicateIdentifierPresence::Present
         {
             return Err(crate::domain_types::PgScopedForeignKeyError::DuplicateColumn);
         }

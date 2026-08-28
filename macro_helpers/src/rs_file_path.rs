@@ -4,16 +4,15 @@
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)]
+
+#[allow(clippy::single_call_fn)] // typed path construction remains an independently named boundary for file-writing callers
 pub(crate) fn rs_file_path<P>(file_name: P) -> RsFilePathBuf
 where
     P: AsRef<std::path::Path>,
 {
     RsFilePathBuf::from(file_name.as_ref().with_extension(constants_str::RS))
 }
-#[path = "rs_file_path_buf.rs"]
-mod rs_file_path_buf;
-pub(crate) use rs_file_path_buf::RsFilePathBuf;
+pub(crate) use crate::rs_file_path_buf::RsFilePathBuf;
 #[cfg(test)]
 mod tests {
     #[test]

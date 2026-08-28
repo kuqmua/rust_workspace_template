@@ -1,31 +1,12 @@
-#[path = "cleanup_batch_count.rs"]
-mod cleanup_batch_count;
-#[path = "cleanup_batch_size.rs"]
-mod cleanup_batch_size;
-#[path = "cleanup_batch_size_error.rs"]
-mod cleanup_batch_size_error;
-#[path = "cleanup_batch_size_non_zero_u64.rs"]
-mod cleanup_batch_size_non_zero_u64;
-#[path = "cleanup_completion.rs"]
-mod cleanup_completion;
-#[path = "cleanup_continuation.rs"]
-mod cleanup_continuation;
-#[path = "cleanup_report.rs"]
-mod cleanup_report;
-#[path = "cleanup_rows.rs"]
-mod cleanup_rows;
-#[path = "run_batched_cleanup.rs"]
-mod run_batched_cleanup;
-
-pub use cleanup_batch_count::CleanupBatchCount;
-pub use cleanup_batch_size::CleanupBatchSize;
-pub use cleanup_batch_size_error::CleanupBatchSizeError;
-use cleanup_batch_size_non_zero_u64::CleanupBatchSizeNonZeroU64;
-pub use cleanup_completion::CleanupCompletion;
-pub use cleanup_continuation::CleanupContinuation;
-pub use cleanup_report::CleanupReport;
-pub use cleanup_rows::CleanupRows;
-pub use run_batched_cleanup::run_batched_cleanup;
+pub use crate::cleanup_batch_count::CleanupBatchCount;
+pub use crate::cleanup_batch_size::CleanupBatchSize;
+pub use crate::cleanup_batch_size_error::CleanupBatchSizeError;
+use crate::cleanup_batch_size_non_zero_u64::CleanupBatchSizeNonZeroU64;
+pub use crate::cleanup_completion::CleanupCompletion;
+pub use crate::cleanup_continuation::CleanupContinuation;
+pub use crate::cleanup_report::CleanupReport;
+pub use crate::cleanup_rows::CleanupRows;
+pub use crate::run_batched_cleanup::run_batched_cleanup;
 
 #[cfg(test)]
 mod tests {
@@ -72,4 +53,33 @@ mod tests {
             Err(super::CleanupBatchSizeError)
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod cleanup_batch_count {
+    pub use crate::cleanup_batch_count::*;
+}
+mod cleanup_batch_size {
+    pub use crate::cleanup_batch_size::*;
+}
+mod cleanup_batch_size_error {
+    pub use crate::cleanup_batch_size_error::*;
+}
+mod cleanup_batch_size_non_zero_u64 {
+    pub use crate::cleanup_batch_size_non_zero_u64::*;
+}
+mod cleanup_completion {
+    pub use crate::cleanup_completion::*;
+}
+mod cleanup_continuation {
+    pub use crate::cleanup_continuation::*;
+}
+mod cleanup_report {
+    pub use crate::cleanup_report::*;
+}
+mod cleanup_rows {
+    pub use crate::cleanup_rows::*;
+}
+mod run_batched_cleanup {
+    pub use crate::run_batched_cleanup::*;
 }

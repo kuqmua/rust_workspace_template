@@ -1,6 +1,5 @@
 #![allow(
     unused_imports,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "the screen-local Leptos view branch requires attribute traits after macro expansion"
 )]
@@ -17,13 +16,13 @@ pub fn render_data_tables(
     let content_view = leptos::view! {
         {table.map(|view| leptos::view! {
             <section class="table-page">
-                {crate::domain_types::ssr::data_table_grid(view, query)}
-                {crate::domain_types::ssr::table_pagination(server_admin_contract::domain_types::AdminPage::Tables, query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(query.filter()))}
+                {crate::data_table_grid(view, query)}
+                {crate::table_pagination(server_admin_contract::domain_types::AdminPage::Tables, query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(query.filter()))}
             </section>
         })}
     };
-    let content = crate::domain_types::ssr::render_view(content_view);
-    crate::domain_types::ssr::render_admin_page_with_table_access(
+    let content = crate::render_view(content_view);
+    crate::render_admin_page_with_table_access(
         server_admin_contract::domain_types::AdminPage::Tables,
         content,
         Some(admin),

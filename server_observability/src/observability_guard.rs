@@ -4,18 +4,20 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ObservabilityGuard {
-    pub(super) tracer_provider: Option<super::OpentelemetrySdkTracerProvider>,
+    pub(super) tracer_provider: Option<crate::initialization::OpentelemetrySdkTracerProvider>,
 }
 
 impl ObservabilityGuard {
-    pub fn shutdown(mut self) -> Result<(), super::OpentelemetrySdkObservabilityShutdownError> {
+    pub fn shutdown(
+        mut self,
+    ) -> Result<(), crate::initialization::OpentelemetrySdkObservabilityShutdownError> {
         let Some(tracer_provider) = self.tracer_provider.take() else {
             return Ok(());
         };
         tracer_provider
             .0
             .shutdown()
-            .map_err(super::OpentelemetrySdkObservabilityShutdownError::from)
+            .map_err(crate::initialization::OpentelemetrySdkObservabilityShutdownError::from)
     }
 }
 

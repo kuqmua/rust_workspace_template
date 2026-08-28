@@ -1,25 +1,10 @@
-#[path = "build_attachment_content_disposition.rs"]
-mod build_attachment_content_disposition;
-#[path = "content_disposition_percent_encode_set.rs"]
-mod content_disposition_percent_encode_set;
-#[path = "http_attachment_file_name_ref.rs"]
-mod http_attachment_file_name_ref;
-#[path = "http_content_disposition.rs"]
-mod http_content_disposition;
-#[path = "http_content_disposition_error.rs"]
-mod http_content_disposition_error;
-#[path = "http_content_length.rs"]
-mod http_content_length;
-#[path = "http_content_length_error.rs"]
-mod http_content_length_error;
-
-pub use build_attachment_content_disposition::build_attachment_content_disposition;
-use content_disposition_percent_encode_set::CONTENT_DISPOSITION_PERCENT_ENCODE_SET;
-pub use http_attachment_file_name_ref::HttpAttachmentFileNameRef;
-pub use http_content_disposition::HttpContentDisposition;
-pub use http_content_disposition_error::HttpContentDispositionError;
-pub use http_content_length::HttpContentLength;
-pub use http_content_length_error::HttpContentLengthError;
+pub use crate::build_attachment_content_disposition::build_attachment_content_disposition;
+use crate::content_disposition_percent_encode_set::CONTENT_DISPOSITION_PERCENT_ENCODE_SET;
+pub use crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef;
+pub use crate::http_content_disposition::HttpContentDisposition;
+pub use crate::http_content_disposition_error::HttpContentDispositionError;
+pub use crate::http_content_length::HttpContentLength;
+pub use crate::http_content_length_error::HttpContentLengthError;
 
 #[cfg(test)]
 mod tests {
@@ -47,4 +32,27 @@ mod tests {
                 .expect("f87ab266 content_length_accepts_u64_maximum invariant must hold");
         assert_eq!(u64::try_from(value), Ok(u64::MAX));
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod build_attachment_content_disposition {
+    pub use crate::build_attachment_content_disposition::*;
+}
+mod content_disposition_percent_encode_set {
+    pub use crate::content_disposition_percent_encode_set::*;
+}
+mod http_attachment_file_name_ref {
+    pub use crate::http_attachment_file_name_ref::*;
+}
+mod http_content_disposition {
+    pub use crate::http_content_disposition::*;
+}
+mod http_content_disposition_error {
+    pub use crate::http_content_disposition_error::*;
+}
+mod http_content_length {
+    pub use crate::http_content_length::*;
+}
+mod http_content_length_error {
+    pub use crate::http_content_length_error::*;
 }

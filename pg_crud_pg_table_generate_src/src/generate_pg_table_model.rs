@@ -4,10 +4,8 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct GeneratePgTableModel {
-    pub(in super::super) field_count:
-        super::generate_pg_table_field_count::GeneratePgTableFieldCount,
-    pub(in super::super) input:
-        super::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput,
+    pub(crate) field_count: super::generate_pg_table_field_count::GeneratePgTableFieldCount,
+    pub(crate) input: super::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput,
 }
 impl GeneratePgTableModel {
     #[must_use]
@@ -16,12 +14,12 @@ impl GeneratePgTableModel {
     ) -> super::generate_pg_table_field_count::GeneratePgTableFieldCount {
         self.field_count
     }
-    pub(in super::super) fn into_input(
+    pub(crate) fn into_input(
         self,
     ) -> super::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput {
         self.input
     }
-    pub(in super::super) fn validate(
+    pub(crate) fn validate(
         self,
     ) -> Result<Self, super::syn_generate_pg_table_model_error::SynGeneratePgTableModelError> {
         if *self.field_count == constants_usize::ZERO {

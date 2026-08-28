@@ -30,7 +30,11 @@ impl From<super::ResourceUtilizationKnownPercent> for ResourceUtilizationPercent
 
 impl ResourceUtilizationPercent {
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::single_call_fn, clippy::trivially_copy_pass_by_ref)]
+    #[allow(
+        clippy::single_call_fn,
+        clippy::trivially_copy_pass_by_ref,
+        reason = "derive-generated TryFrom owns the single validation call"
+    )]
     const fn validate(value: &u8) -> Result<(), super::ResourceUtilizationPercentTryFromU8Error> {
         if *value <= 100u8 {
             Ok(())

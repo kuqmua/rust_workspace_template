@@ -1,7 +1,3 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "the administrator account command keeps secret decoding isolated"
-)]
 pub(crate) fn password_from_bytes(
     bytes: server_runtime_http::domain_types::BoundedBytes,
 ) -> Result<

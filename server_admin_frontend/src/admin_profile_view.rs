@@ -1,16 +1,11 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 
-#[path = "admin_change_password.rs"]
-mod admin_change_password;
-#[path = "admin_profile_account.rs"]
-mod admin_profile_account;
-
 #[leptos::component]
 #[allow(
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from the parent app module"
 )]
-pub(in crate::domain_types::start) fn AdminProfileView(
+pub(crate) fn AdminProfileView(
     admin: server_admin_contract::domain_types::AuthenticatedAdmin,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
@@ -19,4 +14,12 @@ pub(in crate::domain_types::start) fn AdminProfileView(
             {admin_change_password::admin_change_password()}
         </section>
     }
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_change_password {
+    pub use crate::admin_change_password::*;
+}
+pub(crate) mod admin_profile_account {
+    pub use crate::admin_profile_account::*;
 }

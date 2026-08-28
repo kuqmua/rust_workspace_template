@@ -5,7 +5,7 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, ElementChild};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition from sibling table modules"
 )]
-pub(in crate::domain_types::start) fn AdminPagination(
+pub(crate) fn AdminPagination(
     action: server_admin_contract::domain_types::AdminFrontendPath,
     query: super::admin_csr_query::AdminCsrQuery,
     total: server_admin_contract::domain_types::AdminPageTotal,

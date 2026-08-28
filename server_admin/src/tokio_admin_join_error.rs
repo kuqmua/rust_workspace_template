@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugTransparent, newtype::FromInner,
 )]
-pub struct TokioAdminJoinError(pub(super) tokio::task::JoinError);
+pub struct TokioAdminJoinError(pub(crate) tokio::task::JoinError);

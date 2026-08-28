@@ -1,12 +1,3 @@
-#[path = "domain_types_tests_request_id.rs"]
-mod request_id;
-#[path = "domain_types_tests_resource_budget.rs"]
-mod resource_budget;
-#[path = "domain_types_tests_security_headers.rs"]
-mod security_headers;
-#[path = "domain_types_tests_service_runtime.rs"]
-mod service_runtime;
-
 const HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK: u16 = (1u16 << 12u16) - 1u16;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct HttpErrorEventCapture {
@@ -491,4 +482,18 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
         opentelemetry::trace::SpanKind::Client
     );
     tracer_provider.shutdown().expect("721ff26e observed_client_preparation_injects_context_and_creates_child_span invariant must hold");
+}
+
+// Root-owned module compatibility wrappers.
+mod request_id {
+    pub use crate::domain_types_tests_request_id::*;
+}
+mod resource_budget {
+    pub use crate::domain_types_tests_resource_budget::*;
+}
+mod security_headers {
+    pub use crate::domain_types_tests_security_headers::*;
+}
+mod service_runtime {
+    pub use crate::domain_types_tests_service_runtime::*;
 }

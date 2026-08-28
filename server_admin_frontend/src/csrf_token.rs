@@ -1,4 +1,4 @@
-pub(in crate::domain_types::start) fn csrf_token() -> Result<
+pub(crate) fn csrf_token() -> Result<
     crate::domain_types::start::http::mutation::AdminCsrfToken,
     crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError,
 > {

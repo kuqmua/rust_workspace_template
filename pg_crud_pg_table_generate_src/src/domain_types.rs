@@ -1,34 +1,51 @@
-#[path = "contract_tests.rs"]
-mod contract_tests;
-#[path = "frontend_http_method.rs"]
-mod frontend_http_method;
-#[path = "frontend_operation_kind.rs"]
-mod frontend_operation_kind;
-#[path = "frontend_permission_action.rs"]
-mod frontend_permission_action;
-#[path = "frontend_success_status.rs"]
-mod frontend_success_status;
-#[path = "http_method.rs"]
-mod http_method;
-#[path = "openapi.rs"]
-mod openapi;
-#[path = "pipeline.rs"]
-pub mod pipeline;
-#[path = "route_http_method.rs"]
-mod route_http_method;
-#[path = "route_operation_kind.rs"]
-mod route_operation_kind;
-#[path = "route_permission_action.rs"]
-mod route_permission_action;
-#[path = "route_success_status.rs"]
-mod route_success_status;
-#[path = "source.rs"]
-pub mod source;
-#[path = "sql.rs"]
-mod sql;
-#[path = "struct_shape.rs"]
-mod struct_shape;
-#[path = "success_status.rs"]
-mod success_status;
-#[path = "table.rs"]
-pub mod table;
+pub(crate) mod contract_tests {
+    pub(crate) use crate::contract_tests::*;
+}
+pub(crate) mod frontend_http_method {
+    pub(crate) use crate::frontend_http_method::*;
+}
+pub(crate) mod frontend_operation_kind {
+    pub(crate) use crate::frontend_operation_kind::*;
+}
+pub(crate) mod frontend_permission_action {
+    pub(crate) use crate::frontend_permission_action::*;
+}
+pub(crate) mod frontend_success_status {
+    pub(crate) use crate::frontend_success_status::*;
+}
+pub(crate) mod http_method {
+    pub(crate) use crate::http_method::*;
+}
+pub(crate) mod openapi {
+    pub(crate) use crate::openapi::*;
+}
+pub mod pipeline {
+    pub use crate::pipeline::*;
+}
+pub(crate) mod route_http_method {
+    pub(crate) use crate::route_http_method::*;
+}
+pub(crate) mod route_operation_kind {
+    pub(crate) use crate::route_operation_kind::*;
+}
+pub(crate) mod route_permission_action {
+    pub(crate) use crate::route_permission_action::*;
+}
+pub(crate) mod route_success_status {
+    pub(crate) use crate::route_success_status::*;
+}
+pub mod source {
+    pub use crate::source::*;
+}
+pub(crate) mod sql {
+    pub(crate) use crate::sql::*;
+}
+pub(crate) mod struct_shape {
+    pub(crate) use crate::struct_shape::*;
+}
+pub(crate) mod success_status {
+    pub(crate) use crate::success_status::*;
+}
+pub mod table {
+    pub use crate::table::*;
+}

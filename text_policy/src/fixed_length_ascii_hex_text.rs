@@ -1,4 +1,4 @@
-use super::FixedLengthAsciiHexTextError;
+use crate::domain_types::FixedLengthAsciiHexTextError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

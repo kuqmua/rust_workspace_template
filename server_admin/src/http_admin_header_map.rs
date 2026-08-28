@@ -9,4 +9,4 @@
     newtype::AsRefOwned,
     newtype::FromInner,
 )]
-pub struct HttpAdminHeaderMap(pub(super) http::HeaderMap);
+pub struct HttpAdminHeaderMap(pub(crate) http::HeaderMap);

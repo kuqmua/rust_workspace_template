@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::{
+use crate::domain_types::{
     ChronoLocationDateTime, ChronoLocationDisplayTimezone, FormatterRefMut,
     LOC_DISPLAY_UTC_OFFSET_SECS, LocationColumn, LocationCommit, LocationDuration, LocationFile,
     LocationFileRef, LocationLine, Occr,
@@ -34,7 +34,10 @@ pub struct Location {
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_pass_by_value)]
 impl Location {
-    #[allow(clippy::single_call_fn)] // shared offset accessor is reused by formatter and tests
+    #[allow(
+        clippy::single_call_fn,
+        reason = "timezone policy accessor remains directly testable"
+    )]
     pub(super) fn location_display_timezone() -> Option<ChronoLocationDisplayTimezone> {
         chrono::FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS)
             .map(ChronoLocationDisplayTimezone)

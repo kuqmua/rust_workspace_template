@@ -1,6 +1,5 @@
 #![allow(
     clippy::shadow_reuse,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "Leptos settings inputs convert signal values for event closures and are composed by the settings form"
 )]

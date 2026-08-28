@@ -10,4 +10,4 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub(crate) struct SqlxAdminRepositoryPoolRef<'pool_lt>(pub(super) &'pool_lt sqlx::PgPool);
+pub(crate) struct SqlxAdminRepositoryPoolRef<'pool_lt>(pub(crate) &'pool_lt sqlx::PgPool);

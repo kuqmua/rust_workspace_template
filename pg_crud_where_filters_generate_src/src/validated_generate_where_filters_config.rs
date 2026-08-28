@@ -3,4 +3,6 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct ValidatedGenerateWhereFiltersConfig(pub(super) super::ParsedGenerateWhereFiltersConfig);
+pub struct ValidatedGenerateWhereFiltersConfig(
+    pub(super) crate::source::ParsedGenerateWhereFiltersConfig,
+);

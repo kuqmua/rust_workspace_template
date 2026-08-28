@@ -8,9 +8,9 @@
     generate_constructor::New,
 )]
 pub struct AdminSessionsPage {
-    items: super::super::AdminSessionViews,
+    items: crate::AdminSessionViews,
     #[schema(value_type = u64)]
-    total: super::super::AdminPageTotal,
+    total: crate::AdminPageTotal,
 }
 impl AdminSessionsPage {
     #[must_use]
@@ -18,7 +18,7 @@ impl AdminSessionsPage {
         self.items.as_slice()
     }
     #[must_use]
-    pub const fn total(&self) -> super::super::AdminPageTotal {
+    pub const fn total(&self) -> crate::AdminPageTotal {
         self.total
     }
 }

@@ -92,7 +92,7 @@ mod tests {
         #[route_catalog_route(
             contract = frontend_contract::domain_types::RouteContract::new(
                 frontend_contract::domain_types::AuthenticationRequirement::Public,
-                frontend_contract::domain_types::HttpMethod::Get,
+                frontend_contract::domain_types::RouteMethod::Get,
                 frontend_contract::domain_types::MutationKind::ReadOnly,
                 frontend_contract::domain_types::ContractStr::from(constants_str::ROUTE),
                 frontend_contract::domain_types::SuccessStatus::Code200,

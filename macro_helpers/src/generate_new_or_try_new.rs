@@ -1,62 +1,15 @@
-#[path = "generate_const_new_token_stream_impl.rs"]
-mod generate_const_new_token_stream_impl;
-#[path = "generate_const_try_new_token_stream_impl.rs"]
-mod generate_const_try_new_token_stream_impl;
-#[path = "generate_impl_const_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_const_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_modified_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_modified_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_modified_try_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_modified_try_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_pub_const_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_pub_const_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_pub_const_try_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_pub_const_try_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_pub_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_pub_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_pub_try_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_pub_try_new_for_identifier_token_stream_impl;
-#[path = "generate_impl_try_new_for_identifier_token_stream_impl.rs"]
-mod generate_impl_try_new_for_identifier_token_stream_impl;
-#[path = "generate_modified_new_token_stream_impl.rs"]
-mod generate_modified_new_token_stream_impl;
-#[path = "generate_modified_try_new_token_stream_impl.rs"]
-mod generate_modified_try_new_token_stream_impl;
-#[path = "generate_new_token_stream_impl.rs"]
-mod generate_new_token_stream_impl;
-#[path = "generate_pub_const_new_token_stream_impl.rs"]
-mod generate_pub_const_new_token_stream_impl;
-#[path = "generate_pub_const_try_new_token_stream_impl.rs"]
-mod generate_pub_const_try_new_token_stream_impl;
-#[path = "generate_pub_new_token_stream_impl.rs"]
-mod generate_pub_new_token_stream_impl;
-#[path = "generate_pub_try_new_token_stream_impl.rs"]
-mod generate_pub_try_new_token_stream_impl;
-#[path = "generate_try_new_token_stream_impl.rs"]
-mod generate_try_new_token_stream_impl;
-#[path = "impl_identifier_token_stream_impl.rs"]
-mod impl_identifier_token_stream_impl;
-#[path = "with_attr_token_stream_impl.rs"]
-mod with_attr_token_stream_impl;
-
-pub use generate_const_new_token_stream_impl::generate_const_new_token_stream_impl;
-pub use generate_const_try_new_token_stream_impl::generate_const_try_new_token_stream_impl;
-pub use generate_impl_const_new_for_identifier_token_stream_impl::generate_impl_const_new_for_identifier_token_stream_impl;
-pub use generate_impl_new_for_identifier_token_stream_impl::generate_impl_new_for_identifier_token_stream_impl;
-pub use generate_impl_pub_const_new_for_identifier_token_stream_impl::generate_impl_pub_const_new_for_identifier_token_stream_impl;
-pub use generate_impl_pub_const_try_new_for_identifier_token_stream_impl::generate_impl_pub_const_try_new_for_identifier_token_stream_impl;
-pub use generate_impl_pub_new_for_identifier_token_stream_impl::generate_impl_pub_new_for_identifier_token_stream_impl;
-pub use generate_impl_pub_try_new_for_identifier_token_stream_impl::generate_impl_pub_try_new_for_identifier_token_stream_impl;
-pub use generate_impl_try_new_for_identifier_token_stream_impl::generate_impl_try_new_for_identifier_token_stream_impl;
-pub use generate_new_token_stream_impl::generate_new_token_stream_impl;
-pub use generate_pub_const_new_token_stream_impl::generate_pub_const_new_token_stream_impl;
-pub use generate_pub_const_try_new_token_stream_impl::generate_pub_const_try_new_token_stream_impl;
-pub use generate_pub_new_token_stream_impl::generate_pub_new_token_stream_impl;
-pub use generate_pub_try_new_token_stream_impl::generate_pub_try_new_token_stream_impl;
-pub use generate_try_new_token_stream_impl::generate_try_new_token_stream_impl;
-
-#[cfg(test)]
-#[path = "generate_new_or_try_new_tests.rs"]
-mod tests;
+pub use crate::generate_const_new_token_stream_impl::generate_const_new_token_stream_impl;
+pub use crate::generate_const_try_new_token_stream_impl::generate_const_try_new_token_stream_impl;
+pub use crate::generate_impl_const_new_for_identifier_token_stream_impl::generate_impl_const_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_new_for_identifier_token_stream_impl::generate_impl_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_const_new_for_identifier_token_stream_impl::generate_impl_pub_const_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_const_try_new_for_identifier_token_stream_impl::generate_impl_pub_const_try_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_new_for_identifier_token_stream_impl::generate_impl_pub_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_try_new_for_identifier_token_stream_impl::generate_impl_pub_try_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_try_new_for_identifier_token_stream_impl::generate_impl_try_new_for_identifier_token_stream_impl;
+pub use crate::generate_new_token_stream_impl::generate_new_token_stream_impl;
+pub use crate::generate_pub_const_new_token_stream_impl::generate_pub_const_new_token_stream_impl;
+pub use crate::generate_pub_const_try_new_token_stream_impl::generate_pub_const_try_new_token_stream_impl;
+pub use crate::generate_pub_new_token_stream_impl::generate_pub_new_token_stream_impl;
+pub use crate::generate_pub_try_new_token_stream_impl::generate_pub_try_new_token_stream_impl;
+pub use crate::generate_try_new_token_stream_impl::generate_try_new_token_stream_impl;

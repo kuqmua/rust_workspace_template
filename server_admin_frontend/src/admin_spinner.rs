@@ -8,7 +8,6 @@
     clippy::option_if_let_else,
     clippy::same_name_method,
     clippy::shadow_reuse,
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]

@@ -1,5 +1,5 @@
-use super::ProcMacro2GenerateWhereFiltersTokenStream;
-use super::ValidatedGenerateWhereFiltersConfig;
+use crate::source::ProcMacro2GenerateWhereFiltersTokenStream;
+use crate::source::ValidatedGenerateWhereFiltersConfig;
 #[must_use]
 pub fn emit_generate_where_filters(
     validated: ValidatedGenerateWhereFiltersConfig,
@@ -734,8 +734,8 @@ pub fn emit_generate_where_filters(
                         )
                     };
                     let equality_sql_operator =
-                        crate::domain_types::sql::filter_sql_operator_value::filter_sql_operator_value(
-                            crate::domain_types::spec::FilterSpec::equality(),
+                        crate::filter_sql_operator_value::filter_sql_operator_value(
+                            crate::spec::FilterSpec::equality(),
                         );
                     let generate_eq_operator_query_part_token_stream =
                         |maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens| {
@@ -808,7 +808,7 @@ pub fn emit_generate_where_filters(
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::Before { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::domain_types::spec::FilterSpec::before().sql_operator(),
+                            &crate::spec::FilterSpec::before().sql_operator(),
                         )
                     }
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::CurrentDate => {
@@ -835,25 +835,25 @@ pub fn emit_generate_where_filters(
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::FindRangesWithinGivenRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::domain_types::spec::FilterSpec::within().sql_operator(),
+                            &crate::spec::FilterSpec::within().sql_operator(),
                         )
                     }
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::FindRangesThatFullyContainTheGivenRange {
                         ..
                     } => generate_operator_cmp_filter_token_stream(
                         &pg_type_ptrn_standard,
-                        &crate::domain_types::spec::FilterSpec::contains().sql_operator(),
+                        &crate::spec::FilterSpec::contains().sql_operator(),
                     ),
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::StrictlyToLeftOfRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::domain_types::spec::FilterSpec::left_of().sql_operator(),
+                            &crate::spec::FilterSpec::left_of().sql_operator(),
                         )
                     }
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::StrictlyToRightOfRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::domain_types::spec::FilterSpec::right_of().sql_operator(),
+                            &crate::spec::FilterSpec::right_of().sql_operator(),
                         )
                     }
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::IncludedLowerBound { .. } => {
@@ -871,13 +871,13 @@ pub fn emit_generate_where_filters(
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::OverlapWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::domain_types::spec::FilterSpec::overlaps().sql_operator(),
+                            &crate::spec::FilterSpec::overlaps().sql_operator(),
                         )
                     }
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::AdjacentWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::domain_types::spec::FilterSpec::adjacent().sql_operator(),
+                            &crate::spec::FilterSpec::adjacent().sql_operator(),
                         )
                     }
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::RangeLen => {
@@ -938,17 +938,13 @@ pub fn emit_generate_where_filters(
         #[allow(clippy::wildcard_imports)]
         use super::*;
     };
-    let text_search_spec = crate::domain_types::spec::FilterSpec::text_search();
+    let text_search_spec = crate::spec::FilterSpec::text_search();
     let text_search_schema_token_stream =
-        crate::domain_types::schema::schema_text_search_token_stream::schema_text_search_token_stream(
-            text_search_spec,
-        );
+        crate::schema_text_search_token_stream::schema_text_search_token_stream(text_search_spec);
     let text_search_client_token_stream =
-        crate::domain_types::client::client_text_search_token_stream::client_text_search_token_stream(
-            text_search_spec,
-        );
+        crate::client_text_search_token_stream::client_text_search_token_stream(text_search_spec);
     let text_search_bind_token_stream =
-        crate::domain_types::text_search_token_stream::text_search_token_stream(text_search_spec);
+        crate::text_search_token_stream::text_search_token_stream(text_search_spec);
     let text_search_token_stream = quote::quote! {
         #text_search_schema_token_stream
         #text_search_client_token_stream

@@ -1,101 +1,37 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::shadow_reuse)]
-#[path = "test_exp_id.rs"]
-mod test_exp_id;
-pub(crate) use test_exp_id::*;
-#[path = "axum_test_headers.rs"]
-mod axum_test_headers;
-pub(crate) use axum_test_headers::*;
-#[path = "axum_test_headers_mut_ref.rs"]
-mod axum_test_headers_mut_ref;
-pub(crate) use axum_test_headers_mut_ref::*;
-#[path = "axum_test_header_value.rs"]
-mod axum_test_header_value;
-pub(crate) use axum_test_header_value::*;
-#[path = "block_on.rs"]
-mod block_on;
-pub(crate) use block_on::*;
-#[path = "panic_unexpected_variant.rs"]
-mod panic_unexpected_variant;
-pub(crate) use panic_unexpected_variant::*;
-#[path = "expect_variant.rs"]
-mod expect_variant;
-pub(crate) use expect_variant::*;
-#[path = "expect_variant_ref.rs"]
-mod expect_variant_ref;
-pub(crate) use expect_variant_ref::*;
-#[path = "expect_ok.rs"]
-mod expect_ok;
-pub(crate) use expect_ok::*;
-#[path = "assert_ok_eq.rs"]
-mod assert_ok_eq;
-pub(crate) use assert_ok_eq::*;
-#[path = "expect_error.rs"]
-mod expect_error;
-pub(crate) use expect_error::*;
-#[path = "expect_error_mapped.rs"]
-mod expect_error_mapped;
-pub(crate) use expect_error_mapped::*;
-#[path = "expect_error_variant_ref.rs"]
-mod expect_error_variant_ref;
-pub(crate) use expect_error_variant_ref::*;
-#[path = "assert_err_status_code.rs"]
-mod assert_err_status_code;
-pub(crate) use assert_err_status_code::*;
-#[path = "assert_err_status_code_only.rs"]
-mod assert_err_status_code_only;
-pub(crate) use assert_err_status_code_only::*;
-#[path = "assert_err_status_code_variant_ref.rs"]
-mod assert_err_status_code_variant_ref;
-pub(crate) use assert_err_status_code_variant_ref::*;
-#[path = "expect_err_variant_ref_with_status.rs"]
-mod expect_err_variant_ref_with_status;
-pub(crate) use expect_err_variant_ref_with_status::*;
-#[path = "make_headers_with_entry.rs"]
-mod make_headers_with_entry;
-pub(crate) use make_headers_with_entry::*;
-#[path = "replace_header_name.rs"]
-mod replace_header_name;
-pub(crate) use replace_header_name::*;
-#[path = "non_utf8_header_value.rs"]
-mod non_utf8_header_value;
-pub(crate) use non_utf8_header_value::*;
-#[path = "assert_panics.rs"]
-mod assert_panics;
-pub(crate) use assert_panics::*;
-#[path = "test_panic_text.rs"]
-mod test_panic_text;
-use test_panic_text::*;
-#[path = "test_poll_count.rs"]
-mod test_poll_count;
-use test_poll_count::*;
-#[path = "test_poll_limit_reached.rs"]
-mod test_poll_limit_reached;
-use test_poll_limit_reached::*;
-#[path = "insert_header_no_prev.rs"]
-mod insert_header_no_prev;
-use insert_header_no_prev::*;
-#[path = "is_block_on_poll_limit_reached.rs"]
-mod is_block_on_poll_limit_reached;
-use is_block_on_poll_limit_reached::*;
-#[path = "increment_block_on_poll_count.rs"]
-mod increment_block_on_poll_count;
-use increment_block_on_poll_count::*;
-#[path = "map_or_panic_unexpected_variant.rs"]
-mod map_or_panic_unexpected_variant;
-use map_or_panic_unexpected_variant::*;
-#[path = "panic_unexpected_result.rs"]
-mod panic_unexpected_result;
-use panic_unexpected_result::*;
-#[path = "map_err.rs"]
-mod map_err;
-use map_err::*;
-#[path = "map_err_after_status_check.rs"]
-mod map_err_after_status_check;
-use map_err_after_status_check::*;
-#[path = "max_block_on_polls.rs"]
-mod max_block_on_polls;
-use max_block_on_polls::*;
+pub(crate) use crate::assert_err_status_code::*;
+pub(crate) use crate::assert_err_status_code_only::*;
+pub(crate) use crate::assert_err_status_code_variant_ref::*;
+pub(crate) use crate::assert_ok_eq::*;
+pub(crate) use crate::assert_panics::*;
+pub(crate) use crate::axum_test_header_value::*;
+pub(crate) use crate::axum_test_headers::*;
+pub(crate) use crate::axum_test_headers_mut_ref::*;
+pub(crate) use crate::block_on::*;
+pub(crate) use crate::expect_err_variant_ref_with_status::*;
+pub(crate) use crate::expect_error::*;
+pub(crate) use crate::expect_error_mapped::*;
+pub(crate) use crate::expect_error_variant_ref::*;
+pub(crate) use crate::expect_ok::*;
+pub(crate) use crate::expect_variant::*;
+pub(crate) use crate::expect_variant_ref::*;
+pub(crate) use crate::increment_block_on_poll_count::*;
+pub(crate) use crate::insert_header_no_prev::*;
+pub(crate) use crate::is_block_on_poll_limit_reached::*;
+pub(crate) use crate::make_headers_with_entry::*;
+pub(crate) use crate::map_err::*;
+pub(crate) use crate::map_err_after_status_check::*;
+pub(crate) use crate::map_or_panic_unexpected_variant::*;
+pub(crate) use crate::max_block_on_polls::*;
+pub(crate) use crate::non_utf8_header_value::*;
+pub(crate) use crate::panic_unexpected_result::*;
+pub(crate) use crate::panic_unexpected_variant::*;
+pub(crate) use crate::replace_header_name::*;
+pub(crate) use crate::test_exp_id::*;
+pub(crate) use crate::test_panic_text::*;
+pub(crate) use crate::test_poll_count::*;
+pub(crate) use crate::test_poll_limit_reached::*;
 
 #[cfg(test)]
 mod tests {
@@ -103,8 +39,9 @@ mod tests {
     fn block_on_panics_for_never_ready_future() {
         super::assert_panics(
             || {
-                let _ignored =
-                    super::block_on(std::future::poll_fn(|_| std::task::Poll::<u8>::Pending));
+                let _ignored = super::poll_test_future(std::future::poll_fn(|_| {
+                    std::task::Poll::<u8>::Pending
+                }));
             },
             constants_str::VALUE_1FC8C9F0,
         );

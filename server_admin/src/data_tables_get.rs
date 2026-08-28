@@ -1,20 +1,18 @@
-#![allow(clippy::single_call_fn)] // route inventory registers the data-table read operation once
-
-pub(super) async fn data_tables_get(
-    auth: super::AdminAuthReq,
-    super::AxumAdminPath(table): super::AxumAdminPath<
+pub(crate) async fn data_tables_get(
+    auth: crate::AdminAuthReq,
+    crate::AxumAdminPath(table): crate::AxumAdminPath<
         server_admin_contract::domain_types::AdminDataTable,
     >,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<
+    crate::AxumAdminQuery(query): crate::AxumAdminQuery<
         server_admin_contract::domain_types::AdminDataTableQuery,
     >,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let _actor = super::authorization_authorize_generated_request::authorization_authorize_generated_request(
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    let _actor = crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
         auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
         table.permission().as_str(),
-        super::super::StdAdminBool::from(false),
+        crate::StdAdminBool::from(false),
     )
     .await?;
     crate::repository::data_tables::read(
@@ -23,6 +21,6 @@ pub(super) async fn data_tables_get(
         &query,
     )
     .await
-    .map_err(super::shared::map_repository_error::map_repository_error)
-    .map(super::shared::json_response::json_response)
+    .map_err(crate::shared::map_repository_error::map_repository_error)
+    .map(crate::shared::json_response::json_response)
 }

@@ -1,32 +1,15 @@
-#[path = "batch_duplicate_policy.rs"]
-mod batch_duplicate_policy;
-#[path = "batch_invalid_item_count.rs"]
-mod batch_invalid_item_count;
-#[path = "batch_invalid_items.rs"]
-mod batch_invalid_items;
-#[path = "batch_processed_item_count.rs"]
-mod batch_processed_item_count;
-#[path = "batch_records_b_tree_map.rs"]
-mod batch_records_b_tree_map;
-#[path = "batch_stopped_early.rs"]
-mod batch_stopped_early;
-#[path = "batch_validation_report.rs"]
-mod batch_validation_report;
-#[path = "validate_batch_by_key.rs"]
-mod validate_batch_by_key;
-
-pub use batch_duplicate_policy::BatchDuplicatePolicy;
-pub use batch_invalid_item_count::BatchInvalidItemCount;
-pub use batch_invalid_items::BatchInvalidItems;
-pub use batch_processed_item_count::BatchProcessedItemCount;
-pub use batch_records_b_tree_map::BatchRecordsBTreeMap;
-pub use batch_stopped_early::BatchStoppedEarly;
-pub use batch_validation_report::BatchValidationReport;
-pub use validate_batch_by_key::validate_batch_by_key;
+pub use crate::batch_duplicate_policy::BatchDuplicatePolicy;
+pub use crate::batch_invalid_item_count::BatchInvalidItemCount;
+pub use crate::batch_invalid_items::BatchInvalidItems;
+pub use crate::batch_processed_item_count::BatchProcessedItemCount;
+pub use crate::batch_records_b_tree_map::BatchRecordsBTreeMap;
+pub use crate::batch_stopped_early::BatchStoppedEarly;
+pub use crate::batch_validation_report::BatchValidationReport;
+pub use crate::validate_batch_by_key::validate_batch_by_key;
 
 #[cfg(test)]
 mod tests {
-    fn validate(
+    fn validate_batch_fixture(
         values: Vec<i32>,
         maximum_invalid_items: usize,
         duplicate_policy: super::BatchDuplicatePolicy,
@@ -50,7 +33,7 @@ mod tests {
 
     #[test]
     fn rejects_duplicate_explicitly() {
-        let report = validate(
+        let report = validate_batch_fixture(
             vec![1i32, 1i32, 2i32],
             4,
             super::BatchDuplicatePolicy::Reject,
@@ -102,7 +85,7 @@ mod tests {
 
     #[test]
     fn stops_when_invalid_item_limit_is_reached() {
-        let report = validate(
+        let report = validate_batch_fixture(
             vec![-1i32, -2i32, 3i32],
             1,
             super::BatchDuplicatePolicy::Reject,
@@ -115,7 +98,7 @@ mod tests {
 
     #[test]
     fn zero_invalid_item_limit_processes_nothing() {
-        let report = validate(vec![1i32], 0, super::BatchDuplicatePolicy::Reject);
+        let report = validate_batch_fixture(vec![1i32], 0, super::BatchDuplicatePolicy::Reject);
         assert_eq!(report.processed_item_count().get(), constants_usize::ZERO);
         assert!(report.stopped_early().get());
     }

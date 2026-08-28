@@ -1,22 +1,9 @@
-#[path = "retry_attempts_non_zero_usize.rs"]
-mod retry_attempts_non_zero_usize;
-#[path = "retry_delay_duration.rs"]
-mod retry_delay_duration;
-#[path = "retry_outcome.rs"]
-mod retry_outcome;
-#[path = "retry_policy.rs"]
-mod retry_policy;
-#[path = "run_with_retries.rs"]
-mod run_with_retries;
-#[path = "std_retry_attempts_error.rs"]
-mod std_retry_attempts_error;
-
-pub use retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize;
-pub use retry_delay_duration::RetryDelayDuration;
-pub use retry_outcome::RetryOutcome;
-pub use retry_policy::RetryPolicy;
-pub use run_with_retries::run_with_retries;
-pub use std_retry_attempts_error::StdRetryAttemptsError;
+pub use crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize;
+pub use crate::retry_delay_duration::RetryDelayDuration;
+pub use crate::retry_outcome::RetryOutcome;
+pub use crate::retry_policy::RetryPolicy;
+pub use crate::run_with_retries::run_with_retries;
+pub use crate::std_retry_attempts_error::StdRetryAttemptsError;
 
 #[cfg(test)]
 mod tests {

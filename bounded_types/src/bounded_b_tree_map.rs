@@ -37,8 +37,8 @@ impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
     }
 
     #[must_use]
-    pub fn len(&self) -> super::super::BoundedLen {
-        super::super::BoundedLen::from(self.0.len())
+    pub fn len(&self) -> crate::domain_types::BoundedLen {
+        crate::domain_types::BoundedLen::from(self.0.len())
     }
 
     pub fn remove(&mut self, key: &K) -> Option<V> {
@@ -53,7 +53,7 @@ impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
         &mut self,
         key: K,
         value: V,
-    ) -> Result<Option<V>, super::super::BoundedValueError> {
+    ) -> Result<Option<V>, crate::domain_types::BoundedValueError> {
         let is_full = self.0.len() >= MAX;
         match self.0.entry(key) {
             std::collections::btree_map::Entry::Occupied(mut entry) => {
@@ -61,11 +61,11 @@ impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
             }
             std::collections::btree_map::Entry::Vacant(entry) if is_full => {
                 drop(entry);
-                Err(super::super::BoundedValueError::AboveMax {
-                    actual: super::super::BoundedLen::from(
+                Err(crate::domain_types::BoundedValueError::AboveMax {
+                    actual: crate::domain_types::BoundedLen::from(
                         MAX.saturating_add(constants_usize::ONE),
                     ),
-                    max: super::super::BoundedLen::from(MAX),
+                    max: crate::domain_types::BoundedLen::from(MAX),
                 })
             }
             std::collections::btree_map::Entry::Vacant(entry) => {
@@ -106,10 +106,10 @@ impl<K: Ord, V, const MAX: usize> From<[(K, V); 0]> for BoundedBTreeMap<K, V, MA
 impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
     for BoundedBTreeMap<K, V, MAX>
 {
-    type Error = super::super::BoundedValueError;
+    type Error = crate::domain_types::BoundedValueError;
 
     fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
-        super::super::validate_len::<0, MAX>(super::super::BoundedLen::from(value.len()))
+        crate::validate_len::<0, MAX>(crate::domain_types::BoundedLen::from(value.len()))
             .map(|()| Self(value))
     }
 }

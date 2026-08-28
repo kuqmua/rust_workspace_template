@@ -1,7 +1,7 @@
 use super::{OutboundAddressDisposition, OutboundIpAddr};
 
 #[must_use]
-pub(in crate::domain_types::outbound_url) fn resolve_outbound_address_disposition(
+pub(crate) fn resolve_outbound_address_disposition(
     address: OutboundIpAddr,
 ) -> OutboundAddressDisposition {
     let forbidden = match address.0 {

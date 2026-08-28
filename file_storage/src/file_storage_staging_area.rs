@@ -1,4 +1,4 @@
-use super::StorageDirectoryNameRef;
+use crate::domain_types::StorageDirectoryNameRef;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FileStorageStagingArea {

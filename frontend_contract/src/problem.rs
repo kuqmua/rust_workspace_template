@@ -1,31 +1,12 @@
-#[path = "api_problem.rs"]
-mod api_problem;
-#[path = "api_problem_detail.rs"]
-mod api_problem_detail;
-#[path = "api_problem_error.rs"]
-mod api_problem_error;
-#[path = "api_problem_field.rs"]
-mod api_problem_field;
-#[path = "api_problem_kind.rs"]
-mod api_problem_kind;
-#[path = "api_problem_request_id.rs"]
-mod api_problem_request_id;
-#[path = "api_problem_status.rs"]
-mod api_problem_status;
-#[path = "api_problem_violation.rs"]
-mod api_problem_violation;
-#[path = "api_problem_violations.rs"]
-mod api_problem_violations;
-
-pub use api_problem::ApiProblem;
-pub use api_problem_detail::*;
-pub use api_problem_error::ApiProblemError;
-pub use api_problem_field::*;
-pub use api_problem_kind::ApiProblemKind;
-pub use api_problem_request_id::*;
-pub use api_problem_status::*;
-pub use api_problem_violation::ApiProblemViolation;
-pub(crate) use api_problem_violations::ApiProblemViolations;
+pub use crate::api_problem::ApiProblem;
+pub use crate::api_problem_detail::*;
+pub use crate::api_problem_error::ApiProblemError;
+pub use crate::api_problem_field::*;
+pub use crate::api_problem_kind::ApiProblemKind;
+pub use crate::api_problem_request_id::*;
+pub use crate::api_problem_status::*;
+pub use crate::api_problem_violation::ApiProblemViolation;
+pub(crate) use crate::api_problem_violations::ApiProblemViolations;
 
 #[cfg(test)]
 mod tests {

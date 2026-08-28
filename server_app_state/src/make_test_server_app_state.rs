@@ -1,5 +1,5 @@
 #[cfg(feature = "test-utils")]
-use super::{ServerAppState, test_env};
+use crate::domain_types::{ServerAppState, test_env};
 
 #[cfg(feature = "test-utils")]
 #[must_use]

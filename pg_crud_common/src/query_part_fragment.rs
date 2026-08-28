@@ -46,7 +46,7 @@ impl std::fmt::Write for QueryPartFragment {
     }
 }
 impl QueryPartFragment {
-    pub(in super::super) fn append_read_bind_index(
+    pub(crate) fn append_read_bind_index(
         &mut self,
         bind_index: super::read_query_bind_index_non_zero_u32::ReadQueryBindIndexNonZeroU32,
     ) -> Result<(), crate::domain_types::ReadQueryPlanError> {

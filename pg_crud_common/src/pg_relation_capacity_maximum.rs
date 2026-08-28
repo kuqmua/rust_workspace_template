@@ -4,7 +4,7 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRelationCapacityMaximum(
-    pub(super) crate::domain_types::pg_relation_capacity_maximum_non_zero_u64::PgRelationCapacityMaximumNonZeroU64,
+    pub(super) crate::pg_relation_capacity_maximum_non_zero_u64::PgRelationCapacityMaximumNonZeroU64,
 );
 
 impl TryFrom<u64> for PgRelationCapacityMaximum {
@@ -20,7 +20,7 @@ impl TryFrom<u64> for PgRelationCapacityMaximum {
 impl From<std::num::NonZeroU64> for PgRelationCapacityMaximum {
     fn from(value: std::num::NonZeroU64) -> Self {
         Self(
-            crate::domain_types::pg_relation_capacity_maximum_non_zero_u64::PgRelationCapacityMaximumNonZeroU64::from(value),
+            crate::pg_relation_capacity_maximum_non_zero_u64::PgRelationCapacityMaximumNonZeroU64::from(value),
         )
     }
 }

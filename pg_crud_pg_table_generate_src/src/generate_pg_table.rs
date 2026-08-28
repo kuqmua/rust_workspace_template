@@ -28,5 +28,5 @@ pub fn generate_pg_table(
             );
         }
     };
-    super::emit_generate_pg_table::emit_generate_pg_table(validated)
+    crate::emit_generate_pg_table::emit_generate_pg_table(validated)
 }

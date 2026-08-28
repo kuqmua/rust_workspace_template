@@ -1,19 +1,19 @@
-pub(super) fn authenticated_selected_form_impl<Ids, Parse>(
-    auth: super::super::AdminAuthReq,
-    expected: &super::forms::AdminHtmlFormText,
-    selected: super::forms::StdAdminHtmlSelected,
+pub(crate) fn authenticated_selected_form_impl<Ids, Parse>(
+    auth: crate::AdminAuthReq,
+    expected: &crate::AdminHtmlFormText,
+    selected: crate::StdAdminHtmlSelected,
     parse: Parse,
-) -> Result<(super::super::AdminAuthReq, Ids, Ids), super::super::AdminError>
+) -> Result<(crate::AdminAuthReq, Ids, Ids), crate::AdminError>
 where
-    Parse: Fn(&super::forms::AdminHtmlFormText) -> Result<Ids, super::super::AdminError>,
+    Parse: Fn(&crate::AdminHtmlFormText) -> Result<Ids, crate::AdminError>,
 {
-    let auth = super::form_auth_impl::form_auth_impl(auth)?;
+    let auth = crate::form_auth_impl::form_auth_impl(auth)?;
     let expected = parse(expected)?;
     let separator = constants_str::COMMA_SPACE.trim();
     let selected = bounded_types::domain_types::btree::BoundedBTreeMap::<
-        super::forms::AdminHtmlFormKey,
-        super::forms::AdminHtmlFormText,
-        { super::forms::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
+        crate::AdminHtmlFormKey,
+        crate::AdminHtmlFormText,
+        { crate::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
     >::from(selected);
     let capacity = selected
         .iter()
@@ -36,8 +36,8 @@ where
             text
         },
     );
-    let selected_ids = super::forms::AdminHtmlFormText::try_from(text)
-        .map_err(|_error| super::super::AdminError::Validation)
+    let selected_ids = crate::AdminHtmlFormText::try_from(text)
+        .map_err(|_error| crate::AdminError::Validation)
         .and_then(|value| parse(&value))?;
     Ok((auth, expected, selected_ids))
 }

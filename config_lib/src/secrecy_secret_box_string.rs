@@ -1,4 +1,4 @@
-use super::{StdConfigSecretString, StdConfigSecretStringTryFromStringError};
+use crate::{StdConfigSecretString, StdConfigSecretStringTryFromStringError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefOwned, newtype::FromInner)]
 pub struct SecrecySecretBoxString(secrecy::SecretBox<StdConfigSecretString>);

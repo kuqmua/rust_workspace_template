@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     ADMIN_HTML_FORM_SELECTED_MAX_ITEMS, AdminHtmlFormKey, AdminHtmlFormText,
     StdAdminHtmlSelectedError,
 };
@@ -14,7 +14,7 @@ use super::{
 #[serde(
     from = "bounded_types::domain_types::btree::BoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
 )]
-pub(in crate::domain_types::auth::html) struct StdAdminHtmlSelected(
+pub(crate) struct StdAdminHtmlSelected(
     bounded_types::domain_types::btree::BoundedBTreeMap<
         AdminHtmlFormKey,
         AdminHtmlFormText,

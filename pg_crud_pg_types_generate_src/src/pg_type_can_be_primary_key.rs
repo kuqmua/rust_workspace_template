@@ -1,8 +1,4 @@
-#![allow(
-    clippy::single_call_fn,
-    reason = "SQLx primary-key projection is isolated from descriptor consumers"
-)]
-pub(in crate::domain_types) fn pg_type_can_be_primary_key<
+pub(crate) fn pg_type_can_be_primary_key<
     CanBeNullable,
     CanBePrimaryKey,
     FilterKind,

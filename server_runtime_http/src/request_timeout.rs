@@ -1,30 +1,16 @@
-#[path = "request_timeout_body.rs"]
-mod request_timeout_body;
-#[path = "request_timeout_error.rs"]
-mod request_timeout_error;
-#[path = "request_timeout_layer.rs"]
-mod request_timeout_layer;
-#[path = "request_timeout_service.rs"]
-mod request_timeout_service;
-#[path = "request_timeout_tower_layer.rs"]
-mod request_timeout_tower_layer;
-#[path = "std_request_timeout_message.rs"]
-mod std_request_timeout_message;
-
-use request_timeout_body::RequestTimeoutBody;
-use request_timeout_error::RequestTimeoutError;
-pub use request_timeout_layer::RequestTimeoutLayer;
-use request_timeout_service::RequestTimeoutService;
-use request_timeout_tower_layer::RequestTimeoutTowerLayer;
-use std_request_timeout_message::StdRequestTimeoutMessage;
+use crate::request_timeout_body::RequestTimeoutBody;
+use crate::request_timeout_error::RequestTimeoutError;
+pub use crate::request_timeout_layer::RequestTimeoutLayer;
+use crate::request_timeout_service::RequestTimeoutService;
+use crate::request_timeout_tower_layer::RequestTimeoutTowerLayer;
+use crate::std_request_timeout_message::StdRequestTimeoutMessage;
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn timeout_layer_preserves_validated_timeout() {
-        let timeout =
-            super::super::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
-                .expect("65a8fd30 timeout_layer_preserves_validated_timeout invariant must hold");
+        let timeout = crate::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64))
+            .expect("65a8fd30 timeout_layer_preserves_validated_timeout invariant must hold");
         let layer = super::RequestTimeoutLayer::from(timeout);
         assert_eq!(layer.0.get(), std::time::Duration::from_secs(1u64));
     }
@@ -32,10 +18,10 @@ mod tests {
     #[tokio::test(start_paused = true)]
     async fn timeout_response_contains_retry_after_without_text_round_trip() {
         let timeout =
-            super::super::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(2u64))
+            crate::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(2u64))
                 .expect("b140ead4 timeout_response_contains_retry_after_without_text_round_trip invariant must hold");
         let router = axum::Router::from(super::RequestTimeoutLayer::from(timeout).apply(
-            super::super::AxumRouter::from(axum::Router::new().route(
+            crate::AxumRouter::from(axum::Router::new().route(
                 constants_str::VALUE_971BB40E,
                 axum::routing::get(async || std::future::pending::<http::StatusCode>().await),
             )),
@@ -55,4 +41,24 @@ mod tests {
             Some(&http::HeaderValue::from_static("2"))
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod request_timeout_body {
+    pub use crate::request_timeout_body::*;
+}
+mod request_timeout_error {
+    pub use crate::request_timeout_error::*;
+}
+mod request_timeout_layer {
+    pub use crate::request_timeout_layer::*;
+}
+mod request_timeout_service {
+    pub use crate::request_timeout_service::*;
+}
+mod request_timeout_tower_layer {
+    pub use crate::request_timeout_tower_layer::*;
+}
+mod std_request_timeout_message {
+    pub use crate::std_request_timeout_message::*;
 }

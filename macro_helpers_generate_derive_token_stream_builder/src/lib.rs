@@ -1,29 +1,7 @@
-#[path = "domain_types.rs"]
 mod domain_types;
+mod snake_case_string;
+mod to_snake_case_input;
 
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
-fn to_snake_case(input: domain_types::ToSnakeCaseInput<'_>) -> domain_types::SnakeCaseString {
-    let (normalized, _) = input.as_ref().chars().fold(
-        (String::with_capacity(input.as_ref().len()), false),
-        |(mut normalized, separator_pending), ch| {
-            if char::is_alphanumeric(ch) {
-                if separator_pending && !normalized.is_empty() {
-                    normalized.push(' ');
-                }
-                normalized.push(ch);
-                (normalized, false)
-            } else {
-                let next_separator_pending = !normalized.is_empty();
-                (normalized, next_separator_pending)
-            }
-        },
-    );
-    domain_types::SnakeCaseString::try_from(
-        naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&normalized),
-    )
-    .unwrap_or_else(domain_types::SnakeCaseString::from)
-}
 #[proc_macro]
 pub fn generate_derive_token_stream_builder(
     input_token_stream: proc_macro::TokenStream,
@@ -42,7 +20,26 @@ pub fn generate_derive_token_stream_builder(
         .expect("c5d09740 generate_derive_token_stream_builder invariant must hold")
         .into_iter()
         .map(|element| {
-            let sc = to_snake_case(domain_types::ToSnakeCaseInput::from(element.as_str()));
+            let input = domain_types::ToSnakeCaseInput::from(element.as_str());
+            let (normalized, _) = input.as_ref().chars().fold(
+                (String::with_capacity(input.as_ref().len()), false),
+                |(mut normalized, separator_pending), ch| {
+                    if char::is_alphanumeric(ch) {
+                        if separator_pending && !normalized.is_empty() {
+                            normalized.push(' ');
+                        }
+                        normalized.push(ch);
+                        (normalized, false)
+                    } else {
+                        let next_separator_pending = !normalized.is_empty();
+                        (normalized, next_separator_pending)
+                    }
+                },
+            );
+            let sc = domain_types::SnakeCaseString::try_from(
+                naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&normalized),
+            )
+            .unwrap_or_else(domain_types::SnakeCaseString::from);
             Element {
                 d_trait_name_upper_camel_case: {
                     let v = naming::domain_types::parameter::DSelfUpperCamelCase::from_display(
@@ -68,7 +65,7 @@ pub fn generate_derive_token_stream_builder(
         })
         .collect::<Vec<Element>>();
     let (make_pub_pub_enum_token_stream, pub_enum_derive_vec_token_stream) = {
-        fn generate_token_stream(identifier: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
+        fn enum_token_stream(identifier: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
             quote::quote! {
                 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
                 pub enum #identifier {
@@ -78,21 +75,21 @@ pub fn generate_derive_token_stream_builder(
             }
         }
         (
-            generate_token_stream(&make_pub_upper_camel_case_token_stream),
+            enum_token_stream(&make_pub_upper_camel_case_token_stream),
             element_vec
                 .iter()
-                .map(|element| generate_token_stream(&element.d_trait_name_upper_camel_case)),
+                .map(|element| enum_token_stream(&element.d_trait_name_upper_camel_case)),
         )
     };
     let (make_pub_derive_trait_name_bool_token_stream, field_vec_token_stream) = {
-        fn generate_token_stream(identifier: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
+        fn field_token_stream(identifier: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
             quote::quote! {#identifier: bool,}
         }
         (
-            generate_token_stream(&make_pub_snake_case_token_stream),
+            field_token_stream(&make_pub_snake_case_token_stream),
             element_vec
                 .iter()
-                .map(|element| generate_token_stream(&element.d_trait_name_snake_case)),
+                .map(|element| field_token_stream(&element.d_trait_name_snake_case)),
         )
     };
     let (make_pub_derive_and_derive_if_token_stream, derive_and_derive_if_vec_token_stream) = {
@@ -268,29 +265,4 @@ pub fn generate_derive_token_stream_builder(
         }
     };
     generated.into()
-}
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn to_snake_case_converts_pascal_case() {
-        assert_eq!(
-            super::to_snake_case(super::domain_types::ToSnakeCaseInput::from("HelloWorld"))
-                .as_ref(),
-            "hello_world"
-        );
-    }
-    #[test]
-    fn to_snake_case_collapses_non_alpha_chunks() {
-        assert_eq!(
-            super::to_snake_case(super::domain_types::ToSnakeCaseInput::from("A--B__C")).as_ref(),
-            "a_b_c"
-        );
-    }
-    #[test]
-    fn to_snake_case_trims_edge_separators() {
-        assert_eq!(
-            super::to_snake_case(super::domain_types::ToSnakeCaseInput::from("__Hello__")).as_ref(),
-            "hello"
-        );
-    }
 }

@@ -1,4 +1,4 @@
-use super::AdminHtmlFormTextError;
+use crate::AdminHtmlFormTextError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -8,7 +8,7 @@ use super::AdminHtmlFormTextError;
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
-pub(in crate::domain_types::auth::html) struct AdminHtmlFormText(
+pub(crate) struct AdminHtmlFormText(
     bounded_types::domain_types::bounded_string::BoundedString<0, { constants_usize::VALUE_8_192 }>,
 );
 impl TryFrom<String> for AdminHtmlFormText {

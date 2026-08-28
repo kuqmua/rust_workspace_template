@@ -3,16 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "list_items.rs"]
-mod list_items;
-#[path = "list_offset.rs"]
-mod list_offset;
-#[path = "list_page.rs"]
-mod list_page;
-#[path = "list_rows.rs"]
-mod list_rows;
-#[path = "list_rows_presence.rs"]
-mod list_rows_presence;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -41,27 +31,17 @@ impl From<u32> for ListTotal {
         Self(i64::from(value))
     }
 }
-#[path = "list_total_error.rs"]
-mod list_total_error;
-#[path = "list_total_source.rs"]
-mod list_total_source;
-#[path = "resolve_list_total_source.rs"]
-mod resolve_list_total_source;
-#[path = "run_list_with_total.rs"]
-mod run_list_with_total;
-#[path = "window_total_presence.rs"]
-mod window_total_presence;
 
-pub use list_items::ListItems;
-pub use list_offset::ListOffset;
-pub use list_page::ListPage;
-pub use list_rows::ListRows;
-pub use list_rows_presence::ListRowsPresence;
-pub use list_total_error::ListTotalError;
-pub use list_total_source::ListTotalSource;
-pub use resolve_list_total_source::resolve_list_total_source;
-pub use run_list_with_total::run_list_with_total;
-pub use window_total_presence::WindowTotalPresence;
+pub use crate::list_items::ListItems;
+pub use crate::list_offset::ListOffset;
+pub use crate::list_page::ListPage;
+pub use crate::list_rows::ListRows;
+pub use crate::list_rows_presence::ListRowsPresence;
+pub use crate::list_total_error::ListTotalError;
+pub use crate::list_total_source::ListTotalSource;
+pub use crate::resolve_list_total_source::resolve_list_total_source;
+pub use crate::run_list_with_total::run_list_with_total;
+pub use crate::window_total_presence::WindowTotalPresence;
 
 #[cfg(test)]
 mod tests {

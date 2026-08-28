@@ -1,7 +1,5 @@
-#![allow(clippy::single_call_fn)] // typed function owns one SQL bind/result contract
-
 pub(crate) async fn revoke_refresh_token(
-    connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
+    connection: crate::SqlxAdminRepositoryConnectionMutRef<'_>,
     token_hash: &crate::domain_types::AdminTokenHash,
     user_id: crate::domain_types::AdminUserId,
 ) -> Result<(), crate::domain_types::SqlxAdminError> {

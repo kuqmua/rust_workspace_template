@@ -1,13 +1,7 @@
 #![allow(
-    clippy::single_call_fn,
     clippy::unused_trait_names,
     reason = "each Leptos filter operation is composed once by its column filter"
 )]
-
-#[path = "admin_filter_range_end.rs"]
-mod admin_filter_range_end;
-#[path = "admin_filter_value.rs"]
-mod admin_filter_value;
 
 use leptos::prelude::{AddAnyAttr, ClassAttribute, ElementChild};
 
@@ -36,4 +30,12 @@ pub(super) fn admin_data_grid_filter_option(
             {admin_filter_range_end::admin_filter_range_end(filter, active_end, input_type, selected_operation)}
         </div>
     }
+}
+
+// Root-owned module compatibility wrappers.
+pub(crate) mod admin_filter_range_end {
+    pub use crate::admin_filter_range_end::*;
+}
+pub(crate) mod admin_filter_value {
+    pub use crate::admin_filter_value::*;
 }

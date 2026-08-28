@@ -9,4 +9,4 @@
     newtype::IntoInnerFrom,
     newtype::FromInner,
 )]
-pub struct AxumAdminAuthRouter(pub(super) axum::Router);
+pub struct AxumAdminAuthRouter(pub(crate) axum::Router);

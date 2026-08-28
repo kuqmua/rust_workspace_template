@@ -14,4 +14,4 @@
     newtype::FromInner,
 )]
 #[serde(transparent)]
-pub(crate) struct AdminPasswordChangeRequired(pub(super) bool);
+pub(crate) struct AdminPasswordChangeRequired(pub(crate) bool);

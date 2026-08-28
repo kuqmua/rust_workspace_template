@@ -1,21 +1,25 @@
 #[must_use]
-pub fn migration_commands<Specifications>(specs: Specifications) -> super::ProcessCommands
+pub fn migration_commands<Specifications>(
+    specs: Specifications,
+) -> crate::domain_types::ProcessCommands
 where
-    Specifications: IntoIterator<Item = super::DatabasePreparationSpec>,
+    Specifications: IntoIterator<Item = crate::domain_types::DatabasePreparationSpec>,
 {
-    super::ProcessCommands::from(
+    crate::domain_types::ProcessCommands::from(
         bounded_types::domain_types::vector::BoundedVec::from_max_iter(specs.into_iter().map(
-            |spec| super::ProcessCommand {
-                arguments: super::ProcessArguments::from(
+            |spec| crate::domain_types::ProcessCommand {
+                arguments: crate::domain_types::ProcessArguments::from(
                     bounded_types::domain_types::vector::BoundedVec::from_max_iter([
-                        super::ProcessArgument::from(constants_str::DATABASE_URL_FLAG),
-                        super::ProcessArgument::from(spec.url),
-                        super::ProcessArgument::from(constants_str::SOURCE_FLAG),
-                        super::ProcessArgument::from(spec.migrations_source),
-                        super::ProcessArgument::from(constants_str::RUN),
+                        crate::domain_types::ProcessArgument::from(
+                            constants_str::DATABASE_URL_FLAG,
+                        ),
+                        crate::domain_types::ProcessArgument::from(spec.url),
+                        crate::domain_types::ProcessArgument::from(constants_str::SOURCE_FLAG),
+                        crate::domain_types::ProcessArgument::from(spec.migrations_source),
+                        crate::domain_types::ProcessArgument::from(constants_str::RUN),
                     ]),
                 ),
-                program: super::ProcessProgram::from(constants_str::SQLX),
+                program: crate::domain_types::ProcessProgram::from(constants_str::SQLX),
             },
         )),
     )

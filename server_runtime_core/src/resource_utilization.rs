@@ -3,14 +3,6 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "calculate_resource_utilization.rs"]
-mod calculate_resource_utilization;
-#[path = "critical_percent.rs"]
-mod critical_percent;
-#[path = "reject_non_essential_writes_percent.rs"]
-mod reject_non_essential_writes_percent;
-#[path = "resource_amount.rs"]
-mod resource_amount;
 #[allow(
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
@@ -44,29 +36,17 @@ impl ResourceUtilization {
         self.used
     }
 }
-#[path = "resource_utilization_error.rs"]
-mod resource_utilization_error;
-#[path = "resource_utilization_known_percent.rs"]
-mod resource_utilization_known_percent;
-#[path = "resource_utilization_percent.rs"]
-mod resource_utilization_percent;
-#[path = "resource_utilization_percent_try_from_u8_error.rs"]
-mod resource_utilization_percent_try_from_u8_error;
-#[path = "resource_utilization_status.rs"]
-mod resource_utilization_status;
-#[path = "warning_percent.rs"]
-mod warning_percent;
 
-pub use calculate_resource_utilization::calculate_resource_utilization;
-use critical_percent::CRITICAL_PERCENT;
-use reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT;
-pub use resource_amount::ResourceAmount;
-pub use resource_utilization_error::ResourceUtilizationError;
-use resource_utilization_known_percent::ResourceUtilizationKnownPercent;
-pub use resource_utilization_percent::ResourceUtilizationPercent;
-pub use resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error;
-pub use resource_utilization_status::ResourceUtilizationStatus;
-use warning_percent::WARNING_PERCENT;
+pub use crate::calculate_resource_utilization::calculate_resource_utilization;
+use crate::critical_percent::CRITICAL_PERCENT;
+use crate::reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT;
+pub use crate::resource_amount::ResourceAmount;
+pub use crate::resource_utilization_error::ResourceUtilizationError;
+use crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent;
+pub use crate::resource_utilization_percent::ResourceUtilizationPercent;
+pub use crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error;
+pub use crate::resource_utilization_status::ResourceUtilizationStatus;
+use crate::warning_percent::WARNING_PERCENT;
 
 #[cfg(test)]
 mod tests {

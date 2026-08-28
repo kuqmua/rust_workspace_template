@@ -1,6 +1,5 @@
-pub(in crate::domain_types::auth::html::actions) fn admin_html_settings_action_router()
--> super::super::super::super::AxumAdminStateRouter {
-    super::super::super::super::AxumAdminStateRouter::from(
-        super::AdminHtmlSettingsActionRouteRegistry::registry_router(),
+pub(crate) fn admin_html_settings_action_router() -> crate::AxumAdminStateRouter {
+    crate::AxumAdminStateRouter::from(
+        crate::AdminHtmlSettingsActionRouteRegistry::registry_router(),
     )
 }

@@ -1,8 +1,9 @@
-use super::*;
+use crate::domain_types::*;
 
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::single_call_fn)]
-pub(crate) fn run() {
+
+#[allow(clippy::single_call_fn)] // the binary entrypoint owns this complete deterministic macro exercise
+pub(crate) fn run_location_macro_tests() {
     let error = ErrorOne::Variant {
         eo_display_field: DisplayStruct {
             display: create_location_test_text(String::from(constants_str::PG_CRUD_V_FIELD)),

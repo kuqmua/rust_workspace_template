@@ -1,4 +1,4 @@
-use super::SynIdent;
+use crate::domain_types::SynIdent;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 pub(crate) struct PageCatalogArgs {
@@ -13,7 +13,7 @@ pub(crate) struct PageCatalogArgs {
 impl PageCatalogArgs {
     #[allow(
         clippy::single_call_fn,
-        reason = "constructor mirrors the parsed field model"
+        reason = "constructor is the invariant boundary for the parsed catalog model"
     )]
     pub(crate) const fn new(inventory: SynIdent, path_ref: SynIdent, spec: SynIdent) -> Self {
         Self {

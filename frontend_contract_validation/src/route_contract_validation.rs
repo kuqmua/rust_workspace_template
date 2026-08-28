@@ -1,37 +1,14 @@
-#[path = "http_contract_body.rs"]
-mod http_contract_body;
-#[path = "http_contract_body_kind.rs"]
-mod http_contract_body_kind;
-#[path = "http_contract_expectation.rs"]
-mod http_contract_expectation;
-#[path = "http_contract_mismatch.rs"]
-mod http_contract_mismatch;
-#[path = "http_contract_observation.rs"]
-mod http_contract_observation;
-#[path = "http_contract_status.rs"]
-mod http_contract_status;
-#[path = "route_contract_mismatch.rs"]
-mod route_contract_mismatch;
-#[path = "route_contract_mismatches.rs"]
-mod route_contract_mismatches;
-#[path = "run_http_contract_fixture.rs"]
-mod run_http_contract_fixture;
-#[path = "validate_route_contract_metadata.rs"]
-mod validate_route_contract_metadata;
-#[path = "validate_typed_route_contract.rs"]
-mod validate_typed_route_contract;
-
-pub use http_contract_body::HttpContractBody;
-pub use http_contract_body_kind::HttpContractBodyKind;
-pub use http_contract_expectation::HttpContractExpectation;
-pub use http_contract_mismatch::HttpContractMismatch;
-pub use http_contract_observation::HttpContractObservation;
-pub use http_contract_status::HttpContractStatus;
-pub use route_contract_mismatch::RouteContractMismatch;
-pub use route_contract_mismatches::RouteContractMismatches;
-pub use run_http_contract_fixture::run_http_contract_fixture;
-pub use validate_route_contract_metadata::validate_route_contract_metadata;
-pub use validate_typed_route_contract::validate_typed_route_contract;
+pub use crate::http_contract_body::HttpContractBody;
+pub use crate::http_contract_body_kind::HttpContractBodyKind;
+pub use crate::http_contract_expectation::HttpContractExpectation;
+pub use crate::http_contract_mismatch::HttpContractMismatch;
+pub use crate::http_contract_observation::HttpContractObservation;
+pub use crate::http_contract_status::HttpContractStatus;
+pub use crate::route_contract_mismatch::RouteContractMismatch;
+pub use crate::route_contract_mismatches::RouteContractMismatches;
+pub use crate::run_http_contract_fixture::run_http_contract_fixture;
+pub use crate::validate_route_contract_metadata::validate_route_contract_metadata;
+pub use crate::validate_typed_route_contract::validate_typed_route_contract;
 
 #[cfg(test)]
 mod tests {
@@ -43,7 +20,7 @@ mod tests {
         type Transport = frontend_contract::domain_types::PublicTransport;
 
         fn metadata() -> frontend_contract::domain_types::RouteMetadata {
-            metadata(
+            route_validation_metadata(
                 frontend_contract::domain_types::RouteMethod::Get,
                 constants_str::ROUTE_READ,
                 constants_str::ROUTE,
@@ -51,7 +28,7 @@ mod tests {
         }
     }
 
-    fn metadata(
+    fn route_validation_metadata(
         method: frontend_contract::domain_types::RouteMethod,
         operation_id: &'static str,
         path: &'static str,
@@ -65,7 +42,7 @@ mod tests {
 
     #[test]
     fn equal_metadata_satisfies_contract() {
-        let metadata = metadata(
+        let metadata = route_validation_metadata(
             frontend_contract::domain_types::RouteMethod::Get,
             constants_str::ROUTE_READ,
             constants_str::ROUTE,
@@ -79,7 +56,7 @@ mod tests {
     #[test]
     fn typed_route_is_the_contract_source_of_truth() {
         assert_eq!(
-            super::validate_typed_route_contract::<ReadRoute>(metadata(
+            super::validate_typed_route_contract::<ReadRoute>(route_validation_metadata(
                 frontend_contract::domain_types::RouteMethod::Get,
                 constants_str::ROUTE_READ,
                 constants_str::ROUTE
@@ -90,7 +67,7 @@ mod tests {
 
     #[test]
     fn http_fixture_checks_status_and_json_body() {
-        let metadata = metadata(
+        let metadata = route_validation_metadata(
             frontend_contract::domain_types::RouteMethod::Get,
             constants_str::ROUTE_READ,
             constants_str::ROUTE,
@@ -120,12 +97,12 @@ mod tests {
 
     #[test]
     fn every_metadata_difference_is_reported() {
-        let expected = metadata(
+        let expected = route_validation_metadata(
             frontend_contract::domain_types::RouteMethod::Get,
             constants_str::ROUTE_READ,
             constants_str::ROUTE,
         );
-        let observed = metadata(
+        let observed = route_validation_metadata(
             frontend_contract::domain_types::RouteMethod::Post,
             constants_str::ADMIN_ALT,
             constants_str::NOT_AN_API_ROUTE,

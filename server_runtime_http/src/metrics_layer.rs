@@ -3,52 +3,21 @@
     reason = "owner modules and related behavior retain their intentional facade ordering"
 )]
 
-#[path = "http_metrics_layer.rs"]
-mod http_metrics_layer;
-#[path = "http_metrics_path_cache.rs"]
-mod http_metrics_path_cache;
-#[path = "http_metrics_path_cache_maximum.rs"]
-mod http_metrics_path_cache_maximum;
-#[path = "http_metrics_path_cache_maximum_non_zero_usize.rs"]
-mod http_metrics_path_cache_maximum_non_zero_usize;
-#[path = "http_metrics_path_cache_maximum_try_from_usize_error.rs"]
-mod http_metrics_path_cache_maximum_try_from_usize_error;
-#[path = "http_metrics_path_entries_rw_lock.rs"]
-mod http_metrics_path_entries_rw_lock;
-#[path = "http_metrics_path_text.rs"]
-mod http_metrics_path_text;
-#[path = "http_metrics_path_text_error.rs"]
-mod http_metrics_path_text_error;
-#[path = "http_metrics_path_text_ref.rs"]
-mod http_metrics_path_text_ref;
-#[path = "http_metrics_service.rs"]
-mod http_metrics_service;
-#[path = "http_metrics_tower_layer.rs"]
-mod http_metrics_tower_layer;
-#[path = "metrics_response_body.rs"]
-mod metrics_response_body;
-#[path = "metrics_response_body_error.rs"]
-mod metrics_response_body_error;
-#[path = "metrics_shared_string.rs"]
-mod metrics_shared_string;
-#[path = "shared_http_metrics_path_cache_arc.rs"]
-mod shared_http_metrics_path_cache_arc;
-
-pub use http_metrics_layer::HttpMetricsLayer;
-use http_metrics_path_cache::HttpMetricsPathCache;
-pub use http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum;
-use http_metrics_path_cache_maximum_non_zero_usize::HttpMetricsPathCacheMaximumNonZeroUsize;
-pub use http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError;
-use http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock;
-use http_metrics_path_text::HttpMetricsPathText;
-use http_metrics_path_text_error::HttpMetricsPathTextError;
-use http_metrics_path_text_ref::HttpMetricsPathTextRef;
-use http_metrics_service::HttpMetricsService;
-use http_metrics_tower_layer::HttpMetricsTowerLayer;
-pub use metrics_response_body::MetricsResponseBody;
-pub use metrics_response_body_error::MetricsResponseBodyError;
-use metrics_shared_string::MetricsSharedString;
-use shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc;
+pub use crate::http_metrics_layer::HttpMetricsLayer;
+use crate::http_metrics_path_cache::HttpMetricsPathCache;
+pub use crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum;
+use crate::http_metrics_path_cache_maximum_non_zero_usize::HttpMetricsPathCacheMaximumNonZeroUsize;
+pub use crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError;
+use crate::http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock;
+use crate::http_metrics_path_text::HttpMetricsPathText;
+use crate::http_metrics_path_text_error::HttpMetricsPathTextError;
+use crate::http_metrics_path_text_ref::HttpMetricsPathTextRef;
+use crate::http_metrics_service::HttpMetricsService;
+use crate::http_metrics_tower_layer::HttpMetricsTowerLayer;
+pub use crate::metrics_response_body::MetricsResponseBody;
+pub use crate::metrics_response_body_error::MetricsResponseBodyError;
+use crate::metrics_shared_string::MetricsSharedString;
+use crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc;
 
 #[cfg(test)]
 mod tests {
@@ -195,4 +164,51 @@ mod tests {
             )
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod http_metrics_layer {
+    pub use crate::http_metrics_layer::*;
+}
+mod http_metrics_path_cache {
+    pub use crate::http_metrics_path_cache::*;
+}
+mod http_metrics_path_cache_maximum {
+    pub use crate::http_metrics_path_cache_maximum::*;
+}
+mod http_metrics_path_cache_maximum_non_zero_usize {
+    pub use crate::http_metrics_path_cache_maximum_non_zero_usize::*;
+}
+mod http_metrics_path_cache_maximum_try_from_usize_error {
+    pub use crate::http_metrics_path_cache_maximum_try_from_usize_error::*;
+}
+mod http_metrics_path_entries_rw_lock {
+    pub use crate::http_metrics_path_entries_rw_lock::*;
+}
+mod http_metrics_path_text {
+    pub use crate::http_metrics_path_text::*;
+}
+mod http_metrics_path_text_error {
+    pub use crate::http_metrics_path_text_error::*;
+}
+mod http_metrics_path_text_ref {
+    pub use crate::http_metrics_path_text_ref::*;
+}
+mod http_metrics_service {
+    pub use crate::http_metrics_service::*;
+}
+mod http_metrics_tower_layer {
+    pub use crate::http_metrics_tower_layer::*;
+}
+mod metrics_response_body {
+    pub use crate::metrics_response_body::*;
+}
+mod metrics_response_body_error {
+    pub use crate::metrics_response_body_error::*;
+}
+mod metrics_shared_string {
+    pub use crate::metrics_shared_string::*;
+}
+mod shared_http_metrics_path_cache_arc {
+    pub use crate::shared_http_metrics_path_cache_arc::*;
 }

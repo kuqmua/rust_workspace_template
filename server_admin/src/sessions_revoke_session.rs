@@ -1,12 +1,10 @@
-#![allow(clippy::single_call_fn)] // route inventory registers this session operation once
-
-pub(super) async fn sessions_revoke_session(
-    auth: super::AdminAuthReq,
-    session: super::AdminSessionPath,
-) -> Result<super::AxumAdminResponse, super::AdminError> {
-    let authenticated = super::authorization_authenticate::authorization_authenticate(
+pub(crate) async fn sessions_revoke_session(
+    auth: crate::AdminAuthReq,
+    session: crate::AdminSessionPath,
+) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    let authenticated = crate::authorization_authenticate::authorization_authenticate(
         auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
     )
     .await?;
@@ -17,10 +15,10 @@ pub(super) async fn sessions_revoke_session(
         .as_ref()
         .begin()
         .await
-        .map_err(super::AdminError::from)?;
-    super::authorization_validate_csrf::authorization_validate_csrf(
+        .map_err(crate::AdminError::from)?;
+    crate::authorization_validate_csrf::authorization_validate_csrf(
         auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         &authenticated,
     )
     .await?;
@@ -30,20 +28,20 @@ pub(super) async fn sessions_revoke_session(
         authenticated.id,
     )
     .await
-    .map_err(super::AdminError::from)?;
-    super::persistence::record_audit_success_in_connection(
-        super::persistence::SqlxAdminPgConnectionRef::from(&mut *tx),
-        super::persistence::AdminAuditSuccessRef {
-            action: super::super::AdminAuditAction::Delete,
+    .map_err(crate::AdminError::from)?;
+    crate::persistence::record_audit_success_in_connection(
+        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        crate::persistence::AdminAuditSuccessRef {
+            action: crate::AdminAuditAction::Delete,
             login: &authenticated.login,
-            resource: super::super::AdminAuditResource::Session,
-            resource_id: super::persistence::AdminAuditResourceId::Session(session.0),
+            resource: crate::AdminAuditResource::Session,
+            resource_id: crate::persistence::AdminAuditResourceId::Session(session.0),
             user_id: authenticated.id,
         },
     )
     .await?;
-    tx.commit().await.map_err(super::AdminError::from)?;
-    Ok(super::AxumAdminResponse(
+    tx.commit().await.map_err(crate::AdminError::from)?;
+    Ok(crate::AxumAdminResponse(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

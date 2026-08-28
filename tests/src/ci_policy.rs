@@ -19,10 +19,6 @@ fn active_workflow_source(source: super::types::SourceTextRef<'_>) -> super::typ
     )
     .expect("fd9f7861 active_workflow_source invariant must hold")
 }
-#[allow(
-    clippy::single_call_fn,
-    reason = "keeps YAML quote state isolated and fixture-testable"
-)]
 fn active_yaml_line(line: super::types::SourceTextRef<'_>) -> super::types::SourceTextRef<'_> {
     let comment_start = line
         .as_ref()

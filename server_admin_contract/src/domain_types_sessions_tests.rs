@@ -1,5 +1,5 @@
 #[test]
-fn tests() {
+fn session_contract_tests() {
     let page = super::AdminSessionsPage::new(
         crate::domain_types::AdminSessionViews::try_from(Vec::new())
             .expect("c31f90a6 session_page_preserves_items_and_total invariant must hold"),

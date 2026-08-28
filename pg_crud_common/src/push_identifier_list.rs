@@ -1,5 +1,5 @@
 pub(super) fn push_identifier_list(
-    output: &mut crate::domain_types::pg_scoped_foreign_key_clause_text::PgScopedForeignKeyClauseText,
+    output: &mut crate::pg_scoped_foreign_key_clause_text::PgScopedForeignKeyClauseText,
     columns: &[crate::domain_types::SqlIdentifier],
 ) {
     columns.iter().enumerate().for_each(|(index, column)| {

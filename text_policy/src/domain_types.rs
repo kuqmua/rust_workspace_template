@@ -3,56 +3,23 @@
     reason = "validators stay adjacent to their domain wrappers and ranges retain minimum-then-maximum order"
 )]
 
-#[path = "bounded_text_policy_error.rs"]
-mod bounded_text_policy_error;
-#[path = "fixed_length_ascii_hex_text.rs"]
-mod fixed_length_ascii_hex_text;
-#[path = "fixed_length_ascii_hex_text_error.rs"]
-mod fixed_length_ascii_hex_text_error;
-#[path = "non_empty_trimmed_text.rs"]
-mod non_empty_trimmed_text;
-#[path = "password_length.rs"]
-mod password_length;
-#[path = "password_length_range.rs"]
-mod password_length_range;
-#[path = "password_length_range_error.rs"]
-mod password_length_range_error;
-#[path = "password_policy_violation.rs"]
-mod password_policy_violation;
-#[path = "password_text_ref.rs"]
-mod password_text_ref;
-#[path = "required_nul_free_bounded_text.rs"]
-mod required_nul_free_bounded_text;
-#[path = "url_safe_token_part_maximum_bytes.rs"]
-mod url_safe_token_part_maximum_bytes;
-#[path = "url_safe_token_part_ref.rs"]
-mod url_safe_token_part_ref;
-#[path = "url_safe_token_part_text.rs"]
-mod url_safe_token_part_text;
-#[path = "url_safe_token_part_text_error.rs"]
-mod url_safe_token_part_text_error;
-#[path = "validate_password_policy.rs"]
-mod validate_password_policy;
-#[path = "validate_url_safe_token_part.rs"]
-mod validate_url_safe_token_part;
-
-pub use bounded_text_policy_error::BoundedTextPolicyError;
-pub use fixed_length_ascii_hex_text::FixedLengthAsciiHexText;
-pub use fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;
-pub use non_empty_trimmed_text::NonEmptyTrimmedText;
-pub use password_length::PasswordLength;
-pub use password_length_range::PasswordLengthRange;
-pub use password_length_range_error::PasswordLengthRangeError;
-pub use password_policy_violation::PasswordPolicyViolation;
-pub use password_text_ref::PasswordTextRef;
-pub use required_nul_free_bounded_text::RequiredNulFreeBoundedText;
-use url_safe_token_part_maximum_bytes::URL_SAFE_TOKEN_PART_MAXIMUM_BYTES;
-pub use url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes;
-pub use url_safe_token_part_ref::UrlSafeTokenPartRef;
-pub use url_safe_token_part_text::UrlSafeTokenPartText;
-pub use url_safe_token_part_text_error::UrlSafeTokenPartTextError;
-pub use validate_password_policy::validate_password_policy;
-pub use validate_url_safe_token_part::validate_url_safe_token_part;
+pub use crate::bounded_text_policy_error::BoundedTextPolicyError;
+pub use crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText;
+pub use crate::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;
+pub use crate::non_empty_trimmed_text::NonEmptyTrimmedText;
+pub use crate::password_length::PasswordLength;
+pub use crate::password_length_range::PasswordLengthRange;
+pub use crate::password_length_range_error::PasswordLengthRangeError;
+pub use crate::password_policy_violation::PasswordPolicyViolation;
+pub use crate::password_text_ref::PasswordTextRef;
+pub use crate::required_nul_free_bounded_text::RequiredNulFreeBoundedText;
+pub(crate) use crate::url_safe_token_part_maximum_bytes::URL_SAFE_TOKEN_PART_MAXIMUM_BYTES;
+pub use crate::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes;
+pub use crate::url_safe_token_part_ref::UrlSafeTokenPartRef;
+pub use crate::url_safe_token_part_text::UrlSafeTokenPartText;
+pub use crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError;
+pub use crate::validate_password_policy::validate_password_policy;
+pub use crate::validate_url_safe_token_part::validate_url_safe_token_part;
 
 #[cfg(test)]
 mod tests {

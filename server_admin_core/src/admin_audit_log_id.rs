@@ -1,4 +1,4 @@
-use super::AdminIdTryFromI64Error;
+use crate::domain_types::AdminIdTryFromI64Error;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

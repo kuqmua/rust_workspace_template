@@ -1,7 +1,6 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
-    clippy::single_call_fn,
     clippy::wildcard_enum_match_arm,
     reason = "policy visitors stay grouped with their invariant, repository policy requires iterator methods, and syn non-exhaustive enums require fallback handling"
 )]

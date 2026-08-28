@@ -1,9 +1,7 @@
 #[frontend_contract::domain_types::route_error(AdminHtmlSignOutError)]
-pub(super) async fn sign_out(
-    auth: super::super::super::super::AdminAuthReq,
-) -> axum::response::Response {
-    match super::super::super::form_auth_impl::form_auth_impl(auth) {
-        Ok(auth) => match super::super::super::super::authn_sign_out::authn_sign_out(auth).await {
+pub(crate) async fn sign_out(auth: crate::AdminAuthReq) -> axum::response::Response {
+    match crate::form_auth_impl::form_auth_impl(auth) {
+        Ok(auth) => match crate::authn_sign_out::authn_sign_out(auth).await {
             Ok(response) => {
                 let mut target =
                     axum::response::IntoResponse::into_response(axum::response::Redirect::to(

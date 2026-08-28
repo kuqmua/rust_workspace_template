@@ -1,4 +1,4 @@
-use super::{AdminSessionError, HttpAdminHeaderValueError};
+use crate::{AdminSessionError, HttpAdminHeaderValueError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminError {
@@ -6,8 +6,7 @@ pub(crate) enum AdminError {
     Authentication,
     #[error("administrator authentication secret text is invalid")]
     AuthenticationSecretText(
-        #[source]
-        server_runtime_http::domain_types::ObservedError<super::super::AdminSecretTextError>,
+        #[source] server_runtime_http::domain_types::ObservedError<crate::AdminSecretTextError>,
     ),
     #[error("administrator authorization failed")]
     Authorization,
@@ -17,33 +16,28 @@ pub(crate) enum AdminError {
     Csrf,
     #[error("administrator CSRF secret text is invalid")]
     CsrfSecretText(
-        #[source]
-        server_runtime_http::domain_types::ObservedError<super::super::AdminSecretTextError>,
+        #[source] server_runtime_http::domain_types::ObservedError<crate::AdminSecretTextError>,
     ),
     #[error("administrator authentication is temporarily rate limited")]
     RateLimited,
     #[error("administrator request validation failed")]
     Validation,
     #[error("administrator API database operation failed: {0:?}")]
-    Pg(#[source] server_runtime_http::domain_types::ObservedError<super::super::SqlxAdminError>),
+    Pg(#[source] server_runtime_http::domain_types::ObservedError<crate::SqlxAdminError>),
     #[error("administrator password hashing failed: {0}")]
     PasswordHash(
-        #[source]
-        server_runtime_http::domain_types::ObservedError<super::super::AdminPasswordHashError>,
+        #[source] server_runtime_http::domain_types::ObservedError<crate::AdminPasswordHashError>,
     ),
     #[error("administrator password text is invalid")]
     PasswordText(
         #[source]
-        server_runtime_http::domain_types::ObservedError<
-            super::super::AdminPasswordTryFromStringError,
-        >,
+        server_runtime_http::domain_types::ObservedError<crate::AdminPasswordTryFromStringError>,
     ),
     #[error("administrator request body is too large")]
     PayloadTooLarge,
     #[error("administrator secret text is invalid")]
     SecretText(
-        #[source]
-        server_runtime_http::domain_types::ObservedError<super::super::AdminSecretTextError>,
+        #[source] server_runtime_http::domain_types::ObservedError<crate::AdminSecretTextError>,
     ),
     #[error("administrator route does not support this HTTP method")]
     MethodNotAllowed,

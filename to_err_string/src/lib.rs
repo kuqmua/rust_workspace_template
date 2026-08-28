@@ -1,2 +1,11 @@
-#[path = "domain_types.rs"]
+mod as_ref_str_to_owned;
+mod debug_to_string;
 pub mod domain_types;
+mod error_text;
+mod error_text_max_len;
+mod static_str_to_owned;
+mod static_str_to_owned_input;
+mod to_err_string;
+pub(crate) use debug_to_string::debug_to_string;
+pub(crate) use error_text_max_len::ERROR_TEXT_MAX_LEN;
+pub(crate) use static_str_to_owned_input::StaticStrToOwnedInput;

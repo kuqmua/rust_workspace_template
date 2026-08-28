@@ -11,4 +11,4 @@
     Eq,
     newtype::FromInner,
 )]
-pub struct AdminCookieSecure(pub(super) bool);
+pub struct AdminCookieSecure(pub(crate) bool);

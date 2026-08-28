@@ -1,4 +1,4 @@
-use super::{SynExpr, SynIdent};
+use crate::domain_types::{SynExpr, SynIdent};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

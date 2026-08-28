@@ -4,5 +4,5 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
 pub(crate) struct DataUserRolesFlt(
-    pub(super) crate::domain_types::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany,
+    pub(crate) crate::domain_types::generated_tables::StdOptionalOptionalAdminUserRolesWhereMany,
 );

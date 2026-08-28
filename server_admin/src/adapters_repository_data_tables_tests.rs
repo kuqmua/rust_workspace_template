@@ -30,7 +30,7 @@ fn filter_query(
 
 #[test]
 fn generated_table_fields_supply_client_column_metadata() {
-    let columns = super::data_columns(
+    let columns = crate::data_columns(
         server_admin_contract::domain_types::AdminDataTable::Users,
         server_admin_contract::domain_types::AdminDataTable::Users
             .spec()
@@ -42,7 +42,7 @@ fn generated_table_fields_supply_client_column_metadata() {
         .iter()
         .find(|column| column.name().as_ref() == constants_str::SQL_NAMES_ID);
     assert!(id.is_some_and(|column| {
-        column.input_kind() == server_admin_contract::domain_types::AdminDataInputKind::Number
+        column.input_kind() == frontend_contract::domain_types::InputKind::Number
     }));
     let login = columns
         .as_slice()
@@ -72,7 +72,7 @@ fn generated_where_filter_builds_typed_table_predicate() {
         Some(constants_str::VALUE_2BD806C9),
         None,
     );
-    let filter = super::data_filter(
+    let filter = crate::data_filter(
         server_admin_contract::domain_types::AdminDataTable::Users,
         query.filter(),
     )
@@ -99,7 +99,7 @@ fn unsupported_field_operation_is_rejected() {
     );
 
     assert!(
-        super::data_filter(
+        crate::data_filter(
             server_admin_contract::domain_types::AdminDataTable::Users,
             query.filter(),
         )
@@ -112,7 +112,7 @@ fn empty_filter_query_omits_the_predicate() {
     let query = server_admin_contract::domain_types::AdminDataTableFilterQuery::default();
 
     assert!(
-        super::data_filter(
+        crate::data_filter(
             server_admin_contract::domain_types::AdminDataTable::Users,
             &query
         )
@@ -159,7 +159,7 @@ fn incomplete_filter_queries_are_rejected() {
     ];
 
     assert!(queries.iter().all(|query| {
-        super::data_filter(
+        crate::data_filter(
             server_admin_contract::domain_types::AdminDataTable::Users,
             query,
         )
@@ -177,7 +177,7 @@ fn unknown_filter_field_is_rejected() {
     );
 
     assert!(
-        super::data_filter(
+        crate::data_filter(
             server_admin_contract::domain_types::AdminDataTable::Users,
             query.filter()
         )
@@ -193,7 +193,7 @@ fn scalar_and_regex_filters_reject_range_end_values() {
     ];
     assert!(operations.into_iter().all(|operation| {
         let query = filter_query(constants_str::LOGIN, operation, Some("alice"), Some("bob"));
-        super::data_filter(
+        crate::data_filter(
             server_admin_contract::domain_types::AdminDataTable::Users,
             query.filter(),
         )
@@ -209,7 +209,7 @@ fn regex_filter_builds_a_typed_predicate() {
         Some(constants_str::VALUE_78C40633),
         None,
     );
-    let filter = super::data_filter(
+    let filter = crate::data_filter(
         server_admin_contract::domain_types::AdminDataTable::Users,
         query.filter(),
     )
@@ -232,11 +232,11 @@ fn filtered_sql_places_pagination_after_filter_binds() {
     ))
     .expect("45d292b8 filtered_sql_places_pagination_after_filter_binds invariant must hold");
 
-    let (base_count, base_data) = super::base_sql(
+    let (base_count, base_data) = crate::base_sql(
         server_admin_contract::domain_types::AdminDataTable::Users,
     )
     .expect("44c43299 filtered_sql_places_pagination_after_filter_binds invariant must hold");
-    let (_count, data) = super::filtered_sql(
+    let (_count, data) = crate::filtered_sql(
         crate::domain_types::StdAdminStrRef::from(base_count.as_ref().as_str()),
         crate::domain_types::StdAdminStrRef::from(base_data.as_ref().as_str()),
         &fragment,
@@ -254,7 +254,7 @@ fn table_spec_generates_bounded_projection_and_count_sql_for_every_table() {
     server_admin_contract::domain_types::AdminDataTable::ALL
         .into_iter()
         .for_each(|table| {
-            let (count, data) = super::base_sql(table).expect("5f714b28 table_spec_generates_bounded_projection_and_count_sql_for_every_table invariant must hold");
+            let (count, data) = crate::base_sql(table).expect("5f714b28 table_spec_generates_bounded_projection_and_count_sql_for_every_table invariant must hold");
             let table_name = table.to_string();
             assert!(count.as_ref().contains(table_name.as_str()));
             assert!(data.as_ref().contains(table_name.as_str()));

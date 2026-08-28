@@ -1,6 +1,5 @@
-use super::AdminHtmlSwaggerRouteRegistry;
+use crate::AdminHtmlSwaggerRouteRegistry;
 
-pub(in crate::domain_types::auth::html) fn swagger_router()
--> super::super::super::AxumAdminStateRouter {
-    super::super::super::AxumAdminStateRouter::from(AdminHtmlSwaggerRouteRegistry::router())
+pub(crate) fn swagger_router() -> crate::AxumAdminStateRouter {
+    crate::AxumAdminStateRouter::from(AdminHtmlSwaggerRouteRegistry::router())
 }

@@ -6,11 +6,11 @@ pub struct TransportBody(
 );
 
 impl TryFrom<Vec<u8>> for TransportBody {
-    type Error = super::super::FrontendContractBodyError;
+    type Error = crate::FrontendContractBodyError;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
-            .map_err(super::super::FrontendContractBodyError::from)
+            .map_err(crate::FrontendContractBodyError::from)
     }
 }

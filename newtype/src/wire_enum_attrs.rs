@@ -1,4 +1,4 @@
-use super::{SynExpr, SynIdentifier};
+use crate::domain_types::{SynExpr, SynIdentifier};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module consumes this parsed domain model

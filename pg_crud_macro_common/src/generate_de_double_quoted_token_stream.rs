@@ -2,7 +2,7 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use super::super::*;
+use crate::domain_types::*;
 
 pub fn generate_de_double_quoted_token_stream(
     identifier: &dyn naming::domain_types::DisplayPlusToTokens,

@@ -8,9 +8,9 @@ impl From<crate::domain_types::auth::SharedAdminAuthSvcStateArc> for AdminGenera
     }
 }
 impl<Service> tower::Layer<Service> for AdminGeneratedAuthLayer {
-    type Service = super::admin_generated_auth_service::AdminGeneratedAuthService<Service>;
+    type Service = crate::admin_generated_auth_service::AdminGeneratedAuthService<Service>;
     fn layer(&self, inner: Service) -> Self::Service {
-        super::admin_generated_auth_service::AdminGeneratedAuthService {
+        crate::admin_generated_auth_service::AdminGeneratedAuthService {
             inner,
             state: self.state.clone(),
         }

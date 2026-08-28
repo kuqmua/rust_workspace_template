@@ -3,25 +3,11 @@
     clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "action_contract.rs"]
-mod action_contract;
-#[path = "action_contracts.rs"]
-mod action_contracts;
-#[path = "authentication_requirement.rs"]
-mod authentication_requirement;
-#[path = "confirmation_requirement.rs"]
-mod confirmation_requirement;
-#[path = "http_method.rs"]
-mod http_method;
-#[path = "mutation_kind.rs"]
-mod mutation_kind;
-#[path = "operation_kind.rs"]
-mod operation_kind;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RouteContract {
     path: super::ContractStr,
     authentication: AuthenticationRequirement,
-    method: HttpMethod,
+    method: super::RouteMethod,
     mutation: MutationKind,
     success_status: SuccessStatus,
 }
@@ -30,7 +16,7 @@ impl RouteContract {
     #[must_use]
     pub const fn new(
         authentication: AuthenticationRequirement,
-        method: HttpMethod,
+        method: super::RouteMethod,
         mutation: MutationKind,
         path: super::ContractStr,
         success_status: SuccessStatus,
@@ -48,7 +34,7 @@ impl RouteContract {
         self.authentication
     }
     #[must_use]
-    pub const fn method(self) -> HttpMethod {
+    pub const fn method(self) -> super::RouteMethod {
         self.method
     }
     #[must_use]
@@ -64,26 +50,17 @@ impl RouteContract {
         self.success_status
     }
 }
-#[path = "route_contracts.rs"]
-mod route_contracts;
-#[path = "route_error_policy.rs"]
-mod route_error_policy;
-#[path = "route_error_status.rs"]
-mod route_error_status;
-#[path = "success_status.rs"]
-mod success_status;
 
-pub use action_contract::ActionContract;
-pub use action_contracts::ActionContracts;
-pub use authentication_requirement::AuthenticationRequirement;
-pub use confirmation_requirement::ConfirmationRequirement;
-pub use http_method::HttpMethod;
-pub use mutation_kind::MutationKind;
-pub use operation_kind::OperationKind;
-pub use route_contracts::RouteContracts;
-pub use route_error_policy::RouteErrorPolicy;
-pub use route_error_status::RouteErrorStatus;
-pub use success_status::SuccessStatus;
+pub use crate::action_contract::ActionContract;
+pub use crate::action_contracts::ActionContracts;
+pub use crate::authentication_requirement::AuthenticationRequirement;
+pub use crate::confirmation_requirement::ConfirmationRequirement;
+pub use crate::mutation_kind::MutationKind;
+pub use crate::operation_kind::OperationKind;
+pub use crate::route_contracts::RouteContracts;
+pub use crate::route_error_policy::RouteErrorPolicy;
+pub use crate::route_error_status::RouteErrorStatus;
+pub use crate::success_status::SuccessStatus;
 
 pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,

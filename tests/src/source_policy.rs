@@ -376,7 +376,7 @@ fn new_runtime_structs_keep_fields_private() {
                             matched.insert((reviewed.path_suffix.to_owned(), item.clone()));
                     } else {
                         violations.push(format!(
-                            "{} exposes an unreviewed public field in {item}",
+                            "{} exposes an unreviewed non-private field in {item}; keep the field private and expose access through a getter method, preferably generated with #[derive(generate_accessor::Getters)]",
                             path.display()
                         ));
                     }
@@ -409,6 +409,25 @@ fn new_runtime_structs_keep_fields_private() {
             });
         assert!(violations.is_empty(), "{violations:#?}");
     });
+}
+#[test]
+fn struct_field_visibility_policy_rejects_restricted_visibility() {
+    let ast = syn::parse_file(
+        "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 }",
+    )
+    .expect("8c99de4e struct field visibility fixture must parse");
+    let mut visitor = super::source_analysis::PublicStructFieldVisitor::default();
+    syn::visit::Visit::visit_file(&mut visitor, &ast);
+    assert_eq!(
+        visitor.violations.as_slice(),
+        [
+            "Example::parent",
+            "Example::workspace",
+            "Example::restricted",
+            "Example::public",
+        ],
+        "e69e2e99"
+    );
 }
 #[test]
 fn spawned_tasks_must_retain_an_owner() {
@@ -1537,6 +1556,31 @@ fn no_include_asset_macros_outside_allowlist() {
         },
     );
 }
+fn append_non_public_use_import_er(
+    path: &std::path::Path,
+    ast: &syn::File,
+    found_non_public_use_import: super::types::AnalyzerBool,
+    ers: &mut Vec<String>,
+) {
+    let declares_owner_modules = ast
+        .items
+        .iter()
+        .any(|item| matches!(item, syn::Item::Mod(_)));
+    let is_nested_owner_module = path
+        .strip_prefix(constants_str::TEXT_ALT_9)
+        .unwrap_or(path)
+        .components()
+        .skip_while(|component| component.as_os_str() != constants_str::SRC_ALT)
+        .skip(constants_usize::ONE)
+        .count()
+        > constants_usize::ONE;
+    if found_non_public_use_import.get() && !declares_owner_modules && !is_nested_owner_module {
+        ers.push(format!(
+            "{}: found non-public use import; use the explicit path at the usage site",
+            path.display()
+        ));
+    }
+}
 #[test]
 #[allow(clippy::wildcard_enum_match_arm)] // syn::Item is non-exhaustive; only modules are relevant
 fn no_non_public_use_imports_in_rust_sources() {
@@ -1577,28 +1621,12 @@ fn no_non_public_use_imports_in_rust_sources() {
                     public_use_roots: super::types::SourceTextList::default(),
                 },
             );
-            let declares_owner_modules = ast
-                .items
-                .iter()
-                .any(|item| matches!(item, syn::Item::Mod(_)));
-            let is_nested_owner_module = path
-                .strip_prefix(constants_str::TEXT_ALT_9)
-                .unwrap_or(path)
-                .components()
-                .skip_while(|component| component.as_os_str() != constants_str::SRC_ALT)
-                .skip(constants_usize::ONE)
-                .count()
-                > constants_usize::ONE;
-            if visitor.found_non_public_use_import.get()
-                && super::declared_owner_path(path_text.as_ref()).is_none()
-                && !declares_owner_modules
-                && !is_nested_owner_module
-            {
-                ers.push(format!(
-                    "{}: found non-public use import; use the explicit path at the usage site",
-                    path.display()
-                ));
-            }
+            append_non_public_use_import_er(
+                path,
+                ast,
+                visitor.found_non_public_use_import,
+                ers,
+            );
             let declared_modules = ast
                 .items
                 .iter()
@@ -1629,6 +1657,20 @@ fn no_non_public_use_imports_in_rust_sources() {
             }
         },
     );
+}
+#[test]
+fn declared_child_does_not_bypass_non_public_use_import_policy() {
+    let ast = syn::parse_file("use super::child::Item;").expect(
+        "b67d5cf1 declared_child_does_not_bypass_non_public_use_import_policy invariant must hold",
+    );
+    let mut ers = Vec::<String>::new();
+    append_non_public_use_import_er(
+        std::path::Path::new("../fixture/src/declared_child.rs"),
+        &ast,
+        super::types::AnalyzerBool::from(true),
+        &mut ers,
+    );
+    assert_eq!(ers.len(), constants_usize::ONE, "e23d18a4");
 }
 #[test]
 fn use_import_policy_narrows_facade_and_leptos_exceptions() {

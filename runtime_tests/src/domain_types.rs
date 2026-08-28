@@ -1,34 +1,13 @@
-#[path = "http_runtime_test_status.rs"]
-mod http_runtime_test_status;
-#[path = "reqwest_runtime_test_client.rs"]
-mod reqwest_runtime_test_client;
-#[path = "reqwest_runtime_test_response.rs"]
-mod reqwest_runtime_test_response;
-#[path = "runtime_test_config.rs"]
-mod runtime_test_config;
-#[path = "runtime_test_error.rs"]
-mod runtime_test_error;
-#[path = "runtime_test_kind.rs"]
-mod runtime_test_kind;
-#[path = "runtime_test_report.rs"]
-mod runtime_test_report;
-#[path = "runtime_test_url.rs"]
-mod runtime_test_url;
-#[path = "service_base_url.rs"]
-mod service_base_url;
-#[path = "service_base_url_error.rs"]
-mod service_base_url_error;
-
-pub use http_runtime_test_status::HttpRuntimeTestStatus;
-pub(crate) use reqwest_runtime_test_client::ReqwestRuntimeTestClient;
-pub(crate) use reqwest_runtime_test_response::ReqwestRuntimeTestResponse;
-pub use runtime_test_config::RuntimeTestConfig;
-pub use runtime_test_error::RuntimeTestError;
-pub use runtime_test_kind::RuntimeTestKind;
-pub use runtime_test_report::RuntimeTestReport;
-pub(crate) use runtime_test_url::RuntimeTestUrl;
-pub use service_base_url::ServiceBaseUrl;
-pub use service_base_url_error::ServiceBaseUrlError;
+pub use crate::http_runtime_test_status::HttpRuntimeTestStatus;
+pub(crate) use crate::reqwest_runtime_test_client::ReqwestRuntimeTestClient;
+pub(crate) use crate::reqwest_runtime_test_response::ReqwestRuntimeTestResponse;
+pub use crate::runtime_test_config::RuntimeTestConfig;
+pub use crate::runtime_test_error::RuntimeTestError;
+pub use crate::runtime_test_kind::RuntimeTestKind;
+pub use crate::runtime_test_report::RuntimeTestReport;
+pub(crate) use crate::runtime_test_url::RuntimeTestUrl;
+pub use crate::service_base_url::ServiceBaseUrl;
+pub use crate::service_base_url_error::ServiceBaseUrlError;
 
 #[cfg(test)]
 mod tests {

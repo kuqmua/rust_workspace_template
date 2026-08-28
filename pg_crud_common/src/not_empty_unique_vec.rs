@@ -43,11 +43,8 @@ impl<T: PartialEq> NotEmptyUniqueVec<T> {
     pub fn try_new(
         values: super::DuplicateCandidates<T>,
     ) -> Result<Self, crate::domain_types::NotEmptyUniqueVecTryNewError<T>> {
-        crate::domain_types::try_new_unique_vec::try_new_unique_vec(
-            values,
-            crate::domain_types::take_fst_dup,
-        )
-        .map(Self::from)
+        crate::try_new_unique_vec::try_new_unique_vec(values, crate::domain_types::take_fst_dup)
+            .map(Self::from)
     }
 }
 impl<T: PartialEq> TryFrom<super::DuplicateCandidates<T>> for NotEmptyUniqueVec<T> {
@@ -60,7 +57,7 @@ impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {
     pub fn try_new_by_hash(
         values: super::DuplicateCandidates<T>,
     ) -> Result<Self, crate::domain_types::NotEmptyUniqueVecTryNewError<T>> {
-        crate::domain_types::try_new_unique_vec::try_new_unique_vec(
+        crate::try_new_unique_vec::try_new_unique_vec(
             values,
             crate::domain_types::take_fst_dup_by_hash,
         )
@@ -232,7 +229,7 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn fst_dup_idx_returns_none_for_empty_and_single_input() {
-        assert!(crate::domain_types::first_duplicate_index::<u8>(&[]).is_none());
+        assert!(crate::first_duplicate_index::<u8>(&[]).is_none());
         assert!(crate::domain_types::first_duplicate_index(&[1u8]).is_none());
     }
     #[test]
@@ -253,7 +250,7 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn fst_dup_idx_by_hash_returns_none_for_empty_and_single_input() {
-        assert!(crate::domain_types::first_duplicate_index_by_hash::<u8>(&[]).is_none());
+        assert!(crate::first_duplicate_index_by_hash::<u8>(&[]).is_none());
         assert!(crate::domain_types::first_duplicate_index_by_hash(&[1u8]).is_none());
     }
     #[test]

@@ -7,4 +7,4 @@
     newtype::Display,
 )]
 #[bounded_string(max = 16_384usize, chars)]
-pub(in crate::domain_types::start) struct AdminCsrApiUrl(String);
+pub(crate) struct AdminCsrApiUrl(String);

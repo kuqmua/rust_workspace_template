@@ -14,4 +14,4 @@
     newtype::FromInner,
 )]
 #[serde(from = "u64")]
-pub struct AdminUnixTokenStream(pub(super) u64);
+pub struct AdminUnixTokenStream(pub(crate) u64);

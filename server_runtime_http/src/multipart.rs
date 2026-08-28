@@ -1,64 +1,23 @@
-#[path = "file_staging_action.rs"]
-mod file_staging_action;
-#[path = "file_staging_directory_name.rs"]
-mod file_staging_directory_name;
-#[path = "identifier_file_storage_relative_path.rs"]
-mod identifier_file_storage_relative_path;
-#[path = "multipart_bytes.rs"]
-mod multipart_bytes;
-#[path = "multipart_bytes_part.rs"]
-mod multipart_bytes_part;
-#[path = "multipart_bytes_parts.rs"]
-mod multipart_bytes_parts;
-#[path = "multipart_field_name.rs"]
-mod multipart_field_name;
-#[path = "multipart_file_name.rs"]
-mod multipart_file_name;
-#[path = "multipart_payload_maximum.rs"]
-mod multipart_payload_maximum;
-#[path = "multipart_request_error.rs"]
-mod multipart_request_error;
-#[path = "multipart_text_part.rs"]
-mod multipart_text_part;
-#[path = "multipart_text_parts.rs"]
-mod multipart_text_parts;
-#[path = "multipart_text_value.rs"]
-mod multipart_text_value;
-#[path = "multipart_upload_request.rs"]
-mod multipart_upload_request;
-#[path = "multipart_value_error.rs"]
-mod multipart_value_error;
-#[path = "multipart_value_length.rs"]
-mod multipart_value_length;
-#[path = "staging_directory_name.rs"]
-mod staging_directory_name;
-#[path = "storage_path_segment.rs"]
-mod storage_path_segment;
-#[path = "storage_path_segment_error.rs"]
-mod storage_path_segment_error;
-#[path = "storage_relative_path_buf.rs"]
-mod storage_relative_path_buf;
-
-pub use file_staging_action::FileStagingAction;
-pub use file_staging_directory_name::FileStagingDirectoryName;
-pub use identifier_file_storage_relative_path::identifier_file_storage_relative_path;
-pub use multipart_bytes::MultipartBytes;
-pub use multipart_bytes_part::MultipartBytesPart;
-use multipart_bytes_parts::MultipartBytesParts;
-pub use multipart_field_name::MultipartFieldName;
-pub use multipart_file_name::MultipartFileName;
-pub use multipart_payload_maximum::MultipartPayloadMaximum;
-pub use multipart_request_error::MultipartRequestError;
-pub use multipart_text_part::MultipartTextPart;
-use multipart_text_parts::MultipartTextParts;
-pub use multipart_text_value::MultipartTextValue;
-pub use multipart_upload_request::MultipartUploadRequest;
-pub use multipart_value_error::MultipartValueError;
-pub use multipart_value_length::MultipartValueLength;
-pub use staging_directory_name::staging_directory_name;
-pub use storage_path_segment::StoragePathSegment;
-pub use storage_path_segment_error::StoragePathSegmentError;
-pub use storage_relative_path_buf::StorageRelativePathBuf;
+pub use crate::file_staging_action::FileStagingAction;
+pub use crate::file_staging_directory_name::FileStagingDirectoryName;
+pub use crate::identifier_file_storage_relative_path::identifier_file_storage_relative_path;
+pub use crate::multipart_bytes::MultipartBytes;
+pub use crate::multipart_bytes_part::MultipartBytesPart;
+use crate::multipart_bytes_parts::MultipartBytesParts;
+pub use crate::multipart_field_name::MultipartFieldName;
+pub use crate::multipart_file_name::MultipartFileName;
+pub use crate::multipart_payload_maximum::MultipartPayloadMaximum;
+pub use crate::multipart_request_error::MultipartRequestError;
+pub use crate::multipart_text_part::MultipartTextPart;
+use crate::multipart_text_parts::MultipartTextParts;
+pub use crate::multipart_text_value::MultipartTextValue;
+pub use crate::multipart_upload_request::MultipartUploadRequest;
+pub use crate::multipart_value_error::MultipartValueError;
+pub use crate::multipart_value_length::MultipartValueLength;
+pub use crate::staging_directory_name::staging_directory_name;
+pub use crate::storage_path_segment::StoragePathSegment;
+pub use crate::storage_path_segment_error::StoragePathSegmentError;
+pub use crate::storage_relative_path_buf::StorageRelativePathBuf;
 
 #[cfg(test)]
 mod tests {
@@ -258,4 +217,66 @@ mod tests {
             Err(super::MultipartValueError::PathComponent)
         );
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod file_staging_action {
+    pub use crate::file_staging_action::*;
+}
+mod file_staging_directory_name {
+    pub use crate::file_staging_directory_name::*;
+}
+mod identifier_file_storage_relative_path {
+    pub use crate::identifier_file_storage_relative_path::*;
+}
+mod multipart_bytes {
+    pub use crate::multipart_bytes::*;
+}
+mod multipart_bytes_part {
+    pub use crate::multipart_bytes_part::*;
+}
+mod multipart_bytes_parts {
+    pub use crate::multipart_bytes_parts::*;
+}
+mod multipart_field_name {
+    pub use crate::multipart_field_name::*;
+}
+mod multipart_file_name {
+    pub use crate::multipart_file_name::*;
+}
+mod multipart_payload_maximum {
+    pub use crate::multipart_payload_maximum::*;
+}
+mod multipart_request_error {
+    pub use crate::multipart_request_error::*;
+}
+mod multipart_text_part {
+    pub use crate::multipart_text_part::*;
+}
+mod multipart_text_parts {
+    pub use crate::multipart_text_parts::*;
+}
+mod multipart_text_value {
+    pub use crate::multipart_text_value::*;
+}
+mod multipart_upload_request {
+    pub use crate::multipart_upload_request::*;
+}
+mod multipart_value_error {
+    pub use crate::multipart_value_error::*;
+}
+mod multipart_value_length {
+    pub use crate::multipart_value_length::*;
+}
+mod staging_directory_name {
+    pub use crate::staging_directory_name::*;
+}
+mod storage_path_segment {
+    pub use crate::storage_path_segment::*;
+}
+mod storage_path_segment_error {
+    pub use crate::storage_path_segment_error::*;
+}
+mod storage_relative_path_buf {
+    pub use crate::storage_relative_path_buf::*;
 }

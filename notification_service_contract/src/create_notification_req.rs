@@ -11,12 +11,12 @@
 )]
 #[serde(deny_unknown_fields)]
 pub struct CreateNotificationReq {
-    message: super::NotificationMessage,
+    message: crate::domain_types::NotificationMessage,
 }
 
 impl CreateNotificationReq {
     #[must_use]
-    pub fn into_message(self) -> super::NotificationMessage {
+    pub fn into_message(self) -> crate::domain_types::NotificationMessage {
         self.message
     }
 }

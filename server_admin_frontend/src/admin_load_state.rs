@@ -1,5 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-pub(in crate::domain_types::start) enum AdminLoadState {
+pub(crate) enum AdminLoadState {
     Empty(server_admin_contract::domain_types::AuthenticatedAdmin),
     Error(super::admin_table_load_error::AdminTableLoadError),
     Loading,
@@ -31,7 +31,7 @@ pub(in crate::domain_types::start) enum AdminLoadState {
 }
 
 impl AdminLoadState {
-    pub(in crate::domain_types::start) const fn admin(
+    pub(crate) const fn admin(
         &self,
     ) -> Option<&server_admin_contract::domain_types::AuthenticatedAdmin> {
         match self {

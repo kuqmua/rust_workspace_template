@@ -1,11 +1,11 @@
-pub(super) fn base_sql(
+pub(crate) fn base_sql(
     table: server_admin_contract::domain_types::AdminDataTable,
 ) -> Result<
     (
         crate::domain_types::StdAdminString,
         crate::domain_types::StdAdminString,
     ),
-    super::AdminRepositoryError,
+    crate::AdminRepositoryError,
 > {
     let spec = table.spec();
     let table_name = table.to_string();
@@ -30,8 +30,8 @@ pub(super) fn base_sql(
     data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
     Ok((
         crate::domain_types::StdAdminString::try_from(count)
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
         crate::domain_types::StdAdminString::try_from(data)
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
     ))
 }

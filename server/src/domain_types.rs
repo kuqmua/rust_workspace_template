@@ -1,82 +1,34 @@
-#[path = "server_io_error.rs"]
-mod server_io_error;
-pub(crate) use server_io_error::*;
-#[path = "server_runtime_serve_error.rs"]
-mod server_runtime_serve_error;
-pub(crate) use server_runtime_serve_error::*;
-#[path = "metrics_exporter_prometheus_build_error.rs"]
-mod metrics_exporter_prometheus_build_error;
-pub(crate) use metrics_exporter_prometheus_build_error::*;
-#[path = "metrics_exporter_prometheus_renderer.rs"]
-mod metrics_exporter_prometheus_renderer;
-pub(crate) use metrics_exporter_prometheus_renderer::*;
-#[path = "server_runtime_request_timeout_error.rs"]
-mod server_runtime_request_timeout_error;
-pub(crate) use server_runtime_request_timeout_error::*;
-#[path = "server_runtime_run_interval_error.rs"]
-mod server_runtime_run_interval_error;
-pub(crate) use server_runtime_run_interval_error::*;
-#[path = "server_runtime_background_task_shutdown_error.rs"]
-mod server_runtime_background_task_shutdown_error;
-pub(crate) use server_runtime_background_task_shutdown_error::*;
-#[path = "server_observability_init_error.rs"]
-mod server_observability_init_error;
-pub(crate) use server_observability_init_error::*;
-#[path = "server_observability_shutdown_error.rs"]
-mod server_observability_shutdown_error;
-pub(crate) use server_observability_shutdown_error::*;
-#[path = "server_admin_cleanup_cfg_error.rs"]
-mod server_admin_cleanup_cfg_error;
-pub(crate) use server_admin_cleanup_cfg_error::*;
-#[path = "admin_metrics_error.rs"]
-mod admin_metrics_error;
-pub(crate) use admin_metrics_error::*;
-#[path = "server_config_error.rs"]
-mod server_config_error;
-pub(crate) use server_config_error::*;
-#[path = "server_config_production_error.rs"]
-mod server_config_production_error;
-pub(crate) use server_config_production_error::*;
-#[path = "sqlx_server_pg_connect_error.rs"]
-mod sqlx_server_pg_connect_error;
-pub(crate) use sqlx_server_pg_connect_error::*;
-#[path = "server_admin_migrate_error.rs"]
-mod server_admin_migrate_error;
-pub(crate) use server_admin_migrate_error::*;
-#[path = "server_admin_auth_svc_state_build_error.rs"]
-mod server_admin_auth_svc_state_build_error;
-pub(crate) use server_admin_auth_svc_state_build_error::*;
-#[path = "server_runtime_content_security_policy_error.rs"]
-mod server_runtime_content_security_policy_error;
-pub(crate) use server_runtime_content_security_policy_error::*;
-#[path = "server_runtime_trusted_proxy_ranges_parse_error.rs"]
-mod server_runtime_trusted_proxy_ranges_parse_error;
-pub(crate) use server_runtime_trusted_proxy_ranges_parse_error::*;
-#[path = "axum_api_routes.rs"]
-mod axum_api_routes;
-pub(crate) use axum_api_routes::*;
-#[path = "http_body_maximum_bytes.rs"]
-mod http_body_maximum_bytes;
-pub(crate) use http_body_maximum_bytes::*;
-#[path = "shared_server_app_state_arc.rs"]
-mod shared_server_app_state_arc;
-pub(crate) use shared_server_app_state_arc::*;
-#[path = "tokio_server_runtime.rs"]
-mod tokio_server_runtime;
-pub(crate) use tokio_server_runtime::*;
-#[path = "server_exit_code.rs"]
-mod server_exit_code;
-pub(crate) use server_exit_code::*;
-#[path = "run_server_error.rs"]
-mod run_server_error;
-pub(crate) use run_server_error::*;
+pub(crate) use crate::admin_metrics_error::*;
+pub(crate) use crate::axum_api_routes::*;
+pub(crate) use crate::http_body_maximum_bytes::*;
+pub(crate) use crate::metrics_exporter_prometheus_build_error::*;
+pub(crate) use crate::metrics_exporter_prometheus_renderer::*;
+pub(crate) use crate::run_server_error::*;
+pub(crate) use crate::server_admin_auth_svc_state_build_error::*;
+pub(crate) use crate::server_admin_cleanup_cfg_error::*;
+pub(crate) use crate::server_admin_migrate_error::*;
+pub(crate) use crate::server_config_error::*;
+pub(crate) use crate::server_config_production_error::*;
+pub(crate) use crate::server_exit_code::*;
+pub(crate) use crate::server_io_error::*;
+pub(crate) use crate::server_observability_init_error::*;
+pub(crate) use crate::server_observability_shutdown_error::*;
+pub(crate) use crate::server_runtime_background_task_shutdown_error::*;
+pub(crate) use crate::server_runtime_content_security_policy_error::*;
+pub(crate) use crate::server_runtime_request_timeout_error::*;
+pub(crate) use crate::server_runtime_run_interval_error::*;
+pub(crate) use crate::server_runtime_serve_error::*;
+pub(crate) use crate::server_runtime_trusted_proxy_ranges_parse_error::*;
+pub(crate) use crate::shared_server_app_state_arc::*;
+pub(crate) use crate::sqlx_server_pg_connect_error::*;
+pub(crate) use crate::tokio_server_runtime::*;
 
 #[cfg(test)]
 mod tests {
     #[tokio::test]
     async fn administrator_asset_route_preserves_static_file_serving() {
         let response = tower::ServiceExt::oneshot(
-            axum::Router::from(server_admin_frontend::domain_types::routes()),
+            axum::Router::from(server_admin_frontend::domain_types::admin_frontend_routes()),
             axum::http::Request::get(constants_str::VALUE_688DB289)
                 .body(axum::body::Body::empty())
                 .expect("d694b6f6 administrator_asset_route_preserves_static_file_serving invariant must hold"),

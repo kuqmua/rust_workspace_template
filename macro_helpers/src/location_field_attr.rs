@@ -97,7 +97,7 @@ impl LocationFieldAttr {
         .parse::<proc_macro2::TokenStream>()
         {
             Ok(v) => crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(v),
-            Err(error) => super::compile_error_token_stream::compile_error_token_stream(
+            Err(error) => super::compile_error_token_stream::macro_compile_error_tokens(
                 super::compile_error_message::CompileErrorMessage::from(&error.to_string()),
             ),
         }

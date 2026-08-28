@@ -1,25 +1,10 @@
-#[path = "as_ref_str_to_owned.rs"]
-mod as_ref_str_to_owned;
-#[path = "debug_to_string.rs"]
-mod debug_to_string;
-#[path = "error_text.rs"]
-mod error_text;
-#[path = "error_text_max_len.rs"]
-mod error_text_max_len;
-#[path = "static_str_to_owned.rs"]
-mod static_str_to_owned;
-#[path = "static_str_to_owned_input.rs"]
-mod static_str_to_owned_input;
-#[path = "to_err_string.rs"]
-mod to_err_string;
-
-use as_ref_str_to_owned::as_ref_str_to_owned;
-use debug_to_string::debug_to_string;
-pub use error_text::{ErrorText, ErrorTextTryFromStringError};
-use error_text_max_len::ERROR_TEXT_MAX_LEN;
-use static_str_to_owned::static_str_to_owned;
-use static_str_to_owned_input::StaticStrToOwnedInput;
-pub use to_err_string::ToErrString;
+use crate::as_ref_str_to_owned::as_ref_str_to_owned;
+pub use crate::error_text::{ErrorText, ErrorTextTryFromStringError};
+#[cfg(test)]
+use crate::error_text_max_len::ERROR_TEXT_MAX_LEN;
+use crate::static_str_to_owned::static_str_to_owned;
+use crate::static_str_to_owned_input::StaticStrToOwnedInput;
+pub use crate::to_err_string::ToErrString;
 
 to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
 #[cfg(not(target_arch = "wasm32"))]

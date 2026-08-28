@@ -28,8 +28,8 @@ impl AdminSettingSpec {
         self.optionality
     }
     #[must_use]
-    pub fn required(self) -> super::super::AdminBool {
-        super::super::AdminBool::from(matches!(
+    pub fn required(self) -> crate::AdminBool {
+        crate::AdminBool::from(matches!(
             self.optionality,
             super::AdminSettingOptionality::Required
         ))

@@ -50,7 +50,7 @@ impl RsSourceFile {
 }
 impl CodebaseSnapshot {
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::single_call_fn)] // named constructor keeps snapshot initialization readable at the thread-local OnceCell call site
+
     fn build() -> Self {
         static SOURCE_SNAPSHOT: std::sync::OnceLock<std::sync::Arc<CodebaseSourceSnapshot>> =
             std::sync::OnceLock::new();
@@ -69,8 +69,9 @@ impl CodebaseSnapshot {
                     == Some(constants_str::RS)
             })
             .map(|source_file| {
-                let ast = syn::parse_file(source_file.content.as_ref())
-                    .expect("5e7a83eb build invariant must hold");
+                let ast = syn::parse_file(source_file.content.as_ref()).unwrap_or_else(|error| {
+                    panic!("5e7a83eb {}: {error}", source_file.path.as_ref().display())
+                });
                 RsSourceFile {
                     ast: super::types::SynFile::from(ast),
                     content: source_file.content.clone(),
@@ -131,7 +132,7 @@ impl CodebaseSnapshot {
         &self.rs_files
     }
     // The snapshot exposes this derived workspace-name set through one policy consumer.
-    #[allow(clippy::single_call_fn)]
+
     pub(super) fn workspace_crate_names(&self) -> super::types::SourceTextBTreeSet {
         self.source.workspace_crate_names.clone()
     }
@@ -140,7 +141,6 @@ impl CodebaseSnapshot {
     }
 }
 impl CodebaseSourceSnapshot {
-    #[allow(clippy::single_call_fn)] // named constructor keeps process-wide immutable source initialization readable
     fn build() -> Self {
         let metadata = workspace_metadata_uncached();
         let workspace_members = super::types::CargoPackageIdRefHashSet::from(
@@ -204,6 +204,7 @@ impl CodebaseSourceSnapshot {
                                 element.path().extension().and_then(std::ffi::OsStr::to_str),
                                 Some(
                                     constants_str::RS
+                                        | constants_str::MD
                                         | constants_str::TOML
                                         | constants_str::TXT
                                         | constants_str::YML
@@ -236,7 +237,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
     }
     SNAPSHOT.with(|snapshot| f(snapshot.get_or_init(CodebaseSnapshot::build)))
 }
-#[allow(clippy::single_call_fn)] // isolates cargo_metadata command setup from snapshot construction
+
 fn workspace_metadata_uncached() -> super::types::CargoMetadata {
     super::types::CargoMetadata::from(
         cargo_metadata::MetadataCommand::new()

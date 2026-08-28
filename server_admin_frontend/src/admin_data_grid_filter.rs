@@ -3,7 +3,7 @@ use leptos::prelude::{
     StyleAttribute,
 };
 
-pub(in crate::domain_types::shared::admin_data_table_grid::admin_data_grid_column) fn admin_data_grid_filter(
+pub(crate) fn admin_data_grid_filter(
     view: &server_admin_contract::domain_types::AdminDataTableView,
     column: &server_admin_contract::domain_types::AdminDataColumn,
     active_field: Option<&server_admin_contract::domain_types::AdminFilterField>,

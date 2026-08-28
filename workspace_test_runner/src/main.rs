@@ -6,27 +6,77 @@
     clippy::needless_for_each,
     reason = "repository policy forbids for loops"
 )]
+#![allow(
+    clippy::single_call_fn,
+    clippy::wildcard_imports,
+    reason = "root-owned runner modes retain independently named tool stages and the former domain facade vocabulary"
+)]
 
-#[path = "admin_fixture.rs"]
+mod admin_contract_fixture;
 mod admin_fixture;
-#[path = "check_tool_available.rs"]
+mod admin_fixture_string;
+mod allocation_tool;
+mod allocation_tools;
+mod ansi_text_ref;
+mod cargo_args;
+mod cargo_subcommand_available;
 mod check_tool_available;
-#[path = "domain_types.rs"]
+mod clean_ansi_text;
+mod command_duration;
+mod command_duration_millis;
+mod command_idx;
+mod command_run;
+mod command_started_at_instant;
+mod command_succeeded;
+mod command_text;
+mod command_texts;
+mod commands_ref;
+mod create_admin_fixture_string;
 mod domain_types;
-#[path = "execution.rs"]
 mod execution;
-#[path = "mode.rs"]
+mod execution_io_error;
+mod failed_test_names;
+mod generate_pg_table_measure_input_token_stream;
+mod macro_generation_measurements;
+mod measure_cargo_command;
+mod measure_memusage_command;
+mod measure_mode;
+mod measurement_name;
+mod memusage_column_idx;
+mod memusage_heap_value;
+mod memusage_key;
+mod memusage_prog_name_ref;
+mod memusage_row_name;
+mod memusage_table_value;
+mod memusage_value_ref;
 mod mode;
-#[path = "print_without_measurement_footer.rs"]
 mod print_without_measurement_footer;
-#[path = "print_without_memusage_footer.rs"]
 mod print_without_memusage_footer;
-#[path = "run_workspace_tests.rs"]
+mod program_args_ref;
+mod program_path_ref;
+mod quote_token_stream_generate_pg_table_measure_input_token_stream;
+mod run_commands;
+mod run_counter;
+mod run_pg_crud_common;
+mod run_where_filters;
 mod run_workspace_tests;
+mod runner_mode;
+mod stderr_text_ref;
+mod strip_ansi;
+mod strip_ansi_codes;
+mod summary_text;
+mod text_ref;
+mod tool_available;
+mod tool_name;
+mod tool_path;
+
+pub(crate) use domain_types::*;
+#[cfg(test)]
+mod tests;
 
 fn main() {
     let mode = mode::mode();
-    let result = match mode.as_ref().map(domain_types::RunnerMode::as_ref) {
+    let result = match mode.as_ref().map(RunnerMode::as_ref) {
         None | Some(constants_str::STATIC) => execution::run_commands(
             execution::CommandsRef::from(&constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS),
         ),
@@ -58,20 +108,17 @@ fn main() {
             let input = run_workspace_tests::generate_pg_table_measure_input_token_stream::generate_pg_table_measure_input_token_stream(
                 &quote::quote! {"False"},
             );
-            let output_bytes = (0..domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
-                constants_usize::ZERO,
-                |accumulator, _| {
-                    let output = generate_pg_table_src::domain_types::source::generate_pg_table(
-                        macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                            input.as_ref(),
-                        ),
-                    );
-                    accumulator.saturating_add(output.to_string().len())
-                },
-            );
+            let repeat_count = DIRECT_GENERATION_REPEAT_COUNT;
+            let output_bytes = (0..repeat_count).fold(constants_usize::ZERO, |accumulator, _| {
+                let output = generate_pg_table_src::domain_types::source::generate_pg_table(
+                    macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                        input.as_ref(),
+                    ),
+                );
+                accumulator.saturating_add(output.to_string().len())
+            });
             println!(
                 "allocation_workload=generate_pg_table_src repeat_count={repeat_count} output_bytes={output_bytes}",
-                repeat_count = domain_types::DIRECT_GENERATION_REPEAT_COUNT,
             );
             Ok(())
         }
@@ -83,21 +130,15 @@ fn main() {
                     "variant": "All"
                 }
             };
-            let output_bytes = (0..domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
-                constants_usize::ZERO,
-                |accumulator, _| {
-                    let output =
-                        generate_pg_types_src::domain_types::source::generate_pg_types_tokens(
-                            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                                &input,
-                            ),
-                        );
-                    accumulator.saturating_add(output.to_string().len())
-                },
-            );
+            let repeat_count = DIRECT_GENERATION_REPEAT_COUNT;
+            let output_bytes = (0..repeat_count).fold(constants_usize::ZERO, |accumulator, _| {
+                let output = generate_pg_types_src::domain_types::source::generate_pg_types_tokens(
+                    macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+                );
+                accumulator.saturating_add(output.to_string().len())
+            });
             println!(
                 "allocation_workload=generate_pg_types_src repeat_count={repeat_count} output_bytes={output_bytes}",
-                repeat_count = domain_types::DIRECT_GENERATION_REPEAT_COUNT,
             );
             Ok(())
         }
@@ -110,18 +151,20 @@ fn main() {
         Some(constants_str::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
             run_workspace_tests::run_where_filters::run_where_filters()
         }
-        Some(constants_str::MACRO_GENERATION) => domain_types::macro_generation_measurements()
-            .iter()
-            .try_fold((), |(), (measurement_name, args)| {
-                run_workspace_tests::measure_cargo_command::measure_cargo_command(
-                    *measurement_name,
-                    *args,
-                )
-            }),
+        Some(constants_str::MACRO_GENERATION) => {
+            macro_generation_measurements()
+                .iter()
+                .try_fold((), |(), (measurement_name, args)| {
+                    run_workspace_tests::measure_cargo_command::measure_cargo_command(
+                        *measurement_name,
+                        *args,
+                    )
+                })
+        }
         Some(constants_str::TESTS_ALT) => run_workspace_tests::run_workspace_tests(),
         Some(constants_str::HEAVY_LOAD) => {
             if run_workspace_tests::cargo_subcommand_available::cargo_subcommand_available(
-                domain_types::ToolName::from(constants_str::NEXTEST),
+                ToolName::from(constants_str::NEXTEST),
             )
             .get()
             {
@@ -149,7 +192,7 @@ fn main() {
                 println!(
                     "release_tool={tool} available={}",
                     run_workspace_tests::cargo_subcommand_available::cargo_subcommand_available(
-                        domain_types::ToolName::from(tool)
+                        ToolName::from(tool)
                     )
                     .get()
                 );
@@ -157,7 +200,7 @@ fn main() {
             let mut commands =
                 Vec::<(&str, &[&str])>::from(constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS);
             if run_workspace_tests::cargo_subcommand_available::cargo_subcommand_available(
-                domain_types::ToolName::from(constants_str::NEXTEST),
+                ToolName::from(constants_str::NEXTEST),
             )
             .get()
             {
@@ -194,7 +237,7 @@ fn main() {
             .into_iter()
             .filter(|(subcommand, _args)| {
                 run_workspace_tests::cargo_subcommand_available::cargo_subcommand_available(
-                    domain_types::ToolName::from(*subcommand),
+                    ToolName::from(*subcommand),
                 )
                 .get()
             })
@@ -209,7 +252,7 @@ fn main() {
         ))
         .and_then(|()| run_workspace_tests::run_workspace_tests())
         .and_then(|()| {
-            domain_types::macro_generation_measurements()
+            macro_generation_measurements()
                 .iter()
                 .try_fold((), |(), (measurement_name, args)| {
                     run_workspace_tests::measure_cargo_command::measure_cargo_command(

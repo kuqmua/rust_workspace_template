@@ -4,11 +4,11 @@ pub struct ObservedError<Source>
 where
     Source: std::error::Error + 'static,
 {
-    backtrace: super::observed_error_backtrace::ObservedErrorBacktrace,
-    error_code: super::observed_error_code::ObservedErrorCode,
-    location: super::std_panic_location::StdPanicLocation,
+    backtrace: crate::observed_error_backtrace::ObservedErrorBacktrace,
+    error_code: crate::observed_error_code::ObservedErrorCode,
+    location: crate::std_panic_location::StdPanicLocation,
     source: Source,
-    span_trace: super::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace,
+    span_trace: crate::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace,
 }
 
 impl<Source> ObservedError<Source>
@@ -16,7 +16,7 @@ where
     Source: std::error::Error + 'static,
 {
     #[must_use]
-    pub const fn backtrace(&self) -> &super::observed_error_backtrace::ObservedErrorBacktrace {
+    pub const fn backtrace(&self) -> &crate::observed_error_backtrace::ObservedErrorBacktrace {
         &self.backtrace
     }
 
@@ -24,7 +24,7 @@ where
     #[must_use]
     pub fn capture(
         source: Source,
-        error_code: super::observed_error_code::ObservedErrorCode,
+        error_code: crate::observed_error_code::ObservedErrorCode,
     ) -> Self {
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
@@ -32,28 +32,28 @@ where
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
         Self {
-            backtrace: super::observed_error_backtrace::ObservedErrorBacktrace::from(
+            backtrace: crate::observed_error_backtrace::ObservedErrorBacktrace::from(
                 std::backtrace::Backtrace::force_capture(),
             ),
             error_code,
-            location: super::std_panic_location::StdPanicLocation::from(
+            location: crate::std_panic_location::StdPanicLocation::from(
                 std::panic::Location::caller(),
             ),
             source,
             span_trace:
-                super::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace::from(
+                crate::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace::from(
                     span_trace.into_boxed_str(),
                 ),
         }
     }
 
     #[must_use]
-    pub const fn error_code(&self) -> super::observed_error_code::ObservedErrorCode {
+    pub const fn error_code(&self) -> crate::observed_error_code::ObservedErrorCode {
         self.error_code
     }
 
     #[must_use]
-    pub const fn location(&self) -> super::std_panic_location::StdPanicLocation {
+    pub const fn location(&self) -> crate::std_panic_location::StdPanicLocation {
         self.location
     }
 
@@ -65,7 +65,7 @@ where
     #[must_use]
     pub const fn span_trace(
         &self,
-    ) -> &super::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace {
+    ) -> &crate::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace {
         &self.span_trace
     }
 }
@@ -81,13 +81,11 @@ mod tests {
         let expected_line = line!() + 1u32;
         let observed = super::ObservedError::capture(
             InfrastructureTestError,
-            super::super::observed_error_code::ObservedErrorCode::from(
-                constants_str::VALUE_D99F528C,
-            ),
+            crate::observed_error_code::ObservedErrorCode::from(constants_str::VALUE_D99F528C),
         );
         assert_eq!(
             observed.error_code(),
-            super::super::observed_error_code::ObservedErrorCode::from("infrastructure_failed")
+            crate::observed_error_code::ObservedErrorCode::from("infrastructure_failed")
         );
         assert_eq!(observed.source_ref().to_string(), "infrastructure failed");
         assert_eq!(observed.location().line(), expected_line);

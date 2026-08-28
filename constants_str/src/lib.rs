@@ -7,11 +7,8 @@
 //! conformance tests; `SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
 //! `pg_crud_common::domain_types::PgSqlIdentifier`, not an application-schema declaration.
 
-#[path = "catalog.rs"]
 mod catalog;
-#[path = "integration_fixtures.rs"]
 mod integration_fixtures;
-#[path = "test_fixtures.rs"]
 mod test_fixtures;
 
 pub use catalog::*;

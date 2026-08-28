@@ -1,4 +1,4 @@
-use super::super::{GitCommitIdRef, ProjectGitInfo};
+use crate::domain_types::{GitCommitIdRef, ProjectGitInfo};
 
 #[must_use]
 pub fn project_git_info_value() -> ProjectGitInfo<'static> {

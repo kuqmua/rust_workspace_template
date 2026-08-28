@@ -1,4 +1,4 @@
-use super::*;
+use crate::*;
 pub fn token(token: &AdminOpaqueToken) -> Result<AdminTokenHash, AdminSecretTextError> {
-    super::super::hash_opaque_token::hash_opaque_token(token)
+    hash_opaque_token(token)
 }

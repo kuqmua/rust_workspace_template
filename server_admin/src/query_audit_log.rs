@@ -1,9 +1,7 @@
-#![allow(clippy::single_call_fn)] // each typed function owns one SQL bind/result contract
-
 pub(crate) async fn query_audit_log(
-    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    pool: crate::SqlxAdminRepositoryPoolRef<'_>,
     query: crate::domain_types::auth::AdminAuditQuery,
-) -> Result<server_admin_contract::domain_types::AdminAuditPage, super::AdminRepositoryError> {
+) -> Result<server_admin_contract::domain_types::AdminAuditPage, crate::AdminRepositoryError> {
     let parts = query.into_parts();
     let action_text = parts
         .get_action()
@@ -15,7 +13,7 @@ pub(crate) async fn query_audit_log(
         .map(crate::domain_types::AdminAuditResource::as_str);
     let limit = usize::from(u16::from(*parts.get_limit()));
     let fetch_limit = i64::try_from(limit.saturating_add(constants_usize::ONE))
-        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+        .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?;
     let total =
         sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
             .bind(
@@ -95,33 +93,33 @@ pub(crate) async fn query_audit_log(
         .map(|row| {
             Ok(server_admin_contract::domain_types::AdminAuditView::new(
                 server_admin_contract::domain_types::AdminText::try_from(row.3)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::domain_types::AdminAuditTimestamp::try_from(row.8)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 row.7
                     .map(server_admin_contract::domain_types::SerdeJsonAdminAuditDetails::try_from)
                     .transpose()
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::domain_types::AdminAuditLogId::try_from(row.0)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::domain_types::AdminText::try_from(row.4)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 row.5
                     .map(server_admin_contract::domain_types::AdminText::try_from)
                     .transpose()
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 server_admin_contract::domain_types::AdminBool::from(row.6),
                 row.1
                     .map(server_admin_contract::domain_types::AdminUserId::try_from)
                     .transpose()
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
                 row.2
                     .map(server_admin_contract::domain_types::AdminLogin::try_from)
                     .transpose()
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                    .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
             ))
         })
-        .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+        .collect::<Result<Vec<_>, crate::AdminRepositoryError>>()?;
     let next_cursor = if has_more {
         views.last().map(|view| {
             server_admin_contract::domain_types::AdminAuditCursor::new(
@@ -134,8 +132,8 @@ pub(crate) async fn query_audit_log(
     };
     Ok(server_admin_contract::domain_types::AdminAuditPage::new(
         server_admin_contract::domain_types::AdminAuditViews::try_from(views)
-            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            .map_err(|_error| crate::AdminRepositoryError::InvalidStoredValue)?,
         next_cursor,
-        super::repository_page_total(super::AdminPageTotalCount::from(total))?,
+        crate::repository_page_total(crate::AdminPageTotalCount::from(total))?,
     ))
 }

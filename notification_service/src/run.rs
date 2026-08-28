@@ -1,6 +1,4 @@
-#![allow(clippy::single_call_fn)] // runtime adapter operations each have one application composition owner
-
-pub(crate) async fn run(
+pub(crate) async fn run_notification_service(
     config: notification_service_config::config::Config,
 ) -> Result<(), crate::domain_types::NotificationServiceError> {
     let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
@@ -52,7 +50,7 @@ pub(crate) async fn run(
         .apply(
             server_runtime_http::domain_types::RequestTimeoutLayer::from(timeout).apply(
                 server_runtime_http::domain_types::AxumRouter::from(
-                    crate::routes::router(
+                    crate::routes::build_notification_router(
                         crate::domain_types::NotificationState::new(
                             metrics,
                             app_state::domain_types::SqlxPgPool::from(pool),

@@ -11,12 +11,12 @@
     generate_constructor::New,
 )]
 pub struct CreateNotificationRes {
-    id: super::UuidNotificationId,
+    id: crate::domain_types::UuidNotificationId,
 }
 
 impl CreateNotificationRes {
     #[must_use]
-    pub const fn id(&self) -> super::UuidNotificationId {
+    pub const fn id(&self) -> crate::domain_types::UuidNotificationId {
         self.id
     }
 }

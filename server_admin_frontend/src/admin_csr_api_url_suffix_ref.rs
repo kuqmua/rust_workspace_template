@@ -6,4 +6,4 @@
     newtype::AsRefStr,
     newtype::FromInner,
 )]
-pub(in crate::domain_types::start) struct AdminCsrApiUrlSuffixRef<'suffix_lt>(&'suffix_lt str);
+pub(crate) struct AdminCsrApiUrlSuffixRef<'suffix_lt>(&'suffix_lt str);

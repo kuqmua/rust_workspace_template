@@ -4,18 +4,18 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ProcessCommand {
-    pub(super) arguments: super::ProcessArguments,
-    pub(super) program: super::ProcessProgram,
+    pub(super) arguments: crate::domain_types::ProcessArguments,
+    pub(super) program: crate::domain_types::ProcessProgram,
 }
 
 impl ProcessCommand {
     #[must_use]
-    pub const fn arguments(&self) -> &super::ProcessArguments {
+    pub const fn arguments(&self) -> &crate::domain_types::ProcessArguments {
         &self.arguments
     }
 
     #[must_use]
-    pub const fn program(&self) -> super::ProcessProgram {
+    pub const fn program(&self) -> crate::domain_types::ProcessProgram {
         self.program
     }
 }

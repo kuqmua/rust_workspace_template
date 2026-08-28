@@ -1,124 +1,44 @@
 #![allow(clippy::wildcard_imports)] // split security implementation modules share a private facade vocabulary
-#[path = "admin_auth_collection_max_len.rs"]
-mod admin_auth_collection_max_len;
-use admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN;
-#[path = "admin_password_change_required.rs"]
-mod admin_password_change_required;
-pub(crate) use admin_password_change_required::*;
-#[path = "admin_secret_text_error.rs"]
-mod admin_secret_text_error;
-pub use admin_secret_text_error::*;
-#[path = "admin_auth_permissions.rs"]
-mod admin_auth_permissions;
-pub(crate) use admin_auth_permissions::*;
-#[path = "admin_role_names.rs"]
-mod admin_role_names;
-pub(crate) use admin_role_names::*;
-#[path = "admin_auth_collection_error.rs"]
-mod admin_auth_collection_error;
-pub(crate) use admin_auth_collection_error::*;
-#[path = "admin_shared_semaphore_arc.rs"]
-mod admin_shared_semaphore_arc;
-pub use admin_shared_semaphore_arc::*;
-#[path = "tokio_admin_join_error.rs"]
-mod tokio_admin_join_error;
-pub use tokio_admin_join_error::*;
-#[path = "tokio_admin_acquire_error.rs"]
-mod tokio_admin_acquire_error;
-pub use tokio_admin_acquire_error::*;
-#[path = "tokio_admin_owned_semaphore_permit.rs"]
-mod tokio_admin_owned_semaphore_permit;
-pub(crate) use tokio_admin_owned_semaphore_permit::*;
-#[path = "argon2_admin_password_hash_error.rs"]
-mod argon2_admin_password_hash_error;
-pub use argon2_admin_password_hash_error::*;
-#[path = "sqlx_admin_error.rs"]
-mod sqlx_admin_error;
-pub use sqlx_admin_error::*;
-#[path = "admin_password.rs"]
-mod admin_password;
-pub use admin_password::*;
-#[path = "admin_password_try_from_string_error.rs"]
-mod admin_password_try_from_string_error;
-pub use admin_password_try_from_string_error::*;
-#[path = "admin_password_hash.rs"]
-mod admin_password_hash;
-pub use admin_password_hash::*;
-#[path = "admin_jwt_secret.rs"]
-mod admin_jwt_secret;
-pub use admin_jwt_secret::*;
-#[path = "admin_opaque_token.rs"]
-mod admin_opaque_token;
-pub use admin_opaque_token::*;
-#[path = "admin_refresh_token.rs"]
-mod admin_refresh_token;
-pub use admin_refresh_token::*;
-#[path = "admin_token_hash.rs"]
-mod admin_token_hash;
-pub use admin_token_hash::*;
-#[path = "admin_generated_token.rs"]
-mod admin_generated_token;
-pub use admin_generated_token::*;
-#[path = "token.rs"]
-mod token;
-pub use token::*;
-#[path = "admin_cookie_secure.rs"]
-mod admin_cookie_secure;
-pub use admin_cookie_secure::*;
-#[path = "admin_cookie_max_age_seconds.rs"]
-mod admin_cookie_max_age_seconds;
-pub use admin_cookie_max_age_seconds::*;
-#[path = "std_admin_cookie.rs"]
-mod std_admin_cookie;
-pub use std_admin_cookie::*;
-#[path = "http_admin_header_map_ref.rs"]
-mod http_admin_header_map_ref;
-pub use http_admin_header_map_ref::*;
-#[path = "admin_cookie_kind.rs"]
-mod admin_cookie_kind;
-pub use admin_cookie_kind::*;
-#[path = "build_admin_cookie.rs"]
-mod build_admin_cookie;
-pub use build_admin_cookie::*;
-#[path = "clear_admin_cookie.rs"]
-mod clear_admin_cookie;
-pub use clear_admin_cookie::*;
-#[path = "find_admin_cookie.rs"]
-mod find_admin_cookie;
-pub use find_admin_cookie::*;
-#[path = "admin_password_hash_concurrency.rs"]
-mod admin_password_hash_concurrency;
-pub use admin_password_hash_concurrency::*;
-#[path = "admin_unix_token_stream.rs"]
-mod admin_unix_token_stream;
-pub use admin_unix_token_stream::*;
-#[path = "admin_session_id.rs"]
-mod admin_session_id;
-pub use admin_session_id::*;
-#[path = "admin_access_claims.rs"]
-mod admin_access_claims;
 pub use admin_access_claims::*;
-#[path = "admin_password_hash_error.rs"]
-mod admin_password_hash_error;
-pub use admin_password_hash_error::*;
-#[path = "admin_password_hasher.rs"]
-mod admin_password_hasher;
-pub use admin_password_hasher::*;
-#[path = "jsonwebtoken_admin_error.rs"]
-mod jsonwebtoken_admin_error;
-pub use jsonwebtoken_admin_error::*;
-#[path = "admin_access_token_error.rs"]
-mod admin_access_token_error;
 pub use admin_access_token_error::*;
-#[path = "std_admin_access_token.rs"]
-mod std_admin_access_token;
-pub use std_admin_access_token::*;
-#[path = "encode_access_token.rs"]
-mod encode_access_token;
-pub use encode_access_token::*;
-#[path = "decode_access_token.rs"]
-mod decode_access_token;
+pub(crate) use admin_auth_collection_error::*;
+use admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN;
+pub(crate) use admin_auth_permissions::*;
+pub use admin_cookie_kind::*;
+pub use admin_cookie_max_age_seconds::*;
+pub use admin_cookie_secure::*;
+pub use admin_generated_token::*;
+pub use admin_jwt_secret::*;
+pub use admin_opaque_token::*;
+pub use admin_password::*;
+pub(crate) use admin_password_change_required::*;
+pub use admin_password_hash::*;
+pub use admin_password_hash_concurrency::*;
+pub use admin_password_hash_error::*;
+pub use admin_password_hasher::*;
+pub use admin_password_try_from_string_error::*;
+pub use admin_refresh_token::*;
+pub(crate) use admin_role_names::*;
+pub use admin_secret_text_error::*;
+pub use admin_session_id::*;
+pub use admin_shared_semaphore_arc::*;
+pub use admin_token_hash::*;
+pub use admin_unix_token_stream::*;
+pub use argon2_admin_password_hash_error::*;
+pub use build_admin_cookie::*;
+pub use clear_admin_cookie::*;
 pub use decode_access_token::*;
+pub use encode_access_token::*;
+pub use find_admin_cookie::*;
+pub use http_admin_header_map_ref::*;
+pub use jsonwebtoken_admin_error::*;
+pub use sqlx_admin_error::*;
+pub use std_admin_access_token::*;
+pub use std_admin_cookie::*;
+pub use token::*;
+pub use tokio_admin_acquire_error::*;
+pub use tokio_admin_join_error::*;
+pub(crate) use tokio_admin_owned_semaphore_permit::*;
 
 impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
     for AdminSecretTextError
@@ -146,7 +66,7 @@ impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
 impl utoipa::PartialSchema for AdminAuthPermissions {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::domain_types::vector::BoundedVec<
-            super::AdminPermission,
+            crate::AdminPermission,
             0,
             { ADMIN_AUTH_COLLECTION_MAX_LEN },
         > as utoipa::PartialSchema>::schema()
@@ -156,24 +76,24 @@ impl utoipa::ToSchema for AdminAuthPermissions {}
 impl utoipa::PartialSchema for AdminRoleNames {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::domain_types::vector::BoundedVec<
-            super::AdminRoleName,
+            crate::AdminRoleName,
             0,
             { ADMIN_AUTH_COLLECTION_MAX_LEN },
         > as utoipa::PartialSchema>::schema()
     }
 }
 impl utoipa::ToSchema for AdminRoleNames {}
-impl TryFrom<Vec<super::AdminPermission>> for AdminAuthPermissions {
+impl TryFrom<Vec<crate::AdminPermission>> for AdminAuthPermissions {
     type Error = AdminAuthCollectionError;
-    fn try_from(value: Vec<super::AdminPermission>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<crate::AdminPermission>) -> Result<Self, Self::Error> {
         bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(AdminAuthCollectionError::from)
     }
 }
-impl TryFrom<Vec<super::AdminRoleName>> for AdminRoleNames {
+impl TryFrom<Vec<crate::AdminRoleName>> for AdminRoleNames {
     type Error = AdminAuthCollectionError;
-    fn try_from(value: Vec<super::AdminRoleName>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<crate::AdminRoleName>) -> Result<Self, Self::Error> {
         bounded_types::domain_types::vector::BoundedVec::try_from(value)
             .map(Self)
             .map_err(AdminAuthCollectionError::from)
@@ -189,8 +109,8 @@ impl SqlxAdminError {
         self.0
     }
 }
-impl From<super::AdminIdTryFromI64Error> for SqlxAdminError {
-    fn from(value: super::AdminIdTryFromI64Error) -> Self {
+impl From<crate::AdminIdTryFromI64Error> for SqlxAdminError {
+    fn from(value: crate::AdminIdTryFromI64Error) -> Self {
         Self::from(sqlx::Error::Decode(Box::new(value)))
     }
 }
@@ -229,7 +149,7 @@ impl TryFrom<String> for AdminPassword {
         {
             return Err(AdminPasswordTryFromStringError::InvalidLength);
         }
-        super::SecrecyAdminString::try_from(value)
+        crate::SecrecyAdminString::try_from(value)
             .map(Self::from)
             .map_err(|error| match error {
                 server_admin_core::domain_types::StdAdminStringTryFromStringError::InvalidBounds { .. }
@@ -244,17 +164,17 @@ impl TryFrom<String> for AdminPassword {
 }
 impl AdminPassword {
     #[must_use]
-    pub fn new(value: super::SecrecyAdminString) -> Self {
+    pub fn new(value: crate::SecrecyAdminString) -> Self {
         Self::from(value)
     }
-    pub(crate) fn into_inner(self) -> super::SecrecyAdminString {
+    pub(crate) fn into_inner(self) -> crate::SecrecyAdminString {
         self.0
     }
 }
 impl AdminPasswordHash {
     #[must_use]
-    pub(crate) fn expose(&self) -> super::StdAdminStrRef<'_> {
-        super::StdAdminStrRef::from(self.0.as_ref())
+    pub(crate) fn expose(&self) -> crate::StdAdminStrRef<'_> {
+        crate::StdAdminStrRef::from(self.0.as_ref())
     }
 
     #[must_use]
@@ -264,21 +184,21 @@ impl AdminPasswordHash {
 }
 impl AdminJwtSecret {
     #[must_use]
-    pub fn new(value: super::SecrecyAdminString) -> Self {
+    pub fn new(value: crate::SecrecyAdminString) -> Self {
         Self::from(value)
     }
 }
 impl AdminOpaqueToken {
     #[must_use]
-    pub fn new(value: super::SecrecyAdminString) -> Self {
+    pub fn new(value: crate::SecrecyAdminString) -> Self {
         Self::from(value)
     }
     #[must_use]
-    pub(crate) fn expose(&self) -> super::StdAdminStrRef<'_> {
-        super::StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str())
+    pub(crate) fn expose(&self) -> crate::StdAdminStrRef<'_> {
+        crate::StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str())
     }
-    pub(crate) fn clone_secret(&self) -> super::SecrecyAdminString {
-        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
+    pub(crate) fn clone_secret(&self) -> crate::SecrecyAdminString {
+        crate::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
             secrecy::ExposeSecret::expose_secret(&self.0).clone(),
         )))
     }
@@ -289,35 +209,31 @@ impl AdminRefreshToken {
         Self::from(value)
     }
     #[must_use]
-    pub fn expose(&self) -> super::StdAdminStrRef<'_> {
-        super::StdAdminStrRef::from(
+    pub fn expose(&self) -> crate::StdAdminStrRef<'_> {
+        crate::StdAdminStrRef::from(
             secrecy::ExposeSecret::expose_secret(self.0.0.as_ref()).as_str(),
         )
     }
 }
 impl AdminTokenHash {
     #[must_use]
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the crate-private constructor is the invariant boundary for SHA-256 token hashes"
-    )]
-    pub(crate) fn new(value: super::SecrecyAdminString) -> Self {
+    pub(crate) fn new(value: crate::SecrecyAdminString) -> Self {
         Self::from(value)
     }
     #[must_use]
-    pub fn expose(&self) -> super::StdAdminStrRef<'_> {
-        super::StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str())
+    pub fn expose(&self) -> crate::StdAdminStrRef<'_> {
+        crate::StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str())
     }
 }
 impl AdminGeneratedToken {
     pub fn generate() -> Result<Self, AdminSecretTextError> {
-        let token = super::SecrecyAdminString::try_from(format!(
+        let token = crate::SecrecyAdminString::try_from(format!(
             "{}.{}",
             uuid::Uuid::new_v4(),
             uuid::Uuid::new_v4()
         ))
         .map(AdminOpaqueToken::new)?;
-        super::hash_opaque_token::hash_opaque_token(&token).map(|hash| Self { hash, token })
+        crate::hash_opaque_token::hash_opaque_token(&token).map(|hash| Self { hash, token })
     }
     #[must_use]
     pub const fn hash(&self) -> &AdminTokenHash {
@@ -334,8 +250,8 @@ impl<'headers_lt> HttpAdminHeaderMapRef<'headers_lt> {
     }
 }
 impl AdminCookieKind {
-    fn name(self) -> super::StdAdminStrRef<'static> {
-        super::StdAdminStrRef::from(match self {
+    pub(crate) fn name(self) -> crate::StdAdminStrRef<'static> {
+        crate::StdAdminStrRef::from(match self {
             Self::Access => constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
             Self::Csrf => constants_str::ADMIN_CSRF_TOKEN,
             Self::Refresh => constants_str::ADMIN_REFRESH_TOKEN,
@@ -343,7 +259,7 @@ impl AdminCookieKind {
     }
 }
 impl AdminPasswordHashConcurrency {
-    pub(crate) const fn get(self) -> super::AdminNonZeroUsize {
+    pub(crate) const fn get(self) -> crate::AdminNonZeroUsize {
         self.0
     }
 }
@@ -353,14 +269,14 @@ impl AdminUnixTokenStream {
     }
 }
 impl AdminSessionId {
-    pub(crate) const fn get(self) -> super::UuidAdminValue {
+    pub(crate) const fn get(self) -> crate::UuidAdminValue {
         self.0
     }
 }
 impl AdminAccessClaims {
     #[must_use]
     pub const fn new(
-        user_id: super::AdminUserId,
+        user_id: crate::AdminUserId,
         session_id: AdminSessionId,
         issued_at: AdminUnixTokenStream,
         expires_at: AdminUnixTokenStream,
@@ -377,7 +293,7 @@ impl AdminAccessClaims {
         }
     }
     #[must_use]
-    pub const fn user_id(&self) -> super::AdminUserId {
+    pub const fn user_id(&self) -> crate::AdminUserId {
         self.sub
     }
     #[must_use]
@@ -390,10 +306,6 @@ impl AdminAccessClaims {
     reason = "semaphore acquisition stays with the security-owned wrapper while hashing behavior stays in the password module"
 )]
 impl AdminPasswordHasher {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "the constructor keeps the semaphore field private across the password module boundary"
-    )]
     pub(crate) const fn from_semaphore(semaphore: AdminSharedSemaphoreArc) -> Self {
         Self { semaphore }
     }
@@ -430,7 +342,7 @@ impl std::fmt::Debug for StdAdminAccessToken {
 mod tests {
     #[test]
     fn opaque_token_debug_is_redacted() {
-        let token = super::AdminOpaqueToken::new(
+        let token = crate::AdminOpaqueToken::new(
             crate::domain_types::SecrecyAdminString::try_from(
                 constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
             )
@@ -440,4 +352,126 @@ mod tests {
         assert!(debug.contains(constants_str::REDACTED_ALT_3));
         assert!(!debug.contains(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES));
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod admin_auth_collection_max_len {
+    pub use crate::admin_auth_collection_max_len::*;
+}
+mod admin_password_change_required {
+    pub use crate::admin_password_change_required::*;
+}
+mod admin_secret_text_error {
+    pub use crate::admin_secret_text_error::*;
+}
+mod admin_auth_permissions {
+    pub use crate::admin_auth_permissions::*;
+}
+mod admin_role_names {
+    pub use crate::admin_role_names::*;
+}
+mod admin_auth_collection_error {
+    pub use crate::admin_auth_collection_error::*;
+}
+mod admin_shared_semaphore_arc {
+    pub use crate::admin_shared_semaphore_arc::*;
+}
+mod tokio_admin_join_error {
+    pub use crate::tokio_admin_join_error::*;
+}
+mod tokio_admin_acquire_error {
+    pub use crate::tokio_admin_acquire_error::*;
+}
+mod tokio_admin_owned_semaphore_permit {
+    pub use crate::tokio_admin_owned_semaphore_permit::*;
+}
+mod argon2_admin_password_hash_error {
+    pub use crate::argon2_admin_password_hash_error::*;
+}
+mod sqlx_admin_error {
+    pub use crate::sqlx_admin_error::*;
+}
+mod admin_password {
+    pub use crate::admin_password::*;
+}
+mod admin_password_try_from_string_error {
+    pub use crate::admin_password_try_from_string_error::*;
+}
+mod admin_password_hash {
+    pub use crate::admin_password_hash::*;
+}
+mod admin_jwt_secret {
+    pub use crate::admin_jwt_secret::*;
+}
+mod admin_opaque_token {
+    pub use crate::admin_opaque_token::*;
+}
+mod admin_refresh_token {
+    pub use crate::admin_refresh_token::*;
+}
+mod admin_token_hash {
+    pub use crate::admin_token_hash::*;
+}
+mod admin_generated_token {
+    pub use crate::admin_generated_token::*;
+}
+mod token {
+    pub use crate::token::*;
+}
+mod admin_cookie_secure {
+    pub use crate::admin_cookie_secure::*;
+}
+mod admin_cookie_max_age_seconds {
+    pub use crate::admin_cookie_max_age_seconds::*;
+}
+mod std_admin_cookie {
+    pub use crate::std_admin_cookie::*;
+}
+mod http_admin_header_map_ref {
+    pub use crate::http_admin_header_map_ref::*;
+}
+mod admin_cookie_kind {
+    pub use crate::admin_cookie_kind::*;
+}
+mod build_admin_cookie {
+    pub use crate::build_admin_cookie::*;
+}
+mod clear_admin_cookie {
+    pub use crate::clear_admin_cookie::*;
+}
+mod find_admin_cookie {
+    pub use crate::find_admin_cookie::*;
+}
+mod admin_password_hash_concurrency {
+    pub use crate::admin_password_hash_concurrency::*;
+}
+mod admin_unix_token_stream {
+    pub use crate::admin_unix_token_stream::*;
+}
+mod admin_session_id {
+    pub use crate::admin_session_id::*;
+}
+mod admin_access_claims {
+    pub use crate::admin_access_claims::*;
+}
+mod admin_password_hash_error {
+    pub use crate::admin_password_hash_error::*;
+}
+mod admin_password_hasher {
+    pub use crate::admin_password_hasher::*;
+}
+mod jsonwebtoken_admin_error {
+    pub use crate::jsonwebtoken_admin_error::*;
+}
+mod admin_access_token_error {
+    pub use crate::admin_access_token_error::*;
+}
+mod std_admin_access_token {
+    pub use crate::std_admin_access_token::*;
+}
+mod encode_access_token {
+    pub use crate::encode_access_token::*;
+}
+mod decode_access_token {
+    pub use crate::decode_access_token::*;
 }

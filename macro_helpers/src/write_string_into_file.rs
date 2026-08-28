@@ -1,44 +1,17 @@
-#[path = "generated_file_maximum_bytes.rs"]
-mod generated_file_maximum_bytes;
-#[path = "should_write_string.rs"]
-mod should_write_string;
-#[path = "should_write_string_into_file.rs"]
-mod should_write_string_into_file;
-#[path = "string_file_content_ref.rs"]
-mod string_file_content_ref;
-#[path = "try_write_string_into_file.rs"]
-mod try_write_string_into_file;
-#[path = "try_write_string_into_file_with_outcome.rs"]
-mod try_write_string_into_file_with_outcome;
-#[path = "try_write_string_into_path.rs"]
-mod try_write_string_into_path;
-#[path = "try_write_string_into_path_with_outcome.rs"]
-mod try_write_string_into_path_with_outcome;
-#[path = "validate_existing_file_text.rs"]
-mod validate_existing_file_text;
-#[path = "write_path_outcome.rs"]
-mod write_path_outcome;
-#[path = "write_string_if_needed.rs"]
-mod write_string_if_needed;
-#[path = "written_file_path_buf.rs"]
-mod written_file_path_buf;
-#[path = "written_file_path_ref.rs"]
-mod written_file_path_ref;
-
-use generated_file_maximum_bytes::GeneratedFileMaximumBytes;
-pub use should_write_string::*;
-use should_write_string_into_file::should_write_string_into_file;
-pub use string_file_content_ref::*;
-pub use try_write_string_into_file::try_write_string_into_file;
-pub use try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome;
+use crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes;
+pub use crate::should_write_string::*;
+use crate::should_write_string_into_file::should_write_string_into_file;
+pub use crate::string_file_content_ref::*;
+pub use crate::try_write_string_into_file::try_write_string_into_file;
+pub use crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome;
 #[cfg(test)]
-pub(crate) use try_write_string_into_path::try_write_string_into_path;
-pub(crate) use try_write_string_into_path_with_outcome::try_write_string_into_path_with_outcome;
-use validate_existing_file_text::validate_existing_file_text;
-pub use write_path_outcome::WritePathOutcome;
-use write_string_if_needed::write_string_if_needed;
-pub use written_file_path_buf::WrittenFilePathBuf;
-pub use written_file_path_ref::WrittenFilePathRef;
+pub(crate) use crate::try_write_string_into_path::try_write_string_into_path;
+pub(crate) use crate::try_write_string_into_path_with_outcome::try_write_string_into_path_with_outcome;
+use crate::validate_existing_file_text::validate_existing_file_text;
+pub use crate::write_path_outcome::WritePathOutcome;
+use crate::write_string_if_needed::write_string_if_needed;
+pub use crate::written_file_path_buf::WrittenFilePathBuf;
+pub use crate::written_file_path_ref::WrittenFilePathRef;
 
 #[cfg(test)]
 mod tests {

@@ -1,4 +1,4 @@
-pub(in crate::domain_types) const fn idempotency_capable<
+pub(crate) const fn idempotency_capable<
     Capability,
     HttpMethod,
     Operation,

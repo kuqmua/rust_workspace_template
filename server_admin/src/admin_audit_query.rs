@@ -1,4 +1,4 @@
-use super::AdminAuditQueryParts;
+use crate::AdminAuditQueryParts;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, utoipa::IntoParams,
@@ -11,7 +11,7 @@ pub struct AdminAuditQuery {
     cursor_id: Option<server_admin_contract::domain_types::AdminAuditLogId>,
     resource_id: Option<server_admin_contract::domain_types::AdminText>,
     #[param(inline)]
-    user_id: Option<super::super::AdminUserId>,
+    user_id: Option<crate::AdminUserId>,
     user_login: Option<server_admin_contract::domain_types::AdminLogin>,
     #[serde(default)]
     #[param(value_type = u32)]
@@ -20,16 +20,14 @@ pub struct AdminAuditQuery {
     #[param(value_type = u16, minimum = 1, maximum = 100)]
     limit: server_admin_contract::domain_types::AdminPageLimit,
     #[param(inline)]
-    resource: Option<super::super::AdminAuditResource>,
+    resource: Option<crate::AdminAuditResource>,
     succeeded: Option<server_admin_contract::domain_types::AdminBool>,
     #[param(inline)]
-    action: Option<super::super::AdminAuditAction>,
+    action: Option<crate::AdminAuditAction>,
 }
 impl AdminAuditQuery {
-    pub(crate) fn cursor_is_complete(&self) -> super::super::StdAdminBool {
-        super::super::StdAdminBool::from(
-            self.cursor_created_at.is_some() == self.cursor_id.is_some(),
-        )
+    pub(crate) fn cursor_is_complete(&self) -> crate::StdAdminBool {
+        crate::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
     }
     pub(crate) fn into_parts(self) -> AdminAuditQueryParts {
         AdminAuditQueryParts::new(

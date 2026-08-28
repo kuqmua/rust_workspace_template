@@ -1,43 +1,16 @@
-#[path = "allow_origin_suffix.rs"]
-mod allow_origin_suffix;
-#[path = "allowed_origin.rs"]
-mod allowed_origin;
-#[path = "allowed_origin_error.rs"]
-mod allowed_origin_error;
-#[path = "allowed_origins.rs"]
-mod allowed_origins;
-#[path = "allowed_origins_error.rs"]
-mod allowed_origins_error;
-#[path = "http_origin_authority_text.rs"]
-mod http_origin_authority_text;
-#[path = "http_origin_headers_ref.rs"]
-mod http_origin_headers_ref;
-#[path = "http_origin_scheme_text.rs"]
-mod http_origin_scheme_text;
-#[path = "http_origin_text_ref.rs"]
-mod http_origin_text_ref;
-#[path = "parsed_http_origin_ref.rs"]
-mod parsed_http_origin_ref;
-#[path = "request_origin_allowed.rs"]
-mod request_origin_allowed;
-#[path = "request_origin_value_is_allowed.rs"]
-mod request_origin_value_is_allowed;
-#[path = "resolve_request_origin_allowed.rs"]
-mod resolve_request_origin_allowed;
-
-use allow_origin_suffix::AllowOriginSuffix;
-pub use allowed_origin::AllowedOrigin;
-pub use allowed_origin_error::AllowedOriginError;
-pub use allowed_origins::AllowedOrigins;
-pub use allowed_origins_error::AllowedOriginsError;
-use http_origin_authority_text::HttpOriginAuthorityText;
-pub use http_origin_headers_ref::HttpOriginHeadersRef;
-use http_origin_scheme_text::HttpOriginSchemeText;
-use http_origin_text_ref::HttpOriginTextRef;
-use parsed_http_origin_ref::ParsedHttpOriginRef;
-pub use request_origin_allowed::RequestOriginAllowed;
-use request_origin_value_is_allowed::request_origin_value_is_allowed;
-pub use resolve_request_origin_allowed::resolve_request_origin_allowed;
+use crate::allow_origin_suffix::AllowOriginSuffix;
+pub use crate::allowed_origin::AllowedOrigin;
+pub use crate::allowed_origin_error::AllowedOriginError;
+pub use crate::allowed_origins::AllowedOrigins;
+pub use crate::allowed_origins_error::AllowedOriginsError;
+use crate::http_origin_authority_text::HttpOriginAuthorityText;
+pub use crate::http_origin_headers_ref::HttpOriginHeadersRef;
+use crate::http_origin_scheme_text::HttpOriginSchemeText;
+use crate::http_origin_text_ref::HttpOriginTextRef;
+use crate::parsed_http_origin_ref::ParsedHttpOriginRef;
+pub use crate::request_origin_allowed::RequestOriginAllowed;
+use crate::request_origin_value_is_allowed::request_origin_value_is_allowed;
+pub use crate::resolve_request_origin_allowed::resolve_request_origin_allowed;
 
 #[cfg(test)]
 mod tests {
@@ -96,4 +69,45 @@ mod tests {
             &allowed_origins(),
         )));
     }
+}
+
+// Root-owned module compatibility wrappers.
+mod allow_origin_suffix {
+    pub use crate::allow_origin_suffix::*;
+}
+mod allowed_origin {
+    pub use crate::allowed_origin::*;
+}
+mod allowed_origin_error {
+    pub use crate::allowed_origin_error::*;
+}
+mod allowed_origins {
+    pub use crate::allowed_origins::*;
+}
+mod allowed_origins_error {
+    pub use crate::allowed_origins_error::*;
+}
+mod http_origin_authority_text {
+    pub use crate::http_origin_authority_text::*;
+}
+mod http_origin_headers_ref {
+    pub use crate::http_origin_headers_ref::*;
+}
+mod http_origin_scheme_text {
+    pub use crate::http_origin_scheme_text::*;
+}
+mod http_origin_text_ref {
+    pub use crate::http_origin_text_ref::*;
+}
+mod parsed_http_origin_ref {
+    pub use crate::parsed_http_origin_ref::*;
+}
+mod request_origin_allowed {
+    pub use crate::request_origin_allowed::*;
+}
+mod request_origin_value_is_allowed {
+    pub use crate::request_origin_value_is_allowed::*;
+}
+mod resolve_request_origin_allowed {
+    pub use crate::resolve_request_origin_allowed::*;
 }
