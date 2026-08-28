@@ -5,11 +5,6 @@ impl From<syn::Expr> for SynExpr {
         Self(value)
     }
 }
-impl SynExpr {
-    pub(crate) fn into_inner(self) -> syn::Expr {
-        self.0
-    }
-}
 impl AsRef<syn::Expr> for SynExpr {
     fn as_ref(&self) -> &syn::Expr {
         &self.0

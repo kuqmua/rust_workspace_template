@@ -3,27 +3,27 @@ pub fn build_date_sql_filter(
     bounds: crate::domain_types::DateFilterBounds<'_>,
     bind_start: crate::domain_types::DateSqlBindStartNonZeroU32,
 ) -> Result<crate::domain_types::DateSqlFilter, crate::domain_types::DateSqlFilterError> {
-    let mut bind_index = bind_start.0.get();
+    let mut bind_index = bind_start.get_inner().get();
     let candidates = [
         (
             constants_str::CREATED_AT,
             constants_str::GREATER_OR_EQUAL,
-            bounds.created_at_from,
+            bounds.get_created_at_from().copied(),
         ),
         (
             constants_str::CREATED_AT,
             constants_str::LESS_OR_EQUAL,
-            bounds.created_at_to,
+            bounds.get_created_at_to().copied(),
         ),
         (
             constants_str::UPDATED_AT,
             constants_str::GREATER_OR_EQUAL,
-            bounds.updated_at_from,
+            bounds.get_updated_at_from().copied(),
         ),
         (
             constants_str::UPDATED_AT,
             constants_str::LESS_OR_EQUAL,
-            bounds.updated_at_to,
+            bounds.get_updated_at_to().copied(),
         ),
     ];
     let active_count = candidates
@@ -71,7 +71,7 @@ pub fn build_date_sql_filter(
             fragment.push_str(constants_str::DOLLAR_SIGN);
             std::fmt::Write::write_fmt(&mut fragment, format_args!("{bind_index}"))
                 .map_err(|_error| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
-            values.push(*value.0);
+            values.push(**value.get_inner());
             bind_index = bind_index
                 .checked_add(1u32)
                 .ok_or(crate::domain_types::DateSqlFilterError::BindIndexOverflow)?;
@@ -79,10 +79,10 @@ pub fn build_date_sql_filter(
         })?;
     let query_fragment = crate::domain_types::QueryPartFragment::try_from(fragment)
         .map_err(|_error| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
-    Ok(crate::domain_types::DateSqlFilter {
-        fragment: query_fragment,
-        values: crate::domain_types::ChronoUtcDateTimes::from(values),
-    })
+    Ok(crate::domain_types::DateSqlFilter::new(
+        query_fragment,
+        crate::domain_types::ChronoUtcDateTimes::from(values),
+    ))
 }
 
 #[cfg(test)]

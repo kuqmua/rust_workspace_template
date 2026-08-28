@@ -1,13 +1,13 @@
 fn state(pool: sqlx::PgPool) -> super::NotificationState {
-    super::NotificationState {
-        metrics: super::MetricsExporterPrometheusRenderer::from(
+    super::NotificationState::new(
+        super::MetricsExporterPrometheusRenderer::from(
             metrics_exporter_prometheus::PrometheusBuilder::new()
                 .build_recorder()
                 .handle(),
         ),
-        pool: app_state::domain_types::SqlxPgPool::from(pool),
-        project_git_info: git_info::domain_types::project_git_info_value(),
-    }
+        app_state::domain_types::SqlxPgPool::from(pool),
+        git_info::domain_types::project_git_info_value(),
+    )
 }
 
 #[tokio::test]

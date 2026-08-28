@@ -6,7 +6,7 @@ pub(super) async fn metrics(
     state: crate::domain_types::AxumNotificationState,
 ) -> Result<server_runtime_http::domain_types::MetricsResponseBody, crate::domain_types::MetricsError>
 {
-    state.get().metrics.render().map_err(|error| {
+    state.get().get_metrics().render().map_err(|error| {
         crate::domain_types::MetricsError::Render(
             server_runtime_http::domain_types::ObservedError::capture(
                 error,

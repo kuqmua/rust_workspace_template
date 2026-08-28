@@ -6,34 +6,73 @@ struct ReviewedPublicFields {
     struct_name: &'static str,
 }
 
-#[test]
-fn accessor_functions_do_not_use_get_prefix() {
-    let pattern = regex::Regex::new(constants_str::VALUE_BACDA79E)
-        .expect("7f79cd6a accessor function regex must compile");
-    let mut ers = Vec::new();
-    super::for_each_rs_file(|file| {
-        pattern
-            .captures_iter(file.content().as_ref())
-            .for_each(|captures| {
-                let Some(name) = captures.get(1usize).map(|value| value.as_str()) else {
+#[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+struct HandwrittenFieldGetterVisitor {
+    violations: super::types::SourceTextList,
+}
+
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
+    fn visit_item_impl(&mut self, i: &'ast_lt syn::ItemImpl) {
+        if i.trait_.is_none() {
+            i.items.iter().for_each(|item| {
+                let syn::ImplItem::Fn(method) = item else {
                     return;
                 };
-                if !matches!(
-                    name,
-                    constants_str::VALUE_6D1FEC38 | constants_str::VALUE_57DD48E2
-                ) {
-                    ers.push(format!(
-                        "{}: accessor `{name}` must omit the `get_` prefix",
-                        file.path().as_ref().display()
-                    ));
+                if method.sig.inputs.len() == constants_usize::ONE
+                    && method
+                        .sig
+                        .ident
+                        .to_string()
+                        .starts_with(constants_str::GETTER_PREFIX)
+                {
+                    self.violations.push(method.sig.ident.to_string());
                 }
             });
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
+
+#[test]
+fn field_getters_are_generated() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let mut visitor = HandwrittenFieldGetterVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor.violations.into_iter().map(|method| {
+                    format!(
+                        "{} contains handwritten field getter `{method}`; derive generate_accessor::Getters",
+                        source_file.path().as_ref().display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
     });
-    ers.sort();
-    super::assert_joined_ers_empty(
-        super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr::from(constants_str::VALUE_D71964E9),
-    );
+}
+
+#[test]
+fn struct_fields_do_not_use_crate_visibility() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let mut visitor = super::source_analysis::CrateVisibleStructFieldVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor.violations.into_iter().map(|item| {
+                    format!(
+                        "{} exposes a crate-visible struct field in {item}",
+                        source_file.path().as_ref().display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
+    });
 }
 
 #[test]

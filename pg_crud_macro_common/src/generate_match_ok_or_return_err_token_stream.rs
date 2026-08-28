@@ -8,7 +8,7 @@ pub fn generate_match_ok_or_return_err_token_stream(
         non_snake_case,
         reason = "generated Rust identifiers intentionally mirror emitted naming tokens"
     )]
-    let (ErrorSnakeCase,) = (&names.ErrorSnakeCase,);
+    let (ErrorSnakeCase,) = (names.get_error_snake_case(),);
     quote::quote! {
         match #expr_token_stream {
             Ok(#ok_v_token_stream) => #ok_v_token_stream,

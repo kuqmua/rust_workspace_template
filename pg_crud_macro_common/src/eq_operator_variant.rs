@@ -14,7 +14,7 @@ impl EqOperatorVariant {
         let names = super::super::token_emission::NamesCtx::new();
         // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(non_snake_case)]
-        let (EqOperatorUpperCamelCase,) = (&names.EqOperatorUpperCamelCase,);
+        let (EqOperatorUpperCamelCase,) = (names.get_eq_operator_upper_camel_case(),);
         let ts = match &self {
             Self::Eq => quote::quote! {Eq},
             Self::IsNull => quote::quote! {IsNull},

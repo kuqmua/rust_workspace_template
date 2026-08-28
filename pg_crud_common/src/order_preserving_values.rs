@@ -10,5 +10,7 @@
     PartialEq,
     newtype::FromInner,
     newtype::IntoInnerFrom,
+    generate_accessor::Getters,
 )]
-pub struct OrderPreservingValues<Value>(pub(crate) Vec<Value>);
+#[getters(get_mut)]
+pub struct OrderPreservingValues<Value>(Vec<Value>);

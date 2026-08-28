@@ -5,95 +5,93 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the immutable token-name context is shared by sibling generation modules without becoming public API"
 )]
+#[derive(generate_accessor::Getters)]
 pub(crate) struct NamesCtx {
-    pub(crate) AddOperatorSnakeCase: naming::domain_types::AddOperatorSnakeCase,
-    pub(crate) AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase:
+    AddOperatorSnakeCase: naming::domain_types::AddOperatorSnakeCase,
+    AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase:
         naming::domain_types::AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,
-    pub(crate) AllVariantsDefaultSomeOneElementSnakeCase:
+    AllVariantsDefaultSomeOneElementSnakeCase:
         naming::domain_types::AllVariantsDefaultSomeOneElementSnakeCase,
-    pub(crate) AllowClippyArbitrarySrcItemOrdering:
-        token_patterns::AllowClippyArbitrarySrcItemOrdering,
-    pub(crate) ColumnSnakeCase: naming::domain_types::ColumnSnakeCase,
-    pub(crate) CreateQueryBindSnakeCase: naming::domain_types::CreateQueryBindSnakeCase,
-    pub(crate) CreateQueryPartSnakeCase: naming::domain_types::CreateQueryPartSnakeCase,
-    pub(crate) CreateSnakeCase: naming::domain_types::CreateSnakeCase,
-    pub(crate) CreateTableColumnQueryPartSnakeCase:
-        naming::domain_types::CreateTableColumnQueryPartSnakeCase,
-    pub(crate) CreateUpperCamelCase: naming::domain_types::CreateUpperCamelCase,
-    pub(crate) DefaultSomeOneElementMaxPageSizeSnakeCase:
+    AllowClippyArbitrarySrcItemOrdering: token_patterns::AllowClippyArbitrarySrcItemOrdering,
+    ColumnSnakeCase: naming::domain_types::ColumnSnakeCase,
+    CreateQueryBindSnakeCase: naming::domain_types::CreateQueryBindSnakeCase,
+    CreateQueryPartSnakeCase: naming::domain_types::CreateQueryPartSnakeCase,
+    CreateSnakeCase: naming::domain_types::CreateSnakeCase,
+    CreateTableColumnQueryPartSnakeCase: naming::domain_types::CreateTableColumnQueryPartSnakeCase,
+    CreateUpperCamelCase: naming::domain_types::CreateUpperCamelCase,
+    DefaultSomeOneElementMaxPageSizeSnakeCase:
         naming::domain_types::DefaultSomeOneElementMaxPageSizeSnakeCase,
-    pub(crate) DefaultSomeOneElementSnakeCase: naming::domain_types::DefaultSomeOneElementSnakeCase,
-    pub(crate) EqOperatorUpperCamelCase: naming::domain_types::EqOperatorUpperCamelCase,
-    pub(crate) ErrorSnakeCase: naming::domain_types::ErrorSnakeCase,
-    pub(crate) IncrementSnakeCase: naming::domain_types::IncrementSnakeCase,
-    pub(crate) NormalizeSnakeCase: naming::domain_types::NormalizeSnakeCase,
-    pub(crate) OptionalUpdateSnakeCase: naming::domain_types::OptionalUpdateSnakeCase,
-    pub(crate) OptionalVecCreateSnakeCase: naming::domain_types::OptionalVecCreateSnakeCase,
-    pub(crate) PgCrudCommonDefaultSomeOneElementCall:
-        token_patterns::PgCrudCommonDefaultSomeOneElementCall,
-    pub(crate) PgTypeEqOperatorUpperCamelCase: naming::domain_types::PgTypeEqOperatorUpperCamelCase,
-    pub(crate) PgTypeNotPrimaryKeyUpperCamelCase:
-        naming::domain_types::PgTypeNotPrimaryKeyUpperCamelCase,
-    pub(crate) PgTypeOptionalVecWhereGreaterThanTestSnakeCase:
+    DefaultSomeOneElementSnakeCase: naming::domain_types::DefaultSomeOneElementSnakeCase,
+    EqOperatorUpperCamelCase: naming::domain_types::EqOperatorUpperCamelCase,
+    ErrorSnakeCase: naming::domain_types::ErrorSnakeCase,
+    IncrementSnakeCase: naming::domain_types::IncrementSnakeCase,
+    NormalizeSnakeCase: naming::domain_types::NormalizeSnakeCase,
+    OptionalUpdateSnakeCase: naming::domain_types::OptionalUpdateSnakeCase,
+    OptionalVecCreateSnakeCase: naming::domain_types::OptionalVecCreateSnakeCase,
+    PgCrudCommonDefaultSomeOneElementCall: token_patterns::PgCrudCommonDefaultSomeOneElementCall,
+    PgTypeEqOperatorUpperCamelCase: naming::domain_types::PgTypeEqOperatorUpperCamelCase,
+    PgTypeNotPrimaryKeyUpperCamelCase: naming::domain_types::PgTypeNotPrimaryKeyUpperCamelCase,
+    PgTypeOptionalVecWhereGreaterThanTestSnakeCase:
         naming::domain_types::PgTypeOptionalVecWhereGreaterThanTestSnakeCase,
-    pub(crate) PgTypeTestCasesUpperCamelCase: naming::domain_types::PgTypeTestCasesUpperCamelCase,
-    pub(crate) PgTypeUpperCamelCase: naming::domain_types::PgTypeUpperCamelCase,
-    pub(crate) PgTypeWhereFilterUpperCamelCase:
-        naming::domain_types::PgTypeWhereFilterUpperCamelCase,
-    pub(crate) PreviousReadAndOptionalUpdateIntoReadSnakeCase:
+    PgTypeTestCasesUpperCamelCase: naming::domain_types::PgTypeTestCasesUpperCamelCase,
+    PgTypeUpperCamelCase: naming::domain_types::PgTypeUpperCamelCase,
+    PgTypeWhereFilterUpperCamelCase: naming::domain_types::PgTypeWhereFilterUpperCamelCase,
+    PreviousReadAndOptionalUpdateIntoReadSnakeCase:
         naming::domain_types::PreviousReadAndOptionalUpdateIntoReadSnakeCase,
-    pub(crate) QueryBindSnakeCase: naming::domain_types::QueryBindSnakeCase,
-    pub(crate) QueryPartErrorUpperCamelCase: naming::domain_types::QueryPartErrorUpperCamelCase,
-    pub(crate) QueryPartSnakeCase: naming::domain_types::QueryPartSnakeCase,
-    pub(crate) QuerySnakeCase: naming::domain_types::QuerySnakeCase,
-    pub(crate) ReadIdsAndCreateIntoOptionalVReadSnakeCase:
+    QueryBindSnakeCase: naming::domain_types::QueryBindSnakeCase,
+    QueryPartErrorUpperCamelCase: naming::domain_types::QueryPartErrorUpperCamelCase,
+    QueryPartSnakeCase: naming::domain_types::QueryPartSnakeCase,
+    QuerySnakeCase: naming::domain_types::QuerySnakeCase,
+    ReadIdsAndCreateIntoOptionalVReadSnakeCase:
         naming::domain_types::ReadIdsAndCreateIntoOptionalVReadSnakeCase,
-    pub(crate) ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase:
+    ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase:
         naming::domain_types::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase,
-    pub(crate) ReadIdsAndCreateIntoReadSnakeCase:
-        naming::domain_types::ReadIdsAndCreateIntoReadSnakeCase,
-    pub(crate) ReadIdsAndCreateIntoTableTypeSnakeCase:
+    ReadIdsAndCreateIntoReadSnakeCase: naming::domain_types::ReadIdsAndCreateIntoReadSnakeCase,
+    ReadIdsAndCreateIntoTableTypeSnakeCase:
         naming::domain_types::ReadIdsAndCreateIntoTableTypeSnakeCase,
-    pub(crate) ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase:
+    ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase:
         naming::domain_types::ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase,
-    pub(crate) ReadIdsAndCreateIntoWhereEqSnakeCase:
+    ReadIdsAndCreateIntoWhereEqSnakeCase:
         naming::domain_types::ReadIdsAndCreateIntoWhereEqSnakeCase,
-    pub(crate) ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase:
+    ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase:
         naming::domain_types::ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase,
-    pub(crate) ReadIdsSnakeCase: naming::domain_types::ReadIdsSnakeCase,
-    pub(crate) ReadIdsTo2DimensionsVecReadInnerSnakeCase:
+    ReadIdsSnakeCase: naming::domain_types::ReadIdsSnakeCase,
+    ReadIdsTo2DimensionsVecReadInnerSnakeCase:
         naming::domain_types::ReadIdsTo2DimensionsVecReadInnerSnakeCase,
-    pub(crate) ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase:
+    ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase:
         naming::domain_types::ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase,
-    pub(crate) ReadIdsUpperCamelCase: naming::domain_types::ReadIdsUpperCamelCase,
-    pub(crate) ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase:
+    ReadIdsUpperCamelCase: naming::domain_types::ReadIdsUpperCamelCase,
+    ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase:
         naming::domain_types::ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,
-    pub(crate) ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase:
+    ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase:
         naming::domain_types::ReadInnerIntoUpdateWithNewOrTryNewUnwrapedSnakeCase,
-    pub(crate) ReadInnerUpperCamelCase: naming::domain_types::ReadInnerUpperCamelCase,
-    pub(crate) ReadSnakeCase: naming::domain_types::ReadSnakeCase,
-    pub(crate) ReadUpperCamelCase: naming::domain_types::ReadUpperCamelCase,
-    pub(crate) SelectOnlyIdsQueryPartSnakeCase:
-        naming::domain_types::SelectOnlyIdsQueryPartSnakeCase,
-    pub(crate) SelectOnlyUpdatedIdsQueryBindSnakeCase:
+    ReadInnerUpperCamelCase: naming::domain_types::ReadInnerUpperCamelCase,
+    ReadSnakeCase: naming::domain_types::ReadSnakeCase,
+    ReadUpperCamelCase: naming::domain_types::ReadUpperCamelCase,
+    SelectOnlyIdsQueryPartSnakeCase: naming::domain_types::SelectOnlyIdsQueryPartSnakeCase,
+    SelectOnlyUpdatedIdsQueryBindSnakeCase:
         naming::domain_types::SelectOnlyUpdatedIdsQueryBindSnakeCase,
-    pub(crate) SelectOnlyUpdatedIdsQueryPartSnakeCase:
+    SelectOnlyUpdatedIdsQueryPartSnakeCase:
         naming::domain_types::SelectOnlyUpdatedIdsQueryPartSnakeCase,
-    pub(crate) SelectQueryPartSnakeCase: naming::domain_types::SelectQueryPartSnakeCase,
-    pub(crate) SelectUpperCamelCase: naming::domain_types::SelectUpperCamelCase,
-    pub(crate) SelfUpperCamelCase: naming::domain_types::SelfUpperCamelCase,
-    pub(crate) TableTypeSnakeCase: naming::domain_types::TableTypeSnakeCase,
-    pub(crate) TableTypeUpperCamelCase: naming::domain_types::TableTypeUpperCamelCase,
-    pub(crate) UpdateForQueryUpperCamelCase: naming::domain_types::UpdateForQueryUpperCamelCase,
-    pub(crate) UpdateQueryBindSnakeCase: naming::domain_types::UpdateQueryBindSnakeCase,
-    pub(crate) UpdateQueryPartSnakeCase: naming::domain_types::UpdateQueryPartSnakeCase,
-    pub(crate) UpdateToReadIdsSnakeCase: naming::domain_types::UpdateToReadIdsSnakeCase,
-    pub(crate) UpdateUpperCamelCase: naming::domain_types::UpdateUpperCamelCase,
-    pub(crate) VSnakeCase: naming::domain_types::VSnakeCase,
-    pub(crate) VUpperCamelCase: naming::domain_types::VUpperCamelCase,
-    pub(crate) ValueSnakeCase: naming::domain_types::ValueSnakeCase,
-    pub(crate) WhereUpperCamelCase: naming::domain_types::WhereUpperCamelCase,
+    SelectQueryPartSnakeCase: naming::domain_types::SelectQueryPartSnakeCase,
+    SelectUpperCamelCase: naming::domain_types::SelectUpperCamelCase,
+    SelfUpperCamelCase: naming::domain_types::SelfUpperCamelCase,
+    TableTypeSnakeCase: naming::domain_types::TableTypeSnakeCase,
+    TableTypeUpperCamelCase: naming::domain_types::TableTypeUpperCamelCase,
+    UpdateForQueryUpperCamelCase: naming::domain_types::UpdateForQueryUpperCamelCase,
+    UpdateQueryBindSnakeCase: naming::domain_types::UpdateQueryBindSnakeCase,
+    UpdateQueryPartSnakeCase: naming::domain_types::UpdateQueryPartSnakeCase,
+    UpdateToReadIdsSnakeCase: naming::domain_types::UpdateToReadIdsSnakeCase,
+    UpdateUpperCamelCase: naming::domain_types::UpdateUpperCamelCase,
+    VSnakeCase: naming::domain_types::VSnakeCase,
+    VUpperCamelCase: naming::domain_types::VUpperCamelCase,
+    ValueSnakeCase: naming::domain_types::ValueSnakeCase,
+    WhereUpperCamelCase: naming::domain_types::WhereUpperCamelCase,
 }
+#[allow(
+    dead_code,
+    reason = "field access is intentionally encapsulated behind uniform getters"
+)]
 impl NamesCtx {
     pub(crate) const fn new() -> Self {
         Self {

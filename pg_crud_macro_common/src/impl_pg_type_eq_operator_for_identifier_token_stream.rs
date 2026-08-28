@@ -13,8 +13,8 @@ pub fn impl_pg_type_eq_operator_for_identifier_token_stream(
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (EqOperatorUpperCamelCase, PgTypeEqOperatorUpperCamelCase) = (
-        &names.EqOperatorUpperCamelCase,
-        &names.PgTypeEqOperatorUpperCamelCase,
+        names.get_eq_operator_upper_camel_case(),
+        names.get_pg_type_eq_operator_upper_camel_case(),
     );
     quote::quote! {
         impl #import::#PgTypeEqOperatorUpperCamelCase for #identifier {

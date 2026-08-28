@@ -26,12 +26,12 @@ where
         QuerySnakeCase,
         VSnakeCase,
     ) = (
-        &names.AddOperatorSnakeCase,
-        &names.ColumnSnakeCase,
-        &names.IncrementSnakeCase,
-        &names.PgCrudCommonDefaultSomeOneElementCall,
-        &names.QuerySnakeCase,
-        &names.VSnakeCase,
+        names.get_add_operator_snake_case(),
+        names.get_column_snake_case(),
+        names.get_increment_snake_case(),
+        names.get_pg_crud_common_default_some_one_element_call(),
+        names.get_query_snake_case(),
+        names.get_v_snake_case(),
     );
     let identifier = naming::domain_types::parameter::SelfWhereUpperCamelCase::from_tokens(&prefix);
     let pg_type_tokens_where_token_stream = {

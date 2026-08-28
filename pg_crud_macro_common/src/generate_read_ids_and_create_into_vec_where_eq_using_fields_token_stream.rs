@@ -11,9 +11,9 @@ pub fn generate_read_ids_and_create_into_vec_where_eq_using_fields_token_stream(
         reason = "generated Rust identifiers intentionally mirror emitted naming tokens"
     )]
     let (CreateSnakeCase, ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase, ReadIdsSnakeCase) = (
-        &names.CreateSnakeCase,
-        &names.ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase,
-        &names.ReadIdsSnakeCase,
+        names.get_create_snake_case(),
+        names.get_read_ids_and_create_into_vec_where_eq_using_fields_snake_case(),
+        names.get_read_ids_snake_case(),
     );
     quote::quote! {
         fn #ReadIdsAndCreateIntoVecWhereEqUsingFieldsSnakeCase(

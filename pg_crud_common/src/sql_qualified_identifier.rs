@@ -2,12 +2,22 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "split owner modules expose representation only within the crate"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_accessor::Getters,
+)]
 pub struct SqlQualifiedIdentifier {
-    pub(crate) schema: crate::domain_types::SqlIdentifier,
-    pub(crate) table: crate::domain_types::SqlIdentifier,
+    schema: crate::domain_types::SqlIdentifier,
+    table: crate::domain_types::SqlIdentifier,
 }
-
+#[allow(
+    dead_code,
+    reason = "field access is intentionally encapsulated behind uniform getters"
+)]
 impl SqlQualifiedIdentifier {
     #[must_use]
     pub const fn new(

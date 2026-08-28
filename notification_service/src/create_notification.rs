@@ -15,7 +15,7 @@ pub(super) async fn create_notification(
     let _created = sqlx::query(insert_sql)
         .bind(id)
         .bind(message.as_ref())
-        .execute(state.get().pool.as_ref())
+        .execute(state.get().get_pool().as_ref())
         .await
         .map_err(|error| {
             crate::domain_types::CreateNotificationError::Persistence(

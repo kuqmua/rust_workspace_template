@@ -53,11 +53,11 @@ pub(crate) async fn run(
             server_runtime_http::domain_types::RequestTimeoutLayer::from(timeout).apply(
                 server_runtime_http::domain_types::AxumRouter::from(
                     crate::routes::router(
-                        crate::domain_types::NotificationState {
+                        crate::domain_types::NotificationState::new(
                             metrics,
-                            pool: app_state::domain_types::SqlxPgPool::from(pool),
-                            project_git_info: git_info::domain_types::project_git_info_value(),
-                        },
+                            app_state::domain_types::SqlxPgPool::from(pool),
+                            git_info::domain_types::project_git_info_value(),
+                        ),
                         crate::domain_types::NotificationBodyMaximumBytes::from(
                             notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
                         ),

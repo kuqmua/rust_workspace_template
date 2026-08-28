@@ -10,9 +10,9 @@ pub fn generate_read_ids_and_create_into_where_eq_token_stream(
         reason = "generated Rust identifiers intentionally mirror emitted naming tokens"
     )]
     let (CreateSnakeCase, ReadIdsAndCreateIntoWhereEqSnakeCase, ReadIdsSnakeCase) = (
-        &names.CreateSnakeCase,
-        &names.ReadIdsAndCreateIntoWhereEqSnakeCase,
-        &names.ReadIdsSnakeCase,
+        names.get_create_snake_case(),
+        names.get_read_ids_and_create_into_where_eq_snake_case(),
+        names.get_read_ids_snake_case(),
     );
     quote::quote! {
         fn #ReadIdsAndCreateIntoWhereEqSnakeCase(

@@ -72,7 +72,7 @@ impl TryFrom<crate::domain_types::pagination_starts_with_zero_raw::PaginationSta
     fn try_from(
         value: crate::domain_types::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw,
     ) -> Result<Self, Self::Error> {
-        Self::try_new(value.limit, value.offset)
+        Self::try_new(*value.get_limit(), *value.get_offset())
     }
 }
 

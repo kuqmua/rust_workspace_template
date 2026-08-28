@@ -26,11 +26,11 @@ pub fn impl_pg_type_where_filter_for_identifier_token_stream(
         QueryPartErrorUpperCamelCase,
         QueryPartSnakeCase,
     ) = (
-        &names.AllowClippyArbitrarySrcItemOrdering,
-        &names.PgTypeWhereFilterUpperCamelCase,
-        &names.QueryBindSnakeCase,
-        &names.QueryPartErrorUpperCamelCase,
-        &names.QueryPartSnakeCase,
+        names.get_allow_clippy_arbitrary_src_item_ordering(),
+        names.get_pg_type_where_filter_upper_camel_case(),
+        names.get_query_bind_snake_case(),
+        names.get_query_part_error_upper_camel_case(),
+        names.get_query_part_snake_case(),
     );
     quote::quote! {
         #AllowClippyArbitrarySrcItemOrdering

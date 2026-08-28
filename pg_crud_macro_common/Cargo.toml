@@ -10,6 +10,7 @@ edition.workspace = true
 
 [dependencies]
 constants_str = { workspace = true }
+generate_accessor = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }

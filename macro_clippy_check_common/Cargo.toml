@@ -13,6 +13,7 @@ constants_usize = { workspace = true }
 constants_i32 = { workspace = true }
 optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
+generate_accessor = { workspace = true }
 macro_helpers = { workspace = true, optional = true }
 server_runtime_http = { workspace = true, optional = true }
 

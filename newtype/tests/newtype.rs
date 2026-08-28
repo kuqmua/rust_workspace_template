@@ -1,4 +1,9 @@
 const _: usize = constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+struct GeneratedGettersFixture {
+    value: u8,
+}
+const _: fn(&GeneratedGettersFixture) -> &u8 = GeneratedGettersFixture::get_value;
 #[cfg(test)]
 mod tests {
     mod to_err_string {

@@ -15,7 +15,7 @@ pub fn generate_impl_default_some_one_element_max_page_size_token_stream(
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (DefaultSomeOneElementMaxPageSizeSnakeCase,) =
-        (&names.DefaultSomeOneElementMaxPageSizeSnakeCase,);
+        (names.get_default_some_one_element_max_page_size_snake_case(),);
     let path_trait_token_stream = import.default_some_one_element_max_page_size();
     quote::quote! {
         impl #impl_generic_token_stream #path_trait_token_stream for #identifier #identifier_generic_token_stream {

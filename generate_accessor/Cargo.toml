@@ -1,27 +1,25 @@
 [package]
-name = "frontend_contract_macros"
+name = "generate_accessor"
 version.workspace = true
 publish.workspace = true
-description = "Derive macros for shared typed route contracts"
+description = "Derive macro for uniform private-field getters"
 repository.workspace = true
 
 license.workspace = true
-keywords = ["frontend", "contract"]
-categories = ["web-programming"]
 edition.workspace = true
 
 [lib]
 proc-macro = true
 
 [dependencies]
+constants_str = { workspace = true }
 constants_usize = { workspace = true }
-generate_accessor = { workspace = true }
-optimal_memory_layout = { workspace = true }
-newtype = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
-constants_str = { workspace = true }
 syn = { workspace = true }
+
+[dev-dependencies]
+optimal_memory_layout = { workspace = true }
 
 [lints]
 workspace = true

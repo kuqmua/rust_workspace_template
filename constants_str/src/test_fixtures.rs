@@ -426,6 +426,15 @@ pub const NEWTYPE_TRY_FROM: &str = "try_from";
 pub const NEWTYPE_FROM_INNER_DERIVE_NAME: &str = "FromInner";
 pub const NEWTYPE_TRY_FROM_DERIVE_NAME: &str = "TryFrom";
 pub const CODE_STYLE_DESERIALIZE_DERIVE_NAME: &str = "Deserialize";
+pub const CODE_STYLE_CRATE_VISIBILITY_PATH: &str = "crate";
+pub const GETTERS_ATTRIBUTE: &str = "getters";
+pub const GETTER_PREFIX: &str = "get_";
+pub const GETTERS_GET_MUT: &str = "get_mut";
+pub const GETTERS_REQUIRES_NAMED_OR_SINGLE_FIELD: &str =
+    "Getters requires named fields or a single tuple field";
+pub const GETTERS_REQUIRES_STRUCT: &str = "Getters can only be derived for structs";
+pub const GETTERS_UNSUPPORTED_ATTRIBUTE: &str = "unsupported getters attribute";
+pub const OPTION_TYPE: &str = "Option";
 pub const CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT: &str = "from =";
 pub const CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT: &str = "try_from =";
 pub const NEWTYPE_TRY_FROM_DUPLICATE: &str = "duplicate newtype try_from option";
@@ -1008,7 +1017,6 @@ pub const VALUE_1800EA0D: &str = "7bda5c19";
 pub const VALUE_1E61B1AF: &str = "7e50ddbb";
 pub const VALUE_9CC34A06: &str =
     "7e7147f6 navigation_only_contains_accessible_pages invariant must hold";
-pub const VALUE_D71964E9: &str = "7f79cd6a";
 pub const VALUE_CD09FF18: &str =
     "80e14fb3 role_permissions_render_matching_names_with_stable_separator invariant must hold";
 pub const VALUE_454794DA: &str = "822bee51";
@@ -1227,7 +1235,6 @@ pub const VALUE_EA8957C1: &str = "[workspace.lints.clippy]";
 pub const VALUE_AC763BA9: &str = "[workspace.lints.rust]";
 pub const VALUE_ADF1A200: &str = "[workspace]\nmembers = [\n  \"notification_service_contract\",\n  \"order_service\",\n  \"order_service_config\",\n  \"order_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\" }\norder_service = { path = \"./order_service\" }\norder_service_config = { path = \"./order_service_config\" }\norder_service_contract = { path = \"./order_service_contract\" }\n";
 pub const VALUE_9A836A5B: &str = "[workspace]\nmembers = [\n  \"notification_service_contract\",\n]\n[workspace.dependencies]\nnotification_service_contract = { path = \"./notification_service_contract\" }\n";
-pub const VALUE_BACDA79E: &str = "\\bfn\\s+(get_[a-zA-Z0-9_]+)";
 pub const VALUE_B2BAA955: &str = "\\btrait\\s+(Get[A-Z][a-zA-Z0-9_]*)";
 pub const VALUE_78C40633: &str = "^alice";
 pub const VALUE_E0071B88: &str = "_SERVICE_SOCKET_ADDRESS";
@@ -1564,8 +1571,6 @@ pub const VALUE_494B834D: &str = "generated table module predates per-attribute 
 pub const VALUE_3C62205E: &str = "generated table templates predate per-attribute reasons";
 pub const VALUE_1ADD7AD4: &str = "generated type templates predate per-attribute reasons";
 pub const VALUE_8733430F: &str = "generic frontend route contract";
-pub const VALUE_6D1FEC38: &str = "get_inner";
-pub const VALUE_57DD48E2: &str = "get_mut";
 pub const VALUE_D665A09C: &str = "getter";
 pub const VALUE_F4853BC8: &str = "getters";
 pub const VALUE_B93D6F4A: &str = "glommio";

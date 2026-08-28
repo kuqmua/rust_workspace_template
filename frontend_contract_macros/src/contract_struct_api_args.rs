@@ -1,7 +1,13 @@
 use super::StdBool;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default, generate_accessor::Getters)]
+#[getters(get_mut)]
 pub(crate) struct ContractStructApiArgs {
-    pub(crate) into_parts: StdBool,
-    pub(crate) new: StdBool,
+    into_parts: StdBool,
+    new: StdBool,
 }
+#[allow(
+    dead_code,
+    reason = "field access is intentionally encapsulated behind uniform getters"
+)]
+impl ContractStructApiArgs {}

@@ -26,13 +26,13 @@ fn parse_contract_struct_api_args(
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_NEW)
                 {
-                    args.new = domain_types::StdBool::from(true);
+                    *args.get_new_mut() = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_INTO_PARTS)
                 {
-                    args.into_parts = domain_types::StdBool::from(true);
+                    *args.get_into_parts_mut() = domain_types::StdBool::from(true);
                     Ok(())
                 } else {
                     Err(metadata.error(constants_str::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
@@ -63,37 +63,37 @@ fn parse_contract_struct_api_field_args(
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_BORROW)
                 {
-                    args.borrow = domain_types::StdBool::from(true);
+                    *args.get_borrow_mut() = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_COPY)
                 {
-                    args.copy = domain_types::StdBool::from(true);
+                    *args.get_copy_mut() = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_COPY_REF)
                 {
-                    args.copy_ref = domain_types::StdBool::from(true);
+                    *args.get_copy_ref_mut() = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_INTO)
                 {
-                    args.into = domain_types::StdBool::from(true);
+                    *args.get_into_mut() = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_OPTION_BORROW)
                 {
-                    args.option_borrow = domain_types::StdBool::from(true);
+                    *args.get_option_borrow_mut() = domain_types::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_SLICE)
                 {
-                    args.slice = Some(domain_types::SynType::from(
+                    *args.get_slice_mut() = Some(domain_types::SynType::from(
                         metadata.value()?.parse::<syn::Type>()?,
                     ));
                     Ok(())
@@ -129,14 +129,11 @@ impl syn::parse::Parse for domain_types::PageCatalogArgs {
                 let _comma = input.parse::<syn::Token![,]>()?;
             }
         }
-        Ok(Self {
-            inventory: inventory
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
-            path_ref: path_ref
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
-            spec: spec
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
-        })
+        Ok(Self::new(
+            inventory.ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
+            path_ref.ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
+            spec.ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
+        ))
     }
 }
 impl syn::parse::Parse for domain_types::PageCatalogPageArgs {
@@ -169,18 +166,15 @@ impl syn::parse::Parse for domain_types::PageCatalogPageArgs {
                 let _comma = input.parse::<syn::Token![,]>()?;
             }
         }
-        Ok(Self {
-            capability: capability
+        Ok(Self::new(
+            capability
                 .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
-            metadata: metadata
+            metadata
                 .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
-            path: path
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
-            route: route
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
-            title: title
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
-        })
+            path.ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+            route.ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+            title.ok_or_else(|| input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+        ))
     }
 }
 impl syn::parse::Parse for domain_types::RouteCatalogArgs {
@@ -204,12 +198,11 @@ impl syn::parse::Parse for domain_types::RouteCatalogArgs {
                 let _comma = input.parse::<syn::Token![,]>()?;
             }
         }
-        Ok(Self {
-            body_limit: body_limit
+        Ok(Self::new(
+            body_limit
                 .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_BODY_LIMIT))?,
-            family: family
-                .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_FAMILY))?,
-        })
+            family.ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_FAMILY))?,
+        ))
     }
 }
 impl syn::parse::Parse for domain_types::RouteCatalogRouteArgs {
@@ -244,19 +237,14 @@ impl syn::parse::Parse for domain_types::RouteCatalogRouteArgs {
                     input.error(constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES)
                 );
             }
-            Ok(Self {
-                contract,
-                exclude_from_family,
-                path,
-                route: None,
-            })
+            Ok(Self::new(contract, path, None, exclude_from_family))
         } else {
-            Ok(Self {
-                contract: None,
-                exclude_from_family: domain_types::StdBool::from(false),
-                path: None,
-                route: Some(domain_types::SynType::from(input.parse::<syn::Type>()?)),
-            })
+            Ok(Self::new(
+                None,
+                None,
+                Some(domain_types::SynType::from(input.parse::<syn::Type>()?)),
+                domain_types::StdBool::from(false),
+            ))
         }
     }
 }
@@ -269,7 +257,7 @@ impl syn::parse::Parse for domain_types::EndpointRegistryBinding {
         let _contract_comma = content.parse::<syn::Token![,]>()?;
         let endpoint =
             domain_types::SynEndpointRegistryEndpoint::from(content.parse::<syn::Path>()?);
-        Ok(Self { contract, endpoint })
+        Ok(Self::new(contract, endpoint))
     }
 }
 
@@ -292,10 +280,10 @@ impl syn::parse::Parse for domain_types::EndpointRegistryArgs {
         if bindings.is_empty() {
             return Err(input.error(constants_str::ENDPOINT_REGISTRY_REQUIRES_BINDING));
         }
-        Ok(Self {
-            bindings: domain_types::SynEndpointRegistryBindings::from(bindings),
+        Ok(Self::new(
+            domain_types::SynEndpointRegistryBindings::from(bindings),
             state,
-        })
+        ))
     }
 }
 
@@ -306,7 +294,7 @@ impl syn::parse::Parse for domain_types::RouteRegistryBinding {
         let route = domain_types::SynRouteRegistryRoute::from(content.parse::<syn::Type>()?);
         let _comma = content.parse::<syn::Token![,]>()?;
         let endpoint = domain_types::SynRouteRegistryEndpoint::from(content.parse::<syn::Path>()?);
-        Ok(Self { endpoint, route })
+        Ok(Self::new(endpoint, route))
     }
 }
 #[proc_macro_attribute]
@@ -324,18 +312,18 @@ pub fn endpoint_registry(
     };
     let identifier = &item.ident;
     let visibility = &item.vis;
-    let state = parsed_args.state.into_inner();
+    let state = parsed_args.get_state().as_ref();
     let contracts = parsed_args
-        .bindings
+        .get_bindings()
         .as_ref()
         .iter()
-        .map(|binding| binding.contract.as_ref())
+        .map(|binding| binding.get_contract().as_ref())
         .collect::<Vec<_>>();
     let endpoints = parsed_args
-        .bindings
+        .get_bindings()
         .as_ref()
         .iter()
-        .map(|binding| binding.endpoint.as_ref())
+        .map(|binding| binding.get_endpoint().as_ref())
         .collect::<Vec<_>>();
     quote::quote! {
         #item
@@ -581,7 +569,7 @@ pub fn derive_contract_struct_api(
         .iter()
         .map(|(_identifier, field_type, _args)| *field_type)
         .collect::<Vec<_>>();
-    let constructor = bool::from(args.new).then(|| {
+    let constructor = bool::from(*args.get_new()).then(|| {
         quote::quote! {
             #[must_use]
             pub const fn new(#(#identifiers: #types),*) -> Self {
@@ -589,7 +577,7 @@ pub fn derive_contract_struct_api(
             }
         }
     });
-    let into_parts = bool::from(args.into_parts).then(|| {
+    let into_parts = bool::from(*args.get_into_parts()).then(|| {
         quote::quote! {
             #[must_use]
             pub fn into_parts(self) -> (#(#types,)*) {
@@ -600,7 +588,7 @@ pub fn derive_contract_struct_api(
     let accessors = parsed_fields
         .iter()
         .flat_map(|(identifier, field_type, field_args)| {
-            let borrowed = bool::from(field_args.borrow).then(|| {
+            let borrowed = bool::from(*field_args.get_borrow()).then(|| {
                 quote::quote! {
                     #[must_use]
                     pub const fn #identifier(&self) -> &#field_type {
@@ -608,7 +596,7 @@ pub fn derive_contract_struct_api(
                     }
                 }
             });
-            let copied = bool::from(field_args.copy).then(|| {
+            let copied = bool::from(*field_args.get_copy()).then(|| {
                 quote::quote! {
                     #[must_use]
                     pub const fn #identifier(self) -> #field_type {
@@ -616,7 +604,7 @@ pub fn derive_contract_struct_api(
                     }
                 }
             });
-            let consumed = bool::from(field_args.into).then(|| {
+            let consumed = bool::from(*field_args.get_into()).then(|| {
                 let method = quote::format_ident!(
                     "{}_{}",
                     constants_str::CONTRACT_STRUCT_API_INTO,
@@ -629,7 +617,7 @@ pub fn derive_contract_struct_api(
                     }
                 }
             });
-            let copied_ref = bool::from(field_args.copy_ref).then(|| {
+            let copied_ref = bool::from(*field_args.get_copy_ref()).then(|| {
                 quote::quote! {
                     #[must_use]
                     pub const fn #identifier(&self) -> #field_type {
@@ -637,7 +625,7 @@ pub fn derive_contract_struct_api(
                     }
                 }
             });
-            let option_borrowed = bool::from(field_args.option_borrow).then(|| {
+            let option_borrowed = bool::from(*field_args.get_option_borrow()).then(|| {
                 let syn::Type::Path(option_path) = field_type else {
                     return syn::Error::new_spanned(
                         field_type,
@@ -674,7 +662,7 @@ pub fn derive_contract_struct_api(
                     }
                 }
             });
-            let slice = field_args.slice.as_ref().map(|wrapped_element_type| {
+            let slice = field_args.get_slice().map(|wrapped_element_type| {
                 let element_type = &wrapped_element_type.as_ref();
                 quote::quote! {
                     #[must_use]
@@ -757,14 +745,14 @@ impl syn::parse::Parse for domain_types::RouteRegistryArgs {
         if bindings.is_empty() {
             return Err(input.error(constants_str::ROUTE_REGISTRY_REQUIRES_BINDING));
         }
-        Ok(Self {
+        Ok(Self::new(
             authenticated_security,
-            bindings: domain_types::SynRouteRegistryBindings::from(bindings),
+            domain_types::SynRouteRegistryBindings::from(bindings),
             csrf_security,
             family,
-            schemas: domain_types::SynRouteRegistrySchemas::from(schemas),
+            domain_types::SynRouteRegistrySchemas::from(schemas),
             state,
-        })
+        ))
     }
 }
 
@@ -809,30 +797,30 @@ pub fn route_registry(
     let visibility = &item.vis;
     let unique_route_trait_identifier = quote::format_ident!("{}UniqueRoute", identifier);
     let openapi_identifier = quote::format_ident!("{}OpenApi", identifier);
-    let state = parsed_args.state.into_inner();
-    let family = parsed_args.family.into_inner();
-    let authenticated_security = parsed_args.authenticated_security.into_inner();
-    let csrf_security = parsed_args.csrf_security.into_inner();
-    let schemas = parsed_args.schemas.into_inner();
+    let state = parsed_args.get_state().as_ref();
+    let family = parsed_args.get_family().as_ref();
+    let authenticated_security = parsed_args.get_authenticated_security().as_ref();
+    let csrf_security = parsed_args.get_csrf_security().as_ref();
+    let schemas = parsed_args.get_schemas().as_ref();
     let routes = parsed_args
-        .bindings
+        .get_bindings()
         .as_ref()
         .iter()
-        .map(|binding| binding.route.as_ref())
+        .map(|binding| binding.get_route().as_ref())
         .collect::<Vec<_>>();
     let endpoints = parsed_args
-        .bindings
+        .get_bindings()
         .as_ref()
         .iter()
-        .map(|binding| binding.endpoint.as_ref())
+        .map(|binding| binding.get_endpoint().as_ref())
         .collect::<Vec<_>>();
     let route_count = routes.len();
     let openapi_paths = parsed_args
-        .bindings
+        .get_bindings()
         .as_ref()
         .iter()
         .map(|binding| {
-            let mut path = binding.endpoint.as_ref().clone();
+            let mut path = binding.get_endpoint().as_ref().clone();
             if let Some(last_segment) = path.segments.last_mut() {
                 last_segment.ident = quote::format_ident!("__path_{}", last_segment.ident);
             }
@@ -1020,29 +1008,25 @@ impl syn::parse::Parse for domain_types::TypedRouteArgs {
                 );
             }
         };
-        Ok(Self {
-            authentication: authentication
+        Ok(Self::new(
+            authentication
                 .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_AUTHENTICATION))?,
             error_response,
             errors,
-            method: method
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_METHOD))?,
+            method.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_METHOD))?,
             mutation,
             obligations,
-            openapi_operation_id: openapi_operation_id
+            openapi_operation_id
                 .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_OPERATION_ID))?,
-            path: path.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_PATH))?,
+            path.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_PATH))?,
             path_parameter,
-            request: request
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_REQUEST))?,
+            request.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_REQUEST))?,
             request_body,
-            response: response
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_RESPONSE))?,
-            success_status: success_status
+            response.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_RESPONSE))?,
+            success_status
                 .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_SUCCESS_STATUS))?,
-            transport: transport
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_TRANSPORT))?,
-        })
+            transport.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_TRANSPORT))?,
+        ))
     }
 }
 
@@ -1074,7 +1058,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     };
     let visibility = derive_input.vis;
     let identifier = derive_input.ident;
-    let method = match args.method.into_inner() {
+    let method = match args.get_method().as_ref() {
         syn::Expr::Path(path_expression) => {
             match path_expression
                 .path
@@ -1128,14 +1112,14 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             .into();
         }
     };
-    let authentication = args.authentication.into_inner();
-    let mutation = args.mutation.map_or_else(
+    let authentication = args.get_authentication().as_ref();
+    let mutation = args.get_mutation().map_or_else(
         || quote::quote!(frontend_contract::domain_types::RouteMutation::ReadOnly),
         |value| quote::ToTokens::into_token_stream(value.as_ref()),
     );
-    let error_statuses = match args.errors {
+    let error_statuses = match args.get_errors() {
         domain_types::SynTypedRouteErrors::Policy(value) => {
-            let policy = value.into_inner();
+            let policy = value.as_ref();
             quote::quote!((#policy).statuses(#authentication, #mutation))
         }
         domain_types::SynTypedRouteErrors::Statuses(value) => {
@@ -1143,8 +1127,9 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
     };
     let (error_response_schema, error_response_schema_registration) = match args
-        .error_response
-        .map(domain_types::SynType::into_inner)
+        .get_error_response()
+        .as_ref()
+        .map(AsRef::<syn::Type>::as_ref)
     {
         Some(syn::Type::Tuple(tuple)) if tuple.elems.is_empty() => (
             quote::quote! {
@@ -1175,11 +1160,11 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             proc_macro2::TokenStream::new(),
         ),
     };
-    let obligations = args.obligations.map_or_else(
+    let obligations = args.get_obligations().map_or_else(
         || quote::quote!(&[]),
         |value| quote::ToTokens::into_token_stream(value.as_ref()),
     );
-    let literal_operation_name = match args.openapi_operation_id.as_ref() {
+    let literal_operation_name = match args.get_openapi_operation_id().as_ref() {
         syn::Expr::Lit(expression) => match &expression.lit {
             syn::Lit::Str(value) => Some(value.value()),
             _ => None,
@@ -1212,7 +1197,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         quote::format_ident!("{}_route", operation_name, span = identifier.span());
     let client_function_identifier =
         quote::format_ident!("{}_client", operation_name, span = identifier.span());
-    let openapi_operation_id = args.openapi_operation_id.into_inner();
+    let openapi_operation_id = args.get_openapi_operation_id().as_ref();
     let mut openapi_path_parameter = quote::quote!(None);
     let mut named_route_and_client = quote::quote! {
         #[must_use]
@@ -1234,11 +1219,11 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             client.send::<#identifier>(request).await
         }
     };
-    let parameterized_route = match args.path_parameter.as_ref() {
+    let parameterized_route = match args.get_path_parameter() {
         Some(parameter_type) => {
-            let syn::Expr::Lit(path_expression) = args.path.as_ref() else {
+            let syn::Expr::Lit(path_expression) = args.get_path().as_ref() else {
                 return syn::Error::new_spanned(
-                    args.path.as_ref(),
+                    args.get_path().as_ref(),
                     constants_str::TYPED_ROUTE_PARAMETER_PATH_MUST_BE_STRING_LITERAL,
                 )
                 .to_compile_error()
@@ -1328,14 +1313,14 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
         None => proc_macro2::TokenStream::new(),
     };
-    let path = args.path.into_inner();
-    let request = args.request.into_inner();
-    let request_body = args.request_body.map_or_else(
+    let path = args.get_path().as_ref();
+    let request = args.get_request().as_ref();
+    let request_body = args.get_request_body().map_or_else(
         || quote::quote!(frontend_contract::domain_types::RouteRequestBody::Absent),
         |value| quote::ToTokens::into_token_stream(value.as_ref()),
     );
-    let response = args.response.into_inner();
-    let response_schema = match &response {
+    let response = args.get_response().as_ref();
+    let response_schema = match response {
         syn::Type::Path(type_path)
             if type_path
                 .path
@@ -1351,7 +1336,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             Some(frontend_contract::domain_types::UtoipaOpenApiRouteSchema::from(<#response as utoipa::PartialSchema>::schema()))
         },
     };
-    let response_schema_registration = match &response {
+    let response_schema_registration = match response {
         syn::Type::Path(type_path)
             if type_path
                 .path
@@ -1365,8 +1350,8 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             frontend_contract::domain_types::register_openapi_schema::<#response>(components);
         },
     };
-    let success_status = args.success_status.into_inner();
-    let transport = args.transport.into_inner();
+    let success_status = args.get_success_status().as_ref();
+    let transport = args.get_transport().as_ref();
     quote::quote! {
         impl frontend_contract::domain_types::TypedRoute for #identifier {
             type Request = #request;
@@ -1844,14 +1829,15 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             .to_compile_error()
             .into();
         };
-        let route_args = match route_attribute.parse_args::<domain_types::RouteCatalogRouteArgs>() {
-            Ok(value) => value,
-            Err(error) => return error.to_compile_error().into(),
-        };
+        let mut route_args =
+            match route_attribute.parse_args::<domain_types::RouteCatalogRouteArgs>() {
+                Ok(value) => value,
+                Err(error) => return error.to_compile_error().into(),
+            };
         let variant_identifier = variant.ident;
-        match (route_args.route, variant.fields) {
+        match (route_args.get_route_mut().take(), variant.fields) {
             (Some(route), syn::Fields::Unit) => {
-                let route_type = route.into_inner();
+                let route_type = syn::Type::from(route);
                 contract_arms.push(quote::quote! {
                     Self::#variant_identifier => <#route_type as frontend_contract::domain_types::TypedRoute>::metadata().contract()
                 });
@@ -1865,7 +1851,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             (Some(route), syn::Fields::Unnamed(fields))
                 if fields.unnamed.len() == constants_usize::ONE =>
             {
-                let route_type = route.into_inner();
+                let route_type = syn::Type::from(route);
                 contract_arms.push(quote::quote! {
                     Self::#variant_identifier(_value) => <#route_type as frontend_contract::domain_types::TypedRoute>::metadata().contract()
                 });
@@ -1883,7 +1869,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 .into();
             }
             (None, syn::Fields::Unit) => {
-                let Some(contract) = route_args.contract else {
+                let Some(contract) = route_args.get_contract() else {
                     return syn::Error::new_spanned(
                         variant_identifier,
                         constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
@@ -1891,7 +1877,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                     .to_compile_error()
                     .into();
                 };
-                let Some(path) = route_args.path else {
+                let Some(path) = route_args.get_path() else {
                     return syn::Error::new_spanned(
                         variant_identifier,
                         constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
@@ -1899,8 +1885,8 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                     .to_compile_error()
                     .into();
                 };
-                let contract_expression = contract.into_inner();
-                let path_expression = path.into_inner();
+                let contract_expression = contract.as_ref();
+                let path_expression = path.as_ref();
                 let (wrapped_identifier, variant_name) =
                     snake_case_identifier(domain_types::SynIdent::from(variant_identifier));
                 let custom_identifier = wrapped_identifier.into_inner();
@@ -1935,7 +1921,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                         String::from(#path_expression)
                     ).unwrap_or_default()
                 });
-                if !route_args.exclude_from_family.get() {
+                if !route_args.get_exclude_from_family().get() {
                     return syn::Error::new_spanned(
                         custom_identifier,
                         constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
@@ -1955,8 +1941,8 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
         }
     }
     let identifier = derive_input.ident;
-    let family = args.family.into_inner();
-    let body_limit = args.body_limit.into_inner();
+    let family = args.get_family().as_ref();
+    let body_limit = args.get_body_limit().as_ref();
     let route_count = family_routes.len();
     let all = if all_variants_are_unit {
         let variant_count = all_variant_identifiers.len();
@@ -2164,28 +2150,28 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
         .collect::<Vec<_>>();
     let capabilities = pages
         .iter()
-        .map(|(_identifier, page)| page.capability.as_ref())
+        .map(|(_identifier, page)| page.get_capability().as_ref())
         .collect::<Vec<_>>();
     let paths = pages
         .iter()
-        .map(|(_identifier, page)| page.path.as_ref())
+        .map(|(_identifier, page)| page.get_path().as_ref())
         .collect::<Vec<_>>();
     let metadata = pages
         .iter()
-        .map(|(_identifier, page)| page.metadata.as_ref())
+        .map(|(_identifier, page)| page.get_metadata().as_ref())
         .collect::<Vec<_>>();
     let routes = pages
         .iter()
-        .map(|(_identifier, page)| page.route.as_ref())
+        .map(|(_identifier, page)| page.get_route().as_ref())
         .collect::<Vec<_>>();
     let titles = pages
         .iter()
-        .map(|(_identifier, page)| page.title.as_ref())
+        .map(|(_identifier, page)| page.get_title().as_ref())
         .collect::<Vec<_>>();
     let identifier = &input.ident;
-    let inventory = args.inventory.into_inner();
-    let path_ref = args.path_ref.into_inner();
-    let spec = args.spec.into_inner();
+    let inventory = args.get_inventory().as_ref();
+    let path_ref = args.get_path_ref().as_ref();
+    let spec = args.get_spec().as_ref();
     let indexes = (0..pages.len()).map(syn::Index::from);
     let count = pages.len();
     quote::quote! {

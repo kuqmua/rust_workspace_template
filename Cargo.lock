@@ -1365,6 +1365,7 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
+ "generate_accessor",
  "newtype",
  "optimal_memory_layout",
  "proc-macro2",
@@ -1497,6 +1498,18 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "generate_accessor"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "constants_usize",
+ "optimal_memory_layout",
+ "proc-macro2",
+ "quote",
+ "syn 3.0.4",
 ]
 
 [[package]]
@@ -2668,6 +2681,7 @@ dependencies = [
  "constants_i32",
  "constants_str",
  "constants_usize",
+ "generate_accessor",
  "macro_helpers",
  "newtype",
  "optimal_memory_layout",
@@ -2923,6 +2937,7 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
+ "generate_accessor",
  "optimal_memory_layout",
  "proc-macro2",
  "quote",
@@ -2975,6 +2990,7 @@ dependencies = [
  "constants_str",
  "frontend_contract",
  "frontend_contract_validation",
+ "generate_accessor",
  "git_info",
  "http",
  "metrics-exporter-prometheus",
@@ -3318,6 +3334,7 @@ dependencies = [
  "constants_u8",
  "constants_usize",
  "criterion",
+ "generate_accessor",
  "hmac",
  "location",
  "location_lib",
@@ -3357,6 +3374,7 @@ name = "pg_crud_macro_common"
 version = "0.1.0"
 dependencies = [
  "constants_str",
+ "generate_accessor",
  "generate_quotes",
  "macro_helpers",
  "naming",
@@ -4546,6 +4564,7 @@ dependencies = [
  "frontend_contract",
  "frontend_contract_validation",
  "futures",
+ "generate_accessor",
  "generate_pg_table",
  "git_info",
  "http",

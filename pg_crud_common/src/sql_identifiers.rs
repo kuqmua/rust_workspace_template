@@ -2,8 +2,15 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "split owner modules expose representation only within the crate"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct SqlIdentifiers(pub(crate) crate::domain_types::SqlIdentifierListText);
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_accessor::Getters,
+)]
+pub struct SqlIdentifiers(crate::domain_types::SqlIdentifierListText);
 
 impl TryFrom<Vec<crate::domain_types::SqlIdentifier>> for SqlIdentifiers {
     type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;

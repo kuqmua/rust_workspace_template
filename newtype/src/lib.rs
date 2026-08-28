@@ -24,12 +24,9 @@ fn derive_newtype_option(
             return domain_types::ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
         }
     };
-    let mut attrs = domain_types::NewtypeAttrs {
-        options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
-        to_err_string_mode,
-        try_from: None,
-    };
-    if let Err(error) = attrs.options.try_insert_with(option, || {
+    let mut attrs = domain_types::NewtypeAttrs::default();
+    *attrs.get_to_err_string_mode_mut() = to_err_string_mode;
+    if let Err(error) = attrs.get_options_mut().try_insert_with(option, || {
         syn::Error::new(
             proc_macro2::Span::call_site(),
             constants_str::DUPLICATE_NEWTYPE_OPTION,
@@ -512,14 +509,9 @@ pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::Toke
                     .into_compile_error(),
             );
         };
-        let attrs = domain_types::NewtypeAttrs {
-            options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
-            to_err_string_mode: None,
-            try_from: Some(domain_types::NewtypeTryFromAttrs {
-                error: error_opt,
-                validator,
-            }),
-        };
+        let mut attrs = domain_types::NewtypeAttrs::default();
+        *attrs.get_try_from_mut() =
+            Some(domain_types::NewtypeTryFromAttrs::new(error_opt, validator));
         match generate_newtype_token_stream_with_attrs(
             domain_types::SynDeriveInputRef::from(&input),
             &attrs,
@@ -685,8 +677,8 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
         .collect::<Vec<_>>();
     let identifier = &input.ident;
     let error_identifier = quote::format_ident!("{}TryFromStrError", identifier);
-    let error_message = attrs.error_message.into_inner();
-    let ref_type = attrs.ref_type.into_inner();
+    let error_message = attrs.get_error_message().as_ref();
+    let ref_type = attrs.get_ref_type().as_ref();
     let variant_count = identifiers.len();
     quote::quote! {
         impl #identifier {
@@ -1137,17 +1129,16 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let try_from_token_stream = attrs.try_from.as_ref().map(|try_from| {
+    let try_from_token_stream = attrs.get_try_from().map(|try_from| {
         let inferred_error = syn::Type::Path(syn::TypePath {
             attrs: Vec::new(),
             qself: None,
             path: syn::Path::from(quote::format_ident!("{identifier}Error")),
         });
         let error = try_from
-            .error
-            .as_ref()
+            .get_error()
             .map_or(&inferred_error, |value| value.as_ref());
-        let validator = &try_from.validator;
+        let validator = try_from.get_validator();
         quote::quote! {
             impl #impl_generics TryFrom<#inner_ty_ref> for #identifier #ty_generics #where_clause {
                 type Error = #error;
@@ -1262,7 +1253,9 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let to_err_string_token_stream = attrs.to_err_string_mode.map(|mode| match mode {
+    let to_err_string_token_stream = attrs
+        .get_to_err_string_mode()
+        .map(|mode| match mode {
         domain_types::ToErrStringMode::AsRefStr => {
             domain_types::ProcMacro2GeneratedTokenStream::from(quote::quote! {
                 impl to_err_string::domain_types::ToErrString for #identifier {
@@ -1339,76 +1332,70 @@ fn generate_bounded_string_token_stream(
         .iter()
         .filter(|attr| attr.path().is_ident(constants_str::BOUNDED_STRING))
         .try_fold(
-            domain_types::BoundedStringAttrs {
-                description: None,
-                max: None,
-                min: None,
-                options: workspace_macro_helpers::domain_types::UniqueOptionBTreeSet::default(),
-                validator: None,
-            },
+            domain_types::BoundedStringAttrs::default(),
             |mut parsed, attr| {
                 attr.parse_nested_meta(|meta| {
                     if meta.path.is_ident(constants_str::MAX) {
-                        parsed.max = Some(domain_types::SynExpr::from(
+                        *parsed.get_max_mut() = Some(domain_types::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::MIN) {
-                        parsed.min = Some(domain_types::SynExpr::from(
+                        *parsed.get_min_mut() = Some(domain_types::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::DESCRIPTION) {
-                        parsed.description = Some(domain_types::SynExpr::from(
+                        *parsed.get_description_mut() = Some(domain_types::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR) {
-                        if parsed.validator.is_some() {
+                        if parsed.get_validator().is_some() {
                             return Err(
                                 meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
                             );
                         }
-                        parsed.validator = Some(domain_types::SynExpr::from(
+                        *parsed.get_validator_mut() = Some(domain_types::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
                     if meta.path.is_ident(constants_str::CHARS) {
-                        return parsed.options.try_insert_with(
+                        return parsed.get_options_mut().try_insert_with(
                             domain_types::BoundedStringOption::Chars,
                             || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
                     if meta.path.is_ident(constants_str::NUL_FREE) {
-                        return parsed.options.try_insert_with(
+                        return parsed.get_options_mut().try_insert_with(
                             domain_types::BoundedStringOption::NulFree,
                             || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
                     if meta.path.is_ident(constants_str::SERDE) {
-                        return parsed.options.try_insert_with(
+                        return parsed.get_options_mut().try_insert_with(
                             domain_types::BoundedStringOption::Serde,
                             || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
                     if meta.path.is_ident(constants_str::TRIM) {
-                        return parsed.options.try_insert_with(
+                        return parsed.get_options_mut().try_insert_with(
                             domain_types::BoundedStringOption::Trim,
                             || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
                     if meta.path.is_ident(constants_str::UTOIPA) {
-                        return parsed.options.try_insert_with(
+                        return parsed.get_options_mut().try_insert_with(
                             domain_types::BoundedStringOption::Utoipa,
                             || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
                     if meta.path.is_ident(constants_str::WRITE_ONLY) {
-                        return parsed.options.try_insert_with(
+                        return parsed.get_options_mut().try_insert_with(
                             domain_types::BoundedStringOption::WriteOnly,
                             || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
@@ -1418,7 +1405,7 @@ fn generate_bounded_string_token_stream(
                 Ok::<domain_types::BoundedStringAttrs, syn::Error>(parsed)
             },
         )?;
-    if attrs.max.is_none() {
+    if attrs.get_max().is_none() {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
             constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
@@ -1440,19 +1427,16 @@ fn generate_bounded_string_token_stream(
     let identifier = &input_ref.ident;
     let vis = &input_ref.vis;
     let error_identifier = quote::format_ident!("{identifier}TryFromStringError");
-    let domain_types::BoundedStringAttrs {
-        description,
-        max: max_option,
-        min,
-        options,
-        validator,
-    } = attrs;
-    let max = max_option.ok_or_else(|| {
+    let description = attrs.get_description();
+    let max = attrs.get_max().ok_or_else(|| {
         syn::Error::new(
             proc_macro2::Span::call_site(),
             constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         )
     })?;
+    let min = attrs.get_min();
+    let options = attrs.get_options();
+    let validator = attrs.get_validator();
     let chars = options
         .contains(domain_types::BoundedStringOption::Chars)
         .get();
@@ -1478,9 +1462,8 @@ fn generate_bounded_string_token_stream(
             constants_str::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME,
         ));
     }
-    let min_token_stream = min.unwrap_or_else(|| {
-        domain_types::SynExpr::from(syn::Expr::Verbatim(quote::quote! { 0usize }))
-    });
+    let min_token_stream =
+        min.map_or_else(|| quote::quote! { 0usize }, |value| quote::quote! {#value});
     let normalize_token_stream =
         trim.then(|| quote::quote! { let value = value.trim().to_owned(); });
     let len_token_stream = if chars {

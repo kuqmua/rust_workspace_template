@@ -7,8 +7,10 @@ where
     Key: Eq + std::hash::Hash,
     AccessKey: Fn(&Value) -> Key,
 {
-    let mut seen = std::collections::HashSet::with_capacity(values.0.len());
-    values.0.retain(|value| seen.insert(access_key(value)));
+    let mut seen = std::collections::HashSet::with_capacity(values.get_inner().len());
+    values
+        .get_inner_mut()
+        .retain(|value| seen.insert(access_key(value)));
     values
 }
 

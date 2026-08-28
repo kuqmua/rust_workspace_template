@@ -13,7 +13,7 @@ pub fn generate_impl_all_variants_default_some_one_element_token_stream(
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (AllVariantsDefaultSomeOneElementSnakeCase,) =
-        (&names.AllVariantsDefaultSomeOneElementSnakeCase,);
+        (names.get_all_variants_default_some_one_element_snake_case(),);
     let path_trait_token_stream = import.all_variants_default_some_one_element();
     let all_enum_variants = import.all_enum_variants();
     quote::quote! {

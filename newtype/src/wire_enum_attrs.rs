@@ -2,9 +2,10 @@ use super::{SynExpr, SynIdentifier};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module consumes this parsed domain model
+#[derive(generate_accessor::Getters)]
 pub(crate) struct WireEnumAttrs {
-    pub(crate) error_message: SynExpr,
-    pub(crate) ref_type: SynIdentifier,
+    error_message: SynExpr,
+    ref_type: SynIdentifier,
 }
 impl syn::parse::Parse for WireEnumAttrs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {

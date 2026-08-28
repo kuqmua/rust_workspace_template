@@ -10,5 +10,6 @@
     Eq,
     PartialEq,
     newtype::FromInner,
+    generate_accessor::Getters,
 )]
-pub struct DateSqlBindStartNonZeroU32(pub(crate) std::num::NonZeroU32);
+pub struct DateSqlBindStartNonZeroU32(std::num::NonZeroU32);

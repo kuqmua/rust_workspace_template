@@ -5,8 +5,8 @@ impl From<syn::Ident> for SynIdentifier {
         Self(value)
     }
 }
-impl SynIdentifier {
-    pub(crate) fn into_inner(self) -> syn::Ident {
-        self.0
+impl AsRef<syn::Ident> for SynIdentifier {
+    fn as_ref(&self) -> &syn::Ident {
+        &self.0
     }
 }

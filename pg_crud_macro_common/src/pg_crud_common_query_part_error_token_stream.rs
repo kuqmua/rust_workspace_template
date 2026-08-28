@@ -10,6 +10,6 @@ pub fn pg_crud_common_query_part_error_token_stream()
     let names = NamesCtx::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
-    let (QueryPartErrorUpperCamelCase,) = (&names.QueryPartErrorUpperCamelCase,);
+    let (QueryPartErrorUpperCamelCase,) = (names.get_query_part_error_upper_camel_case(),);
     quote::quote! {pg_crud_common::domain_types::#QueryPartErrorUpperCamelCase}.into()
 }

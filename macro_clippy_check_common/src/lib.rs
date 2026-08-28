@@ -4,8 +4,8 @@ mod generated_crate_steps;
 #[cfg(feature = "test-utils")]
 impl Drop for generated_crate_steps::RemoveDirOnDrop {
     fn drop(&mut self) {
-        remove_dir_all_if_exists(&self.path, constants_str::E28698F2);
-        if let Some(parent) = self.path.parent()
+        remove_dir_all_if_exists(self.get_path(), constants_str::E28698F2);
+        if let Some(parent) = self.get_path().parent()
             && let Err(error) = std::fs::remove_dir(parent)
             && error.kind() != std::io::ErrorKind::NotFound
             && error.kind() != std::io::ErrorKind::DirectoryNotEmpty
@@ -33,9 +33,7 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
     remove_dir_all_if_exists(&crate_path, constants_str::E28698F2);
     std::fs::create_dir_all(crate_path.join(constants_str::SRC_ALT))
         .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
-    let _remove_dir_on_drop = generated_crate_steps::RemoveDirOnDrop {
-        path: crate_path.clone(),
-    };
+    let _remove_dir_on_drop = generated_crate_steps::RemoveDirOnDrop::new(crate_path.clone());
     let cargo_toml_cnt = format!(
         r#"[package]
 name = "{crate_name}"
@@ -234,7 +232,7 @@ mod tests {
         let path = dir.path().join(constants_str::CRATE_DIR);
         std::fs::create_dir_all(&path)
             .expect("9b0e24f1 remove_dir_on_drop_removes_temp_crate_dir invariant must hold");
-        let guard = super::generated_crate_steps::RemoveDirOnDrop { path: path.clone() };
+        let guard = super::generated_crate_steps::RemoveDirOnDrop::new(path.clone());
         drop(guard);
         assert!(!path.exists());
     }

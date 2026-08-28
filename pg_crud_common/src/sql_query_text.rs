@@ -2,8 +2,14 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "split owner modules expose representation only within the crate"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-pub(crate) struct SqlQueryText(pub(crate) String);
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    newtype::IntoInnerFrom,
+    generate_accessor::Getters,
+)]
+#[getters(get_mut)]
+pub(crate) struct SqlQueryText(String);
 
 impl From<crate::domain_types::PgCrudStringWrapperTryFromStringError> for SqlQueryText {
     fn from(value: crate::domain_types::PgCrudStringWrapperTryFromStringError) -> Self {

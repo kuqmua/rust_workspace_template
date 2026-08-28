@@ -13,7 +13,7 @@ pub fn generate_impl_all_variants_default_some_one_element_max_page_size_token_s
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,) =
-        (&names.AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,);
+        (names.get_all_variants_default_some_one_element_max_page_size_snake_case(),);
     let path_trait_token_stream = import.all_variants_default_some_one_element_max_page_size();
     let all_enum_variants = import.all_enum_variants();
     let all_variants_default_some_one_element_max_page_size_snake_case =

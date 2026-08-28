@@ -26,6 +26,7 @@ members = [
   "frontend_contract_macros",
   "frontend_contract_validation",
   "fuzz",
+  "generate_accessor",
   "generate_quotes",
   "git_info",
   "init_env_files",
@@ -320,6 +321,7 @@ frontend_contract_validation = { path = "./frontend_contract_validation" }
 frontend_contract_macros = { path = "./frontend_contract_macros" }
 generate_derive_token_stream_builder = { path = "./macro_helpers_generate_derive_token_stream_builder" }
 generate_accessor_traits_for_struct_fields = { path = "./config_lib_generate_accessor_traits_for_struct_fields" }
+generate_accessor = { path = "./generate_accessor" }
 generate_pg_table = { path = "./pg_crud_pg_table_generate" }
 generate_pg_table_src = { path = "./pg_crud_pg_table_generate_src", default-features = false }
 generate_pg_types = { path = "./pg_crud_pg_types_generate" }

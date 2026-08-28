@@ -6,44 +6,39 @@ pub(crate) async fn query_audit_log(
 ) -> Result<server_admin_contract::domain_types::AdminAuditPage, super::AdminRepositoryError> {
     let parts = query.into_parts();
     let action_text = parts
-        .action
+        .get_action()
+        .copied()
         .map(crate::domain_types::AdminAuditAction::as_str);
     let resource_text = parts
-        .resource
+        .get_resource()
+        .copied()
         .map(crate::domain_types::AdminAuditResource::as_str);
-    let limit = usize::from(u16::from(parts.limit));
+    let limit = usize::from(u16::from(*parts.get_limit()));
     let fetch_limit = i64::try_from(limit.saturating_add(constants_usize::ONE))
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
     let total =
         sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
-            .bind(parts.user_id.map(crate::domain_types::AdminUserId::get))
+            .bind(
+                parts
+                    .get_user_id()
+                    .copied()
+                    .map(crate::domain_types::AdminUserId::get),
+            )
             .bind(action_text.map(|value| value.as_ref().to_owned()))
             .bind(resource_text.map(|value| value.as_ref().to_owned()))
             .bind(
                 parts
-                    .created_after
-                    .as_ref()
+                    .get_created_after()
                     .map(|value| value.as_ref().as_str()),
             )
             .bind(
                 parts
-                    .created_before
-                    .as_ref()
+                    .get_created_before()
                     .map(|value| value.as_ref().as_str()),
             )
-            .bind(
-                parts
-                    .user_login
-                    .as_ref()
-                    .map(|value| value.as_ref().as_str()),
-            )
-            .bind(
-                parts
-                    .resource_id
-                    .as_ref()
-                    .map(|value| value.as_ref().as_str()),
-            )
-            .bind(parts.succeeded.map(bool::from))
+            .bind(parts.get_user_login().map(|value| value.as_ref().as_str()))
+            .bind(parts.get_resource_id().map(|value| value.as_ref().as_str()))
+            .bind(parts.get_succeeded().copied().map(bool::from))
             .fetch_one(pool.0)
             .await
             .map_err(crate::domain_types::SqlxAdminError::from)?;
@@ -61,43 +56,35 @@ pub(crate) async fn query_audit_log(
             String,
         ),
     >(constants_str::SERVER_ADMIN_PAGE_AUDIT_LOG_SQL)
-    .bind(parts.user_id.map(crate::domain_types::AdminUserId::get))
+    .bind(
+        parts
+            .get_user_id()
+            .copied()
+            .map(crate::domain_types::AdminUserId::get),
+    )
     .bind(action_text.map(|value| value.as_ref().to_owned()))
     .bind(resource_text.map(|value| value.as_ref().to_owned()))
     .bind(
         parts
-            .created_after
-            .as_ref()
+            .get_created_after()
             .map(|value| value.as_ref().as_str()),
     )
     .bind(
         parts
-            .created_before
-            .as_ref()
+            .get_created_before()
             .map(|value| value.as_ref().as_str()),
     )
     .bind(
         parts
-            .cursor_created_at
-            .as_ref()
+            .get_cursor_created_at()
             .map(|value| value.as_ref().as_str()),
     )
-    .bind(parts.cursor_id.map(i64::from))
-    .bind(
-        parts
-            .user_login
-            .as_ref()
-            .map(|value| value.as_ref().as_str()),
-    )
-    .bind(
-        parts
-            .resource_id
-            .as_ref()
-            .map(|value| value.as_ref().as_str()),
-    )
-    .bind(parts.succeeded.map(bool::from))
+    .bind(parts.get_cursor_id().copied().map(i64::from))
+    .bind(parts.get_user_login().map(|value| value.as_ref().as_str()))
+    .bind(parts.get_resource_id().map(|value| value.as_ref().as_str()))
+    .bind(parts.get_succeeded().copied().map(bool::from))
     .bind(fetch_limit)
-    .bind(i64::from(u32::from(parts.offset)))
+    .bind(i64::from(u32::from(*parts.get_offset())))
     .fetch_all(pool.0)
     .await
     .map_err(crate::domain_types::SqlxAdminError::from)?;

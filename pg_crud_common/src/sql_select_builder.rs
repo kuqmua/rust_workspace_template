@@ -10,21 +10,25 @@ impl SqlSelectBuilder {
         let fixed_len = constants_str::SELECT
             .len()
             .saturating_add(constants_str::FROM.len())
-            .saturating_add(self.table.schema.as_ref().len())
+            .saturating_add(self.table.get_schema().as_ref().len())
             .saturating_add(constants_str::DOT.len())
-            .saturating_add(self.table.table.as_ref().len());
-        let columns = self.columns.0.0.as_str();
+            .saturating_add(self.table.get_table().as_ref().len());
+        let columns = self.columns.get_inner().get_inner().as_str();
         let capacity = fixed_len.saturating_add(columns.len());
         let mut query =
             crate::domain_types::SqlQueryText::try_from(String::with_capacity(capacity))
                 .unwrap_or_else(crate::domain_types::SqlQueryText::from);
-        query.0.push_str(constants_str::SELECT);
-        query.0.push_str(columns);
-        query.0.push_str(constants_str::FROM);
-        query.0.push_str(self.table.schema.as_ref());
-        query.0.push('.');
-        query.0.push_str(self.table.table.as_ref());
-        crate::domain_types::QueryPartFragment::try_from(query.0)
+        query.get_inner_mut().push_str(constants_str::SELECT);
+        query.get_inner_mut().push_str(columns);
+        query.get_inner_mut().push_str(constants_str::FROM);
+        query
+            .get_inner_mut()
+            .push_str(self.table.get_schema().as_ref());
+        query.get_inner_mut().push('.');
+        query
+            .get_inner_mut()
+            .push_str(self.table.get_table().as_ref());
+        crate::domain_types::QueryPartFragment::try_from(String::from(query))
             .unwrap_or_else(crate::domain_types::QueryPartFragment::from)
     }
 

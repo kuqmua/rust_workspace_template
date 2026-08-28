@@ -5,11 +5,13 @@ use super::{StdBool, SynType};
     clippy::struct_excessive_bools,
     reason = "each flag independently opts one field into a distinct generated method"
 )]
+#[derive(generate_accessor::Getters)]
+#[getters(get_mut)]
 pub(crate) struct ContractStructApiFieldArgs {
-    pub(crate) slice: Option<SynType>,
-    pub(crate) borrow: StdBool,
-    pub(crate) copy: StdBool,
-    pub(crate) copy_ref: StdBool,
-    pub(crate) into: StdBool,
-    pub(crate) option_borrow: StdBool,
+    slice: Option<SynType>,
+    borrow: StdBool,
+    copy: StdBool,
+    copy_ref: StdBool,
+    into: StdBool,
+    option_borrow: StdBool,
 }

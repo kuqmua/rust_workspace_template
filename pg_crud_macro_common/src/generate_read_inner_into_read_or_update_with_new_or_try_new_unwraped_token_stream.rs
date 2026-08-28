@@ -10,7 +10,7 @@ pub(super) fn generate_read_inner_into_read_or_update_with_new_or_try_new_unwrap
         non_snake_case,
         reason = "generated Rust identifiers intentionally mirror emitted naming tokens"
     )]
-    let (VSnakeCase,) = (&names.VSnakeCase,);
+    let (VSnakeCase,) = (names.get_v_snake_case(),);
     quote::quote! {
         fn #method_name_token_stream(
             #VSnakeCase: #type_token_stream

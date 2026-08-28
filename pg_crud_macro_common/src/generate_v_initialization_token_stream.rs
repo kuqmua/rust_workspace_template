@@ -11,6 +11,6 @@ pub fn generate_v_initialization_token_stream(
     let names = NamesCtx::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
-    let (VSnakeCase,) = (&names.VSnakeCase,);
+    let (VSnakeCase,) = (names.get_v_snake_case(),);
     quote::quote! {#import::V { #VSnakeCase: #ts }}.into()
 }

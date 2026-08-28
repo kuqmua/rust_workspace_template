@@ -16,8 +16,8 @@ fn contract_struct_api_attributes_are_explicit() {
     ) else {
         panic!("edc94d17");
     };
-    assert!(bool::from(args.new));
-    assert!(bool::from(args.into_parts));
+    assert!(bool::from(*args.get_new()));
+    assert!(bool::from(*args.get_into_parts()));
     let syn::Data::Struct(data) = input.data else {
         panic!("eb3fcd83");
     };
@@ -33,9 +33,9 @@ fn contract_struct_api_attributes_are_explicit() {
             )
             .map(|field_args| {
                 (
-                    bool::from(field_args.borrow),
-                    bool::from(field_args.copy),
-                    bool::from(field_args.into),
+                    bool::from(*field_args.get_borrow()),
+                    bool::from(*field_args.get_copy()),
+                    bool::from(*field_args.get_into()),
                 )
             })
         })
@@ -132,10 +132,10 @@ fn route_registry_args_parse_family_and_bindings() {
     let Ok(args) = result else {
         panic!("6282e207");
     };
-    assert_eq!(args.bindings.as_ref().len(), constants_usize::ONE);
-    assert_eq!(args.schemas.as_ref().len(), constants_usize::ONE);
+    assert_eq!(args.get_bindings().as_ref().len(), constants_usize::ONE);
+    assert_eq!(args.get_schemas().as_ref().len(), constants_usize::ONE);
     assert_eq!(
-        quote::ToTokens::to_token_stream(args.family.as_ref()).to_string(),
+        quote::ToTokens::to_token_stream(args.get_family().as_ref()).to_string(),
         constants_str::FAMILY_UPPER_CAMEL_CASE
     );
 }

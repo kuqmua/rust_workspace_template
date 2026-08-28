@@ -12,7 +12,7 @@ pub fn generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(
     let names = NamesCtx::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
-    let (ValueSnakeCase,) = (&names.ValueSnakeCase,);
+    let (ValueSnakeCase,) = (names.get_value_snake_case(),);
     quote::quote! {
         impl sqlx::Decode<'_, sqlx::Postgres> for #identifier_token_stream {
             fn decode(#ValueSnakeCase: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {

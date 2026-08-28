@@ -2,14 +2,25 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "split owner modules expose representation only within the crate"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Default)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    generate_accessor::Getters,
+)]
+#[getters(get_mut)]
 pub struct DateFilterBounds<'value_lt> {
-    pub(crate) created_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-    pub(crate) created_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-    pub(crate) updated_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-    pub(crate) updated_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
+    created_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
+    created_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
+    updated_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
+    updated_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
 }
-
+#[allow(
+    dead_code,
+    reason = "field access is intentionally encapsulated behind uniform getters"
+)]
 impl<'value_lt> DateFilterBounds<'value_lt> {
     #[must_use]
     pub const fn new(

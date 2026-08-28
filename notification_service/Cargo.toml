@@ -21,6 +21,7 @@ axum = { workspace = true }
 common_routes = { workspace = true }
 config_lib = { workspace = true }
 frontend_contract = { workspace = true }
+generate_accessor = { workspace = true }
 git_info = { workspace = true }
 http = { workspace = true }
 metrics-exporter-prometheus = { workspace = true }

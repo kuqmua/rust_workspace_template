@@ -149,6 +149,34 @@ pub(super) struct SerdeJsonValueTypeVisitor {
 pub(super) struct PublicStructFieldVisitor {
     pub violations: super::types::DiagnosticMsgs,
 }
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+pub(super) struct CrateVisibleStructFieldVisitor {
+    pub violations: super::types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for CrateVisibleStructFieldVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        i.fields
+            .iter()
+            .enumerate()
+            .filter(|(_, field)| {
+                matches!(
+                    &field.vis,
+                    syn::Visibility::Restricted(visibility)
+                        if visibility
+                            .path
+                            .is_ident(constants_str::CODE_STYLE_CRATE_VISIBILITY_PATH)
+                )
+            })
+            .for_each(|(index, field)| {
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .map_or_else(|| index.to_string(), ToString::to_string);
+                self.violations.push(format!("{}::{field_name}", i.ident));
+            });
+        syn::visit::visit_item_struct(self, i);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for PublicStructFieldVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if super::has_test_only_cfg_attr(super::types::SynItemRef::from(&syn::Item::Struct(

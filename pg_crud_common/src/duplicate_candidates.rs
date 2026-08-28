@@ -10,5 +10,7 @@
     Eq,
     newtype::FromInner,
     newtype::IntoInnerFrom,
+    generate_accessor::Getters,
 )]
-pub struct DuplicateCandidates<T>(pub(crate) Vec<T>);
+#[getters(get_mut)]
+pub struct DuplicateCandidates<T>(Vec<T>);

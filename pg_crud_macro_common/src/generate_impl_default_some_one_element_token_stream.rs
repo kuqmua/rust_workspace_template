@@ -14,7 +14,7 @@ pub fn generate_impl_default_some_one_element_token_stream(
     let names = NamesCtx::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
-    let (DefaultSomeOneElementSnakeCase,) = (&names.DefaultSomeOneElementSnakeCase,);
+    let (DefaultSomeOneElementSnakeCase,) = (names.get_default_some_one_element_snake_case(),);
     let path_trait_token_stream = import.default_some_one_element();
     quote::quote! {
         impl #impl_generic_token_stream #path_trait_token_stream for #identifier #identifier_generic_token_stream {

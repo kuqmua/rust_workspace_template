@@ -324,6 +324,8 @@ mod sqlx_postgres_query;
 mod string_test_cases_vec;
 #[path = "take_fst_dup.rs"]
 mod take_fst_dup;
+#[path = "take_fst_dup_by.rs"]
+mod take_fst_dup_by;
 #[path = "take_fst_dup_by_hash.rs"]
 mod take_fst_dup_by_hash;
 #[path = "transaction_failure.rs"]
@@ -539,6 +541,7 @@ pub use sqlx_postgres_query::SqlxPostgresQuery;
 #[cfg(feature = "test-utils")]
 pub use string_test_cases_vec::string_test_cases_vec;
 pub use take_fst_dup::take_fst_dup;
+pub(crate) use take_fst_dup_by::take_fst_dup_by;
 pub use take_fst_dup_by_hash::take_fst_dup_by_hash;
 pub use transaction_failure::TransactionFailure;
 #[cfg(feature = "test-utils")]
