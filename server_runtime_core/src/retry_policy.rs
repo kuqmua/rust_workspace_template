@@ -1,4 +1,12 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_constructor::New,
+)]
 pub struct RetryPolicy {
     attempts: super::RetryAttemptsNonZeroUsize,
     delay: Option<super::RetryDelayDuration>,
@@ -13,13 +21,5 @@ impl RetryPolicy {
     #[must_use]
     pub const fn delay(self) -> Option<super::RetryDelayDuration> {
         self.delay
-    }
-
-    #[must_use]
-    pub const fn new(
-        attempts: super::RetryAttemptsNonZeroUsize,
-        delay: Option<super::RetryDelayDuration>,
-    ) -> Self {
-        Self { attempts, delay }
     }
 }

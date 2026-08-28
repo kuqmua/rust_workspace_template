@@ -16,6 +16,7 @@ proc-macro = true
 [dependencies]
 constants_usize = { workspace = true }
 generate_accessor = { workspace = true }
+generate_constructor = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 proc-macro2 = { workspace = true }

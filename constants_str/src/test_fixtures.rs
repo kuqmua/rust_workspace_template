@@ -434,6 +434,9 @@ pub const GETTERS_REQUIRES_NAMED_OR_SINGLE_FIELD: &str =
     "Getters requires named fields or a single tuple field";
 pub const GETTERS_REQUIRES_STRUCT: &str = "Getters can only be derived for structs";
 pub const GETTERS_UNSUPPORTED_ATTRIBUTE: &str = "unsupported getters attribute";
+pub const CONSTRUCTOR_ATTRIBUTE: &str = "constructor";
+pub const CONSTRUCTOR_REQUIRES_NAMED_FIELDS: &str = "New requires a struct with named fields";
+pub const CONSTRUCTOR_REQUIRES_STRUCT: &str = "New can only be derived for structs";
 pub const OPTION_TYPE: &str = "Option";
 pub const CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT: &str = "from =";
 pub const CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT: &str = "try_from =";

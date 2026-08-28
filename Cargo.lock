@@ -1080,6 +1080,7 @@ name = "dev_identity_creation_planner"
 version = "0.1.0"
 dependencies = [
  "constants_usize",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "server_runtime_http",
@@ -1267,6 +1268,7 @@ dependencies = [
  "constants_str",
  "constants_u64",
  "constants_usize",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "text_policy",
@@ -1349,6 +1351,7 @@ dependencies = [
  "constants_usize",
  "frontend_contract_macros",
  "futures",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "percent-encoding",
@@ -1366,6 +1369,7 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "generate_accessor",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "proc-macro2",
@@ -1518,6 +1522,17 @@ version = "0.1.0"
 dependencies = [
  "naming_common",
  "panic_location",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "generate_constructor"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "optimal_memory_layout",
+ "proc-macro2",
  "quote",
  "syn 3.0.4",
 ]
@@ -2682,6 +2697,7 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "generate_accessor",
+ "generate_constructor",
  "macro_helpers",
  "newtype",
  "optimal_memory_layout",
@@ -2938,6 +2954,7 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "generate_accessor",
+ "generate_constructor",
  "optimal_memory_layout",
  "proc-macro2",
  "quote",
@@ -3029,6 +3046,7 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "frontend_contract",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "serde",
@@ -3335,6 +3353,7 @@ dependencies = [
  "constants_usize",
  "criterion",
  "generate_accessor",
+ "generate_constructor",
  "hmac",
  "location",
  "location_lib",
@@ -4611,6 +4630,7 @@ dependencies = [
  "constants_u16",
  "constants_usize",
  "frontend_contract",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "serde",
@@ -4792,6 +4812,7 @@ dependencies = [
  "constants_u64",
  "constants_u8",
  "constants_usize",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "thiserror 2.0.20",
@@ -4812,6 +4833,7 @@ dependencies = [
  "constants_u8",
  "constants_usize",
  "cookie",
+ "generate_constructor",
  "geojson",
  "http",
  "ipnet",

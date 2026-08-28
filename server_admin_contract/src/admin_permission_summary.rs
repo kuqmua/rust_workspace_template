@@ -5,19 +5,13 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
+    generate_constructor::New,
 )]
 pub struct AdminPermissionSummary {
     id: crate::domain_types::AdminPermissionId,
     name: crate::domain_types::AdminPermissionValue,
 }
 impl AdminPermissionSummary {
-    #[must_use]
-    pub const fn new(
-        id: crate::domain_types::AdminPermissionId,
-        name: crate::domain_types::AdminPermissionValue,
-    ) -> Self {
-        Self { id, name }
-    }
     #[must_use]
     pub const fn id(&self) -> crate::domain_types::AdminPermissionId {
         self.id

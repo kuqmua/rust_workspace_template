@@ -7,6 +7,7 @@
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
+    generate_constructor::New,
 )]
 #[serde(deny_unknown_fields)]
 pub struct CreateNotificationReq {
@@ -17,9 +18,5 @@ impl CreateNotificationReq {
     #[must_use]
     pub fn into_message(self) -> super::NotificationMessage {
         self.message
-    }
-    #[must_use]
-    pub const fn new(message: super::NotificationMessage) -> Self {
-        Self { message }
     }
 }

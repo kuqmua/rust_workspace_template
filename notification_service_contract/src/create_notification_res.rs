@@ -8,6 +8,7 @@
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
+    generate_constructor::New,
 )]
 pub struct CreateNotificationRes {
     id: super::UuidNotificationId,
@@ -17,9 +18,5 @@ impl CreateNotificationRes {
     #[must_use]
     pub const fn id(&self) -> super::UuidNotificationId {
         self.id
-    }
-    #[must_use]
-    pub const fn new(id: super::UuidNotificationId) -> Self {
-        Self { id }
     }
 }

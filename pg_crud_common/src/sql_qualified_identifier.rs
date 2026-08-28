@@ -9,25 +9,12 @@
     Eq,
     PartialEq,
     generate_accessor::Getters,
+    generate_constructor::New,
 )]
 pub struct SqlQualifiedIdentifier {
     schema: crate::domain_types::SqlIdentifier,
     table: crate::domain_types::SqlIdentifier,
 }
-#[allow(
-    dead_code,
-    reason = "field access is intentionally encapsulated behind uniform getters"
-)]
-impl SqlQualifiedIdentifier {
-    #[must_use]
-    pub const fn new(
-        schema: crate::domain_types::SqlIdentifier,
-        table: crate::domain_types::SqlIdentifier,
-    ) -> Self {
-        Self { schema, table }
-    }
-}
-
 impl std::fmt::Display for SqlQualifiedIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.schema.as_ref())?;

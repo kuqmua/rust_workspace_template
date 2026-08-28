@@ -5,6 +5,7 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
+    generate_constructor::New,
 )]
 #[serde(deny_unknown_fields)]
 pub struct AdminSignInReq {
@@ -12,13 +13,6 @@ pub struct AdminSignInReq {
     password: crate::domain_types::AdminPassword,
 }
 impl AdminSignInReq {
-    #[must_use]
-    pub const fn new(
-        login: crate::domain_types::AdminLogin,
-        password: crate::domain_types::AdminPassword,
-    ) -> Self {
-        Self { login, password }
-    }
     #[must_use]
     pub const fn login(&self) -> &crate::domain_types::AdminLogin {
         &self.login

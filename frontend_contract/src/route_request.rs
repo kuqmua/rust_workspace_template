@@ -1,6 +1,13 @@
 use super::TypedRoute;
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_constructor::New,
+)]
 pub struct RouteRequest<Route>
 where
     Route: TypedRoute,
@@ -11,10 +18,6 @@ impl<Route> RouteRequest<Route>
 where
     Route: TypedRoute,
 {
-    #[must_use]
-    pub const fn new(body: Route::Request) -> Self {
-        Self { body }
-    }
     #[must_use]
     pub const fn body(&self) -> &Route::Request {
         &self.body

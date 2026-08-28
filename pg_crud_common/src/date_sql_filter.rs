@@ -9,7 +9,9 @@
     Eq,
     PartialEq,
     generate_accessor::Getters,
+    generate_constructor::New,
 )]
+#[constructor(pub(crate))]
 pub struct DateSqlFilter {
     fragment: crate::domain_types::QueryPartFragment,
     values: crate::domain_types::ChronoUtcDateTimes,
@@ -27,15 +29,5 @@ impl DateSqlFilter {
         crate::domain_types::ChronoUtcDateTimes,
     ) {
         (self.fragment, self.values)
-    }
-    #[allow(
-        clippy::single_call_fn,
-        reason = "constructor keeps private field initialization inside the domain type"
-    )]
-    pub(crate) const fn new(
-        fragment: crate::domain_types::QueryPartFragment,
-        values: crate::domain_types::ChronoUtcDateTimes,
-    ) -> Self {
-        Self { fragment, values }
     }
 }

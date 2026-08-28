@@ -12,6 +12,7 @@ keywords = ["admin", "contract"]
 categories = ["web-programming"]
 
 [dependencies]
+generate_constructor = { workspace = true }
 constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }

@@ -1,5 +1,9 @@
 const _: usize = constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct GeneratedGettersFixture {
     value: u8,
 }

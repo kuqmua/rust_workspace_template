@@ -5,6 +5,7 @@
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
+    generate_constructor::New,
 )]
 pub struct AdminSessionsPage {
     items: super::super::AdminSessionViews,
@@ -12,13 +13,6 @@ pub struct AdminSessionsPage {
     total: super::super::AdminPageTotal,
 }
 impl AdminSessionsPage {
-    #[must_use]
-    pub const fn new(
-        items: super::super::AdminSessionViews,
-        total: super::super::AdminPageTotal,
-    ) -> Self {
-        Self { items, total }
-    }
     #[must_use]
     pub const fn items(&self) -> &[super::admin_session_view::AdminSessionView] {
         self.items.as_slice()

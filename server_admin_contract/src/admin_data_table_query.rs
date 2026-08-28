@@ -8,6 +8,7 @@ use super::{AdminDataTableFilterQuery, AdminTableQuery};
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
+    generate_constructor::New,
 )]
 pub struct AdminDataTableQuery {
     #[serde(flatten)]
@@ -29,10 +30,6 @@ impl utoipa::IntoParams for AdminDataTableQuery {
     }
 }
 impl AdminDataTableQuery {
-    #[must_use]
-    pub const fn new(filter: AdminDataTableFilterQuery, page: AdminTableQuery) -> Self {
-        Self { filter, page }
-    }
     #[must_use]
     pub const fn filter(&self) -> &AdminDataTableFilterQuery {
         &self.filter
