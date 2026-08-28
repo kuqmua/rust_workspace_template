@@ -2399,7 +2399,7 @@ constants_str_macros::define_str_constants! {
         UPGRADE_REQUIRED_426 = ["upgrade_required_426"];
         UPPER = ["upper"];
         URI_TOO_LONG_414 = ["uri_too_long_414"];
-        USE_IMPORTS_FOUND_OUTSIDE_EXPLICIT_FACADE_RE_EXPORT_FILES_PREFER_EXPLICIT_PATHS = ["use imports found outside explicit facade re-export files; prefer explicit paths at usage sites:"];
+        FORBIDDEN_PUBLIC_REEXPORTS_OR_PRIVATE_IMPORTS_FOUND_PREFER_EXPLICIT_PATHS = ["forbidden public re-exports or private imports found; prefer explicit paths at usage sites:"];
         USE_PROXY_305 = ["use_proxy_305"];
         USER = ["user"];
         USER_ID = ["user_id"];

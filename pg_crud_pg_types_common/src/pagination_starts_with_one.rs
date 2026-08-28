@@ -1,5 +1,3 @@
-use crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw;
-
 #[derive(
     Debug,
     Clone,
@@ -13,40 +11,47 @@ use crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw;
     schemars::JsonSchema,
     optimal_memory_layout::OptimalMemoryLayout,
 )]
-#[serde(try_from = "PaginationStartsWithOneRaw")]
+#[serde(try_from = "crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw")]
 #[derive(newtype::FromInner)]
 pub struct PaginationStartsWithOne(pg_crud_common::domain_types::PaginationBase);
 
 impl PaginationStartsWithOne {
     #[must_use]
-    pub fn end(&self) -> crate::domain_types::PaginationStartsWithOneValue {
-        crate::domain_types::PaginationStartsWithOneValue::from(self.0.end().get())
+    pub fn end(&self) -> crate::pagination_starts_with_one_value::PaginationStartsWithOneValue {
+        crate::pagination_starts_with_one_value::PaginationStartsWithOneValue::from(
+            self.0.end().get(),
+        )
     }
     #[must_use]
-    pub fn start(&self) -> crate::domain_types::PaginationStartsWithOneValue {
-        crate::domain_types::PaginationStartsWithOneValue::from(self.0.start().get())
+    pub fn start(&self) -> crate::pagination_starts_with_one_value::PaginationStartsWithOneValue {
+        crate::pagination_starts_with_one_value::PaginationStartsWithOneValue::from(
+            self.0.start().get(),
+        )
     }
     pub fn try_new<L, O>(
         limit: L,
         offset: O,
-    ) -> Result<Self, crate::domain_types::PaginationStartsWithOneTryNewError>
+    ) -> Result<
+        Self,
+        crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError,
+    >
     where
-        L: Into<crate::domain_types::PaginationStartsWithOneValue>,
-        O: Into<crate::domain_types::PaginationStartsWithOneValue>,
+        L: Into<crate::pagination_starts_with_one_value::PaginationStartsWithOneValue>,
+        O: Into<crate::pagination_starts_with_one_value::PaginationStartsWithOneValue>,
     {
         let limit_value = limit.into();
         let offset_value = offset.into();
         if limit_value.get() <= 0 || offset_value.get() < 1 {
             if limit_value.get() <= 0 {
                 Err(
-                    crate::domain_types::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero {
+                    crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero {
                         limit: limit_value,
                         location: location_macros::location!(),
                     },
                 )
             } else {
                 Err(
-                    crate::domain_types::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne {
+                    crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne {
                         offset: offset_value,
                         location: location_macros::location!(),
                     },
@@ -61,7 +66,7 @@ impl PaginationStartsWithOne {
             ))
         } else {
             Err(
-                crate::domain_types::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow {
+                crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow {
                     limit: limit_value,
                     offset: offset_value,
                     location: location_macros::location!(),
@@ -71,9 +76,14 @@ impl PaginationStartsWithOne {
     }
 }
 
-impl TryFrom<PaginationStartsWithOneRaw> for PaginationStartsWithOne {
-    type Error = crate::domain_types::PaginationStartsWithOneTryNewError;
-    fn try_from(v: PaginationStartsWithOneRaw) -> Result<Self, Self::Error> {
+impl TryFrom<crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw>
+    for PaginationStartsWithOne
+{
+    type Error =
+        crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError;
+    fn try_from(
+        v: crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw,
+    ) -> Result<Self, Self::Error> {
         Self::try_new(v.limit, v.offset)
     }
 }
@@ -121,5 +131,51 @@ impl pg_crud_common::domain_types::DefaultSomeOneElementMaxPageSize for Paginati
             i32::MAX - one,
             one,
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn pagination_starts_with_one_accepts_inclusive_boundaries() {
+        let pagination = super::PaginationStartsWithOne::try_new(2i64, constants_i64::ONE).expect(
+            "007c805e pagination_starts_with_one_accepts_inclusive_boundaries invariant must hold",
+        );
+        assert_eq!(pagination.start().get(), constants_i64::ONE);
+        assert_eq!(pagination.end().get(), 3i64);
+    }
+
+    #[test]
+    fn pagination_starts_with_one_distinguishes_validation_errors() {
+        assert!(matches!(
+            super::PaginationStartsWithOne::try_new(constants_i64::ZERO, constants_i64::ONE),
+            Err(crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero { .. })
+        ));
+        assert!(matches!(
+            super::PaginationStartsWithOne::try_new(constants_i64::ONE, constants_i64::ZERO),
+            Err(crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne { .. })
+        ));
+        assert!(matches!(
+            super::PaginationStartsWithOne::try_new(constants_i64::ONE, i64::MAX),
+            Err(crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow { .. })
+        ));
+    }
+
+    #[test]
+    fn pagination_defaults_start_at_one_and_use_the_expected_limits() {
+        let standard =
+            <super::PaginationStartsWithOne as pg_crud_common::domain_types::DefaultSomeOneElement>::default_some_one_element();
+        assert_eq!(standard.start().get(), constants_i64::ONE);
+        assert_eq!(
+            standard.end().get(),
+            pg_crud_common::domain_types::PaginationPolicy::standard()
+                .default_limit()
+                .get()
+                + constants_i64::ONE
+        );
+        let maximum =
+            <super::PaginationStartsWithOne as pg_crud_common::domain_types::DefaultSomeOneElementMaxPageSize>::default_some_one_element_max_page_size();
+        assert_eq!(maximum.start().get(), constants_i64::ONE);
+        assert_eq!(maximum.end().get(), i64::from(i32::MAX));
     }
 }

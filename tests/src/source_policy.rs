@@ -719,10 +719,6 @@ fn retained_path_exception_inventories_are_exact_justified_unique_and_current() 
         constants_str::CODE_STYLE_RUNTIME_ARC_OWNER_REASONS.as_slice(),
     );
     validate(
-        constants_str::CODE_STYLE_FACADE_REEXPORT_SUFFIXES.as_slice(),
-        constants_str::CODE_STYLE_FACADE_REEXPORT_REASONS.as_slice(),
-    );
-    validate(
         constants_str::CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES.as_slice(),
         constants_str::CODE_STYLE_LEPTOS_PRELUDE_REASONS.as_slice(),
     );
@@ -1707,12 +1703,26 @@ fn append_non_public_use_import_er(
         ));
     }
 }
+fn append_public_use_import_ers(
+    path: &std::path::Path,
+    public_use_roots: &super::types::SourceTextList,
+    ers: &mut Vec<String>,
+) {
+    ers.extend(public_use_roots.iter().map(|public_use_root| {
+        format!(
+            "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",
+            path.display()
+        )
+    }));
+}
 #[test]
 #[allow(clippy::wildcard_enum_match_arm)] // syn::Item is non-exhaustive; only modules are relevant
-fn no_non_public_use_imports_in_rust_sources() {
+fn public_reexports_are_forbidden_and_private_imports_are_restricted() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::B4E7C2A9),
-        super::types::SourceTextRef::from(constants_str::USE_IMPORTS_FOUND_OUTSIDE_EXPLICIT_FACADE_RE_EXPORT_FILES_PREFER_EXPLICIT_PATHS),
+        super::types::SourceTextRef::from(
+            constants_str::FORBIDDEN_PUBLIC_REEXPORTS_OR_PRIVATE_IMPORTS_FOUND_PREFER_EXPLICIT_PATHS,
+        ),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
             let allows_leptos_prelude_import =
@@ -1733,9 +1743,6 @@ fn no_non_public_use_imports_in_rust_sources() {
                                 },
                             )
                     });
-            let reviewed_public_reexports = constants_str::CODE_STYLE_FACADE_REEXPORT_SUFFIXES
-                .iter()
-                .any(|suffix| path_text.ends_with(suffix));
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::source_analysis::UseImportVisitor {
@@ -1753,28 +1760,7 @@ fn no_non_public_use_imports_in_rust_sources() {
                 visitor.found_non_public_use_import,
                 ers,
             );
-            let declared_modules = ast
-                .items
-                .iter()
-                .filter_map(|item| match item {
-                    syn::Item::Mod(item_mod) => Some(item_mod.ident.to_string()),
-                    _ => None,
-                })
-                .collect::<std::collections::BTreeSet<String>>();
-            let allows_public_reexports = reviewed_public_reexports
-                || (!visitor.public_use_roots.is_empty()
-                    && visitor
-                        .public_use_roots
-                        .iter()
-                        .all(|root| declared_modules.contains(root)));
-            if !allows_public_reexports {
-                ers.extend(visitor.public_use_roots.iter().map(|public_use_root| {
-                        format!(
-                        "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",
-                        path.display()
-                        )
-                    }));
-            }
+            append_public_use_import_ers(path, &visitor.public_use_roots, ers);
             if visitor.found_use_rename.get() {
                 ers.push(format!(
                         "{}: found use rename with `as`; use the original item name or rename the item at its definition",
@@ -1799,7 +1785,7 @@ fn declared_child_does_not_bypass_non_public_use_import_policy() {
     assert_eq!(ers.len(), constants_usize::ONE, "e23d18a4");
 }
 #[test]
-fn use_import_policy_narrows_facade_and_leptos_exceptions() {
+fn use_import_policy_detects_private_imports_and_public_reexports() {
     let ast = syn::parse_file(constants_str::VALUE_B2B1AD10).expect(
         "7b9e6f31 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
     );
@@ -1836,6 +1822,27 @@ fn use_import_policy_narrows_facade_and_leptos_exceptions() {
         !leptos_visitor.found_non_public_use_import.get(),
         "5969a9a3"
     );
+}
+#[test]
+fn cfg_test_modules_do_not_hide_forbidden_public_reexports() {
+    let ast = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
+        .expect("12d3ea75 public re-export fixture must parse");
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::source_analysis::UseImportVisitor {
+            allow_leptos_prelude_import: super::types::AnalyzerBool::default(),
+            found_non_public_use_import: super::types::AnalyzerBool::default(),
+            found_use_rename: super::types::AnalyzerBool::default(),
+            public_use_roots: super::types::SourceTextList::default(),
+        },
+    );
+    let mut ers = Vec::<String>::new();
+    append_public_use_import_ers(
+        std::path::Path::new(constants_str::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
+        &visitor.public_use_roots,
+        &mut ers,
+    );
+    assert_eq!(ers.len(), 2usize, "654501aa");
 }
 #[test]
 fn no_type_aliases_in_rust_sources() {

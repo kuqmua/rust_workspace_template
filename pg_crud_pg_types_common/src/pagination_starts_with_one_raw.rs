@@ -6,6 +6,6 @@
     Debug, serde::Deserialize, schemars::JsonSchema, optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PaginationStartsWithOneRaw {
-    pub(super) limit: crate::domain_types::PaginationStartsWithOneValue,
-    pub(super) offset: crate::domain_types::PaginationStartsWithOneValue,
+    pub(super) limit: crate::pagination_starts_with_one_value::PaginationStartsWithOneValue,
+    pub(super) offset: crate::pagination_starts_with_one_value::PaginationStartsWithOneValue,
 }

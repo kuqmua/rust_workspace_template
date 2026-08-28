@@ -979,26 +979,8 @@ impl UseImportVisitor {
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
-    fn visit_item(&mut self, i: &'ast syn::Item) {
-        if super::has_test_only_cfg_attr(super::types::SynItemRef::from(i)).get() {
-            return;
-        }
-        syn::visit::visit_item(self, i);
-    }
     fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
-        if matches!(i.vis, syn::Visibility::Public(_)) {
-            if let Some(root) = match &i.tree {
-                syn::UseTree::Path(use_path) => Some(use_path.ident.to_string()),
-                syn::UseTree::Rename(use_rename) => Some(use_rename.ident.to_string()),
-                syn::UseTree::Name(use_name) => Some(use_name.ident.to_string()),
-                syn::UseTree::Glob(_) | syn::UseTree::Group(_) => None,
-            } {
-                self.public_use_roots.push(root);
-            } else {
-                self.public_use_roots
-                    .push(String::from(constants_str::ASTERISK));
-            }
-        } else {
+        if matches!(i.vis, syn::Visibility::Inherited) {
             let is_leptos_prelude_import = if let syn::UseTree::Path(leptos) = &i.tree
                 && let syn::UseTree::Path(prelude) = leptos.tree.as_ref()
             {
@@ -1013,6 +995,16 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
             if !is_allowed_leptos_import {
                 self.found_non_public_use_import.set_true();
             }
+        } else if let Some(root) = match &i.tree {
+            syn::UseTree::Path(use_path) => Some(use_path.ident.to_string()),
+            syn::UseTree::Rename(use_rename) => Some(use_rename.ident.to_string()),
+            syn::UseTree::Name(use_name) => Some(use_name.ident.to_string()),
+            syn::UseTree::Glob(_) | syn::UseTree::Group(_) => None,
+        } {
+            self.public_use_roots.push(root);
+        } else {
+            self.public_use_roots
+                .push(String::from(constants_str::ASTERISK));
         }
         if Self::use_tree_contains_rename(super::types::SynUseTreeRef::from(&i.tree)).get() {
             self.found_use_rename.set_true();

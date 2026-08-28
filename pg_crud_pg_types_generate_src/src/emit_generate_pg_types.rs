@@ -3362,7 +3362,7 @@ pub(super) enum IsConst {
                         PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => constants_str::PG_CRUD_PG_TSRANGE,
                         PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => constants_str::PG_CRUD_PG_TSTZRANGE,
                     };
-                    let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::domain_types::maybe_primary_key(is_primary_key)};
+                    let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::maybe_primary_key::maybe_primary_key(is_primary_key)};
                     let column_pg_query_type = format!("{{column}} {pg_query_type}");
                     let column_pg_query_type_non_null = format!("{{column}} {pg_query_type} not null");
                     let space_extra_parameter = constants_str::TEXT_ALT_3;

@@ -2414,4 +2414,5 @@ pub const CODE_STYLE_NUM_PATH_SEGMENT: &str = "num";
 pub const CODE_STYLE_NON_ZERO_PREFIX: &str = "NonZero";
 pub const CODE_STYLE_REEXPORT_ONLY_FIXTURE: &str =
     "pub use crate::first::*; pub(crate) use crate::second::Item;";
-pub const CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE: &str = "pub use crate::first::*; fn run() {}";
+pub const CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE: &str =
+    "#[cfg(test)] mod tests { pub use crate::first::*; pub(crate) use crate::second::Item; }";

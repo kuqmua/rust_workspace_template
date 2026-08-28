@@ -10,16 +10,16 @@
 pub enum PaginationStartsWithOneTryNewError {
     LimitIsLessThanOrEqToZero {
         #[eo_to_err_string_serde]
-        limit: crate::domain_types::PaginationStartsWithOneValue,
+        limit: crate::pagination_starts_with_one_value::PaginationStartsWithOneValue,
     },
     OffsetIsLessThanOne {
         #[eo_to_err_string_serde]
-        offset: crate::domain_types::PaginationStartsWithOneValue,
+        offset: crate::pagination_starts_with_one_value::PaginationStartsWithOneValue,
     },
     OffsetPlusLimitIsIntOverflow {
         #[eo_to_err_string_serde]
-        limit: crate::domain_types::PaginationStartsWithOneValue,
+        limit: crate::pagination_starts_with_one_value::PaginationStartsWithOneValue,
         #[eo_to_err_string_serde]
-        offset: crate::domain_types::PaginationStartsWithOneValue,
+        offset: crate::pagination_starts_with_one_value::PaginationStartsWithOneValue,
     },
 }
