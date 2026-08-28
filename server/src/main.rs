@@ -15,7 +15,7 @@ mod sqlx_server_pg_connect_error;
 mod tokio_server_runtime;
 
 fn main() -> domain_types::ServerExitCode {
-    let config = match server_config::domain_types::Config::try_from_env() {
+    let config = match server_config::config::Config::try_from_env() {
         Ok(config) => config,
         Err(config_error) => {
             let startup_error = domain_types::RunServerError::Config(config_error);

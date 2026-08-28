@@ -15,9 +15,9 @@ pub(crate) enum RunServerError {
     #[error("failed to build tokio runtime: {0}")]
     BuildRuntime(ServerIoError),
     #[error("failed to read configuration from environment: {0}")]
-    Config(server_config::domain_types::ConfigTryFromEnvError),
+    Config(server_config::config::ConfigTryFromEnvError),
     #[error("unsafe production configuration: {0}")]
-    ConfigProduction(server_config::domain_types::ProductionConfigError),
+    ConfigProduction(server_config::production_config_error::ProductionConfigError),
     #[error("invalid content security policy: {0}")]
     ContentSecurityPolicy(server_runtime_http::domain_types::HttpContentSecurityPolicyError),
     #[error("invalid CORS allow-origin configuration: {0}")]

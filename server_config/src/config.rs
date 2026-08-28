@@ -71,15 +71,17 @@ pub struct Config {
     pub svc_mode: config_lib::domain_types::types::SvcMode,
 }
 impl Config {
-    pub fn validate_for_startup(&self) -> Result<(), super::ProductionConfigError> {
+    pub fn validate_for_startup(
+        &self,
+    ) -> Result<(), crate::production_config_error::ProductionConfigError> {
         if !*self.production_mode {
             return Ok(());
         }
         if !*self.admin_cookie_secure {
-            return Err(super::ProductionConfigError::AdminCookieInsecure);
+            return Err(crate::production_config_error::ProductionConfigError::AdminCookieInsecure);
         }
         if *self.admin_swagger_enabled {
-            return Err(super::ProductionConfigError::AdminSwaggerEnabled);
+            return Err(crate::production_config_error::ProductionConfigError::AdminSwaggerEnabled);
         }
         if !self
             .cors_allow_origin
@@ -91,7 +93,7 @@ impl Config {
                 !origin.is_empty() && origin.starts_with(constants_str::HTTPS_SCHEME_PREFIX)
             })
         {
-            return Err(super::ProductionConfigError::CorsOriginInsecure);
+            return Err(crate::production_config_error::ProductionConfigError::CorsOriginInsecure);
         }
         if self
             .admin_jwt_secret
@@ -102,7 +104,9 @@ impl Config {
                     == constants_str::ADMIN_DEVELOPMENT_JWT_SECRET
             })
         {
-            return Err(super::ProductionConfigError::DevelopmentJwtSecret);
+            return Err(
+                crate::production_config_error::ProductionConfigError::DevelopmentJwtSecret,
+            );
         }
         Ok(())
     }

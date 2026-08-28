@@ -98,7 +98,7 @@ fn main() -> AdministratorAccountCommandExitCode {
             )
         })()
         .map_err(AdministratorAccountCommandError::Args)?;
-        let config = server_config::domain_types::Config::try_from_env()
+        let config = server_config::config::Config::try_from_env()
             .map_err(AdministratorAccountCommandError::Config)?;
         config
             .validate_for_startup()

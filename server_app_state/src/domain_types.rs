@@ -28,7 +28,7 @@ mod tests {
                 server_runtime_core::ResourceBudgetMaximum::try_from(128usize)
                     .expect("837f89a0 make_structure invariant must hold"),
             ),
-            config: server_config::domain_types::Config {
+            config: server_config::config::Config {
                 svc_mode: config_lib::domain_types::types::SvcMode::Serve,
                 cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(
                     constants_str::ASTERISK.to_owned(),

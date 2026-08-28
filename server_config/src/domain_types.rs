@@ -1,6 +1,3 @@
-pub use crate::config::{Config, ConfigTryFromEnvError};
-pub use crate::production_config_error::ProductionConfigError;
-
 #[cfg(test)]
 mod tests {
     fn server_config_test_env<T>(value: &str) -> T
@@ -17,7 +14,7 @@ mod tests {
     #[test]
     fn generated_accessors_return_expected_refs_and_values() {
         let mut cfg =
-            super::Config {
+            crate::config::Config {
                 cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(constants_str::ASTERISK.to_owned()),
                 content_security_policy: server_config_test_env(constants_str::TEST_CONTENT_SECURITY_POLICY),
                 database_url: server_config_test_env(constants_str::POSTGRES_DB),
@@ -109,24 +106,24 @@ mod tests {
         cfg.production_mode = config_lib::domain_types::ProductionMode::from(true);
         assert_eq!(
             cfg.validate_for_startup(),
-            Err(super::ProductionConfigError::AdminCookieInsecure)
+            Err(crate::production_config_error::ProductionConfigError::AdminCookieInsecure)
         );
         cfg.admin_cookie_secure = config_lib::domain_types::AdminCookieSecure::from(true);
         assert_eq!(
             cfg.validate_for_startup(),
-            Err(super::ProductionConfigError::AdminSwaggerEnabled)
+            Err(crate::production_config_error::ProductionConfigError::AdminSwaggerEnabled)
         );
         cfg.admin_swagger_enabled = config_lib::domain_types::AdminSwaggerEnabled::from(false);
         assert_eq!(
             cfg.validate_for_startup(),
-            Err(super::ProductionConfigError::CorsOriginInsecure)
+            Err(crate::production_config_error::ProductionConfigError::CorsOriginInsecure)
         );
         cfg.cors_allow_origin =
             config_lib::domain_types::CorsAllowOrigin(constants_str::HTTPS_EXAMPLE_COM.to_owned());
         cfg.admin_jwt_secret = server_config_test_env(constants_str::ADMIN_DEVELOPMENT_JWT_SECRET);
         assert_eq!(
             cfg.validate_for_startup(),
-            Err(super::ProductionConfigError::DevelopmentJwtSecret)
+            Err(crate::production_config_error::ProductionConfigError::DevelopmentJwtSecret)
         );
         cfg.admin_jwt_secret =
             server_config_test_env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES);

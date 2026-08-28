@@ -1,4 +1,4 @@
-mod config;
-pub mod domain_types;
-mod production_config_error;
-pub(crate) use production_config_error::ProductionConfigError;
+pub mod config;
+#[cfg(test)]
+mod domain_types;
+pub mod production_config_error;

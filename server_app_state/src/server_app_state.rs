@@ -1,13 +1,13 @@
 #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ServerAppState<'lt> {
     pub bulk_item_budget: server_runtime_core::ResourceBudget,
-    pub config: server_config::domain_types::Config,
+    pub config: server_config::config::Config,
     pub idempotency_response_budget: server_runtime_core::ResourceBudget,
     pub pg_pool: app_state::SqlxPgPool,
     pub project_git_info: git_info::ProjectGitInfo<'lt>,
 }
 impl ServerAppState<'_> {
-    const fn cfg_ref(&self) -> &server_config::domain_types::Config {
+    const fn cfg_ref(&self) -> &server_config::config::Config {
         &self.config
     }
 }

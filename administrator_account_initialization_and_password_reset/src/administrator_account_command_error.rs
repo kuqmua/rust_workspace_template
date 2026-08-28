@@ -3,9 +3,9 @@ pub(crate) enum AdministratorAccountCommandError {
     #[error(transparent)]
     Args(crate::AdministratorCommandArgsError),
     #[error("failed to read configuration: {0}")]
-    Config(server_config::domain_types::ConfigTryFromEnvError),
+    Config(server_config::config::ConfigTryFromEnvError),
     #[error("unsafe production configuration: {0}")]
-    ConfigProduction(server_config::domain_types::ProductionConfigError),
+    ConfigProduction(server_config::production_config_error::ProductionConfigError),
     #[error("failed to connect to postgres: {0}")]
     Connect(crate::SqlxAdministratorDatabaseConnectionError),
     #[error("failed to create the first administrator: {0}")]

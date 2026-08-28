@@ -7873,7 +7873,7 @@ enum WrapIntoOptional {
             generate_identifier_operation_payload_upper_camel_case(&Operation::Ro);
         let identifier_uo_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::Uo);
-        let config_path_token_stream = quote::quote! {server_config::domain_types::Config};
+        let config_path_token_stream = quote::quote! {server_config::config::Config};
         let undrscr_unused_token_stream = quote::quote! {_unused};
         //todo maybe remove it?\
         let generate_some_pg_type_where_try_new_token_stream =

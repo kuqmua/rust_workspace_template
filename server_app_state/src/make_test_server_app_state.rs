@@ -9,7 +9,7 @@ pub fn make_test_server_app_state() -> ServerAppState<'static> {
             server_runtime_core::ResourceBudgetMaximum::try_from(8usize)
                 .expect("86d3d452 make_test_server_app_state invariant must hold"),
         ),
-        config: server_config::domain_types::Config {
+        config: server_config::config::Config {
             svc_mode: config_lib::domain_types::types::SvcMode::Serve,
             cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(
                 constants_str::ASTERISK.to_owned(),
