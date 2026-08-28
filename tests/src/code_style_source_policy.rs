@@ -60,7 +60,7 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
 
 #[test]
 fn single_call_fn_is_never_allowed_for_a_whole_module() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -83,7 +83,7 @@ fn single_call_fn_is_never_allowed_for_a_whole_module() {
 
 #[test]
 fn field_getters_are_generated() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -104,7 +104,7 @@ fn field_getters_are_generated() {
 
 #[test]
 fn struct_fields_do_not_use_crate_visibility() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -150,7 +150,7 @@ fn provider_traits_do_not_use_get_prefix() {
 
 #[test]
 fn all_files_are_english_only() {
-    let mut ers = super::snapshot::with_codebase_snapshot(|snapshot| {
+    let mut ers = super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         rayon::iter::ParallelIterator::reduce(
             rayon::iter::ParallelIterator::map(
                 rayon::iter::IntoParallelRefIterator::par_iter(snapshot.project_source_files()),
@@ -381,7 +381,7 @@ fn no_for_loops_in_source_code() {
 
 #[test]
 fn map_err_does_not_discard_source_with_wildcard() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -402,7 +402,7 @@ fn map_err_does_not_discard_source_with_wildcard() {
 
 #[test]
 fn numeric_conversions_do_not_use_as_casts() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -424,7 +424,7 @@ fn numeric_conversions_do_not_use_as_casts() {
 
 #[test]
 fn runtime_struct_fields_do_not_expose_untyped_json_values() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -445,7 +445,7 @@ fn runtime_struct_fields_do_not_expose_untyped_json_values() {
 
 #[test]
 fn new_runtime_structs_keep_fields_private() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         assert_eq!(
             constants_str::CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS.len(),
             constants_str::CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES.len()
@@ -854,7 +854,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
 }
 #[test]
 fn production_pg_error_classification_is_centralized() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -1503,7 +1503,7 @@ fn route_operation_error_policy_rejects_shared_types() {
     reason = "iterator form is required by the workspace no-for-loop policy"
 )]
 fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let auth = snapshot
             .rs_files()
             .iter()
@@ -2326,7 +2326,7 @@ fn api_response_error_source_policy_rejects_raw_sources() {
 #[allow(clippy::needless_for_each)] // workspace policy intentionally avoids for loops
 #[allow(clippy::option_if_let_else)] // preserves ownership of the path buffer in the fallback
 fn every_fallible_typed_route_operation_has_its_own_error_type() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut groups = std::collections::BTreeMap::<
             String,
             super::source_analysis::RouteOperationErrorVisitor,
@@ -2839,7 +2839,7 @@ fn repository_identifiers_use_explicit_resource_names() {
         }
     }
 
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()

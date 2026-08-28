@@ -10,7 +10,7 @@ fn publicly_forwards_crate_root(item: &syn::Item) -> bool {
 }
 #[test]
 fn private_shared_modules_do_not_forward_crate_root_exports() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let errors = snapshot
             .rs_files()
             .iter()
@@ -82,7 +82,7 @@ fn private_shared_module_forwarding_policy_distinguishes_public_visibility_and_o
 }
 #[test]
 fn admin_frontend_api_urls_come_from_typed_routes() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source = snapshot
             .rs_files()
             .iter()
@@ -101,7 +101,7 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
 #[test]
 #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
 fn service_route_endpoint_composition_uses_shared_registries() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
             (constants_str::VALUE_3EB7B056, constants_usize::EIGHT),
             (constants_str::VALUE_629EE5ED, constants_usize::ONE),
@@ -140,7 +140,7 @@ fn service_route_endpoint_composition_uses_shared_registries() {
 #[test]
 #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
 fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
             constants_str::VALUE_7BF90B7C,
             constants_str::VALUE_629EE5ED,
@@ -191,7 +191,7 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
 #[test]
 #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
 fn generated_admin_table_consumers_use_the_shared_catalog() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
             (constants_str::VALUE_206B48D7, constants_str::VALUE_41EC3410),
             (constants_str::VALUE_8E182ED1, constants_str::VALUE_D6BB9F39),
@@ -267,7 +267,7 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
 #[test]
 #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
 fn administrator_data_table_queries_come_from_the_typed_spec() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let repository = snapshot
             .rs_files()
             .iter()
@@ -308,7 +308,7 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
 }
 #[test]
 fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let query = snapshot
             .rs_files()
             .iter()
@@ -371,7 +371,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
 }
 #[test]
 fn config_reference_accessors_use_generated_forwarding() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source = snapshot
             .rs_files()
             .iter()

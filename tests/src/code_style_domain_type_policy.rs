@@ -1,18 +1,19 @@
 #[test]
 fn string_wrappers_do_not_use_from_string() {
-    let len_checked_function_names = super::snapshot::with_codebase_snapshot(|snapshot| {
-        super::types::SourceTextBTreeSet::from(
-            snapshot
-                .rs_files()
-                .iter()
-                .flat_map(|source_file| {
-                    super::len_checked_function_names(super::types::SynFileRef::from(
-                        source_file.ast().as_ref(),
-                    ))
-                })
-                .collect::<std::collections::BTreeSet<String>>(),
-        )
-    });
+    let len_checked_function_names =
+        super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
+            super::types::SourceTextBTreeSet::from(
+                snapshot
+                    .rs_files()
+                    .iter()
+                    .flat_map(|source_file| {
+                        super::len_checked_function_names(super::types::SynFileRef::from(
+                            source_file.ast().as_ref(),
+                        ))
+                    })
+                    .collect::<std::collections::BTreeSet<String>>(),
+            )
+        });
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::E2A6B9C4),
         super::types::SourceTextRef::from(constants_str::STRING_WRAPPERS_MUST_VALIDATE_LENGTH_USE_TRYFROM_STRING_WITH_A_LENGTH_CHECK),

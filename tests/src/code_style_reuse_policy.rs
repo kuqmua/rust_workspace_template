@@ -112,7 +112,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
     let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
         "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
     );
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(|file| {
             let mut visitor = FunctionBodyVisitor {
                 bodies: super::types::FunctionBodyLocationsBTreeMapMutRef::from(&mut bodies),

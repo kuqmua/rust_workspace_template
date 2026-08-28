@@ -865,7 +865,7 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
 
 #[test]
 fn lock_guards_are_not_held_across_await() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -919,7 +919,7 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_A2531714),
         ),
     ]);
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let observed = snapshot
             .rs_files()
             .iter()
@@ -968,7 +968,7 @@ fn allocations_inside_loops_match_reviewed_inventory() {
 
 #[test]
 fn struct_error_exceptions_match_reviewed_snapshot() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut entries = snapshot
             .rs_files()
             .iter()
@@ -1013,7 +1013,7 @@ fn contract_public_api_matches_reviewed_snapshot() {
         (constants_str::VALUE_C34A5FE6, constants_str::VALUE_8733430F),
         (constants_str::VALUE_0C5CC511, constants_str::VALUE_CF3D8D33),
     ];
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut current_snapshot = String::from(constants_str::VALUE_1F3A1C37);
         reviewed.iter().for_each(|(directory_suffix, reason)| {
             assert!(!reason.is_empty(), "505a0cf7");
@@ -1264,7 +1264,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             ),
         ),
     ]);
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed_by_owner = std::collections::BTreeMap::new();
         let mut violations = Vec::new();
         snapshot
@@ -1569,7 +1569,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_9CA4EAEB),
         ),
     ]);
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed_by_owner = std::collections::BTreeMap::new();
         let mut violations = Vec::new();
         snapshot.rs_files().iter().for_each(|source_file| {
@@ -1660,7 +1660,7 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
     reviewed
         .values()
         .for_each(|reason| assert!(!reason.is_empty(), "f8c9471a"));
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let observed = snapshot
             .rs_files()
             .iter()
@@ -1697,7 +1697,7 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
 
 #[test]
 fn from_vec_implementations_are_forbidden() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -1806,7 +1806,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
     reviewed
         .values()
         .for_each(|(_count, reason)| assert!(!reason.is_empty(), "cfc5175f"));
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed = std::collections::BTreeMap::<&str, usize>::new();
         let mut violations = Vec::new();
         snapshot
@@ -1892,7 +1892,7 @@ fn select_sites_match_reviewed_cancellation_inventory() {
             constants_str::VALUE_C8647B8D,
         ),
     ];
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed = std::collections::BTreeMap::<String, usize>::new();
         let mut violations = snapshot
             .rs_files()
@@ -1979,7 +1979,7 @@ fn architectural_boundaries_reject_upward_dependencies() {
         (constants_str::VALUE_E1717E8B, constants_str::VALUE_72104B4E),
         (constants_str::VALUE_B4F499E2, constants_str::VALUE_2773E6CE),
     ];
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let mut violations = Vec::new();
         boundaries.iter().for_each(|(package_name, reason)| {
@@ -2062,7 +2062,7 @@ fn lock_across_await_policy_requires_explicit_drop() {
 
 #[test]
 fn production_code_does_not_use_explicit_leak_apis() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -2088,7 +2088,7 @@ fn production_code_does_not_use_explicit_leak_apis() {
 
 #[test]
 fn retained_spawn_tasks_are_supervised() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -2125,7 +2125,7 @@ fn spawn_lifecycle_policy_rejects_unconsumed_tasks() {
 
 #[test]
 fn route_path_segments_use_snake_case() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()

@@ -1,4 +1,4 @@
-use crate::{domain_analysis, snapshot, source_analysis, types};
+use crate::{code_style_snapshot, domain_analysis, source_analysis, types};
 
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) enum RustOrClippy {
@@ -561,12 +561,12 @@ pub(crate) fn assert_rs_ast_ers_empty_with_ctx(
     assert_joined_ers_empty_with_ctx(types::SourceTextListRef::from(ers.as_slice()), exp_id, ctx);
 }
 pub(crate) fn read_toml_table(path: types::PathRef<'_>) -> Option<types::TomlTable> {
-    snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
+    code_style_snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
 }
 
 #[allow(clippy::single_call_fn)] // several policies share the cached manifest lookup through this root facade
 pub(crate) fn cargo_toml_content(path: types::PathRef<'_>) -> Option<types::SourceText> {
-    snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
+    code_style_snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
 }
 pub(crate) fn push_repeated_file_error(
     mut ers: types::DiagnosticMsgsMutRef<'_>,
@@ -580,11 +580,13 @@ pub(crate) fn push_repeated_file_error(
     );
 }
 pub(crate) fn workspace_crate_names() -> types::SourceTextBTreeSet {
-    snapshot::with_codebase_snapshot(snapshot::CodebaseSnapshot::workspace_crate_names)
+    code_style_snapshot::with_codebase_snapshot(
+        code_style_snapshot::CodebaseSnapshot::workspace_crate_names,
+    )
 }
 
 pub(crate) fn for_each_crate_manifest_file(on_file: impl FnMut(&std::path::Path)) {
-    snapshot::with_codebase_snapshot(|snapshot| {
+    code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.crate_manifest_paths().for_each(on_file);
     });
 }
@@ -1527,8 +1529,8 @@ pub(crate) fn attr_is_test_only_cfg(attr: types::SynAttributeRef<'_>) -> types::
     }));
     types::AnalyzerBool::from(is_test_only_cfg)
 }
-pub(crate) fn for_each_rs_file(mut on_file: impl FnMut(&snapshot::RsSourceFile)) {
-    snapshot::with_codebase_snapshot(|snapshot| {
+pub(crate) fn for_each_rs_file(mut on_file: impl FnMut(&code_style_snapshot::RsSourceFile)) {
+    code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(&mut on_file);
     });
 }

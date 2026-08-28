@@ -88,7 +88,7 @@ fn repository_secret_box_policy_checks_generated_tokens() {
 }
 #[test]
 fn repository_secret_boxes_use_bounded_string_types() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let bounded_identifiers = snapshot
             .rs_files()
             .iter()

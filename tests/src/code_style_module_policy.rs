@@ -31,7 +31,7 @@ fn identifier_snake_case(identifier: &syn::Ident) -> super::types::SourceText {
 
 #[test]
 fn custom_type_names_are_unique_across_workspace() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut declarations = std::collections::BTreeMap::<String, Vec<String>>::new();
         snapshot.rs_files().iter().for_each(|source_file| {
             let visitor = super::visit_syn_file(
@@ -105,7 +105,7 @@ fn free_function_name_visitor_excludes_methods() {
 
 #[test]
 fn free_function_names_are_unique_across_workspace() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut declarations = std::collections::BTreeMap::<String, Vec<String>>::new();
         snapshot.rs_files().iter().for_each(|source_file| {
             let visitor = super::visit_syn_file(
@@ -145,7 +145,7 @@ fn free_function_names_are_unique_across_workspace() {
 
 #[test]
 fn error_types_do_not_only_wrap_other_repository_errors() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let repository_error_names = snapshot
             .rs_files()
             .iter()
@@ -257,7 +257,7 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
 
 #[test]
 fn domain_types_do_not_add_intermediate_representation_wrappers() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut representation_only_names = snapshot
             .rs_files()
             .iter()
@@ -351,7 +351,7 @@ fn domain_types_do_not_add_intermediate_representation_wrappers() {
 
 #[test]
 fn module_declarations_do_not_use_path_attributes() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -403,7 +403,7 @@ fn module_declarations_do_not_use_path_attributes() {
 
 #[test]
 fn external_module_declarations_exist_only_in_crate_roots() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut violations = snapshot
             .rs_files()
             .iter()
@@ -453,7 +453,7 @@ fn external_module_declarations_exist_only_in_crate_roots() {
     reason = "the policy ignores current and future non-module syn items"
 )]
 fn single_item_modules_match_their_item_name() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let external_module_path = |parent_path: &std::path::Path, item_mod: &syn::ItemMod| {
             let optional_explicit_path = item_mod.attrs.iter().find_map(|attribute| {
                 if !attribute.path().is_ident(constants_str::PATH_ALT_5) {
@@ -583,7 +583,7 @@ fn single_item_modules_match_their_item_name() {
     reason = "the policy intentionally ignores every current and future non-function syn item"
 )]
 fn function_only_modules_contain_at_most_one_function() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let target_roots = snapshot
             .workspace_metadata()
             .as_ref()
@@ -653,7 +653,7 @@ fn workspace_has_no_reexport_only_modules() {
         !is_reexport_only(module_with_logic.items.as_slice()),
         "b73e4c8a"
     );
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -670,7 +670,7 @@ fn workspace_has_no_reexport_only_modules() {
 
 #[test]
 fn production_modules_contain_at_most_one_named_owner() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let target_roots = snapshot
             .workspace_metadata()
             .as_ref()
@@ -776,7 +776,7 @@ fn is_test_source(path: &std::path::Path) -> bool {
 
 #[test]
 fn production_modules_have_bounded_responsibility() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -800,7 +800,7 @@ fn production_modules_have_bounded_responsibility() {
 
 #[test]
 fn large_production_modules_keep_tests_in_separate_files() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -839,7 +839,7 @@ fn large_production_modules_keep_tests_in_separate_files() {
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn large_module_exceptions_are_exact_and_still_needed() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         large_module_exceptions().iter().for_each(|exception| {
             let matching_file = snapshot
                 .rs_files()
@@ -862,7 +862,7 @@ fn large_module_exceptions_are_exact_and_still_needed() {
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn notification_service_domain_types_exclude_application_and_adapter_workflows() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
             .rs_files()
             .iter()
@@ -903,7 +903,7 @@ fn notification_service_domain_types_exclude_application_and_adapter_workflows()
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn environment_initializer_domain_types_exclude_entrypoint_orchestration() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
             .rs_files()
             .iter()
@@ -943,7 +943,7 @@ fn environment_initializer_domain_types_exclude_entrypoint_orchestration() {
 )]
 fn administrator_account_initialization_and_password_reset_domain_types_exclude_application_workflows()
  {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source = snapshot
             .rs_files()
             .iter()
@@ -978,7 +978,7 @@ fn administrator_account_initialization_and_password_reset_domain_types_exclude_
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn common_route_domain_types_exclude_http_and_database_workflows() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
             .rs_files()
             .iter()
@@ -1017,7 +1017,7 @@ fn common_route_domain_types_exclude_http_and_database_workflows() {
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn server_domain_types_exclude_application_and_adapter_workflows() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
             .rs_files()
             .iter()
@@ -1053,7 +1053,7 @@ fn server_domain_types_exclude_application_and_adapter_workflows() {
 
 #[test]
 fn server_admin_domain_types_exclude_repository_workflows() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
             .rs_files()
             .iter()
@@ -1079,7 +1079,7 @@ fn server_admin_domain_types_exclude_repository_workflows() {
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn workspace_scaffold_domain_types_exclude_entrypoint_and_template_filesystem_workflows() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
             .rs_files()
             .iter()
@@ -1119,7 +1119,7 @@ fn workspace_scaffold_domain_types_exclude_entrypoint_and_template_filesystem_wo
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn file_storage_domain_types_exclude_filesystem_workflows() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
             .rs_files()
             .iter()
@@ -1158,7 +1158,7 @@ fn file_storage_domain_types_exclude_filesystem_workflows() {
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
 fn workspace_test_runner_domain_types_exclude_application_and_adapter_workflows() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
             .rs_files()
             .iter()

@@ -276,7 +276,7 @@ fn workspace_dependency_default_feature_policy_rejects_missing_and_true_values()
 }
 #[test]
 fn workspace_uses_one_async_runtime() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let runtime_names = [
             constants_str::VALUE_24C2D1FB,
             constants_str::VALUE_B93D6F4A,
@@ -304,7 +304,7 @@ fn workspace_uses_one_async_runtime() {
 }
 #[test]
 fn workspace_crates_do_not_enable_default_features() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let violations = snapshot
             .workspace_metadata()
@@ -334,7 +334,7 @@ fn workspace_dependency_catalog_has_no_unused_entries() {
         ),
         super::types::StaticStr::from(constants_str::VALUE_5EB013E8),
     );
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let used = snapshot
             .workspace_metadata()
@@ -361,7 +361,7 @@ fn workspace_dependency_catalog_has_no_unused_entries() {
 }
 #[test]
 fn workspace_normal_dependency_graph_is_acyclic() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let metadata = snapshot.workspace_metadata();
         let workspace_names = snapshot.workspace_crate_names();
         let mut remaining = metadata
@@ -509,7 +509,7 @@ fn library_crates_with_public_logic_own_tests() {
             reason: constants_str::VALUE_9BF87B94,
         },
     ];
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let workspace_directories = snapshot
             .workspace_metadata()
@@ -548,7 +548,7 @@ fn library_crates_with_public_logic_own_tests() {
                                     && source_path.starts_with(other_directory)
                             })
                     })
-                    .collect::<Vec<&super::snapshot::RsSourceFile>>();
+                    .collect::<Vec<&super::code_style_snapshot::RsSourceFile>>();
                 let has_public_logic = source_files.iter().any(|source_file| {
                     super::visit_syn_file(
                         super::types::SynFileRef::from(source_file.ast().as_ref()),
@@ -800,7 +800,7 @@ fn workspace_crates_are_direct_children_of_workspace_root() {
 }
 #[test]
 fn workspace_crate_src_modules_are_flat() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let mut violations = snapshot
             .workspace_metadata()
@@ -868,7 +868,7 @@ fn workspace_members_sorted_alphabetically() {
 
 #[test]
 fn workspace_packages_have_at_most_one_binary_target() {
-    super::snapshot::with_codebase_snapshot(|snapshot| {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let violations = snapshot
             .workspace_metadata()
