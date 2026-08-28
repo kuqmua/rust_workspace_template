@@ -2398,8 +2398,9 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrapp
 pub const CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON: &str =
     "single_call_fn suppressions must be attached to exact items";
 pub const CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE: &str = "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 }";
-pub const CODE_STYLE_DECLARED_CHILD_USE_FIXTURE: &str = "use super::child::Item;";
+pub const CODE_STYLE_DECLARED_CHILD_USE_FIXTURE: &str = "mod child;\nuse super::child::Item;";
 pub const CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH: &str = "../fixture/src/declared_child.rs";
+pub const CODE_STYLE_NESTED_OWNER_USE_FIXTURE_PATH: &str = "../fixture/src/owner/nested_owner.rs";
 pub const CODE_STYLE_TYPE_DECLARATIONS_FIXTURE: &str = "struct StructName; enum EnumName {} union UnionName { value: u8 } trait TraitName {} type AliasName = u8; trait TraitAliasName = TraitName;";
 pub const CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE: &str = "fn outer() { fn inner() {} } mod nested { fn module_function() {} } struct Example; impl Example { fn inherent_method() {} } trait ExampleTrait { fn required_method(); fn provided_method() {} }";
 pub const CODE_STYLE_CRATE_PATH_SEGMENT: &str = "crate";

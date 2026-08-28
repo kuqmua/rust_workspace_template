@@ -2,8 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::{GIT_INFO_STRING_MAX_LEN, GitCommitIdRef, GitInfoStringTryFromStringError};
-
 #[derive(
     Debug,
     Clone,
@@ -16,21 +14,25 @@ use crate::{GIT_INFO_STRING_MAX_LEN, GitCommitIdRef, GitInfoStringTryFromStringE
     newtype::TryFrom,
 )]
 #[try_from(
-    error = GitInfoStringTryFromStringError,
+    error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
     validator = |value: &str| {
-        if value.len() > GIT_INFO_STRING_MAX_LEN {
-            Err(GitInfoStringTryFromStringError::TooLong { len: value.len(), max: GIT_INFO_STRING_MAX_LEN })
+        if value.len() > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN {
+            Err(crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong { len: value.len(), max: crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN })
         } else { Ok(()) }
     }
 )]
 pub struct GitCommitId(pub(super) String);
-impl From<GitCommitIdRef<'_>> for GitCommitId {
-    fn from(value: GitCommitIdRef<'_>) -> Self {
+impl From<crate::git_commit_id_ref::GitCommitIdRef<'_>> for GitCommitId {
+    fn from(value: crate::git_commit_id_ref::GitCommitIdRef<'_>) -> Self {
         Self::try_from(value.0.to_owned()).unwrap_or_else(Self::from)
     }
 }
-impl From<GitInfoStringTryFromStringError> for GitCommitId {
-    fn from(value: GitInfoStringTryFromStringError) -> Self {
+impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError>
+    for GitCommitId
+{
+    fn from(
+        value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+    ) -> Self {
         Self(value.to_string())
     }
 }

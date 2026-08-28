@@ -1,18 +1,15 @@
-use crate::{
-    GitCommitIdRef, ValidateProjectCommitError, check_is_project_commit,
-    project_git_commit_link_ref_value,
-};
-
 pub fn validate_project_commit<'commit_lt, CommitIdTy>(
     commit_id: CommitIdTy,
-) -> Result<(), ValidateProjectCommitError>
+) -> Result<(), crate::validate_project_commit_error::ValidateProjectCommitError>
 where
-    CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
+    CommitIdTy: Into<crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>>,
 {
-    if check_is_project_commit(commit_id).0 {
+    if crate::check_is_project_commit::check_is_project_commit(commit_id).0 {
         return Ok(());
     }
-    Err(ValidateProjectCommitError::from(
-        project_git_commit_link_ref_value(),
-    ))
+    Err(
+        crate::validate_project_commit_error::ValidateProjectCommitError::from(
+            crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value(),
+        ),
+    )
 }

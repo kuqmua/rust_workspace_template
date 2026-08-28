@@ -1,9 +1,9 @@
-use crate::{GitCommitIdRef, GitCommitLink, build_git_commit_link_cow};
-
 #[must_use]
-pub fn build_git_commit_link<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> GitCommitLink
+pub fn build_git_commit_link<'commit_lt, CommitIdTy>(
+    commit_id: CommitIdTy,
+) -> crate::git_commit_link::GitCommitLink
 where
-    CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
+    CommitIdTy: Into<crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>>,
 {
-    build_git_commit_link_cow(commit_id).into()
+    crate::build_git_commit_link_cow::build_git_commit_link_cow(commit_id).into()
 }

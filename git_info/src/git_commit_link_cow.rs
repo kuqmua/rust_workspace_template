@@ -2,8 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::{GIT_INFO_STRING_MAX_LEN, GitInfoStringTryFromStringError};
-
 #[derive(
     Debug,
     Clone,
@@ -18,26 +16,30 @@ use crate::{GIT_INFO_STRING_MAX_LEN, GitInfoStringTryFromStringError};
 #[serde(try_from = "String")]
 pub struct GitCommitLinkCow(pub(super) std::borrow::Cow<'static, str>);
 impl TryFrom<String> for GitCommitLinkCow {
-    type Error = GitInfoStringTryFromStringError;
+    type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::try_from(std::borrow::Cow::Owned(value))
     }
 }
 impl TryFrom<std::borrow::Cow<'static, str>> for GitCommitLinkCow {
-    type Error = GitInfoStringTryFromStringError;
+    type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
     fn try_from(value: std::borrow::Cow<'static, str>) -> Result<Self, Self::Error> {
-        if value.len() > GIT_INFO_STRING_MAX_LEN {
-            Err(GitInfoStringTryFromStringError::TooLong {
+        if value.len() > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN {
+            Err(crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
                 len: value.len(),
-                max: GIT_INFO_STRING_MAX_LEN,
+                max: crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN,
             })
         } else {
             Ok(Self(value))
         }
     }
 }
-impl From<GitInfoStringTryFromStringError> for GitCommitLinkCow {
-    fn from(value: GitInfoStringTryFromStringError) -> Self {
+impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError>
+    for GitCommitLinkCow
+{
+    fn from(
+        value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+    ) -> Self {
         Self(std::borrow::Cow::Owned(value.to_string()))
     }
 }

@@ -1680,23 +1680,10 @@ fn no_include_asset_macros_outside_allowlist() {
 }
 fn append_non_public_use_import_er(
     path: &std::path::Path,
-    ast: &syn::File,
     found_non_public_use_import: super::types::AnalyzerBool,
     ers: &mut Vec<String>,
 ) {
-    let declares_owner_modules = ast
-        .items
-        .iter()
-        .any(|item| matches!(item, syn::Item::Mod(_)));
-    let is_nested_owner_module = path
-        .strip_prefix(constants_str::TEXT_ALT_9)
-        .unwrap_or(path)
-        .components()
-        .skip_while(|component| component.as_os_str() != constants_str::SRC_ALT)
-        .skip(constants_usize::ONE)
-        .count()
-        > constants_usize::ONE;
-    if found_non_public_use_import.get() && !declares_owner_modules && !is_nested_owner_module {
+    if found_non_public_use_import.get() {
         ers.push(format!(
             "{}: found non-public use import; use the explicit path at the usage site",
             path.display()
@@ -1756,7 +1743,6 @@ fn public_reexports_are_forbidden_and_private_imports_are_restricted() {
             );
             append_non_public_use_import_er(
                 path,
-                ast,
                 visitor.found_non_public_use_import,
                 ers,
             );
@@ -1775,14 +1761,27 @@ fn declared_child_does_not_bypass_non_public_use_import_policy() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_DECLARED_CHILD_USE_FIXTURE).expect(
         "b67d5cf1 declared_child_does_not_bypass_non_public_use_import_policy invariant must hold",
     );
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::source_analysis::UseImportVisitor {
+            allow_leptos_prelude_import: super::types::AnalyzerBool::default(),
+            found_non_public_use_import: super::types::AnalyzerBool::default(),
+            found_use_rename: super::types::AnalyzerBool::default(),
+            public_use_roots: super::types::SourceTextList::default(),
+        },
+    );
     let mut ers = Vec::<String>::new();
     append_non_public_use_import_er(
         std::path::Path::new(constants_str::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
-        &ast,
-        super::types::AnalyzerBool::from(true),
+        visitor.found_non_public_use_import,
         &mut ers,
     );
-    assert_eq!(ers.len(), constants_usize::ONE, "e23d18a4");
+    append_non_public_use_import_er(
+        std::path::Path::new(constants_str::CODE_STYLE_NESTED_OWNER_USE_FIXTURE_PATH),
+        visitor.found_non_public_use_import,
+        &mut ers,
+    );
+    assert_eq!(ers.len(), constants_usize::TWO, "e23d18a4");
 }
 #[test]
 fn use_import_policy_detects_private_imports_and_public_reexports() {

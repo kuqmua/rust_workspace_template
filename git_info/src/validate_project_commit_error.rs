@@ -2,8 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::ProjectGitCommitLinkRef;
-
 #[derive(
     Debug,
     Clone,
@@ -15,4 +13,6 @@ use crate::ProjectGitCommitLinkRef;
     newtype::IntoInnerFrom,
     newtype::FromInner,
 )]
-pub struct ValidateProjectCommitError(pub(super) ProjectGitCommitLinkRef);
+pub struct ValidateProjectCommitError(
+    pub(super) crate::project_git_commit_link_ref::ProjectGitCommitLinkRef,
+);

@@ -74,7 +74,7 @@ fn assert_with_git_commit_id_ref_or(
     exp_commit_len: usize,
     exp_fallback_calls: usize,
 ) {
-    let commit_len = crate::with_git_commit_id_ref_or(
+    let commit_len = crate::with_git_commit_id_ref_or::with_git_commit_id_ref_or(
         v,
         |commit_id| commit_id.0.len(),
         |src| crate::GitCommitIdProvider::git_commit_id(src).0.len(),
@@ -92,7 +92,8 @@ fn expected_git_commit_link(commit_id_src: impl AsRef<str>) -> String {
 }
 #[test]
 fn owned_git_values_and_generated_links_enforce_length_limit() {
-    let oversized = constants_str::X.repeat(crate::GIT_INFO_STRING_MAX_LEN + constants_usize::ONE);
+    let oversized = constants_str::X
+        .repeat(crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN + constants_usize::ONE);
     let Err(_commit_id_error) =
         crate::GitCommitIdCow::try_from(std::borrow::Cow::Owned(oversized.clone()))
     else {
@@ -104,9 +105,9 @@ fn owned_git_values_and_generated_links_enforce_length_limit() {
         panic!("69ee1326");
     };
     let commit = crate::GitCommitIdProvider::git_commit_id(oversized.as_str());
-    assert!(commit.as_ref().len() <= crate::GIT_INFO_STRING_MAX_LEN);
+    assert!(commit.as_ref().len() <= crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN);
     let link = crate::build_git_commit_link_cow(oversized.as_str());
-    assert!(link.as_ref().len() <= crate::GIT_INFO_STRING_MAX_LEN);
+    assert!(link.as_ref().len() <= crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN);
 }
 #[test]
 fn git_commit_link_builds_expected_url() {

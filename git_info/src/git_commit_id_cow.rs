@@ -2,27 +2,29 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::{GIT_INFO_STRING_MAX_LEN, GitInfoStringTryFromStringError};
-
 #[derive(
     Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefStr,
 )]
 pub struct GitCommitIdCow<'commit_lt>(pub(super) std::borrow::Cow<'commit_lt, str>);
 impl<'commit_lt> TryFrom<std::borrow::Cow<'commit_lt, str>> for GitCommitIdCow<'commit_lt> {
-    type Error = GitInfoStringTryFromStringError;
+    type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
     fn try_from(value: std::borrow::Cow<'commit_lt, str>) -> Result<Self, Self::Error> {
-        if value.len() > GIT_INFO_STRING_MAX_LEN {
-            Err(GitInfoStringTryFromStringError::TooLong {
+        if value.len() > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN {
+            Err(crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
                 len: value.len(),
-                max: GIT_INFO_STRING_MAX_LEN,
+                max: crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN,
             })
         } else {
             Ok(Self(value))
         }
     }
 }
-impl From<GitInfoStringTryFromStringError> for GitCommitIdCow<'_> {
-    fn from(value: GitInfoStringTryFromStringError) -> Self {
+impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError>
+    for GitCommitIdCow<'_>
+{
+    fn from(
+        value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+    ) -> Self {
         Self(std::borrow::Cow::Owned(value.to_string()))
     }
 }
