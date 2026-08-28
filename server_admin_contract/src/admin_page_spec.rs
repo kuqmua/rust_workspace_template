@@ -51,11 +51,11 @@ impl AdminPageSpec {
         self.page
     }
     #[must_use]
-    pub fn path(self) -> frontend_contract::domain_types::ContractStr {
-        frontend_contract::domain_types::ContractStr::from(self.path.get())
+    pub fn path(self) -> frontend_contract::ContractStr {
+        frontend_contract::ContractStr::from(self.path.get())
     }
     #[must_use]
-    pub fn route_name(self) -> frontend_contract::domain_types::ContractStr {
+    pub fn route_name(self) -> frontend_contract::ContractStr {
         admin_path_route_name(AdminPagePathRef::from(self.path.get()))
     }
     #[must_use]
@@ -63,8 +63,8 @@ impl AdminPageSpec {
         self.route
     }
     #[must_use]
-    pub fn title(self) -> frontend_contract::domain_types::ContractStr {
-        frontend_contract::domain_types::ContractStr::from(match self.title {
+    pub fn title(self) -> frontend_contract::ContractStr {
+        frontend_contract::ContractStr::from(match self.title {
             AdminPageTitle::Api => constants_str::API_ALT,
             AdminPageTitle::Metrics => constants_str::METRICS_ALT,
             AdminPageTitle::Permissions => constants_str::PERMISSIONS,

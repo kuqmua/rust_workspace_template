@@ -1,9 +1,4 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "owner modules stay paired with their facade imports and reexports"
-)]
 pub use crate::open_api_contract_text::*;
-pub use crate::open_api_contract_text_error::*;
 pub use crate::open_api_operation_expectation::*;
 pub use crate::open_api_operation_validation_error::*;
 pub use crate::open_api_payload_validation_error::*;
@@ -33,8 +28,8 @@ mod tests {
             }}},
             constants_str::COMPONENTS: { constants_str::SCHEMAS: { constants_str::TEST_OPENAPI_SCHEMA: { constants_str::JSON_TYPE: constants_str::OBJECT }}}
         });
-        let routes = [frontend_contract::domain_types::RouteMetadata::new(
-            frontend_contract::domain_types::RouteMethod::Get,
+        let routes = [frontend_contract::RouteMetadata::new(
+            frontend_contract::RouteMethod::Get,
             constants_str::TEST_OPENAPI_OPERATION_ID.into(),
             constants_str::TEST_OPENAPI_PATH.into(),
         )];
@@ -73,8 +68,8 @@ mod tests {
             }}}
         });
         let expectation = super::OpenApiOperationExpectation::new(
-            frontend_contract::domain_types::RouteMetadata::new(
-                frontend_contract::domain_types::RouteMethod::Get,
+            frontend_contract::RouteMetadata::new(
+                frontend_contract::RouteMethod::Get,
                 constants_str::TEST_OPENAPI_OPERATION_ID.into(),
                 constants_str::TEST_OPENAPI_PATH.into(),
             ),

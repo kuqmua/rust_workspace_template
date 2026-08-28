@@ -1,16 +1,41 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 pub fn check_commit(
     enable_api_git_commit_check: EnableApiGitCommitCheck,
-    headers: crate::domain_types::header_value::AxumHeadersRef<'_>,
+    headers: crate::header_value::AxumHeadersRef<'_>,
 ) -> Result<(), CommitError> {
     if !enable_api_git_commit_check.0 {
         return Ok(());
     }
-    validate_commit_header(headers)
+    let commit = headers
+        .0
+        .get(crate::commit_header_name::COMMIT_HEADER_NAME)
+        .ok_or_else(|| CommitError::NoCommitHeader {
+            no_commit_header: NoCommitHeaderMessage::from(
+                constants_str::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
+            ),
+            location: location_macros::location!(),
+        })?
+        .to_str()
+        .map_err(|error| CommitError::CommitToStrConversion {
+            commit_to_str_conversion: AxumCommitToStrConversionError::from(error),
+            location: location_macros::location!(),
+        })?;
+    git_info::validate_project_commit(commit)
+        .map_err(|error| {
+            CommitToUse::from(<&'static str>::from(
+                git_info::ProjectGitCommitLinkRef::from(error),
+            ))
+        })
+        .map_err(|commit_to_use| CommitError::CommitNotEq {
+            commit_not_eq: CommitNotEqMessage::from(
+                constants_str::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG,
+            ),
+            commit_to_use,
+            location: location_macros::location!(),
+        })
 }
 
 pub use crate::axum_commit_to_str_conversion_error::AxumCommitToStrConversionError;
@@ -19,58 +44,55 @@ pub use crate::commit_not_eq_message::CommitNotEqMessage;
 pub use crate::commit_to_use::CommitToUse;
 pub use crate::enable_api_git_commit_check::EnableApiGitCommitCheck;
 pub use crate::no_commit_header_message::NoCommitHeaderMessage;
+#[cfg(test)]
 pub(super) use crate::read_commit_header_str::read_commit_header_str;
+#[cfg(test)]
 pub(super) use crate::validate_commit_header::validate_commit_header;
+#[cfg(test)]
 pub(super) use crate::validate_commit_header_value::validate_commit_header_value;
 #[cfg(test)]
 mod tests {
     fn check_commit_enabled(headers: &axum::http::HeaderMap) -> Result<(), super::CommitError> {
         super::check_commit(
             true.into(),
-            crate::domain_types::header_value::AxumHeadersRef::from(headers),
+            crate::header_value::AxumHeadersRef::from(headers),
         )
     }
     fn make_headers_with_commit_header_value<ValueTy>(
         value: ValueTy,
-    ) -> crate::domain_types::test_helper::AxumTestHeaders
+    ) -> crate::test_helper::AxumTestHeaders
     where
-        ValueTy: Into<crate::domain_types::test_helper::AxumTestHeaderValue>,
+        ValueTy: Into<crate::test_helper::AxumTestHeaderValue>,
     {
-        crate::domain_types::test_helper::make_headers_with_entry(
+        crate::test_helper::make_headers_with_entry(
             crate::commit_header_name::COMMIT_HEADER_NAME,
             value,
         )
     }
-    fn make_headers_with_commit(commit: &str) -> crate::domain_types::test_helper::AxumTestHeaders {
+    fn make_headers_with_commit(commit: &str) -> crate::test_helper::AxumTestHeaders {
         make_headers_with_commit_header_value(
             axum::http::HeaderValue::from_str(commit)
                 .expect("9f2db59c make_headers_with_commit invariant must hold"),
         )
     }
-    fn make_headers_with_wrong_commit() -> crate::domain_types::test_helper::AxumTestHeaders {
+    fn make_headers_with_wrong_commit() -> crate::test_helper::AxumTestHeaders {
         make_headers_with_commit(constants_str::TEST_VALUES_WRONG_COMMIT)
     }
-    fn make_headers_with_project_commit() -> crate::domain_types::test_helper::AxumTestHeaders {
-        make_headers_with_commit(
-            git_info::domain_types::project_git_info_value()
-                .commit()
-                .as_ref(),
-        )
+    fn make_headers_with_project_commit() -> crate::test_helper::AxumTestHeaders {
+        make_headers_with_commit(git_info::project_git_info_value().commit().as_ref())
     }
-    fn make_headers_with_non_utf8_commit() -> crate::domain_types::test_helper::AxumTestHeaders {
-        make_headers_with_commit_header_value(
-            crate::domain_types::test_helper::non_utf8_header_value(),
-        )
+    fn make_headers_with_non_utf8_commit() -> crate::test_helper::AxumTestHeaders {
+        make_headers_with_commit_header_value(crate::test_helper::non_utf8_header_value())
     }
     fn check_commit_ok(
         enable_api_git_commit_check: bool,
         headers: &axum::http::HeaderMap,
         exp_id: &'static str,
     ) {
-        crate::domain_types::test_helper::expect_ok(
+        crate::test_helper::expect_ok(
             super::check_commit(
                 enable_api_git_commit_check.into(),
-                crate::domain_types::header_value::AxumHeadersRef::from(headers),
+                crate::header_value::AxumHeadersRef::from(headers),
             ),
             exp_id,
         );
@@ -79,10 +101,10 @@ mod tests {
         check_commit_ok(true, headers, exp_id);
     }
     fn check_commit_bad_request(headers: &axum::http::HeaderMap, exp_id: &'static str) {
-        crate::domain_types::test_helper::assert_err_status_code_only(
+        crate::test_helper::assert_err_status_code_only(
             check_commit_enabled(headers),
             exp_id,
-            crate::domain_types::AxumHttpStatusCode::bad_request(),
+            crate::AxumHttpStatusCode::bad_request(),
         );
     }
     fn no_commit_header_message(v: &super::CommitError) -> Option<&'static str> {
@@ -132,7 +154,7 @@ mod tests {
         );
         assert_eq!(
             commit_to_use,
-            <&'static str>::from(git_info::domain_types::project_git_commit_link_ref_value()),
+            <&'static str>::from(git_info::project_git_commit_link_ref_value()),
         );
     }
     fn assert_wrong_commit_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
@@ -144,10 +166,10 @@ mod tests {
         exp_id: &'static str,
         map: impl FnOnce(&super::CommitError) -> Option<R>,
     ) -> R {
-        crate::domain_types::test_helper::expect_err_variant_ref_with_status(
+        crate::test_helper::expect_err_variant_ref_with_status(
             check_commit_enabled(headers),
             exp_id,
-            Some(crate::domain_types::AxumHttpStatusCode::bad_request()),
+            Some(crate::AxumHttpStatusCode::bad_request()),
             map,
         )
     }
@@ -156,10 +178,8 @@ mod tests {
         exp_id: &'static str,
         map: impl FnOnce(&super::CommitError) -> Option<R>,
     ) -> R {
-        crate::domain_types::test_helper::expect_err_variant_ref_with_status(
-            super::read_commit_header_str(crate::domain_types::header_value::AxumHeadersRef::from(
-                headers,
-            )),
+        crate::test_helper::expect_err_variant_ref_with_status(
+            super::read_commit_header_str(crate::header_value::AxumHeadersRef::from(headers)),
             exp_id,
             None,
             map,
@@ -188,24 +208,18 @@ mod tests {
     #[test]
     fn commit_header_str_returns_header_value_when_present() {
         let headers = make_headers_with_project_commit();
-        crate::domain_types::test_helper::assert_ok_eq(
-            super::read_commit_header_str(crate::domain_types::header_value::AxumHeadersRef::from(
-                &headers,
-            ))
-            .map(|value| value.0),
+        crate::test_helper::assert_ok_eq(
+            super::read_commit_header_str(crate::header_value::AxumHeadersRef::from(&headers))
+                .map(|value| value.0),
             constants_str::E1D07F53,
-            &git_info::domain_types::project_git_info_value()
-                .commit()
-                .as_ref(),
+            &git_info::project_git_info_value().commit().as_ref(),
         );
     }
     #[test]
     fn validate_commit_header_returns_error_when_header_is_absent() {
         let headers = axum::http::HeaderMap::new();
-        let no_commit_header = crate::domain_types::test_helper::expect_error_variant_ref(
-            super::validate_commit_header(crate::domain_types::header_value::AxumHeadersRef::from(
-                &headers,
-            )),
+        let no_commit_header = crate::test_helper::expect_error_variant_ref(
+            super::validate_commit_header(crate::header_value::AxumHeadersRef::from(&headers)),
             constants_str::VALUE_31EA9A57,
             no_commit_header_message,
         );
@@ -217,10 +231,8 @@ mod tests {
     #[test]
     fn validate_commit_header_accepts_project_commit() {
         let headers = make_headers_with_project_commit();
-        crate::domain_types::test_helper::expect_ok(
-            super::validate_commit_header(crate::domain_types::header_value::AxumHeadersRef::from(
-                &headers,
-            )),
+        crate::test_helper::expect_ok(
+            super::validate_commit_header(crate::header_value::AxumHeadersRef::from(&headers)),
             constants_str::VALUE_4D60C385,
         );
     }
@@ -253,12 +265,10 @@ mod tests {
     }
     #[test]
     fn validate_commit_header_value_returns_mismatch_for_wrong_commit() {
-        let fields = crate::domain_types::test_helper::expect_error_variant_ref(
-            super::validate_commit_header_value(
-                crate::domain_types::header_value::HeaderStrRef::from(
-                    constants_str::TEST_VALUES_WRONG_COMMIT,
-                ),
-            ),
+        let fields = crate::test_helper::expect_error_variant_ref(
+            super::validate_commit_header_value(crate::header_value::HeaderStrRef::from(
+                constants_str::TEST_VALUES_WRONG_COMMIT,
+            )),
             constants_str::VALUE_6804382F,
             commit_not_eq_fields,
         );
@@ -266,21 +276,17 @@ mod tests {
     }
     #[test]
     fn validate_commit_header_value_accepts_project_commit() {
-        crate::domain_types::test_helper::expect_ok(
-            super::validate_commit_header_value(
-                crate::domain_types::header_value::HeaderStrRef::from(
-                    git_info::domain_types::project_git_info_value()
-                        .commit()
-                        .as_ref(),
-                ),
-            ),
+        crate::test_helper::expect_ok(
+            super::validate_commit_header_value(crate::header_value::HeaderStrRef::from(
+                git_info::project_git_info_value().commit().as_ref(),
+            )),
             constants_str::VALUE_5EF927D2,
         );
     }
     #[test]
     fn check_commit_returns_expected_commit_link_for_wrong_commit() {
         let headers = make_headers_with_wrong_commit();
-        let fields = crate::domain_types::test_helper::expect_error_variant_ref(
+        let fields = crate::test_helper::expect_error_variant_ref(
             check_commit_enabled(&headers),
             constants_str::VALUE_3DB98D20,
             commit_not_eq_fields,
@@ -295,7 +301,7 @@ mod tests {
     #[test]
     fn check_commit_accepts_header_name_with_different_case() {
         let mut headers = make_headers_with_project_commit();
-        crate::domain_types::test_helper::replace_header_name(
+        crate::test_helper::replace_header_name(
             &mut headers,
             crate::commit_header_name::COMMIT_HEADER_NAME,
             constants_str::COMMIT,
@@ -310,13 +316,13 @@ mod tests {
     }
     #[test]
     fn project_commit_is_recognized_by_git_info_helper() {
-        assert!(git_info::domain_types::check_is_project_commit(
-            git_info::domain_types::project_git_info_value().commit()
+        assert!(git_info::check_is_project_commit(
+            git_info::project_git_info_value().commit()
         ));
     }
     #[test]
     fn non_project_commit_is_rejected_by_git_info_helper() {
-        assert!(!git_info::domain_types::check_is_project_commit(
+        assert!(!git_info::check_is_project_commit(
             constants_str::TEST_VALUES_WRONG_COMMIT
         ));
     }

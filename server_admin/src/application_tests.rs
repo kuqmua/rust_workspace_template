@@ -50,12 +50,11 @@ fn server_error_response_preserves_http_diagnostic() {
     );
     let body = futures::executor::block_on(axum::body::to_bytes(response.into_body(), 16_384usize))
         .expect("8770f4d3 server_error_response_preserves_http_diagnostic invariant must hold");
-    let contract_problem =
-        serde_json::from_slice::<frontend_contract::domain_types::ApiProblem>(&body)
-            .expect("4f705ab8 server_error_response_preserves_http_diagnostic invariant must hold");
+    let contract_problem = serde_json::from_slice::<frontend_contract::ApiProblem>(&body)
+        .expect("4f705ab8 server_error_response_preserves_http_diagnostic invariant must hold");
     assert_eq!(
         contract_problem.kind(),
-        frontend_contract::domain_types::ApiProblemKind::Internal
+        frontend_contract::ApiProblemKind::Internal
     );
     let problem = serde_json::from_slice::<serde_json::Value>(&body)
         .expect("1e7ec09d server_error_response_preserves_http_diagnostic invariant must hold");
@@ -210,7 +209,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
                 })
         })
         .collect::<std::collections::BTreeSet<_>>();
-    let contracted_route_contracts = <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::coverage_descriptors()
+    let contracted_route_contracts = <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors()
             .as_ref()
             .iter()
             .copied()
@@ -236,7 +235,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
             .pointer(constants_str::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)
             .and_then(serde_json::Value::as_str),
         Some(
-            <server_admin_contract::domain_types::AdminSignInRoute as frontend_contract::domain_types::TypedRoute>::metadata()
+            <server_admin_contract::domain_types::AdminSignInRoute as frontend_contract::TypedRoute>::metadata()
                 .openapi_operation_id()
                 .as_ref()
         ),
@@ -246,7 +245,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
             .pointer(constants_str::ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER)
             .and_then(serde_json::Value::as_str),
         Some(
-            <server_admin_contract::domain_types::AdminRefreshRoute as frontend_contract::domain_types::TypedRoute>::metadata()
+            <server_admin_contract::domain_types::AdminRefreshRoute as frontend_contract::TypedRoute>::metadata()
                 .openapi_operation_id()
                 .as_ref()
         ),
@@ -256,7 +255,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
             .pointer(constants_str::ADMIN_OPENAPI_ME_OPERATION_ID_POINTER)
             .and_then(serde_json::Value::as_str),
         Some(
-            <server_admin_contract::domain_types::AdminMeRoute as frontend_contract::domain_types::TypedRoute>::metadata()
+            <server_admin_contract::domain_types::AdminMeRoute as frontend_contract::TypedRoute>::metadata()
                 .openapi_operation_id()
                 .as_ref()
         ),
@@ -289,7 +288,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
     let expected_body_limit_description = format!(
             "{}{}",
             constants_str::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
-            <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()
+            <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
                 .expect("be105d90 open_api_contains_auth_and_user_security_contracts invariant must hold")
                 .get()
         );

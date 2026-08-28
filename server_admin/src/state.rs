@@ -1,6 +1,6 @@
 impl crate::AdminAuthSvcState {
     pub fn try_new(
-        pool: app_state::domain_types::SqlxPgPool,
+        pool: app_state::SqlxPgPool,
         jwt_secret: &config_lib::domain_types::AdminJwtSecret,
         access_ttl: &config_lib::domain_types::AdminAccessTokenTtlSeconds,
         refresh_ttl: &config_lib::domain_types::AdminRefreshTokenTtlSeconds,
@@ -50,10 +50,10 @@ impl crate::AdminAuthSvcState {
             ),
             issuer: issuer.clone(),
             password_hasher: crate::AdminPasswordHasher::new(
-                crate::AdminPasswordHashConcurrency::from(crate::AdminNonZeroUsize::from(
+                crate::AdminPasswordHashConcurrency::from(
                     std::num::NonZeroUsize::new(password_hash_concurrency.get())
                         .ok_or(crate::AdminAuthSvcStateBuildError::PasswordHashConcurrency)?,
-                )),
+                ),
             ),
             pool,
             refresh_ttl: crate::StdAdminRefreshTtlSeconds::try_from(refresh_ttl.get())

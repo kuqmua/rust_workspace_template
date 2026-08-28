@@ -5,7 +5,7 @@
 use super::*;
 
 pub async fn cleanup_pg_table_idempotency(
-    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+    pool: app_state::SqlxPgPoolRef<'_>,
     completed_retention_seconds: PgTableIdempotencyCleanupRetentionSeconds,
     pending_retention_seconds: PgTableIdempotencyCleanupRetentionSeconds,
     batch_size: PgTableIdempotencyCleanupBatchSize,
@@ -15,7 +15,7 @@ pub async fn cleanup_pg_table_idempotency(
     )
     .bind(completed_retention_seconds.0)
     .bind(pending_retention_seconds.0)
-    .bind(batch_size.0.0.get())
+    .bind(batch_size.0.get())
     .execute(pool.as_ref())
     .await
     .map_err(SqlxPgTableIdempotencyError::from)?;

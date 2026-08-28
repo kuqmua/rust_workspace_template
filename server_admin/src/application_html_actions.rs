@@ -1,4 +1,3 @@
-pub(crate) use admin_html_action_router::admin_html_action_router;
 use assignment_action::assignment_action;
 pub(crate) use root::AdminHtmlActionRouteRegistry;
 #[cfg(test)]
@@ -19,9 +18,6 @@ mod settings {
 }
 mod users {
     pub use crate::application_html_actions_users::*;
-}
-mod admin_html_action_router {
-    pub use crate::admin_html_action_router::*;
 }
 mod assignment_action {
     pub use crate::assignment_action::*;

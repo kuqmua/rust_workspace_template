@@ -1,7 +1,7 @@
 use super::{AdminFrontendPath, AdminRoutePath};
 
 pub(crate) fn admin_api_route_path(
-    suffix: frontend_contract::domain_types::ParameterizedRoutePath,
+    suffix: frontend_contract::ParameterizedRoutePath,
 ) -> AdminRoutePath {
     AdminRoutePath::try_from(format!(
         "{}{}{suffix}",

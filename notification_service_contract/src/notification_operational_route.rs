@@ -7,7 +7,7 @@ use crate::domain_types::NOTIFICATION_API_BODY_MAX_BYTES;
     Debug,
     Eq,
     PartialEq,
-    frontend_contract::domain_types::RouteCatalog,
+    frontend_contract::RouteCatalog,
 )]
 #[route_catalog(
     family = NotificationOperationalRouteFamily,
@@ -15,24 +15,24 @@ use crate::domain_types::NOTIFICATION_API_BODY_MAX_BYTES;
 )]
 pub enum NotificationOperationalRoute {
     #[route_catalog_route(
-        contract = frontend_contract::domain_types::RouteContract::new(
-            frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::RouteMethod::Get,
-            frontend_contract::domain_types::MutationKind::ReadOnly,
-            frontend_contract::domain_types::ContractStr::from("/metrics"),
-            frontend_contract::domain_types::SuccessStatus::Code200,
+        contract = frontend_contract::RouteContract::new(
+            frontend_contract::AuthenticationRequirement::Public,
+            frontend_contract::RouteMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from("/metrics"),
+            frontend_contract::SuccessStatus::Code200,
         ),
         path = "/metrics",
         exclude_from_family,
     )]
     Metrics,
     #[route_catalog_route(
-        contract = frontend_contract::domain_types::RouteContract::new(
-            frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::RouteMethod::Get,
-            frontend_contract::domain_types::MutationKind::ReadOnly,
-            frontend_contract::domain_types::ContractStr::from("/openapi.json"),
-            frontend_contract::domain_types::SuccessStatus::Code200,
+        contract = frontend_contract::RouteContract::new(
+            frontend_contract::AuthenticationRequirement::Public,
+            frontend_contract::RouteMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from("/openapi.json"),
+            frontend_contract::SuccessStatus::Code200,
         ),
         path = "/openapi.json",
         exclude_from_family,
@@ -40,12 +40,12 @@ pub enum NotificationOperationalRoute {
     OpenApi,
 }
 
-impl frontend_contract::domain_types::RouteRegistrationContract for NotificationOperationalRoute {
-    fn method(self) -> frontend_contract::domain_types::RouteMethod {
-        frontend_contract::domain_types::RouteMethod::Get
+impl frontend_contract::RouteRegistrationContract for NotificationOperationalRoute {
+    fn method(self) -> frontend_contract::RouteMethod {
+        frontend_contract::RouteMethod::Get
     }
-    fn path(self) -> frontend_contract::domain_types::RegisteredRoutePath {
-        frontend_contract::domain_types::RegisteredRoutePath::from(match self {
+    fn path(self) -> frontend_contract::RegisteredRoutePath {
+        frontend_contract::RegisteredRoutePath::from(match self {
             Self::Metrics => constants_str::METRICS,
             Self::OpenApi => constants_str::OPENAPI_JSON,
         })

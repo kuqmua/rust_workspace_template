@@ -128,7 +128,7 @@ fn service_route_endpoint_composition_uses_shared_registries() {
                 .collect::<String>();
             assert_eq!(
                 source
-                    .matches("frontend_contract::domain_types::endpoint_registry")
+                    .matches("frontend_contract::endpoint_registry")
                     .count(),
                 *expected_registry_count,
                 "26aa4162"

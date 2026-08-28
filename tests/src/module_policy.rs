@@ -1,26 +1,6 @@
 const PRODUCTION_MODULE_MAX_LINES: usize = 2_500usize;
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_024usize;
 
-#[allow(
-    clippy::single_call_fn,
-    clippy::wildcard_enum_match_arm,
-    reason = "keeps named-item selection separate and ignores future unnamed syn item variants"
-)]
-fn named_item_identifier(syn_item: &syn::Item) -> Option<&syn::Ident> {
-    match syn_item {
-        syn::Item::Const(item_const) => Some(&item_const.ident),
-        syn::Item::Enum(item_enum) => Some(&item_enum.ident),
-        syn::Item::Fn(item_fn) => Some(&item_fn.sig.ident),
-        syn::Item::Static(item_static) => Some(&item_static.ident),
-        syn::Item::Struct(item_struct) => Some(&item_struct.ident),
-        syn::Item::Trait(item_trait) => Some(&item_trait.ident),
-        syn::Item::TraitAlias(item_trait_alias) => Some(&item_trait_alias.ident),
-        syn::Item::Type(item_type) => Some(&item_type.ident),
-        syn::Item::Union(item_union) => Some(&item_union.ident),
-        _ => None,
-    }
-}
-
 fn identifier_snake_case(identifier: &syn::Ident) -> super::types::SourceText {
     let characters = identifier.to_string().chars().collect::<Vec<_>>();
     super::types::SourceText::try_from(characters.iter().enumerate().fold(
@@ -162,6 +142,197 @@ fn free_function_names_are_unique_across_workspace() {
         assert!(
             violations.is_empty(),
             "31495514 free function names must be unique across all workspace modules and crates:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
+fn error_types_do_not_only_wrap_other_repository_errors() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let repository_error_names = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| source_file.ast().as_ref().items.iter())
+            .filter_map(|item| {
+                let syn::Item::Struct(item_struct) = item else {
+                    return None;
+                };
+                item_struct
+                    .ident
+                    .to_string()
+                    .ends_with(constants_str::ERROR)
+                    .then(|| item_struct.ident.to_string())
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let source_path = source_file.path().as_ref();
+                source_file
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(|item| {
+                        let syn::Item::Struct(item_struct) = item else {
+                            return None;
+                        };
+                        if !item_struct
+                            .ident
+                            .to_string()
+                            .ends_with(constants_str::ERROR)
+                        {
+                            return None;
+                        }
+                        let syn::Fields::Unnamed(fields) = &item_struct.fields else {
+                            return None;
+                        };
+                        if fields.unnamed.len() != constants_usize::ONE {
+                            return None;
+                        }
+                        let field = fields.unnamed.first()?;
+                        let syn::Type::Path(inner_type) = &field.ty else {
+                            return None;
+                        };
+                        let repository_qualified = inner_type.path.segments.len()
+                            == constants_usize::ONE
+                            || inner_type.path.segments.first().is_some_and(|segment| {
+                                matches!(segment.ident.to_string().as_str(), "crate" | "self" | "super")
+                            })
+                            || inner_type
+                                .path
+                                .segments
+                                .iter()
+                                .any(|segment| segment.ident == "domain_types");
+                        if !repository_qualified {
+                            return None;
+                        }
+                        let inner_name = inner_type.path.segments.last()?.ident.to_string();
+                        if !repository_error_names.contains(&inner_name) {
+                            return None;
+                        }
+                        let adds_context = item_struct.attrs.iter().any(|attribute| {
+                            if !attribute.path().is_ident("error") {
+                                return false;
+                            }
+                            let syn::Meta::List(list) = &attribute.meta else {
+                                return false;
+                            };
+                            syn::parse2::<syn::LitStr>(list.tokens.clone()).is_ok_and(|message| {
+                                    !matches!(message.value().as_str(), "{0}" | "{0:?}")
+                                })
+                        });
+                        (!adds_context).then(|| {
+                            format!(
+                                "{}: error `{}` only wraps repository error `{inner_name}`; use `{inner_name}` directly",
+                                source_path.display(),
+                                item_struct.ident,
+                            )
+                        })
+                    })
+                    .collect::<Vec<_>>()
+                    .into_iter()
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "4d1a06bf repository errors must not be wrapped without added context:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
+fn domain_types_do_not_add_intermediate_representation_wrappers() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let mut representation_only_names = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| source_file.ast().as_ref().items.iter())
+            .filter_map(|item| {
+                let syn::Item::Struct(item_struct) = item else {
+                    return None;
+                };
+                let syn::Fields::Unnamed(fields) = &item_struct.fields else {
+                    return None;
+                };
+                if fields.unnamed.len() != constants_usize::ONE {
+                    return None;
+                }
+                let syn::Type::Path(inner_type) = &fields.unnamed.first()?.ty else {
+                    return None;
+                };
+                let inner_name = inner_type.path.segments.last()?.ident.to_string();
+                (inner_type
+                    .path
+                    .segments
+                    .iter()
+                    .any(|segment| segment.ident == "num")
+                    && inner_name.starts_with("NonZero"))
+                .then(|| item_struct.ident.to_string())
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| source_file.ast().as_ref().items.iter())
+            .filter_map(|item| {
+                let syn::Item::Impl(item_impl) = item else {
+                    return None;
+                };
+                let syn::Type::Path(self_type) = item_impl.self_ty.as_ref() else {
+                    return None;
+                };
+                self_type
+                    .path
+                    .segments
+                    .last()
+                    .map(|segment| segment.ident.to_string())
+            })
+            .for_each(|implemented_name| {
+                let _removed = representation_only_names.remove(&implemented_name);
+            });
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let source_path = source_file.path().as_ref();
+                source_file
+                    .ast()
+                    .as_ref()
+                    .items
+                    .iter()
+                    .filter_map(|item| {
+                        let syn::Item::Struct(item_struct) = item else {
+                            return None;
+                        };
+                        let syn::Fields::Unnamed(fields) = &item_struct.fields else {
+                            return None;
+                        };
+                        if fields.unnamed.len() != constants_usize::ONE {
+                            return None;
+                        }
+                        let syn::Type::Path(inner_type) = &fields.unnamed.first()?.ty else {
+                            return None;
+                        };
+                        let inner_name = inner_type.path.segments.last()?.ident.to_string();
+                        representation_only_names.contains(&inner_name).then(|| {
+                                let outer_name = item_struct.ident.to_string();
+                                format!(
+                                    "{}: `{outer_name}` wraps representation-only `{inner_name}`; store the underlying representation directly in `{outer_name}`",
+                                    source_path.display(),
+                                )
+                            })
+                    })
+                    .collect::<Vec<_>>()
+                    .into_iter()
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "df9a3b84 domain wrappers must not contain an intermediate representation wrapper:\n{}",
             violations.join("\n")
         );
     });
@@ -316,12 +487,27 @@ fn single_item_modules_match_their_item_name() {
             .iter()
             .filter(|file| !is_test_source(file.path().as_ref()))
             .filter_map(|file| {
+                #[allow(
+                    clippy::wildcard_enum_match_arm,
+                    reason = "syn item is non-exhaustive and unnamed variants do not participate"
+                )]
                 let identifiers = file
                     .ast()
                     .as_ref()
                     .items
                     .iter()
-                    .filter_map(named_item_identifier)
+                    .filter_map(|syn_item| match syn_item {
+                        syn::Item::Const(item_const) => Some(&item_const.ident),
+                        syn::Item::Enum(item_enum) => Some(&item_enum.ident),
+                        syn::Item::Fn(item_fn) => Some(&item_fn.sig.ident),
+                        syn::Item::Static(item_static) => Some(&item_static.ident),
+                        syn::Item::Struct(item_struct) => Some(&item_struct.ident),
+                        syn::Item::Trait(item_trait) => Some(&item_trait.ident),
+                        syn::Item::TraitAlias(item_trait_alias) => Some(&item_trait_alias.ident),
+                        syn::Item::Type(item_type) => Some(&item_type.ident),
+                        syn::Item::Union(item_union) => Some(&item_union.ident),
+                        _ => None,
+                    })
                     .collect::<Vec<_>>();
                 let [identifier] = identifiers.as_slice() else {
                     return None;
@@ -437,6 +623,35 @@ fn function_only_modules_contain_at_most_one_function() {
         assert!(
             violations.is_empty(),
             "function-only Rust modules must place each function in its own same-named module:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
+fn workspace_has_no_reexport_only_modules() {
+    fn is_reexport_only(items: &[syn::Item]) -> bool {
+        !items.is_empty() && items.iter().all(|item| matches!(item, syn::Item::Use(_)))
+    }
+    let reexports = syn::parse_file("pub use crate::first::*; pub(crate) use crate::second::Item;")
+        .expect("f4a6c213 re-export-only module fixture must parse");
+    let module_with_logic = syn::parse_file("pub use crate::first::*; fn run() {}")
+        .expect("875cd8ad module-with-logic fixture must parse");
+    assert!(is_reexport_only(reexports.items.as_slice()), "fd841ceb");
+    assert!(
+        !is_reexport_only(module_with_logic.items.as_slice()),
+        "b73e4c8a"
+    );
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| is_reexport_only(file.ast().as_ref().items.as_slice()))
+            .map(|file| file.path().as_ref().display().to_string())
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "dc4298e7 workspace modules must not contain only re-exports:\n{}",
             violations.join("\n")
         );
     });

@@ -1593,68 +1593,68 @@ pub fn emit_generate_pg_table(
             let label_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&label);
             let field_type = &field.type0;
             let primary_key_token_stream = if *field_idx == primary_key_field_idx.get() {
-                quote::quote! {frontend_contract::domain_types::PrimaryKeyKind::Primary}
+                quote::quote! {frontend_contract::PrimaryKeyKind::Primary}
             } else {
-                quote::quote! {frontend_contract::domain_types::PrimaryKeyKind::NonPrimary}
+                quote::quote! {frontend_contract::PrimaryKeyKind::NonPrimary}
             };
             let creatable_token_stream = if *field_idx != primary_key_field_idx.get()
                 && !create_field_is_excluded(field)
                 && (operation_is_enabled(&Operation::Cm) || operation_is_enabled(&Operation::Co))
             {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Enabled}
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
             } else {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Disabled}
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
             };
             let readable_token_stream = if !read_field_is_excluded(field)
                 && (operation_is_enabled(&Operation::Rm) || operation_is_enabled(&Operation::Ro))
             {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Enabled}
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
             } else {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Disabled}
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
             };
             let updatable_token_stream = if *field_idx != primary_key_field_idx.get()
                 && (operation_is_enabled(&Operation::Um) || operation_is_enabled(&Operation::Uo))
             {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Enabled}
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
             } else {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Disabled}
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
             };
             let filterable_token_stream = if frontend.filterable {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Enabled}
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
             } else {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Disabled}
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
             };
             let filters_token_stream = quote::quote! {
-                <#field_type as frontend_contract::domain_types::HasFilterContracts>::filter_contracts()
+                <#field_type as frontend_contract::HasFilterContracts>::filter_contracts()
             };
             let sortable_token_stream = if frontend.sortable {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Enabled}
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
             } else {
-                quote::quote! {frontend_contract::domain_types::FieldCapability::Disabled}
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
             };
             let visibility_token_stream = if frontend.hidden {
-                quote::quote! {frontend_contract::domain_types::FieldVisibility::Hidden}
+                quote::quote! {frontend_contract::FieldVisibility::Hidden}
             } else {
-                quote::quote! {frontend_contract::domain_types::FieldVisibility::Visible}
+                quote::quote! {frontend_contract::FieldVisibility::Visible}
             };
             let placeholder_token_stream = frontend.placeholder.as_ref().map_or_else(
-                || quote::quote! {frontend_contract::domain_types::FieldPlaceholder::None},
+                || quote::quote! {frontend_contract::FieldPlaceholder::None},
                 |value| {
                     let value_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(value);
-                    quote::quote! {frontend_contract::domain_types::FieldPlaceholder::Value(frontend_contract::domain_types::ContractStr::from(#value_double_quoted_token_stream))}
+                    quote::quote! {frontend_contract::FieldPlaceholder::Value(frontend_contract::ContractStr::from(#value_double_quoted_token_stream))}
                 },
             );
             Some(quote::quote! {
-                frontend_contract::domain_types::FieldContract::new(
-                    frontend_contract::domain_types::ContractStr::from(#field_name_double_quoted_token_stream),
-                    frontend_contract::domain_types::ContractStr::from(#label_double_quoted_token_stream),
-                    <#field_type as frontend_contract::domain_types::HasTypeContract>::type_contract(),
+                frontend_contract::FieldContract::new(
+                    frontend_contract::ContractStr::from(#field_name_double_quoted_token_stream),
+                    frontend_contract::ContractStr::from(#label_double_quoted_token_stream),
+                    <#field_type as frontend_contract::HasTypeContract>::type_contract(),
                 )
                 .with_primary_key(#primary_key_token_stream)
                 .with_creatable(#creatable_token_stream)
                 .with_filterable(#filterable_token_stream)
                 .with_filters(#filters_token_stream)
-                .with_order(frontend_contract::domain_types::FieldOrder::from(#order))
+                .with_order(frontend_contract::FieldOrder::from(#order))
                 .with_placeholder(#placeholder_token_stream)
                 .with_readable(#readable_token_stream)
                 .with_sortable(#sortable_token_stream)
@@ -1671,7 +1671,7 @@ pub fn emit_generate_pg_table(
             let sortable_assertion = frontend.sortable.then(|| {
                 quote::quote! {
                     assert!(
-                        matches!(<#field_type as frontend_contract::domain_types::HasTypeContract>::type_contract().supports_sorting(), frontend_contract::domain_types::CapabilitySupport::Supported),
+                        matches!(<#field_type as frontend_contract::HasTypeContract>::type_contract().supports_sorting(), frontend_contract::CapabilitySupport::Supported),
                         "c5882cc4: frontend sorting is unsupported for this field type",
                     );
                 }
@@ -1679,7 +1679,7 @@ pub fn emit_generate_pg_table(
             let filterable_assertion = frontend.filterable.then(|| {
                 quote::quote! {
                     assert!(
-                        matches!(<#field_type as frontend_contract::domain_types::HasTypeContract>::type_contract().supports_filtering(), frontend_contract::domain_types::CapabilitySupport::Supported),
+                        matches!(<#field_type as frontend_contract::HasTypeContract>::type_contract().supports_filtering(), frontend_contract::CapabilitySupport::Supported),
                         "141942af: frontend filtering is unsupported for this field type",
                     );
                 }
@@ -2048,7 +2048,7 @@ pub fn emit_generate_pg_table(
                         },
                         #prep_idempotency_upper_camel_case {
                             #[eo_to_err_string]
-                            error: pg_table::domain_types::SqlxPgTableIdempotencyError,
+                            error: pg_table::SqlxPgTableIdempotencyError,
                             location: location_lib::domain_types::Location,
                         },
                     }}
@@ -2082,8 +2082,8 @@ pub fn emit_generate_pg_table(
         };
         let pub_fn_frontend_fields_token_stream = quote::quote! {
             #[must_use]
-            pub fn frontend_fields() -> frontend_contract::domain_types::FieldContracts {
-                frontend_contract::domain_types::FieldContracts::from_max_iter(vec![#(#frontend_field_contracts_token_stream),*])
+            pub fn frontend_fields() -> frontend_contract::FieldContracts {
+                frontend_contract::FieldContracts::from_max_iter(vec![#(#frontend_field_contracts_token_stream),*])
             }
         };
         let frontend_filter_value_arms_token_stream = read_fields_iter().map(|field| {
@@ -2092,16 +2092,16 @@ pub fn emit_generate_pg_table(
             let field_type = &field.type0;
             quote::quote! {
                 #field_name_double_quoted_token_stream => Some(
-                    <#field_type as frontend_contract::domain_types::FilterFormValueContract>::parse_filter_form_value(value)
+                    <#field_type as frontend_contract::FilterFormValueContract>::parse_filter_form_value(value)
                 )
             }
         });
         let pub_fn_frontend_filter_value_token_stream = quote::quote! {
             #[must_use]
             pub fn frontend_filter_value(
-                field: frontend_contract::domain_types::FormFieldNameRef<'_>,
-                value: frontend_contract::domain_types::FormValueRef<'_>,
-            ) -> Option<Result<frontend_contract::domain_types::FilterWireJson, frontend_contract::domain_types::FormValueError>> {
+                field: frontend_contract::FormFieldNameRef<'_>,
+                value: frontend_contract::FormValueRef<'_>,
+            ) -> Option<Result<frontend_contract::FilterWireJson, frontend_contract::FormValueError>> {
                 match field.as_ref() {
                     #(#frontend_filter_value_arms_token_stream),*,
                     _ => None,
@@ -2110,13 +2110,13 @@ pub fn emit_generate_pg_table(
         };
         let pub_fn_frontend_page_token_stream = quote::quote! {
             #[must_use]
-            pub fn frontend_page() -> frontend_contract::domain_types::PageContract {
-                frontend_contract::domain_types::PageContract::new(
+            pub fn frontend_page() -> frontend_contract::PageContract {
+                frontend_contract::PageContract::new(
                     #identifier_route_contract_upper_camel_case::frontend_actions(),
                     Self::frontend_fields(),
-                    frontend_contract::domain_types::ContractStr::from(#frontend_page_path_double_quoted_token_stream),
+                    frontend_contract::ContractStr::from(#frontend_page_path_double_quoted_token_stream),
                     #identifier_route_contract_upper_camel_case::frontend_contracts(),
-                    frontend_contract::domain_types::ContractStr::from(#frontend_page_title_double_quoted_token_stream),
+                    frontend_contract::ContractStr::from(#frontend_page_title_double_quoted_token_stream),
                 )
             }
         };
@@ -2184,7 +2184,7 @@ pub fn emit_generate_pg_table(
         };
         let prep_idempotency_token_stream = if generate_pg_table_input_model.config.idempotent_mutations {
             quote::quote! {
-                if let Err(error) = pg_table::domain_types::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(#PoolSnakeCase)).await {
+                if let Err(error) = pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(#PoolSnakeCase)).await {
                     return Err(#identifier_prep_pg_error_upper_camel_case::#prep_idempotency_upper_camel_case {
                         error,
                         location: location_macros::location!(),
@@ -3995,7 +3995,6 @@ enum WrapIntoOptional {
             &CheckBodySizeSnakeCase,
             macro_helpers::domain_types::generate_simple_syn_punct::generate_simple_syn_punct([
                 constants_str::ROUTE_VALIDATORS,
-                constants_str::DOMAIN_TYPES,
                 constants_str::CHECK_BODY_SIZE,
                 &BodySizeErrorUpperCamelCase.to_string(),
             ]),
@@ -4202,20 +4201,19 @@ enum WrapIntoOptional {
                         &pg_syn_variant,
                         std::panic::Location::caller(),
                     );
-                let release_token_stream = if generate_pg_table_input_model
-                    .config
-                    .idempotent_mutations
-                    && operation.supports_idempotency()
-                {
-                    quote::quote! {
-                        let _release_result = pg_table::domain_types::release_pg_table_idempotency(
-                            app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
-                            &idempotency_request_0a0ae019,
-                        ).await;
-                    }
-                } else {
-                    proc_macro2::TokenStream::new()
-                };
+                let release_token_stream =
+                    if generate_pg_table_input_model.config.idempotent_mutations
+                        && operation.supports_idempotency()
+                    {
+                        quote::quote! {
+                            let _release_result = pg_table::release_pg_table_idempotency(
+                                app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
+                                &idempotency_request_0a0ae019,
+                            ).await;
+                        }
+                    } else {
+                        proc_macro2::TokenStream::new()
+                    };
                 quote::quote! {
                     if let Err(#Error0) = #ExecutorSnakeCase.#CommitSnakeCase().await {
                         #release_token_stream
@@ -4239,7 +4237,7 @@ enum WrapIntoOptional {
                         Ok(value) => value,
                         Err(_error) => {
                             let _rollback_result = #ExecutorSnakeCase.#RollbackSnakeCase().await;
-                            let _release_result = pg_table::domain_types::release_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                            let _release_result = pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
                             return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
                         }
                     };
@@ -4249,19 +4247,19 @@ enum WrapIntoOptional {
                         Ok(value) => value,
                         Err(_error) => {
                             let _rollback_result = #ExecutorSnakeCase.#RollbackSnakeCase().await;
-                            let _release_result = pg_table::domain_types::release_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                            let _release_result = pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
                             return axum::response::IntoResponse::into_response(http::StatusCode::TOO_MANY_REQUESTS);
                         }
                     };
-                    if pg_table::domain_types::complete_pg_table_idempotency_in_connection(
-                        pg_table::domain_types::SqlxPgTablePgConnectionRef::from(#ExecutorSnakeCase.as_mut()),
+                    if pg_table::complete_pg_table_idempotency_in_connection(
+                        pg_table::SqlxPgTablePgConnectionRef::from(#ExecutorSnakeCase.as_mut()),
                         &idempotency_request_0a0ae019,
-                        pg_table::domain_types::PgTableIdempotencyResponseStatus::try_from(#desirable_status_token_stream.as_u16())
-                            .unwrap_or_else(|_error| pg_table::domain_types::PgTableIdempotencyResponseStatus::internal_server_error()),
-                        pg_table::domain_types::PgTableIdempotencyBodyRef::from(response_body_649297c9.as_slice()),
+                        pg_table::PgTableIdempotencyResponseStatus::try_from(#desirable_status_token_stream.as_u16())
+                            .unwrap_or_else(|_error| pg_table::PgTableIdempotencyResponseStatus::internal_server_error()),
+                        pg_table::PgTableIdempotencyBodyRef::from(response_body_649297c9.as_slice()),
                     ).await.is_err() {
                         let _rollback_result = #ExecutorSnakeCase.#RollbackSnakeCase().await;
-                        let _release_result = pg_table::domain_types::release_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                        let _release_result = pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
                         return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
                     }
                 }
@@ -4588,7 +4586,8 @@ enum WrapIntoOptional {
     let generate_identifier_operation_parameters_upper_camel_case = |operation: &Operation| {
         generate_identifier_operation_suffix_token_stream(operation, constants_str::PARAMETERS)
     };
-    let std_sync_arc_combination_of_app_state_logic_traits_token_stream = quote::quote! {std::sync::Arc<dyn pg_table::domain_types::CombinationOfAppStateLogicTraits>};
+    let std_sync_arc_combination_of_app_state_logic_traits_token_stream =
+        quote::quote! {std::sync::Arc<dyn pg_table::CombinationOfAppStateLogicTraits>};
     let generate_operation_result_type_token_stream =
         |operation: &Operation| -> &dyn quote::ToTokens {
             match operation {
@@ -4678,15 +4677,15 @@ enum WrapIntoOptional {
         quote::quote! {pg_crud_common::domain_types::PaginationOffset},
         quote::quote! {pg_crud_common::domain_types::PaginationStartsWithZero},
         quote::quote! {pg_crud_common::domain_types::QueryPartErrorWithSerde},
-        quote::quote! {route_validators::domain_types::check_body_size::BodySizeErrorWithSerde},
-        quote::quote! {route_validators::domain_types::check_body_size::BodySizeLimitBytes},
-        quote::quote! {frontend_contract::domain_types::ApiProblem},
-        quote::quote! {frontend_contract::domain_types::ApiProblemDetail},
-        quote::quote! {frontend_contract::domain_types::ApiProblemField},
-        quote::quote! {frontend_contract::domain_types::ApiProblemKind},
-        quote::quote! {frontend_contract::domain_types::ApiProblemRequestId},
-        quote::quote! {frontend_contract::domain_types::ApiProblemStatus},
-        quote::quote! {frontend_contract::domain_types::ApiProblemViolation},
+        quote::quote! {route_validators::check_body_size::BodySizeErrorWithSerde},
+        quote::quote! {route_validators::check_body_size::BodySizeLimitBytes},
+        quote::quote! {frontend_contract::ApiProblem},
+        quote::quote! {frontend_contract::ApiProblemDetail},
+        quote::quote! {frontend_contract::ApiProblemField},
+        quote::quote! {frontend_contract::ApiProblemKind},
+        quote::quote! {frontend_contract::ApiProblemRequestId},
+        quote::quote! {frontend_contract::ApiProblemStatus},
+        quote::quote! {frontend_contract::ApiProblemViolation},
         quote::quote! {where_filters::domain_types::EncodeFormat},
         quote::quote! {where_filters::domain_types::RegexCase},
         quote::quote! {where_filters::domain_types::RegexRegex},
@@ -4842,16 +4841,16 @@ enum WrapIntoOptional {
         let operation_client_method_snake_case_token_stream = operation.self_snake_case_token_stream();
         let frontend_idempotency_request_token_stream = if idempotency_enabled {
             quote::quote! {
-                .with_idempotency_key(match frontend_contract::domain_types::TransportIdempotencyKey::try_from(pg_table::domain_types::new_pg_table_idempotency_key().as_ref().to_owned()) {
+                .with_idempotency_key(match frontend_contract::TransportIdempotencyKey::try_from(pg_table::new_pg_table_idempotency_key().as_ref().to_owned()) {
                     Ok(value) => value,
-                    Err(error) => return Err(frontend_contract::domain_types::ClientError::Encode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())),
+                    Err(error) => return Err(frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())),
                 })
             }
         } else {
             proc_macro2::TokenStream::new()
         };
         let optimistic_client_param_token_stream = if optimistic_concurrency_enabled {
-            quote::quote! {optimistic_revision_9f023d8e: pg_table::domain_types::PgTableRevision,}
+            quote::quote! {optimistic_revision_9f023d8e: pg_table::PgTableRevision,}
         } else {
             proc_macro2::TokenStream::new()
         };
@@ -4862,9 +4861,9 @@ enum WrapIntoOptional {
         };
         let frontend_optimistic_request_token_stream = if optimistic_concurrency_enabled {
             quote::quote! {
-                .with_if_match(match frontend_contract::domain_types::TransportIfMatch::try_from(optimistic_revision_9f023d8e.to_string()) {
+                .with_if_match(match frontend_contract::TransportIfMatch::try_from(optimistic_revision_9f023d8e.to_string()) {
                     Ok(value) => value,
-                    Err(error) => return Err(frontend_contract::domain_types::ClientError::Encode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())),
+                    Err(error) => return Err(frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())),
                 })
             }
         } else {
@@ -4894,66 +4893,66 @@ enum WrapIntoOptional {
                     &self,
                     #ParametersSnakeCase: #identifier_operation_parameters_upper_camel_case,
                     #optimistic_client_param_token_stream
-                ) -> Result<#result_ok_type_token_stream, frontend_contract::domain_types::ClientError> {
+                ) -> Result<#result_ok_type_token_stream, frontend_contract::ClientError> {
                     let route = #identifier_route_contract_upper_camel_case::ALL
                         .into_iter()
                         .find(|route| route.operation() == #identifier_operation_upper_camel_case::#operation_identifier)
-                        .ok_or(frontend_contract::domain_types::ClientError::UnexpectedResponse)?;
+                        .ok_or(frontend_contract::ClientError::UnexpectedResponse)?;
                     let body_bytes = serde_json::to_vec(&#ParametersSnakeCase.#PayloadSnakeCase)
-                        .map_err(|error| frontend_contract::domain_types::ClientError::Encode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
-                    let body = frontend_contract::domain_types::TransportBody::try_from(body_bytes)
-                        .map_err(|error| frontend_contract::domain_types::ClientError::Encode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
-                    let request = frontend_contract::domain_types::TransportRequest::new(
+                        .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
+                    let body = frontend_contract::TransportBody::try_from(body_bytes)
+                        .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
+                    let request = frontend_contract::TransportRequest::new(
                         body,
-                        frontend_contract::domain_types::TransportPath::try_from(route.path().to_owned())
-                            .map_err(|error| frontend_contract::domain_types::ClientError::Encode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default()))?,
+                        frontend_contract::TransportPath::try_from(route.path().to_owned())
+                            .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?,
                         route.frontend_contract(),
                     )#frontend_idempotency_request_token_stream #frontend_optimistic_request_token_stream;
                     let response = self
                         .transport
                         .send(request)
                         .await
-                        .map_err(frontend_contract::domain_types::ClientError::Transport)?;
+                        .map_err(frontend_contract::ClientError::Transport)?;
                     let response_body = response.success_body(
                         route.frontend_contract().success_status().transport_status(),
                     )?;
                     let decoded = serde_json::from_slice::<#open_api_response_type_token_stream>(
                         response_body.as_ref(),
                     )
-                    .map_err(|error| frontend_contract::domain_types::ClientError::Decode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
+                    .map_err(|error| frontend_contract::ClientError::Decode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
                     match decoded {
                         #open_api_response_type_token_stream::#DesirableUpperCamelCase(value) => Ok(value),
-                        _ => Err(frontend_contract::domain_types::ClientError::UnexpectedResponse),
+                        _ => Err(frontend_contract::ClientError::UnexpectedResponse),
                     }
                 }
                 pub async fn #operation_payload_example_client_method(
                     &self,
-                ) -> Result<#open_api_payload_type_token_stream, frontend_contract::domain_types::ClientError> {
+                ) -> Result<#open_api_payload_type_token_stream, frontend_contract::ClientError> {
                     let route = #identifier_route_contract_upper_camel_case::ALL
                         .into_iter()
                         .find(|route| route.operation() == #identifier_operation_upper_camel_case::#operation_identifier)
                         .map(#identifier_route_contract_upper_camel_case::payload_example)
-                        .ok_or(frontend_contract::domain_types::ClientError::UnexpectedResponse)?;
-                    let body = frontend_contract::domain_types::TransportBody::try_from(Vec::new())
-                        .map_err(|error| frontend_contract::domain_types::ClientError::Encode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
-                    let request = frontend_contract::domain_types::TransportRequest::new(
+                        .ok_or(frontend_contract::ClientError::UnexpectedResponse)?;
+                    let body = frontend_contract::TransportBody::try_from(Vec::new())
+                        .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
+                    let request = frontend_contract::TransportRequest::new(
                         body,
-                        frontend_contract::domain_types::TransportPath::try_from(route.path().to_owned())
-                            .map_err(|error| frontend_contract::domain_types::ClientError::Encode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default()))?,
+                        frontend_contract::TransportPath::try_from(route.path().to_owned())
+                            .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?,
                         route.frontend_contract(),
                     );
                     let response = self
                         .transport
                         .send(request)
                         .await
-                        .map_err(frontend_contract::domain_types::ClientError::Transport)?;
+                        .map_err(frontend_contract::ClientError::Transport)?;
                     let response_body = response.success_body(
                         route.frontend_contract().success_status().transport_status(),
                     )?;
                     serde_json::from_slice::<#open_api_payload_type_token_stream>(
                         response_body.as_ref(),
                     )
-                    .map_err(|error| frontend_contract::domain_types::ClientError::Decode(frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default()))
+                    .map_err(|error| frontend_contract::ClientError::Decode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))
                 }
             });
             open_api_path_fn_identifiers.push(open_api_path_fn_identifier);
@@ -5012,7 +5011,7 @@ enum WrapIntoOptional {
                                     .content(
                                         #application_json_double_quoted_token_stream,
                                         utoipa::openapi::Content::new(Some(
-                                            <frontend_contract::domain_types::ApiProblem as utoipa::PartialSchema>::schema(),
+                                            <frontend_contract::ApiProblem as utoipa::PartialSchema>::schema(),
                                         )),
                                     )
                                     .build()
@@ -5142,9 +5141,9 @@ enum WrapIntoOptional {
                             response_2b9f176e
                         } else {
                             let status_59091f23 = response_2b9f176e.status();
-                            let problem_error_0ae0baf4 = frontend_contract::domain_types::ApiProblemError::from_status(
-                                frontend_contract::domain_types::ApiProblemStatus::try_from(status_59091f23.as_u16())
-                                    .unwrap_or_else(|_error| frontend_contract::domain_types::ApiProblemStatus::from(frontend_contract::domain_types::KnownHttpStatus::InternalServerError)),
+                            let problem_error_0ae0baf4 = frontend_contract::ApiProblemError::from_status(
+                                frontend_contract::ApiProblemStatus::try_from(status_59091f23.as_u16())
+                                    .unwrap_or_else(|_error| frontend_contract::ApiProblemStatus::from(frontend_contract::KnownHttpStatus::InternalServerError)),
                             );
                             axum::response::IntoResponse::into_response(problem_error_0ae0baf4)
                         };
@@ -5206,7 +5205,7 @@ enum WrapIntoOptional {
                     let commit_header_addition_token_stream = quote::quote! {
                         .header(
                             &"commit".to_owned(),
-                            git_info::domain_types::project_git_info_value().commit().as_ref(),
+                            git_info::project_git_info_value().commit().as_ref(),
                         )
                     };
                     let app_json_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&constants_str::APPLICATION_JSON);
@@ -5215,7 +5214,7 @@ enum WrapIntoOptional {
                     };
                     let idempotency_header_addition_token_stream = if idempotency_enabled {
                         quote::quote! {
-                            .header("idempotency-key", pg_table::domain_types::new_pg_table_idempotency_key().as_ref())
+                            .header("idempotency-key", pg_table::new_pg_table_idempotency_key().as_ref())
                         }
                     } else {
                         proc_macro2::TokenStream::new()
@@ -5376,9 +5375,9 @@ enum WrapIntoOptional {
                 let req_parts_preparation_token_stream = {
                     let idempotency_metadata_token_stream = if idempotency_enabled {
                         quote::quote! {
-                            let idempotency_actor_5d99d3d2 = match parts.extensions.get::<pg_table::domain_types::PgTableIdempotencyActor>() {
+                            let idempotency_actor_5d99d3d2 = match parts.extensions.get::<pg_table::PgTableIdempotencyActor>() {
                                 Some(value) => value.clone(),
-                                None => match pg_table::domain_types::PgTableIdempotencyActor::try_from("anonymous".to_owned()) {
+                                None => match pg_table::PgTableIdempotencyActor::try_from("anonymous".to_owned()) {
                                     Ok(value) => value,
                                     Err(_error) => {
                                         return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
@@ -5404,14 +5403,14 @@ enum WrapIntoOptional {
                                 }
                             };
                             let idempotency_scope_8af2bd7d = match (
-                                pg_table::domain_types::PgTableIdempotencyMethod::try_from(idempotency_method_4c3bc5ac),
-                                pg_table::domain_types::PgTableIdempotencyRoute::try_from(idempotency_route_a66541e9),
-                                pg_table::domain_types::PgTableIdempotencyKey::try_from(idempotency_key_text_31ae975a),
+                                pg_table::PgTableIdempotencyMethod::try_from(idempotency_method_4c3bc5ac),
+                                pg_table::PgTableIdempotencyRoute::try_from(idempotency_route_a66541e9),
+                                pg_table::PgTableIdempotencyKey::try_from(idempotency_key_text_31ae975a),
                             ) {
-                                (Ok(method), Ok(route), Ok(key)) => pg_table::domain_types::PgTableIdempotencyScope::new(idempotency_actor_5d99d3d2, method, route, key),
+                                (Ok(method), Ok(route), Ok(key)) => pg_table::PgTableIdempotencyScope::new(idempotency_actor_5d99d3d2, method, route, key),
                                 (Err(_error), _, _) | (_, Err(_error), _) | (_, _, Err(_error)) => return axum::response::IntoResponse::into_response(http::StatusCode::BAD_REQUEST),
                             };
-                            let idempotency_request_0a0ae019 = pg_table::domain_types::PgTableIdempotencyRequest::new(idempotency_scope_8af2bd7d, pg_table::domain_types::PgTableIdempotencyBodyRef::from(body_bytes.as_ref()));
+                            let idempotency_request_0a0ae019 = pg_table::PgTableIdempotencyRequest::new(idempotency_scope_8af2bd7d, pg_table::PgTableIdempotencyBodyRef::from(body_bytes.as_ref()));
                         }
                     } else {
                         proc_macro2::TokenStream::new()
@@ -5421,7 +5420,7 @@ enum WrapIntoOptional {
                             let optimistic_revision_9f023d8e = {
                                 let mut values_c2818fdc = headers.get_all(http::header::IF_MATCH).iter();
                                 match (values_c2818fdc.next(), values_c2818fdc.next()) {
-                                    (Some(value), None) => match value.to_str().ok().map(str::to_owned).and_then(|value| pg_table::domain_types::PgTableRevision::try_from(value).ok()) {
+                                    (Some(value), None) => match value.to_str().ok().map(str::to_owned).and_then(|value| pg_table::PgTableRevision::try_from(value).ok()) {
                                         Some(value) => value,
                                         None => return axum::response::IntoResponse::into_response(http::StatusCode::PRECONDITION_REQUIRED),
                                     },
@@ -5438,7 +5437,7 @@ enum WrapIntoOptional {
                         std::panic::Location::caller(),
                     );
                     let ts1 = generate_match_ok_err_short_token_stream(
-                        &quote::quote! {route_validators::domain_types::check_body_size::check_body_size(#BodySnakeCase, *#AppStateSnakeCase.maximum_size_of_http_body_in_bytes()).await},
+                        &quote::quote! {route_validators::check_body_size::check_body_size(#BodySnakeCase, *#AppStateSnakeCase.maximum_size_of_http_body_in_bytes()).await},
                         &quote::quote! {v_cfac9140},
                         &{
                             let ts = generate_operation_error_initialization_eprintln_res_token_stream(
@@ -5466,12 +5465,12 @@ enum WrapIntoOptional {
                 };
                 let idempotency_begin_token_stream = if idempotency_enabled {
                     quote::quote! {
-                        let idempotency_pool_193acb3c = app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(#AppStateSnakeCase.as_ref());
-                        match pg_table::domain_types::begin_pg_table_idempotency(app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await {
-                            Ok(pg_table::domain_types::PgTableIdempotencyBegin::Acquired) => {}
-                            Ok(pg_table::domain_types::PgTableIdempotencyBegin::Conflict) => return axum::response::IntoResponse::into_response(http::StatusCode::CONFLICT),
-                            Ok(pg_table::domain_types::PgTableIdempotencyBegin::InProgress) => return axum::response::IntoResponse::into_response(http::StatusCode::TOO_EARLY),
-                            Ok(pg_table::domain_types::PgTableIdempotencyBegin::Replay(replay)) => {
+                        let idempotency_pool_193acb3c = app_state::SqlxPgPoolProvider::sqlx_pg_pool(#AppStateSnakeCase.as_ref());
+                        match pg_table::begin_pg_table_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await {
+                            Ok(pg_table::PgTableIdempotencyBegin::Acquired) => {}
+                            Ok(pg_table::PgTableIdempotencyBegin::Conflict) => return axum::response::IntoResponse::into_response(http::StatusCode::CONFLICT),
+                            Ok(pg_table::PgTableIdempotencyBegin::InProgress) => return axum::response::IntoResponse::into_response(http::StatusCode::TOO_EARLY),
+                            Ok(pg_table::PgTableIdempotencyBegin::Replay(replay)) => {
                                 let (status, body) = replay.into_parts();
                                 let status = match http::StatusCode::from_u16(u16::from(status)) {
                                     Ok(value) => value,
@@ -5633,14 +5632,14 @@ enum WrapIntoOptional {
                                     }
                                 }
                             });
-                            quote::quote! {pg_table::domain_types::generate_cm_query_string(
-                                pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(#column_names_double_quoted_token_stream),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(&{
+                            quote::quote! {pg_table::generate_cm_query_string(
+                                pg_table::PgTableNameRef::from(#TableSnakeCase),
+                                pg_table::PgTableSqlFragmentRef::from(#column_names_double_quoted_token_stream),
+                                pg_table::PgTableSqlFragmentRef::from(&{
                                     #increment_initialization_token_stream
                                     #ts0
                                 }),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(&#select_only_ids_query_part_token_stream)
+                                pg_table::PgTableSqlFragmentRef::from(&#select_only_ids_query_part_token_stream)
                             )}
                         }
                         Operation::Co => {
@@ -5649,11 +5648,11 @@ enum WrapIntoOptional {
                                 &quote::quote! {v_3267d57d},
                             );
                             quote::quote! {
-                                pg_table::domain_types::generate_co_query_string(
-                                    pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                                    pg_table::domain_types::PgTableSqlFragmentRef::from(#column_names_double_quoted_token_stream),
-                                    pg_table::domain_types::PgTableSqlFragmentRef::from(&#ts),
-                                    pg_table::domain_types::PgTableSqlFragmentRef::from(&#select_only_ids_query_part_token_stream)
+                                pg_table::generate_co_query_string(
+                                    pg_table::PgTableNameRef::from(#TableSnakeCase),
+                                    pg_table::PgTableSqlFragmentRef::from(#column_names_double_quoted_token_stream),
+                                    pg_table::PgTableSqlFragmentRef::from(&#ts),
+                                    pg_table::PgTableSqlFragmentRef::from(&#select_only_ids_query_part_token_stream)
                                 )
                             }
                         }
@@ -5718,10 +5717,10 @@ enum WrapIntoOptional {
                                 },
                                 &write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream,
                             );
-                            quote::quote! {pg_table::domain_types::generate_rm_query_string(
-                                pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(&#select_query_part_parameters_payload_select_token_stream),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(&{
+                            quote::quote! {pg_table::generate_rm_query_string(
+                                pg_table::PgTableNameRef::from(#TableSnakeCase),
+                                pg_table::PgTableSqlFragmentRef::from(&#select_query_part_parameters_payload_select_token_stream),
+                                pg_table::PgTableSqlFragmentRef::from(&{
                                     #increment_initialization_token_stream
                                     let mut #ExtraParametersSnakeCase = #extra_parameters_initialization_token_stream;
                                     let #PrefixSnakeCase = if extra_parameters.is_empty() {""} else {" "};
@@ -5753,10 +5752,10 @@ enum WrapIntoOptional {
                                 )},
                                 &quote::quote! {v_be9e7b7d},
                             );
-                            quote::quote! {pg_table::domain_types::generate_ro_query_string(
-                                pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(&#select_query_part_parameters_payload_select_token_stream),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(&#ts)
+                            quote::quote! {pg_table::generate_ro_query_string(
+                                pg_table::PgTableNameRef::from(#TableSnakeCase),
+                                pg_table::PgTableSqlFragmentRef::from(&#select_query_part_parameters_payload_select_token_stream),
+                                pg_table::PgTableSqlFragmentRef::from(&#ts)
                             )}
                         }
                         Operation::Um => {
@@ -5788,10 +5787,10 @@ enum WrapIntoOptional {
                                                 &quote::quote! {v_8797585c},
                                             );
                                             quote::quote! {
-                                                accumulator_8ad06c8c.push_str(&pg_table::domain_types::#GenerateWhenColumnIdThenVUmQueryPartSnakeCase(
-                                                    pg_table::domain_types::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
-                                                    pg_table::domain_types::PgTableSqlFragmentRef::from(&#ts0),
-                                                    pg_table::domain_types::PgTableSqlFragmentRef::from(&#ts1)
+                                                accumulator_8ad06c8c.push_str(&pg_table::#GenerateWhenColumnIdThenVUmQueryPartSnakeCase(
+                                                    pg_table::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
+                                                    pg_table::PgTableSqlFragmentRef::from(&#ts0),
+                                                    pg_table::PgTableSqlFragmentRef::from(&#ts1)
                                                 ));
                                             }
                                         },
@@ -5802,9 +5801,9 @@ enum WrapIntoOptional {
                                             #for_element_update_field_exists_token_stream
                                             if #is_field_update_exists_snake_case {
                                                 accumulator_b86a253a.push_str(&
-                                                    pg_table::domain_types::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part(
-                                                        pg_table::domain_types::PgTableSqlFragmentRef::from(#field_double_quoted_token_stream),
-                                                        pg_table::domain_types::PgTableSqlFragmentRef::from(&{
+                                                    pg_table::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part(
+                                                        pg_table::PgTableSqlFragmentRef::from(#field_double_quoted_token_stream),
+                                                        pg_table::PgTableSqlFragmentRef::from(&{
                                                             let mut accumulator_8ad06c8c = #StringTokenStream::default();
                                                             #for_element_update_field_query_part_token_stream
                                                             accumulator_8ad06c8c
@@ -5855,12 +5854,12 @@ enum WrapIntoOptional {
                                         #for_element_select_only_updated_ids_query_part_token_stream
                                         accumulator_fd44b0aa
                                     };
-                                    pg_table::domain_types::generate_um_query_string(
-                                        pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(&els),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(&pks),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(&return_cols)
+                                    pg_table::generate_um_query_string(
+                                        pg_table::PgTableNameRef::from(#TableSnakeCase),
+                                        pg_table::PgTableSqlFragmentRef::from(&els),
+                                        pg_table::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
+                                        pg_table::PgTableSqlFragmentRef::from(&pks),
+                                        pg_table::PgTableSqlFragmentRef::from(&return_cols)
                                     )
                                 }
                             }
@@ -5887,9 +5886,9 @@ enum WrapIntoOptional {
                                                 &quote::quote! {v_1ec12051},
                                             );
                                             quote::quote! {
-                                                accumulator_683e37b8.push_str(&pg_table::domain_types::#generate_column_eq_v_comma_uo_query_part_snake_case(
-                                                    pg_table::domain_types::PgTableSqlFragmentRef::from(#field_double_quoted_token_stream),
-                                                    pg_table::domain_types::PgTableSqlFragmentRef::from(&#ts)
+                                                accumulator_683e37b8.push_str(&pg_table::#generate_column_eq_v_comma_uo_query_part_snake_case(
+                                                    pg_table::PgTableSqlFragmentRef::from(#field_double_quoted_token_stream),
+                                                    pg_table::PgTableSqlFragmentRef::from(&#ts)
                                                 ));
                                             }
                                         },
@@ -5915,10 +5914,10 @@ enum WrapIntoOptional {
                                             generate_quotes::domain_types::dq_token_stream(revision_identifier);
                                         quote::quote! {
                                             let optimistic_revision_query_part_f64c18e5 = format!("${}", #IncrementSnakeCase.saturating_add(1u64));
-                                            pg_table::domain_types::add_uo_optimistic_revision_predicate(
+                                            pg_table::add_uo_optimistic_revision_predicate(
                                                 query_297f2e40,
-                                                pg_table::domain_types::PgTableSqlFragmentRef::from(#revision_identifier_double_quoted_token_stream),
-                                                pg_table::domain_types::PgTableSqlFragmentRef::from(&optimistic_revision_query_part_f64c18e5),
+                                                pg_table::PgTableSqlFragmentRef::from(#revision_identifier_double_quoted_token_stream),
+                                                pg_table::PgTableSqlFragmentRef::from(&optimistic_revision_query_part_f64c18e5),
                                             )
                                         }
                                     },
@@ -5931,12 +5930,12 @@ enum WrapIntoOptional {
                                     };
                                     let #PrimaryKeyQueryPartSnakeCase = #extra_parameters_primary_key_modification_token_stream;
                                     let return_cols = #ts;
-                                    let query_297f2e40 = pg_table::domain_types::generate_uo_query_string(
-                                        pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(&#ColsSnakeCase),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(&#PrimaryKeyQueryPartSnakeCase),
-                                        pg_table::domain_types::PgTableSqlFragmentRef::from(&return_cols)
+                                    let query_297f2e40 = pg_table::generate_uo_query_string(
+                                        pg_table::PgTableNameRef::from(#TableSnakeCase),
+                                        pg_table::PgTableSqlFragmentRef::from(&#ColsSnakeCase),
+                                        pg_table::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
+                                        pg_table::PgTableSqlFragmentRef::from(&#PrimaryKeyQueryPartSnakeCase),
+                                        pg_table::PgTableSqlFragmentRef::from(&return_cols)
                                     );
                                     #optimistic_query_token_stream
                                 }
@@ -5946,18 +5945,18 @@ enum WrapIntoOptional {
                             let extra_parameters_initialization_token_stream = generate_read_or_dm_extra_parameters_initialization_token_stream(
                                 &RmOrDm::Dm,
                             );
-                            quote::quote! {pg_table::domain_types::generate_dm_query_string(
-                                pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(&{
+                            quote::quote! {pg_table::generate_dm_query_string(
+                                pg_table::PgTableNameRef::from(#TableSnakeCase),
+                                pg_table::PgTableSqlFragmentRef::from(&{
                                     #increment_initialization_token_stream
                                     #extra_parameters_initialization_token_stream
                                 }),
-                                pg_table::domain_types::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
+                                pg_table::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
                             )}
                         }
-                        Operation::Dlo => quote::quote! {pg_table::domain_types::generate_dlo_query_string(
-                            pg_table::domain_types::PgTableNameRef::from(#TableSnakeCase),
-                            pg_table::domain_types::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
+                        Operation::Dlo => quote::quote! {pg_table::generate_dlo_query_string(
+                            pg_table::PgTableNameRef::from(#TableSnakeCase),
+                            pg_table::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
                         )},
                     }
                 };
@@ -6277,8 +6276,8 @@ enum WrapIntoOptional {
                                 );
                                 let release_token_stream = if idempotency_enabled {
                                     quote::quote! {
-                                        let _release_result = pg_table::domain_types::release_pg_table_idempotency(
-                                            app_state::domain_types::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
+                                        let _release_result = pg_table::release_pg_table_idempotency(
+                                            app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
                                             &idempotency_request_0a0ae019,
                                         ).await;
                                     }
@@ -6378,8 +6377,8 @@ enum WrapIntoOptional {
                 );
                 quote::quote! {
                     #MustUse
-                    pub fn #operation_route_snake_case_token_stream() -> frontend_contract::domain_types::ContractStr {
-                        frontend_contract::domain_types::ContractStr::from(#operation_route_path)
+                    pub fn #operation_route_snake_case_token_stream() -> frontend_contract::ContractStr {
+                        frontend_contract::ContractStr::from(#operation_route_path)
                     }
                     pub async fn #operation_snake_case_token_stream(
                         #AppStateSnakeCase: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_token_stream>,
@@ -6408,8 +6407,8 @@ enum WrapIntoOptional {
                 );
                 quote::quote! {
                     #MustUse
-                    pub fn #operation_payload_example_route_snake_case() -> frontend_contract::domain_types::ContractStr {
-                        frontend_contract::domain_types::ContractStr::from(#operation_payload_example_route_path)
+                    pub fn #operation_payload_example_route_snake_case() -> frontend_contract::ContractStr {
+                        frontend_contract::ContractStr::from(#operation_payload_example_route_path)
                     }
                     #MustUse
                     pub fn #operation_payload_example_snake_case() -> axum::response::Response {
@@ -6965,7 +6964,7 @@ enum WrapIntoOptional {
         #[allow(clippy::future_not_send)] // browser transports and WASM futures are intentionally single-threaded
         impl<Transport> #identifier_frontend_api_client_upper_camel_case<Transport>
         where
-            Transport: frontend_contract::domain_types::Transport,
+            Transport: frontend_contract::Transport,
         {
             #[must_use]
             pub const fn new(transport: Transport) -> Self {
@@ -7064,7 +7063,7 @@ enum WrapIntoOptional {
             OperationKind::UpdateMany => quote::format_ident!("UpdateMany"),
             OperationKind::UpdateOne => quote::format_ident!("UpdateOne"),
         };
-        quote::quote! {#identifier_operation_upper_camel_case::#operation => frontend_contract::domain_types::OperationKind::#operation_kind}
+        quote::quote! {#identifier_operation_upper_camel_case::#operation => frontend_contract::OperationKind::#operation_kind}
     });
     let identifier_route_contract_token_stream = quote::quote! {
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -7159,47 +7158,47 @@ enum WrapIntoOptional {
                     })
             }
             #[must_use]
-            pub fn frontend_contract(self) -> frontend_contract::domain_types::RouteContract {
+            pub fn frontend_contract(self) -> frontend_contract::RouteContract {
                 let authentication = match self.authentication {
-                    #identifier_auth_requirement_upper_camel_case::Permission(permission) => frontend_contract::domain_types::AuthenticationRequirement::Permission(frontend_contract::domain_types::ContractStr::from(permission)),
-                    #identifier_auth_requirement_upper_camel_case::Public => frontend_contract::domain_types::AuthenticationRequirement::Public,
+                    #identifier_auth_requirement_upper_camel_case::Permission(permission) => frontend_contract::AuthenticationRequirement::Permission(frontend_contract::ContractStr::from(permission)),
+                    #identifier_auth_requirement_upper_camel_case::Public => frontend_contract::AuthenticationRequirement::Public,
                 };
                 let method = match self.http_method {
-                    #identifier_http_method_upper_camel_case::Delete => frontend_contract::domain_types::RouteMethod::Delete,
-                    #identifier_http_method_upper_camel_case::Get => frontend_contract::domain_types::RouteMethod::Get,
-                    #identifier_http_method_upper_camel_case::Patch => frontend_contract::domain_types::RouteMethod::Patch,
-                    #identifier_http_method_upper_camel_case::Post => frontend_contract::domain_types::RouteMethod::Post,
+                    #identifier_http_method_upper_camel_case::Delete => frontend_contract::RouteMethod::Delete,
+                    #identifier_http_method_upper_camel_case::Get => frontend_contract::RouteMethod::Get,
+                    #identifier_http_method_upper_camel_case::Patch => frontend_contract::RouteMethod::Patch,
+                    #identifier_http_method_upper_camel_case::Post => frontend_contract::RouteMethod::Post,
                 };
                 let mutation = if self.mutates() {
-                    frontend_contract::domain_types::MutationKind::Mutating
+                    frontend_contract::MutationKind::Mutating
                 } else {
-                    frontend_contract::domain_types::MutationKind::ReadOnly
+                    frontend_contract::MutationKind::ReadOnly
                 };
                 let success_status = match self.success_status {
-                    #identifier_success_status_upper_camel_case::Code200 => frontend_contract::domain_types::SuccessStatus::Code200,
-                    #identifier_success_status_upper_camel_case::Code201 => frontend_contract::domain_types::SuccessStatus::Code201,
+                    #identifier_success_status_upper_camel_case::Code200 => frontend_contract::SuccessStatus::Code200,
+                    #identifier_success_status_upper_camel_case::Code201 => frontend_contract::SuccessStatus::Code201,
                 };
-                frontend_contract::domain_types::RouteContract::new(authentication, method, mutation, frontend_contract::domain_types::ContractStr::from(self.path()), success_status)
+                frontend_contract::RouteContract::new(authentication, method, mutation, frontend_contract::ContractStr::from(self.path()), success_status)
             }
             #[must_use]
-            pub fn frontend_contracts() -> frontend_contract::domain_types::RouteContracts {
-                frontend_contract::domain_types::RouteContracts::from_max_iter(Self::ALL.into_iter().map(Self::frontend_contract))
+            pub fn frontend_contracts() -> frontend_contract::RouteContracts {
+                frontend_contract::RouteContracts::from_max_iter(Self::ALL.into_iter().map(Self::frontend_contract))
             }
             #[must_use]
-            pub fn frontend_action(self) -> frontend_contract::domain_types::ActionContract {
+            pub fn frontend_action(self) -> frontend_contract::ActionContract {
                 let operation = match self.operation {
                     #(#route_contract_operation_kind_arms_token_stream),*
                 };
-                let action = frontend_contract::domain_types::ActionContract::new(operation, self.frontend_contract());
+                let action = frontend_contract::ActionContract::new(operation, self.frontend_contract());
                 if matches!(self.operation, #identifier_operation_upper_camel_case::Dm | #identifier_operation_upper_camel_case::Dlo) {
-                    action.with_confirmation(frontend_contract::domain_types::ConfirmationRequirement::Required)
+                    action.with_confirmation(frontend_contract::ConfirmationRequirement::Required)
                 } else {
                     action
                 }
             }
             #[must_use]
-            pub fn frontend_actions() -> frontend_contract::domain_types::ActionContracts {
-                frontend_contract::domain_types::ActionContracts::from_max_iter(Self::ALL.into_iter().map(Self::frontend_action))
+            pub fn frontend_actions() -> frontend_contract::ActionContracts {
+                frontend_contract::ActionContracts::from_max_iter(Self::ALL.into_iter().map(Self::frontend_action))
             }
             #[must_use]
             pub const fn mutates(self) -> bool {
@@ -7450,9 +7449,9 @@ enum WrapIntoOptional {
                     .get_or_insert_with(utoipa::openapi::Components::new);
                 {
                     let mut schema_components =
-                        frontend_contract::domain_types::UtoipaOpenApiComponentsRefMut::from(&mut *components);
+                        frontend_contract::UtoipaOpenApiComponentsRefMut::from(&mut *components);
                     #(
-                        frontend_contract::domain_types::register_openapi_schema::<#open_api_schema_types_token_stream>(
+                        frontend_contract::register_openapi_schema::<#open_api_schema_types_token_stream>(
                             &mut schema_components,
                         );
                     )*
@@ -9916,25 +9915,25 @@ enum WrapIntoOptional {
                         let table_names_cloned = table_names.map(|element_26b304d1| std::sync::Arc::<str>::clone(element_26b304d1));
                         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
                         let #undrscr_unused_token_stream = tokio::spawn(async move {
-                            let #AppStateSnakeCase = std::sync::Arc::new(server_app_state::domain_types::ServerAppState {
+                            let #AppStateSnakeCase = std::sync::Arc::new(server_app_state::ServerAppState {
                                 bulk_item_budget: server_runtime_http::domain_types::ResourceBudget::new(
                                     server_runtime_http::domain_types::ResourceBudgetMaximum::try_from(4_096usize).expect("f9304636 crud invariant must hold"),
                                 ),
-                                #PgPoolSnakeCase: app_state::domain_types::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSnakeCase.clone()),
+                                #PgPoolSnakeCase: app_state::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSnakeCase.clone()),
                                 #ConfigSnakeCase,
                                 idempotency_response_budget: server_runtime_http::domain_types::ResourceBudget::new(
                                     server_runtime_http::domain_types::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935 crud invariant must hold"),
                                 ),
-                                project_git_info: git_info::domain_types::project_git_info_value(),
+                                project_git_info: git_info::project_git_info_value(),
                             });
                             started_tx.send(()).expect("431a6f8d crud invariant must hold");
                             axum::serve(
                                 tcp_listener,
                                 {
                                     let mut router = axum::Router::new()
-                                        .merge(#identifier::routes(std::sync::Arc::<server_app_state::domain_types::ServerAppState<'_>>::clone(&app_state)));
+                                        .merge(#identifier::routes(std::sync::Arc::<server_app_state::ServerAppState<'_>>::clone(&app_state)));
                                     for element_ef09f2b0 in table_names_cloned {
-                                        router = router.merge(#identifier::routes_for_table(std::sync::Arc::<server_app_state::domain_types::ServerAppState<'_>>::clone(&app_state), &element_ef09f2b0));
+                                        router = router.merge(#identifier::routes_for_table(std::sync::Arc::<server_app_state::ServerAppState<'_>>::clone(&app_state), &element_ef09f2b0));
                                     }
                                     router.into_make_service()
                                 },
@@ -10016,15 +10015,15 @@ enum WrapIntoOptional {
     let identifier_update_form_upper_camel_case = quote::format_ident!("{}UpdateForm", identifier);
     let create_form_fields_token_stream = create_fields_without_primary_key_iter().map(|field| {
         let field_identifier = &field.identifier;
-        quote::quote! {pub #field_identifier: frontend_contract::domain_types::FormValue}
+        quote::quote! {pub #field_identifier: frontend_contract::FormValue}
     });
     let update_form_fields_token_stream = std::iter::once({
         let field_identifier = &primary_key_field.identifier;
-        quote::quote! {pub #field_identifier: frontend_contract::domain_types::FormValue}
+        quote::quote! {pub #field_identifier: frontend_contract::FormValue}
     })
     .chain(fields_without_primary_key_iter().map(|field| {
         let field_identifier = &field.identifier;
-        quote::quote! {pub #field_identifier: Option<frontend_contract::domain_types::FormValue>}
+        quote::quote! {pub #field_identifier: Option<frontend_contract::FormValue>}
     }));
     let create_form_conversion_token_stream = create_fields_without_primary_key_iter().map(|field| {
         let field_identifier = &field.identifier;
@@ -10034,12 +10033,12 @@ enum WrapIntoOptional {
         let create_type = generate_concrete_pg_type_role_token_stream(&field.type0, &CreateUpperCamelCase);
         quote::quote! {
             #field_identifier: #create_type::from(
-                <#origin_type as frontend_contract::domain_types::FormValueContract>::parse_form_value(
-                    frontend_contract::domain_types::FormValueRef::from(value.#field_identifier.as_ref()),
+                <#origin_type as frontend_contract::FormValueContract>::parse_form_value(
+                    frontend_contract::FormValueRef::from(value.#field_identifier.as_ref()),
                 )
-                .map_err(|error| frontend_contract::domain_types::FormFieldError::new(
+                .map_err(|error| frontend_contract::FormFieldError::new(
                     error,
-                    frontend_contract::domain_types::ContractStr::from(#field_name_double_quoted_token_stream),
+                    frontend_contract::ContractStr::from(#field_name_double_quoted_token_stream),
                 ))?,
             )
         }
@@ -10052,12 +10051,12 @@ enum WrapIntoOptional {
         let update_type = generate_concrete_pg_type_role_token_stream(&primary_key_field.type0, &UpdateUpperCamelCase);
         quote::quote! {
             #field_identifier: #update_type::from(
-                <#origin_type as frontend_contract::domain_types::FormValueContract>::parse_form_value(
-                    frontend_contract::domain_types::FormValueRef::from(value.#field_identifier.as_ref()),
+                <#origin_type as frontend_contract::FormValueContract>::parse_form_value(
+                    frontend_contract::FormValueRef::from(value.#field_identifier.as_ref()),
                 )
-                .map_err(|error| frontend_contract::domain_types::FormFieldError::new(
+                .map_err(|error| frontend_contract::FormFieldError::new(
                     error,
-                    frontend_contract::domain_types::ContractStr::from(#field_name_double_quoted_token_stream),
+                    frontend_contract::ContractStr::from(#field_name_double_quoted_token_stream),
                 ))?,
             )
         }
@@ -10071,13 +10070,13 @@ enum WrapIntoOptional {
         quote::quote! {
             #field_identifier: value.#field_identifier
                 .map(|field_value| {
-                    <#origin_type as frontend_contract::domain_types::FormValueContract>::parse_form_value(
-                        frontend_contract::domain_types::FormValueRef::from(field_value.as_ref()),
+                    <#origin_type as frontend_contract::FormValueContract>::parse_form_value(
+                        frontend_contract::FormValueRef::from(field_value.as_ref()),
                     )
                     .map(|parsed| pg_crud_common::domain_types::V { v: #update_type::from(parsed) })
-                    .map_err(|error| frontend_contract::domain_types::FormFieldError::new(
+                    .map_err(|error| frontend_contract::FormFieldError::new(
                         error,
-                        frontend_contract::domain_types::ContractStr::from(#field_name_double_quoted_token_stream),
+                        frontend_contract::ContractStr::from(#field_name_double_quoted_token_stream),
                     ))
                 })
                 .transpose()?
@@ -10089,7 +10088,7 @@ enum WrapIntoOptional {
             #(#create_form_fields_token_stream),*
         }
         impl TryFrom<#identifier_create_form_upper_camel_case> for #identifier_create_upper_camel_case {
-            type Error = frontend_contract::domain_types::FormFieldError;
+            type Error = frontend_contract::FormFieldError;
             fn try_from(value: #identifier_create_form_upper_camel_case) -> Result<Self, Self::Error> {
                 Ok(Self {
                     #(#create_form_conversion_token_stream),*
@@ -10101,7 +10100,7 @@ enum WrapIntoOptional {
             #(#update_form_fields_token_stream),*
         }
         impl TryFrom<#identifier_update_form_upper_camel_case> for #identifier_update_upper_camel_case {
-            type Error = frontend_contract::domain_types::FormFieldError;
+            type Error = frontend_contract::FormFieldError;
             fn try_from(value: #identifier_update_form_upper_camel_case) -> Result<Self, Self::Error> {
                 Ok(Self {
                     #(#update_form_conversion_token_stream),*
@@ -10233,10 +10232,10 @@ enum WrapIntoOptional {
                             axum::Router::new()
                             #(#operation_routes_token_stream)*
                             .method_not_allowed_fallback(|| async {
-                                frontend_contract::domain_types::ApiProblemError::MethodNotAllowed
+                                frontend_contract::ApiProblemError::MethodNotAllowed
                             })
                             .fallback(|| async {
-                                frontend_contract::domain_types::ApiProblemError::NotFound
+                                frontend_contract::ApiProblemError::NotFound
                             })
                             .with_state(#AppStateSnakeCase)
                         )

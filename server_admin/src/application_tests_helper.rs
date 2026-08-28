@@ -15,7 +15,7 @@ pub(crate) fn auth_state(
     allowed_origin: &str,
 ) -> Result<crate::AdminAuthSvcState, crate::AdminAuthSvcStateBuildError> {
     crate::AdminAuthSvcState::try_new(
-        app_state::domain_types::SqlxPgPool::from(pool),
+        app_state::SqlxPgPool::from(pool),
         &admin_app_test_env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
         &admin_app_test_env(constants_str::VALUE_900),
         &admin_app_test_env(constants_str::VALUE_3600),

@@ -102,7 +102,7 @@ fn public_catalog_wrappers_preserve_checked_vec_conversions() {
 fn route_test_categories_reject_oversized_vec() {
     let categories = vec![
         super::RouteTestCategory::Metadata;
-        bounded_types::domain_types::COLLECTION_MAX_LEN + constants_usize::ONE
+        bounded_types::COLLECTION_MAX_LEN + constants_usize::ONE
     ];
     let _error =
         super::RouteTestCategories::try_from(categories).expect_err(constants_str::VALUE_64271BEF);

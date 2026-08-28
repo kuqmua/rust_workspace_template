@@ -2,7 +2,6 @@
 use admin_crud_page::*;
 pub(crate) use admin_html_open_api::*;
 use admin_html_page_route_registry::*;
-pub(crate) use admin_html_page_router::*;
 pub(crate) use admin_html_sessions_page::*;
 use admin_html_swagger_route_registry::*;
 use crud_page::*;
@@ -16,7 +15,6 @@ pub(crate) use roles_create_page::*;
 pub(crate) use roles_manage_page::*;
 pub(crate) use settings::*;
 pub(crate) use sign_in_page::*;
-pub(crate) use swagger_router::*;
 pub(crate) use users::*;
 pub(crate) use users_create_page::*;
 pub(crate) use users_manage_page::*;
@@ -64,12 +62,6 @@ mod version {
 }
 mod admin_html_open_api {
     pub use crate::admin_html_open_api::*;
-}
-mod admin_html_page_router {
-    pub use crate::admin_html_page_router::*;
-}
-mod swagger_router {
-    pub use crate::swagger_router::*;
 }
 mod csr_page {
     pub use crate::csr_page::*;

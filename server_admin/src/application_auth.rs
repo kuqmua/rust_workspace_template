@@ -36,45 +36,42 @@ pub use jsonwebtoken_admin_encoding_key::*;
 pub use routes::{admin_api_open_api, admin_auth_routes};
 pub use shared_admin_auth_svc_state_arc::*;
 pub use std_admin_access_ttl_seconds::*;
-use std_admin_access_ttl_seconds_non_zero_u64::*;
 pub use std_admin_failure_delay_millis::*;
 pub use std_admin_failure_threshold::*;
 pub(crate) use std_admin_rate_limit_count::*;
 pub(crate) use std_admin_rate_limit_window_seconds::*;
 pub use std_admin_refresh_ttl_seconds::*;
-use std_admin_refresh_ttl_seconds_non_zero_u64::*;
 pub use std_admin_session_limit::*;
-use std_admin_session_limit_non_zero_usize::*;
 pub use utoipa_admin_auth_open_api::*;
 
-frontend_contract::domain_types::api_operation_error!(AdminAuditLogError,);
-frontend_contract::domain_types::api_operation_error!(AdminAuditExportError,);
-frontend_contract::domain_types::api_operation_error!(AdminBrandingError,);
-frontend_contract::domain_types::api_operation_error!(AdminChangeOwnPasswordError,);
-frontend_contract::domain_types::api_operation_error!(AdminCreateRoleError,);
-frontend_contract::domain_types::api_operation_error!(AdminCreateUserError,);
-frontend_contract::domain_types::api_operation_error!(AdminDataTableError,);
-frontend_contract::domain_types::api_operation_error!(AdminDataTablesError,);
-frontend_contract::domain_types::api_operation_error!(AdminDeleteRoleError,);
-frontend_contract::domain_types::api_operation_error!(AdminDeleteUserError,);
-frontend_contract::domain_types::api_operation_error!(AdminListPermissionsError,);
-frontend_contract::domain_types::api_operation_error!(AdminListRolesError,);
-frontend_contract::domain_types::api_operation_error!(AdminListUsersError,);
-frontend_contract::domain_types::api_operation_error!(AdminMeError,);
-frontend_contract::domain_types::api_operation_error!(AdminRefreshError,);
-frontend_contract::domain_types::api_operation_error!(AdminRevokeAllSessionsError,);
-frontend_contract::domain_types::api_operation_error!(AdminRevokeSessionError,);
-frontend_contract::domain_types::api_operation_error!(AdminSessionsError,);
-frontend_contract::domain_types::api_operation_error!(AdminSetRolePermissionsError,);
-frontend_contract::domain_types::api_operation_error!(AdminSetUserBanError,);
-frontend_contract::domain_types::api_operation_error!(AdminSetUserPasswordError,);
-frontend_contract::domain_types::api_operation_error!(AdminSetUserRolesError,);
-frontend_contract::domain_types::api_operation_error!(AdminSettingsError,);
-frontend_contract::domain_types::api_operation_error!(AdminSignInError,);
-frontend_contract::domain_types::api_operation_error!(AdminSignOutError,);
-frontend_contract::domain_types::api_operation_error!(AdminUpdateRoleError,);
-frontend_contract::domain_types::api_operation_error!(AdminUpdateSettingsError,);
-frontend_contract::domain_types::api_operation_error!(AdminUpdateUserError,);
+frontend_contract::api_operation_error!(AdminAuditLogError,);
+frontend_contract::api_operation_error!(AdminAuditExportError,);
+frontend_contract::api_operation_error!(AdminBrandingError,);
+frontend_contract::api_operation_error!(AdminChangeOwnPasswordError,);
+frontend_contract::api_operation_error!(AdminCreateRoleError,);
+frontend_contract::api_operation_error!(AdminCreateUserError,);
+frontend_contract::api_operation_error!(AdminDataTableError,);
+frontend_contract::api_operation_error!(AdminDataTablesError,);
+frontend_contract::api_operation_error!(AdminDeleteRoleError,);
+frontend_contract::api_operation_error!(AdminDeleteUserError,);
+frontend_contract::api_operation_error!(AdminListPermissionsError,);
+frontend_contract::api_operation_error!(AdminListRolesError,);
+frontend_contract::api_operation_error!(AdminListUsersError,);
+frontend_contract::api_operation_error!(AdminMeError,);
+frontend_contract::api_operation_error!(AdminRefreshError,);
+frontend_contract::api_operation_error!(AdminRevokeAllSessionsError,);
+frontend_contract::api_operation_error!(AdminRevokeSessionError,);
+frontend_contract::api_operation_error!(AdminSessionsError,);
+frontend_contract::api_operation_error!(AdminSetRolePermissionsError,);
+frontend_contract::api_operation_error!(AdminSetUserBanError,);
+frontend_contract::api_operation_error!(AdminSetUserPasswordError,);
+frontend_contract::api_operation_error!(AdminSetUserRolesError,);
+frontend_contract::api_operation_error!(AdminSettingsError,);
+frontend_contract::api_operation_error!(AdminSignInError,);
+frontend_contract::api_operation_error!(AdminSignOutError,);
+frontend_contract::api_operation_error!(AdminUpdateRoleError,);
+frontend_contract::api_operation_error!(AdminUpdateSettingsError,);
+frontend_contract::api_operation_error!(AdminUpdateUserError,);
 
 // Root-owned module compatibility wrappers.
 mod account_change_own_password {
@@ -370,15 +367,6 @@ mod axum_admin_state_router {
 }
 mod jsonwebtoken_admin_decoding_keys {
     pub use crate::jsonwebtoken_admin_decoding_keys::*;
-}
-mod std_admin_access_ttl_seconds_non_zero_u64 {
-    pub use crate::std_admin_access_ttl_seconds_non_zero_u64::*;
-}
-mod std_admin_refresh_ttl_seconds_non_zero_u64 {
-    pub use crate::std_admin_refresh_ttl_seconds_non_zero_u64::*;
-}
-mod std_admin_session_limit_non_zero_usize {
-    pub use crate::std_admin_session_limit_non_zero_usize::*;
 }
 mod admin_password_from_contract {
     pub use crate::admin_password_from_contract::*;

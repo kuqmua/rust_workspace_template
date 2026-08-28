@@ -16,14 +16,39 @@ pub fn errors_with_location(
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match add_location_fields(syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item)) {
+    let add_location_fields_result = {
+        let item_ref = syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item).into_inner();
+        item_ref.variants.iter_mut().try_for_each(|variant| {
+            let syn::Fields::Named(fields) = &mut variant.fields else {
+                return Err(syn::Error::new_spanned(
+                    variant,
+                    constants_str::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS,
+                ));
+            };
+            if fields.named.iter().any(|field| {
+                field
+                    .ident
+                    .as_ref()
+                    .is_some_and(|identifier| identifier == constants_str::LOCATION_ALT)
+            }) {
+                return Err(syn::Error::new_spanned(
+                    variant,
+                    constants_str::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD,
+                ));
+            }
+            fields
+                .named
+                .push(syn::parse_quote! { location: location_lib::domain_types::Location });
+            Ok(())
+        })
+    };
+    match add_location_fields_result {
         Ok(()) => quote::quote! {#item}.into(),
         Err(error) => error.into_compile_error().into(),
     }
 }
-// The owner module retains lint-sensitive semantics from the original implementation.
 
-#[allow(clippy::single_call_fn)] // isolated transformation is unit-tested independently from proc-macro parsing
+#[cfg(test)]
 fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> syn::Result<()> {
     let item_ref = item.into_inner();
     item_ref.variants.iter_mut().try_for_each(|variant| {

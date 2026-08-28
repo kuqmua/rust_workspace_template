@@ -11,5 +11,5 @@ use crate::domain_types::StorageRelativePathBuf;
     newtype::FromInner,
 )]
 pub struct DiskCacheEvictionPlan(
-    bounded_types::domain_types::vector::BoundedVec<StorageRelativePathBuf, 0, { usize::MAX }>,
+    bounded_types::BoundedVec<StorageRelativePathBuf, 0, { usize::MAX }>,
 );

@@ -3,10 +3,7 @@ use crate::{
     parse_from_str_with_ctx,
 };
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "composed environment parser is also exercised directly by tests"
-)]
+#[cfg(test)]
 pub(super) fn parse_from_env_var_from_str<T>(
     env_v: EnvVarResultVarError,
     env_var_name: ParseEnvVarNameRef<'static>,

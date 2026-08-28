@@ -1,4 +1,3 @@
-pub mod capture;
 mod init_service_observability;
 pub mod initialization;
 mod observability_guard;
@@ -14,3 +13,9 @@ pub mod service_tracing_format;
 mod std_panic_location;
 mod tracing_observed_error_span_trace;
 mod tracing_subscriber_init_error;
+
+pub use observed_error::ObservedError;
+pub use observed_error_backtrace::ObservedErrorBacktrace;
+pub use observed_error_code::ObservedErrorCode;
+pub use std_panic_location::StdPanicLocation;
+pub use tracing_observed_error_span_trace::TracingObservedErrorSpanTrace;

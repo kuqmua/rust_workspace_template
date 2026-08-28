@@ -1,7 +1,7 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::route_registry(
+#[frontend_contract::route_registry(
     state = crate::SharedAdminAuthSvcStateArc,
     family = server_admin_contract::domain_types::AdminAuthenticationRouteFamily;
     (constants_str::ADMIN_COOKIE, constants_str::ADMIN_CSRF);
@@ -20,7 +20,7 @@
         server_admin_contract::domain_types::AdminDataColumns,
         server_admin_contract::domain_types::AdminDataFilter,
         server_admin_contract::domain_types::AdminDataFilters,
-        frontend_contract::domain_types::InputKind,
+        frontend_contract::InputKind,
         server_admin_contract::domain_types::AdminDataRows,
         server_admin_contract::domain_types::AdminDataTables,
         server_admin_contract::domain_types::AdminOptionalSettings,

@@ -11,7 +11,6 @@ mod json_contract_snapshot;
 mod json_contract_snapshot_error;
 mod json_snapshot_dynamic_field_ref;
 mod open_api_contract_text;
-mod open_api_contract_text_error;
 mod open_api_operation_expectation;
 mod open_api_operation_validation_error;
 mod open_api_payload_validation_error;

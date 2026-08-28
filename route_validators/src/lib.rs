@@ -17,6 +17,7 @@ mod assert_panics;
 mod axum_body;
 mod axum_body_size_error;
 mod axum_commit_to_str_conversion_error;
+#[cfg(test)]
 mod axum_header_value_ref;
 mod axum_headers_ref;
 mod axum_http_status_code;
@@ -38,7 +39,6 @@ mod commit_error;
 mod commit_header_name;
 mod commit_not_eq_message;
 mod commit_to_use;
-pub mod domain_types;
 mod enable_api_git_commit_check;
 #[cfg(test)]
 mod expect_err_variant_ref_with_status;
@@ -54,6 +54,7 @@ mod expect_ok;
 mod expect_variant;
 #[cfg(test)]
 mod expect_variant_ref;
+#[cfg(test)]
 mod header_str_ref;
 pub mod header_value;
 mod http_body_size_hint;
@@ -80,11 +81,15 @@ mod non_utf8_header_value;
 mod panic_unexpected_result;
 #[cfg(test)]
 mod panic_unexpected_variant;
+#[cfg(test)]
 mod read_commit_header_str;
 #[cfg(test)]
 mod replace_header_name;
+#[cfg(test)]
 mod required_header_str;
+#[cfg(test)]
 mod required_header_str_parsed;
+#[cfg(test)]
 mod required_header_value;
 #[cfg(test)]
 mod test_exp_id;
@@ -96,11 +101,16 @@ mod test_panic_text;
 mod test_poll_count;
 #[cfg(test)]
 mod test_poll_limit_reached;
+#[cfg(test)]
 mod validate_commit_header;
+#[cfg(test)]
 mod validate_commit_header_value;
 
+pub use crate::axum_http_status_code::AxumHttpStatusCode;
+pub use crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider;
 pub(crate) use check_body_size::*;
 pub(crate) use check_commit::*;
+#[cfg(test)]
 pub(crate) use header_value::*;
 #[cfg(test)]
 pub(crate) use test_helper::*;

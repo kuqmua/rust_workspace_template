@@ -23,8 +23,8 @@ fn service_deployment_probes_use_registered_health_routes() {
         .expect(
             "4d41c98f service_deployment_probes_use_registered_health_routes invariant must hold",
         );
-    let live_path = common_routes::domain_types::CommonRoute::HealthLive.path();
-    let ready_path = common_routes::domain_types::CommonRoute::HealthReady.path();
+    let live_path = common_routes::CommonRoute::HealthLive.path();
+    let ready_path = common_routes::CommonRoute::HealthReady.path();
     services.iter().for_each(|service_value| {
         let table = service_value.as_table().expect("c04fc517 service_deployment_probes_use_registered_health_routes invariant must hold");
         let get_text = |field| {

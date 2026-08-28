@@ -31,15 +31,14 @@ impl axum::response::IntoResponse for CreateNotificationError {
                 super::NotificationErrorCode::Validation.get(),
             ),
         );
-        let problem_status =
-            frontend_contract::domain_types::ApiProblemStatus::try_from(status.as_u16())
-                .unwrap_or_else(|_error| {
-                    frontend_contract::domain_types::ApiProblemStatus::from(
-                        frontend_contract::domain_types::KnownHttpStatus::InternalServerError,
-                    )
-                });
+        let problem_status = frontend_contract::ApiProblemStatus::try_from(status.as_u16())
+            .unwrap_or_else(|_error| {
+                frontend_contract::ApiProblemStatus::from(
+                    frontend_contract::KnownHttpStatus::InternalServerError,
+                )
+            });
         let mut response = axum::response::IntoResponse::into_response(
-            frontend_contract::domain_types::ApiProblemError::from_status(problem_status),
+            frontend_contract::ApiProblemError::from_status(problem_status),
         );
         if let Some(diagnostic) = optional_diagnostic {
             let _previous = response.extensions_mut().insert(diagnostic);

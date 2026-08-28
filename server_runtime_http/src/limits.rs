@@ -3,7 +3,6 @@ pub use crate::acquire_permit_error::AcquirePermitError;
 pub use crate::arc_tokio_semaphore::ArcTokioSemaphore;
 pub use crate::permit_wait_timeout_duration::PermitWaitTimeoutDuration;
 pub use crate::retry_after_secs::RetryAfterSecs;
-use crate::retry_after_secs_non_zero_u64::RetryAfterSecsNonZeroU64;
 pub use crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error;
 pub use crate::semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize;
 pub use crate::tokio_acquire_error::TokioAcquireError;
@@ -24,9 +23,6 @@ mod permit_wait_timeout_duration {
 }
 mod retry_after_secs {
     pub use crate::retry_after_secs::*;
-}
-mod retry_after_secs_non_zero_u64 {
-    pub use crate::retry_after_secs_non_zero_u64::*;
 }
 mod retry_after_secs_try_from_u64_error {
     pub use crate::retry_after_secs_try_from_u64_error::*;

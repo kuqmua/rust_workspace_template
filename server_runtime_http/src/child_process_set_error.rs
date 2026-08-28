@@ -8,8 +8,8 @@ pub enum ChildProcessSetError {
     Process(#[source] super::ChildProcessError),
 }
 
-impl From<bounded_types::domain_types::BoundedValueError> for ChildProcessSetError {
-    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
+impl From<bounded_types::BoundedValueError> for ChildProcessSetError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
         Self::Full
     }
 }

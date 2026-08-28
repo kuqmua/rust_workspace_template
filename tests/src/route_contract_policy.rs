@@ -7,7 +7,7 @@ fn route_contract_policy() {
     }
     assert_serializable::<String>();
     assert_eq!(
-        size_of::<frontend_contract::domain_types::PublicTransport>(),
+        size_of::<frontend_contract::PublicTransport>(),
         constants_usize::ZERO
     );
     let cases = trybuild::TestCases::new();

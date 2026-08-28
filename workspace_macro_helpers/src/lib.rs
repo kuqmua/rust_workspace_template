@@ -7,7 +7,7 @@ mod first_ident_max_len;
 mod first_identifier;
 mod first_identifier_at;
 mod first_identifierifier_try_from_string_error;
-mod functions;
+pub use parse_first_identifier::*;
 mod parse_first_identifier;
 mod part_at;
 mod part_index;

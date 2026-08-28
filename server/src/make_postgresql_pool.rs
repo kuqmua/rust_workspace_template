@@ -1,6 +1,6 @@
 pub(crate) async fn make_postgresql_pool(
     config: &server_config::domain_types::Config,
-) -> Result<app_state::domain_types::SqlxPgPool, crate::domain_types::RunServerError> {
+) -> Result<app_state::SqlxPgPool, crate::domain_types::RunServerError> {
     if *config.pg_pool_min_connections
         > *config_lib::domain_types::PgPoolMaxConnectionsProvider::pg_pool_max_connections(config)
     {
@@ -36,7 +36,7 @@ pub(crate) async fn make_postgresql_pool(
             config_lib::domain_types::DatabaseUrlProvider::database_url(config),
         ))
         .await
-        .map(app_state::domain_types::SqlxPgPool::from)
+        .map(app_state::SqlxPgPool::from)
         .map_err(|error| {
             crate::domain_types::RunServerError::PgConnect(
                 crate::domain_types::SqlxServerPgConnectError::from(error),

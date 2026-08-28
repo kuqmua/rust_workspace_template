@@ -1,4 +1,4 @@
-#[frontend_contract::domain_types::route_error(AdminVersionPageError)]
+#[frontend_contract::route_error(AdminVersionPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn version(auth: crate::AdminAuthReq) -> axum::response::Response {
     match crate::page_context_impl::page_context_impl(&auth).await {
@@ -12,9 +12,7 @@ pub(crate) async fn version(auth: crate::AdminAuthReq) -> axum::response::Respon
                 constants_str::VERSION_ALT.to_owned(),
             ),
             server_admin_frontend::domain_types::ssr::AdminSsrText::try_from(
-                git_info::domain_types::project_git_info_value()
-                    .commit()
-                    .to_string(),
+                git_info::project_git_info_value().commit().to_string(),
             ),
         ) {
             (Ok(title), Ok(text)) => crate::html_response_impl::html_response_impl(

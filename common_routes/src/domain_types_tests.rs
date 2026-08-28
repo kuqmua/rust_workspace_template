@@ -2,18 +2,16 @@
 struct TestState {
     commit: &'static str,
 }
-impl git_info::domain_types::GitCommitIdProvider for TestState {
-    fn git_commit_id(&self) -> git_info::domain_types::GitCommitId {
-        git_info::domain_types::GitCommitId::from(git_info::domain_types::GitCommitIdRef::from(
-            self.commit,
-        ))
+impl git_info::GitCommitIdProvider for TestState {
+    fn git_commit_id(&self) -> git_info::GitCommitId {
+        git_info::GitCommitId::from(git_info::GitCommitIdRef::from(self.commit))
     }
-    fn git_commit_id_ref(&self) -> Option<git_info::domain_types::GitCommitIdRef<'_>> {
-        Some(git_info::domain_types::GitCommitIdRef::from(self.commit))
+    fn git_commit_id_ref(&self) -> Option<git_info::GitCommitIdRef<'_>> {
+        Some(git_info::GitCommitIdRef::from(self.commit))
     }
 }
-impl app_state::domain_types::SqlxPgPoolProvider for TestState {
-    fn sqlx_pg_pool(&self) -> app_state::domain_types::SqlxPgPoolRef<'_> {
+impl app_state::SqlxPgPoolProvider for TestState {
+    fn sqlx_pg_pool(&self) -> app_state::SqlxPgPoolRef<'_> {
         panic!("38f80f5f")
     }
 }
@@ -24,16 +22,16 @@ fn test_state() -> std::sync::Arc<dyn super::CommonRoutesParameters> {
     })
 }
 fn test_commit_link() -> String {
-    git_info::domain_types::build_git_commit_link(constants_str::TEST_VALUES_COMMIT)
+    git_info::build_git_commit_link(constants_str::TEST_VALUES_COMMIT)
         .as_ref()
         .to_owned()
 }
-fn test_commit_link_cow() -> git_info::domain_types::GitCommitLinkCow {
-    git_info::domain_types::GitCommitLinkCow::try_from(std::borrow::Cow::Owned(test_commit_link()))
+fn test_commit_link_cow() -> git_info::GitCommitLinkCow {
+    git_info::GitCommitLinkCow::try_from(std::borrow::Cow::Owned(test_commit_link()))
         .expect("931b775c test_commit_link_cow invariant must hold")
 }
-fn b_cow(v: &'static str) -> git_info::domain_types::GitCommitLinkCow {
-    git_info::domain_types::GitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v))
+fn b_cow(v: &'static str) -> git_info::GitCommitLinkCow {
+    git_info::GitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v))
         .expect("36301996 b_cow invariant must hold")
 }
 fn uri_ref(uri: &axum::http::Uri) -> super::AxumHttpUriRef<'_> {
@@ -124,7 +122,7 @@ fn git_info_response_contains_commit_link() {
 fn git_info_payload_from_state_contains_commit_link() {
     let state = test_state();
     let payload = super::make_git_info_payload(
-        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()),
+        git_info::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()),
     );
     assert_git_info_commit(&payload, test_commit_link().as_str());
 }
@@ -141,7 +139,7 @@ fn not_found_payload_from_state_uses_uri_and_swagger_path() {
     let state = test_state();
     let payload = super::make_not_found_payload(
         uri_ref(&uri),
-        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()),
+        git_info::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()),
     );
     assert_not_found_payload_with_commit(&payload, &test_commit_link(), constants_str::MISSING);
 }
@@ -165,8 +163,7 @@ fn no_route_prefix_stays_stable() {
 fn make_state_payload_uses_state_trait_object() {
     let state = test_state();
     assert_eq!(
-        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref())
-            .as_ref(),
+        git_info::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()).as_ref(),
         test_commit_link()
     );
 }
@@ -182,21 +179,23 @@ fn make_state_payload_passes_commit_link_to_mapper() {
     let state = test_state();
     let actual = format!(
         "v={}",
-        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref())
+        git_info::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref())
     );
     assert_eq!(actual, format!("v={}", test_commit_link()));
 }
 #[test]
 fn make_commit_json_response_combines_status_and_commit_payload() {
-    let response =
-        super::make_commit_json_response(test_state().as_ref(), super::make_git_info_payload);
+    let state = test_state();
+    let response = super::make_json_response(super::make_git_info_payload(
+        git_info::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()),
+    ));
     assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
 }
 #[tokio::test]
 async fn default_service_routes_return_success_statuses_and_match_openapi() {
-    let router = axum::Router::from(crate::adapters::common_routes(
-        super::ArcCommonRoutesAppState::from(test_state()),
-    ));
+    let router = axum::Router::from(crate::common_routes(super::ArcCommonRoutesAppState::from(
+        test_state(),
+    )));
     let document = serde_json::to_value(super::CommonRoutesOpenApi::open_api()).expect("f96bcc6e default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
     let check = |path: String| {
         let cloned_router = router.clone();

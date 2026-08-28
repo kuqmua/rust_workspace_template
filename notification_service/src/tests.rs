@@ -5,8 +5,8 @@ fn state(pool: sqlx::PgPool) -> super::NotificationState {
                 .build_recorder()
                 .handle(),
         ),
-        app_state::domain_types::SqlxPgPool::from(pool),
-        git_info::domain_types::project_git_info_value(),
+        app_state::SqlxPgPool::from(pool),
+        git_info::project_git_info_value(),
     )
 }
 
@@ -41,7 +41,7 @@ async fn boundary_adapters_preserve_status_state_and_exit_code() {
         AsRef::<str>::as_ref(extracted.get()),
         AsRef::<str>::as_ref(&state)
     );
-    let _pool = app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(&state);
+    let _pool = app_state::SqlxPgPoolProvider::sqlx_pg_pool(&state);
 }
 
 #[tokio::test]
@@ -53,7 +53,7 @@ async fn default_service_routes_return_success_statuses() {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("52a25be1 default_service_routes_return_success_statuses invariant must hold");
-    let router = crate::routes::build_notification_router(
+    let router = crate::build_notification_router(
         state(pool),
         super::NotificationBodyMaximumBytes::from(
             notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
@@ -63,11 +63,7 @@ async fn default_service_routes_return_success_statuses() {
     let liveness_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
-            .uri(
-                common_routes::domain_types::CommonRoute::HealthLive
-                    .path()
-                    .as_ref(),
-            )
+            .uri(common_routes::CommonRoute::HealthLive.path().as_ref())
             .body(axum::body::Body::empty())
             .expect("ec467ec0 default_service_routes_return_success_statuses invariant must hold"),
     )
@@ -88,7 +84,7 @@ async fn default_service_routes_return_success_statuses() {
         router.clone(),
         http::Request::builder()
             .uri(
-                frontend_contract::domain_types::RouteRegistrationContract::path(
+                frontend_contract::RouteRegistrationContract::path(
                     notification_service_contract::domain_types::NotificationOperationalRoute::Metrics,
                 )
                 .get(),
@@ -102,7 +98,7 @@ async fn default_service_routes_return_success_statuses() {
     .expect("81c4e6a2 default_service_routes_return_success_statuses invariant must hold");
     assert_eq!(metrics_response.status(), http::StatusCode::OK);
 
-    let create_metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::domain_types::TypedRoute>::metadata();
+    let create_metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
     let invalid_request = tower::ServiceExt::oneshot(
         router,
         http::Request::builder()
@@ -129,9 +125,9 @@ async fn default_service_routes_return_success_statuses() {
 #[test]
 fn open_api_has_no_unresolved_schema_references() {
     frontend_contract_validation::domain_types::openapi_validation::validate_openapi_schema_references(&{
-        let mut document = crate::routes::open_api_document();
+        let mut document = crate::open_api_document();
         document.merge(utoipa::openapi::OpenApi::from(
-            common_routes::domain_types::CommonRoutesOpenApi::open_api(),
+            common_routes::CommonRoutesOpenApi::open_api(),
         ));
         document
     })
@@ -140,8 +136,8 @@ fn open_api_has_no_unresolved_schema_references() {
 
 #[test]
 fn open_api_operation_and_statuses_come_from_the_typed_route() {
-    let metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::domain_types::TypedRoute>::metadata();
-    let document = serde_json::to_value(crate::routes::open_api_document()).expect(
+    let metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
+    let document = serde_json::to_value(crate::open_api_document()).expect(
         "3d8a056d open_api_operation_and_statuses_come_from_the_typed_route invariant must hold",
     );
     let operation = document
@@ -284,7 +280,7 @@ async fn create_notification_persists_through_http_route() {
     let request = http::Request::builder()
         .method(http::Method::POST)
         .uri(
-            frontend_contract::domain_types::typed_route_path::<
+            frontend_contract::typed_route_path::<
                 notification_service_contract::domain_types::CreateNotificationRoute,
             >()
             .as_ref(),
@@ -296,7 +292,7 @@ async fn create_notification_persists_through_http_route() {
         .body(axum::body::Body::from(body))
         .expect("f8d2ab0b create_notification_persists_through_http_route invariant must hold");
     let response = tower::ServiceExt::oneshot(
-        crate::routes::build_notification_router(
+        crate::build_notification_router(
             state(pool),
             super::NotificationBodyMaximumBytes::from(
                 notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,

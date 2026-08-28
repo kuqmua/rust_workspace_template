@@ -1,9 +1,6 @@
 use super::{AxumHttpUriRef, UriSuffixRef};
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "URI extraction policy remains directly unit tested"
-)]
+#[cfg(test)]
 pub(super) fn uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
     UriSuffixRef::from(
         uri.0

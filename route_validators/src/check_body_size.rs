@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 pub async fn check_body_size<BodyTy, LimitTy>(
@@ -38,10 +37,10 @@ mod tests {
         limit: usize,
         exp_id: &'static str,
     ) -> (usize, Option<u64>) {
-        crate::domain_types::test_helper::assert_err_status_code_variant_ref(
-            crate::domain_types::test_helper::poll_test_future(super::check_body_size(body, limit)),
+        crate::test_helper::assert_err_status_code_variant_ref(
+            crate::test_helper::poll_test_future(super::check_body_size(body, limit)),
             exp_id,
-            crate::domain_types::AxumHttpStatusCode::payload_too_large(),
+            crate::AxumHttpStatusCode::payload_too_large(),
             |v| {
                 Some(match v {
                     super::BodySizeError::ReachedMaximumSizeOfBody {
@@ -63,8 +62,8 @@ mod tests {
         exp_id: &'static str,
         exp: &'static [u8],
     ) {
-        let actual = crate::domain_types::test_helper::expect_ok(
-            crate::domain_types::test_helper::poll_test_future(super::check_body_size(body, limit)),
+        let actual = crate::test_helper::expect_ok(
+            crate::test_helper::poll_test_future(super::check_body_size(body, limit)),
             exp_id,
         );
         assert_eq!(actual.0, bytes::Bytes::from_static(exp));
@@ -124,13 +123,13 @@ mod tests {
     }
     #[test]
     fn body_size_error_maps_to_payload_too_large() {
-        crate::domain_types::test_helper::assert_err_status_code_only(
-            crate::domain_types::test_helper::poll_test_future(super::check_body_size(
+        crate::test_helper::assert_err_status_code_only(
+            crate::test_helper::poll_test_future(super::check_body_size(
                 axum::body::Body::from(constants_str::TOO_BIG),
                 1,
             )),
             constants_str::VALUE_7ED49BA1,
-            crate::domain_types::AxumHttpStatusCode::payload_too_large(),
+            crate::AxumHttpStatusCode::payload_too_large(),
         );
     }
     #[test]

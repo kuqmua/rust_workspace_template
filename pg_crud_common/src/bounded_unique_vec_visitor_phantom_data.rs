@@ -16,7 +16,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
     where
         Access: serde::de::SeqAccess<'de>,
     {
-        bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::validate_bounds()
+        bounded_types::BoundedVec::<T, MIN, MAX>::validate_bounds()
             .map_err(super::UniqueVecError::from)
             .map_err(serde::de::Error::custom)?;
         let mut values = Vec::with_capacity(

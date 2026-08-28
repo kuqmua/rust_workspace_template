@@ -23,13 +23,13 @@ pub struct AdminDataTableFilterQuery {
     filter_end: Option<AdminFilterValue>,
     #[serde(default)]
     #[param(inline)]
-    filter_operation: Option<frontend_contract::domain_types::FilterOperation>,
+    filter_operation: Option<frontend_contract::FilterOperation>,
 }
 impl AdminDataTableFilterQuery {
     #[must_use]
     pub const fn new(
         filter_field: Option<AdminFilterField>,
-        filter_operation: Option<frontend_contract::domain_types::FilterOperation>,
+        filter_operation: Option<frontend_contract::FilterOperation>,
         filter_value: Option<AdminFilterValue>,
         filter_end: Option<AdminFilterValue>,
     ) -> Self {
@@ -45,7 +45,7 @@ impl AdminDataTableFilterQuery {
         self.filter_field.as_ref()
     }
     #[must_use]
-    pub const fn operation(&self) -> Option<frontend_contract::domain_types::FilterOperation> {
+    pub const fn operation(&self) -> Option<frontend_contract::FilterOperation> {
         self.filter_operation
     }
     #[must_use]

@@ -1,6 +1,6 @@
 pub(crate) use admin_html_action_route_registry::AdminHtmlActionRouteRegistry;
 
-#[frontend_contract::domain_types::route_operation]
+#[frontend_contract::route_operation]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn root() -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Redirect::to(

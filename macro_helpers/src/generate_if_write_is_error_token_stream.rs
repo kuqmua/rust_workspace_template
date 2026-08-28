@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 pub fn generate_if_write_is_error_token_stream(

@@ -2,6 +2,7 @@
     unused_crate_dependencies,
     reason = "the benchmark target links the library package but directly exercises only its public query API"
 )]
+
 fn identifier(value: &str) -> pg_crud_common::domain_types::SqlIdentifier {
     pg_crud_common::domain_types::SqlIdentifier::try_from(value.to_owned())
         .expect("cd596c44 identifier invariant must hold")

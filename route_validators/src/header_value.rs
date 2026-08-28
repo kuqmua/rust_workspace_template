@@ -1,7 +1,11 @@
+#[cfg(test)]
 pub(crate) use crate::axum_header_value_ref::AxumHeaderValueRef;
 pub use crate::axum_headers_ref::AxumHeadersRef;
+#[cfg(test)]
 pub(crate) use crate::header_str_ref::HeaderStrRef;
+#[cfg(test)]
 pub(crate) use crate::required_header_str::required_header_str;
+#[cfg(test)]
 pub(crate) use crate::required_header_str_parsed::required_header_str_parsed;
 #[cfg(test)]
 mod tests {
@@ -51,17 +55,13 @@ mod tests {
             },
         )
     }
-    fn make_test_headers<ValueTy>(
-        value: ValueTy,
-    ) -> crate::domain_types::test_helper::AxumTestHeaders
+    fn make_test_headers<ValueTy>(value: ValueTy) -> crate::test_helper::AxumTestHeaders
     where
-        ValueTy: Into<crate::domain_types::test_helper::AxumTestHeaderValue>,
+        ValueTy: Into<crate::test_helper::AxumTestHeaderValue>,
     {
-        crate::domain_types::test_helper::make_headers_with_entry(TEST_HEADER_NAME, value)
+        crate::test_helper::make_headers_with_entry(TEST_HEADER_NAME, value)
     }
-    fn make_test_headers_static(
-        value: &'static str,
-    ) -> crate::domain_types::test_helper::AxumTestHeaders {
+    fn make_test_headers_static(value: &'static str) -> crate::test_helper::AxumTestHeaders {
         make_test_headers(axum::http::HeaderValue::from_static(value))
     }
     fn assert_header_err<T>(actual: Result<T, TestError>, exp: &TestError) {
@@ -80,7 +80,7 @@ mod tests {
     }
     #[test]
     fn required_header_str_returns_to_str_error_for_non_utf8_header() {
-        let headers = make_test_headers(crate::domain_types::test_helper::non_utf8_header_value());
+        let headers = make_test_headers(crate::test_helper::non_utf8_header_value());
         assert_header_err(header(&headers, TEST_HEADER_NAME), &TestError::ToStr);
     }
     #[test]
@@ -151,7 +151,7 @@ mod tests {
     }
     #[test]
     fn required_header_str_parsed_does_not_call_parse_for_non_utf8_header() {
-        let headers = make_test_headers(crate::domain_types::test_helper::non_utf8_header_value());
+        let headers = make_test_headers(crate::test_helper::non_utf8_header_value());
         let mut parse_called = false;
         let actual = super::required_header_str_parsed(
             super::AxumHeadersRef::from(&headers),

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[allow(
     clippy::field_scoped_visibility_modifiers,
     reason = "the request-id tower layer constructs this private service owner"
@@ -159,7 +155,7 @@ where
                     let optional_diagnostic =
                         response.extensions().get::<super::HttpErrorDiagnostic>();
                     let error_telemetry = optional_diagnostic
-                        .map(super::HttpErrorDiagnostic::telemetry)
+                        .map(|diagnostic| diagnostic.telemetry)
                         .or_else(|| {
                             response
                                 .extensions()
@@ -179,11 +175,10 @@ where
                         let mut fallback_diagnostic = None;
                         let diagnostic = optional_diagnostic.map_or_else(
                             || {
-                                &*fallback_diagnostic.insert(
-                                    super::http_error_diagnostic::capture_without_context(
-                                        error_telemetry,
-                                    ),
-                                )
+                                &*fallback_diagnostic.insert(super::HttpErrorDiagnostic::capture(
+                                    error_telemetry,
+                                    &super::HttpErrorWithoutDiagnosticContext,
+                                ))
                             },
                             |diagnostic| diagnostic,
                         );

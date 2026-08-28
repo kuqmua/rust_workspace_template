@@ -65,7 +65,7 @@ impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
 }
 impl utoipa::PartialSchema for AdminAuthPermissions {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::domain_types::vector::BoundedVec<
+        <bounded_types::BoundedVec<
             crate::AdminPermission,
             0,
             { ADMIN_AUTH_COLLECTION_MAX_LEN },
@@ -75,7 +75,7 @@ impl utoipa::PartialSchema for AdminAuthPermissions {
 impl utoipa::ToSchema for AdminAuthPermissions {}
 impl utoipa::PartialSchema for AdminRoleNames {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::domain_types::vector::BoundedVec<
+        <bounded_types::BoundedVec<
             crate::AdminRoleName,
             0,
             { ADMIN_AUTH_COLLECTION_MAX_LEN },
@@ -86,7 +86,7 @@ impl utoipa::ToSchema for AdminRoleNames {}
 impl TryFrom<Vec<crate::AdminPermission>> for AdminAuthPermissions {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<crate::AdminPermission>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
+        bounded_types::BoundedVec::try_from(value)
             .map(Self)
             .map_err(AdminAuthCollectionError::from)
     }
@@ -94,13 +94,13 @@ impl TryFrom<Vec<crate::AdminPermission>> for AdminAuthPermissions {
 impl TryFrom<Vec<crate::AdminRoleName>> for AdminRoleNames {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<crate::AdminRoleName>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
+        bounded_types::BoundedVec::try_from(value)
             .map(Self)
             .map_err(AdminAuthCollectionError::from)
     }
 }
-impl From<bounded_types::domain_types::BoundedValueError> for AdminAuthCollectionError {
-    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
+impl From<bounded_types::BoundedValueError> for AdminAuthCollectionError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
         Self
     }
 }
@@ -259,7 +259,7 @@ impl AdminCookieKind {
     }
 }
 impl AdminPasswordHashConcurrency {
-    pub(crate) const fn get(self) -> crate::AdminNonZeroUsize {
+    pub(crate) const fn get(self) -> std::num::NonZeroUsize {
         self.0
     }
 }
@@ -306,10 +306,6 @@ impl AdminAccessClaims {
     reason = "semaphore acquisition stays with the security-owned wrapper while hashing behavior stays in the password module"
 )]
 impl AdminPasswordHasher {
-    #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
-    pub(crate) const fn from_semaphore(semaphore: AdminSharedSemaphoreArc) -> Self {
-        Self { semaphore }
-    }
     pub(crate) async fn acquire(
         &self,
     ) -> Result<TokioAdminOwnedSemaphorePermit, AdminPasswordHashError> {

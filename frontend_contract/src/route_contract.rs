@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
@@ -138,7 +137,7 @@ mod tests {
         assert_eq!(
             super::RouteErrorPolicy::Default.statuses(
                 super::AuthenticationRequirement::Public,
-                crate::domain_types::RouteMutation::ReadOnly,
+                crate::RouteMutation::ReadOnly,
             ),
             super::PUBLIC_READ_ROUTE_ERROR_STATUSES,
         );

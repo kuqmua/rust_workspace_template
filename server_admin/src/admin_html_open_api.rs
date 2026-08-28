@@ -1,4 +1,4 @@
-#[frontend_contract::domain_types::route_error(AdminOpenApiPageError)]
+#[frontend_contract::route_error(AdminOpenApiPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn admin_html_open_api(auth: crate::AdminAuthReq) -> axum::response::Response {
     let branding_result =

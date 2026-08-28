@@ -20,6 +20,8 @@ use super::*;
 )]
 #[try_from(
     error = PgTableIdempotencyResponseStatusTryFromU16Error,
-    validator = PgTableIdempotencyResponseStatus::validate
+    validator = |value: &u16| {
+        if (100u16..1_000u16).contains(value) { Ok(()) } else { Err(PgTableIdempotencyResponseStatusTryFromU16Error) }
+    }
 )]
 pub struct PgTableIdempotencyResponseStatus(pub(super) u16);

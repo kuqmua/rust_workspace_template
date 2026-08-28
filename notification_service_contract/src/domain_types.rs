@@ -13,25 +13,23 @@ pub use crate::uuid_notification_id::UuidNotificationId;
 mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     struct ClientTransport;
-    impl frontend_contract::domain_types::Transport for ClientTransport {
+    impl frontend_contract::Transport for ClientTransport {
         fn send(
             &self,
-            _request: frontend_contract::domain_types::TransportRequest,
+            _request: frontend_contract::TransportRequest,
         ) -> impl Future<
             Output = Result<
-                frontend_contract::domain_types::TransportResponse,
-                frontend_contract::domain_types::TransportError,
+                frontend_contract::TransportResponse,
+                frontend_contract::TransportError,
             >,
         > + '_ {
-            std::future::ready(Err(
-                frontend_contract::domain_types::TransportError::default(),
-            ))
+            std::future::ready(Err(frontend_contract::TransportError::default()))
         }
     }
     #[test]
     fn every_notification_route_has_named_route_and_client_functions() {
         assert_eq!(
-            <super::NotificationRouteFamily as frontend_contract::domain_types::RouteFamily>::ROUTE_COUNT,
+            <super::NotificationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
             constants_usize::ONE
         );
         assert_eq!(
@@ -43,7 +41,7 @@ mod tests {
             constants_usize::ZERO
         );
         assert_eq!(
-            <super::NotificationOperationalRouteFamily as frontend_contract::domain_types::RouteFamily>::ROUTE_COUNT,
+            <super::NotificationOperationalRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
             constants_usize::ZERO
         );
         assert_eq!(

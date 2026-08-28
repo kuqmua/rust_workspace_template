@@ -2,10 +2,10 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::{AdminAuthPositiveValueError, StdAdminAccessTtlSecondsNonZeroU64};
+use crate::AdminAuthPositiveValueError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StdAdminAccessTtlSeconds(pub(crate) StdAdminAccessTtlSecondsNonZeroU64);
+pub struct StdAdminAccessTtlSeconds(pub(crate) std::num::NonZeroU64);
 impl TryFrom<u64> for StdAdminAccessTtlSeconds {
     type Error = AdminAuthPositiveValueError;
 
@@ -17,11 +17,11 @@ impl TryFrom<u64> for StdAdminAccessTtlSeconds {
 }
 impl From<std::num::NonZeroU64> for StdAdminAccessTtlSeconds {
     fn from(value: std::num::NonZeroU64) -> Self {
-        Self(StdAdminAccessTtlSecondsNonZeroU64::from(value))
+        Self(value)
     }
 }
 impl StdAdminAccessTtlSeconds {
     pub(crate) const fn get(self) -> u64 {
-        self.0.0.get()
+        self.0.get()
     }
 }

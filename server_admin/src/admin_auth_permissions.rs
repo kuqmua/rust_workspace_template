@@ -14,9 +14,9 @@ use crate::ADMIN_AUTH_COLLECTION_MAX_LEN;
 )]
 #[serde(transparent)]
 pub(crate) struct AdminAuthPermissions(
-    pub(crate)  bounded_types::domain_types::vector::BoundedVec<
+    pub(crate)  bounded_types::BoundedVec<
         crate::AdminPermission,
         0,
-        { ADMIN_AUTH_COLLECTION_MAX_LEN },
+        { crate::ADMIN_AUTH_COLLECTION_MAX_LEN },
     >,
 );

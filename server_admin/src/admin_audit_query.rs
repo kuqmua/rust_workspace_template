@@ -30,19 +30,19 @@ impl AdminAuditQuery {
         crate::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
     }
     pub(crate) fn into_parts(self) -> AdminAuditQueryParts {
-        AdminAuditQueryParts::new(
-            self.action,
-            self.created_after,
-            self.created_before,
-            self.cursor_created_at,
-            self.cursor_id,
-            self.limit,
-            self.offset,
-            self.resource,
-            self.resource_id,
-            self.succeeded,
-            self.user_id,
-            self.user_login,
-        )
+        AdminAuditQueryParts {
+            action: self.action,
+            created_after: self.created_after,
+            created_before: self.created_before,
+            cursor_created_at: self.cursor_created_at,
+            cursor_id: self.cursor_id,
+            limit: self.limit,
+            offset: self.offset,
+            resource: self.resource,
+            resource_id: self.resource_id,
+            succeeded: self.succeeded,
+            user_id: self.user_id,
+            user_login: self.user_login,
+        }
     }
 }

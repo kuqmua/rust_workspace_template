@@ -12,13 +12,13 @@ where
         .get_or_insert_with(utoipa::openapi::schema::Components::new);
     let mut schema_components = UtoipaOpenApiComponentsRefMut::from(raw_components);
     Route::register_openapi_schemas(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblem>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemDetail>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemField>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemKind>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemRequestId>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemStatus>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::ApiProblemViolation>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::FilterOperation>(&mut schema_components);
-    register_openapi_schema::<crate::domain_types::FilterValueShape>(&mut schema_components);
+    register_openapi_schema::<crate::ApiProblem>(&mut schema_components);
+    register_openapi_schema::<crate::ApiProblemDetail>(&mut schema_components);
+    register_openapi_schema::<crate::ApiProblemField>(&mut schema_components);
+    register_openapi_schema::<crate::ApiProblemKind>(&mut schema_components);
+    register_openapi_schema::<crate::ApiProblemRequestId>(&mut schema_components);
+    register_openapi_schema::<crate::ApiProblemStatus>(&mut schema_components);
+    register_openapi_schema::<crate::ApiProblemViolation>(&mut schema_components);
+    register_openapi_schema::<crate::FilterOperation>(&mut schema_components);
+    register_openapi_schema::<crate::FilterValueShape>(&mut schema_components);
 }

@@ -6,7 +6,7 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct PgPoolAcquireTimeoutSeconds(crate::domain_types::ConfigNonZeroU64);
+pub struct PgPoolAcquireTimeoutSeconds(std::num::NonZeroU64);
 
 impl crate::domain_types::TryFromStdEnvVarOk for PgPoolAcquireTimeoutSeconds {
     type Error = super::PgPoolConfigParseError;

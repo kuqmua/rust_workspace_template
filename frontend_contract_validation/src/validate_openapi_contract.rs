@@ -1,5 +1,5 @@
 use crate::openapi_validation::{
-    OpenApiContractText, OpenApiContractTextError, OpenApiValidationError, RuntimeRoutesRef,
+    OpenApiContractText, OpenApiValidationError, RuntimeRoutesRef,
     SerdeJsonOpenApiSerializationError, openapi_schema_references,
 };
 
@@ -22,9 +22,8 @@ where
         .and_then(serde_json::Value::as_object)
         .ok_or(OpenApiValidationError::MissingSchemas)?;
     schemas.keys().try_for_each(|name| {
-        let contract_name = OpenApiContractText::try_from(name.clone()).map_err(|error| {
-            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-        })?;
+        let contract_name = OpenApiContractText::try_from(name.clone())
+            .map_err(OpenApiValidationError::TextTooLong)?;
         if references.0.contains(&contract_name) {
             Ok(())
         } else {
@@ -62,16 +61,10 @@ where
                     .and_then(serde_json::Value::as_str)
                 else {
                     return Err(OpenApiValidationError::MissingOperationId(
-                        OpenApiContractText::try_from(method.clone()).map_err(|error| {
-                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(
-                                error,
-                            ))
-                        })?,
-                        OpenApiContractText::try_from(path.clone()).map_err(|error| {
-                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(
-                                error,
-                            ))
-                        })?,
+                        OpenApiContractText::try_from(method.clone())
+                            .map_err(OpenApiValidationError::TextTooLong)?,
+                        OpenApiContractText::try_from(path.clone())
+                            .map_err(OpenApiValidationError::TextTooLong)?,
                     ));
                 };
                 let _previous = documented.insert(
@@ -86,31 +79,22 @@ where
         let path = route.path().as_ref().to_owned();
         let Some(operation_id) = documented.get(&(method.clone(), path.clone())) else {
             return Err(OpenApiValidationError::RuntimeRouteMissing(
-                OpenApiContractText::try_from(method).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
-                OpenApiContractText::try_from(path).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
+                OpenApiContractText::try_from(method)
+                    .map_err(OpenApiValidationError::TextTooLong)?,
+                OpenApiContractText::try_from(path).map_err(OpenApiValidationError::TextTooLong)?,
             ));
         };
         if operation_id == route.openapi_operation_id().as_ref() {
             Ok(())
         } else {
             Err(OpenApiValidationError::OperationIdMismatch(
-                OpenApiContractText::try_from(method).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
-                OpenApiContractText::try_from(path).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
+                OpenApiContractText::try_from(method)
+                    .map_err(OpenApiValidationError::TextTooLong)?,
+                OpenApiContractText::try_from(path).map_err(OpenApiValidationError::TextTooLong)?,
                 OpenApiContractText::try_from(route.openapi_operation_id().as_ref().to_owned())
-                    .map_err(|error| {
-                        OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                    })?,
-                OpenApiContractText::try_from(operation_id.clone()).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
+                    .map_err(OpenApiValidationError::TextTooLong)?,
+                OpenApiContractText::try_from(operation_id.clone())
+                    .map_err(OpenApiValidationError::TextTooLong)?,
             ))
         }
     })?;
@@ -125,12 +109,9 @@ where
             Ok(())
         } else {
             Err(OpenApiValidationError::OpenApiRouteMissing(
-                OpenApiContractText::try_from(method).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
-                OpenApiContractText::try_from(path).map_err(|error| {
-                    OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
-                })?,
+                OpenApiContractText::try_from(method)
+                    .map_err(OpenApiValidationError::TextTooLong)?,
+                OpenApiContractText::try_from(path).map_err(OpenApiValidationError::TextTooLong)?,
             ))
         }
     })

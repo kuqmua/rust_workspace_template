@@ -1,4 +1,4 @@
-use crate::domain_types::{LocationColumnNonZeroU32, LocationCoordinateTryFromU32Error};
+use crate::domain_types::LocationCoordinateTryFromU32Error;
 
 #[derive(
     Debug,
@@ -16,10 +16,10 @@ use crate::domain_types::{LocationColumnNonZeroU32, LocationCoordinateTryFromU32
 #[serde(try_from = "u32")]
 #[schema(value_type = u32)]
 #[schemars(with = "u32")]
-pub struct LocationColumn(LocationColumnNonZeroU32);
+pub struct LocationColumn(std::num::NonZeroU32);
 impl From<std::num::NonZeroU32> for LocationColumn {
     fn from(value: std::num::NonZeroU32) -> Self {
-        Self(LocationColumnNonZeroU32::from(value))
+        Self(value)
     }
 }
 impl TryFrom<u32> for LocationColumn {

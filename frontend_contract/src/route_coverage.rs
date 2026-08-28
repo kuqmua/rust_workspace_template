@@ -16,9 +16,9 @@ pub use crate::validate_route_coverage::validate_route_coverage;
 
 #[cfg(test)]
 mod tests {
-    fn route_coverage_metadata() -> crate::domain_types::RouteMetadata {
-        crate::domain_types::RouteMetadata::new(
-            crate::domain_types::RouteMethod::Post,
+    fn route_coverage_metadata() -> crate::RouteMetadata {
+        crate::RouteMetadata::new(
+            crate::RouteMethod::Post,
             constants_str::ROUTE_READ.into(),
             constants_str::ROUTE.into(),
         )
@@ -88,15 +88,13 @@ mod tests {
             super::RouteResponseKind::Streaming,
         );
         assert_eq!(
-            bounded_types::domain_types::vector::BoundedVec::from(
-                super::missing_required_test_categories(
-                    capabilities,
-                    &[
-                        super::RouteTestCategory::FixtureHook,
-                        super::RouteTestCategory::Metadata,
-                    ],
-                )
-            )
+            bounded_types::BoundedVec::from(super::missing_required_test_categories(
+                capabilities,
+                &[
+                    super::RouteTestCategory::FixtureHook,
+                    super::RouteTestCategory::Metadata,
+                ],
+            ))
             .into_inner(),
             vec![
                 super::RouteTestCategory::DatabaseFixture,
@@ -114,10 +112,8 @@ mod tests {
             super::RouteResponseKind::Buffered,
         );
         assert_eq!(
-            bounded_types::domain_types::vector::BoundedVec::from(super::required_test_categories(
-                capabilities
-            ))
-            .into_inner(),
+            bounded_types::BoundedVec::from(super::required_test_categories(capabilities))
+                .into_inner(),
             vec![
                 super::RouteTestCategory::FixtureHook,
                 super::RouteTestCategory::Metadata,

@@ -124,6 +124,6 @@ pub(crate) fn initialize(
             });
             Ok(entries)
         })
-        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
+        .map(bounded_types::BoundedVec::from_max_iter)
         .map(InitEntries::from)
 }

@@ -1,7 +1,6 @@
 pub use crate::cleanup_batch_count::CleanupBatchCount;
 pub use crate::cleanup_batch_size::CleanupBatchSize;
 pub use crate::cleanup_batch_size_error::CleanupBatchSizeError;
-use crate::cleanup_batch_size_non_zero_u64::CleanupBatchSizeNonZeroU64;
 pub use crate::cleanup_completion::CleanupCompletion;
 pub use crate::cleanup_continuation::CleanupContinuation;
 pub use crate::cleanup_report::CleanupReport;
@@ -64,9 +63,6 @@ mod cleanup_batch_size {
 }
 mod cleanup_batch_size_error {
     pub use crate::cleanup_batch_size_error::*;
-}
-mod cleanup_batch_size_non_zero_u64 {
-    pub use crate::cleanup_batch_size_non_zero_u64::*;
 }
 mod cleanup_completion {
     pub use crate::cleanup_completion::*;

@@ -21,7 +21,7 @@ where
         let batch_rows = u64::from(cleanup(batch_size).await?);
         batches = batches.saturating_add(constants_u64::ONE);
         rows = rows.saturating_add(batch_rows);
-        if batch_rows < batch_size.0.0.get() {
+        if batch_rows < batch_size.0.get() {
             return Ok(super::CleanupReport {
                 batches: super::CleanupBatchCount::from(batches),
                 completion: super::CleanupCompletion::Drained,

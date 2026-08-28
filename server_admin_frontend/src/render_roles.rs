@@ -18,7 +18,23 @@ pub fn render_roles(
     let rows = page
         .items()
         .iter()
-        .map(|item| ssr_admin_role_row::ssr_admin_role_row(item, page))
+        .map(|item| {
+            let id = item.id().to_string();
+            let name = item.name().to_string();
+            let system = item.is_system().to_string();
+            let permissions =
+                crate::domain_types::shared::admin_role_permissions::admin_role_permissions(
+                    item, page,
+                );
+            leptos::view! {
+                <crate::domain_types::with_owner::tables::table_row::TableRow>
+                    <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="id">{id}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                    <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="name">{name}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                    <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="system">{system}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                    {permissions}
+                </crate::domain_types::with_owner::tables::table_row::TableRow>
+            }
+        })
         .collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
@@ -38,9 +54,4 @@ pub fn render_roles(
         Some(admin),
         Some(branding),
     )
-}
-
-// Root-owned module compatibility wrappers.
-pub(crate) mod ssr_admin_role_row {
-    pub use crate::ssr_admin_role_row::*;
 }

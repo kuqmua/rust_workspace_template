@@ -2,15 +2,13 @@
 
 #[allow(clippy::single_call_fn)] // service startup owns the assembled notification router
 pub(crate) fn build_notification_router(
-    state: crate::domain_types::NotificationState,
-    body_maximum_bytes: crate::domain_types::NotificationBodyMaximumBytes,
-) -> crate::domain_types::AxumNotificationRouter {
-    let common_routes = axum::Router::from(common_routes::adapters::common_routes(
-        common_routes::domain_types::ArcCommonRoutesAppState::from(std::sync::Arc::new(
-            state.clone(),
-        )),
+    state: crate::NotificationState,
+    body_maximum_bytes: crate::NotificationBodyMaximumBytes,
+) -> crate::AxumNotificationRouter {
+    let common_routes = axum::Router::from(common_routes::common_routes(
+        common_routes::ArcCommonRoutesAppState::from(std::sync::Arc::new(state.clone())),
     ));
-    crate::domain_types::AxumNotificationRouter::from(
+    crate::AxumNotificationRouter::from(
         super::notification_route_registry::NotificationRouteRegistry::router()
             .merge(super::notification_api_route_registry::NotificationApiRouteRegistry::router())
             .layer(axum::extract::DefaultBodyLimit::max(

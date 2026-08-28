@@ -10,4 +10,4 @@ use super::LeaseId;
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct LeaseIds(bounded_types::domain_types::vector::BoundedVec<LeaseId, 0, { usize::MAX }>);
+pub struct LeaseIds(bounded_types::BoundedVec<LeaseId, 0, { usize::MAX }>);

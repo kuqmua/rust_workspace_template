@@ -32,6 +32,6 @@ where
         output.extend_from_slice(read_bytes);
     }
     Ok(super::ChildDiagnostic::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(output),
+        bounded_types::BoundedVec::from_max_iter(output),
     ))
 }

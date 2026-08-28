@@ -108,8 +108,8 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
     type Error = BoundedVecTryNewError;
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
         let len = v.len();
-        bounded_types::domain_types::vector::BoundedVec::<T, LENGTH, LENGTH>::try_from(v)
-            .map(bounded_types::domain_types::vector::BoundedVec::into_inner)
+        bounded_types::BoundedVec::<T, LENGTH, LENGTH>::try_from(v)
+            .map(bounded_types::BoundedVec::into_inner)
             .map(Self)
             .map_err(|_error| BoundedVecTryNewError::LenIsNotCorrect {
                 wrong_len: BoundedVecLen::from(len),
@@ -126,7 +126,7 @@ impl<'de, T: serde::Deserialize<'de>, const LENGTH: usize> serde::Deserialize<'d
         Deserializer: serde::Deserializer<'de>,
     {
         let value =
-            <bounded_types::domain_types::vector::BoundedVec<T, LENGTH, LENGTH> as serde::Deserialize>::deserialize(
+            <bounded_types::BoundedVec<T, LENGTH, LENGTH> as serde::Deserialize>::deserialize(
                 deserializer,
             )?
             .into_inner();

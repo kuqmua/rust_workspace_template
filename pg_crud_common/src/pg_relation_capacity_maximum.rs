@@ -3,9 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgRelationCapacityMaximum(
-    pub(super) crate::pg_relation_capacity_maximum_non_zero_u64::PgRelationCapacityMaximumNonZeroU64,
-);
+pub struct PgRelationCapacityMaximum(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for PgRelationCapacityMaximum {
     type Error = crate::domain_types::PgRelationCapacityError;
@@ -19,8 +17,6 @@ impl TryFrom<u64> for PgRelationCapacityMaximum {
 
 impl From<std::num::NonZeroU64> for PgRelationCapacityMaximum {
     fn from(value: std::num::NonZeroU64) -> Self {
-        Self(
-            crate::pg_relation_capacity_maximum_non_zero_u64::PgRelationCapacityMaximumNonZeroU64::from(value),
-        )
+        Self(value)
     }
 }

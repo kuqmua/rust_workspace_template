@@ -1,8 +1,12 @@
-mod domain_types;
 mod panic_column;
 mod panic_file;
 mod panic_line;
 mod panic_with_location_message;
+
+pub(crate) use panic_column::PanicColumn;
+pub(crate) use panic_file::PanicFile;
+pub(crate) use panic_line::PanicLine;
+pub(crate) use panic_with_location_message::panic_with_location_message;
 
 // Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
 // prevents repeatedly replacing that hook from proc-macro entrypoints.
@@ -13,10 +17,10 @@ pub fn panic_location() {
         std::panic::set_hook(Box::new(move |panic_info| {
             if let Some(location) = panic_info.location() {
                 tracing::error!(
-                    message = %domain_types::panic_with_location_message(
-                        domain_types::PanicFile::from(location.file()),
-                        domain_types::PanicLine::from(location.line()),
-                        domain_types::PanicColumn::from(location.column()),
+                    message = %panic_with_location_message(
+                        PanicFile::from(location.file()),
+                        PanicLine::from(location.line()),
+                        PanicColumn::from(location.column()),
                     ),
                     "panic captured"
                 );

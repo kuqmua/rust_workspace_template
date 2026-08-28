@@ -18,7 +18,7 @@ use crate::{
     Debug,
     PartialEq,
     Eq,
-    frontend_contract::domain_types::UnitEnumCatalog,
+    frontend_contract::UnitEnumCatalog,
 )]
 pub(crate) enum AdminGeneratedTable {
     Roles,
@@ -29,7 +29,7 @@ pub(crate) enum AdminGeneratedTable {
     UserRoles,
 }
 impl AdminGeneratedTable {
-    pub(crate) fn field_contracts(self) -> frontend_contract::domain_types::FieldContracts {
+    pub(crate) fn field_contracts(self) -> frontend_contract::FieldContracts {
         match self {
             Self::Roles => AdminRoles::frontend_fields(),
             Self::RolePermissions => AdminRolePermissions::frontend_fields(),
@@ -42,14 +42,9 @@ impl AdminGeneratedTable {
 
     pub(crate) fn filter_value(
         self,
-        field: frontend_contract::domain_types::FormFieldNameRef<'_>,
-        value: frontend_contract::domain_types::FormValueRef<'_>,
-    ) -> Option<
-        Result<
-            frontend_contract::domain_types::FilterWireJson,
-            frontend_contract::domain_types::FormValueError,
-        >,
-    > {
+        field: frontend_contract::FormFieldNameRef<'_>,
+        value: frontend_contract::FormValueRef<'_>,
+    ) -> Option<Result<frontend_contract::FilterWireJson, frontend_contract::FormValueError>> {
         match self {
             Self::Roles => AdminRoles::frontend_filter_value(field, value),
             Self::RolePermissions => AdminRolePermissions::frontend_filter_value(field, value),

@@ -1,6 +1,4 @@
-use crate::domain_types::{
-    GitCommitIdProvider, GitCommitLink, GitCommitLinkCow, build_git_commit_link_cow,
-};
+use crate::{GitCommitIdProvider, GitCommitLink, GitCommitLinkCow, build_git_commit_link_cow};
 
 pub trait GitCommitLinkProvider {
     fn build_git_commit_link(&self) -> GitCommitLink {

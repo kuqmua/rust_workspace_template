@@ -7,7 +7,7 @@ pub fn validate_pg_relation_capacity(
         .0
         .checked_add(incoming.0)
         .ok_or(crate::domain_types::PgRelationCapacityError::Overflow)?;
-    if projected > maximum.0.0.get() {
+    if projected > maximum.0.get() {
         Err(crate::domain_types::PgRelationCapacityError::Exceeded)
     } else {
         Ok(crate::domain_types::PgRelationRowCount::from(projected))

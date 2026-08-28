@@ -4,17 +4,17 @@
 pub enum BoundedValueError {
     #[error("bounded value length {actual} exceeds maximum {max}")]
     AboveMax {
-        actual: crate::domain_types::BoundedLen,
-        max: crate::domain_types::BoundedLen,
+        actual: crate::BoundedLen,
+        max: crate::BoundedLen,
     },
     #[error("bounded value length {actual} is below minimum {min}")]
     BelowMin {
-        actual: crate::domain_types::BoundedLen,
-        min: crate::domain_types::BoundedLen,
+        actual: crate::BoundedLen,
+        min: crate::BoundedLen,
     },
     #[error("bounded value minimum {min} exceeds maximum {max}")]
     InvalidBounds {
-        min: crate::domain_types::BoundedLen,
-        max: crate::domain_types::BoundedLen,
+        min: crate::BoundedLen,
+        max: crate::BoundedLen,
     },
 }

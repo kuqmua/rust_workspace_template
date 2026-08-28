@@ -49,42 +49,6 @@ impl RsSourceFile {
     }
 }
 impl CodebaseSnapshot {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-
-    #[allow(clippy::single_call_fn)] // named constructor keeps snapshot initialization readable at the thread-local OnceCell call site
-    fn build() -> Self {
-        static SOURCE_SNAPSHOT: std::sync::OnceLock<std::sync::Arc<CodebaseSourceSnapshot>> =
-            std::sync::OnceLock::new();
-        let source_snapshot = std::sync::Arc::clone(
-            SOURCE_SNAPSHOT.get_or_init(|| std::sync::Arc::new(CodebaseSourceSnapshot::build())),
-        );
-        let rs_files = source_snapshot
-            .project_source_files
-            .iter()
-            .filter(|source_file| {
-                source_file
-                    .path
-                    .as_ref()
-                    .extension()
-                    .and_then(std::ffi::OsStr::to_str)
-                    == Some(constants_str::RS)
-            })
-            .map(|source_file| {
-                let ast = syn::parse_file(source_file.content.as_ref()).unwrap_or_else(|error| {
-                    panic!("5e7a83eb {}: {error}", source_file.path.as_ref().display())
-                });
-                RsSourceFile {
-                    ast: super::types::SynFile::from(ast),
-                    content: source_file.content.clone(),
-                    path: source_file.path.clone(),
-                }
-            })
-            .collect();
-        Self {
-            rs_files,
-            source: source_snapshot,
-        }
-    }
     pub(super) fn cargo_toml_content(
         &self,
         path: super::types::PathRef<'_>,
@@ -134,7 +98,7 @@ impl CodebaseSnapshot {
     }
     // The snapshot exposes this derived workspace-name set through one policy consumer.
 
-    #[allow(clippy::single_call_fn)] // the snapshot exposes this derived workspace-name set through one policy consumer
+    #[allow(clippy::single_call_fn)] // policy consumers share this snapshot accessor directly and through the root facade
     pub(super) fn workspace_crate_names(&self) -> super::types::SourceTextBTreeSet {
         self.source.workspace_crate_names.clone()
     }
@@ -143,91 +107,6 @@ impl CodebaseSnapshot {
     }
 }
 impl CodebaseSourceSnapshot {
-    #[allow(clippy::single_call_fn)] // named constructor keeps process-wide immutable source initialization readable
-    fn build() -> Self {
-        let metadata = workspace_metadata_uncached();
-        let workspace_members = super::types::CargoPackageIdRefHashSet::from(
-            metadata
-                .as_ref()
-                .workspace_members
-                .iter()
-                .collect::<std::collections::HashSet<&cargo_metadata::PackageId>>(),
-        );
-        let workspace_crate_names: std::collections::BTreeSet<String> = metadata
-            .as_ref()
-            .packages
-            .iter()
-            .filter(|package| workspace_members.as_ref().contains(&package.id))
-            .map(|package| package.name.to_string())
-            .collect();
-        let cargo_toml_files: Vec<CargoTomlSourceFile> = metadata
-            .as_ref()
-            .packages
-            .iter()
-            .filter(|package| workspace_members.as_ref().contains(&package.id))
-            .map(|package| {
-                let path = package.manifest_path.as_std_path().to_path_buf();
-                let content = std::fs::read_to_string(&path).unwrap_or_else(|error| {
-                    panic!("50da433e failed to read {}: {error}", path.display())
-                });
-                let parsed = content.parse::<toml::Table>().unwrap_or_else(|error| {
-                    panic!("96f2c78a failed to parse {}: {error}", path.display())
-                });
-                CargoTomlSourceFile {
-                    content: super::types::SourceText::try_from(content)
-                        .expect("84f6a0d2 build invariant must hold"),
-                    parsed: super::types::TomlTable::from(parsed),
-                    path: super::types::OwnedPathBuf::from(path),
-                }
-            })
-            .collect();
-        let cargo_toml_by_path =
-            cargo_toml_files
-                .iter()
-                .enumerate()
-                .map(|(idx, cargo_toml)| {
-                    (
-                        cargo_toml.path.clone(),
-                        super::types::CargoTomlFileIdx::from(idx),
-                    )
-                })
-                .collect::<std::collections::BTreeMap<
-                    super::types::OwnedPathBuf,
-                    super::types::CargoTomlFileIdx,
-                >>();
-        let project_source_files =
-            super::types::WalkdirWalkDir::from(walkdir::WalkDir::new(constants_str::TEXT_ALT_9))
-                .into_iter()
-                .filter_entry(|element| {
-                    element.file_name() != constants_str::TARGET
-                        && element.file_name() != constants_str::GIT
-                        && element.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
-                        && (element.file_type().is_dir()
-                            || matches!(
-                                element.path().extension().and_then(std::ffi::OsStr::to_str),
-                                Some(
-                                    constants_str::RS
-                                        | constants_str::MD
-                                        | constants_str::TOML
-                                        | constants_str::TXT
-                                        | constants_str::YML
-                                        | constants_str::YAML
-                                        | constants_str::JSON
-                                )
-                            ))
-                })
-                .map(project_walk_entry)
-                .filter(|entry| !entry.file_type().is_dir())
-                .map(|entry| project_source_file(entry.into_path()))
-                .collect::<Vec<_>>();
-        Self {
-            cargo_toml_by_path,
-            cargo_toml_files,
-            project_source_files,
-            workspace_metadata: metadata,
-            workspace_crate_names: super::types::SourceTextBTreeSet::from(workspace_crate_names),
-        }
-    }
     fn cargo_toml_file(&self, path: super::types::PathRef<'_>) -> Option<&CargoTomlSourceFile> {
         self.cargo_toml_by_path
             .get(path.as_ref())
@@ -238,18 +117,134 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
     std::thread_local! {
         static SNAPSHOT: std::cell::OnceCell<CodebaseSnapshot> = const { std::cell::OnceCell::new() };
     }
-    SNAPSHOT.with(|snapshot| f(snapshot.get_or_init(CodebaseSnapshot::build)))
+    SNAPSHOT.with(|snapshot| {
+        f(snapshot.get_or_init(|| {
+            static SOURCE_SNAPSHOT: std::sync::OnceLock<std::sync::Arc<CodebaseSourceSnapshot>> =
+                std::sync::OnceLock::new();
+            let source_snapshot = std::sync::Arc::clone(SOURCE_SNAPSHOT.get_or_init(|| {
+                std::sync::Arc::new({
+                    let metadata = super::types::CargoMetadata::from(
+                        cargo_metadata::MetadataCommand::new()
+                            .manifest_path(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+                            .exec()
+                            .expect("c84e9d1f workspace metadata invariant must hold"),
+                    );
+                    let workspace_members = super::types::CargoPackageIdRefHashSet::from(
+                        metadata
+                            .as_ref()
+                            .workspace_members
+                            .iter()
+                            .collect::<std::collections::HashSet<&cargo_metadata::PackageId>>(),
+                    );
+                    let workspace_crate_names: std::collections::BTreeSet<String> = metadata
+                        .as_ref()
+                        .packages
+                        .iter()
+                        .filter(|package| workspace_members.as_ref().contains(&package.id))
+                        .map(|package| package.name.to_string())
+                        .collect();
+                    let cargo_toml_files: Vec<CargoTomlSourceFile> = metadata
+                        .as_ref()
+                        .packages
+                        .iter()
+                        .filter(|package| workspace_members.as_ref().contains(&package.id))
+                        .map(|package| {
+                            let path = package.manifest_path.as_std_path().to_path_buf();
+                            let content = std::fs::read_to_string(&path).unwrap_or_else(|error| {
+                                panic!("50da433e failed to read {}: {error}", path.display())
+                            });
+                            let parsed = content.parse::<toml::Table>().unwrap_or_else(|error| {
+                                panic!("96f2c78a failed to parse {}: {error}", path.display())
+                            });
+                            CargoTomlSourceFile {
+                                content: super::types::SourceText::try_from(content)
+                                    .expect("84f6a0d2 build invariant must hold"),
+                                parsed: super::types::TomlTable::from(parsed),
+                                path: super::types::OwnedPathBuf::from(path),
+                            }
+                        })
+                        .collect();
+                    let cargo_toml_by_path = cargo_toml_files
+                        .iter()
+                        .enumerate()
+                        .map(|(idx, cargo_toml)| {
+                            (
+                                cargo_toml.path.clone(),
+                                super::types::CargoTomlFileIdx::from(idx),
+                            )
+                        })
+                        .collect::<std::collections::BTreeMap<
+                            super::types::OwnedPathBuf,
+                            super::types::CargoTomlFileIdx,
+                        >>();
+                    let project_source_files = super::types::WalkdirWalkDir::from(
+                        walkdir::WalkDir::new(constants_str::TEXT_ALT_9),
+                    )
+                    .into_iter()
+                    .filter_entry(|element| {
+                        element.file_name() != constants_str::TARGET
+                            && element.file_name() != constants_str::GIT
+                            && element.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
+                            && (element.file_type().is_dir()
+                                || matches!(
+                                    element.path().extension().and_then(std::ffi::OsStr::to_str),
+                                    Some(
+                                        constants_str::RS
+                                            | constants_str::MD
+                                            | constants_str::TOML
+                                            | constants_str::TXT
+                                            | constants_str::YML
+                                            | constants_str::YAML
+                                            | constants_str::JSON
+                                    )
+                                ))
+                    })
+                    .map(project_walk_entry)
+                    .filter(|entry| !entry.file_type().is_dir())
+                    .map(|entry| project_source_file(entry.into_path()))
+                    .collect::<Vec<_>>();
+                    CodebaseSourceSnapshot {
+                        cargo_toml_by_path,
+                        cargo_toml_files,
+                        project_source_files,
+                        workspace_metadata: metadata,
+                        workspace_crate_names: super::types::SourceTextBTreeSet::from(
+                            workspace_crate_names,
+                        ),
+                    }
+                })
+            }));
+            let rs_files = source_snapshot
+                .project_source_files
+                .iter()
+                .filter(|source_file| {
+                    source_file
+                        .path
+                        .as_ref()
+                        .extension()
+                        .and_then(std::ffi::OsStr::to_str)
+                        == Some(constants_str::RS)
+                })
+                .map(|source_file| {
+                    let ast =
+                        syn::parse_file(source_file.content.as_ref()).unwrap_or_else(|error| {
+                            panic!("5e7a83eb {}: {error}", source_file.path.as_ref().display())
+                        });
+                    RsSourceFile {
+                        ast: super::types::SynFile::from(ast),
+                        content: source_file.content.clone(),
+                        path: source_file.path.clone(),
+                    }
+                })
+                .collect();
+            CodebaseSnapshot {
+                rs_files,
+                source: source_snapshot,
+            }
+        }))
+    })
 }
 
-#[allow(clippy::single_call_fn)] // isolates cargo_metadata command setup from snapshot construction
-fn workspace_metadata_uncached() -> super::types::CargoMetadata {
-    super::types::CargoMetadata::from(
-        cargo_metadata::MetadataCommand::new()
-            .manifest_path(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
-            .exec()
-            .expect("c84e9d1f workspace_metadata_uncached invariant must hold"),
-    )
-}
 fn project_walk_entry(entry: walkdir::Result<walkdir::DirEntry>) -> walkdir::DirEntry {
     entry.unwrap_or_else(|error| panic!("1e4b17b0 walk failed: {error}"))
 }

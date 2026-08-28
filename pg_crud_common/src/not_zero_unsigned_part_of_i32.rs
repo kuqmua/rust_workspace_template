@@ -15,9 +15,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "i32")]
-pub struct NotZeroUnsignedPartOfI32(
-    pub(super) super::not_zero_unsigned_part_of_i32_non_zero_i32::NotZeroUnsignedPartOfI32NonZeroI32,
-);
+pub struct NotZeroUnsignedPartOfI32(pub(super) std::num::NonZeroI32);
 
 impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
     fn from(value: std::num::NonZeroU16) -> Self {
@@ -27,7 +25,7 @@ impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
 
 impl From<std::num::NonZeroI32> for NotZeroUnsignedPartOfI32 {
     fn from(value: std::num::NonZeroI32) -> Self {
-        Self(super::not_zero_unsigned_part_of_i32_non_zero_i32::NotZeroUnsignedPartOfI32NonZeroI32::from(value))
+        Self(value)
     }
 }
 
@@ -54,7 +52,6 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
             }
         })?;
         std::num::NonZeroI32::new(value.0)
-            .map(super::not_zero_unsigned_part_of_i32_non_zero_i32::NotZeroUnsignedPartOfI32NonZeroI32::from)
             .map(Self)
             .ok_or_else(|| Self::Error::IsZero {
                 location: location_macros::location!(),
@@ -64,7 +61,7 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
 
 impl to_err_string::domain_types::ToErrString for NotZeroUnsignedPartOfI32 {
     fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-        crate::domain_types::UnsignedPartOfI32::from(self.0.0).to_err_string()
+        crate::domain_types::UnsignedPartOfI32::from(self.0).to_err_string()
     }
 }
 
@@ -84,7 +81,7 @@ impl sqlx::Encode<'_, sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
         buf: &mut sqlx::postgres::PgArgumentBuffer,
     ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         <crate::domain_types::UnsignedPartOfI32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(
-            &crate::domain_types::UnsignedPartOfI32::from(self.0.0),
+            &crate::domain_types::UnsignedPartOfI32::from(self.0),
             buf,
         )
     }
@@ -93,7 +90,7 @@ impl sqlx::Encode<'_, sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
 impl NotZeroUnsignedPartOfI32 {
     #[must_use]
     pub fn get(&self) -> crate::domain_types::UnsignedPartOfI32 {
-        crate::domain_types::UnsignedPartOfI32::from(self.0.0)
+        crate::domain_types::UnsignedPartOfI32::from(self.0)
     }
 }
 

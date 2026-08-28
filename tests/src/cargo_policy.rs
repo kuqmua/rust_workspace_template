@@ -168,11 +168,47 @@ fn check_workspace_dependencies_having_exact_version() {
                 | toml::Value::Array(_) => panic!("6ca03a1f"),
             }
         }
-        super::validate_workspace_dep_version(v_table);
+        match v_table
+            .get()
+            .get(constants_str::VERSION_ALT_3)
+            .expect("d5b2b269 workspace dependency version invariant must hold")
+        {
+            toml::Value::String(version_string) => {
+                let exact_three_part_version =
+                    version_string.strip_prefix('=').is_some_and(|rest| {
+                        let mut parts = rest.split('.');
+                        (0usize..3usize).all(|_| {
+                            parts
+                                .next()
+                                .and_then(|part| part.parse::<u64>().ok())
+                                .is_some()
+                        }) && parts.next().is_none()
+                    });
+                assert!(exact_three_part_version, "6640b9bf");
+            }
+            toml::Value::Table(_)
+            | toml::Value::Integer(_)
+            | toml::Value::Float(_)
+            | toml::Value::Boolean(_)
+            | toml::Value::Datetime(_)
+            | toml::Value::Array(_) => panic!("a3410a37"),
+        }
         super::validate_workspace_dep_default_features(v_table);
         match v_table.get().len() {
             2 => {}
-            3 => super::validate_workspace_dep_features(v_table),
+            3 => match v_table
+                .get()
+                .get(constants_str::FEATURES_ALT)
+                .expect("473577d5 workspace dependency features invariant must hold")
+            {
+                &toml::Value::Array(_) => (),
+                &toml::Value::String(_)
+                | &toml::Value::Table(_)
+                | &toml::Value::Integer(_)
+                | &toml::Value::Float(_)
+                | &toml::Value::Boolean(_)
+                | &toml::Value::Datetime(_) => panic!("38ba32e9"),
+            },
             _ => panic!("f1139378 {v_table:#?}"),
         }
     });

@@ -1,11 +1,15 @@
 use crate::env_parse_error::EnvParseError;
 use crate::env_var_error::EnvVarError;
 use crate::env_var_result_var_error::EnvVarResultVarError;
+#[cfg(test)]
 use crate::env_var_value_ref::EnvVarValueRef;
 use crate::parse_ctx_ref::ParseCtxRef;
 use crate::parse_env_var_name_ref::ParseEnvVarNameRef;
+#[cfg(test)]
 use crate::parse_from_env_var_from_str::parse_from_env_var_from_str;
+#[cfg(test)]
 use crate::parse_from_env_var_with::parse_from_env_var_with;
+#[cfg(test)]
 use crate::parse_from_str_with_ctx::parse_from_str_with_ctx;
 pub use crate::src_place_type::*;
 pub use crate::svc_mode::SvcMode;

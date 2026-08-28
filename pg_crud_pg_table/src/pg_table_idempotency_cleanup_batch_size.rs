@@ -9,16 +9,13 @@
 use super::*;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgTableIdempotencyCleanupBatchSize(
-    pub(super) PgTableIdempotencyCleanupBatchSizeNonZeroI64,
-);
+pub struct PgTableIdempotencyCleanupBatchSize(pub(super) std::num::NonZeroI64);
 impl TryFrom<i64> for PgTableIdempotencyCleanupBatchSize {
     type Error = PgTableIdempotencyCleanupValueTryFromI64Error;
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         std::num::NonZeroI64::new(value)
             .filter(|non_zero_value| non_zero_value.get().is_positive())
-            .map(PgTableIdempotencyCleanupBatchSizeNonZeroI64::from)
             .map(Self)
             .ok_or(PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
     }

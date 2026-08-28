@@ -1,7 +1,7 @@
 use super::*;
 
 pub async fn begin_pg_table_idempotency(
-    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+    pool: app_state::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
 ) -> Result<PgTableIdempotencyBegin, SqlxPgTableIdempotencyError> {
     let inserted = sqlx::query_scalar::<_, bool>(constants_str::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY)

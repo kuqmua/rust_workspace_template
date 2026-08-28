@@ -16,7 +16,9 @@
 )]
 #[try_from(
     error = super::ResourceUtilizationPercentTryFromU8Error,
-    validator = ResourceUtilizationPercent::validate
+    validator = |value: &u8| {
+        if *value <= 100u8 { Ok(()) } else { Err(super::ResourceUtilizationPercentTryFromU8Error) }
+    }
 )]
 pub struct ResourceUtilizationPercent(pub(super) u8);
 
@@ -24,22 +26,6 @@ impl From<super::ResourceUtilizationKnownPercent> for ResourceUtilizationPercent
     fn from(value: super::ResourceUtilizationKnownPercent) -> Self {
         match value {
             super::ResourceUtilizationKnownPercent::Max => Self(100u8),
-        }
-    }
-}
-
-impl ResourceUtilizationPercent {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(
-        clippy::single_call_fn,
-        clippy::trivially_copy_pass_by_ref,
-        reason = "derive-generated TryFrom owns the single validation call"
-    )]
-    const fn validate(value: &u8) -> Result<(), super::ResourceUtilizationPercentTryFromU8Error> {
-        if *value <= 100u8 {
-            Ok(())
-        } else {
-            Err(super::ResourceUtilizationPercentTryFromU8Error)
         }
     }
 }

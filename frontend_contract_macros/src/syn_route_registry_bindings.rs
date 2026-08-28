@@ -1,4 +1,4 @@
-use crate::domain_types::RouteRegistryBinding;
+use crate::RouteRegistryBinding;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
 pub(crate) struct SynRouteRegistryBindings(

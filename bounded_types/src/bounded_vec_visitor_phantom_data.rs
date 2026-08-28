@@ -32,11 +32,11 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
                     },
                     |_ignored| {
                         Err(serde::de::Error::custom(
-                            crate::domain_types::BoundedValueError::AboveMax {
-                                actual: crate::domain_types::BoundedLen::from(
+                            crate::BoundedValueError::AboveMax {
+                                actual: crate::BoundedLen::from(
                                     MAX.saturating_add(constants_usize::ONE),
                                 ),
-                                max: crate::domain_types::BoundedLen::from(MAX),
+                                max: crate::BoundedLen::from(MAX),
                             },
                         ))
                     },

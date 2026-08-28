@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[allow(clippy::single_call_fn)] // metadata comparison remains isolated from the mutation that consumes its decision
+#[cfg(test)]
 pub(super) fn should_write_string_into_file(
     path: super::WrittenFilePathRef<'_>,
     string_cnt: super::StringFileContentRef<'_>,

@@ -1,6 +1,6 @@
 use crate::csr_page;
 
-#[frontend_contract::domain_types::route_error(AdminRolesPageError)]
+#[frontend_contract::route_error(AdminRolesPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn roles(auth: crate::AdminAuthReq) -> axum::response::Response {
     csr_page(

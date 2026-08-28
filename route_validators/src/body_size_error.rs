@@ -14,8 +14,8 @@ pub enum BodySizeError {
     },
 }
 
-impl crate::domain_types::AxumHttpStatusCodeProvider for BodySizeError {
-    fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
-        crate::domain_types::AxumHttpStatusCode::payload_too_large()
+impl crate::AxumHttpStatusCodeProvider for BodySizeError {
+    fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+        crate::AxumHttpStatusCode::payload_too_large()
     }
 }

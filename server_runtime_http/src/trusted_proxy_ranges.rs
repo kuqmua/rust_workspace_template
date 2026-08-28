@@ -1,17 +1,13 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
 pub struct TrustedProxyRanges(
-    bounded_types::domain_types::vector::BoundedVec<
-        super::TrustedProxyRange,
-        0,
-        { constants_usize::VALUE_128 },
-    >,
+    bounded_types::BoundedVec<super::TrustedProxyRange, 0, { constants_usize::VALUE_128 }>,
 );
 
 impl TryFrom<Vec<super::TrustedProxyRange>> for TrustedProxyRanges {
     type Error = super::TrustedProxyRangesError;
 
     fn try_from(value: Vec<super::TrustedProxyRange>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
+        bounded_types::BoundedVec::try_from(value)
             .map(Self)
             .map_err(super::TrustedProxyRangesError::from)
     }

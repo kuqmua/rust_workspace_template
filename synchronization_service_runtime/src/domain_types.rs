@@ -7,21 +7,18 @@ pub use crate::synchronization_source::SynchronizationSource;
 mod tests {
     #[test]
     fn configuration_keeps_retry_and_execution_policies_together() {
-        let attempts =
-            server_runtime_core::domain_types::RetryAttemptsNonZeroUsize::try_from(2usize);
-        let delay =
-            server_runtime_core::domain_types::RetryDelayDuration::from(std::time::Duration::ZERO);
+        let attempts = server_runtime_core::RetryAttemptsNonZeroUsize::try_from(2usize);
+        let delay = server_runtime_core::RetryDelayDuration::from(std::time::Duration::ZERO);
         let valid_attempts = attempts.expect("36b4ca8f configuration_keeps_retry_and_execution_policies_together invariant must hold");
-        let retry_policy =
-            server_runtime_core::domain_types::RetryPolicy::new(valid_attempts, Some(delay));
+        let retry_policy = server_runtime_core::RetryPolicy::new(valid_attempts, Some(delay));
         let configuration = super::SynchronizationRuntimeConfiguration::new(
             retry_policy,
-            server_runtime_core::domain_types::ExecutionMode::DryRun,
+            server_runtime_core::ExecutionMode::DryRun,
         );
         assert_eq!(configuration.retry_policy(), retry_policy);
         assert_eq!(
             configuration.execution_mode(),
-            server_runtime_core::domain_types::ExecutionMode::DryRun
+            server_runtime_core::ExecutionMode::DryRun
         );
     }
 

@@ -10,8 +10,7 @@ use leptos::prelude::{
 };
 
 #[must_use]
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
-pub(super) fn render_sessions(
+pub fn render_admin_sessions_page(
     page: &server_admin_contract::domain_types::AdminSessionsPage,
     query: &server_admin_contract::domain_types::AdminTableQuery,
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,

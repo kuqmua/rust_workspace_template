@@ -1,25 +1,20 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct ClientTransport;
-impl frontend_contract::domain_types::Transport for ClientTransport {
+impl frontend_contract::Transport for ClientTransport {
     fn send(
         &self,
-        _request: frontend_contract::domain_types::TransportRequest,
+        _request: frontend_contract::TransportRequest,
     ) -> impl Future<
-        Output = Result<
-            frontend_contract::domain_types::TransportResponse,
-            frontend_contract::domain_types::TransportError,
-        >,
+        Output = Result<frontend_contract::TransportResponse, frontend_contract::TransportError>,
     > + '_ {
-        std::future::ready(Err(
-            frontend_contract::domain_types::TransportError::default(),
-        ))
+        std::future::ready(Err(frontend_contract::TransportError::default()))
     }
 }
 #[test]
 #[allow(clippy::needless_for_each)] // iterator assertions follow the workspace no-for-loop policy
 fn every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(
-        <super::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::ROUTE_COUNT,
+        <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::ROUTE_COUNT,
         28usize
     );
     assert_eq!(
@@ -148,15 +143,15 @@ fn administrator_collections_enforce_item_limit_for_construction_and_deserializa
 }
 #[test]
 fn authentication_route_family_has_valid_coverage() {
-    let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::coverage_descriptors();
+    let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
     assert_eq!(descriptors.as_ref().len(), 28usize);
     assert_eq!(
-        frontend_contract::domain_types::validate_route_coverage(descriptors.as_ref()),
+        frontend_contract::validate_route_coverage(descriptors.as_ref()),
         Ok(())
     );
     assert_eq!(
-        <super::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()
-            .map(frontend_contract::domain_types::RouteBodyLimit::get),
+        <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
+            .map(frontend_contract::RouteBodyLimit::get),
         Some(super::default_admin_api_body_max_bytes().get())
     );
 }
@@ -201,16 +196,16 @@ fn route_contract_keeps_custom_action_policy_and_path_together() {
     assert_eq!(route.path().as_ref(), "/v1/admin/users/7/ban");
     assert_eq!(
         route.contract().method(),
-        frontend_contract::domain_types::RouteMethod::Post
+        frontend_contract::RouteMethod::Post
     );
     assert_eq!(
         route.contract().mutation(),
-        frontend_contract::domain_types::MutationKind::Mutating
+        frontend_contract::MutationKind::Mutating
     );
     assert_eq!(
         route.contract().authentication(),
-        frontend_contract::domain_types::AuthenticationRequirement::Permission(
-            frontend_contract::domain_types::ContractStr::from(
+        frontend_contract::AuthenticationRequirement::Permission(
+            frontend_contract::ContractStr::from(
                 super::AdminPermission::UsersUpdate.as_str().get(),
             )
         )
@@ -275,8 +270,8 @@ fn open_api_page_uses_the_typed_authenticated_api_route() {
     assert_eq!(route.path().as_ref(), "/v1/admin/openapi.json");
     assert_eq!(
         route.contract().authentication(),
-        frontend_contract::domain_types::AuthenticationRequirement::Permission(
-            frontend_contract::domain_types::ContractStr::from(
+        frontend_contract::AuthenticationRequirement::Permission(
+            frontend_contract::ContractStr::from(
                 super::AdminPermission::OpenApiRead.as_str().get(),
             ),
         )
@@ -475,29 +470,20 @@ fn data_tables_round_trip_and_require_read_permissions() {
         "sign_out"
     );
     assert_eq!(
-        frontend_contract::domain_types::RouteRegistrationContract::method(
-            super::AdminHtmlAction::SignOut
-        ),
-        frontend_contract::domain_types::RouteMethod::Post
+        frontend_contract::RouteRegistrationContract::method(super::AdminHtmlAction::SignOut),
+        frontend_contract::RouteMethod::Post
     );
     assert_eq!(
-        frontend_contract::domain_types::RouteRegistrationContract::path(
-            super::AdminHtmlAction::SignOut
-        )
-        .get(),
+        frontend_contract::RouteRegistrationContract::path(super::AdminHtmlAction::SignOut).get(),
         super::AdminHtmlAction::SignOut.get()
     );
     assert_eq!(
-        frontend_contract::domain_types::RouteRegistrationContract::method(
-            super::AdminFrontendPath::Settings
-        ),
-        frontend_contract::domain_types::RouteMethod::Get
+        frontend_contract::RouteRegistrationContract::method(super::AdminFrontendPath::Settings),
+        frontend_contract::RouteMethod::Get
     );
     assert_eq!(
-        frontend_contract::domain_types::RouteRegistrationContract::path(
-            super::AdminFrontendPath::Settings
-        )
-        .get(),
+        frontend_contract::RouteRegistrationContract::path(super::AdminFrontendPath::Settings)
+            .get(),
         super::AdminFrontendPath::Settings.get()
     );
     assert!(super::AdminPage::navigation().all(|page| {

@@ -6,7 +6,7 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct PgPoolMaxLifetimeSeconds(crate::domain_types::ConfigNonZeroU64);
+pub struct PgPoolMaxLifetimeSeconds(std::num::NonZeroU64);
 
 impl crate::domain_types::TryFromStdEnvVarOk for PgPoolMaxLifetimeSeconds {
     type Error = super::PgPoolConfigParseError;

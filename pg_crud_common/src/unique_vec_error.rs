@@ -18,26 +18,20 @@ pub enum UniqueVecError {
     },
 }
 
-impl From<bounded_types::domain_types::BoundedValueError> for UniqueVecError {
-    fn from(value: bounded_types::domain_types::BoundedValueError) -> Self {
+impl From<bounded_types::BoundedValueError> for UniqueVecError {
+    fn from(value: bounded_types::BoundedValueError) -> Self {
         match value {
-            bounded_types::domain_types::BoundedValueError::AboveMax { max, .. } => {
-                Self::AboveMax {
-                    max: super::UniqueVecLen::from(max.get()),
-                }
-            }
-            bounded_types::domain_types::BoundedValueError::BelowMin { actual, min } => {
-                Self::BelowMin {
-                    actual: super::UniqueVecLen::from(actual.get()),
-                    min: super::UniqueVecLen::from(min.get()),
-                }
-            }
-            bounded_types::domain_types::BoundedValueError::InvalidBounds { min, max } => {
-                Self::InvalidBounds {
-                    min: super::UniqueVecLen::from(min.get()),
-                    max: super::UniqueVecLen::from(max.get()),
-                }
-            }
+            bounded_types::BoundedValueError::AboveMax { max, .. } => Self::AboveMax {
+                max: super::UniqueVecLen::from(max.get()),
+            },
+            bounded_types::BoundedValueError::BelowMin { actual, min } => Self::BelowMin {
+                actual: super::UniqueVecLen::from(actual.get()),
+                min: super::UniqueVecLen::from(min.get()),
+            },
+            bounded_types::BoundedValueError::InvalidBounds { min, max } => Self::InvalidBounds {
+                min: super::UniqueVecLen::from(min.get()),
+                max: super::UniqueVecLen::from(max.get()),
+            },
         }
     }
 }

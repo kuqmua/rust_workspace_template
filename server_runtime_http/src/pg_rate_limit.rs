@@ -85,9 +85,6 @@ mod pg_rate_limit_key_part_max_len {
 mod pg_rate_limit_maximum {
     pub use crate::pg_rate_limit_maximum::*;
 }
-mod pg_rate_limit_maximum_non_zero_i64 {
-    pub use crate::pg_rate_limit_maximum_non_zero_i64::*;
-}
 mod pg_rate_limit_query_ref {
     pub use crate::pg_rate_limit_query_ref::*;
 }
@@ -102,9 +99,6 @@ mod pg_rate_limit_validation_error {
 }
 mod pg_rate_limit_window_seconds {
     pub use crate::pg_rate_limit_window_seconds::*;
-}
-mod pg_rate_limit_window_seconds_non_zero_i32 {
-    pub use crate::pg_rate_limit_window_seconds_non_zero_i32::*;
 }
 mod sqlx_pg_rate_limit_error {
     pub use crate::sqlx_pg_rate_limit_error::*;

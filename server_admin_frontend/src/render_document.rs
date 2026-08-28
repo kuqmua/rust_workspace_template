@@ -1,6 +1,5 @@
 #![allow(
     unused_imports,
-    clippy::unused_trait_names,
     reason = "document and shell Leptos view branches require different attribute traits after macro expansion"
 )]
 

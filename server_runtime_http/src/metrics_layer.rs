@@ -6,7 +6,6 @@
 pub use crate::http_metrics_layer::HttpMetricsLayer;
 use crate::http_metrics_path_cache::HttpMetricsPathCache;
 pub use crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum;
-use crate::http_metrics_path_cache_maximum_non_zero_usize::HttpMetricsPathCacheMaximumNonZeroUsize;
 pub use crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError;
 use crate::http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock;
 use crate::http_metrics_path_text::HttpMetricsPathText;
@@ -175,9 +174,6 @@ mod http_metrics_path_cache {
 }
 mod http_metrics_path_cache_maximum {
     pub use crate::http_metrics_path_cache_maximum::*;
-}
-mod http_metrics_path_cache_maximum_non_zero_usize {
-    pub use crate::http_metrics_path_cache_maximum_non_zero_usize::*;
 }
 mod http_metrics_path_cache_maximum_try_from_usize_error {
     pub use crate::http_metrics_path_cache_maximum_try_from_usize_error::*;

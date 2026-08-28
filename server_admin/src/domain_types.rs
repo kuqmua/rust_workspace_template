@@ -2,14 +2,13 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // domain declarations are grouped by authentication and authorization responsibility
 pub use generated_auth::admin_generated_auth_layer::AdminGeneratedAuthLayer;
 pub use generated_auth::admin_generated_auth_service::AdminGeneratedAuthService;
-pub use pg_table::domain_types::CombinationOfAppStateLogicTraits;
+pub use pg_table::CombinationOfAppStateLogicTraits;
 pub use server_admin_contract::domain_types::{
     AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,
 };
 pub use server_admin_core::domain_types::{
-    AdminAuditLogId, AdminIdTryFromI64Error, AdminNonZeroUsize, AdminPermissionId,
-    AdminPermissionName, AdminRoleId, AdminSocketAddr, AdminUserId, SecrecyAdminString,
-    StdAdminBool, StdAdminStrRef, StdAdminString, UuidAdminValue,
+    AdminAuditLogId, AdminIdTryFromI64Error, AdminPermissionId, AdminRoleId, AdminSocketAddr,
+    AdminUserId, SecrecyAdminString, StdAdminBool, StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 
 pub use maintenance::*;

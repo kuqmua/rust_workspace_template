@@ -1,4 +1,4 @@
-use crate::domain_types::{StdBool, SynExpr, SynType};
+use crate::{StdBool, SynExpr, SynType};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]

@@ -12,6 +12,4 @@ use crate::domain_types::EnvKey;
     newtype::AsRefOwned,
     newtype::FromInner,
 )]
-pub(crate) struct EnvKeys(
-    pub(super) bounded_types::domain_types::vector::BoundedVec<EnvKey, 0, { usize::MAX }>,
-);
+pub(crate) struct EnvKeys(pub(super) bounded_types::BoundedVec<EnvKey, 0, { usize::MAX }>);

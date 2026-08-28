@@ -3,7 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct CleanupBatchSize(pub(super) super::CleanupBatchSizeNonZeroU64);
+pub struct CleanupBatchSize(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for CleanupBatchSize {
     type Error = super::CleanupBatchSizeError;
@@ -17,6 +17,6 @@ impl TryFrom<u64> for CleanupBatchSize {
 
 impl From<std::num::NonZeroU64> for CleanupBatchSize {
     fn from(value: std::num::NonZeroU64) -> Self {
-        Self(super::CleanupBatchSizeNonZeroU64::from(value))
+        Self(value)
     }
 }

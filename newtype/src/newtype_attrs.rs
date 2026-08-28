@@ -1,4 +1,4 @@
-use crate::domain_types::{NewtypeBool, NewtypeOption, NewtypeTryFromAttrs, ToErrStringMode};
+use crate::{NewtypeBool, NewtypeOption, NewtypeTryFromAttrs, ToErrStringMode};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order

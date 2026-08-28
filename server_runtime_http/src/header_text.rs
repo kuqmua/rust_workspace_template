@@ -2,7 +2,6 @@ pub use crate::http_header_name::HttpHeaderName;
 pub use crate::http_header_text_bytes::HttpHeaderTextBytes;
 pub use crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes;
 pub use crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError;
-use crate::http_header_text_maximum_bytes_non_zero_usize::HttpHeaderTextMaximumBytesNonZeroUsize;
 pub use crate::http_header_text_ref::HttpHeaderTextRef;
 pub use crate::http_header_text_resolution::HttpHeaderTextResolution;
 
@@ -84,9 +83,6 @@ mod http_header_text_maximum_bytes {
 }
 mod http_header_text_maximum_bytes_error {
     pub use crate::http_header_text_maximum_bytes_error::*;
-}
-mod http_header_text_maximum_bytes_non_zero_usize {
-    pub use crate::http_header_text_maximum_bytes_non_zero_usize::*;
 }
 mod http_header_text_ref {
     pub use crate::http_header_text_ref::*;

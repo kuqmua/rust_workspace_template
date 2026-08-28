@@ -18,7 +18,23 @@ pub fn render_users(
     let rows = page
         .items()
         .iter()
-        .map(|item| ssr_admin_user_row::ssr_admin_user_row(item, page))
+        .map(|item| {
+            let id = item.id().to_string();
+            let login = item.login().to_string();
+            let display_name = item.display_name().to_string();
+            let banned = item.is_banned().to_string();
+            let roles =
+                crate::domain_types::shared::admin_user_roles::admin_user_roles(item, page);
+            leptos::view! {
+                <crate::domain_types::with_owner::tables::table_row::TableRow>
+                    <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="id">{id}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                    <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="login">{login}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                    <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="display_name">{display_name}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                    <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="banned">{banned}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+                    {roles}
+                </crate::domain_types::with_owner::tables::table_row::TableRow>
+            }
+        })
         .collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
@@ -38,9 +54,4 @@ pub fn render_users(
         Some(admin),
         Some(branding),
     )
-}
-
-// Root-owned module compatibility wrappers.
-pub(crate) mod ssr_admin_user_row {
-    pub use crate::ssr_admin_user_row::*;
 }

@@ -1,9 +1,8 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::arbitrary_source_item_ordering)]
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::endpoint_registry(
-    state = crate::domain_types::NotificationState;
+#[frontend_contract::endpoint_registry(
+    state = crate::NotificationState;
     (
         notification_service_contract::domain_types::NotificationOperationalRoute::Metrics,
         super::metrics::metrics

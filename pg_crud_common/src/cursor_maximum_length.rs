@@ -3,9 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct CursorMaximumLength(
-    pub(super) super::cursor_maximum_length_non_zero_usize::CursorMaximumLengthNonZeroUsize,
-);
+pub struct CursorMaximumLength(pub(super) std::num::NonZeroUsize);
 
 impl TryFrom<usize> for CursorMaximumLength {
     type Error = crate::domain_types::CursorCodecBuildError;
@@ -19,10 +17,6 @@ impl TryFrom<usize> for CursorMaximumLength {
 
 impl From<std::num::NonZeroUsize> for CursorMaximumLength {
     fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(
-            super::cursor_maximum_length_non_zero_usize::CursorMaximumLengthNonZeroUsize::from(
-                value,
-            ),
-        )
+        Self(value)
     }
 }

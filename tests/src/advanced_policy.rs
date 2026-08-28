@@ -45,11 +45,40 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
             {
                 let _inserted = active_guards.insert(identifier.ident.to_string());
             }
-            dropped_identifier(statement)
-                .into_iter()
-                .for_each(|identifier| {
-                    let _removed = active_guards.remove(identifier.as_ref());
-                });
+            (|| {
+                let syn::Stmt::Expr(syn::Expr::Call(call), _) = statement else {
+                    return None;
+                };
+                let syn::Expr::Path(function) = call.func.as_ref() else {
+                    return None;
+                };
+                if !matches!(
+                    function
+                        .path
+                        .segments
+                        .last()
+                        .map(|segment| segment.ident.to_string())
+                        .as_deref(),
+                    Some(constants_str::VALUE_D90EE9CC)
+                ) {
+                    return None;
+                }
+                let syn::Expr::Path(argument) = call.args.first()? else {
+                    return None;
+                };
+                (argument.path.segments.len() == constants_usize::ONE)
+                    .then(|| {
+                        argument.path.segments.first().map(|segment| {
+                            super::types::SourceText::try_from(segment.ident.to_string())
+                                .expect("d4f6bdce dropped identifier invariant must hold")
+                        })
+                    })
+                    .flatten()
+            })()
+            .into_iter()
+            .for_each(|identifier| {
+                let _removed = active_guards.remove(identifier.as_ref());
+            });
         });
         syn::visit::visit_block(self, i);
     }
@@ -76,41 +105,6 @@ fn expression_acquires_lock(expression: &syn::Expr) -> bool {
         syn::Expr::Try(try_expression) => expression_acquires_lock(try_expression.expr.as_ref()),
         _ => false,
     }
-}
-
-#[allow(
-    clippy::single_call_fn,
-    reason = "keeps dropped-identifier extraction separate from statement traversal"
-)]
-fn dropped_identifier(statement: &syn::Stmt) -> Option<super::types::SourceText> {
-    let syn::Stmt::Expr(syn::Expr::Call(call), _) = statement else {
-        return None;
-    };
-    let syn::Expr::Path(function) = call.func.as_ref() else {
-        return None;
-    };
-    if !matches!(
-        function
-            .path
-            .segments
-            .last()
-            .map(|segment| segment.ident.to_string())
-            .as_deref(),
-        Some(constants_str::VALUE_D90EE9CC)
-    ) {
-        return None;
-    }
-    let syn::Expr::Path(argument) = call.args.first()? else {
-        return None;
-    };
-    (argument.path.segments.len() == constants_usize::ONE)
-        .then(|| {
-            argument.path.segments.first().map(|segment| {
-                super::types::SourceText::try_from(segment.ident.to_string())
-                    .expect("d4f6bdce dropped_identifier invariant must hold")
-            })
-        })
-        .flatten()
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]

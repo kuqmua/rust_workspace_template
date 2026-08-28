@@ -27,7 +27,7 @@ fn pagination_preserves_server_side_navigation() {
             ))
             .expect("7eb9a214 pagination_preserves_server_side_navigation invariant must hold"),
         ),
-        Some(frontend_contract::domain_types::FilterOperation::Eq),
+        Some(frontend_contract::FilterOperation::Eq),
         Some(
             server_admin_contract::domain_types::AdminFilterValue::try_from(String::from(
                 constants_str::VALUE_2BD806C9,

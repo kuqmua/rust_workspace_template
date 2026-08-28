@@ -5,7 +5,36 @@ pub fn classify_pg_error(
     match error_ref.get() {
         sqlx::Error::Database(database_error) => database_error.code().as_deref().map_or(
             crate::domain_types::PgErrorKind::Unknown,
-            crate::domain_types::classify_pg_code,
+            |code| match code {
+                constants_str::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {
+                    crate::domain_types::PgErrorKind::StringDataRightTruncation
+                }
+                constants_str::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE => {
+                    crate::domain_types::PgErrorKind::NumericValueOutOfRange
+                }
+                constants_str::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION => {
+                    crate::domain_types::PgErrorKind::InvalidTextRepresentation
+                }
+                constants_str::PG_SQLSTATE_NOT_NULL_VIOLATION => {
+                    crate::domain_types::PgErrorKind::NotNullViolation
+                }
+                constants_str::PG_SQLSTATE_FOREIGN_KEY_VIOLATION => {
+                    crate::domain_types::PgErrorKind::ForeignKeyViolation
+                }
+                constants_str::PG_SQLSTATE_UNIQUE_VIOLATION => {
+                    crate::domain_types::PgErrorKind::UniqueViolation
+                }
+                constants_str::PG_SQLSTATE_CHECK_VIOLATION => {
+                    crate::domain_types::PgErrorKind::CheckViolation
+                }
+                constants_str::PG_SQLSTATE_SERIALIZATION_FAILURE => {
+                    crate::domain_types::PgErrorKind::SerializationFailure
+                }
+                constants_str::PG_SQLSTATE_DEADLOCK_DETECTED => {
+                    crate::domain_types::PgErrorKind::Deadlock
+                }
+                _ => crate::domain_types::PgErrorKind::Unknown,
+            },
         ),
         sqlx::Error::PoolTimedOut => crate::domain_types::PgErrorKind::PoolTimedOut,
         sqlx::Error::Io(_) | sqlx::Error::Tls(_) | sqlx::Error::PoolClosed => {

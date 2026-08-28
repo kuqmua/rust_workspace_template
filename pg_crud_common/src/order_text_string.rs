@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "split owner modules expose representation only within the crate"
-)]
 #[derive(
     Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::Display,
 )]

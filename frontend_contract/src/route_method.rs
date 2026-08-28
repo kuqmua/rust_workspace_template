@@ -12,8 +12,8 @@ pub enum RouteMethod {
 }
 impl RouteMethod {
     #[must_use]
-    pub fn as_str(self) -> crate::domain_types::ContractStr {
-        crate::domain_types::ContractStr::from(match self {
+    pub fn as_str(self) -> crate::ContractStr {
+        crate::ContractStr::from(match self {
             Self::Connect => constants_str::CONNECT,
             Self::Delete => constants_str::DELETE,
             Self::Get => constants_str::GET,

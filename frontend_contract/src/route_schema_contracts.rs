@@ -9,14 +9,11 @@ use super::RouteSchemaContract;
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct RouteSchemaContracts(
-    bounded_types::domain_types::vector::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>,
-);
+pub struct RouteSchemaContracts(bounded_types::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>);
 impl TryFrom<Vec<RouteSchemaContract>> for RouteSchemaContracts {
-    type Error = bounded_types::domain_types::BoundedValueError;
+    type Error = bounded_types::BoundedValueError;
     fn try_from(value: Vec<RouteSchemaContract>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
-            .map(Self::from)
+        bounded_types::BoundedVec::try_from_collection_vec(value).map(Self::from)
     }
 }
 impl RouteSchemaContracts {
@@ -25,6 +22,6 @@ impl RouteSchemaContracts {
     where
         Values: IntoIterator<Item = RouteSchemaContract>,
     {
-        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::BoundedVec::from_max_iter(values))
     }
 }

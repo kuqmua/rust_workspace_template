@@ -17,7 +17,5 @@ pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTes
     ]
     .into_iter()
     .flatten();
-    RouteTestCategories::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(categories),
-    )
+    RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(categories))
 }

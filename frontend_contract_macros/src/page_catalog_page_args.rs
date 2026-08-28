@@ -1,37 +1,53 @@
-use crate::domain_types::SynExpr;
+use crate::SynExpr;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct PageCatalogPageArgs {
-    capability: SynExpr,
-    metadata: SynExpr,
-    path: SynExpr,
-    route: SynExpr,
-    title: SynExpr,
+    pub capability: SynExpr,
+    pub metadata: SynExpr,
+    pub path: SynExpr,
+    pub route: SynExpr,
+    pub title: SynExpr,
 }
-#[allow(
-    dead_code,
-    reason = "field access is intentionally encapsulated behind uniform getters"
-)]
-impl PageCatalogPageArgs {
-    #[allow(
-        clippy::single_call_fn,
-        clippy::too_many_arguments,
-        reason = "constructor mirrors the parsed field model"
-    )]
-    pub(crate) const fn new(
-        capability: SynExpr,
-        metadata: SynExpr,
-        path: SynExpr,
-        route: SynExpr,
-        title: SynExpr,
-    ) -> Self {
-        Self {
-            capability,
-            metadata,
-            path,
-            route,
-            title,
+
+impl syn::parse::Parse for PageCatalogPageArgs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let mut capability = None;
+        let mut metadata = None;
+        let mut path = None;
+        let mut route = None;
+        let mut title = None;
+        while !input.is_empty() {
+            let name = input.parse::<syn::Ident>()?;
+            let _equals = input.parse::<syn::Token![=]>()?;
+            let value = SynExpr::from(input.parse::<syn::Expr>()?);
+            if name == constants_str::PAGE_CATALOG_CAPABILITY {
+                capability = Some(value);
+            } else if name == constants_str::PAGE_CATALOG_METADATA {
+                metadata = Some(value);
+            } else if name == constants_str::ROUTE_CATALOG_PATH {
+                path = Some(value);
+            } else if name == constants_str::PAGE_CATALOG_ROUTE {
+                route = Some(value);
+            } else if name == constants_str::PAGE_CATALOG_TITLE {
+                title = Some(value);
+            } else {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS,
+                ));
+            }
+            if !input.is_empty() {
+                let _comma = input.parse::<syn::Token![,]>()?;
+            }
         }
+        let missing = || input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS);
+        Ok(Self {
+            capability: capability.ok_or_else(&missing)?,
+            metadata: metadata.ok_or_else(&missing)?,
+            path: path.ok_or_else(&missing)?,
+            route: route.ok_or_else(&missing)?,
+            title: title.ok_or_else(missing)?,
+        })
     }
 }

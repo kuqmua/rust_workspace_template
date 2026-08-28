@@ -152,11 +152,6 @@ impl config_lib::domain_types::EnableApiGitCommitCheckProvider for Config {
         &self.enable_api_git_commit_check.0
     }
 }
-impl config_lib::domain_types::AdminAccessTokenTtlSecondsProvider for Config {
-    fn admin_access_token_ttl_seconds(&self) -> &config_lib::domain_types::ConfigNonZeroU64 {
-        &self.admin_access_token_ttl_seconds
-    }
-}
 impl config_lib::domain_types::AdminCookieSecureProvider for Config {
     fn admin_cookie_secure(&self) -> &bool {
         &self.admin_cookie_secure
@@ -165,22 +160,8 @@ impl config_lib::domain_types::AdminCookieSecureProvider for Config {
 impl config_lib::domain_types::AdminJwtSecretProvider for Config {
     fn admin_jwt_secret(
         &self,
-    ) -> &bounded_types::domain_types::vector::BoundedVec<
-        config_lib::domain_types::SecrecySecretBoxString,
-        1,
-        8,
-    > {
+    ) -> &bounded_types::BoundedVec<config_lib::domain_types::SecrecySecretBoxString, 1, 8> {
         self.admin_jwt_secret.as_ref()
-    }
-}
-impl config_lib::domain_types::AdminPasswordHashConcurrencyProvider for Config {
-    fn admin_password_hash_concurrency(&self) -> &config_lib::domain_types::ConfigNonZeroUsize {
-        &self.admin_password_hash_concurrency
-    }
-}
-impl config_lib::domain_types::AdminRefreshTokenTtlSecondsProvider for Config {
-    fn admin_refresh_token_ttl_seconds(&self) -> &config_lib::domain_types::ConfigNonZeroU64 {
-        &self.admin_refresh_token_ttl_seconds
     }
 }
 impl config_lib::domain_types::AdminTokenAudienceProvider for Config {

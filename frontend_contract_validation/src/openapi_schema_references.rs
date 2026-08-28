@@ -1,6 +1,6 @@
 use crate::openapi_validation::{
-    OpenApiContractText, OpenApiContractTextError, OpenApiSchemaReferencesBTreeSet,
-    OpenApiValidationError, SerdeJsonOpenApiSerializationError,
+    OpenApiContractText, OpenApiSchemaReferencesBTreeSet, OpenApiValidationError,
+    SerdeJsonOpenApiSerializationError,
 };
 
 pub(super) fn openapi_schema_references(
@@ -26,12 +26,8 @@ pub(super) fn openapi_schema_references(
                     .and_then(serde_json::Value::as_str)
                     .and_then(|reference| reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS))
                 {
-                    let reference =
-                        OpenApiContractText::try_from(name.to_owned()).map_err(|error| {
-                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(
-                                error,
-                            ))
-                        })?;
+                    let reference = OpenApiContractText::try_from(name.to_owned())
+                        .map_err(OpenApiValidationError::TextTooLong)?;
                     let _inserted: bool = references.insert(reference);
                 }
                 pending.extend(values.values());

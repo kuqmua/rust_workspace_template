@@ -11,20 +11,8 @@ use crate::domain_types::StdTimeDurationNanosTryFromU32Error;
 )]
 #[try_from(
     error = StdTimeDurationNanosTryFromU32Error,
-    validator = StdTimeDurationNanos::validate
+    validator = |value: &u32| {
+        if *value < 1_000_000_000u32 { Ok(()) } else { Err(StdTimeDurationNanosTryFromU32Error) }
+    }
 )]
 pub struct StdTimeDurationNanos(u32);
-impl StdTimeDurationNanos {
-    #[allow(
-        clippy::single_call_fn,
-        clippy::trivially_copy_pass_by_ref,
-        reason = "derive-generated TryFrom owns the single validation call"
-    )]
-    const fn validate(value: &u32) -> Result<(), StdTimeDurationNanosTryFromU32Error> {
-        if *value < 1_000_000_000u32 {
-            Ok(())
-        } else {
-            Err(StdTimeDurationNanosTryFromU32Error)
-        }
-    }
-}

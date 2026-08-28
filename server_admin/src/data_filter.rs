@@ -1,6 +1,5 @@
 use crate::{DataFlt, DataFltJson};
 
-#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) fn data_filter(
     table: server_admin_contract::domain_types::AdminDataTable,
     query: &server_admin_contract::domain_types::AdminDataTableFilterQuery,
@@ -34,8 +33,8 @@ pub(crate) fn data_filter(
                 crate::domain_types::generated_tables::AdminGeneratedTable::for_data_table(table)
                     .and_then(|generated| {
                         generated.filter_value(
-                            frontend_contract::domain_types::FormFieldNameRef::from(field.as_ref()),
-                            frontend_contract::domain_types::FormValueRef::from(value.as_ref()),
+                            frontend_contract::FormFieldNameRef::from(field.as_ref()),
+                            frontend_contract::FormValueRef::from(value.as_ref()),
                         )
                     })
                     .ok_or(crate::AdminRepositoryError::InvalidStoredValue)?
@@ -49,12 +48,12 @@ pub(crate) fn data_filter(
             serde_json::Value::String(constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
         );
         match operation.value_shape() {
-            frontend_contract::domain_types::FilterValueShape::None => {
+            frontend_contract::FilterValueShape::None => {
                 if query.value().is_some() || query.end().is_some() {
                     return Err(crate::AdminRepositoryError::InvalidStoredValue);
                 }
             }
-            frontend_contract::domain_types::FilterValueShape::Range => {
+            frontend_contract::FilterValueShape::Range => {
                 let start = query
                     .value()
                     .ok_or(crate::AdminRepositoryError::InvalidStoredValue)
@@ -73,7 +72,7 @@ pub(crate) fn data_filter(
                     serde_json::Value::Object(range),
                 );
             }
-            frontend_contract::domain_types::FilterValueShape::List => {
+            frontend_contract::FilterValueShape::List => {
                 if query.end().is_some() {
                     return Err(crate::AdminRepositoryError::InvalidStoredValue);
                 }
@@ -97,7 +96,7 @@ pub(crate) fn data_filter(
                     serde_json::Value::Array(values),
                 );
             }
-            frontend_contract::domain_types::FilterValueShape::Regex => {
+            frontend_contract::FilterValueShape::Regex => {
                 if query.end().is_some() {
                     return Err(crate::AdminRepositoryError::InvalidStoredValue);
                 }
@@ -114,7 +113,7 @@ pub(crate) fn data_filter(
                 let _body_regex_value_replaced =
                     body.insert(constants_str::PG_CRUD_V_FIELD.to_owned(), value);
             }
-            frontend_contract::domain_types::FilterValueShape::EncodedText => {
+            frontend_contract::FilterValueShape::EncodedText => {
                 if query.end().is_some() {
                     return Err(crate::AdminRepositoryError::InvalidStoredValue);
                 }
@@ -132,7 +131,7 @@ pub(crate) fn data_filter(
                     serde_json::Value::String(value.as_ref().to_owned()),
                 );
             }
-            frontend_contract::domain_types::FilterValueShape::Scalar => {
+            frontend_contract::FilterValueShape::Scalar => {
                 if query.end().is_some() {
                     return Err(crate::AdminRepositoryError::InvalidStoredValue);
                 }

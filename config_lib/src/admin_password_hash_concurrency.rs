@@ -5,11 +5,10 @@
     Copy,
     PartialEq,
     Eq,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminPasswordHashConcurrency(crate::ConfigNonZeroUsize);
+pub struct AdminPasswordHashConcurrency(std::num::NonZeroUsize);
 
 impl crate::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
     type Error = super::TryFromStdEnvVarOkAdminPasswordHashConcurrencyError;
@@ -18,12 +17,11 @@ impl crate::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
         let parsed =
             v.0.parse::<usize>()
                 .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
-                    admin_positive_usize_parsing: super::AdminPositiveUsizeParsingError::from(
-                        crate::ParseIntError::from(admin_positive_usize_parsing),
+                    admin_positive_usize_parsing: crate::ParseIntError::from(
+                        admin_positive_usize_parsing,
                     ),
                 })?;
         std::num::NonZeroUsize::new(parsed)
-            .map(crate::ConfigNonZeroUsize::from)
             .map(Self)
             .ok_or(Self::Error::IsZero)
     }

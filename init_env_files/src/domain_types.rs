@@ -17,7 +17,6 @@ pub(crate) use crate::initialization_status::*;
 pub(crate) use crate::initialize::*;
 pub(crate) use crate::initialize_error::*;
 pub(crate) use crate::run_mode::*;
-pub(crate) use crate::server_runtime_bounded_read_error::*;
 pub(crate) use crate::toml_init_error::*;
 pub(crate) use crate::workspace_member::*;
 pub(crate) use crate::workspace_root_path_ref::*;
@@ -154,9 +153,7 @@ mod tests {
                 super::RunMode::DryRun
             ),
             Err(super::InitializeError::ReadExample {
-                source: super::ServerRuntimeBoundedReadError(
-                    server_runtime_http::domain_types::BoundedReadError::ExceedsMaximum { .. }
-                )
+                source: server_runtime_http::domain_types::BoundedReadError::ExceedsMaximum { .. }
             })
         ));
         std::fs::remove_dir_all(root)

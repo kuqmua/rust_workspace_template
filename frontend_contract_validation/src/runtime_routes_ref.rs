@@ -3,6 +3,4 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct RuntimeRoutesRef<'value_lt>(
-    pub(super) &'value_lt [frontend_contract::domain_types::RouteMetadata],
-);
+pub struct RuntimeRoutesRef<'value_lt>(pub(super) &'value_lt [frontend_contract::RouteMetadata]);

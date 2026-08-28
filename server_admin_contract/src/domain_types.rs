@@ -1,32 +1,20 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "DTO implementations keep constructors adjacent to their accessors and route metadata grouped by concern"
-)]
-
 pub mod collections {
-    pub use crate::collections::*;
+    pub use crate::*;
 }
 
-pub use crate::audit_branding::*;
-pub use crate::authorization_catalog::*;
-pub use crate::identifier::*;
+pub use crate::*;
+
 pub use crate::identity::*;
-pub use crate::query::{
+pub use crate::{
     AdminBool, AdminDataTableFilterQuery, AdminDataTableQuery, AdminFilterField,
     AdminFilterOperationKey, AdminFilterValue, AdminPageLimit, AdminPageLimitError,
     AdminPageOffset, AdminPageTotal, AdminSortDirection, AdminTableQuery, AdminTableSearch,
     AdminTableSortKey,
 };
-pub use crate::table_sort::*;
 
 #[cfg(test)]
-use crate::collections::ADMIN_COLLECTION_MAX_ITEMS;
-pub use crate::collections::{
-    AdminAuditViews, AdminCollectionError, AdminDataRows, AdminDataTables, AdminOptionalSettings,
-    AdminPermissionIds, AdminPermissionSummaries, AdminPermissionValues, AdminRoleIds,
-    AdminRoleNames, AdminRoleSummaries, AdminSessionViews, AdminTexts, AdminUserSummaries,
-};
-pub use crate::dto::{
+use crate::ADMIN_COLLECTION_MAX_ITEMS;
+pub use crate::{
     AdminAuditCursor, AdminAuditExport, AdminAuditExportCsv, AdminAuditPage, AdminAuditView,
     AdminChangeOwnPasswordReq, AdminCreateRoleReq, AdminCreateRoleRes, AdminCreateUserReq,
     AdminCreateUserRes, AdminDataColumn, AdminDataColumns, AdminDataFilter, AdminDataFilters,
@@ -36,18 +24,23 @@ pub use crate::dto::{
     AdminSignInRes, AdminUpdateRoleReq, AdminUpdateUserReq, AdminUserSummary, AdminUsersPage,
     AuthenticatedAdmin, InputKind,
 };
+pub use crate::{
+    AdminAuditViews, AdminCollectionError, AdminDataRows, AdminDataTables, AdminOptionalSettings,
+    AdminPermissionIds, AdminPermissionSummaries, AdminPermissionValues, AdminRoleIds,
+    AdminRoleNames, AdminRoleSummaries, AdminSessionViews, AdminTexts, AdminUserSummaries,
+};
 
-pub use crate::settings::{
+pub use crate::{
     AdminBrandingView, AdminOptionalSetting, AdminSetting, AdminSettingInputKind,
     AdminSettingLabel, AdminSettingName, AdminSettingOptionality, AdminSettingSpec,
     AdminSettingsView, AdminUpdateSettingsReq,
 };
 
-pub use crate::sessions::{
+pub use crate::{
     AdminNoBody, AdminSessionIdentifier, AdminSessionTimestamp, AdminSessionView, AdminSessionsPage,
 };
 
-pub use crate::routes::{
+pub use crate::{
     AdminAuditExportRoute, AdminAuditLogRoute, AdminAuthenticationRouteFamily, AdminBrandingRoute,
     AdminChangeOwnPasswordRoute, AdminCreateRoleRoute, AdminCreateUserRoute,
     AdminDataTableFrontendPath, AdminDataTableRoute, AdminDataTablesRoute, AdminDeleteRoleRoute,

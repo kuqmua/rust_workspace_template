@@ -9,11 +9,10 @@
     Copy,
     PartialEq,
     Eq,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminAccessTokenTtlSeconds(pub(super) crate::ConfigNonZeroU64);
+pub struct AdminAccessTokenTtlSeconds(pub(super) std::num::NonZeroU64);
 
 impl crate::TryFromStdEnvVarOk for AdminAccessTokenTtlSeconds {
     type Error = super::TryFromStdEnvVarOkAdminPositiveU64Error;

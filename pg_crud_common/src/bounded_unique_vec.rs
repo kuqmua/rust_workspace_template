@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[derive(
@@ -21,10 +20,9 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
     type Error = UniqueVecError;
 
     fn try_from(values: Vec<T>) -> Result<Self, Self::Error> {
-        let bounded_values =
-            bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::try_from(values)
-                .map_err(UniqueVecError::from)?
-                .into_inner();
+        let bounded_values = bounded_types::BoundedVec::<T, MIN, MAX>::try_from(values)
+            .map_err(UniqueVecError::from)?
+            .into_inner();
         if bounded_values.iter().enumerate().any(|(idx, item)| {
             bounded_values
                 .get(..idx)

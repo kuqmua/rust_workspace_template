@@ -2,13 +2,13 @@
 pub(crate) struct AdminGeneratedRouteContract {
     permission: Option<crate::domain_types::StdAdminStrRef<'static>>,
     mutates: crate::domain_types::StdAdminBool,
-    method: frontend_contract::domain_types::RouteMethod,
+    method: frontend_contract::RouteMethod,
 }
 impl AdminGeneratedRouteContract {
     pub(crate) const fn new(
         permission: Option<crate::domain_types::StdAdminStrRef<'static>>,
         mutates: crate::domain_types::StdAdminBool,
-        method: frontend_contract::domain_types::RouteMethod,
+        method: frontend_contract::RouteMethod,
     ) -> Self {
         Self {
             permission,
@@ -17,7 +17,7 @@ impl AdminGeneratedRouteContract {
         }
     }
 
-    pub(crate) const fn method(self) -> frontend_contract::domain_types::RouteMethod {
+    pub(crate) const fn method(self) -> frontend_contract::RouteMethod {
         self.method
     }
 

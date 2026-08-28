@@ -1,5 +1,3 @@
-pub(crate) use admin_html_role_action_route_registry::admin_html_role_action_router;
-
 // Root-owned module compatibility wrappers.
 mod admin_html_role_action_route_registry {
     pub use crate::admin_html_role_action_route_registry::*;

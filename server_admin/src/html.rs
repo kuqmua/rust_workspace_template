@@ -22,9 +22,6 @@ mod assignment_ids_impl {
 mod authenticated_action_impl {
     pub use crate::authenticated_action_impl::*;
 }
-mod authenticated_selected_form_impl {
-    pub use crate::authenticated_selected_form_impl::*;
-}
 mod form_auth_impl {
     pub use crate::form_auth_impl::*;
 }

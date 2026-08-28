@@ -9,14 +9,11 @@ use super::FieldContract;
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct FieldContracts(
-    bounded_types::domain_types::vector::BoundedVec<FieldContract, 0, { usize::MAX }>,
-);
+pub struct FieldContracts(bounded_types::BoundedVec<FieldContract, 0, { usize::MAX }>);
 impl TryFrom<Vec<FieldContract>> for FieldContracts {
-    type Error = bounded_types::domain_types::BoundedValueError;
+    type Error = bounded_types::BoundedValueError;
     fn try_from(value: Vec<FieldContract>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
-            .map(Self::from)
+        bounded_types::BoundedVec::try_from_collection_vec(value).map(Self::from)
     }
 }
 impl FieldContracts {
@@ -25,6 +22,6 @@ impl FieldContracts {
     where
         Values: IntoIterator<Item = FieldContract>,
     {
-        Self::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::BoundedVec::from_max_iter(values))
     }
 }

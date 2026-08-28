@@ -4,11 +4,11 @@ use super::{TestExpId, assert_err_status_code_variant_ref, expect_error_variant_
 pub(crate) fn expect_err_variant_ref_with_status<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
-    expected: Option<crate::domain_types::AxumHttpStatusCode>,
+    expected: Option<crate::AxumHttpStatusCode>,
     map: impl FnOnce(&E) -> Option<R>,
 ) -> R
 where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
+    E: crate::AxumHttpStatusCodeProvider,
 {
     let exp_id = exp_id.into();
     match expected {

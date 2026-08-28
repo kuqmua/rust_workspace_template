@@ -10,7 +10,7 @@ use super::{
     Copy,
     PartialEq,
     Eq,
-    frontend_contract::domain_types::PageCatalog,
+    frontend_contract::PageCatalog,
 )]
 #[page_catalog(
     spec = AdminPageSpec,
@@ -139,7 +139,7 @@ impl AdminPage {
         self.spec().client_mode().uses_table_query()
     }
     #[must_use]
-    pub fn path(self) -> frontend_contract::domain_types::ContractStr {
+    pub fn path(self) -> frontend_contract::ContractStr {
         self.spec().path()
     }
     #[must_use]
@@ -147,11 +147,11 @@ impl AdminPage {
         Some(self.spec().route())
     }
     #[must_use]
-    pub fn title(self) -> frontend_contract::domain_types::ContractStr {
+    pub fn title(self) -> frontend_contract::ContractStr {
         self.spec().title()
     }
     #[must_use]
-    pub fn authentication(self) -> frontend_contract::domain_types::AuthenticationRequirement {
+    pub fn authentication(self) -> frontend_contract::AuthenticationRequirement {
         self.spec().route().contract().authentication()
     }
 }

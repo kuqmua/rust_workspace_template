@@ -65,14 +65,13 @@ impl AuthenticatedAdmin {
         page: crate::domain_types::AdminPage,
     ) -> crate::domain_types::AdminBool {
         crate::domain_types::AdminBool::from(match page.authentication() {
-            frontend_contract::domain_types::AuthenticationRequirement::Authenticated
-            | frontend_contract::domain_types::AuthenticationRequirement::Public => true,
-            frontend_contract::domain_types::AuthenticationRequirement::Permission(required) => {
-                self.permissions
-                    .as_ref()
-                    .iter()
-                    .any(|value| value.as_ref() == required.as_ref())
-            }
+            frontend_contract::AuthenticationRequirement::Authenticated
+            | frontend_contract::AuthenticationRequirement::Public => true,
+            frontend_contract::AuthenticationRequirement::Permission(required) => self
+                .permissions
+                .as_ref()
+                .iter()
+                .any(|value| value.as_ref() == required.as_ref()),
         })
     }
 }

@@ -12,27 +12,13 @@
     newtype::TryFrom,
 )]
 #[serde(try_from = "u16")]
-#[try_from(error = crate::domain_types::HttpStatusTryFromU16Error, validator = ApiProblemStatus::validate)]
+#[try_from(error = crate::HttpStatusTryFromU16Error, validator = |value: &u16| {
+    if (100u16..1_000u16).contains(value) { Ok(()) } else { Err(crate::HttpStatusTryFromU16Error) }
+})]
 pub struct ApiProblemStatus(u16);
 
-impl From<crate::domain_types::KnownHttpStatus> for ApiProblemStatus {
-    fn from(value: crate::domain_types::KnownHttpStatus) -> Self {
+impl From<crate::KnownHttpStatus> for ApiProblemStatus {
+    fn from(value: crate::KnownHttpStatus) -> Self {
         Self(value.get())
-    }
-}
-
-impl ApiProblemStatus {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(
-        clippy::single_call_fn,
-        clippy::trivially_copy_pass_by_ref,
-        reason = "derive-generated TryFrom owns the single validation call"
-    )]
-    fn validate(value: &u16) -> Result<(), crate::domain_types::HttpStatusTryFromU16Error> {
-        if (100u16..1_000u16).contains(value) {
-            Ok(())
-        } else {
-            Err(crate::domain_types::HttpStatusTryFromU16Error)
-        }
     }
 }

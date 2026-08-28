@@ -11,9 +11,9 @@ fn contract_struct_api_attributes_are_explicit() {
             value: String,
         }
     };
-    let Ok(args) = super::parse_contract_struct_api_args(
-        super::domain_types::SynAttributesRef::from(input.attrs.as_slice()),
-    ) else {
+    let Ok(args) = super::parse_contract_struct_api_args(crate::SynAttributesRef::from(
+        input.attrs.as_slice(),
+    )) else {
         panic!("edc94d17");
     };
     assert!(bool::from(*args.get_new()));
@@ -28,16 +28,69 @@ fn contract_struct_api_attributes_are_explicit() {
         .named
         .iter()
         .map(|field| {
-            super::parse_contract_struct_api_field_args(
-                super::domain_types::SynAttributesRef::from(field.attrs.as_slice()),
-            )
-            .map(|field_args| {
-                (
-                    bool::from(*field_args.get_borrow()),
-                    bool::from(*field_args.get_copy()),
-                    bool::from(*field_args.get_into()),
-                )
-            })
+            let attributes = crate::SynAttributesRef::from(field.attrs.as_slice());
+            let mut field_args = crate::ContractStructApiFieldArgs::default();
+            attributes
+                .get()
+                .iter()
+                .filter(|attribute| {
+                    attribute
+                        .path()
+                        .is_ident(constants_str::CONTRACT_STRUCT_API)
+                })
+                .try_for_each(|attribute| {
+                    attribute.parse_nested_meta(|metadata| {
+                        if metadata
+                            .path
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_BORROW)
+                        {
+                            *field_args.get_borrow_mut() = crate::StdBool::from(true);
+                            Ok(())
+                        } else if metadata
+                            .path
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_COPY)
+                        {
+                            *field_args.get_copy_mut() = crate::StdBool::from(true);
+                            Ok(())
+                        } else if metadata
+                            .path
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_COPY_REF)
+                        {
+                            *field_args.get_copy_ref_mut() = crate::StdBool::from(true);
+                            Ok(())
+                        } else if metadata
+                            .path
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_INTO)
+                        {
+                            *field_args.get_into_mut() = crate::StdBool::from(true);
+                            Ok(())
+                        } else if metadata
+                            .path
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_OPTION_BORROW)
+                        {
+                            *field_args.get_option_borrow_mut() = crate::StdBool::from(true);
+                            Ok(())
+                        } else if metadata
+                            .path
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_SLICE)
+                        {
+                            *field_args.get_slice_mut() = Some(crate::SynType::from(
+                                metadata.value()?.parse::<syn::Type>()?,
+                            ));
+                            Ok(())
+                        } else {
+                            Err(metadata
+                                .error(constants_str::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
+                        }
+                    })
+                })
+                .map(|()| {
+                    (
+                        bool::from(*field_args.get_borrow()),
+                        bool::from(*field_args.get_copy()),
+                        bool::from(*field_args.get_into()),
+                    )
+                })
         })
         .collect::<syn::Result<Vec<_>>>();
     let Ok(parsed_fields) = parsed_result else {
@@ -61,9 +114,9 @@ fn contract_struct_api_rejects_unknown_attributes() {
             value: String,
         }
     };
-    let Err(error) = super::parse_contract_struct_api_args(
-        super::domain_types::SynAttributesRef::from(input.attrs.as_slice()),
-    ) else {
+    let Err(error) = super::parse_contract_struct_api_args(crate::SynAttributesRef::from(
+        input.attrs.as_slice(),
+    )) else {
         panic!("86b738e6");
     };
     assert!(
@@ -88,9 +141,7 @@ fn typed_route_args_require_exactly_one_error_source() {
     ]
     .into_iter()
     .for_each(|errors| {
-        let result = syn::parse_str::<super::domain_types::TypedRouteArgs>(
-            typed_route_args(errors).as_str(),
-        );
+        let result = syn::parse_str::<crate::TypedRouteArgs>(typed_route_args(errors).as_str());
         let Err(error) = result else {
             panic!("f58d0a31");
         };
@@ -103,9 +154,9 @@ fn typed_route_args_require_exactly_one_error_source() {
     [constants_str::VALUE_5D5703CD, constants_str::VALUE_240525BC]
         .into_iter()
         .for_each(|errors| {
-            let Ok(_args) = syn::parse_str::<super::domain_types::TypedRouteArgs>(
-                typed_route_args(errors).as_str(),
-            ) else {
+            let Ok(_args) =
+                syn::parse_str::<crate::TypedRouteArgs>(typed_route_args(errors).as_str())
+            else {
                 panic!("470bf91c");
             };
         });
@@ -113,8 +164,7 @@ fn typed_route_args_require_exactly_one_error_source() {
 
 #[test]
 fn route_registry_args_require_family_after_state() {
-    let result =
-        syn::parse_str::<super::domain_types::RouteRegistryArgs>(constants_str::VALUE_A19E6154);
+    let result = syn::parse_str::<crate::RouteRegistryArgs>(constants_str::VALUE_A19E6154);
     let Err(error) = result else {
         panic!("da287c44");
     };
@@ -127,8 +177,7 @@ fn route_registry_args_require_family_after_state() {
 
 #[test]
 fn route_registry_args_parse_family_and_bindings() {
-    let result =
-        syn::parse_str::<super::domain_types::RouteRegistryArgs>(constants_str::VALUE_2497DABD);
+    let result = syn::parse_str::<crate::RouteRegistryArgs>(constants_str::VALUE_2497DABD);
     let Ok(args) = result else {
         panic!("6282e207");
     };

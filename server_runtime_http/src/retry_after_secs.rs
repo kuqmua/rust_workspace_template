@@ -3,7 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RetryAfterSecs(pub(super) super::RetryAfterSecsNonZeroU64);
+pub struct RetryAfterSecs(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for RetryAfterSecs {
     type Error = super::RetryAfterSecsTryFromU64Error;
@@ -17,7 +17,7 @@ impl TryFrom<u64> for RetryAfterSecs {
 
 impl From<std::num::NonZeroU64> for RetryAfterSecs {
     fn from(value: std::num::NonZeroU64) -> Self {
-        Self(super::RetryAfterSecsNonZeroU64::from(value))
+        Self(value)
     }
 }
 
@@ -25,6 +25,6 @@ impl TryFrom<RetryAfterSecs> for http::HeaderValue {
     type Error = http::header::InvalidHeaderValue;
 
     fn try_from(value: RetryAfterSecs) -> Result<Self, Self::Error> {
-        Self::from_str(value.0.0.get().to_string().as_str())
+        Self::from_str(value.0.get().to_string().as_str())
     }
 }

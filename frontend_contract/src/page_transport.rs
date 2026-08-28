@@ -20,7 +20,7 @@ mod tests {
             vec![constants_u8::ZERO; constants_usize::VALUE_16_777_216 + constants_usize::ONE];
         assert_eq!(
             super::TransportBody::try_from(oversized),
-            Err(crate::domain_types::FrontendContractBodyError),
+            Err(crate::FrontendContractBodyError),
         );
     }
 }

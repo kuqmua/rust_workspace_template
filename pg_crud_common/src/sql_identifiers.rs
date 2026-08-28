@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "split owner modules expose representation only within the crate"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -16,11 +12,11 @@ impl TryFrom<Vec<crate::domain_types::SqlIdentifier>> for SqlIdentifiers {
     type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;
 
     fn try_from(value: Vec<crate::domain_types::SqlIdentifier>) -> Result<Self, Self::Error> {
-        if value.len() > bounded_types::domain_types::COLLECTION_MAX_LEN {
+        if value.len() > bounded_types::COLLECTION_MAX_LEN {
             return Err(
                 crate::domain_types::PgCrudStringWrapperTryFromStringError::TooLong {
                     len: value.len(),
-                    max: bounded_types::domain_types::COLLECTION_MAX_LEN,
+                    max: bounded_types::COLLECTION_MAX_LEN,
                 },
             );
         }

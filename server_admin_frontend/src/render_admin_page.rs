@@ -4,5 +4,5 @@ pub(crate) fn render_admin_page(
     page: server_admin_contract::domain_types::AdminPage,
     content: crate::AdminSsrHtml,
 ) -> crate::AdminSsrHtml {
-    super::page_render::page_render(page, content)
+    super::page_render_with_access::page_render_with_access(page, content, None, None)
 }

@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 use crate::lease_entry::LeaseEntry;
@@ -108,7 +107,7 @@ impl LeaseRegistry {
         LeaseIds::from({
             let mut inner = self.inner.0.write().await;
             let now = tokio::time::Instant::now();
-            let mut stale_ids = bounded_types::domain_types::vector::BoundedVec::default();
+            let mut stale_ids = bounded_types::BoundedVec::default();
             inner
                 .by_id
                 .iter_mut()

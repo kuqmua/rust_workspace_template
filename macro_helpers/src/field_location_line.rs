@@ -3,11 +3,11 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
-pub struct FieldLocationLine(pub(super) super::FieldLocationLineNonZeroU32);
+pub struct FieldLocationLine(pub(super) std::num::NonZeroU32);
 
 impl From<std::num::NonZeroU32> for FieldLocationLine {
     fn from(value: std::num::NonZeroU32) -> Self {
-        Self(super::FieldLocationLineNonZeroU32::from(value))
+        Self(value)
     }
 }
 

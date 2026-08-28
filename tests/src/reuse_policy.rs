@@ -77,9 +77,32 @@ fn substantial_function_bodies_have_one_source_of_truth() {
                 else {
                     return location.to_owned();
                 };
-                super::declared_split_owner_path(path).map_or_else(
+                let normalized_path = path
+                    .trim_start_matches(constants_str::TEXT_ALT_9)
+                    .trim_start_matches('/');
+                let immediate_owner =
+                    super::declared_children()
+                        .iter()
+                        .find_map(|(owner, child)| {
+                            (child == normalized_path)
+                                .then_some(super::types::SourceTextRef::from(owner.as_str()))
+                        });
+                let split_owner = immediate_owner.and_then(|candidate| {
+                    let owner_stem = candidate.get().strip_suffix(constants_str::RS_EXTENSION)?;
+                    normalized_path
+                        .strip_prefix(owner_stem)
+                        .is_some_and(|remainder| remainder.starts_with('/'))
+                        .then_some(candidate)
+                });
+                split_owner.map_or_else(
                     || location.to_owned(),
-                    |owner| format!("{}{}::{function}", constants_str::TEXT_ALT_9, owner.get()),
+                    |candidate| {
+                        format!(
+                            "{}{}::{function}",
+                            constants_str::TEXT_ALT_9,
+                            candidate.get()
+                        )
+                    },
                 )
             })
             .collect::<Vec<String>>()

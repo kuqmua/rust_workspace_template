@@ -1,4 +1,3 @@
-#[allow(clippy::single_call_fn)] // helper centralizes required-header string parsing and is reusable across validators
 pub(crate) fn required_header_str<E>(
     headers: super::AxumHeadersRef<'_>,
     header_name: impl axum::http::header::AsHeaderName,

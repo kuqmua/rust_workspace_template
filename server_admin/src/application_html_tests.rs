@@ -1,21 +1,3 @@
-#[allow(clippy::single_call_fn)] // test helper intentionally names repeated fixture construction at its sole call site
-fn auth_with_headers(headers: http::HeaderMap) -> crate::AdminAuthReq {
-    let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
-        .expect("1c2a7f54 auth_with_headers invariant must hold");
-    let state = crate::auth_state(pool, constants_str::HTTP_LOCALHOST)
-        .expect("adf9c06e auth_with_headers invariant must hold");
-    crate::AdminAuthReq {
-        headers: crate::HttpAdminHeaderMap::from(headers),
-        peer: crate::AdminPeerAddr::from(crate::AdminSocketAddr::from(
-            constants_str::VALUE_127_0_0_1_43210
-                .parse::<std::net::SocketAddr>()
-                .expect("0ce8ff47 auth_with_headers invariant must hold"),
-        )),
-        state: crate::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
-    }
-}
-
 #[tokio::test]
 async fn html_form_auth_rejects_cookie_without_trusted_origin() {
     let mut headers = http::HeaderMap::new();
@@ -23,8 +5,22 @@ async fn html_form_auth_rejects_cookie_without_trusted_origin() {
         http::header::COOKIE,
         http::HeaderValue::from_static(constants_str::VALUE_BF7FDCFF),
     );
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
+        .expect("1c2a7f54 HTML form authentication pool invariant must hold");
+    let state = crate::auth_state(pool, constants_str::HTTP_LOCALHOST)
+        .expect("adf9c06e HTML form authentication state invariant must hold");
+    let request = crate::AdminAuthReq {
+        headers: crate::HttpAdminHeaderMap::from(headers),
+        peer: crate::AdminPeerAddr::from(crate::AdminSocketAddr::from(
+            constants_str::VALUE_127_0_0_1_43210
+                .parse::<std::net::SocketAddr>()
+                .expect("0ce8ff47 HTML form authentication peer invariant must hold"),
+        )),
+        state: crate::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(state)),
+    };
     assert!(matches!(
-        crate::form_auth_impl::form_auth_impl(auth_with_headers(headers)),
+        crate::form_auth_impl::form_auth_impl(request),
         Err(crate::AdminError::Csrf)
     ));
 }

@@ -157,15 +157,15 @@ mod tests {
         enum TestError {
             A,
         }
-        impl crate::domain_types::AxumHttpStatusCodeProvider for TestError {
-            fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
-                crate::domain_types::AxumHttpStatusCode::bad_request()
+        impl crate::AxumHttpStatusCodeProvider for TestError {
+            fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+                crate::AxumHttpStatusCode::bad_request()
             }
         }
         let _: () = super::map_err_after_status_check::<(), TestError, ()>(
             Err(TestError::A),
             constants_str::C1D74A8E,
-            crate::domain_types::AxumHttpStatusCode::bad_request(),
+            crate::AxumHttpStatusCode::bad_request(),
             |error, mapped_exp_id| {
                 super::expect_variant(
                     error,
@@ -183,15 +183,15 @@ mod tests {
         enum TestError {
             A(u8),
         }
-        impl crate::domain_types::AxumHttpStatusCodeProvider for TestError {
-            fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
-                crate::domain_types::AxumHttpStatusCode::bad_request()
+        impl crate::AxumHttpStatusCodeProvider for TestError {
+            fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+                crate::AxumHttpStatusCode::bad_request()
             }
         }
         let v = super::assert_err_status_code_variant_ref::<(), TestError, u8>(
             Err(TestError::A(7)),
             constants_str::VALUE_8AFB4FFD,
-            crate::domain_types::AxumHttpStatusCode::bad_request(),
+            crate::AxumHttpStatusCode::bad_request(),
             |error| match error {
                 TestError::A(v) => Some(*v),
             },
@@ -239,20 +239,20 @@ mod tests {
     fn assert_err_status_code_returns_error_after_status_check() {
         #[derive(optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
         struct TestErr;
-        impl crate::domain_types::AxumHttpStatusCodeProvider for TestErr {
-            fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
-                crate::domain_types::AxumHttpStatusCode::bad_request()
+        impl crate::AxumHttpStatusCodeProvider for TestErr {
+            fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+                crate::AxumHttpStatusCode::bad_request()
             }
         }
         let _err = super::assert_err_status_code::<(), TestErr>(
             Err(TestErr),
             constants_str::VALUE_4A1791D2,
-            crate::domain_types::AxumHttpStatusCode::bad_request(),
+            crate::AxumHttpStatusCode::bad_request(),
         );
         super::assert_err_status_code_only::<(), TestErr>(
             Err(TestErr),
             constants_str::VALUE_773C5AF2,
-            crate::domain_types::AxumHttpStatusCode::bad_request(),
+            crate::AxumHttpStatusCode::bad_request(),
         );
     }
 }

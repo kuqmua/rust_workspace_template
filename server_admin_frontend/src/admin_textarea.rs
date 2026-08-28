@@ -2,7 +2,6 @@
     clippy::arbitrary_source_item_ordering,
     clippy::field_scoped_visibility_modifiers,
     clippy::impl_trait_in_params,
-    clippy::missing_const_for_fn,
     clippy::multiple_inherent_impl,
     clippy::needless_pass_by_value,
     clippy::option_if_let_else,

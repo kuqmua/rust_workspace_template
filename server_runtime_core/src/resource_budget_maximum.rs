@@ -3,7 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ResourceBudgetMaximum(pub(super) super::ResourceBudgetMaximumNonZeroUsize);
+pub struct ResourceBudgetMaximum(pub(super) std::num::NonZeroUsize);
 
 impl TryFrom<usize> for ResourceBudgetMaximum {
     type Error = super::ResourceBudgetConfigError;
@@ -17,6 +17,6 @@ impl TryFrom<usize> for ResourceBudgetMaximum {
 
 impl From<std::num::NonZeroUsize> for ResourceBudgetMaximum {
     fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(super::ResourceBudgetMaximumNonZeroUsize::from(value))
+        Self(value)
     }
 }

@@ -1,6 +1,8 @@
-mod domain_types;
 mod snake_case_string;
 mod to_snake_case_input;
+
+pub(crate) use snake_case_string::SnakeCaseString;
+pub(crate) use to_snake_case_input::ToSnakeCaseInput;
 
 #[proc_macro]
 pub fn generate_derive_token_stream_builder(
@@ -20,7 +22,7 @@ pub fn generate_derive_token_stream_builder(
         .expect("c5d09740 generate_derive_token_stream_builder invariant must hold")
         .into_iter()
         .map(|element| {
-            let input = domain_types::ToSnakeCaseInput::from(element.as_str());
+            let input = ToSnakeCaseInput::from(element.as_str());
             let (normalized, _) = input.as_ref().chars().fold(
                 (String::with_capacity(input.as_ref().len()), false),
                 |(mut normalized, separator_pending), ch| {
@@ -36,10 +38,10 @@ pub fn generate_derive_token_stream_builder(
                     }
                 },
             );
-            let sc = domain_types::SnakeCaseString::try_from(
+            let sc = SnakeCaseString::try_from(
                 naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&normalized),
             )
-            .unwrap_or_else(domain_types::SnakeCaseString::from);
+            .unwrap_or_else(SnakeCaseString::from);
             Element {
                 d_trait_name_upper_camel_case: {
                     let v = naming::domain_types::parameter::DSelfUpperCamelCase::from_display(

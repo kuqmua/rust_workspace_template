@@ -616,7 +616,7 @@ pub(super) enum IntRangeType {
             },
         };
         let pg_type_can_be_primary_key =
-            domain_types::sqlx::pg_type_can_be_primary_key::pg_type_can_be_primary_key(pg_type.spec());
+            pg_type.spec().can_be_primary_key;
         let is_standard_non_null = if matches!((&pg_type_pattern, &is_nullable), (PgTypePattern::Standard, pg_crud_macro_common::domain_types::IsNullable::False)) {
             pg_crud_macro_common::domain_types::IsStandardNonNull::True
         } else {
@@ -1542,7 +1542,7 @@ pub(super) enum IsConst {
         let sqlx_encode_self_dot_zero_token_stream = quote::quote! {#self_snake_case.0};
         let identifier_origin_token_stream = {
             let identifier_origin_wire_token_stream = if matches!(&is_standard_non_null, pg_crud_macro_common::domain_types::IsStandardNonNull::True) {
-                match domain_types::serde_wire_kind::serde_wire_kind(pg_type_dsc) {
+                match pg_type_dsc.wire_kind {
                     WireKind::TimeChrono => quote::quote! {
                         #[derive(serde::Deserialize)]
                         struct #identifier_origin_wire_upper_camel_case {
@@ -3025,7 +3025,7 @@ pub(super) enum IsConst {
                                 pg_crud_macro_common::domain_types::filters::PgTypeFilter::RangeLen,
                             ])
                         };
-                        match domain_types::pg_type_filter_kind::pg_type_filter_kind(pg_type.spec()) {
+                        match pg_type.spec().filter_kind {
                             FilterKind::Number => generate_common_standard_pg_type_number_filters(),
                             FilterKind::Money | FilterKind::Uuid | FilterKind::Bool => generate_flts_with(generate_common_pg_type_filters(), [generate_in_filter()]),
                             FilterKind::Bytes => generate_flts_with(generate_common_pg_type_filters(), [pg_crud_macro_common::domain_types::filters::PgTypeFilter::EqToEncodedStringRepresentation]),
@@ -3068,7 +3068,7 @@ pub(super) enum IsConst {
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::AdjacentWithRange { .. } => quote::quote! {AdjacentWithRange},
                     pg_crud_macro_common::domain_types::filters::PgTypeFilter::RangeLen => quote::quote! {RangeLen},
                 };
-                quote::quote! {frontend_contract::domain_types::FilterOperation::#operation}
+                quote::quote! {frontend_contract::FilterOperation::#operation}
             });
             (
             pg_crud_macro_common::domain_types::generate_pg_type_where_token_stream(
@@ -4590,8 +4590,8 @@ pub(super) enum CreateReadIds {
             pg_crud_macro_common::domain_types::generate_impl_pg_type_not_primary_key_for_identifier_token_stream(&import, &identifier)
         };
         let frontend_nullability_token_stream = match &is_nullable {
-            pg_crud_macro_common::domain_types::IsNullable::False => quote::quote! {frontend_contract::domain_types::Nullability::NonNullable},
-            pg_crud_macro_common::domain_types::IsNullable::True => quote::quote! {frontend_contract::domain_types::Nullability::Nullable},
+            pg_crud_macro_common::domain_types::IsNullable::False => quote::quote! {frontend_contract::Nullability::NonNullable},
+            pg_crud_macro_common::domain_types::IsNullable::True => quote::quote! {frontend_contract::Nullability::Nullable},
         };
         let db_nullable = matches!(is_nullable, pg_crud_macro_common::domain_types::IsNullable::True);
         let db_data_type = match pg_type {
@@ -4634,34 +4634,34 @@ pub(super) enum CreateReadIds {
                 | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
         );
         let (frontend_input_kind_token_stream, frontend_value_format_token_stream, frontend_step_token_stream, frontend_example_token_stream) = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
-            WireKind::Bool => (quote::quote! {frontend_contract::domain_types::InputKind::Checkbox}, quote::quote! {frontend_contract::domain_types::ValueFormat::Bool}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Boolean}),
-            WireKind::Bytes => (quote::quote! {frontend_contract::domain_types::InputKind::Text}, quote::quote! {frontend_contract::domain_types::ValueFormat::Bytes}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Text}),
-            WireKind::Date => (quote::quote! {frontend_contract::domain_types::InputKind::Date}, quote::quote! {frontend_contract::domain_types::ValueFormat::Date}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Date}),
-            WireKind::Float32 => (quote::quote! {frontend_contract::domain_types::InputKind::Number}, quote::quote! {frontend_contract::domain_types::ValueFormat::Float32}, quote::quote! {frontend_contract::domain_types::InputStep::Decimal}, quote::quote! {frontend_contract::domain_types::ValueExample::Decimal}),
-            WireKind::Float64 => (quote::quote! {frontend_contract::domain_types::InputKind::Number}, quote::quote! {frontend_contract::domain_types::ValueFormat::Float64}, quote::quote! {frontend_contract::domain_types::InputStep::Decimal}, quote::quote! {frontend_contract::domain_types::ValueExample::Decimal}),
-            WireKind::Inet => (quote::quote! {frontend_contract::domain_types::InputKind::Text}, quote::quote! {frontend_contract::domain_types::ValueFormat::Inet}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Text}),
-            WireKind::Int16 => (quote::quote! {frontend_contract::domain_types::InputKind::Number}, quote::quote! {frontend_contract::domain_types::ValueFormat::Int16}, quote::quote! {frontend_contract::domain_types::InputStep::Integer}, quote::quote! {frontend_contract::domain_types::ValueExample::Integer}),
-            WireKind::Int32 => (quote::quote! {frontend_contract::domain_types::InputKind::Number}, quote::quote! {frontend_contract::domain_types::ValueFormat::Int32}, quote::quote! {frontend_contract::domain_types::InputStep::Integer}, quote::quote! {frontend_contract::domain_types::ValueExample::Integer}),
-            WireKind::Int64 => (quote::quote! {frontend_contract::domain_types::InputKind::Number}, quote::quote! {frontend_contract::domain_types::ValueFormat::Int64}, quote::quote! {frontend_contract::domain_types::InputStep::Integer}, quote::quote! {frontend_contract::domain_types::ValueExample::Integer}),
-            WireKind::Interval => (quote::quote! {frontend_contract::domain_types::InputKind::Text}, quote::quote! {frontend_contract::domain_types::ValueFormat::Interval}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Text}),
-            WireKind::Mac => (quote::quote! {frontend_contract::domain_types::InputKind::Text}, quote::quote! {frontend_contract::domain_types::ValueFormat::Mac}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Text}),
-            WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => (quote::quote! {frontend_contract::domain_types::InputKind::Text}, quote::quote! {frontend_contract::domain_types::ValueFormat::Range}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Text}),
-            WireKind::String => (quote::quote! {frontend_contract::domain_types::InputKind::Text}, quote::quote! {frontend_contract::domain_types::ValueFormat::Text}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Text}),
-            WireKind::TimeChrono | WireKind::TimeTime => (quote::quote! {frontend_contract::domain_types::InputKind::Time}, quote::quote! {frontend_contract::domain_types::ValueFormat::Time}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Time}),
-            WireKind::Timestamp => (quote::quote! {frontend_contract::domain_types::InputKind::DateTime}, quote::quote! {frontend_contract::domain_types::ValueFormat::Timestamp}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::DateTime}),
-            WireKind::TimestampTz => (quote::quote! {frontend_contract::domain_types::InputKind::DateTime}, quote::quote! {frontend_contract::domain_types::ValueFormat::TimestampTz}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::DateTime}),
-            WireKind::Uuid => (quote::quote! {frontend_contract::domain_types::InputKind::Uuid}, quote::quote! {frontend_contract::domain_types::ValueFormat::Uuid}, quote::quote! {frontend_contract::domain_types::InputStep::Any}, quote::quote! {frontend_contract::domain_types::ValueExample::Uuid}),
+            WireKind::Bool => (quote::quote! {frontend_contract::InputKind::Checkbox}, quote::quote! {frontend_contract::ValueFormat::Bool}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Boolean}),
+            WireKind::Bytes => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Bytes}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::Date => (quote::quote! {frontend_contract::InputKind::Date}, quote::quote! {frontend_contract::ValueFormat::Date}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Date}),
+            WireKind::Float32 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Float32}, quote::quote! {frontend_contract::InputStep::Decimal}, quote::quote! {frontend_contract::ValueExample::Decimal}),
+            WireKind::Float64 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Float64}, quote::quote! {frontend_contract::InputStep::Decimal}, quote::quote! {frontend_contract::ValueExample::Decimal}),
+            WireKind::Inet => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Inet}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::Int16 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Int16}, quote::quote! {frontend_contract::InputStep::Integer}, quote::quote! {frontend_contract::ValueExample::Integer}),
+            WireKind::Int32 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Int32}, quote::quote! {frontend_contract::InputStep::Integer}, quote::quote! {frontend_contract::ValueExample::Integer}),
+            WireKind::Int64 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Int64}, quote::quote! {frontend_contract::InputStep::Integer}, quote::quote! {frontend_contract::ValueExample::Integer}),
+            WireKind::Interval => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Interval}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::Mac => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Mac}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Range}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::String => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Text}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::TimeChrono | WireKind::TimeTime => (quote::quote! {frontend_contract::InputKind::Time}, quote::quote! {frontend_contract::ValueFormat::Time}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Time}),
+            WireKind::Timestamp => (quote::quote! {frontend_contract::InputKind::DateTime}, quote::quote! {frontend_contract::ValueFormat::Timestamp}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::DateTime}),
+            WireKind::TimestampTz => (quote::quote! {frontend_contract::InputKind::DateTime}, quote::quote! {frontend_contract::ValueFormat::TimestampTz}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::DateTime}),
+            WireKind::Uuid => (quote::quote! {frontend_contract::InputKind::Uuid}, quote::quote! {frontend_contract::ValueFormat::Uuid}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Uuid}),
         };
         let frontend_bounds_token_stream = match domain_types::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
-            WireKind::Int16 => quote::quote! {.with_minimum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i16_min())).with_maximum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i16_max()))},
-            WireKind::Int32 => quote::quote! {.with_minimum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i32_min())).with_maximum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::i32_max()))},
-            WireKind::Int64 => quote::quote! {.with_minimum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::min())).with_maximum(frontend_contract::domain_types::NumericBound::Inclusive(frontend_contract::domain_types::ContractI64::max()))},
+            WireKind::Int16 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_min())).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_max()))},
+            WireKind::Int32 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i32_min())).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i32_max()))},
+            WireKind::Int64 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::min())).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::max()))},
             WireKind::Bool | WireKind::Bytes | WireKind::Date | WireKind::Float32 | WireKind::Float64 | WireKind::Inet | WireKind::Interval | WireKind::Mac | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz | WireKind::String | WireKind::TimeChrono | WireKind::TimeTime | WireKind::Timestamp | WireKind::TimestampTz | WireKind::Uuid => proc_macro2::TokenStream::new(),
         };
         let impl_frontend_type_contract_token_stream = quote::quote! {
-            impl frontend_contract::domain_types::HasTypeContract for #identifier {
-                fn type_contract() -> frontend_contract::domain_types::TypeContract {
-                    frontend_contract::domain_types::TypeContract::new(#frontend_input_kind_token_stream, #frontend_value_format_token_stream, #frontend_nullability_token_stream)
+            impl frontend_contract::HasTypeContract for #identifier {
+                fn type_contract() -> frontend_contract::TypeContract {
+                    frontend_contract::TypeContract::new(#frontend_input_kind_token_stream, #frontend_value_format_token_stream, #frontend_nullability_token_stream)
                         .with_step(#frontend_step_token_stream)
                         .with_example(#frontend_example_token_stream)
                         #frontend_bounds_token_stream
@@ -4669,8 +4669,8 @@ pub(super) enum CreateReadIds {
             }
         };
         let impl_frontend_filter_contracts_token_stream = quote::quote! {
-            impl frontend_contract::domain_types::HasFilterContracts for #identifier {
-                const FILTER_CONTRACTS: &'static [frontend_contract::domain_types::FilterOperation] = &[#frontend_filter_contracts_token_stream];
+            impl frontend_contract::HasFilterContracts for #identifier {
+                const FILTER_CONTRACTS: &'static [frontend_contract::FilterOperation] = &[#frontend_filter_contracts_token_stream];
             }
         };
         let impl_pg_column_schema_token_stream = quote::quote! {
@@ -4685,22 +4685,22 @@ pub(super) enum CreateReadIds {
         let frontend_time_json_token_stream = |time_value_token_stream: &dyn quote::ToTokens, minute_name, second_name, microsecond_name| {
             quote::quote! {{
                 let mut parts = #time_value_token_stream.split(':');
-                let hour = parts.next().ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from("time hour is missing".to_owned()).unwrap_or_default())?.parse::<u32>().map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
-                let minute = parts.next().ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from("time minute is missing".to_owned()).unwrap_or_default())?.parse::<u32>().map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
+                let hour = parts.next().ok_or_else(|| frontend_contract::FormValueError::try_from("time hour is missing".to_owned()).unwrap_or_default())?.parse::<u32>().map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
+                let minute = parts.next().ok_or_else(|| frontend_contract::FormValueError::try_from("time minute is missing".to_owned()).unwrap_or_default())?.parse::<u32>().map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
                 let second_and_fraction = parts.next().unwrap_or("0");
                 if parts.next().is_some() {
-                    return Err(frontend_contract::domain_types::FormValueError::try_from("time contains too many components".to_owned()).unwrap_or_default());
+                    return Err(frontend_contract::FormValueError::try_from("time contains too many components".to_owned()).unwrap_or_default());
                 }
                 let (second_text, fraction) = second_and_fraction
                     .split_once('.')
                     .unwrap_or((second_and_fraction, ""));
-                let second = second_text.parse::<u32>().map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
+                let second = second_text.parse::<u32>().map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
                 if fraction.len() > 6usize || !fraction.bytes().all(|byte| byte.is_ascii_digit()) {
-                    return Err(frontend_contract::domain_types::FormValueError::try_from("time fraction must contain at most six digits".to_owned()).unwrap_or_default());
+                    return Err(frontend_contract::FormValueError::try_from("time fraction must contain at most six digits".to_owned()).unwrap_or_default());
                 }
                 let mut microsecond_text = fraction.to_owned();
                 microsecond_text.extend(std::iter::repeat_n('0', 6usize.saturating_sub(microsecond_text.len())));
-                let microsecond = microsecond_text.parse::<u32>().map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
+                let microsecond = microsecond_text.parse::<u32>().map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
                 serde_json::json!({"hour": hour, #minute_name: minute, #second_name: second, #microsecond_name: microsecond})
             }}
         };
@@ -4716,12 +4716,12 @@ pub(super) enum CreateReadIds {
                 };
                 let time_json_token_stream = frontend_time_json_token_stream(&quote::quote! {time}, constants_str::MIN, constants_str::SEC, constants_str::MICRO);
                 quote::quote! {{
-                    let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from("timestamp must contain `T` between date and time".to_owned()).unwrap_or_default())?;
+                    let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp must contain `T` between date and time".to_owned()).unwrap_or_default())?;
                     let time = #time_json_token_stream;
                     serde_json::json!({#date_name: date, "time": time})
                 }}
             },
-            WireKind::Bool | WireKind::Bytes | WireKind::Float32 | WireKind::Float64 | WireKind::Int16 | WireKind::Int32 | WireKind::Int64 | WireKind::Interval | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => quote::quote! {serde_json::from_str::<serde_json::Value>(value.as_ref()).map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())?},
+            WireKind::Bool | WireKind::Bytes | WireKind::Float32 | WireKind::Float64 | WireKind::Int16 | WireKind::Int32 | WireKind::Int64 | WireKind::Interval | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => quote::quote! {serde_json::from_str::<serde_json::Value>(value.as_ref()).map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?},
         };
         let frontend_empty_value_token_stream = match &is_nullable {
             pg_crud_macro_common::domain_types::IsNullable::False => quote::quote! {#frontend_parse_json_value_token_stream},
@@ -4734,8 +4734,8 @@ pub(super) enum CreateReadIds {
             },
         };
         let frontend_format_time_token_stream = |value_token_stream: &dyn quote::ToTokens, minute_name, second_name, microsecond_name| quote::quote! {{
-            let object = #value_token_stream.as_object().ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from("time wire value must be an object".to_owned()).unwrap_or_default())?;
-            let field = |name| object.get(name).and_then(serde_json::Value::as_u64).ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from(format!("time wire field `{name}` is missing")).unwrap_or_default());
+            let object = #value_token_stream.as_object().ok_or_else(|| frontend_contract::FormValueError::try_from("time wire value must be an object".to_owned()).unwrap_or_default())?;
+            let field = |name| object.get(name).and_then(serde_json::Value::as_u64).ok_or_else(|| frontend_contract::FormValueError::try_from(format!("time wire field `{name}` is missing")).unwrap_or_default());
             let hour = field("hour")?;
             let minute = field(#minute_name)?;
             let second = field(#second_name)?;
@@ -4758,9 +4758,9 @@ pub(super) enum CreateReadIds {
                 };
                 let time_token_stream = frontend_format_time_token_stream(&quote::quote! {time}, constants_str::MIN, constants_str::SEC, constants_str::MICRO);
                 quote::quote! {{
-                    let object = value.as_object().ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from("timestamp wire value must be an object".to_owned()).unwrap_or_default())?;
-                    let date = object.get(#date_name).and_then(serde_json::Value::as_str).ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from("timestamp date wire field is missing".to_owned()).unwrap_or_default())?;
-                    let time = object.get("time").ok_or_else(|| frontend_contract::domain_types::FormValueError::try_from("timestamp time wire field is missing".to_owned()).unwrap_or_default())?;
+                    let object = value.as_object().ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp wire value must be an object".to_owned()).unwrap_or_default())?;
+                    let date = object.get(#date_name).and_then(serde_json::Value::as_str).ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp date wire field is missing".to_owned()).unwrap_or_default())?;
+                    let time = object.get("time").ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp time wire field is missing".to_owned()).unwrap_or_default())?;
                     let time = #time_token_stream;
                     format!("{date}T{time}")
                 }}
@@ -4774,25 +4774,25 @@ pub(super) enum CreateReadIds {
             },
         };
         let impl_frontend_form_value_contract_token_stream = quote::quote! {
-            impl frontend_contract::domain_types::FormValueContract for #identifier_origin_upper_camel_case {
-                fn format_form_value(&self) -> Result<frontend_contract::domain_types::FormValue, frontend_contract::domain_types::FormValueError> {
-                    let value = serde_json::to_value(self).map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
-                    frontend_contract::domain_types::FormValue::try_from(#frontend_format_value_token_stream).map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())
+            impl frontend_contract::FormValueContract for #identifier_origin_upper_camel_case {
+                fn format_form_value(&self) -> Result<frontend_contract::FormValue, frontend_contract::FormValueError> {
+                    let value = serde_json::to_value(self).map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
+                    frontend_contract::FormValue::try_from(#frontend_format_value_token_stream).map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())
                 }
-                fn parse_form_value(value: frontend_contract::domain_types::FormValueRef<'_>) -> Result<Self, frontend_contract::domain_types::FormValueError> {
+                fn parse_form_value(value: frontend_contract::FormValueRef<'_>) -> Result<Self, frontend_contract::FormValueError> {
                     let json_value = #frontend_empty_value_token_stream;
-                    serde_json::from_value(json_value).map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())
+                    serde_json::from_value(json_value).map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())
                 }
             }
-            impl frontend_contract::domain_types::FilterFormValueContract for #identifier {
+            impl frontend_contract::FilterFormValueContract for #identifier {
                 fn parse_filter_form_value(
-                    value: frontend_contract::domain_types::FormValueRef<'_>,
-                ) -> Result<frontend_contract::domain_types::FilterWireJson, frontend_contract::domain_types::FormValueError> {
-                    let parsed = <#identifier_origin_upper_camel_case as frontend_contract::domain_types::FormValueContract>::parse_form_value(value)?;
+                    value: frontend_contract::FormValueRef<'_>,
+                ) -> Result<frontend_contract::FilterWireJson, frontend_contract::FormValueError> {
+                    let parsed = <#identifier_origin_upper_camel_case as frontend_contract::FormValueContract>::parse_form_value(value)?;
                     let json = serde_json::to_string(&parsed)
-                        .map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
-                    frontend_contract::domain_types::FilterWireJson::try_from(json)
-                        .map_err(|error| frontend_contract::domain_types::FormValueError::try_from(error.to_string()).unwrap_or_default())
+                        .map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
+                    frontend_contract::FilterWireJson::try_from(json)
+                        .map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())
                 }
             }
         };

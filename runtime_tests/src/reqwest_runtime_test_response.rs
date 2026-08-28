@@ -6,12 +6,9 @@ impl ReqwestRuntimeTestResponse {
 
     pub(crate) fn into_health_report(
         self,
-    ) -> Result<
-        common_routes::domain_types::HealthReport,
-        server_runtime_http::domain_types::ReqwestError,
-    > {
+    ) -> Result<common_routes::HealthReport, server_runtime_http::domain_types::ReqwestError> {
         self.0
-            .json::<common_routes::domain_types::HealthReport>()
+            .json::<common_routes::HealthReport>()
             .map_err(server_runtime_http::domain_types::ReqwestError::from)
     }
     // The owner module retains lint-sensitive semantics from the original implementation.

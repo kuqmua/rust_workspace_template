@@ -1,11 +1,6 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
-    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
-)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[allow(clippy::single_call_fn)] // typed path construction remains an independently named boundary for file-writing callers
+#[cfg(test)]
 pub(crate) fn rs_file_path<P>(file_name: P) -> RsFilePathBuf
 where
     P: AsRef<std::path::Path>,

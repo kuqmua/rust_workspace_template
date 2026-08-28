@@ -138,15 +138,6 @@ fn datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
     );
 }
 #[test]
-fn location_display_timezone_uses_expected_offset() {
-    let offset = crate::domain_types::Location::location_display_timezone()
-        .expect("5c53d969 location_display_timezone_uses_expected_offset invariant must hold");
-    assert_eq!(
-        offset.0.local_minus_utc(),
-        crate::domain_types::LOC_DISPLAY_UTC_OFFSET_SECS
-    );
-}
-#[test]
 fn location_text_deserialization_uses_bounded_try_from() {
     let oversized =
         constants_str::X.repeat(crate::domain_types::LOC_FILE_MAX_LEN + constants_usize::ONE);

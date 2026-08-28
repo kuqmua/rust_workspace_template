@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract::domain_types::route_openapi(
+#[frontend_contract::route_openapi(
     delegate = crate::mutations_set_password::mutations_set_password,
     tag = "admin_users"
 )]

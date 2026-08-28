@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    frontend_contract::domain_types::ContractStructApi,
+    frontend_contract::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,

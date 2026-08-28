@@ -16,7 +16,7 @@ use super::{
     Debug,
     PartialEq,
     Eq,
-    frontend_contract::domain_types::RouteCatalog,
+    frontend_contract::RouteCatalog,
 )]
 #[route_catalog(
     family = AdminAuthenticationRouteFamily,
@@ -46,24 +46,24 @@ pub enum AdminRoute {
     #[route_catalog_route(AdminMeRoute)]
     Me,
     #[route_catalog_route(
-        contract = frontend_contract::domain_types::RouteContract::new(
+        contract = frontend_contract::RouteContract::new(
             admin_permission_requirement(crate::domain_types::AdminPermission::MetricsRead),
-            frontend_contract::domain_types::RouteMethod::Get,
-            frontend_contract::domain_types::MutationKind::ReadOnly,
-            frontend_contract::domain_types::ContractStr::from(constants_str::METRICS),
-            frontend_contract::domain_types::SuccessStatus::Code200,
+            frontend_contract::RouteMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from(constants_str::METRICS),
+            frontend_contract::SuccessStatus::Code200,
         ),
         path = constants_str::METRICS,
         exclude_from_family,
     )]
     Metrics,
     #[route_catalog_route(
-        contract = frontend_contract::domain_types::RouteContract::new(
+        contract = frontend_contract::RouteContract::new(
             admin_permission_requirement(crate::domain_types::AdminPermission::OpenApiRead),
-            frontend_contract::domain_types::RouteMethod::Get,
-            frontend_contract::domain_types::MutationKind::ReadOnly,
-            frontend_contract::domain_types::ContractStr::from(constants_str::OPENAPI_JSON),
-            frontend_contract::domain_types::SuccessStatus::Code200,
+            frontend_contract::RouteMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from(constants_str::OPENAPI_JSON),
+            frontend_contract::SuccessStatus::Code200,
         ),
         path = constants_str::OPENAPI_JSON,
         exclude_from_family,
@@ -104,12 +104,12 @@ pub enum AdminRoute {
     #[route_catalog_route(AdminListUsersRoute)]
     Users,
     #[route_catalog_route(
-        contract = frontend_contract::domain_types::RouteContract::new(
-            frontend_contract::domain_types::AuthenticationRequirement::Public,
-            frontend_contract::domain_types::RouteMethod::Get,
-            frontend_contract::domain_types::MutationKind::ReadOnly,
-            frontend_contract::domain_types::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO),
-            frontend_contract::domain_types::SuccessStatus::Code200,
+        contract = frontend_contract::RouteContract::new(
+            frontend_contract::AuthenticationRequirement::Public,
+            frontend_contract::RouteMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO),
+            frontend_contract::SuccessStatus::Code200,
         ),
         path = constants_str::COMMON_ROUTES_GIT_INFO,
         exclude_from_family,

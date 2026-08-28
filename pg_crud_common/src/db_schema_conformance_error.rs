@@ -35,7 +35,7 @@ pub enum DbSchemaConformanceError {
         observed: super::DbTableSnapshot,
     },
     #[error("PostgreSQL schema text exceeds the supported limit")]
-    SchemaTextTooLong(super::DbSchemaTextError),
+    SchemaTextTooLong(super::DbSchemaTextTryFromStringError),
     #[error("PostgreSQL returned an unsupported catalog object kind")]
     UnknownObjectKind,
 }

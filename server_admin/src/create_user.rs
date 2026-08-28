@@ -1,4 +1,4 @@
-#[frontend_contract::domain_types::route_error(AdminHtmlCreateUserError)]
+#[frontend_contract::route_error(AdminHtmlCreateUserError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn create_user(
     auth: crate::AdminAuthReq,

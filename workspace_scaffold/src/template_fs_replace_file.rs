@@ -1,7 +1,7 @@
 pub(crate) fn template_fs_replace_file(
-    path: crate::domain_types::ScaffoldPathRef<'_>,
-    replacements: crate::domain_types::ReplacementsRef<'_>,
-) -> Result<(), crate::domain_types::ScaffoldError> {
+    path: crate::ScaffoldPathRef<'_>,
+    replacements: crate::ReplacementsRef<'_>,
+) -> Result<(), crate::ScaffoldError> {
     let Ok(contents) = super::template_fs_read_bounded_text::template_fs_read_bounded_text(path)
     else {
         return Ok(());

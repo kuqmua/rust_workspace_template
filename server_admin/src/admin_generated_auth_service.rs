@@ -50,7 +50,7 @@ where
                                 .get(),
                         )),
                         crate::domain_types::StdAdminBool::from(false),
-                        frontend_contract::domain_types::RouteMethod::Get,
+                        frontend_contract::RouteMethod::Get,
                     ))
                 })
                 .or_else(|| {
@@ -64,7 +64,7 @@ where
                                 .get(),
                         )),
                         crate::domain_types::StdAdminBool::from(false),
-                        frontend_contract::domain_types::RouteMethod::Get,
+                        frontend_contract::RouteMethod::Get,
                     ))
                 });
             let Some((Some(permission), mutates, method)) = contract else {
@@ -76,20 +76,11 @@ where
                 (req.method(), method),
                 (
                     &http::Method::DELETE,
-                    frontend_contract::domain_types::RouteMethod::Delete
-                ) | (
-                    &http::Method::GET,
-                    frontend_contract::domain_types::RouteMethod::Get
-                ) | (
-                    &http::Method::PATCH,
-                    frontend_contract::domain_types::RouteMethod::Patch
-                ) | (
-                    &http::Method::POST,
-                    frontend_contract::domain_types::RouteMethod::Post
-                ) | (
-                    &http::Method::PUT,
-                    frontend_contract::domain_types::RouteMethod::Put
-                )
+                    frontend_contract::RouteMethod::Delete
+                ) | (&http::Method::GET, frontend_contract::RouteMethod::Get)
+                    | (&http::Method::PATCH, frontend_contract::RouteMethod::Patch)
+                    | (&http::Method::POST, frontend_contract::RouteMethod::Post)
+                    | (&http::Method::PUT, frontend_contract::RouteMethod::Put)
             ) {
                 return Ok(axum::response::IntoResponse::into_response(
                     crate::domain_types::auth::AdminError::MethodNotAllowed,
@@ -125,16 +116,15 @@ where
                         return Ok(axum::response::IntoResponse::into_response(error));
                     }
                 };
-            let actor = match pg_table::domain_types::PgTableIdempotencyActor::try_from(
-                authenticated.id().to_string(),
-            ) {
-                Ok(value) => value,
-                Err(_error) => {
-                    return Ok(axum::response::IntoResponse::into_response(
-                        http::StatusCode::INTERNAL_SERVER_ERROR,
-                    ));
-                }
-            };
+            let actor =
+                match pg_table::PgTableIdempotencyActor::try_from(authenticated.id().to_string()) {
+                    Ok(value) => value,
+                    Err(_error) => {
+                        return Ok(axum::response::IntoResponse::into_response(
+                            http::StatusCode::INTERNAL_SERVER_ERROR,
+                        ));
+                    }
+                };
             let _previous_actor = req.extensions_mut().insert(actor);
             tower::Service::call(&mut inner, req).await
         })

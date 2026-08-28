@@ -9,7 +9,7 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminLoginFailureLimit(crate::ConfigNonZeroU64);
+pub struct AdminLoginFailureLimit(std::num::NonZeroU64);
 
 impl crate::TryFromStdEnvVarOk for AdminLoginFailureLimit {
     type Error = super::TryFromStdEnvVarOkAdminPositiveU64Error;

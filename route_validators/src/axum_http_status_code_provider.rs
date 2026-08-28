@@ -1,5 +1,5 @@
 pub trait AxumHttpStatusCodeProvider {
-    fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode;
+    fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode;
 }
 
 #[cfg(test)]
@@ -8,8 +8,8 @@ mod tests {
     struct TestError;
 
     impl super::AxumHttpStatusCodeProvider for TestError {
-        fn axum_http_status_code(&self) -> crate::domain_types::AxumHttpStatusCode {
-            crate::domain_types::AxumHttpStatusCode::im_a_teapot()
+        fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+            crate::AxumHttpStatusCode::im_a_teapot()
         }
     }
 

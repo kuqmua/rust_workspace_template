@@ -1,5 +1,6 @@
 #![allow(
     unused_imports,
+    clippy::arbitrary_source_item_ordering,
     clippy::module_name_repetitions,
     clippy::wildcard_imports,
     reason = "root-owned modules retain the vocabulary and compatibility namespaces previously inherited from nested owner modules"
@@ -16,9 +17,9 @@ pub(crate) use crate::assert_file_path_ref::*;
 mod attr_identifier_name;
 pub(crate) use crate::attr_identifier_name::*;
 mod attr_identifier_str;
+pub use crate::attr_identifier_name::AttrIdentifierName;
+pub use crate::attr_identifier_str::AttrIdentifierStr;
 pub(crate) use crate::attr_identifier_str::*;
-mod attribute_identifier_string;
-pub(crate) use crate::attribute_identifier_string::*;
 #[cfg(test)]
 mod cleanup_test_file;
 #[cfg(test)]
@@ -47,16 +48,12 @@ mod expected_file_content_ref;
 pub(crate) use crate::expected_file_content_ref::*;
 mod field_location_column;
 pub(crate) use crate::field_location_column::*;
-mod field_location_column_non_zero_u32;
-pub(crate) use crate::field_location_column_non_zero_u32::*;
 mod field_location_coordinate_try_from_u32_error;
 pub(crate) use crate::field_location_coordinate_try_from_u32_error::*;
 mod field_location_file;
 pub(crate) use crate::field_location_file::*;
 mod field_location_line;
 pub(crate) use crate::field_location_line::*;
-mod field_location_line_non_zero_u32;
-pub(crate) use crate::field_location_line_non_zero_u32::*;
 mod find_macro_attribute;
 pub(crate) use crate::find_macro_attribute::*;
 mod format_with_cargofmt;
@@ -100,9 +97,22 @@ pub(crate) use crate::generate_impl_try_new_for_identifier_token_stream_impl::*;
 mod generate_modified_new_token_stream_impl;
 pub(crate) use crate::generate_modified_new_token_stream_impl::*;
 mod generate_modified_try_new_token_stream_impl;
+pub use crate::generate_const_new_token_stream_impl::generate_const_new_token_stream_impl;
+pub use crate::generate_const_try_new_token_stream_impl::generate_const_try_new_token_stream_impl;
+pub use crate::generate_impl_const_new_for_identifier_token_stream_impl::generate_impl_const_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_new_for_identifier_token_stream_impl::generate_impl_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_const_new_for_identifier_token_stream_impl::generate_impl_pub_const_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_const_try_new_for_identifier_token_stream_impl::generate_impl_pub_const_try_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_new_for_identifier_token_stream_impl::generate_impl_pub_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_pub_try_new_for_identifier_token_stream_impl::generate_impl_pub_try_new_for_identifier_token_stream_impl;
+pub use crate::generate_impl_try_new_for_identifier_token_stream_impl::generate_impl_try_new_for_identifier_token_stream_impl;
 pub(crate) use crate::generate_modified_try_new_token_stream_impl::*;
-mod generate_new_or_try_new;
-pub(crate) use crate::generate_new_or_try_new::*;
+pub use crate::generate_new_token_stream_impl::generate_new_token_stream_impl;
+pub use crate::generate_pub_const_new_token_stream_impl::generate_pub_const_new_token_stream_impl;
+pub use crate::generate_pub_const_try_new_token_stream_impl::generate_pub_const_try_new_token_stream_impl;
+pub use crate::generate_pub_new_token_stream_impl::generate_pub_new_token_stream_impl;
+pub use crate::generate_pub_try_new_token_stream_impl::generate_pub_try_new_token_stream_impl;
+pub use crate::generate_try_new_token_stream_impl::generate_try_new_token_stream_impl;
 #[cfg(test)]
 mod generate_new_or_try_new_tests;
 #[cfg(test)]
@@ -137,10 +147,11 @@ mod json_contract;
 pub(crate) use crate::json_contract::*;
 #[cfg(feature = "test-utils")]
 mod json_fixture_ref;
+pub use crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant;
 #[cfg(feature = "test-utils")]
 pub(crate) use crate::json_fixture_ref::*;
-mod location;
-pub(crate) use crate::location::*;
+pub use crate::location_field_attr::LocationFieldAttr;
+pub use crate::syn_variant_ref::SynVariantRef;
 mod location_field_attr;
 pub(crate) use crate::location_field_attr::*;
 mod location_syn_field;
@@ -221,12 +232,24 @@ mod syn_variant_ref;
 pub(crate) use crate::syn_variant_ref::*;
 #[cfg(feature = "test-utils")]
 mod test_database;
+#[cfg(test)]
+pub(crate) use crate::assert_file_content::assert_file_content;
+#[cfg(test)]
+pub(crate) use crate::assert_file_path_ref::AssertFilePathRef;
+#[cfg(test)]
+pub(crate) use crate::cleanup_test_file::cleanup_test_file;
+#[cfg(test)]
+pub(crate) use crate::expected_file_content::ExpectedFileContent;
+#[cfg(test)]
+pub(crate) use crate::expected_file_content_ref::ExpectedFileContentRef;
+#[cfg(test)]
+pub(crate) use crate::std_assert_file_path::StdAssertFilePath;
 #[cfg(feature = "test-utils")]
 pub(crate) use crate::test_database::*;
 #[cfg(test)]
-mod test_helper;
+pub(crate) use crate::test_path::test_path;
 #[cfg(test)]
-pub(crate) use crate::test_helper::*;
+pub(crate) use crate::test_path_stem::TestPathStem;
 #[cfg(test)]
 mod test_path;
 #[cfg(test)]

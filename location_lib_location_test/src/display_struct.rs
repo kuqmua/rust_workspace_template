@@ -1,7 +1,7 @@
 #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct DisplayStruct {
-    pub display: crate::domain_types::LocationTestText,
-    pub something: crate::domain_types::LocationTestFlag,
+    pub display: crate::LocationTestText,
+    pub something: crate::LocationTestFlag,
 }
 
 impl to_err_string::domain_types::ToErrString for DisplayStruct {

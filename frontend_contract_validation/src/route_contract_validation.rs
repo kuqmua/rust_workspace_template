@@ -14,14 +14,14 @@ pub use crate::validate_typed_route_contract::validate_typed_route_contract;
 mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct ReadRoute;
-    impl frontend_contract::domain_types::TypedRoute for ReadRoute {
+    impl frontend_contract::TypedRoute for ReadRoute {
         type Request = ();
         type Response = ();
-        type Transport = frontend_contract::domain_types::PublicTransport;
+        type Transport = frontend_contract::PublicTransport;
 
-        fn metadata() -> frontend_contract::domain_types::RouteMetadata {
+        fn metadata() -> frontend_contract::RouteMetadata {
             route_validation_metadata(
-                frontend_contract::domain_types::RouteMethod::Get,
+                frontend_contract::RouteMethod::Get,
                 constants_str::ROUTE_READ,
                 constants_str::ROUTE,
             )
@@ -29,21 +29,17 @@ mod tests {
     }
 
     fn route_validation_metadata(
-        method: frontend_contract::domain_types::RouteMethod,
+        method: frontend_contract::RouteMethod,
         operation_id: &'static str,
         path: &'static str,
-    ) -> frontend_contract::domain_types::RouteMetadata {
-        frontend_contract::domain_types::RouteMetadata::new(
-            method,
-            operation_id.into(),
-            path.into(),
-        )
+    ) -> frontend_contract::RouteMetadata {
+        frontend_contract::RouteMetadata::new(method, operation_id.into(), path.into())
     }
 
     #[test]
     fn equal_metadata_satisfies_contract() {
         let metadata = route_validation_metadata(
-            frontend_contract::domain_types::RouteMethod::Get,
+            frontend_contract::RouteMethod::Get,
             constants_str::ROUTE_READ,
             constants_str::ROUTE,
         );
@@ -57,7 +53,7 @@ mod tests {
     fn typed_route_is_the_contract_source_of_truth() {
         assert_eq!(
             super::validate_typed_route_contract::<ReadRoute>(route_validation_metadata(
-                frontend_contract::domain_types::RouteMethod::Get,
+                frontend_contract::RouteMethod::Get,
                 constants_str::ROUTE_READ,
                 constants_str::ROUTE
             )),
@@ -68,7 +64,7 @@ mod tests {
     #[test]
     fn http_fixture_checks_status_and_json_body() {
         let metadata = route_validation_metadata(
-            frontend_contract::domain_types::RouteMethod::Get,
+            frontend_contract::RouteMethod::Get,
             constants_str::ROUTE_READ,
             constants_str::ROUTE,
         );
@@ -98,12 +94,12 @@ mod tests {
     #[test]
     fn every_metadata_difference_is_reported() {
         let expected = route_validation_metadata(
-            frontend_contract::domain_types::RouteMethod::Get,
+            frontend_contract::RouteMethod::Get,
             constants_str::ROUTE_READ,
             constants_str::ROUTE,
         );
         let observed = route_validation_metadata(
-            frontend_contract::domain_types::RouteMethod::Post,
+            frontend_contract::RouteMethod::Post,
             constants_str::ADMIN_ALT,
             constants_str::NOT_AN_API_ROUTE,
         );

@@ -7,7 +7,7 @@ where
     Map: serde::de::MapAccess<'de>,
     Key: serde::Deserialize<'de>,
     Value: serde::Deserialize<'de>,
-    Insert: FnMut(&mut Values, Key, Value) -> Result<(), crate::domain_types::BoundedValueError>,
+    Insert: FnMut(&mut Values, Key, Value) -> Result<(), crate::BoundedValueError>,
 {
     let mut entry_count = constants_usize::ZERO;
     loop {
@@ -16,11 +16,11 @@ where
                 || Ok(values),
                 |_ignored| {
                     Err(serde::de::Error::custom(
-                        crate::domain_types::BoundedValueError::AboveMax {
-                            actual: crate::domain_types::BoundedLen::from(
+                        crate::BoundedValueError::AboveMax {
+                            actual: crate::BoundedLen::from(
                                 MAX.saturating_add(constants_usize::ONE),
                             ),
-                            max: crate::domain_types::BoundedLen::from(MAX),
+                            max: crate::BoundedLen::from(MAX),
                         },
                     ))
                 },

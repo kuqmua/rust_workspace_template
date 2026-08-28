@@ -19,12 +19,6 @@ use crate::{
     newtype::DerefInner,
 )]
 pub struct ChronoTimezone(pub(super) chrono::FixedOffset);
-impl ChronoTimezone {
-    #[allow(clippy::single_call_fn)] // constructor preserves the checked-offset mapping boundary
-    pub(super) const fn from_east_fixed_offset(value: chrono::FixedOffset) -> Self {
-        Self(value)
-    }
-}
 impl TryFrom<chrono::FixedOffset> for ChronoTimezone {
     type Error = ChronoFixedOffsetError;
     fn try_from(value: chrono::FixedOffset) -> Result<Self, Self::Error> {

@@ -10,8 +10,6 @@ pub use crate::process_command::ProcessCommand;
 pub use crate::process_commands::ProcessCommands;
 pub use crate::process_program::ProcessProgram;
 pub use crate::process_static_argument::ProcessStaticArgument;
-pub(crate) use crate::validate_database_url::validate_database_url;
-pub(crate) use crate::validate_migrations_source::validate_migrations_source;
 
 #[cfg(test)]
 mod tests {

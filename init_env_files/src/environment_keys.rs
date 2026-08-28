@@ -15,6 +15,6 @@ pub(super) fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, In
                 .flatten()
         })
         .collect::<Result<Vec<EnvKey>, InitStringError>>()
-        .map(bounded_types::domain_types::vector::BoundedVec::from_max_iter)
+        .map(bounded_types::BoundedVec::from_max_iter)
         .map(EnvKeys::from)
 }

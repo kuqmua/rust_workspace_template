@@ -5,7 +5,7 @@
 use super::*;
 
 pub async fn complete_pg_table_idempotency(
-    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+    pool: app_state::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
     response_status: PgTableIdempotencyResponseStatus,
     response_body: PgTableIdempotencyBodyRef<'_>,

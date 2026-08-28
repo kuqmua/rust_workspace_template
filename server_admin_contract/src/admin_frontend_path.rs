@@ -58,11 +58,11 @@ impl AdminFrontendPath {
         <&'static str>::from(self)
     }
 }
-impl frontend_contract::domain_types::RouteRegistrationContract for AdminFrontendPath {
-    fn method(self) -> frontend_contract::domain_types::RouteMethod {
-        frontend_contract::domain_types::RouteMethod::Get
+impl frontend_contract::RouteRegistrationContract for AdminFrontendPath {
+    fn method(self) -> frontend_contract::RouteMethod {
+        frontend_contract::RouteMethod::Get
     }
-    fn path(self) -> frontend_contract::domain_types::RegisteredRoutePath {
-        frontend_contract::domain_types::RegisteredRoutePath::from(self.get())
+    fn path(self) -> frontend_contract::RegisteredRoutePath {
+        frontend_contract::RegisteredRoutePath::from(self.get())
     }
 }

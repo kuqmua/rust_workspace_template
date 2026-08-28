@@ -9,7 +9,7 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminSignInRateLimit(crate::ConfigNonZeroU64);
+pub struct AdminSignInRateLimit(std::num::NonZeroU64);
 
 impl crate::TryFromStdEnvVarOk for AdminSignInRateLimit {
     type Error = super::TryFromStdEnvVarOkAdminPositiveU64Error;

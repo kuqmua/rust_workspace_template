@@ -37,16 +37,21 @@ mod api_url_path_segment_ref;
 pub(crate) use crate::api_url_path_segment_ref::*;
 mod api_url_query_component_ref;
 pub(crate) use crate::api_url_query_component_ref::*;
-mod apply_openapi_error_contract;
-pub(crate) use crate::apply_openapi_error_contract::*;
-mod apply_openapi_path_parameter_contract;
-pub(crate) use crate::apply_openapi_path_parameter_contract::*;
-mod apply_openapi_request_contract;
-pub(crate) use crate::apply_openapi_request_contract::*;
-mod apply_openapi_security_contract;
-pub(crate) use crate::apply_openapi_security_contract::*;
-mod apply_openapi_success_contract;
-pub(crate) use crate::apply_openapi_success_contract::*;
+#[path = "apply_openapi_error_contract.rs"]
+mod apply_openapi_error_contract_fn;
+pub(crate) use crate::apply_openapi_error_contract_fn::*;
+#[path = "apply_openapi_path_parameter_contract.rs"]
+mod apply_openapi_path_parameter_contract_fn;
+pub(crate) use crate::apply_openapi_path_parameter_contract_fn::*;
+#[path = "apply_openapi_request_contract.rs"]
+mod apply_openapi_request_contract_fn;
+pub(crate) use crate::apply_openapi_request_contract_fn::*;
+#[path = "apply_openapi_security_contract.rs"]
+mod apply_openapi_security_contract_fn;
+pub(crate) use crate::apply_openapi_security_contract_fn::*;
+#[path = "apply_openapi_success_contract.rs"]
+mod apply_openapi_success_contract_fn;
+pub(crate) use crate::apply_openapi_success_contract_fn::*;
 mod auth_session_instant;
 pub(crate) use crate::auth_session_instant::*;
 mod auth_session_keep_alive;
@@ -77,10 +82,12 @@ mod client;
 pub(crate) use crate::client::*;
 mod client_error;
 pub(crate) use crate::client_error::*;
-mod client_request;
-pub(crate) use crate::client_request::*;
-mod client_route_metadata;
-pub(crate) use crate::client_route_metadata::*;
+#[path = "client_request.rs"]
+mod client_request_fn;
+pub(crate) use crate::client_request_fn::*;
+#[path = "client_route_metadata.rs"]
+mod client_route_metadata_fn;
+pub(crate) use crate::client_route_metadata_fn::*;
 mod confirmation_requirement;
 pub(crate) use crate::confirmation_requirement::*;
 mod contract_i64;
@@ -97,8 +104,7 @@ mod empty_filter_contracts;
 pub(crate) use crate::empty_filter_contracts::*;
 mod field_capability;
 pub(crate) use crate::field_capability::*;
-mod field_contract;
-pub(crate) use crate::field_contract::*;
+pub mod field_contract;
 mod field_contracts;
 pub(crate) use crate::field_contracts::*;
 mod field_order;
@@ -131,14 +137,10 @@ mod form_value_ref;
 pub(crate) use crate::form_value_ref::*;
 mod frontend_contract_body_error;
 pub(crate) use crate::frontend_contract_body_error::*;
-mod functions;
-pub(crate) use crate::functions::*;
 mod has_filter_contracts;
 pub(crate) use crate::has_filter_contracts::*;
 mod has_type_contract;
 pub(crate) use crate::has_type_contract::*;
-mod http_status;
-pub(crate) use crate::http_status::*;
 mod http_status_try_from_u16_error;
 pub(crate) use crate::http_status_try_from_u16_error::*;
 mod input_kind;
@@ -157,14 +159,14 @@ mod numeric_bound;
 pub(crate) use crate::numeric_bound::*;
 mod open_api_security_scheme_ref;
 pub(crate) use crate::open_api_security_scheme_ref::*;
-mod openapi_route_metadata;
-pub(crate) use crate::openapi_route_metadata::*;
+#[path = "openapi_route_metadata.rs"]
+mod openapi_route_metadata_fn;
+pub(crate) use crate::openapi_route_metadata_fn::*;
 mod operation_kind;
 pub(crate) use crate::operation_kind::*;
 mod page_contract;
 pub(crate) use crate::page_contract::*;
-mod page_transport;
-pub(crate) use crate::page_transport::*;
+pub mod page_transport;
 mod parameterized_route;
 pub(crate) use crate::parameterized_route::*;
 mod parameterized_route_path;
@@ -177,10 +179,12 @@ mod problem;
 pub(crate) use crate::problem::*;
 mod public_transport;
 pub(crate) use crate::public_transport::*;
-mod register_openapi_route_schemas;
-pub(crate) use crate::register_openapi_route_schemas::*;
-mod register_openapi_schema;
-pub(crate) use crate::register_openapi_schema::*;
+#[path = "register_openapi_route_schemas.rs"]
+mod register_openapi_route_schemas_fn;
+pub(crate) use crate::register_openapi_route_schemas_fn::*;
+#[path = "register_openapi_schema.rs"]
+mod register_openapi_schema_fn;
+pub(crate) use crate::register_openapi_schema_fn::*;
 mod registered_route_path;
 pub(crate) use crate::registered_route_path::*;
 mod required_test_categories;
@@ -191,8 +195,7 @@ mod route_access;
 pub(crate) use crate::route_access::*;
 mod route_body_limit;
 pub(crate) use crate::route_body_limit::*;
-mod route_contract;
-pub(crate) use crate::route_contract::*;
+pub mod route_contract;
 mod route_contracts;
 pub(crate) use crate::route_contracts::*;
 mod route_coverage;
@@ -214,7 +217,7 @@ pub(crate) use crate::route_error_policy::*;
 mod route_error_status;
 pub(crate) use crate::route_error_status::*;
 mod route_family;
-pub(crate) use crate::route_family::*;
+pub use crate::route_family::*;
 mod route_in_family;
 pub(crate) use crate::route_in_family::*;
 mod route_json_body_usage;
@@ -251,18 +254,21 @@ mod route_test_category;
 pub(crate) use crate::route_test_category::*;
 mod route_transport;
 pub(crate) use crate::route_transport::*;
-mod server_response;
-pub(crate) use crate::server_response::*;
-mod server_route_metadata;
-pub(crate) use crate::server_route_metadata::*;
+#[path = "server_response.rs"]
+mod server_response_fn;
+pub(crate) use crate::server_response_fn::*;
+#[path = "server_route_metadata.rs"]
+mod server_route_metadata_fn;
+pub(crate) use crate::server_route_metadata_fn::*;
 mod success_status;
 pub(crate) use crate::success_status::*;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
 pub(crate) use crate::tests::*;
-mod to_axum_method_filter;
-pub(crate) use crate::to_axum_method_filter::*;
+#[path = "to_axum_method_filter.rs"]
+mod to_axum_method_filter_fn;
+pub(crate) use crate::to_axum_method_filter_fn::*;
 mod transport;
 pub(crate) use crate::transport::*;
 mod transport_body;
@@ -287,12 +293,14 @@ mod type_contract;
 pub(crate) use crate::type_contract::*;
 mod typed_client;
 pub(crate) use crate::typed_client::*;
-mod typed_parameterized_route_path;
-pub(crate) use crate::typed_parameterized_route_path::*;
+#[path = "typed_parameterized_route_path.rs"]
+mod typed_parameterized_route_path_fn;
+pub(crate) use crate::typed_parameterized_route_path_fn::*;
 mod typed_route;
-pub(crate) use crate::typed_route::*;
-mod typed_route_path;
-pub(crate) use crate::typed_route_path::*;
+pub use crate::typed_route::*;
+#[path = "typed_route_path.rs"]
+mod typed_route_path_fn;
+pub(crate) use crate::typed_route_path_fn::*;
 mod url_builder;
 pub(crate) use crate::url_builder::*;
 mod utoipa_open_api_components_ref_mut;
@@ -310,4 +318,55 @@ pub(crate) use crate::value_example::*;
 mod value_format;
 pub(crate) use crate::value_format::*;
 
-pub mod domain_types;
+pub use crate::auth_session_keep_alive::{
+    AuthSessionInstant, AuthSessionKeepAlive, AuthSessionKeepAliveDecision,
+    AuthSessionKeepAliveError, AuthSessionPresence, AuthSessionRefreshIntervalDuration,
+    AuthSessionRefreshOutcome,
+};
+pub use crate::client::TypedClient;
+pub use crate::problem::{
+    ApiProblem, ApiProblemDetail, ApiProblemError, ApiProblemField, ApiProblemKind,
+    ApiProblemRequestId, ApiProblemStatus, ApiProblemViolation,
+};
+pub use crate::route::{
+    AuthenticatedTransport, CoveredRoute, OpenApiSecuritySchemeRef, ParameterizedRoute,
+    ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError, PublicTransport,
+    RouteBodyLimit, RouteCoverageDescriptors, RouteInFamily, RouteMetadata, RouteMetadataList,
+    RouteMethod, RouteRequest, RouteRequestBody, RouteResponse, RouteSchemaContract,
+    RouteSchemaContracts, RouteTransport, UtoipaOpenApiComponentsRefMut,
+    UtoipaOpenApiPathParameter, UtoipaOpenApiRefMut, UtoipaOpenApiRouteSchema,
+    apply_openapi_error_contract, apply_openapi_path_parameter_contract,
+    apply_openapi_request_contract, apply_openapi_security_contract,
+    apply_openapi_success_contract, client_request, client_route_metadata, openapi_route_metadata,
+    register_openapi_route_schemas, register_openapi_schema, server_response,
+    server_route_metadata, typed_parameterized_route_path, typed_route_path,
+};
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::route::{AxumMethodFilter, to_axum_method_filter};
+pub use crate::route_coverage::{
+    AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, RouteAccess, RouteCoverageDescriptor,
+    RouteCoverageError, RouteCoverageEvidence, RouteCoverageObligation, RouteDatabaseUsage,
+    RouteJsonBodyUsage, RouteMutation, RouteResponseKind, RouteTestCapabilities,
+    RouteTestCategories, RouteTestCategory, missing_required_test_categories,
+    required_test_categories, validate_route_coverage,
+};
+#[cfg(not(target_arch = "wasm32"))]
+pub use crate::route_registration_contract::{AxumRouteMethodRouter, route_method_router};
+pub use crate::route_registration_contract::{RegisteredRoutePath, RouteRegistrationContract};
+pub use crate::url_builder::{
+    ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef,
+};
+pub use frontend_contract_macros::{
+    ContractStructApi, PageCatalog, RouteCatalog, RouteFamily, TypedRoute, UnitEnumCatalog,
+    UnitEnumIndex, api_operation_error, endpoint_registry, route_error, route_openapi,
+    route_operation, route_registry,
+};
+
+pub use crate::field_contract::*;
+pub use crate::frontend_contract_body_error::FrontendContractBodyError;
+pub use crate::http_status_try_from_u16_error::HttpStatusTryFromU16Error;
+pub use crate::known_http_status::KnownHttpStatus;
+pub use crate::page_transport::*;
+pub use crate::route_contract::*;

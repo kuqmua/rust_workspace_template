@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[allow(
     clippy::field_scoped_visibility_modifiers,
     reason = "request service owner modules read this private tracing configuration"

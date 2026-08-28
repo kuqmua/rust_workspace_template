@@ -3,7 +3,6 @@
 
 pub(crate) use admin_generated_route_contract::AdminGeneratedRouteContract;
 pub(crate) use admin_generated_table::AdminGeneratedTable;
-pub use admin_generated_tables_validation_error::AdminGeneratedTablesValidationError;
 pub use admin_permissions::*;
 pub use admin_role_permissions::*;
 pub use admin_roles::*;
@@ -22,9 +21,6 @@ mod admin_generated_route_contract {
 }
 mod admin_generated_table {
     pub use crate::admin_generated_table::*;
-}
-mod admin_generated_tables_validation_error {
-    pub use crate::admin_generated_tables_validation_error::*;
 }
 mod admin_permissions {
     pub use crate::admin_permissions::*;

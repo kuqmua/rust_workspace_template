@@ -24,7 +24,7 @@ pub(crate) fn generate_pg_table_measure_input_token_stream(
                 enum CommonErrorVariants {
                     CheckCommit {
                         #[eo_location]
-                        check_commit: route_validators::domain_types::check_commit::CommitError,
+                        check_commit: route_validators::check_commit::CommitError,
                         location: location_lib::domain_types::Location,
                     },
                 }

@@ -1,4 +1,3 @@
-#[allow(clippy::single_call_fn)] // keeps catalog validation and parsing isolated from projection I/O
 pub(super) fn service_catalog_parse(
     source: super::ScaffoldTextRef<'_>,
 ) -> Result<super::ServiceCatalogEntries, super::ScaffoldError> {
@@ -117,7 +116,7 @@ pub(super) fn service_catalog_parse(
         return Err(super::ScaffoldError::Catalog);
     }
     Ok(super::ServiceCatalogEntries::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(entries),
+        bounded_types::BoundedVec::from_max_iter(entries),
     ))
 }
 

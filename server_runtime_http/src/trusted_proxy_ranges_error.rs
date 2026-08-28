@@ -4,8 +4,8 @@
 #[error("trusted proxy range list exceeds its maximum item count")]
 pub struct TrustedProxyRangesError;
 
-impl From<bounded_types::domain_types::BoundedValueError> for TrustedProxyRangesError {
-    fn from(_value: bounded_types::domain_types::BoundedValueError) -> Self {
+impl From<bounded_types::BoundedValueError> for TrustedProxyRangesError {
+    fn from(_value: bounded_types::BoundedValueError) -> Self {
         Self
     }
 }

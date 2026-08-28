@@ -1,7 +1,3 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "owner modules stay paired with their facade imports and reexports"
-)]
 pub use crate::closure_identifier_and_body::*;
 pub(crate) use crate::collection_max_len::COLLECTION_MAX_LEN;
 pub use crate::compile_error_token_stream::*;
@@ -10,7 +6,6 @@ pub(crate) use crate::first_ident_max_len::FIRST_IDENT_MAX_LEN;
 pub use crate::first_identifier::*;
 pub use crate::first_identifier_at::*;
 pub use crate::first_identifierifier_try_from_string_error::*;
-pub use crate::functions::*;
 pub use crate::part_at::*;
 pub use crate::part_index::*;
 pub use crate::proc_macro2_macro_tokens::*;
@@ -26,6 +21,7 @@ pub use crate::syn_fields_unnamed_ref::*;
 pub use crate::syn_struct_shape_ref::*;
 pub(crate) use crate::top_level_comma_part::TopLevelCommaPart;
 pub use crate::unique_option_b_tree_set::*;
+pub use crate::*;
 
 #[cfg(test)]
 mod tests {

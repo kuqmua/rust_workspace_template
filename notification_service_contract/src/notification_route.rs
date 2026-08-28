@@ -7,7 +7,7 @@ use crate::domain_types::{CreateNotificationRoute, NOTIFICATION_API_BODY_MAX_BYT
     Debug,
     Eq,
     PartialEq,
-    frontend_contract::domain_types::RouteCatalog,
+    frontend_contract::RouteCatalog,
 )]
 #[route_catalog(
     family = NotificationRouteFamily,

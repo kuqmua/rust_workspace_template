@@ -1,7 +1,7 @@
 use crate::{AdminCleanupCfg, AdminCleanupError, AdminCleanupReport, AdminCleanupRows};
 
 pub async fn cleanup_admin_tables(
-    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+    pool: app_state::SqlxPgPoolRef<'_>,
     cfg: AdminCleanupCfg,
 ) -> Result<AdminCleanupReport, AdminCleanupError> {
     let access_sessions = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_ACCESS_SESSIONS_SQL)
@@ -59,28 +59,26 @@ pub async fn cleanup_admin_tables(
         .map_err(crate::SqlxAdminError::from)
         .map_err(AdminCleanupError::Pg)?
         .rows_affected();
-    let idempotency = pg_table::domain_types::cleanup_pg_table_idempotency(
+    let idempotency = pg_table::cleanup_pg_table_idempotency(
         pool,
-        pg_table::domain_types::PgTableIdempotencyCleanupRetentionSeconds::try_from(
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(
             cfg.idempotency_completed_retention().get(),
         )?,
-        pg_table::domain_types::PgTableIdempotencyCleanupRetentionSeconds::try_from(
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(
             cfg.idempotency_pending_retention().get(),
         )?,
-        pg_table::domain_types::PgTableIdempotencyCleanupBatchSize::try_from(
-            cfg.batch_size().get(),
-        )?,
+        pg_table::PgTableIdempotencyCleanupBatchSize::try_from(cfg.batch_size().get())?,
     )
     .await
     .map_err(AdminCleanupError::Idempotency)?;
-    let report = AdminCleanupReport::new(
-        AdminCleanupRows::from(access_sessions),
-        AdminCleanupRows::from(audit_log),
-        AdminCleanupRows::from(u64::from(idempotency)),
-        AdminCleanupRows::from(login_attempts),
-        AdminCleanupRows::from(rate_limits),
-        AdminCleanupRows::from(refresh_tokens),
-    );
+    let report = AdminCleanupReport {
+        access_sessions: AdminCleanupRows::from(access_sessions),
+        audit_log: AdminCleanupRows::from(audit_log),
+        idempotency: AdminCleanupRows::from(u64::from(idempotency)),
+        login_attempts: AdminCleanupRows::from(login_attempts),
+        rate_limits: AdminCleanupRows::from(rate_limits),
+        refresh_tokens: AdminCleanupRows::from(refresh_tokens),
+    };
     let stored_rows =
         i64::try_from(report.total_rows().get()).map_err(|_error| AdminCleanupError::Count)?;
     sqlx::query(constants_str::SERVER_ADMIN_RECORD_CLEANUP_STATUS_SQL)

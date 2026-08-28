@@ -9,7 +9,7 @@ pub fn resolve_pg_operational_limit_update(
             Ok(current.max(requested))
         }
         crate::domain_types::PgOperationalLimitUpdateAuthority::Operator
-            if requested.0.0.get() < current_usage.0 =>
+            if requested.0.get() < current_usage.0 =>
         {
             Err(crate::domain_types::PgOperationalLimitError::BelowCurrentUsage)
         }

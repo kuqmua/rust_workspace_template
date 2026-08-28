@@ -1,7 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct OutboundHostAllowlist(
-    bounded_types::domain_types::vector::BoundedVec<super::OutboundAllowedHost, 1, 64>,
-);
+pub struct OutboundHostAllowlist(bounded_types::BoundedVec<super::OutboundAllowedHost, 1, 64>);
 
 impl TryFrom<Vec<super::OutboundAllowedHost>> for OutboundHostAllowlist {
     type Error = super::OutboundHostAllowlistError;
@@ -9,14 +7,14 @@ impl TryFrom<Vec<super::OutboundAllowedHost>> for OutboundHostAllowlist {
     fn try_from(mut value: Vec<super::OutboundAllowedHost>) -> Result<Self, Self::Error> {
         value.sort_unstable();
         value.dedup();
-        bounded_types::domain_types::vector::BoundedVec::try_from(value)
+        bounded_types::BoundedVec::try_from(value)
             .map(Self)
             .map_err(|error| match error {
-                bounded_types::domain_types::BoundedValueError::BelowMin { .. } => {
+                bounded_types::BoundedValueError::BelowMin { .. } => {
                     super::OutboundHostAllowlistError::Empty
                 }
-                bounded_types::domain_types::BoundedValueError::AboveMax { .. }
-                | bounded_types::domain_types::BoundedValueError::InvalidBounds { .. } => {
+                bounded_types::BoundedValueError::AboveMax { .. }
+                | bounded_types::BoundedValueError::InvalidBounds { .. } => {
                     super::OutboundHostAllowlistError::TooManyHosts
                 }
             })

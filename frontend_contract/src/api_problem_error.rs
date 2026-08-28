@@ -59,22 +59,20 @@ impl ApiProblemError {
     #[must_use]
     pub fn status(self) -> super::ApiProblemStatus {
         let status = match self {
-            Self::Authentication => crate::domain_types::KnownHttpStatus::Unauthorized,
-            Self::Authorization => crate::domain_types::KnownHttpStatus::Forbidden,
-            Self::Conflict => crate::domain_types::KnownHttpStatus::Conflict,
-            Self::InProgress => crate::domain_types::KnownHttpStatus::TooEarly,
+            Self::Authentication => crate::KnownHttpStatus::Unauthorized,
+            Self::Authorization => crate::KnownHttpStatus::Forbidden,
+            Self::Conflict => crate::KnownHttpStatus::Conflict,
+            Self::InProgress => crate::KnownHttpStatus::TooEarly,
             Self::Internal(status) | Self::RequestFailed(status) => return status,
-            Self::InvalidRequest => crate::domain_types::KnownHttpStatus::BadRequest,
-            Self::MethodNotAllowed => crate::domain_types::KnownHttpStatus::MethodNotAllowed,
-            Self::NotFound => crate::domain_types::KnownHttpStatus::NotFound,
-            Self::PayloadTooLarge => crate::domain_types::KnownHttpStatus::PayloadTooLarge,
-            Self::Precondition => crate::domain_types::KnownHttpStatus::PreconditionFailed,
-            Self::PreconditionRequired => {
-                crate::domain_types::KnownHttpStatus::PreconditionRequired
-            }
-            Self::RateLimited => crate::domain_types::KnownHttpStatus::TooManyRequests,
-            Self::ServiceUnavailable => crate::domain_types::KnownHttpStatus::ServiceUnavailable,
-            Self::Validation => crate::domain_types::KnownHttpStatus::UnprocessableEntity,
+            Self::InvalidRequest => crate::KnownHttpStatus::BadRequest,
+            Self::MethodNotAllowed => crate::KnownHttpStatus::MethodNotAllowed,
+            Self::NotFound => crate::KnownHttpStatus::NotFound,
+            Self::PayloadTooLarge => crate::KnownHttpStatus::PayloadTooLarge,
+            Self::Precondition => crate::KnownHttpStatus::PreconditionFailed,
+            Self::PreconditionRequired => crate::KnownHttpStatus::PreconditionRequired,
+            Self::RateLimited => crate::KnownHttpStatus::TooManyRequests,
+            Self::ServiceUnavailable => crate::KnownHttpStatus::ServiceUnavailable,
+            Self::Validation => crate::KnownHttpStatus::UnprocessableEntity,
         };
         super::ApiProblemStatus::from(status)
     }

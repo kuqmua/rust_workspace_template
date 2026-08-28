@@ -1,6 +1,5 @@
 use crate::{
-    EnvParseError, EnvVarResultVarError, ParseCtxRef, ParseEnvVarNameRef,
-    parse_from_env_var_from_str,
+    EnvParseError, EnvVarError, EnvVarName, EnvVarResultVarError, ParseCtxRef, ParseEnvVarNameRef,
 };
 
 #[derive(
@@ -36,7 +35,20 @@ impl SrcPlaceType {
         let parsed =
             EnvVarResultVarError::try_from(std::env::var(constants_str::ENV_NAMES_SRC_PLACE_TYPE))
                 .map_err(EnvParseError::from)
-                .and_then(Self::parse_src_place_type_from_env_var);
+                .and_then(|env_v| {
+                    let env_var_name =
+                        ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE);
+                    let raw_v = env_v.0.map_err(|source| EnvParseError::Read {
+                        name: EnvVarName::try_from(env_var_name.0.to_owned())
+                            .unwrap_or_else(EnvVarName::from),
+                        source: EnvVarError::from(source),
+                    })?;
+                    raw_v.parse::<Self>().map_err(|error| EnvParseError::Parse {
+                        context: ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
+                        detail: to_err_string::domain_types::ErrorText::try_from(error)
+                            .unwrap_or_else(to_err_string::domain_types::ErrorText::from),
+                    })
+                });
         match parsed {
             Ok(v) => v,
             Err(message) => {
@@ -51,14 +63,11 @@ impl SrcPlaceType {
         }
     }
 
-    #[allow(
-        clippy::single_call_fn,
-        reason = "fallible parser remains directly testable behind the defaulting facade"
-    )]
+    #[cfg(test)]
     pub(super) fn parse_src_place_type_from_env_var(
         v: EnvVarResultVarError,
     ) -> Result<Self, EnvParseError> {
-        parse_from_env_var_from_str(
+        crate::parse_from_env_var_from_str(
             v,
             ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
             ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),

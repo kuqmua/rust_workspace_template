@@ -5,7 +5,7 @@
 use super::*;
 
 pub async fn release_pg_table_idempotency(
-    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+    pool: app_state::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
     let _query_result = sqlx::query(

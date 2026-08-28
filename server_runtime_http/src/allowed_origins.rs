@@ -3,9 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct AllowedOrigins(
-    pub(super) bounded_types::domain_types::vector::BoundedVec<super::AllowedOrigin, 0, 128>,
-);
+pub struct AllowedOrigins(pub(super) bounded_types::BoundedVec<super::AllowedOrigin, 0, 128>);
 
 impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = super::AllowedOriginsError;
@@ -16,7 +14,7 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
             .map(super::AllowedOrigin::try_from)
             .collect::<Result<Vec<super::AllowedOrigin>, super::AllowedOriginError>>()
             .map_err(|_error| super::AllowedOriginsError)?;
-        bounded_types::domain_types::vector::BoundedVec::try_from(parsed)
+        bounded_types::BoundedVec::try_from(parsed)
             .map(Self)
             .map_err(super::AllowedOriginsError::from)
     }

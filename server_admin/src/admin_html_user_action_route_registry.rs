@@ -6,7 +6,7 @@ use crate::user_password::user_password;
 use crate::user_roles::user_roles;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::endpoint_registry(
+#[frontend_contract::endpoint_registry(
     state = crate::SharedAdminAuthSvcStateArc;
     (server_admin_contract::domain_types::AdminHtmlAction::UserCreate, create_user),
     (server_admin_contract::domain_types::AdminHtmlAction::UserUpdate, update_user),

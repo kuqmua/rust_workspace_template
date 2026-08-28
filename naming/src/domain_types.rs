@@ -5,9 +5,7 @@ pub use crate::hash_map_upper_camel_case::HashMapUpperCamelCase;
 pub use crate::parameter;
 pub use crate::swagger_url_path_prefix::SwaggerUrlPathPrefix;
 pub use crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr;
-pub use crate::swagger_url_path_self_quotes_str_value::SwaggerUrlPathSelfQuotesStrValue;
 pub use crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream;
-pub use crate::swagger_url_path_self_quotes_token_stream_value::SwaggerUrlPathSelfQuotesTokenStreamValue;
 
 naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["primary", "key"],

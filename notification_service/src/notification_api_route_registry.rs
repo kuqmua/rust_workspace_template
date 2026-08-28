@@ -1,9 +1,8 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)]
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::route_registry(
-    state = crate::domain_types::NotificationState,
+#[frontend_contract::route_registry(
+    state = crate::NotificationState,
     family = notification_service_contract::domain_types::NotificationRouteFamily;
     ("", "");
     schemas(

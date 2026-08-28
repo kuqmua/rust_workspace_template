@@ -11,13 +11,10 @@ use super::RouteMetadata;
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct RouteMetadataList(
-    bounded_types::domain_types::vector::BoundedVec<RouteMetadata, 0, { usize::MAX }>,
-);
+pub struct RouteMetadataList(bounded_types::BoundedVec<RouteMetadata, 0, { usize::MAX }>);
 impl TryFrom<Vec<RouteMetadata>> for RouteMetadataList {
-    type Error = bounded_types::domain_types::BoundedValueError;
+    type Error = bounded_types::BoundedValueError;
     fn try_from(value: Vec<RouteMetadata>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::try_from_collection_vec(value)
-            .map(Self::from)
+        bounded_types::BoundedVec::try_from_collection_vec(value).map(Self::from)
     }
 }

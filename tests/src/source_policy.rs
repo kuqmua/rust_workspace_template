@@ -196,7 +196,87 @@ fn all_files_are_english_only() {
 }
 #[test]
 fn expect_and_panic_messages_start_with_unique_diagnostic_ids() {
-    super::check_expect_and_panic_contain_unique_diagnostic_ids();
+    let reviewed_interpolations = [
+        (
+            constants_str::VALUE_1F61C5FC,
+            constants_str::VALUE_A9D2959B,
+            constants_str::VALUE_40D0A05F,
+        ),
+        (
+            constants_str::VALUE_7FE2AF02,
+            constants_str::VALUE_265FF5BA,
+            constants_str::VALUE_B4F7B36F,
+        ),
+        (
+            constants_str::VALUE_7FE2AF02,
+            constants_str::VALUE_A5D61573,
+            constants_str::VALUE_B4F7B36F,
+        ),
+        (
+            constants_str::VALUE_D405F3E1,
+            constants_str::VALUE_31DDD380,
+            constants_str::VALUE_9EB896D7,
+        ),
+    ];
+    let mut all_ids = Vec::new();
+    let mut all_ers = Vec::new();
+    let mut matched_interpolations = std::collections::BTreeSet::new();
+    super::for_each_rs_file(|file| {
+        let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
+        let visitor = super::visit_syn_file(
+            super::types::SynFileRef::from(ast),
+            super::source_analysis::DiagnosticIdVisitor {
+                ers: super::types::DiagnosticMsgs::default(),
+                ids: super::types::SourceTextList::default(),
+            },
+        );
+        all_ids.extend(visitor.ids);
+        visitor.ers.into_iter().for_each(|error| {
+            let reviewed =
+                reviewed_interpolations
+                    .iter()
+                    .find(|(path_suffix, reviewed_error, reason)| {
+                        let path_text = path.to_string_lossy();
+                        let split_owner_matches = path_suffix
+                            .strip_suffix(constants_str::RS_EXTENSION)
+                            .and_then(|owner_stem| {
+                                path_text
+                                    .trim_start_matches(constants_str::TEXT_ALT_9)
+                                    .strip_prefix(owner_stem)
+                            })
+                            .is_some_and(|remainder| {
+                                remainder.starts_with('_')
+                                    && remainder.ends_with(constants_str::RS_EXTENSION)
+                            });
+                        (path.ends_with(path_suffix)
+                            || super::declared_child_matches(path_text.as_ref(), path_suffix)
+                            || split_owner_matches)
+                            && error == *reviewed_error
+                            && !reason.is_empty()
+                    });
+            if let Some((path_suffix, reviewed_error, _reason)) = reviewed {
+                let _inserted = matched_interpolations
+                    .insert((path_suffix.to_string(), reviewed_error.to_string()));
+            } else {
+                all_ers.push(format!("{path:?}: {error}"));
+            }
+        });
+    });
+    if matched_interpolations.len() != reviewed_interpolations.len() {
+        all_ers.push(format!(
+            "stale generated diagnostic interpolation inventory: matched={matched_interpolations:#?}"
+        ));
+    }
+    let mut seen = std::collections::HashSet::new();
+    let duplicates = all_ids
+        .iter()
+        .filter(|identifier| !seen.insert(identifier.as_str()))
+        .cloned()
+        .collect::<Vec<String>>();
+    if !duplicates.is_empty() {
+        all_ers.push(format!("duplicate UUIDs found: {duplicates:?}"));
+    }
+    assert!(all_ers.is_empty(), "6062a9e9 {all_ers:#?}");
 }
 #[test]
 fn diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
@@ -1450,7 +1530,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
             .as_ref();
         assert!(!auth.contains("Operation(AdminError)"), "7c9f1bb0");
         assert!(
-            auth.contains("frontend_contract::domain_types::api_operation_error!"),
+            auth.contains("frontend_contract::api_operation_error!"),
             "166dc25a"
         );
         assert!(macros.contains("pub fn api_operation_error"), "259e7ebd");
@@ -2253,7 +2333,22 @@ fn every_fallible_typed_route_operation_has_its_own_error_type() {
                 super::source_analysis::RouteOperationErrorVisitor::default(),
             );
             let path_text = path.to_string_lossy();
-            let group = match super::declared_owner_path(path_text.as_ref()) {
+            let normalized_path = path_text
+                .trim_start_matches(constants_str::TEXT_ALT_9)
+                .trim_start_matches('/');
+            let declared_owner = super::declared_children()
+                .iter()
+                .find_map(|(owner, child)| (child == normalized_path).then_some(owner.as_str()))
+                .map(|mut owner| {
+                    while let Some(parent) = super::declared_children()
+                        .iter()
+                        .find_map(|(parent, child)| (child == owner).then_some(parent.as_str()))
+                    {
+                        owner = parent;
+                    }
+                    super::types::SourceTextRef::from(owner)
+                });
+            let group = match declared_owner {
                 Some(owner) => owner.get().to_owned(),
                 None => path_text.into_owned(),
             };

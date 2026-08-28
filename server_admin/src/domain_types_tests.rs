@@ -25,22 +25,8 @@ fn admin_secret(value: &str) -> crate::SecrecyAdminString {
     crate::SecrecyAdminString::try_from(value.to_owned())
         .expect("c2116874 secret invariant must hold")
 }
-#[allow(clippy::single_call_fn)] // test helper intentionally names repeated fixture construction at its sole call site
-fn password_hasher() -> crate::AdminPasswordHasher {
-    crate::AdminPasswordHasher::new(crate::AdminPasswordHashConcurrency::from(
-        crate::AdminNonZeroUsize::from(
-            std::num::NonZeroUsize::new(1).expect("70761471 password_hasher invariant must hold"),
-        ),
-    ))
-}
 fn password(value: &str) -> crate::AdminPassword {
     crate::AdminPassword::new(admin_secret(value))
-}
-#[allow(clippy::single_call_fn)] // test helper intentionally names fixture construction at its sole call site
-fn jwt_secret() -> crate::AdminJwtSecret {
-    crate::AdminJwtSecret::new(admin_secret(
-        constants_str::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
-    ))
 }
 #[test]
 fn permission_round_trip_is_exhaustive() {
@@ -93,7 +79,10 @@ fn permission_seed_contains_the_complete_typed_catalog() {
 }
 #[tokio::test]
 async fn password_hash_verifies_only_matching_password() {
-    let hasher = password_hasher();
+    let hasher = crate::AdminPasswordHasher::new(crate::AdminPasswordHashConcurrency::from(
+        std::num::NonZeroUsize::new(1)
+            .expect("70761471 password hash test concurrency invariant must hold"),
+    ));
     let hash = hasher
         .hash(password(constants_str::CORRECT_PASSWORD_ALT))
         .await
@@ -209,7 +198,9 @@ fn access_token_round_trip_checks_issuer_and_audience() {
         )
         .expect("6e423e16 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
     );
-    let secret = jwt_secret();
+    let secret = crate::AdminJwtSecret::new(admin_secret(
+        constants_str::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
+    ));
     let token = crate::encode_access_token(&claims, &secret)
         .expect("b41052bc access_token_round_trip_checks_issuer_and_audience invariant must hold");
     let issuer =

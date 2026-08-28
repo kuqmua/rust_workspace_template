@@ -1,4 +1,4 @@
-#[frontend_contract::domain_types::route_error(AdminSignInPageError)]
+#[frontend_contract::route_error(AdminSignInPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn sign_in_page(auth: crate::AdminAuthReq) -> axum::response::Response {
     match crate::settings_branding_view::settings_branding_view(auth).await {

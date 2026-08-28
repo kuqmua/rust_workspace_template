@@ -10,7 +10,7 @@ use super::{HEALTH_COMPONENTS_MAX_LEN, HealthComponent, HealthComponentsError};
 pub struct HealthComponents(pub(super) Vec<HealthComponent>);
 impl utoipa::PartialSchema for HealthComponents {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::domain_types::vector::BoundedVec<
+        <bounded_types::BoundedVec<
             HealthComponent,
             { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
@@ -32,12 +32,12 @@ impl TryFrom<Vec<HealthComponent>> for HealthComponents {
     type Error = HealthComponentsError;
 
     fn try_from(value: Vec<HealthComponent>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::<
+        bounded_types::BoundedVec::<
             HealthComponent,
             { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,
         >::try_from(value)
-        .map(bounded_types::domain_types::vector::BoundedVec::into_inner)
+        .map(bounded_types::BoundedVec::into_inner)
         .map(Self)
         .map_err(|_error| HealthComponentsError)
     }
@@ -47,7 +47,7 @@ impl<'de> serde::Deserialize<'de> for HealthComponents {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = <bounded_types::domain_types::vector::BoundedVec<
+        let value = <bounded_types::BoundedVec<
             HealthComponent,
             { constants_usize::ZERO },
             HEALTH_COMPONENTS_MAX_LEN,

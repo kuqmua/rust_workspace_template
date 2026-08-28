@@ -1,7 +1,3 @@
-#![allow(
-    clippy::wildcard_imports,
-    reason = "split schema owner modules import the private facade vocabulary used by validation"
-)]
 use crate::*;
 
 pub async fn validate_generated_postgres_table<Table>(
@@ -16,12 +12,10 @@ where
         .iter()
         .map(|column| {
             Ok(DbColumnContractSnapshot::new(
-                DbSchemaText::try_from(column.name.0.to_owned()).map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
-                DbSchemaText::try_from(column.data_type.0.to_owned()).map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
+                DbSchemaText::try_from(column.name.0.to_owned())
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
+                DbSchemaText::try_from(column.data_type.0.to_owned())
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                 column.nullable,
                 column.has_server_default,
             ))
@@ -44,9 +38,8 @@ where
             if table_columns.iter().any(|column| column.name == field) {
                 Ok(())
             } else {
-                let name = DbSchemaText::try_from(field.0.to_owned()).map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?;
+                let name = DbSchemaText::try_from(field.0.to_owned())
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?;
                 Err(DbSchemaConformanceError::DescriptorFieldMismatch(name))
             }
         })?;
@@ -75,9 +68,7 @@ where
                         },
                     )?,
                 )
-                .map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
+                .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                 DbSchemaText::try_from(
                     sqlx::Row::try_get::<String, _>(&row, constants_str::DATA_TYPE).map_err(
                         |error| {
@@ -87,9 +78,7 @@ where
                         },
                     )?,
                 )
-                .map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
+                .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                 DbColumnNullable::from(nullable == constants_str::YES),
                 DbColumnHasServerDefault::from(
                     sqlx::Row::try_get::<bool, _>(&row, constants_str::HAS_SERVER_DEFAULT)

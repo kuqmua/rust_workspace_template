@@ -1,7 +1,3 @@
-#![allow(
-    clippy::wildcard_imports,
-    reason = "split schema owner modules import the private facade vocabulary used by validation"
-)]
 use crate::*;
 
 pub async fn validate_postgres_table_extensions<Table>(

@@ -1,6 +1,6 @@
-fn require_public<Route>(_request: frontend_contract::domain_types::RouteRequest<Route>)
+fn require_public<Route>(_request: frontend_contract::RouteRequest<Route>)
 where
-    Route: frontend_contract::domain_types::TypedRoute<Transport = frontend_contract::domain_types::PublicTransport>,
+    Route: frontend_contract::TypedRoute<Transport = frontend_contract::PublicTransport>,
 {
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
@@ -11,12 +11,12 @@ struct Request;
 struct Response;
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AuthenticatedRoute;
-impl frontend_contract::domain_types::TypedRoute for AuthenticatedRoute {
+impl frontend_contract::TypedRoute for AuthenticatedRoute {
     type Request = Request;
     type Response = Response;
-    type Transport = frontend_contract::domain_types::AuthenticatedTransport;
-    fn metadata() -> frontend_contract::domain_types::RouteMetadata { frontend_contract::domain_types::RouteMetadata::new(frontend_contract::domain_types::RouteMethod::Post, frontend_contract::domain_types::ContractStr::from(constants_str::WRITE_ALT), frontend_contract::domain_types::ContractStr::from(constants_str::WRITE)) }
+    type Transport = frontend_contract::AuthenticatedTransport;
+    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Post, frontend_contract::ContractStr::from(constants_str::WRITE_ALT), frontend_contract::ContractStr::from(constants_str::WRITE)) }
 }
 fn main() {
-    require_public(frontend_contract::domain_types::client_request::<AuthenticatedRoute>(Request));
+    require_public(frontend_contract::client_request::<AuthenticatedRoute>(Request));
 }

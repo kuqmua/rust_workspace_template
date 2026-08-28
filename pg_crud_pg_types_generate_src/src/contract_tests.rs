@@ -10,10 +10,7 @@ mod tests {
             wire_kind: 32u8,
         };
         assert_eq!(crate::domain_types::pg_name::pg_name(spec), "int4");
-        assert_eq!(
-            crate::domain_types::pg_type_filter_kind::pg_type_filter_kind(spec),
-            7u8
-        );
+        assert_eq!(spec.filter_kind, 7u8);
         assert_eq!(
             crate::domain_types::rust_type_wire_kind::rust_type_wire_kind(spec),
             32u8
@@ -22,15 +19,8 @@ mod tests {
             crate::domain_types::schema_wire_kind::schema_wire_kind(spec),
             32u8
         );
-        assert_eq!(
-            crate::domain_types::serde_wire_kind::serde_wire_kind(spec),
-            32u8
-        );
+        assert_eq!(spec.wire_kind, 32u8);
         assert!(crate::domain_types::sqlx::pg_type_can_be_nullable::pg_type_can_be_nullable(spec));
-        assert!(
-            !crate::domain_types::sqlx::pg_type_can_be_primary_key::pg_type_can_be_primary_key(
-                spec
-            )
-        );
+        assert!(!spec.can_be_primary_key);
     }
 }

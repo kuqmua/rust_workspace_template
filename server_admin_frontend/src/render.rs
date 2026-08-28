@@ -8,8 +8,8 @@ use leptos::prelude::{
     AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes, StyleAttribute,
 };
 
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
-pub(super) fn render(
+#[must_use]
+pub fn render_sign_in(
     error: Option<crate::AdminSsrErrorMessage>,
     branding: Option<&server_admin_contract::domain_types::AdminBrandingView>,
 ) -> crate::AdminSsrHtml {

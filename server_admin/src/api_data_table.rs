@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract::domain_types::route_openapi(
+#[frontend_contract::route_openapi(
     delegate = crate::data_tables_get::data_tables_get,
     params(server_admin_contract::domain_types::AdminDataTableQuery),
     tag = "admin_tables"

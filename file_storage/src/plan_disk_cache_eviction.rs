@@ -48,6 +48,6 @@ pub fn plan_disk_cache_eviction(
         remove.push(entry.path.clone());
     }
     Ok(DiskCacheEvictionPlan::from(
-        bounded_types::domain_types::vector::BoundedVec::from_max_iter(remove),
+        bounded_types::BoundedVec::from_max_iter(remove),
     ))
 }

@@ -19,5 +19,5 @@ pub(super) fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {
         .collect::<Vec<CommandText>>();
     names.sort_by(|left, right| left.as_ref().cmp(right.as_ref()));
     names.dedup_by(|left, right| left.as_ref() == right.as_ref());
-    CommandTexts::from(bounded_types::domain_types::vector::BoundedVec::from_max_iter(names))
+    CommandTexts::from(bounded_types::BoundedVec::from_max_iter(names))
 }

@@ -1,4 +1,4 @@
-use crate::domain_types::{SynRouteRegistryEndpoint, SynRouteRegistryRoute};
+use crate::{SynRouteRegistryEndpoint, SynRouteRegistryRoute};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

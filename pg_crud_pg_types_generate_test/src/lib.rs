@@ -127,75 +127,59 @@ mod tests {
     #[test]
     fn generated_frontend_type_contract_matches_integer_wire_contract() {
         let contract =
-            <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::domain_types::HasTypeContract>::type_contract();
-        assert_eq!(
-            contract.input_kind(),
-            frontend_contract::domain_types::InputKind::Number
-        );
-        assert_eq!(
-            contract.format(),
-            frontend_contract::domain_types::ValueFormat::Int16
-        );
+            <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::HasTypeContract>::type_contract();
+        assert_eq!(contract.input_kind(), frontend_contract::InputKind::Number);
+        assert_eq!(contract.format(), frontend_contract::ValueFormat::Int16);
         assert_eq!(
             contract.nullability(),
-            frontend_contract::domain_types::Nullability::NonNullable
+            frontend_contract::Nullability::NonNullable
         );
         assert_eq!(
             contract.minimum(),
-            frontend_contract::domain_types::NumericBound::Inclusive(
-                frontend_contract::domain_types::ContractI64::i16_min()
-            )
+            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_min())
         );
         assert_eq!(
             contract.maximum(),
-            frontend_contract::domain_types::NumericBound::Inclusive(
-                frontend_contract::domain_types::ContractI64::i16_max()
-            )
+            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_max())
         );
     }
     #[test]
     fn generated_frontend_type_contract_preserves_nullable_uuid_semantics() {
-        let contract = <pg_types_text_misc::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient as frontend_contract::domain_types::HasTypeContract>::type_contract();
-        assert_eq!(
-            contract.input_kind(),
-            frontend_contract::domain_types::InputKind::Uuid
-        );
-        assert_eq!(
-            contract.format(),
-            frontend_contract::domain_types::ValueFormat::Uuid
-        );
+        let contract = <pg_types_text_misc::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient as frontend_contract::HasTypeContract>::type_contract();
+        assert_eq!(contract.input_kind(), frontend_contract::InputKind::Uuid);
+        assert_eq!(contract.format(), frontend_contract::ValueFormat::Uuid);
         assert_eq!(
             contract.nullability(),
-            frontend_contract::domain_types::Nullability::Nullable
+            frontend_contract::Nullability::Nullable
         );
     }
     #[test]
     fn generated_form_value_contract_parses_and_formats_wire_values() {
-        let integer = <pg_types_numeric::I16AsNonNullInt2Origin as frontend_contract::domain_types::FormValueContract>::parse_form_value(frontend_contract::domain_types::FormValueRef::from(constants_str::VALUE_42)).expect("0935c11d generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
+        let integer = <pg_types_numeric::I16AsNonNullInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(constants_str::VALUE_42)).expect("0935c11d generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
-            frontend_contract::domain_types::FormValueContract::format_form_value(&integer)
+            frontend_contract::FormValueContract::format_form_value(&integer)
                 .expect("144c7c4c generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             "42"
         );
-        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2Origin as frontend_contract::domain_types::FormValueContract>::parse_form_value(frontend_contract::domain_types::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("502918c1 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
+        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("502918c1 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
-            frontend_contract::domain_types::FormValueContract::format_form_value(&nullable)
+            frontend_contract::FormValueContract::format_form_value(&nullable)
                 .expect("56531064 generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             ""
         );
         let uuid_value = constants_str::VALUE_7B93D4A1_6F28_4C70_9A51_2E8D3F640C12;
-        let uuid = <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as frontend_contract::domain_types::FormValueContract>::parse_form_value(frontend_contract::domain_types::FormValueRef::from(uuid_value)).expect("804f13b2 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
+        let uuid = <pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(uuid_value)).expect("804f13b2 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
-            frontend_contract::domain_types::FormValueContract::format_form_value(&uuid)
+            frontend_contract::FormValueContract::format_form_value(&uuid)
                 .expect("a17bcb42 generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             uuid_value
         );
-        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin as frontend_contract::domain_types::FormValueContract>::parse_form_value(frontend_contract::domain_types::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect("ad1de295 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
+        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect("ad1de295 generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
-            frontend_contract::domain_types::FormValueContract::format_form_value(&timestamp)
+            frontend_contract::FormValueContract::format_form_value(&timestamp)
                 .expect("5a9f7d9c generated_form_value_contract_parses_and_formats_wire_values invariant must hold")
                 .as_ref(),
             "2026-07-13T12:30:00"
@@ -203,14 +187,14 @@ mod tests {
     }
     #[test]
     fn generated_filter_form_values_preserve_json_wire_types() {
-        let integer = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::domain_types::FilterFormValueContract>::parse_filter_form_value(frontend_contract::domain_types::FormValueRef::from(constants_str::VALUE_42)).expect("12df8cb5 generated_filter_form_values_preserve_json_wire_types invariant must hold");
+        let integer = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(constants_str::VALUE_42)).expect("12df8cb5 generated_filter_form_values_preserve_json_wire_types invariant must hold");
         assert_eq!(integer.as_ref(), "42");
-        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::domain_types::FilterFormValueContract>::parse_filter_form_value(frontend_contract::domain_types::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect("98f3df36 generated_filter_form_values_preserve_json_wire_types invariant must hold");
+        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect("98f3df36 generated_filter_form_values_preserve_json_wire_types invariant must hold");
         assert_eq!(
             timestamp.as_ref(),
             r#"{"date":"2026-07-13","time":{"hour":12,"min":30,"sec":0,"micro":0}}"#
         );
-        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2 as frontend_contract::domain_types::FilterFormValueContract>::parse_filter_form_value(frontend_contract::domain_types::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("b5939e08 generated_filter_form_values_preserve_json_wire_types invariant must hold");
+        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("b5939e08 generated_filter_form_values_preserve_json_wire_types invariant must hold");
         assert_eq!(nullable.as_ref(), "null");
     }
     #[test]
@@ -350,29 +334,29 @@ mod tests {
     }
     #[test]
     fn generated_frontend_filters_follow_the_same_descriptor_matrix() {
-        let number = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::domain_types::HasFilterContracts>::filter_contracts();
+        let number = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::HasFilterContracts>::filter_contracts();
         assert_eq!(
             number.as_ref().to_vec(),
             vec![
-                frontend_contract::domain_types::FilterOperation::Eq,
-                frontend_contract::domain_types::FilterOperation::GreaterThan,
-                frontend_contract::domain_types::FilterOperation::Between,
-                frontend_contract::domain_types::FilterOperation::In,
+                frontend_contract::FilterOperation::Eq,
+                frontend_contract::FilterOperation::GreaterThan,
+                frontend_contract::FilterOperation::Between,
+                frontend_contract::FilterOperation::In,
             ]
         );
-        let text = <pg_types_text_misc::StringAsNonNullText as frontend_contract::domain_types::HasFilterContracts>::filter_contracts();
+        let text = <pg_types_text_misc::StringAsNonNullText as frontend_contract::HasFilterContracts>::filter_contracts();
         assert_eq!(
             text.as_ref().to_vec(),
             vec![
-                frontend_contract::domain_types::FilterOperation::Eq,
-                frontend_contract::domain_types::FilterOperation::Regex,
+                frontend_contract::FilterOperation::Eq,
+                frontend_contract::FilterOperation::Regex,
             ]
         );
         assert_eq!(
             text.as_ref()
                 .get(constants_usize::ONE)
                 .map(|filter| filter.value_shape()),
-            Some(frontend_contract::domain_types::FilterValueShape::Regex)
+            Some(frontend_contract::FilterValueShape::Regex)
         );
     }
     #[test]

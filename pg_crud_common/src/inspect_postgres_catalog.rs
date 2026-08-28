@@ -1,7 +1,3 @@
-#![allow(
-    clippy::wildcard_imports,
-    reason = "split schema owner modules import the private facade vocabulary used by validation"
-)]
 use crate::*;
 
 pub async fn inspect_postgres_catalog(
@@ -41,13 +37,11 @@ pub async fn inspect_postgres_catalog(
                 DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
             })?;
             Ok(DbObjectSnapshot::new(
-                DbSchemaText::try_from(name).map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
+                DbSchemaText::try_from(name)
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                 kind,
-                DbSchemaText::try_from(definition).map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
+                DbSchemaText::try_from(definition)
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
             ))
         })
         .collect::<Result<Vec<_>, _>>()

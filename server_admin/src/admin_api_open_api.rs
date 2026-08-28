@@ -2,7 +2,7 @@
 pub fn admin_api_open_api() -> crate::UtoipaAdminAuthOpenApi {
     let mut document = crate::AdminAuthRouteRegistry::open_api();
     let body_limit_description =
-        <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()
+        <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
             .map(|limit| {
                 format!(
                     "{}{}",

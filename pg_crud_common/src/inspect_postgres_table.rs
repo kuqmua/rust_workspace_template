@@ -1,7 +1,3 @@
-#![allow(
-    clippy::wildcard_imports,
-    reason = "split schema owner modules import the private facade vocabulary used by validation"
-)]
 use crate::*;
 
 pub async fn inspect_postgres_table(
@@ -38,9 +34,7 @@ pub async fn inspect_postgres_table(
                         },
                     )?,
                 )
-                .map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
+                .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                 DbSchemaText::try_from(
                     sqlx::Row::try_get::<String, _>(&row, constants_str::DATA_TYPE).map_err(
                         |error| {
@@ -50,16 +44,12 @@ pub async fn inspect_postgres_table(
                         },
                     )?,
                 )
-                .map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })?,
+                .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                 (nullable == constants_str::YES).into(),
                 default
                     .map(DbSchemaText::try_from)
                     .transpose()
-                    .map_err(|error| {
-                        DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                    })?,
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
             ))
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
@@ -96,9 +86,7 @@ pub async fn inspect_postgres_table(
                         },
                     )?,
                 )
-                .map_err(|error| {
-                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                })
+                .map_err(DbSchemaConformanceError::SchemaTextTooLong)
                 .and_then(|name| {
                     DbSchemaText::try_from(
                         sqlx::Row::try_get::<String, _>(&row, constants_str::CONSTRAINT_DEFINITION)
@@ -108,9 +96,7 @@ pub async fn inspect_postgres_table(
                                 )
                             })?,
                     )
-                    .map_err(|error| {
-                        DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                    })
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)
                     .map(|definition| DbObjectSnapshot::new(name, kind, definition))
                 })?,
             ))
@@ -142,9 +128,7 @@ pub async fn inspect_postgres_table(
                             },
                         )?,
                     )
-                    .map_err(|error| {
-                        DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                    })?,
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                     DbObjectKind::Index,
                     DbSchemaText::try_from(
                         sqlx::Row::try_get::<String, _>(&row, constants_str::INDEX_DEFINITION)
@@ -154,9 +138,7 @@ pub async fn inspect_postgres_table(
                                 )
                             })?,
                     )
-                    .map_err(|error| {
-                        DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError::from(error))
-                    })?,
+                    .map_err(DbSchemaConformanceError::SchemaTextTooLong)?,
                 ))
             })
             .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?,

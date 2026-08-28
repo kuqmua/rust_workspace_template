@@ -14,7 +14,7 @@ pub(super) async fn join_diagnostic(
             .map_err(super::TokioChildProcessJoinError::from)
             .map_err(super::ChildProcessError::Join)?,
         None => Ok(super::ChildDiagnostic::from(
-            bounded_types::domain_types::vector::BoundedVec::default(),
+            bounded_types::BoundedVec::default(),
         )),
     }
 }

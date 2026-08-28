@@ -1,4 +1,4 @@
-use super::{ScaffoldIoError, ServerRuntimeBoundedReadError};
+use super::ScaffoldIoError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum ScaffoldError {
@@ -21,7 +21,7 @@ pub(crate) enum ScaffoldError {
     #[error("project or service name must be non-empty lowercase snake_case ASCII")]
     ProjectName,
     #[error("workspace content read failed: {0}")]
-    Read(#[from] ServerRuntimeBoundedReadError),
+    Read(#[from] server_runtime_http::domain_types::BoundedReadError),
     #[error("repository URL must use https:// and must not end with /")]
     RepositoryUrl,
     #[error("service destination already exists")]

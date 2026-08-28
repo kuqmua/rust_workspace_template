@@ -1,4 +1,4 @@
-use crate::domain_types::{SynEndpointRegistryContract, SynEndpointRegistryEndpoint};
+use crate::{SynEndpointRegistryContract, SynEndpointRegistryEndpoint};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

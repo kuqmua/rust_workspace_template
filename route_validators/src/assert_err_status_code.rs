@@ -4,10 +4,10 @@ use super::{TestExpId, map_err_after_status_check};
 pub(crate) fn assert_err_status_code<T, E>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
-    expected: crate::domain_types::AxumHttpStatusCode,
+    expected: crate::AxumHttpStatusCode,
 ) -> E
 where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
+    E: crate::AxumHttpStatusCodeProvider,
 {
     map_err_after_status_check(v, exp_id, expected, |error, _| error)
 }

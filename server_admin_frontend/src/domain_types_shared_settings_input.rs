@@ -1,11 +1,4 @@
-#![allow(
-    clippy::shadow_reuse,
-    clippy::unused_trait_names,
-    reason = "Leptos settings inputs convert signal values for event closures and are composed by the settings form"
-)]
-
 pub(crate) use crate::admin_setting_disabled::AdminSettingDisabled;
-pub(crate) use crate::admin_setting_input::admin_setting_input;
 pub(crate) use crate::admin_setting_inputs::admin_setting_inputs;
 pub(super) use crate::admin_setting_required::AdminSettingRequired;
 
@@ -22,18 +15,9 @@ impl crate::domain_types::with_owner::input::LeptosAdminInputSignal {
 pub(crate) mod admin_setting_disabled {
     pub use crate::admin_setting_disabled::*;
 }
-pub(crate) mod admin_setting_input {
-    pub use crate::admin_setting_input::*;
-}
 pub(crate) mod admin_setting_inputs {
     pub use crate::admin_setting_inputs::*;
 }
 pub(crate) mod admin_setting_required {
     pub use crate::admin_setting_required::*;
-}
-pub(crate) mod admin_setting_text {
-    pub use crate::admin_setting_text::*;
-}
-pub(crate) mod admin_setting_textarea {
-    pub use crate::admin_setting_textarea::*;
 }

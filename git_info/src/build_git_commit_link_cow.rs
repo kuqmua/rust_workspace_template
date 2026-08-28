@@ -1,7 +1,7 @@
-use crate::domain_types::{
+use crate::{
     BASE_GIT_COMMIT_LINK_LEN, GIT_INFO_STRING_MAX_LEN, GitCommitIdRef, GitCommitLinkCow,
-    GitCommitLinkOutputRefMut, GitInfoStringTryFromStringError, check_is_project_commit,
-    git_commit_link_capacity_value, project_git_commit_link_ref_value, write_git_commit_link,
+    GitInfoStringTryFromStringError, check_is_project_commit, git_commit_link_capacity_value,
+    project_git_commit_link_ref_value,
 };
 
 #[must_use]
@@ -28,8 +28,9 @@ where
     }
     let cap = git_commit_link_capacity_value(commit_id_ref);
     let mut output = String::with_capacity(cap.0);
-    let mut output_ref = GitCommitLinkOutputRefMut::from(&mut output);
-    write_git_commit_link(&mut output_ref, commit_id_ref);
+    output.push_str(constants_str::NAMING_GITHUB_URL);
+    output.push_str(constants_str::GIT_INFO_TREE_SEGMENT);
+    output.push_str(commit_id_ref.0);
     GitCommitLinkCow::try_from(std::borrow::Cow::Owned(output))
         .unwrap_or_else(GitCommitLinkCow::from)
 }

@@ -2,9 +2,11 @@ impl crate::AdminPasswordHasher {
     #[must_use]
     #[allow(clippy::missing_const_for_fn)] // Tokio semaphore and Arc constructors are not const
     pub fn new(max_concurrent_hashes: crate::AdminPasswordHashConcurrency) -> Self {
-        Self::from_semaphore(crate::AdminSharedSemaphoreArc::from(std::sync::Arc::new(
-            tokio::sync::Semaphore::new(max_concurrent_hashes.get().get().get()),
-        )))
+        Self {
+            semaphore: crate::AdminSharedSemaphoreArc::from(std::sync::Arc::new(
+                tokio::sync::Semaphore::new(max_concurrent_hashes.get().get()),
+            )),
+        }
     }
     pub async fn hash(
         &self,

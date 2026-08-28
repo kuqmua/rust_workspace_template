@@ -1,9 +1,6 @@
 use super::{NoRouteMessageCapacity, UriSuffixRef};
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "suffix message composition remains directly unit tested"
-)]
+#[cfg(test)]
 pub(super) fn make_no_route_message_for_suffix(
     uri_suffix: UriSuffixRef<'_>,
 ) -> to_err_string::domain_types::ErrorText {

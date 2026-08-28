@@ -1,10 +1,5 @@
 #![allow(
-    clippy::module_name_repetitions,
-    reason = "bounded vector companion types retain their established public names"
-)]
-#![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[derive(
@@ -34,7 +29,7 @@ impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MI
     type Error = BoundedVecError;
 
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::try_from(value)
+        bounded_types::BoundedVec::<T, MIN, MAX>::try_from(value)
             .map(|bounded| Self(bounded.into_inner()))
             .map_err(BoundedVecError::from)
     }
@@ -61,7 +56,7 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = <bounded_types::domain_types::vector::BoundedVec<T, MIN, MAX> as serde::Deserialize>::deserialize(
+        let value = <bounded_types::BoundedVec<T, MIN, MAX> as serde::Deserialize>::deserialize(
             deserializer,
         )?
         .into_inner();

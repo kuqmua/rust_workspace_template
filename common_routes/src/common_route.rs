@@ -7,7 +7,7 @@ use super::{GitInfoRoute, HealthCheckRoute, HealthLiveRoute, HealthReadyRoute, H
     Debug,
     Eq,
     PartialEq,
-    frontend_contract::domain_types::RouteCatalog,
+    frontend_contract::RouteCatalog,
 )]
 #[route_catalog(family = CommonRouteFamily, body_limit = constants_usize::ZERO)]
 pub enum CommonRoute {
@@ -24,7 +24,7 @@ pub enum CommonRoute {
 }
 impl CommonRoute {
     #[must_use]
-    pub fn path(self) -> frontend_contract::domain_types::ContractStr {
+    pub fn path(self) -> frontend_contract::ContractStr {
         self.contract().path()
     }
 }

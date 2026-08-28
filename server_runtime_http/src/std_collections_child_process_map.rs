@@ -4,7 +4,7 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
 pub(super) struct StdCollectionsChildProcessMap(
-    pub(super)  bounded_types::domain_types::btree::BoundedBTreeMap<
+    pub(super)  bounded_types::BoundedBTreeMap<
         super::ChildProcessId,
         super::ChildProcessSupervisor,
         { usize::MAX },

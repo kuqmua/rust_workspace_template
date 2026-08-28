@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
@@ -30,7 +29,7 @@ impl ResourceBudget {
             |current| {
                 current
                     .checked_add(amount.0)
-                    .filter(|next| *next <= self.maximum.0.0.get())
+                    .filter(|next| *next <= self.maximum.0.get())
             },
         );
         match result {
@@ -56,7 +55,6 @@ pub use crate::idempotency_response_resource_budget_provider::IdempotencyRespons
 pub use crate::resource_budget_amount::ResourceBudgetAmount;
 pub use crate::resource_budget_config_error::ResourceBudgetConfigError;
 pub use crate::resource_budget_maximum::ResourceBudgetMaximum;
-use crate::resource_budget_maximum_non_zero_usize::ResourceBudgetMaximumNonZeroUsize;
 pub use crate::resource_budget_reservation::ResourceBudgetReservation;
 pub use crate::resource_budget_reserve_error::ResourceBudgetReserveError;
 use crate::shared_atomic_usize_arc::SharedAtomicUsizeArc;

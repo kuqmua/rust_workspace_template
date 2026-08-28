@@ -1,7 +1,7 @@
 pub(crate) fn admin_permission_requirement(
     permission: crate::domain_types::AdminPermission,
-) -> frontend_contract::domain_types::AuthenticationRequirement {
-    frontend_contract::domain_types::AuthenticationRequirement::Permission(
-        frontend_contract::domain_types::ContractStr::from(permission.as_str().get()),
-    )
+) -> frontend_contract::AuthenticationRequirement {
+    frontend_contract::AuthenticationRequirement::Permission(frontend_contract::ContractStr::from(
+        permission.as_str().get(),
+    ))
 }

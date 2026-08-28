@@ -2,9 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::domain_types::{
-    GIT_INFO_STRING_MAX_LEN, GitCommitIdRef, GitInfoStringTryFromStringError,
-};
+use crate::{GIT_INFO_STRING_MAX_LEN, GitCommitIdRef, GitInfoStringTryFromStringError};
 
 #[derive(
     Debug,
@@ -19,25 +17,13 @@ use crate::domain_types::{
 )]
 #[try_from(
     error = GitInfoStringTryFromStringError,
-    validator = GitCommitId::validate
+    validator = |value: &str| {
+        if value.len() > GIT_INFO_STRING_MAX_LEN {
+            Err(GitInfoStringTryFromStringError::TooLong { len: value.len(), max: GIT_INFO_STRING_MAX_LEN })
+        } else { Ok(()) }
+    }
 )]
 pub struct GitCommitId(pub(super) String);
-impl GitCommitId {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "derive-generated TryFrom owns the single validation call"
-    )]
-    const fn validate(value: &str) -> Result<(), GitInfoStringTryFromStringError> {
-        if value.len() > GIT_INFO_STRING_MAX_LEN {
-            Err(GitInfoStringTryFromStringError::TooLong {
-                len: value.len(),
-                max: GIT_INFO_STRING_MAX_LEN,
-            })
-        } else {
-            Ok(())
-        }
-    }
-}
 impl From<GitCommitIdRef<'_>> for GitCommitId {
     fn from(value: GitCommitIdRef<'_>) -> Self {
         Self::try_from(value.0.to_owned()).unwrap_or_else(Self::from)

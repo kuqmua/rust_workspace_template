@@ -1,4 +1,4 @@
-use crate::domain_types::{DatabaseUrlError, validate_database_url};
+use crate::domain_types::DatabaseUrlError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -9,5 +9,11 @@ use crate::domain_types::{DatabaseUrlError, validate_database_url};
     newtype::AsRefStr,
     newtype::TryFrom,
 )]
-#[try_from(validator = validate_database_url)]
+#[try_from(validator = |value: &str| {
+    if value.trim().is_empty() {
+        Err(DatabaseUrlError::Empty)
+    } else if value.len() > constants_usize::VALUE_8_192 {
+        Err(DatabaseUrlError::TooLong)
+    } else { Ok(()) }
+})]
 pub struct DatabaseUrl(String);

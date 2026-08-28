@@ -8,7 +8,7 @@ use super::{AdminPagePathRef, admin_path_route_name};
     PartialEq,
     Eq,
     strum_macros::IntoStaticStr,
-    frontend_contract::domain_types::UnitEnumCatalog,
+    frontend_contract::UnitEnumCatalog,
 )]
 pub enum AdminHtmlAction {
     #[strum(serialize = "/admin/actions/profile/password")]
@@ -48,15 +48,15 @@ impl AdminHtmlAction {
         <&'static str>::from(self)
     }
     #[must_use]
-    pub fn route_name(self) -> frontend_contract::domain_types::ContractStr {
+    pub fn route_name(self) -> frontend_contract::ContractStr {
         admin_path_route_name(AdminPagePathRef::from(self.get()))
     }
 }
-impl frontend_contract::domain_types::RouteRegistrationContract for AdminHtmlAction {
-    fn method(self) -> frontend_contract::domain_types::RouteMethod {
-        frontend_contract::domain_types::RouteMethod::Post
+impl frontend_contract::RouteRegistrationContract for AdminHtmlAction {
+    fn method(self) -> frontend_contract::RouteMethod {
+        frontend_contract::RouteMethod::Post
     }
-    fn path(self) -> frontend_contract::domain_types::RegisteredRoutePath {
-        frontend_contract::domain_types::RegisteredRoutePath::from(self.get())
+    fn path(self) -> frontend_contract::RegisteredRoutePath {
+        frontend_contract::RegisteredRoutePath::from(self.get())
     }
 }

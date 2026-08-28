@@ -17,7 +17,7 @@ pub struct AdminAuthSvcState {
     pub(crate) issuer: config_lib::domain_types::AdminTokenIssuer,
     pub(crate) password_hasher: crate::AdminPasswordHasher,
     pub(crate) policy: AdminAuthPolicy,
-    pub(crate) pool: app_state::domain_types::SqlxPgPool,
+    pub(crate) pool: app_state::SqlxPgPool,
     pub(crate) refresh_ttl: StdAdminRefreshTtlSeconds,
     pub(crate) session_limit: StdAdminSessionLimit,
     pub(crate) cookie_secure: crate::AdminCookieSecure,

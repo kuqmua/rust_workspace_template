@@ -22,9 +22,17 @@ impl HttpMetricsLayer {
     #[must_use]
     pub fn new(path_cache_maximum: super::HttpMetricsPathCacheMaximum) -> Self {
         Self {
-            paths: super::SharedHttpMetricsPathCacheArc::from(super::HttpMetricsPathCache::new(
-                path_cache_maximum,
-            )),
+            paths: super::SharedHttpMetricsPathCacheArc::from(super::HttpMetricsPathCache {
+                entries: super::HttpMetricsPathEntriesRwLock::from(std::sync::RwLock::new(
+                    std::collections::HashMap::with_capacity(
+                        path_cache_maximum.0.get().min(constants_usize::VALUE_4_096),
+                    ),
+                )),
+                maximum: path_cache_maximum,
+                unmatched: super::MetricsSharedString::from(metrics::SharedString::const_str(
+                    constants_str::HTTP_METRICS_UNMATCHED_PATH,
+                )),
+            }),
         }
     }
 }

@@ -2,6 +2,7 @@
     clippy::items_after_test_module,
     reason = "generated filter implementations remain after focused collection tests"
 )]
+
 #[derive(
     Debug,
     Clone,

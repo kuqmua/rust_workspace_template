@@ -11,12 +11,10 @@
 )]
 pub struct AdminSwaggerEnabled(bool);
 impl crate::TryFromStdEnvVarOk for AdminSwaggerEnabled {
-    type Error = super::try_from_std_env_var_ok_admin_cookie_secure_error::TryFromStdEnvVarOkAdminCookieSecureError;
+    type Error = crate::ParseBoolError;
     fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            super::try_from_std_env_var_ok_admin_cookie_secure_error::TryFromStdEnvVarOkAdminCookieSecureError::from(super::admin_bool_parsing_error::AdminBoolParsingError::from(
-                crate::ParseBoolError::from(admin_bool_parsing),
-            ))
-        })
+        v.0.parse::<bool>()
+            .map(Self)
+            .map_err(crate::ParseBoolError::from)
     }
 }

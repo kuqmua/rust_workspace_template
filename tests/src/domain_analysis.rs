@@ -27,7 +27,12 @@ impl StringWrapperFromVisitor<'_> {
             return;
         }
         let has_derive = item_ref.attrs.iter().any(|attr| {
-            super::attr_has_bounded_string_derive(super::types::SynAttributeRef::from(attr)).get()
+            attr.path().is_ident(constants_str::DERIVE)
+                && attr.meta.require_list().is_ok_and(|list| {
+                    list.tokens
+                        .to_string()
+                        .contains(constants_str::BOUNDEDSTRING)
+                })
         });
         let has_max_bound = item_ref.attrs.iter().any(|attr| {
             if !attr.path().is_ident(constants_str::BOUNDED_STRING) {
@@ -51,7 +56,17 @@ impl StringWrapperFromVisitor<'_> {
         }
     }
     fn check_from_impl(&mut self, item: super::types::SynItemImplRef<'_>) {
-        if !super::item_impl_is_from_string(item).get() {
+        let is_from_string = super::types::AnalyzerBool::from(
+            item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
+                super::path_ends_with(
+                    super::types::SynPathRef::from(path),
+                    super::types::StaticStrSliceRef::from([constants_str::FROM_ALT_3].as_slice()),
+                )
+                .get()
+                    && super::from_trait_arg_is_string(super::types::SynPathRef::from(path)).get()
+            }),
+        );
+        if !is_from_string.get() {
             return;
         }
         let identifier = super::item_impl_self_ty_identifier(item).map_or_else(
@@ -68,7 +83,12 @@ impl StringWrapperFromVisitor<'_> {
             return;
         }
         if item_ref.attrs.iter().any(|attr| {
-            super::attr_has_newtype_from_option(super::types::SynAttributeRef::from(attr)).get()
+            attr.path().is_ident(constants_str::DERIVE)
+                && attr.meta.require_list().is_ok_and(|list| {
+                    list.tokens
+                        .to_string()
+                        .contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME)
+                })
         }) {
             self.ers.push(format!(
                         "string wrapper `{}` derives `newtype::FromInner`; derive `newtype::TryFrom` with a length check instead",
@@ -171,7 +191,17 @@ impl StringWrapperFromVisitor<'_> {
         }
     }
     fn check_try_from_impl(&mut self, item: super::types::SynItemImplRef<'_>) {
-        if !super::item_impl_is_try_from_string(item).get() {
+        let is_try_from_string = super::types::AnalyzerBool::from(
+            item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
+                super::path_ends_with(
+                    super::types::SynPathRef::from(path),
+                    super::types::StaticStrSliceRef::from([constants_str::TRYFROM].as_slice()),
+                )
+                .get()
+                    && super::from_trait_arg_is_string(super::types::SynPathRef::from(path)).get()
+            }),
+        );
+        if !is_try_from_string.get() {
             return;
         }
         let Some(identifier) = super::item_impl_self_ty_identifier(item) else {
@@ -183,7 +213,11 @@ impl StringWrapperFromVisitor<'_> {
         let _: bool = self
             .try_from_string_names
             .insert(String::from(identifier.clone()));
-        if super::item_impl_contains_len_call(item).get() {
+        let mut len_call_visitor = LenMethodCallVisitor {
+            found: super::types::AnalyzerBool::default(),
+        };
+        syn::visit::Visit::visit_item_impl(&mut len_call_visitor, item.as_ref());
+        if len_call_visitor.found.get() {
             let _: bool = self
                 .try_from_string_len_checked_names
                 .insert(String::from(identifier));
@@ -395,7 +429,14 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
             syn::visit::visit_item_impl(self, i);
             return;
         };
-        if super::item_impl_is_from(item_ref).get() {
+        let is_from = super::types::AnalyzerBool::from(
+            item_ref.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
+                path.segments
+                    .last()
+                    .is_some_and(|segment| segment.ident == constants_str::FROM_ALT_3)
+            }),
+        );
+        if is_from.get() {
             let _: bool = self.from_names.insert(name.as_ref().to_owned());
             if let Some(inner_type) = self.inner_types.get(name.as_ref())
                 && super::item_impl_input_type_is(item_ref, inner_type).get()
@@ -403,7 +444,14 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 let _: bool = self.from_inner_names.insert(name.as_ref().to_owned());
             }
         }
-        if super::item_impl_is_try_from(item_ref).get() {
+        let is_try_from = super::types::AnalyzerBool::from(
+            item_ref.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
+                path.segments
+                    .last()
+                    .is_some_and(|segment| segment.ident == constants_str::TRYFROM)
+            }),
+        );
+        if is_try_from.get() {
             let _: bool = self.try_from_names.insert(name.as_ref().to_owned());
             if let Some(inner_type) = self.inner_types.get(name.as_ref())
                 && super::item_impl_input_type_is(item_ref, inner_type).get()
@@ -428,7 +476,6 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
             {
                 drop(self.inner_types.insert(name.clone(), field.ty.clone()));
             }
-            let item_ref = super::types::SynItemStructRef::from(i);
             let derives_from_inner = i.attrs.iter().any(|attr| {
                 if !attr.path().is_ident(constants_str::DERIVE) {
                     return false;
@@ -445,11 +492,39 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 let _: bool = self.from_names.insert(name.clone());
                 let _: bool = self.from_inner_names.insert(name.clone());
             }
-            if super::item_struct_derives_try_from(item_ref).get() {
+            let derives_try_from = i.attrs.iter().any(|attr| {
+                if !attr.path().is_ident(constants_str::DERIVE) {
+                    return false;
+                }
+                match &attr.meta {
+                    syn::Meta::List(list) => {
+                        let tokens = list.tokens.to_string();
+                        tokens.contains(constants_str::NEWTYPE_TRY_FROM_DERIVE_NAME)
+                            || tokens.contains(constants_str::BOUNDEDSTRING)
+                            || tokens.contains(constants_str::TRYFROM)
+                    }
+                    syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+                }
+            });
+            if derives_try_from {
                 let _: bool = self.try_from_names.insert(name.clone());
                 let _: bool = self.try_from_inner_names.insert(name.clone());
             }
-            if super::item_struct_derives_conversion(item_ref).get() {
+            let derives_conversion = i.attrs.iter().any(|attr| {
+                if !attr.path().is_ident(constants_str::DERIVE) {
+                    return false;
+                }
+                match &attr.meta {
+                    syn::Meta::List(list) => {
+                        let tokens = list.tokens.to_string();
+                        tokens.contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME)
+                            || tokens.contains(constants_str::BOUNDEDSTRING)
+                            || tokens.contains(constants_str::TRYFROM)
+                    }
+                    syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+                }
+            });
+            if derives_conversion {
                 let _: bool = self.converted_names.insert(name);
             }
         }
@@ -533,10 +608,21 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         )
         .get()
         {
-            super::collect_generate_pg_types_domain_names(
-                super::types::SourceTextRef::from(i.tokens.to_string().as_str()),
-                &mut self.names,
-            );
+            let tokens = i.tokens.to_string();
+            let pattern = regex::Regex::new(constants_str::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS)
+                .expect("f4e61b29 generated PostgreSQL type name pattern invariant must hold");
+            pattern
+                .captures_iter(tokens.as_str())
+                .filter_map(|captures| {
+                    let base = captures.get(1).map(|element| element.as_str())?;
+                    base.split_once(constants_str::AS)
+                })
+                .for_each(|(prefix, suffix)| {
+                    let _: bool = self.names.insert(format!("{prefix}AsNonNull{suffix}"));
+                    let _: bool = self
+                        .names
+                        .insert(format!("Optional{prefix}AsNullable{suffix}"));
+                });
         }
         let path = super::types::SynPathRef::from(&i.path);
         let config_lib_domain_type_macro = super::path_ends_with(
@@ -1274,9 +1360,26 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         } else {
             root_segment_ref
         };
-        let expected_fragment = super::identifier_to_upper_camel_fragment(
-            super::types::SynIdentifierRef::from(&required_segment.ident),
+        let (fragment_text, _) = required_segment.ident.to_string().chars().fold(
+            (String::new(), true),
+            |(mut output, mut next_upper), character| {
+                if character == '_' {
+                    next_upper = true;
+                    return (output, next_upper);
+                }
+                if next_upper {
+                    character
+                        .to_uppercase()
+                        .for_each(|uppercase| output.push(uppercase));
+                    next_upper = false;
+                } else {
+                    output.push(character);
+                }
+                (output, next_upper)
+            },
         );
+        let expected_fragment = super::types::SourceText::try_from(fragment_text)
+            .expect("9ea072c4 external wrapper name fragment invariant must hold");
         let identifier = item_ref.ident.to_string();
         if identifier.contains(expected_fragment.as_ref()) {
             return;

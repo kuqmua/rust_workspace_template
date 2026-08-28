@@ -8,9 +8,5 @@
     newtype::FromInner,
 )]
 pub struct ProcessArguments(
-    bounded_types::domain_types::vector::BoundedVec<
-        crate::domain_types::ProcessArgument,
-        0,
-        { usize::MAX },
-    >,
+    bounded_types::BoundedVec<crate::domain_types::ProcessArgument, 0, { usize::MAX }>,
 );

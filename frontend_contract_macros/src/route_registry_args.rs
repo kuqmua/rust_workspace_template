@@ -1,4 +1,4 @@
-use crate::domain_types::{
+use crate::{
     SynExpr, SynRouteRegistryBindings, SynRouteRegistryFamily, SynRouteRegistrySchemas,
     SynRouteRegistryState,
 };
@@ -6,38 +6,10 @@ use crate::domain_types::{
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct RouteRegistryArgs {
-    authenticated_security: SynExpr,
-    bindings: SynRouteRegistryBindings,
-    csrf_security: SynExpr,
-    family: SynRouteRegistryFamily,
-    schemas: SynRouteRegistrySchemas,
-    state: SynRouteRegistryState,
-}
-#[allow(
-    dead_code,
-    reason = "field access is intentionally encapsulated behind uniform getters"
-)]
-impl RouteRegistryArgs {
-    #[allow(
-        clippy::single_call_fn,
-        clippy::too_many_arguments,
-        reason = "constructor mirrors the parsed field model"
-    )]
-    pub(crate) const fn new(
-        authenticated_security: SynExpr,
-        bindings: SynRouteRegistryBindings,
-        csrf_security: SynExpr,
-        family: SynRouteRegistryFamily,
-        schemas: SynRouteRegistrySchemas,
-        state: SynRouteRegistryState,
-    ) -> Self {
-        Self {
-            authenticated_security,
-            bindings,
-            csrf_security,
-            family,
-            schemas,
-            state,
-        }
-    }
+    pub authenticated_security: SynExpr,
+    pub bindings: SynRouteRegistryBindings,
+    pub csrf_security: SynExpr,
+    pub family: SynRouteRegistryFamily,
+    pub schemas: SynRouteRegistrySchemas,
+    pub state: SynRouteRegistryState,
 }

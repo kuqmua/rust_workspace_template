@@ -6,8 +6,8 @@ pub(crate) use crate::test_env::test_env;
 
 #[cfg(test)]
 mod tests {
-    fn make_git_info() -> git_info::domain_types::ProjectGitInfo<'static> {
-        git_info::domain_types::ProjectGitInfo::from(git_info::domain_types::GitCommitIdRef::from(
+    fn make_git_info() -> git_info::ProjectGitInfo<'static> {
+        git_info::ProjectGitInfo::from(git_info::GitCommitIdRef::from(
             constants_str::TEST_VALUES_COMMIT,
         ))
     }
@@ -22,12 +22,10 @@ mod tests {
         )
         .expect("3879e38d env invariant must hold")
     }
-    fn make_structure(
-        project_git_info: git_info::domain_types::ProjectGitInfo<'_>,
-    ) -> super::ServerAppState<'_> {
+    fn make_structure(project_git_info: git_info::ProjectGitInfo<'_>) -> super::ServerAppState<'_> {
         super::ServerAppState {
-            bulk_item_budget: server_runtime_core::domain_types::ResourceBudget::new(
-                server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(128usize)
+            bulk_item_budget: server_runtime_core::ResourceBudget::new(
+                server_runtime_core::ResourceBudgetMaximum::try_from(128usize)
                     .expect("837f89a0 make_structure invariant must hold"),
             ),
             config: server_config::domain_types::Config {
@@ -90,12 +88,12 @@ mod tests {
                 ),
                 admin_cookie_secure: app_state_test_env(constants_str::FALSE),
             },
-            pg_pool: app_state::domain_types::SqlxPgPool::from(
+            pg_pool: app_state::SqlxPgPool::from(
                 sqlx::PgPool::connect_lazy(constants_str::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
                     .expect("4bd3f0a1 make_structure invariant must hold"),
             ),
-            idempotency_response_budget: server_runtime_core::domain_types::ResourceBudget::new(
-                server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(
+            idempotency_response_budget: server_runtime_core::ResourceBudget::new(
+                server_runtime_core::ResourceBudgetMaximum::try_from(
                     constants_usize::VALUE_1_048_576,
                 )
                 .expect("926ce310 make_structure invariant must hold"),
@@ -140,9 +138,8 @@ mod tests {
     async fn sqlx_pg_pool_returns_same_pool_ref() {
         let git_info = make_git_info();
         let structure = make_structure(git_info);
-        let lhs = std::ptr::from_ref(
-            app_state::domain_types::SqlxPgPoolProvider::sqlx_pg_pool(&structure).as_ref(),
-        );
+        let lhs =
+            std::ptr::from_ref(app_state::SqlxPgPoolProvider::sqlx_pg_pool(&structure).as_ref());
         let rhs = std::ptr::from_ref(structure.pg_pool.as_ref());
         assert_eq!(lhs, rhs);
     }
@@ -156,8 +153,8 @@ mod tests {
         let structure = make_structure(git_info);
         assert_eq!(structure.as_ref(), constants_str::TEST_VALUES_COMMIT);
         assert_eq!(
-            git_info::domain_types::GitCommitLinkProvider::build_git_commit_link(&structure),
-            git_info::domain_types::build_git_commit_link(constants_str::TEST_VALUES_COMMIT)
+            git_info::GitCommitLinkProvider::build_git_commit_link(&structure),
+            git_info::build_git_commit_link(constants_str::TEST_VALUES_COMMIT)
         );
     }
 }

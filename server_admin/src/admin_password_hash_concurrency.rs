@@ -11,4 +11,4 @@
     Eq,
     newtype::FromInner,
 )]
-pub struct AdminPasswordHashConcurrency(pub(crate) crate::AdminNonZeroUsize);
+pub struct AdminPasswordHashConcurrency(pub(crate) std::num::NonZeroUsize);

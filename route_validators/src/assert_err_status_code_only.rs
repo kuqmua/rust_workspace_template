@@ -4,9 +4,9 @@ use super::{TestExpId, assert_err_status_code};
 pub(crate) fn assert_err_status_code_only<T, E>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
-    expected: crate::domain_types::AxumHttpStatusCode,
+    expected: crate::AxumHttpStatusCode,
 ) where
-    E: crate::domain_types::AxumHttpStatusCodeProvider,
+    E: crate::AxumHttpStatusCodeProvider,
 {
     drop(assert_err_status_code(v, exp_id, expected));
 }

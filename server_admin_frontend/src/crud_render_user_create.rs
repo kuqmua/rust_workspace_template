@@ -11,8 +11,8 @@
 #[rustfmt::skip]
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
 
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
-pub(super) fn crud_render_user_create(
+#[must_use]
+pub fn render_user_create(
     admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
     branding: &server_admin_contract::domain_types::AdminBrandingView,
 ) -> super::AdminSsrHtml {

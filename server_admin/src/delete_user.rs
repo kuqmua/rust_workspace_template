@@ -1,4 +1,4 @@
-#[frontend_contract::domain_types::route_error(AdminHtmlDeleteUserError)]
+#[frontend_contract::route_error(AdminHtmlDeleteUserError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn delete_user(
     auth: crate::AdminAuthReq,

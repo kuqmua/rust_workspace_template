@@ -14,8 +14,8 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
         self.0.capacity()
     }
 
-    pub fn validate_bounds() -> Result<(), crate::domain_types::BoundedValueError> {
-        crate::validate_len::<MIN, MAX>(crate::domain_types::BoundedLen::from(MIN))
+    pub fn validate_bounds() -> Result<(), crate::BoundedValueError> {
+        crate::validate_len::<MIN, MAX>(crate::BoundedLen::from(MIN))
     }
 
     #[must_use]
@@ -29,29 +29,26 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     }
 
     #[must_use]
-    pub fn len(&self) -> crate::domain_types::BoundedLen {
-        crate::domain_types::BoundedLen::from(self.0.len())
+    pub fn len(&self) -> crate::BoundedLen {
+        crate::BoundedLen::from(self.0.len())
     }
 
-    pub fn try_push(&mut self, value: T) -> Result<(), crate::domain_types::BoundedValueError> {
+    pub fn try_push(&mut self, value: T) -> Result<(), crate::BoundedValueError> {
         let next_len = self
             .0
             .len()
             .checked_add(constants_usize::ONE)
-            .ok_or_else(|| crate::domain_types::BoundedValueError::AboveMax {
-                actual: crate::domain_types::BoundedLen::from(usize::MAX),
-                max: crate::domain_types::BoundedLen::from(MAX),
+            .ok_or_else(|| crate::BoundedValueError::AboveMax {
+                actual: crate::BoundedLen::from(usize::MAX),
+                max: crate::BoundedLen::from(MAX),
             })?;
-        crate::validate_len::<0, MAX>(crate::domain_types::BoundedLen::from(next_len))
+        crate::validate_len::<0, MAX>(crate::BoundedLen::from(next_len))
             .map(|()| self.0.push(value))
     }
 }
 impl<T> BoundedVec<T, 0, { usize::MAX }> {
-    pub fn try_from_collection_vec(
-        value: Vec<T>,
-    ) -> Result<Self, crate::domain_types::BoundedValueError> {
-        let bounded_value =
-            BoundedVec::<T, 0, { crate::domain_types::COLLECTION_MAX_LEN }>::try_from(value)?;
+    pub fn try_from_collection_vec(value: Vec<T>) -> Result<Self, crate::BoundedValueError> {
+        let bounded_value = BoundedVec::<T, 0, { crate::COLLECTION_MAX_LEN }>::try_from(value)?;
         Self::try_from(bounded_value.into_inner())
     }
 
@@ -86,11 +83,10 @@ impl<T, const MAX: usize> From<[T; 0]> for BoundedVec<T, 0, MAX> {
     }
 }
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {
-    type Error = crate::domain_types::BoundedValueError;
+    type Error = crate::BoundedValueError;
 
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        crate::validate_len::<MIN, MAX>(crate::domain_types::BoundedLen::from(value.len()))
-            .map(|()| Self(value))
+        crate::validate_len::<MIN, MAX>(crate::BoundedLen::from(value.len())).map(|()| Self(value))
     }
 }
 impl<T, const MIN: usize, const MAX: usize> AsRef<[T]> for BoundedVec<T, MIN, MAX> {
@@ -164,7 +160,7 @@ mod tests {
         assert!(matches!(value.try_push(1u8), Ok(())));
         assert!(matches!(
             value.try_push(2u8),
-            Err(crate::domain_types::BoundedValueError::AboveMax { .. })
+            Err(crate::BoundedValueError::AboveMax { .. })
         ));
     }
 

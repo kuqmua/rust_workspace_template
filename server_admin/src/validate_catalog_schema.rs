@@ -1,12 +1,12 @@
 use crate::{
-    AdminGeneratedTable, AdminGeneratedTablesValidationError, AdminPermissions,
-    AdminRolePermissions, AdminRoles, AdminSystemSettings, AdminUserRoles, AdminUsers,
+    AdminGeneratedTable, AdminPermissions, AdminRolePermissions, AdminRoles, AdminSystemSettings,
+    AdminUserRoles, AdminUsers,
 };
 
 pub async fn validate_catalog_schema(
     pool: pg_crud_common::domain_types::SqlxPgPoolRef<'_>,
     schema: pg_crud_common::domain_types::DbSchemaNameRef<'_>,
-) -> Result<(), AdminGeneratedTablesValidationError> {
+) -> Result<(), pg_crud_common::domain_types::DbSchemaConformanceError> {
     futures::future::try_join_all(AdminGeneratedTable::ALL.into_iter().map(|table| {
         let table_pool = pool;
         let table_schema = schema;
@@ -14,7 +14,7 @@ pub async fn validate_catalog_schema(
             async fn validate_generated_table<Table>(
                 pool: pg_crud_common::domain_types::SqlxPgPoolRef<'_>,
                 schema: pg_crud_common::domain_types::DbSchemaNameRef<'_>,
-            ) -> Result<(), AdminGeneratedTablesValidationError>
+            ) -> Result<(), pg_crud_common::domain_types::DbSchemaConformanceError>
             where
                 Table: pg_crud_common::domain_types::DbTableSchema,
             {
@@ -22,7 +22,6 @@ pub async fn validate_catalog_schema(
                     pool, schema,
                 )
                 .await
-                .map_err(AdminGeneratedTablesValidationError::from)
             }
             match table {
                 AdminGeneratedTable::Roles => {

@@ -2,15 +2,7 @@
     unused_imports,
     unreachable_pub,
     clippy::arbitrary_source_item_ordering,
-    clippy::field_scoped_visibility_modifiers,
-    clippy::future_not_send,
-    clippy::impl_trait_in_params,
-    clippy::indexing_slicing,
-    clippy::missing_const_for_fn,
     clippy::multiple_inherent_impl,
-    clippy::needless_pass_by_value,
-    clippy::option_if_let_else,
-    clippy::same_name_method,
     clippy::shadow_reuse,
     clippy::tests_outside_test_module,
     clippy::unused_trait_names,
@@ -90,16 +82,8 @@ pub(crate) use crate::admin_csrf_token::*;
 mod admin_data_grid;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use crate::admin_data_grid::*;
-mod admin_data_grid_column;
-pub(crate) use crate::admin_data_grid_column::*;
-mod admin_data_grid_filter;
-pub(crate) use crate::admin_data_grid_filter::*;
-mod admin_data_grid_filter_option;
-pub(crate) use crate::admin_data_grid_filter_option::*;
 mod admin_data_grid_input_type;
 pub(crate) use crate::admin_data_grid_input_type::*;
-mod admin_data_grid_row;
-pub(crate) use crate::admin_data_grid_row::*;
 mod admin_data_table_grid;
 pub(crate) use crate::admin_data_table_grid::*;
 #[cfg(any(target_arch = "wasm32", test))]
@@ -112,10 +96,6 @@ mod admin_field_label;
 pub(crate) use crate::admin_field_label::*;
 mod admin_filter_hidden_inputs;
 pub(crate) use crate::admin_filter_hidden_inputs::*;
-mod admin_filter_range_end;
-pub(crate) use crate::admin_filter_range_end::*;
-mod admin_filter_value;
-pub(crate) use crate::admin_filter_value::*;
 #[cfg(target_arch = "wasm32")]
 mod admin_http_status;
 #[cfg(target_arch = "wasm32")]
@@ -178,18 +158,12 @@ mod admin_sessions_view;
 pub(crate) use crate::admin_sessions_view::*;
 mod admin_setting_disabled;
 pub(crate) use crate::admin_setting_disabled::*;
-mod admin_setting_input;
-pub(crate) use crate::admin_setting_input::*;
 mod admin_setting_input_value;
 pub(crate) use crate::admin_setting_input_value::*;
 mod admin_setting_inputs;
 pub(crate) use crate::admin_setting_inputs::*;
 mod admin_setting_required;
 pub(crate) use crate::admin_setting_required::*;
-mod admin_setting_text;
-pub(crate) use crate::admin_setting_text::*;
-mod admin_setting_textarea;
-pub(crate) use crate::admin_setting_textarea::*;
 mod admin_settings_form_signals;
 pub(crate) use crate::admin_settings_form_signals::*;
 mod admin_settings_form_values;
@@ -362,8 +336,6 @@ pub(crate) use crate::fetch_json::*;
 mod fetch_page;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use crate::fetch_page::*;
-mod filter;
-pub(crate) use crate::filter::*;
 #[cfg(target_arch = "wasm32")]
 mod http;
 #[cfg(target_arch = "wasm32")]
@@ -378,10 +350,6 @@ pub(crate) use crate::leptos_admin_input_signal::*;
 mod location;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use crate::location::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod page_render;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::page_render::*;
 #[cfg(not(target_arch = "wasm32"))]
 mod page_render_with_access;
 #[cfg(not(target_arch = "wasm32"))]
@@ -417,22 +385,6 @@ mod render_admin_page_with_table_access;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::render_admin_page_with_table_access::*;
 #[cfg(not(target_arch = "wasm32"))]
-mod render_admin_permissions_page;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_admin_permissions_page::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_admin_profile_page;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_admin_profile_page::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_admin_sessions_page;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_admin_sessions_page::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_admin_settings_page;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_admin_settings_page::*;
-#[cfg(not(target_arch = "wasm32"))]
 mod render_data_tables;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::render_data_tables::*;
@@ -453,14 +405,6 @@ mod render_profile;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::render_profile::*;
 #[cfg(not(target_arch = "wasm32"))]
-mod render_role_create;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_role_create::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_role_manage;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_role_manage::*;
-#[cfg(not(target_arch = "wasm32"))]
 mod render_roles;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::render_roles::*;
@@ -473,10 +417,6 @@ mod render_settings;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::render_settings::*;
 #[cfg(not(target_arch = "wasm32"))]
-mod render_sign_in;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_sign_in::*;
-#[cfg(not(target_arch = "wasm32"))]
 mod render_text_page;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::render_text_page::*;
@@ -484,14 +424,6 @@ pub(crate) use crate::render_text_page::*;
 mod render_text_page_with_access;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::render_text_page_with_access::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_user_create;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_user_create::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_user_manage;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::render_user_manage::*;
 #[cfg(not(target_arch = "wasm32"))]
 mod render_users;
 #[cfg(not(target_arch = "wasm32"))]
@@ -524,18 +456,6 @@ pub(crate) use crate::show_mutation_error::*;
 pub mod ssr;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use crate::ssr::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod ssr_admin_nav;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::ssr_admin_nav::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod ssr_admin_role_row;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::ssr_admin_role_row::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod ssr_admin_user_row;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crate::ssr_admin_user_row::*;
 #[cfg(target_arch = "wasm32")]
 mod start;
 #[cfg(target_arch = "wasm32")]

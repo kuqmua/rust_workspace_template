@@ -5,7 +5,7 @@ use crate::{
 };
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::domain_types::endpoint_registry(
+#[frontend_contract::endpoint_registry(
     state = crate::SharedAdminAuthSvcStateArc;
     (server_admin_contract::domain_types::AdminFrontendPath::SignIn, sign_in_page),
     (server_admin_contract::domain_types::AdminFrontendPath::Tables, data_tables),

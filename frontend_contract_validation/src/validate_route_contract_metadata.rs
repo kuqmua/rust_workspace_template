@@ -1,6 +1,6 @@
 pub fn validate_route_contract_metadata(
-    expected: frontend_contract::domain_types::RouteMetadata,
-    observed: frontend_contract::domain_types::RouteMetadata,
+    expected: frontend_contract::RouteMetadata,
+    observed: frontend_contract::RouteMetadata,
 ) -> Result<(), crate::route_contract_validation::RouteContractMismatches> {
     let mut mismatches = Vec::with_capacity(3usize);
     if expected.method() != observed.method() {
@@ -32,7 +32,7 @@ pub fn validate_route_contract_metadata(
     } else {
         Err(
             crate::route_contract_validation::RouteContractMismatches::from(
-                bounded_types::domain_types::vector::BoundedVec::from_max_iter(mismatches),
+                bounded_types::BoundedVec::from_max_iter(mismatches),
             ),
         )
     }

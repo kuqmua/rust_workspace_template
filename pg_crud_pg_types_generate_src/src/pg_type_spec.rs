@@ -20,15 +20,8 @@ mod tests {
             wire_kind: 32u8,
         };
         assert!(crate::domain_types::sqlx::pg_type_can_be_nullable::pg_type_can_be_nullable(spec));
-        assert!(
-            !crate::domain_types::sqlx::pg_type_can_be_primary_key::pg_type_can_be_primary_key(
-                spec
-            )
-        );
-        assert_eq!(
-            crate::domain_types::pg_type_filter_kind::pg_type_filter_kind(spec),
-            7u8
-        );
+        assert!(!spec.can_be_primary_key);
+        assert_eq!(spec.filter_kind, 7u8);
         assert_eq!(crate::domain_types::pg_name::pg_name(spec), "int4");
         assert_eq!(
             crate::domain_types::schema_wire_kind::schema_wire_kind(spec),

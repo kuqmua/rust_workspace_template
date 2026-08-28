@@ -4,7 +4,7 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationResourceIds(
-    pub(super)  bounded_types::domain_types::vector::BoundedVec<
+    pub(super)  bounded_types::BoundedVec<
         crate::domain_types::PgRelationResourceId,
         { constants_usize::ZERO },
         { crate::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },
@@ -17,7 +17,7 @@ impl TryFrom<Vec<crate::domain_types::PgRelationResourceId>> for PgRelationResou
     fn try_from(
         value: Vec<crate::domain_types::PgRelationResourceId>,
     ) -> Result<Self, Self::Error> {
-        let mut resources = bounded_types::domain_types::vector::BoundedVec::<
+        let mut resources = bounded_types::BoundedVec::<
             crate::domain_types::PgRelationResourceId,
             { constants_usize::ZERO },
             { crate::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },
@@ -26,7 +26,7 @@ impl TryFrom<Vec<crate::domain_types::PgRelationResourceId>> for PgRelationResou
         .into_inner();
         resources.sort_unstable();
         resources.dedup();
-        bounded_types::domain_types::vector::BoundedVec::try_from(resources)
+        bounded_types::BoundedVec::try_from(resources)
             .map(Self)
             .map_err(|_error| crate::domain_types::PgRelationLockError::TooManyResources)
     }

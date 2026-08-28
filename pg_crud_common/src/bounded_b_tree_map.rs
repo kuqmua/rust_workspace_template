@@ -14,8 +14,8 @@ impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
     type Error = super::bounded_b_tree_map_error::BoundedBTreeMapError;
 
     fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
-        bounded_types::domain_types::btree::BoundedBTreeMap::<K, V, MAX>::try_from(value)
-            .map(bounded_types::domain_types::btree::BoundedBTreeMap::into_inner)
+        bounded_types::BoundedBTreeMap::<K, V, MAX>::try_from(value)
+            .map(bounded_types::BoundedBTreeMap::into_inner)
             .map(Self)
             .map_err(|_error| {
                 super::bounded_b_tree_map_error::BoundedBTreeMapError::from(
@@ -43,11 +43,10 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
     where
         D: serde::Deserializer<'de>,
     {
-        let value =
-            <bounded_types::domain_types::btree::BoundedBTreeMap<K, V, MAX> as serde::Deserialize>::deserialize(
-                deserializer,
-            )?
-            .into_inner();
+        let value = <bounded_types::BoundedBTreeMap<K, V, MAX> as serde::Deserialize>::deserialize(
+            deserializer,
+        )?
+        .into_inner();
         Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }

@@ -4,7 +4,7 @@ use super::{AdminAuditCursor, AdminAuditView};
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract::domain_types::ContractStructApi,
+    frontend_contract::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,

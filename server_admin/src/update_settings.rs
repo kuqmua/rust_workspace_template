@@ -1,6 +1,6 @@
 pub(crate) use admin_html_settings_action_route_registry::AdminHtmlSettingsActionRouteRegistry;
 
-#[frontend_contract::domain_types::route_error(AdminHtmlUpdateSettingsError)]
+#[frontend_contract::route_error(AdminHtmlUpdateSettingsError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn update_settings(
     auth: crate::AdminAuthReq,

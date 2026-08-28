@@ -1,9 +1,9 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
 pub(crate) fn panic_with_location_message(
-    file: crate::domain_types::PanicFile<'_>,
-    line: crate::domain_types::PanicLine,
-    column: crate::domain_types::PanicColumn,
+    file: crate::PanicFile<'_>,
+    line: crate::PanicLine,
+    column: crate::PanicColumn,
 ) -> to_err_string::domain_types::ErrorText {
     to_err_string::domain_types::ErrorText::try_from(format!(
         "panic occurred in {}:{}:{}",
@@ -20,9 +20,9 @@ mod tests {
     fn panic_with_location_message_is_formatted_as_expected() {
         assert_eq!(
             super::panic_with_location_message(
-                crate::domain_types::PanicFile::from("src/lib.rs"),
-                crate::domain_types::PanicLine::from(7),
-                crate::domain_types::PanicColumn::from(11),
+                crate::PanicFile::from("src/lib.rs"),
+                crate::PanicLine::from(7),
+                crate::PanicColumn::from(11),
             )
             .as_ref(),
             "panic occurred in src/lib.rs:7:11"

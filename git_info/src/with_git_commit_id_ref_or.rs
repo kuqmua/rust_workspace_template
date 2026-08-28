@@ -1,4 +1,4 @@
-use crate::domain_types::{GitCommitIdProvider, GitCommitIdRef};
+use crate::{GitCommitIdProvider, GitCommitIdRef};
 
 pub(crate) fn with_git_commit_id_ref_or<'src, T, R>(
     src: &'src T,

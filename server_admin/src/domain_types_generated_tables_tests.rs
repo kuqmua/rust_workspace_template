@@ -1,24 +1,19 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct ClientTransport;
-impl frontend_contract::domain_types::Transport for ClientTransport {
+impl frontend_contract::Transport for ClientTransport {
     fn send(
         &self,
-        _request: frontend_contract::domain_types::TransportRequest,
+        _request: frontend_contract::TransportRequest,
     ) -> impl Future<
-        Output = Result<
-            frontend_contract::domain_types::TransportResponse,
-            frontend_contract::domain_types::TransportError,
-        >,
+        Output = Result<frontend_contract::TransportResponse, frontend_contract::TransportError>,
     > + '_ {
-        std::future::ready(Err(
-            frontend_contract::domain_types::TransportError::default(),
-        ))
+        std::future::ready(Err(frontend_contract::TransportError::default()))
     }
 }
 
 fn typed_operation(
     document: &serde_json::Value,
-    metadata: frontend_contract::domain_types::RouteMetadata,
+    metadata: frontend_contract::RouteMetadata,
 ) -> &serde_json::Value {
     document
         .get(constants_str::PATHS)
@@ -141,7 +136,7 @@ fn every_typed_route_path_and_each_path_parameter_match_open_api() {
     let document =
         serde_json::to_value(utoipa::openapi::OpenApi::from(crate::generated_open_api()))
             .expect("ab2e610c every_typed_route_path_and_each_path_parameter_match_open_api invariant must hold");
-    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::route_metadata()
+    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
             .as_ref()
             .iter()
             .copied()
@@ -193,7 +188,7 @@ fn every_typed_route_query_parameter_matches_open_api_individually() {
     let document =
         serde_json::to_value(utoipa::openapi::OpenApi::from(crate::generated_open_api()))
             .expect("d083c1a9 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
-    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::route_metadata()
+    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
             .as_ref()
             .iter()
             .copied()
@@ -253,7 +248,7 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
         <server_admin_contract::domain_types::AdminNoBody as utoipa::PartialSchema>::schema(),
     )
     .expect("e185e575 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
-    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::schema_contracts()
+    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
             .as_ref()
             .iter()
             .for_each(|contract| {
@@ -297,7 +292,7 @@ fn proc_macro_generated_response_contracts_match_open_api() {
         utoipa::openapi::OpenApi::from(crate::generated_open_api()),
     )
     .expect("c4ddf19e proc_macro_generated_response_contracts_match_open_api invariant must hold");
-    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::schema_contracts()
+    <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
             .as_ref()
             .iter()
             .for_each(|contract| {
@@ -305,7 +300,7 @@ fn proc_macro_generated_response_contracts_match_open_api() {
                 let status = u16::from(metadata.success_status().transport_status()).to_string();
                 let actual_schema = typed_operation(&document, metadata)
                     .pointer(format!("/responses/{status}/content/application~1json/schema").as_str());
-                if metadata.success_status() == frontend_contract::domain_types::SuccessStatus::Code204 {
+                if metadata.success_status() == frontend_contract::SuccessStatus::Code204 {
                     assert!(actual_schema.is_none(), "unexpected response body for {}", metadata.openapi_operation_id().as_ref());
                     return;
                 }
@@ -419,7 +414,7 @@ fn generated_payload_example_routes_have_contracts_and_named_clients() {
     .expect("8fb87492 generated_payload_example_routes_have_contracts_and_named_clients invariant must hold");
     assert_eq!(
         contract.frontend_contract().method(),
-        frontend_contract::domain_types::RouteMethod::Get
+        frontend_contract::RouteMethod::Get
     );
     assert!(!contract.mutates());
     [
@@ -550,8 +545,8 @@ fn generated_frontend_filter_metadata_matches_api_filter_schema() {
     assert_eq!(
         login.filters().to_vec(),
         vec![
-            frontend_contract::domain_types::FilterOperation::Eq,
-            frontend_contract::domain_types::FilterOperation::Regex,
+            frontend_contract::FilterOperation::Eq,
+            frontend_contract::FilterOperation::Regex,
         ]
     );
     let schema = <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();

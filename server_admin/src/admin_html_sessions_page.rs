@@ -1,6 +1,6 @@
 use crate::csr_page;
 
-#[frontend_contract::domain_types::route_error(AdminSessionsPageError)]
+#[frontend_contract::route_error(AdminSessionsPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn admin_html_sessions_page(
     auth: crate::AdminAuthReq,

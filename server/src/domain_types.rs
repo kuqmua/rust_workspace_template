@@ -4,21 +4,8 @@ pub(crate) use crate::http_body_maximum_bytes::*;
 pub(crate) use crate::metrics_exporter_prometheus_build_error::*;
 pub(crate) use crate::metrics_exporter_prometheus_renderer::*;
 pub(crate) use crate::run_server_error::*;
-pub(crate) use crate::server_admin_auth_svc_state_build_error::*;
-pub(crate) use crate::server_admin_cleanup_cfg_error::*;
-pub(crate) use crate::server_admin_migrate_error::*;
-pub(crate) use crate::server_config_error::*;
-pub(crate) use crate::server_config_production_error::*;
 pub(crate) use crate::server_exit_code::*;
 pub(crate) use crate::server_io_error::*;
-pub(crate) use crate::server_observability_init_error::*;
-pub(crate) use crate::server_observability_shutdown_error::*;
-pub(crate) use crate::server_runtime_background_task_shutdown_error::*;
-pub(crate) use crate::server_runtime_content_security_policy_error::*;
-pub(crate) use crate::server_runtime_request_timeout_error::*;
-pub(crate) use crate::server_runtime_run_interval_error::*;
-pub(crate) use crate::server_runtime_serve_error::*;
-pub(crate) use crate::server_runtime_trusted_proxy_ranges_parse_error::*;
 pub(crate) use crate::shared_server_app_state_arc::*;
 pub(crate) use crate::sqlx_server_pg_connect_error::*;
 pub(crate) use crate::tokio_server_runtime::*;
@@ -40,7 +27,7 @@ mod tests {
 
     #[tokio::test]
     async fn operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
-        let operational_path = common_routes::domain_types::CommonRoute::HealthLive.path();
+        let operational_path = common_routes::CommonRoute::HealthLive.path();
         let router = axum::Router::from(crate::mount_service_routes::mount_service_routes(
             server_runtime_http::domain_types::AxumRouter::from(
                 axum::Router::new()

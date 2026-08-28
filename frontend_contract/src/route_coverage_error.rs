@@ -3,10 +3,10 @@ use super::RouteCoverageObligation;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteCoverageError {
     DuplicateRoute {
-        metadata: crate::domain_types::RouteMetadata,
+        metadata: crate::RouteMetadata,
     },
     Missing {
-        metadata: crate::domain_types::RouteMetadata,
+        metadata: crate::RouteMetadata,
         obligation: RouteCoverageObligation,
     },
 }

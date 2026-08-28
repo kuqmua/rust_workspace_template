@@ -1,8 +1,3 @@
-#![allow(
-    clippy::unused_trait_names,
-    reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
-)]
-
 pub use crate::admin_ssr_error_message::*;
 pub use crate::admin_ssr_html::*;
 pub use crate::admin_ssr_html_try_from_string_error::*;
@@ -10,14 +5,14 @@ pub use crate::admin_ssr_text::*;
 pub use crate::admin_ssr_text_try_from_string_error::*;
 #[cfg(test)]
 use crate::admin_ssr_view_ext::*;
-pub use crate::render_admin_permissions_page::*;
-pub use crate::render_admin_profile_page::*;
-pub use crate::render_admin_sessions_page::*;
-pub use crate::render_admin_settings_page::*;
-pub use crate::render_role_create::*;
-pub use crate::render_role_manage::*;
-pub use crate::render_user_create::*;
-pub use crate::render_user_manage::*;
+pub use crate::crud_render_role_create::*;
+pub use crate::crud_render_role_manage::*;
+pub use crate::crud_render_user_create::*;
+pub use crate::crud_render_user_manage::*;
+pub use crate::render_permissions::*;
+pub use crate::render_profile::*;
+pub use crate::render_sessions::*;
+pub use crate::render_settings::*;
 use crate::render_view::render_view;
 
 pub use self::data_tables::render_admin_csr::render_admin_csr;
@@ -101,28 +96,28 @@ pub(crate) mod admin_ssr_html {
     pub use crate::admin_ssr_html::*;
 }
 pub(crate) mod render_user_create {
-    pub use crate::render_user_create::*;
+    pub use crate::crud_render_user_create::*;
 }
 pub(crate) mod render_user_manage {
-    pub use crate::render_user_manage::*;
+    pub use crate::crud_render_user_manage::*;
 }
 pub(crate) mod render_role_create {
-    pub use crate::render_role_create::*;
+    pub use crate::crud_render_role_create::*;
 }
 pub(crate) mod render_role_manage {
-    pub use crate::render_role_manage::*;
+    pub use crate::crud_render_role_manage::*;
 }
 pub(crate) mod render_admin_permissions_page {
-    pub use crate::render_admin_permissions_page::*;
+    pub use crate::render_permissions::*;
 }
 pub(crate) mod render_admin_sessions_page {
-    pub use crate::render_admin_sessions_page::*;
+    pub use crate::render_sessions::*;
 }
 pub(crate) mod render_admin_profile_page {
-    pub use crate::render_admin_profile_page::*;
+    pub use crate::render_profile::*;
 }
 pub(crate) mod render_admin_settings_page {
-    pub use crate::render_admin_settings_page::*;
+    pub use crate::render_settings::*;
 }
 pub(crate) mod render_view {
     pub use crate::render_view::*;

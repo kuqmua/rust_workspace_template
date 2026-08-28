@@ -1,6 +1,4 @@
-use crate::domain_types::{
-    InitIoError, InitStringError, ServerRuntimeBoundedReadError, TomlInitError, WorkspaceMember,
-};
+use crate::domain_types::{InitIoError, InitStringError, TomlInitError, WorkspaceMember};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum InitializeError {
@@ -16,12 +14,12 @@ pub(crate) enum InitializeError {
     #[error("failed to read environment example")]
     ReadExample {
         #[source]
-        source: ServerRuntimeBoundedReadError,
+        source: server_runtime_http::domain_types::BoundedReadError,
     },
     #[error("failed to read workspace manifest")]
     ReadManifest {
         #[source]
-        source: ServerRuntimeBoundedReadError,
+        source: server_runtime_http::domain_types::BoundedReadError,
     },
     #[error(transparent)]
     String(#[from] InitStringError),

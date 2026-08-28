@@ -2,33 +2,14 @@ use crate::AdminCleanupRows;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupReport {
-    access_sessions: AdminCleanupRows,
-    audit_log: AdminCleanupRows,
-    idempotency: AdminCleanupRows,
-    login_attempts: AdminCleanupRows,
-    rate_limits: AdminCleanupRows,
-    refresh_tokens: AdminCleanupRows,
+    pub(crate) access_sessions: AdminCleanupRows,
+    pub(crate) audit_log: AdminCleanupRows,
+    pub(crate) idempotency: AdminCleanupRows,
+    pub(crate) login_attempts: AdminCleanupRows,
+    pub(crate) rate_limits: AdminCleanupRows,
+    pub(crate) refresh_tokens: AdminCleanupRows,
 }
 impl AdminCleanupReport {
-    #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
-    pub(crate) const fn new(
-        access_sessions: AdminCleanupRows,
-        audit_log: AdminCleanupRows,
-        idempotency: AdminCleanupRows,
-        login_attempts: AdminCleanupRows,
-        rate_limits: AdminCleanupRows,
-        refresh_tokens: AdminCleanupRows,
-    ) -> Self {
-        Self {
-            access_sessions,
-            audit_log,
-            idempotency,
-            login_attempts,
-            rate_limits,
-            refresh_tokens,
-        }
-    }
-
     #[must_use]
     pub fn total_rows(self) -> AdminCleanupRows {
         self.access_sessions

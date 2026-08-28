@@ -10,7 +10,7 @@ pub enum RuntimeTestError {
         notification_service_contract::domain_types::NotificationMessageTryFromStringError,
     ),
     #[error("runtime test report exceeded its result capacity: {0}")]
-    Report(#[source] bounded_types::domain_types::BoundedValueError),
+    Report(#[source] bounded_types::BoundedValueError),
     #[error("{test} request failed: {source}")]
     Request {
         #[source]

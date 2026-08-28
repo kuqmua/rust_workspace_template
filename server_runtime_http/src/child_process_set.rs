@@ -37,7 +37,7 @@ impl ChildProcessSet {
             maximum,
             next_id: super::ChildProcessId::from(constants_u64::ZERO),
             processes: super::StdCollectionsChildProcessMap::from(
-                bounded_types::domain_types::btree::BoundedBTreeMap::default(),
+                bounded_types::BoundedBTreeMap::default(),
             ),
         }
     }
@@ -56,7 +56,7 @@ impl ChildProcessSet {
             );
         }
         Ok(super::ChildProcessReports::from(
-            bounded_types::domain_types::vector::BoundedVec::from_max_iter(reports),
+            bounded_types::BoundedVec::from_max_iter(reports),
         ))
     }
 }

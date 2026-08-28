@@ -42,27 +42,23 @@ impl crate::AdminError {
         )
     }
 
-    const fn route_error_status(&self) -> frontend_contract::domain_types::RouteErrorStatus {
+    const fn route_error_status(&self) -> frontend_contract::RouteErrorStatus {
         match self {
             Self::Authentication | Self::AuthenticationSecretText(_) => {
-                frontend_contract::domain_types::RouteErrorStatus::Authentication
+                frontend_contract::RouteErrorStatus::Authentication
             }
             Self::Authorization | Self::Csrf | Self::CsrfSecretText(_) => {
-                frontend_contract::domain_types::RouteErrorStatus::Authorization
+                frontend_contract::RouteErrorStatus::Authorization
             }
-            Self::Conflict => frontend_contract::domain_types::RouteErrorStatus::Conflict,
-            Self::MethodNotAllowed => {
-                frontend_contract::domain_types::RouteErrorStatus::MethodNotAllowed
-            }
-            Self::PayloadTooLarge => {
-                frontend_contract::domain_types::RouteErrorStatus::PayloadTooLarge
-            }
-            Self::RateLimited => frontend_contract::domain_types::RouteErrorStatus::RateLimited,
+            Self::Conflict => frontend_contract::RouteErrorStatus::Conflict,
+            Self::MethodNotAllowed => frontend_contract::RouteErrorStatus::MethodNotAllowed,
+            Self::PayloadTooLarge => frontend_contract::RouteErrorStatus::PayloadTooLarge,
+            Self::RateLimited => frontend_contract::RouteErrorStatus::RateLimited,
             Self::Validation | Self::PasswordText(_) | Self::SecretText(_) => {
-                frontend_contract::domain_types::RouteErrorStatus::Validation
+                frontend_contract::RouteErrorStatus::Validation
             }
             Self::Pg(_) | Self::PasswordHash(_) | Self::Session(_) | Self::Header(_) => {
-                frontend_contract::domain_types::RouteErrorStatus::Internal
+                frontend_contract::RouteErrorStatus::Internal
             }
         }
     }

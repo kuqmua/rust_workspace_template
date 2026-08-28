@@ -12,12 +12,10 @@ pub trait RouteFamily {
         RouteSchemaContracts::default()
     }
     fn route_metadata() -> RouteMetadataList {
-        RouteMetadataList::from(
-            bounded_types::domain_types::vector::BoundedVec::from_max_iter(
-                bounded_types::domain_types::vector::BoundedVec::from(Self::coverage_descriptors())
-                    .into_iter()
-                    .map(crate::domain_types::RouteCoverageDescriptor::metadata),
-            ),
-        )
+        RouteMetadataList::from(bounded_types::BoundedVec::from_max_iter(
+            bounded_types::BoundedVec::from(Self::coverage_descriptors())
+                .into_iter()
+                .map(crate::RouteCoverageDescriptor::metadata),
+        ))
     }
 }

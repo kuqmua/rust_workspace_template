@@ -54,8 +54,6 @@ mod generation_commit;
 pub(crate) use generation_commit::*;
 mod generation_gate;
 pub(crate) use generation_gate::*;
-mod history;
-pub(crate) use history::*;
 mod idempotency_response_resource_budget_provider;
 pub(crate) use idempotency_response_resource_budget_provider::*;
 mod identity_creation_decision;
@@ -114,8 +112,6 @@ mod resource_budget_config_error;
 pub(crate) use resource_budget_config_error::*;
 mod resource_budget_maximum;
 pub(crate) use resource_budget_maximum::*;
-mod resource_budget_maximum_non_zero_usize;
-pub(crate) use resource_budget_maximum_non_zero_usize::*;
 mod resource_budget_reservation;
 pub(crate) use resource_budget_reservation::*;
 mod resource_budget_reserve_error;
@@ -213,4 +209,45 @@ pub(crate) use warning_percent::*;
 mod write_inner;
 pub(crate) use write_inner::*;
 
-pub mod domain_types;
+pub use crate::background_job::BackgroundJob;
+pub use crate::deduplicating_queue::{DeduplicatingQueue, QueueMaximumNonZeroUsize, QueuePush};
+pub use crate::exclusive_run::{ExclusiveRun, ExclusiveRunAlreadyActive, ExclusiveRunGuard};
+pub use crate::execution_plan::{ExecutionMode, ExecutionReport, execute_plan};
+pub use crate::generation_gate::{Generation, GenerationCommit, GenerationGate};
+pub use crate::identity_creation_plan::{
+    IdentityCreationDecision, IdentityPresence, IdentityRolePresence, IdentitySpec,
+    plan_identity_creation,
+};
+pub use crate::lease_registry::{
+    LeaseHeartbeat, LeaseId, LeaseIds, LeaseKey, LeaseRegistry, LeaseRegistryMaximumNonZeroUsize,
+    LeaseReservation, LeaseStaleTimeoutDuration, LeaseState, LeaseTextError,
+    StdLeaseStaleTimeoutError,
+};
+pub use crate::resource_budget::{
+    BulkItemResourceBudgetProvider, IdempotencyResponseResourceBudgetProvider, ResourceBudget,
+    ResourceBudgetAmount, ResourceBudgetConfigError, ResourceBudgetMaximum,
+    ResourceBudgetReservation, ResourceBudgetReserveError,
+};
+pub use crate::resource_utilization::{
+    ResourceAmount, ResourceUtilization, ResourceUtilizationError, ResourceUtilizationPercent,
+    ResourceUtilizationPercentTryFromU8Error, ResourceUtilizationStatus,
+    calculate_resource_utilization,
+};
+pub use crate::retry::{
+    RetryAttemptsNonZeroUsize, RetryDelayDuration, RetryOutcome, RetryPolicy,
+    StdRetryAttemptsError, run_with_retries,
+};
+pub use crate::secret_text::{
+    BoundedSecretText, BoundedSecretTextError, SecretTextMatch, SecretTextRef, secret_texts_match,
+};
+pub use crate::single_flight::{
+    SingleFlight, SingleFlightAcquire, SingleFlightKey, SingleFlightKeyError,
+    SingleFlightMaximumNonZeroUsize, SingleFlightOwner, SingleFlightWaitOutcome,
+    SingleFlightWaiter,
+};
+pub use crate::source_selection::{SourceSelection, SourceSelectionError, select_sources};
+pub use async_run_history::AsyncRunHistory;
+pub use async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize;
+pub use async_run_history_snapshot::AsyncRunHistorySnapshot;
+pub use std_async_run_history_maximum_len_try_from_usize_error::StdAsyncRunHistoryMaximumLenTryFromUsizeError;
+pub use std_async_run_history_report_count::StdAsyncRunHistoryReportCount;

@@ -34,14 +34,6 @@ pub struct Location {
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_pass_by_value)]
 impl Location {
-    #[allow(
-        clippy::single_call_fn,
-        reason = "timezone policy accessor remains directly testable"
-    )]
-    pub(super) fn location_display_timezone() -> Option<ChronoLocationDisplayTimezone> {
-        chrono::FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS)
-            .map(ChronoLocationDisplayTimezone)
-    }
     fn fmt_github_location(
         &self,
         f: FormatterRefMut<'_, '_>,
@@ -67,7 +59,8 @@ impl Location {
     }
     pub(super) fn datetime_with_tz(&self) -> Option<ChronoLocationDateTime> {
         let epoch = std::time::UNIX_EPOCH.checked_add(self.duration.0)?;
-        let offset = Self::location_display_timezone()?;
+        let offset = chrono::FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS)
+            .map(ChronoLocationDisplayTimezone)?;
         Some(ChronoLocationDateTime::from(
             chrono::DateTime::<chrono::Utc>::from(epoch).with_timezone(&offset.0),
         ))
@@ -142,7 +135,7 @@ impl Location {
             line,
             column,
             commit: LocationCommit::try_from(
-                git_info::domain_types::project_git_info_value()
+                git_info::project_git_info_value()
                     .commit()
                     .as_ref()
                     .to_owned(),

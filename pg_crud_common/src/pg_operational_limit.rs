@@ -5,9 +5,7 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd,
 )]
-pub struct PgOperationalLimit(
-    pub(super) crate::pg_operational_limit_non_zero_u64::PgOperationalLimitNonZeroU64,
-);
+pub struct PgOperationalLimit(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for PgOperationalLimit {
     type Error = crate::domain_types::PgOperationalLimitError;
@@ -21,6 +19,6 @@ impl TryFrom<u64> for PgOperationalLimit {
 
 impl From<std::num::NonZeroU64> for PgOperationalLimit {
     fn from(value: std::num::NonZeroU64) -> Self {
-        Self(crate::pg_operational_limit_non_zero_u64::PgOperationalLimitNonZeroU64::from(value))
+        Self(value)
     }
 }

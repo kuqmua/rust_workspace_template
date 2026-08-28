@@ -21,17 +21,6 @@ mod tests {
         .expect("36a7831b repository_file invariant must hold")
     }
 
-    #[allow(clippy::single_call_fn)] // derives deployment identity from the config crate instead of repeating it
-    fn service_name() -> Box<str> {
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .file_name()
-            .and_then(std::ffi::OsStr::to_str)
-            .and_then(|name| name.strip_suffix(constants_str::VALUE_C48F2769))
-            .map(str::to_owned)
-            .expect("f53ffbf0 service_name invariant must hold")
-            .into_boxed_str()
-    }
-
     #[test]
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
     fn env_example_matches_generated_descriptor() {
@@ -168,7 +157,13 @@ mod tests {
 
     #[test]
     fn service_image_references_follow_the_config_crate_name() {
-        let service_name = service_name();
+        let service_name = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .file_name()
+            .and_then(std::ffi::OsStr::to_str)
+            .and_then(|name| name.strip_suffix(constants_str::VALUE_C48F2769))
+            .map(str::to_owned)
+            .expect("f53ffbf0 service name invariant must hold")
+            .into_boxed_str();
         let dockerfile =
             std::path::PathBuf::from(service_name.as_ref()).join(constants_str::VALUE_DD2C0EB6);
         assert!(

@@ -1,9 +1,6 @@
 use crate::{EnvParseError, EnvVarValueRef, ParseCtxRef};
 
-#[allow(
-    clippy::single_call_fn,
-    reason = "shared typed parsing boundary is also exercised directly by tests"
-)]
+#[cfg(test)]
 pub(super) fn parse_from_str_with_ctx<T>(
     v: EnvVarValueRef<'_>,
     parse_ctx: ParseCtxRef,

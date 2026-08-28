@@ -22,10 +22,10 @@ pub trait TypedRoute: Sized {
     }
     #[must_use]
     fn openapi_error_response_schema(
-        _status: crate::domain_types::RouteErrorStatus,
+        _status: crate::RouteErrorStatus,
     ) -> Option<UtoipaOpenApiRouteSchema> {
         Some(UtoipaOpenApiRouteSchema::from(
-            <crate::domain_types::ApiProblem as utoipa::PartialSchema>::schema(),
+            <crate::ApiProblem as utoipa::PartialSchema>::schema(),
         ))
     }
     #[must_use]

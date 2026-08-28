@@ -1,8 +1,3 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    reason = "validators stay adjacent to their domain wrappers and ranges retain minimum-then-maximum order"
-)]
-
 pub use crate::bounded_text_policy_error::BoundedTextPolicyError;
 pub use crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText;
 pub use crate::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;

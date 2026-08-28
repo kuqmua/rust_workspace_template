@@ -36,7 +36,7 @@ impl CursorCodec {
             hmac::Mac::finalize(mac).into_bytes(),
         );
         let cursor_text = format!("{signed_text}.{encoded_signature}");
-        if cursor_text.len() > self.maximum_length.0.0.get() {
+        if cursor_text.len() > self.maximum_length.0.get() {
             return Err(crate::domain_types::CursorEncodeError::MaximumLengthExceeded);
         }
         crate::domain_types::SignedCursor::try_from(cursor_text)
@@ -47,7 +47,7 @@ impl CursorCodec {
         &self,
         cursor: &crate::domain_types::SignedCursor,
     ) -> Result<crate::domain_types::CursorPayload, crate::domain_types::CursorDecodeError> {
-        if cursor.as_ref().len() > self.maximum_length.0.0.get() {
+        if cursor.as_ref().len() > self.maximum_length.0.get() {
             return Err(crate::domain_types::CursorDecodeError::MaximumLengthExceeded);
         }
         let mut parts = cursor.as_ref().split('.');

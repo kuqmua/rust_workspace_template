@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::domain_types::ProjectGitCommitLinkRef;
+use crate::ProjectGitCommitLinkRef;
 
 #[derive(
     Debug,

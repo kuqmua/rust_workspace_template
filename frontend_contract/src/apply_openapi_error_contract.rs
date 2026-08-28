@@ -23,7 +23,7 @@ where
                     >::from(schema))),
                 );
             }
-            if error_status == crate::domain_types::RouteErrorStatus::RateLimited {
+            if error_status == crate::RouteErrorStatus::RateLimited {
                 let _previous_header = response.headers.insert(
                     constants_str::RETRY_AFTER.to_owned(),
                     utoipa::openapi::header::Header::default(),

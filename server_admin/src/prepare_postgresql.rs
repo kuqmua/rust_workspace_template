@@ -1,7 +1,7 @@
 use crate::{AdminMigrateError, SqlxAdminMigrateError};
 
 pub async fn prepare_postgresql(
-    pool: app_state::domain_types::SqlxPgPoolRef<'_>,
+    pool: app_state::SqlxPgPoolRef<'_>,
 ) -> Result<(), AdminMigrateError> {
     crate::migrations::migrator()
         .run(pool.as_ref())

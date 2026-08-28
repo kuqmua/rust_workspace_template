@@ -1,9 +1,7 @@
 pub use crate::field_location_column::FieldLocationColumn;
-use crate::field_location_column_non_zero_u32::FieldLocationColumnNonZeroU32;
 pub use crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
 pub use crate::field_location_file::FieldLocationFile;
 pub use crate::field_location_line::FieldLocationLine;
-use crate::field_location_line_non_zero_u32::FieldLocationLineNonZeroU32;
 #[must_use]
 pub fn generate_field_location_new_token_stream(
     file: FieldLocationFile,
@@ -15,11 +13,11 @@ pub fn generate_field_location_new_token_stream(
     let location_new_token_stream = {
         let file_token_stream = generate_quotes::domain_types::dq_token_stream(&file.0);
         let line_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(line.0.0.get());
+            let literal = proc_macro2::Literal::u32_unsuffixed(line.0.get());
             quote::quote! {#literal}
         };
         let column_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(column.0.0.get());
+            let literal = proc_macro2::Literal::u32_unsuffixed(column.0.get());
             quote::quote! {#literal}
         };
         quote::quote! {

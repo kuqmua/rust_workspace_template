@@ -3,7 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct HttpMetricsPathCacheMaximum(pub(super) super::HttpMetricsPathCacheMaximumNonZeroUsize);
+pub struct HttpMetricsPathCacheMaximum(pub(super) std::num::NonZeroUsize);
 
 impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
     type Error = super::HttpMetricsPathCacheMaximumTryFromUsizeError;
@@ -17,6 +17,6 @@ impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
 
 impl From<std::num::NonZeroUsize> for HttpMetricsPathCacheMaximum {
     fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(super::HttpMetricsPathCacheMaximumNonZeroUsize::from(value))
+        Self(value)
     }
 }

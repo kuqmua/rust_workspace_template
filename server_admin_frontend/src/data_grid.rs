@@ -9,7 +9,7 @@ fn data_grid() {
         server_admin_contract::domain_types::AdminDataColumn::new(
             server_admin_contract::domain_types::AdminDataFilters::try_from(Vec::new())
                 .expect(constants_str::VALUE_D0BD1ECC),
-            frontend_contract::domain_types::InputKind::Number,
+            frontend_contract::InputKind::Number,
             server_admin_contract::domain_types::AdminText::try_from(String::from(
                 constants_str::VALUE_1D438D9B,
             ))
@@ -22,17 +22,17 @@ fn data_grid() {
         server_admin_contract::domain_types::AdminDataColumn::new(
             server_admin_contract::domain_types::AdminDataFilters::try_from(vec![
                 server_admin_contract::domain_types::AdminDataFilter::from(
-                    frontend_contract::domain_types::FilterOperation::Eq,
+                    frontend_contract::FilterOperation::Eq,
                 ),
                 server_admin_contract::domain_types::AdminDataFilter::from(
-                    frontend_contract::domain_types::FilterOperation::Regex,
+                    frontend_contract::FilterOperation::Regex,
                 ),
                 server_admin_contract::domain_types::AdminDataFilter::from(
-                    frontend_contract::domain_types::FilterOperation::Between,
+                    frontend_contract::FilterOperation::Between,
                 ),
             ])
             .expect(constants_str::VALUE_4C7734E6),
-            frontend_contract::domain_types::InputKind::Text,
+            frontend_contract::InputKind::Text,
             server_admin_contract::domain_types::AdminText::try_from(String::from(
                 constants_str::VALUE_B2D6201D,
             ))
@@ -95,7 +95,7 @@ fn data_grid() {
                 server_admin_contract::domain_types::AdminFilterField::try_from(String::from(constants_str::LOGIN))
                     .expect("774bc583 generated_column_metadata_drives_data_table_markup invariant must hold"),
             ),
-            Some(frontend_contract::domain_types::FilterOperation::Eq),
+            Some(frontend_contract::FilterOperation::Eq),
             Some(
                 server_admin_contract::domain_types::AdminFilterValue::try_from(String::from(constants_str::VALUE_2BD806C9))
                     .expect("63d17f8e generated_column_metadata_drives_data_table_markup invariant must hold"),

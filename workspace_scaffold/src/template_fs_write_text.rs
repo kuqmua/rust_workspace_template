@@ -1,7 +1,7 @@
 pub(crate) fn template_fs_write_text(
-    path: crate::domain_types::ScaffoldPathRef<'_>,
-    text: crate::domain_types::ScaffoldTextRef<'_>,
-) -> Result<(), crate::domain_types::ScaffoldError> {
+    path: crate::ScaffoldPathRef<'_>,
+    text: crate::ScaffoldTextRef<'_>,
+) -> Result<(), crate::ScaffoldError> {
     std::fs::write(path.get(), text.get())?;
     Ok(())
 }

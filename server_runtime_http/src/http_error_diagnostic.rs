@@ -1,6 +1,5 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    clippy::module_inception,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
@@ -9,7 +8,7 @@ pub struct HttpErrorDiagnostic {
     error_chain: StdHttpErrorChain,
     location: super::StdPanicLocation,
     span_trace: TracingHttpSpanTrace,
-    telemetry: HttpErrorTelemetry,
+    pub(crate) telemetry: HttpErrorTelemetry,
 }
 
 impl HttpErrorDiagnostic {
@@ -83,19 +82,8 @@ impl HttpErrorDiagnostic {
     pub(crate) const fn span_trace(&self) -> &TracingHttpSpanTrace {
         &self.span_trace
     }
-
-    // The owner module retains lint-sensitive semantics from the original implementation.
-
-    #[allow(
-        clippy::single_call_fn,
-        reason = "typed telemetry accessor keeps private representation out of middleware"
-    )]
-    pub(crate) const fn telemetry(&self) -> HttpErrorTelemetry {
-        self.telemetry
-    }
 }
 
-pub(super) use crate::capture_without_context::capture_without_context;
 pub use crate::http_error_code::HttpErrorCode;
 pub use crate::http_error_telemetry::HttpErrorTelemetry;
 pub use crate::http_error_type::HttpErrorType;
@@ -112,40 +100,14 @@ mod tests {
             super::HttpErrorType::from(constants_str::VALUE_AF7C24A2),
             super::HttpErrorCode::from(constants_str::VALUE_CF4DCEBB),
         );
-        let diagnostic = super::capture_without_context(telemetry);
+        let diagnostic = super::HttpErrorDiagnostic::capture(
+            telemetry,
+            &super::HttpErrorWithoutDiagnosticContext,
+        );
         assert_eq!(
-            diagnostic.telemetry().error_code().to_string(),
+            diagnostic.telemetry.error_code().to_string(),
             "test_failure"
         );
-        assert_eq!(
-            diagnostic.telemetry().error_type().to_string(),
-            "test.error"
-        );
+        assert_eq!(diagnostic.telemetry.error_type().to_string(), "test.error");
     }
-}
-
-// Root-owned module compatibility wrappers.
-mod capture_without_context {
-    pub use crate::capture_without_context::*;
-}
-mod http_error_code {
-    pub use crate::http_error_code::*;
-}
-mod http_error_telemetry {
-    pub use crate::http_error_telemetry::*;
-}
-mod http_error_type {
-    pub use crate::http_error_type::*;
-}
-mod http_error_without_diagnostic_context {
-    pub use crate::http_error_without_diagnostic_context::*;
-}
-mod std_http_error_backtrace {
-    pub use crate::std_http_error_backtrace::*;
-}
-mod std_http_error_chain {
-    pub use crate::std_http_error_chain::*;
-}
-mod tracing_http_span_trace {
-    pub use crate::tracing_http_span_trace::*;
 }

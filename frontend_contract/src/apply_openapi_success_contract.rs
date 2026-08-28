@@ -11,7 +11,7 @@ where
         .retain(|status, _response| !status.starts_with('2'));
     let status = metadata.success_status().transport_status().to_string();
     let mut response = utoipa::openapi::response::Response::new(status.clone());
-    if metadata.success_status() != crate::domain_types::SuccessStatus::Code204
+    if metadata.success_status() != crate::SuccessStatus::Code204
         && let Some(schema) = Route::openapi_response_schema()
     {
         let _previous_content = response.content.insert(

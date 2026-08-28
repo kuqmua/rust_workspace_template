@@ -5,8 +5,8 @@ use crate::domain_types::{ServerAppState, test_env};
 #[must_use]
 pub fn make_test_server_app_state() -> ServerAppState<'static> {
     ServerAppState {
-        bulk_item_budget: server_runtime_core::domain_types::ResourceBudget::new(
-            server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(8usize)
+        bulk_item_budget: server_runtime_core::ResourceBudget::new(
+            server_runtime_core::ResourceBudgetMaximum::try_from(8usize)
                 .expect("86d3d452 make_test_server_app_state invariant must hold"),
         ),
         config: server_config::domain_types::Config {
@@ -140,14 +140,14 @@ pub fn make_test_server_app_state() -> ServerAppState<'static> {
                     .expect("dbe97ef3 make_test_server_app_state invariant must hold"),
             ),
         },
-        idempotency_response_budget: server_runtime_core::domain_types::ResourceBudget::new(
-            server_runtime_core::domain_types::ResourceBudgetMaximum::try_from(4_096usize)
+        idempotency_response_budget: server_runtime_core::ResourceBudget::new(
+            server_runtime_core::ResourceBudgetMaximum::try_from(4_096usize)
                 .expect("799dc227 make_test_server_app_state invariant must hold"),
         ),
-        pg_pool: app_state::domain_types::SqlxPgPool::from(
+        pg_pool: app_state::SqlxPgPool::from(
             sqlx::PgPool::connect_lazy(constants_str::TEST_VALUES_UNREACHABLE_DATABASE_URL)
                 .expect("d53d8ff0 make_test_server_app_state invariant must hold"),
         ),
-        project_git_info: git_info::domain_types::project_git_info_value(),
+        project_git_info: git_info::project_git_info_value(),
     }
 }

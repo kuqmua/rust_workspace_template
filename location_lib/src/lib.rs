@@ -1,23 +1,15 @@
-#![allow(
-    clippy::arbitrary_source_item_ordering,
-    clippy::module_name_repetitions,
-    reason = "owner modules and related behavior retain their intentional facade ordering"
-)]
-
 mod chrono_location_date_time;
 mod chrono_location_display_timezone;
 pub mod domain_types;
 mod formatter_ref_mut;
 mod location;
 mod location_column;
-mod location_column_non_zero_u32;
 mod location_commit;
 mod location_coordinate_try_from_u32_error;
 mod location_duration;
 mod location_file;
 mod location_file_ref;
 mod location_line;
-mod location_line_non_zero_u32;
 mod occr;
 mod std_time_duration;
 mod std_time_duration_nanos;

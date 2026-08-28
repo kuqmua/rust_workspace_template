@@ -116,11 +116,11 @@ mod data_tables {
         )
         .await
         .expect("508db033 postgresql_generated_mutation_idempotency_contract invariant must hold");
-        pg_table::domain_types::ensure_pg_table_idempotency_schema(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
-        )
-        .await
-        .expect("6c338824 postgresql_generated_mutation_idempotency_contract invariant must hold");
+        pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
+            .await
+            .expect(
+                "6c338824 postgresql_generated_mutation_idempotency_contract invariant must hold",
+            );
         let _truncate_result = sqlx::query(constants_str::TRUNCATE_PG_TABLE_IDEMPOTENCY)
             .execute(&pool)
             .await
@@ -131,14 +131,14 @@ mod data_tables {
             |actor: StdAdminApiTestStrRef<'_>,
              route: StdAdminApiTestStrRef<'_>,
              key: StdAdminApiTestStrRef<'_>,
-             body: pg_table::domain_types::PgTableIdempotencyBodyRef<'_>| {
-                pg_table::domain_types::PgTableIdempotencyRequest::new(
-            pg_table::domain_types::PgTableIdempotencyScope::new(
-                pg_table::domain_types::PgTableIdempotencyActor::try_from(actor.0.to_owned()).expect("e6640036 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-                pg_table::domain_types::PgTableIdempotencyMethod::try_from(constants_str::POST.to_owned())
+             body: pg_table::PgTableIdempotencyBodyRef<'_>| {
+                pg_table::PgTableIdempotencyRequest::new(
+            pg_table::PgTableIdempotencyScope::new(
+                pg_table::PgTableIdempotencyActor::try_from(actor.0.to_owned()).expect("e6640036 postgresql_generated_mutation_idempotency_contract invariant must hold"),
+                pg_table::PgTableIdempotencyMethod::try_from(constants_str::POST.to_owned())
                     .expect("94bc0508 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-                pg_table::domain_types::PgTableIdempotencyRoute::try_from(route.0.to_owned()).expect("4e8c040f postgresql_generated_mutation_idempotency_contract invariant must hold"),
-                pg_table::domain_types::PgTableIdempotencyKey::try_from(key.0.to_owned()).expect("2028024d postgresql_generated_mutation_idempotency_contract invariant must hold"),
+                pg_table::PgTableIdempotencyRoute::try_from(route.0.to_owned()).expect("4e8c040f postgresql_generated_mutation_idempotency_contract invariant must hold"),
+                pg_table::PgTableIdempotencyKey::try_from(key.0.to_owned()).expect("2028024d postgresql_generated_mutation_idempotency_contract invariant must hold"),
             ),
             body,
         )
@@ -147,71 +147,62 @@ mod data_tables {
             StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
             StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
             StdAdminApiTestStrRef::from(constants_str::KEY_A),
-            pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
+            pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
         );
-        let first = pg_table::domain_types::begin_pg_table_idempotency(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
+        let first = pg_table::begin_pg_table_idempotency(
+            app_state::SqlxPgPoolRef::from(&pool),
             &first_request,
         )
         .await
         .expect("c8b3565c postgresql_generated_mutation_idempotency_contract invariant must hold");
-        assert_eq!(
-            first,
-            pg_table::domain_types::PgTableIdempotencyBegin::Acquired
-        );
-        let pending = pg_table::domain_types::begin_pg_table_idempotency(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
+        assert_eq!(first, pg_table::PgTableIdempotencyBegin::Acquired);
+        let pending = pg_table::begin_pg_table_idempotency(
+            app_state::SqlxPgPoolRef::from(&pool),
             &first_request,
         )
         .await
         .expect("c5c45332 postgresql_generated_mutation_idempotency_contract invariant must hold");
-        assert_eq!(
-            pending,
-            pg_table::domain_types::PgTableIdempotencyBegin::InProgress
-        );
+        assert_eq!(pending, pg_table::PgTableIdempotencyBegin::InProgress);
         let conflicting_request = make_request(
             StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
             StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
             StdAdminApiTestStrRef::from(constants_str::KEY_A),
-            pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":2}"#.as_slice()),
+            pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":2}"#.as_slice()),
         );
-        let conflict = pg_table::domain_types::begin_pg_table_idempotency(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
+        let conflict = pg_table::begin_pg_table_idempotency(
+            app_state::SqlxPgPoolRef::from(&pool),
             &conflicting_request,
         )
         .await
         .expect("7f419767 postgresql_generated_mutation_idempotency_contract invariant must hold");
-        assert_eq!(
-            conflict,
-            pg_table::domain_types::PgTableIdempotencyBegin::Conflict
-        );
+        assert_eq!(conflict, pg_table::PgTableIdempotencyBegin::Conflict);
         let response_body = br#"{"desirable":{"id":1}}"#;
-        pg_table::domain_types::complete_pg_table_idempotency(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
+        pg_table::complete_pg_table_idempotency(
+            app_state::SqlxPgPoolRef::from(&pool),
             &first_request,
-            pg_table::domain_types::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
+            pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
                 "4df2dd1f postgresql_generated_mutation_idempotency_contract invariant must hold",
             ),
-            pg_table::domain_types::PgTableIdempotencyBodyRef::from(response_body.as_slice()),
+            pg_table::PgTableIdempotencyBodyRef::from(response_body.as_slice()),
         )
         .await
         .expect("9106c1e6 postgresql_generated_mutation_idempotency_contract invariant must hold");
-        let replay = pg_table::domain_types::begin_pg_table_idempotency(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
+        let replay = pg_table::begin_pg_table_idempotency(
+            app_state::SqlxPgPoolRef::from(&pool),
             &first_request,
         )
         .await
         .expect("0721b23f postgresql_generated_mutation_idempotency_contract invariant must hold");
-        let pg_table::domain_types::PgTableIdempotencyBegin::Replay(replay_value) = replay else {
+        let pg_table::PgTableIdempotencyBegin::Replay(replay_value) = replay else {
             panic!("9f97fb0d");
         };
         assert_eq!(
         replay_value.into_parts(),
         (
-            pg_table::domain_types::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
+            pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
                 "f89d923d postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
-            pg_table::domain_types::PgTableIdempotencyBody::try_from(response_body.to_vec()).expect(
+            pg_table::PgTableIdempotencyBody::try_from(response_body.to_vec()).expect(
                 "4a01ed0e postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
         )
@@ -220,49 +211,48 @@ mod data_tables {
             StdAdminApiTestStrRef::from(constants_str::ACTOR_B),
             StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
             StdAdminApiTestStrRef::from(constants_str::KEY_A),
-            pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
+            pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
         );
         assert_eq!(
-            pg_table::domain_types::begin_pg_table_idempotency(
-                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+            pg_table::begin_pg_table_idempotency(
+                app_state::SqlxPgPoolRef::from(&pool),
                 &other_actor
             )
             .await
             .expect(
                 "e581d572 postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
-            pg_table::domain_types::PgTableIdempotencyBegin::Acquired
+            pg_table::PgTableIdempotencyBegin::Acquired
         );
-        pg_table::domain_types::release_pg_table_idempotency(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
-            &other_actor,
-        )
-        .await
-        .expect("31e0437d postgresql_generated_mutation_idempotency_contract invariant must hold");
+        pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(&pool), &other_actor)
+            .await
+            .expect(
+                "31e0437d postgresql_generated_mutation_idempotency_contract invariant must hold",
+            );
         assert_eq!(
-            pg_table::domain_types::begin_pg_table_idempotency(
-                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+            pg_table::begin_pg_table_idempotency(
+                app_state::SqlxPgPoolRef::from(&pool),
                 &other_actor
             )
             .await
             .expect(
                 "fe57d4dc postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
-            pg_table::domain_types::PgTableIdempotencyBegin::Acquired
+            pg_table::PgTableIdempotencyBegin::Acquired
         );
         let concurrent = make_request(
             StdAdminApiTestStrRef::from(constants_str::ACTOR_CONCURRENT),
             StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
             StdAdminApiTestStrRef::from(constants_str::KEY_CONCURRENT),
-            pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"value":3}"#.as_slice()),
+            pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":3}"#.as_slice()),
         );
         let (left, right) = tokio::join!(
-            pg_table::domain_types::begin_pg_table_idempotency(
-                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+            pg_table::begin_pg_table_idempotency(
+                app_state::SqlxPgPoolRef::from(&pool),
                 &concurrent
             ),
-            pg_table::domain_types::begin_pg_table_idempotency(
-                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+            pg_table::begin_pg_table_idempotency(
+                app_state::SqlxPgPoolRef::from(&pool),
                 &concurrent
             )
         );
@@ -277,16 +267,14 @@ mod data_tables {
         assert_eq!(
             outcomes
                 .iter()
-                .filter(|outcome| **outcome
-                    == pg_table::domain_types::PgTableIdempotencyBegin::Acquired)
+                .filter(|outcome| **outcome == pg_table::PgTableIdempotencyBegin::Acquired)
                 .count(),
             constants_usize::ONE
         );
         assert_eq!(
             outcomes
                 .iter()
-                .filter(|outcome| **outcome
-                    == pg_table::domain_types::PgTableIdempotencyBegin::InProgress)
+                .filter(|outcome| **outcome == pg_table::PgTableIdempotencyBegin::InProgress)
                 .count(),
             constants_usize::ONE
         );
@@ -306,18 +294,18 @@ mod data_tables {
             StdAdminApiTestStrRef::from(constants_str::ACTOR_ATOMIC),
             StdAdminApiTestStrRef::from(constants_str::ITEMS_CO),
             StdAdminApiTestStrRef::from(constants_str::KEY_ATOMIC),
-            pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
+            pg_table::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
         );
         assert_eq!(
-            pg_table::domain_types::begin_pg_table_idempotency(
-                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+            pg_table::begin_pg_table_idempotency(
+                app_state::SqlxPgPoolRef::from(&pool),
                 &atomic
             )
             .await
             .expect(
                 "925ea283 postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
-            pg_table::domain_types::PgTableIdempotencyBegin::Acquired
+            pg_table::PgTableIdempotencyBegin::Acquired
         );
         let mut rollback_tx = pool.begin().await.expect(
             "fcba80e1 postgresql_generated_mutation_idempotency_contract invariant must hold",
@@ -328,13 +316,13 @@ mod data_tables {
         .execute(&mut *rollback_tx)
         .await
         .expect("67503e70 postgresql_generated_mutation_idempotency_contract invariant must hold");
-        pg_table::domain_types::complete_pg_table_idempotency_in_connection(
-            pg_table::domain_types::SqlxPgTablePgConnectionRef::from(&mut *rollback_tx),
+        pg_table::complete_pg_table_idempotency_in_connection(
+            pg_table::SqlxPgTablePgConnectionRef::from(&mut *rollback_tx),
             &atomic,
-            pg_table::domain_types::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
+            pg_table::PgTableIdempotencyResponseStatus::try_from(201u16).expect(
                 "98bb1db9 postgresql_generated_mutation_idempotency_contract invariant must hold",
             ),
-            pg_table::domain_types::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
+            pg_table::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
         )
         .await
         .expect("8ad86515 postgresql_generated_mutation_idempotency_contract invariant must hold");
@@ -349,22 +337,21 @@ mod data_tables {
         .expect("84e57ab6 postgresql_generated_mutation_idempotency_contract invariant must hold");
         assert_eq!(mutation_count, constants_i64::ZERO);
         assert_eq!(
-            pg_table::domain_types::begin_pg_table_idempotency(
-                app_state::domain_types::SqlxPgPoolRef::from(&pool),
+            pg_table::begin_pg_table_idempotency(
+                app_state::SqlxPgPoolRef::from(&pool),
                 &atomic
             )
             .await
             .expect(
                 "3903bf53 postgresql_generated_mutation_idempotency_contract invariant must hold"
             ),
-            pg_table::domain_types::PgTableIdempotencyBegin::InProgress
+            pg_table::PgTableIdempotencyBegin::InProgress
         );
-        pg_table::domain_types::release_pg_table_idempotency(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool),
-            &atomic,
-        )
-        .await
-        .expect("67973e68 postgresql_generated_mutation_idempotency_contract invariant must hold");
+        pg_table::release_pg_table_idempotency(app_state::SqlxPgPoolRef::from(&pool), &atomic)
+            .await
+            .expect(
+                "67973e68 postgresql_generated_mutation_idempotency_contract invariant must hold",
+            );
         let _age_records = sqlx::query(
             constants_str::UPDATE_PG_TABLE_IDEMPOTENCY_SET_CREATED_AT_TIMESTAMPTZ_2000_01_01_00,
         )
@@ -377,22 +364,20 @@ mod data_tables {
         .fetch_one(&pool)
         .await
         .expect("2c080f6d postgresql_generated_mutation_idempotency_contract invariant must hold");
-        let cleaned = pg_table::domain_types::cleanup_pg_table_idempotency(
-        app_state::domain_types::SqlxPgPoolRef::from(&pool),
-        pg_table::domain_types::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64)
-            .expect(
+        let cleaned = pg_table::cleanup_pg_table_idempotency(
+            app_state::SqlxPgPoolRef::from(&pool),
+            pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64).expect(
                 "52189299 postgresql_generated_mutation_idempotency_contract invariant must hold",
             ),
-        pg_table::domain_types::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64)
-            .expect(
+            pg_table::PgTableIdempotencyCleanupRetentionSeconds::try_from(3_600i64).expect(
                 "fa6dc1d7 postgresql_generated_mutation_idempotency_contract invariant must hold",
             ),
-        pg_table::domain_types::PgTableIdempotencyCleanupBatchSize::try_from(2i64).expect(
-            "1780d6b1 postgresql_generated_mutation_idempotency_contract invariant must hold",
-        ),
-    )
-    .await
-    .expect("b1ba49cc postgresql_generated_mutation_idempotency_contract invariant must hold");
+            pg_table::PgTableIdempotencyCleanupBatchSize::try_from(2i64).expect(
+                "1780d6b1 postgresql_generated_mutation_idempotency_contract invariant must hold",
+            ),
+        )
+        .await
+        .expect("b1ba49cc postgresql_generated_mutation_idempotency_contract invariant must hold");
         assert_eq!(u64::from(cleaned), 2u64);
         let after_cleanup = sqlx::query_scalar::<_, i64>(
             constants_str::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
@@ -438,16 +423,16 @@ mod flow {
             .expect(
                 "693b147f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             );
-        server_admin::domain_types::prepare_postgresql(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
-        )
-        .await
-        .expect("0ea8d516 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-        server_admin::domain_types::prepare_postgresql(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
-        )
-        .await
-        .expect("676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+        server_admin::domain_types::prepare_postgresql(app_state::SqlxPgPoolRef::from(&pool.0))
+            .await
+            .expect(
+                "0ea8d516 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+            );
+        server_admin::domain_types::prepare_postgresql(app_state::SqlxPgPoolRef::from(&pool.0))
+            .await
+            .expect(
+                "676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+            );
         server_admin::domain_types::generated_tables::validate_catalog_schema(
             pg_crud_common::domain_types::SqlxPgPoolRef::from(&pool.0),
             pg_crud_common::domain_types::DbSchemaNameRef::from(constants_str::PUBLIC),
@@ -478,11 +463,11 @@ mod flow {
         .execute(&pool.0)
         .await
         .expect("9d762f8c postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
-        server_admin::domain_types::prepare_postgresql(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
-        )
-        .await
-        .expect("ea3f641d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+        server_admin::domain_types::prepare_postgresql(app_state::SqlxPgPoolRef::from(&pool.0))
+            .await
+            .expect(
+                "ea3f641d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+            );
         let reconciled_permissions = sqlx::query_scalar::<_, String>(
             constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
         )
@@ -504,16 +489,14 @@ mod flow {
                 "703a8df2 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             );
         let hasher = server_admin::domain_types::AdminPasswordHasher::new(
-        server_admin::domain_types::AdminPasswordHashConcurrency::from(
-            server_admin::domain_types::AdminNonZeroUsize::from(
+            server_admin::domain_types::AdminPasswordHashConcurrency::from(
                 std::num::NonZeroUsize::new(1).expect(
                     "271f96d4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
                 ),
             ),
-        ),
-    );
+        );
         let _admin_id = server_admin::domain_types::create_initial_administrator(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
+            app_state::SqlxPgPoolRef::from(&pool.0),
             server_admin::domain_types::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned())
                 .expect(
                     "98c7e04a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
@@ -546,7 +529,7 @@ mod flow {
         .expect("e411f376 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert!(matches!(
         server_admin::domain_types::create_initial_administrator(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
+            app_state::SqlxPgPoolRef::from(&pool.0),
             server_admin::domain_types::AdminLogin::try_from("other_admin".to_owned()).expect(
                 "8359ca1a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold"
             ),
@@ -600,7 +583,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -619,7 +602,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -653,7 +636,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminMeRoute,
                     >()
                     .as_ref(),
@@ -672,7 +655,7 @@ mod flow {
             request_with_peer_at(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminMeRoute,
                     >()
                     .as_ref(),
@@ -696,7 +679,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminRefreshRoute,
                     >()
                     .as_ref(),
@@ -738,7 +721,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminRefreshRoute,
                     >()
                     .as_ref(),
@@ -760,7 +743,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -784,7 +767,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -808,7 +791,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -831,7 +814,7 @@ mod flow {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
-            StdAdminApiTestStrRef::from(frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>().as_ref()),
+            StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>().as_ref()),
             StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
@@ -849,7 +832,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminChangeOwnPasswordRoute,
                     >()
                     .as_ref(),
@@ -872,7 +855,7 @@ mod flow {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
-            StdAdminApiTestStrRef::from(frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>().as_ref()),
+            StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>().as_ref()),
             StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
@@ -886,7 +869,7 @@ mod flow {
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
-            StdAdminApiTestStrRef::from(frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>().as_ref()),
+            StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>().as_ref()),
             StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
@@ -901,7 +884,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -937,7 +920,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminListUsersRoute,
                     >()
                     .as_ref(),
@@ -956,7 +939,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::DELETE),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSessionsRoute,
                     >()
                     .as_ref(),
@@ -975,7 +958,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminMeRoute,
                     >()
                     .as_ref(),
@@ -1031,7 +1014,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminMeRoute,
                     >()
                     .as_ref(),
@@ -1050,7 +1033,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -1074,7 +1057,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminListUsersRoute,
                     >()
                     .as_ref(),
@@ -1093,7 +1076,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminListRolesRoute,
                     >()
                     .as_ref(),
@@ -1112,7 +1095,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminListRolesRoute,
                     >()
                     .as_ref(),
@@ -1301,7 +1284,7 @@ mod flow {
                 StdAdminApiTestStrRef::from(
                     format!(
                         "{}?limit=1&offset=1",
-                        frontend_contract::domain_types::typed_route_path::<
+                        frontend_contract::typed_route_path::<
                             server_admin_contract::domain_types::AdminAuditLogRoute,
                         >()
                     )
@@ -1346,7 +1329,7 @@ mod flow {
                         StdAdminApiTestStrRef::from(
                             format!(
                                 "{}?limit=1&offset=0",
-                                frontend_contract::domain_types::typed_route_path::<
+                                frontend_contract::typed_route_path::<
                                     server_admin_contract::domain_types::AdminAuditLogRoute,
                                 >()
                             )
@@ -1546,7 +1529,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::POST),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignOutRoute,
                     >()
                     .as_ref(),
@@ -1565,7 +1548,7 @@ mod flow {
             request_with_peer(
                 HttpAdminApiTestMethod::from(http::Method::GET),
                 StdAdminApiTestStrRef::from(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminMeRoute,
                     >()
                     .as_ref(),
@@ -2947,14 +2930,14 @@ mod maintenance {
         sqlx::query_scalar::<_, i64>(update)
             .bind(constants_i64::ONE)
             .bind(
-                pg_table::domain_types::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
+                pg_table::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                     .expect("979fa4b2 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
         sqlx::query_scalar::<_, i64>(update)
             .bind(2i64)
             .bind(
-                pg_table::domain_types::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
+                pg_table::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                     .expect("589ea31d postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
@@ -2976,7 +2959,7 @@ mod maintenance {
         let stale = sqlx::query_scalar::<_, i64>(update)
         .bind(3i64)
         .bind(
-            pg_table::domain_types::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
+            pg_table::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                 .expect("a3a08aeb postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"),
         )
         .fetch_optional(&pool)
@@ -3014,10 +2997,10 @@ mod maintenance {
     )
     .await
     .expect("fab61374 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-        server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(&pool))
+        server_admin::domain_types::prepare_postgresql(app_state::SqlxPgPoolRef::from(&pool))
         .await
         .expect("029cb682 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-        pg_table::domain_types::ensure_pg_table_idempotency_schema(app_state::domain_types::SqlxPgPoolRef::from(&pool))
+        pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
         .await
         .expect("eb08dffc postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         let _clear = sqlx::query(constants_str::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
@@ -3048,7 +3031,7 @@ mod maintenance {
         retention,
         retention,
     );
-        let report = server_admin::domain_types::cleanup_admin_tables(app_state::domain_types::SqlxPgPoolRef::from(&pool), config)
+        let report = server_admin::domain_types::cleanup_admin_tables(app_state::SqlxPgPoolRef::from(&pool), config)
         .await
         .expect("a422e8d4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         assert_eq!(report.total_rows().to_string(), "6");
@@ -3220,7 +3203,7 @@ mod routing {
         admin_api_test_router().0,
         http::Request::builder()
             .uri(
-                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminMeRoute>()
+                frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminMeRoute>()
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
@@ -3233,7 +3216,7 @@ mod routing {
         admin_api_test_router().0,
         http::Request::builder()
             .uri(
-                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>()
+                frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminListUsersRoute>()
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
@@ -3321,7 +3304,7 @@ mod routing {
         admin_api_test_router().0,
         http::Request::builder()
             .uri(
-                frontend_contract::domain_types::typed_route_path::<
+                frontend_contract::typed_route_path::<
                     server_admin_contract::domain_types::AdminMeRoute,
                 >()
                 .as_ref(),
@@ -3359,7 +3342,7 @@ mod routing {
         http::Request::builder()
             .method(http::Method::GET)
             .uri(
-                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
+                frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
@@ -3380,7 +3363,7 @@ mod routing {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(
-                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
+                frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
                     .as_ref(),
             ),
             StdAdminApiTestStrRef::from(constants_str::LOGIN_ALT),
@@ -3399,7 +3382,7 @@ mod routing {
             malformed_response.headers().get(http::header::CONTENT_TYPE),
             Some(&http::HeaderValue::from_static("application/problem+json")),
         );
-        let body_limit = <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()
+        let body_limit = <server_admin_contract::domain_types::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
         .expect("a60751db invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold")
         .get();
         let oversized_password =
@@ -3410,7 +3393,7 @@ mod routing {
         request_with_peer(
             HttpAdminApiTestMethod::from(http::Method::POST),
             StdAdminApiTestStrRef::from(
-                frontend_contract::domain_types::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
+                frontend_contract::typed_route_path::<server_admin_contract::domain_types::AdminSignInRoute>()
                     .as_ref(),
             ),
             StdAdminApiTestStrRef::from(oversized_body.as_str()),
@@ -3436,7 +3419,7 @@ mod routing {
             let mut builder = http::Request::builder()
                 .method(http::Method::POST)
                 .uri(
-                    frontend_contract::domain_types::typed_route_path::<
+                    frontend_contract::typed_route_path::<
                         server_admin_contract::domain_types::AdminSignInRoute,
                     >()
                     .as_ref(),
@@ -3516,13 +3499,11 @@ mod schema {
             .expect(
                 "77883cf4 generated_admin_descriptors_match_applied_migrations invariant must hold",
             );
-        server_admin::domain_types::prepare_postgresql(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
-        )
-        .await
-        .expect(
-            "9eceddf1 generated_admin_descriptors_match_applied_migrations invariant must hold",
-        );
+        server_admin::domain_types::prepare_postgresql(app_state::SqlxPgPoolRef::from(&pool.0))
+            .await
+            .expect(
+                "9eceddf1 generated_admin_descriptors_match_applied_migrations invariant must hold",
+            );
         server_admin::domain_types::generated_tables::validate_catalog_schema(
             pg_crud_common::domain_types::SqlxPgPoolRef::from(&pool.0),
             pg_crud_common::domain_types::DbSchemaNameRef::from(constants_str::PUBLIC),
@@ -3556,11 +3537,11 @@ mod schema {
             .expect(
                 "168b689c admin_string_policies_match_postgresql_constraints invariant must hold",
             );
-        server_admin::domain_types::prepare_postgresql(
-            app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
-        )
-        .await
-        .expect("a453b862 admin_string_policies_match_postgresql_constraints invariant must hold");
+        server_admin::domain_types::prepare_postgresql(app_state::SqlxPgPoolRef::from(&pool.0))
+            .await
+            .expect(
+                "a453b862 admin_string_policies_match_postgresql_constraints invariant must hold",
+            );
         let valid_login = server_admin_contract::domain_types::AdminLogin::try_from(
             constants_str::SSOT_LOGIN_VALID.to_owned(),
         )
@@ -3721,7 +3702,7 @@ fn admin_api_test_router() -> AxumAdminApiTestRouter {
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("27db915c router invariant must hold");
     let state = server_admin::domain_types::auth::AdminAuthSvcState::try_new(
-        app_state::domain_types::SqlxPgPool::from(pool),
+        app_state::SqlxPgPool::from(pool),
         &env::<config_lib::domain_types::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
@@ -3765,7 +3746,7 @@ fn admin_api_test_router() -> AxumAdminApiTestRouter {
 }
 fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     let state = server_admin::domain_types::auth::AdminAuthSvcState::try_new(
-        app_state::domain_types::SqlxPgPool::from(pool.0.clone()),
+        app_state::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::domain_types::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
@@ -3971,11 +3952,9 @@ async fn admin_html_test_fixture_with_password_change(
         .execute(&mut *lock)
         .await
         .expect("a6b7c8d9 admin_html_test_fixture_with_password_change invariant must hold");
-    server_admin::domain_types::prepare_postgresql(app_state::domain_types::SqlxPgPoolRef::from(
-        &pool.0,
-    ))
-    .await
-    .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
+    server_admin::domain_types::prepare_postgresql(app_state::SqlxPgPoolRef::from(&pool.0))
+        .await
+        .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
     let _truncated = sqlx::query(
         constants_str::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )
@@ -3992,15 +3971,13 @@ async fn admin_html_test_fixture_with_password_change(
     .expect("d20a35e4 admin_html_test_fixture_with_password_change invariant must hold");
     let hasher = server_admin::domain_types::AdminPasswordHasher::new(
         server_admin::domain_types::AdminPasswordHashConcurrency::from(
-            server_admin::domain_types::AdminNonZeroUsize::from(
-                std::num::NonZeroUsize::new(constants_usize::ONE).expect(
-                    "560498ab admin_html_test_fixture_with_password_change invariant must hold",
-                ),
+            std::num::NonZeroUsize::new(constants_usize::ONE).expect(
+                "560498ab admin_html_test_fixture_with_password_change invariant must hold",
             ),
         ),
     );
     let _created_admin_id = server_admin::domain_types::create_initial_administrator(
-        app_state::domain_types::SqlxPgPoolRef::from(&pool.0),
+        app_state::SqlxPgPoolRef::from(&pool.0),
         server_admin::domain_types::AdminLogin::try_from(constants_str::ADMIN_ALT.to_owned())
             .expect("6a417bde admin_html_test_fixture_with_password_change invariant must hold"),
         server_admin::domain_types::AdminDisplayName::try_from(constants_str::ADMIN.to_owned())
@@ -4020,7 +3997,7 @@ async fn admin_html_test_fixture_with_password_change(
                 );
     }
     let state = server_admin::domain_types::auth::AdminAuthSvcState::try_new(
-        app_state::domain_types::SqlxPgPool::from(pool.0.clone()),
+        app_state::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::domain_types::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),

@@ -1,4 +1,4 @@
-#[frontend_contract::domain_types::route_error(AdminHtmlChangePasswordError)]
+#[frontend_contract::route_error(AdminHtmlChangePasswordError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn change_password(
     auth: crate::AdminAuthReq,

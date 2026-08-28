@@ -12,13 +12,13 @@ pub struct AdminDataColumn {
     filters: AdminDataFilters,
     label: crate::domain_types::AdminText,
     name: crate::domain_types::AdminText,
-    input_kind: frontend_contract::domain_types::InputKind,
+    input_kind: frontend_contract::InputKind,
 }
 impl AdminDataColumn {
     #[must_use]
     pub const fn new(
         filters: AdminDataFilters,
-        input_kind: frontend_contract::domain_types::InputKind,
+        input_kind: frontend_contract::InputKind,
         label: crate::domain_types::AdminText,
         name: crate::domain_types::AdminText,
     ) -> Self {
@@ -34,7 +34,7 @@ impl AdminDataColumn {
         self.filters.as_slice()
     }
     #[must_use]
-    pub const fn input_kind(&self) -> frontend_contract::domain_types::InputKind {
+    pub const fn input_kind(&self) -> frontend_contract::InputKind {
         self.input_kind
     }
     #[must_use]

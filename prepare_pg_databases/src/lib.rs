@@ -11,5 +11,3 @@ mod process_command;
 mod process_commands;
 mod process_program;
 mod process_static_argument;
-mod validate_database_url;
-mod validate_migrations_source;

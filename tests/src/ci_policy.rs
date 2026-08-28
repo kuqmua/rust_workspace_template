@@ -13,49 +13,42 @@ fn active_workflow_source(source: super::types::SourceTextRef<'_>) -> super::typ
         source
             .as_ref()
             .lines()
-            .map(|line| active_yaml_line(super::types::SourceTextRef::from(line)).get())
+            .map(|line| {
+                let comment_start = line
+                    .char_indices()
+                    .try_fold(
+                        (false, false, false),
+                        |(inside_single, inside_double, escaped), (index, character)| {
+                            if character == '#' && !inside_single && !inside_double {
+                                return Err(index);
+                            }
+                            let next_escaped = inside_double && character == '\\' && !escaped;
+                            let next_single = if character == '\'' && !inside_double && !escaped {
+                                !inside_single
+                            } else {
+                                inside_single
+                            };
+                            let next_double = if character == '"' && !inside_single && !escaped {
+                                !inside_double
+                            } else {
+                                inside_double
+                            };
+                            Ok((next_single, next_double, next_escaped))
+                        },
+                    )
+                    .err();
+                comment_start.map_or_else(
+                    || line,
+                    |index| {
+                        line.get(..index)
+                            .expect("1a9e2f84 active YAML line invariant must hold")
+                    },
+                )
+            })
             .collect::<Vec<&str>>()
             .join(constants_str::NEWLINE),
     )
     .expect("fd9f7861 active_workflow_source invariant must hold")
-}
-#[allow(
-    clippy::single_call_fn,
-    reason = "keeps YAML quote state isolated and fixture-testable"
-)]
-fn active_yaml_line(line: super::types::SourceTextRef<'_>) -> super::types::SourceTextRef<'_> {
-    let comment_start = line
-        .as_ref()
-        .char_indices()
-        .try_fold(
-            (false, false, false),
-            |(inside_single, inside_double, escaped), (index, character)| {
-                if character == '#' && !inside_single && !inside_double {
-                    return Err(index);
-                }
-                let next_escaped = inside_double && character == '\\' && !escaped;
-                let next_single = if character == '\'' && !inside_double && !escaped {
-                    !inside_single
-                } else {
-                    inside_single
-                };
-                let next_double = if character == '"' && !inside_single && !escaped {
-                    !inside_double
-                } else {
-                    inside_double
-                };
-                Ok((next_single, next_double, next_escaped))
-            },
-        )
-        .err();
-    super::types::SourceTextRef::from(comment_start.map_or_else(
-        || line.get(),
-        |index| {
-            line.get()
-                .get(..index)
-                .expect("1a9e2f84 active_yaml_line invariant must hold")
-        },
-    ))
 }
 #[test]
 #[allow(

@@ -1,4 +1,4 @@
-use crate::domain_types::*;
+use crate::*;
 
 #[derive(
     Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,

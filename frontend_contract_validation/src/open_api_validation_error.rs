@@ -1,5 +1,5 @@
 use crate::openapi_validation::{
-    OpenApiContractText, OpenApiContractTextError, SerdeJsonOpenApiSerializationError,
+    OpenApiContractText, OpenApiContractTextTryFromStringError, SerdeJsonOpenApiSerializationError,
 };
 
 #[derive(
@@ -19,6 +19,6 @@ pub enum OpenApiValidationError {
         OpenApiContractText,
     ),
     RuntimeRouteMissing(OpenApiContractText, OpenApiContractText),
-    TextTooLong(OpenApiContractTextError),
+    TextTooLong(OpenApiContractTextTryFromStringError),
     UnusedSchema(OpenApiContractText),
 }

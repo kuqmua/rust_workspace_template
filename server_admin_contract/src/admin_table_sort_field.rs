@@ -33,11 +33,11 @@ impl AdminTableSortField {
         Self::AuditSucceeded,
     ];
     #[must_use]
-    pub fn key(self) -> frontend_contract::domain_types::ContractStr {
+    pub fn key(self) -> frontend_contract::ContractStr {
         self.values().key
     }
     #[must_use]
-    pub fn label(self) -> frontend_contract::domain_types::ContractStr {
+    pub fn label(self) -> frontend_contract::ContractStr {
         self.values().label
     }
     pub fn try_from_key(
@@ -78,8 +78,8 @@ impl AdminTableSortField {
             ),
         };
         super::AdminTableSortValues {
-            key: frontend_contract::domain_types::ContractStr::from(key),
-            label: frontend_contract::domain_types::ContractStr::from(label),
+            key: frontend_contract::ContractStr::from(key),
+            label: frontend_contract::ContractStr::from(label),
         }
     }
 }
