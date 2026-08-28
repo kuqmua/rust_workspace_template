@@ -14,13 +14,9 @@ impl super::AdminPasswordHasher {
         tokio::task::spawn_blocking(move || {
             let result = {
                 let password_secret = password.into_inner();
-                let salt = argon2::password_hash::SaltString::generate(
-                    &mut argon2::password_hash::rand_core::OsRng,
-                );
                 argon2::PasswordHasher::hash_password(
                     &argon2::Argon2::default(),
                     secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
-                    &salt,
                 )
                 .map(|hash| {
                     super::AdminPasswordHash::new(
@@ -54,7 +50,9 @@ impl super::AdminPasswordHasher {
                 let parsed_hash =
                     argon2::PasswordHash::new(expected_hash_text.as_ref()).map_err(|error| {
                         super::AdminPasswordHashError::PasswordHash(
-                            super::Argon2AdminPasswordHashError::from(error),
+                            super::Argon2AdminPasswordHashError::from(
+                                argon2::password_hash::Error::from(error),
+                            ),
                         )
                     })?;
                 argon2::PasswordVerifier::verify_password(
@@ -66,7 +64,9 @@ impl super::AdminPasswordHasher {
             drop(permit);
             match result {
                 Ok(()) => Ok(super::StdAdminBool::from(true)),
-                Err(argon2::password_hash::Error::Password) => Ok(super::StdAdminBool::from(false)),
+                Err(argon2::password_hash::Error::PasswordInvalid) => {
+                    Ok(super::StdAdminBool::from(false))
+                }
                 Err(error) => Err(super::AdminPasswordHashError::PasswordHash(
                     super::Argon2AdminPasswordHashError::from(error),
                 )),

@@ -1,12 +1,12 @@
-#[path = "source/compile_error_message.rs"]
+#[path = "compile_error_message.rs"]
 mod compile_error_message;
-#[path = "source/compile_error_token_stream.rs"]
+#[path = "compile_error_token_stream.rs"]
 mod compile_error_token_stream;
-#[path = "source/emit_generate_pg_table.rs"]
+#[path = "emit_generate_pg_table.rs"]
 mod emit_generate_pg_table;
-#[path = "source/generate_pg_table.rs"]
+#[path = "generate_pg_table.rs"]
 mod generate_pg_table;
-#[path = "source/table_test_names.rs"]
+#[path = "table_test_names.rs"]
 mod table_test_names;
 
 pub use emit_generate_pg_table::emit_generate_pg_table;

@@ -1,30 +1,32 @@
-#[path = "http_policy/bearer_authorization_resolution.rs"]
+#[path = "bearer_authorization_resolution.rs"]
 mod bearer_authorization_resolution;
-#[path = "http_policy/classify_optional_json_content_type.rs"]
+#[path = "classify_optional_json_content_type.rs"]
 mod classify_optional_json_content_type;
-#[path = "http_policy/cookie_resolution.rs"]
+#[path = "cookie_resolution.rs"]
 mod cookie_resolution;
-#[path = "http_policy/http_authorization_header_text_ref.rs"]
+#[path = "http_authorization_header_text_ref.rs"]
 mod http_authorization_header_text_ref;
-#[path = "http_policy/http_bearer_token_ref.rs"]
+#[path = "http_bearer_token_ref.rs"]
 mod http_bearer_token_ref;
-#[path = "http_policy/http_content_type_text_ref.rs"]
+#[path = "http_content_type_text_ref.rs"]
 mod http_content_type_text_ref;
-#[path = "http_policy/http_cookie_headers_ref.rs"]
+#[path = "http_cookie_headers_ref.rs"]
 mod http_cookie_headers_ref;
-#[path = "http_policy/http_cookie_name_ref.rs"]
+#[path = "http_cookie_name_ref.rs"]
 mod http_cookie_name_ref;
-#[path = "http_policy/http_cookie_value_ref.rs"]
+#[path = "http_cookie_value_ref.rs"]
 mod http_cookie_value_ref;
-#[path = "http_policy/optional_json_body_presence.rs"]
+#[path = "optional_json_body_presence.rs"]
 mod optional_json_body_presence;
-#[path = "http_policy/optional_json_content_type.rs"]
+#[path = "optional_json_content_type.rs"]
 mod optional_json_content_type;
-#[path = "http_policy/optional_json_content_type_decision.rs"]
+#[path = "optional_json_content_type_decision.rs"]
 mod optional_json_content_type_decision;
-#[path = "http_policy/resolve_bearer_authorization.rs"]
+#[path = "resolve_bearer_authorization.rs"]
 mod resolve_bearer_authorization;
-#[path = "http_policy/resolve_unique_cookie.rs"]
+#[path = "resolve_optional_json_content_type_decision.rs"]
+mod resolve_optional_json_content_type_decision;
+#[path = "resolve_unique_cookie.rs"]
 mod resolve_unique_cookie;
 
 pub use bearer_authorization_resolution::BearerAuthorizationResolution;
@@ -38,10 +40,9 @@ pub use http_cookie_name_ref::HttpCookieNameRef;
 pub use http_cookie_value_ref::HttpCookieValueRef;
 pub use optional_json_body_presence::OptionalJsonBodyPresence;
 pub use optional_json_content_type::OptionalJsonContentType;
-pub use optional_json_content_type_decision::{
-    OptionalJsonContentTypeDecision, optional_json_content_type_decision,
-};
+pub use optional_json_content_type_decision::OptionalJsonContentTypeDecision;
 pub use resolve_bearer_authorization::resolve_bearer_authorization;
+pub use resolve_optional_json_content_type_decision::resolve_optional_json_content_type_decision;
 pub use resolve_unique_cookie::resolve_unique_cookie;
 
 #[cfg(test)]
@@ -85,7 +86,7 @@ mod tests {
     #[test]
     fn optional_json_rejects_non_json_non_empty_body() {
         assert_eq!(
-            super::optional_json_content_type_decision(
+            super::resolve_optional_json_content_type_decision(
                 super::OptionalJsonBodyPresence::NonEmpty,
                 super::OptionalJsonContentType::NonJson
             ),

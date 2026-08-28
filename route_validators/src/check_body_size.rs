@@ -1,6 +1,7 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[path = "axum_body.rs"]
 mod axum_body;
@@ -12,8 +13,27 @@ mod body_size_error;
 mod body_size_limit_bytes;
 #[path = "bytes_body_bytes.rs"]
 mod bytes_body_bytes;
-#[path = "check_body_size/check_body_size.rs"]
-mod check_body_size;
+pub async fn check_body_size<BodyTy, LimitTy>(
+    body: BodyTy,
+    limit: LimitTy,
+) -> Result<BytesBodyBytes, BodySizeError>
+where
+    BodyTy: Into<AxumBody>,
+    LimitTy: Into<BodySizeLimitBytes>,
+{
+    let body_value = body.into();
+    let limit_value = limit.into();
+    let size_hint = axum::body::HttpBody::size_hint(&body_value.0);
+    axum::body::to_bytes(body_value.0, limit_value.0)
+        .await
+        .map(BytesBodyBytes::from)
+        .map_err(|error| BodySizeError::ReachedMaximumSizeOfBody {
+            error: AxumBodySizeError::from(error),
+            maximum_size_of_body_limit_in_bytes: limit_value,
+            size_hint: HttpBodySizeHint::from(size_hint),
+            location: location_macros::location!(),
+        })
+}
 #[path = "http_body_size_hint.rs"]
 mod http_body_size_hint;
 
@@ -22,7 +42,6 @@ pub use axum_body_size_error::AxumBodySizeError;
 pub use body_size_error::{BodySizeError, BodySizeErrorWithSerde};
 pub use body_size_limit_bytes::BodySizeLimitBytes;
 pub use bytes_body_bytes::BytesBodyBytes;
-pub use check_body_size::check_body_size;
 pub use http_body_size_hint::HttpBodySizeHint;
 #[cfg(test)]
 mod tests {

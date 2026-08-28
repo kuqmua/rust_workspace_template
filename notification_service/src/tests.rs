@@ -6,7 +6,7 @@ fn state(pool: sqlx::PgPool) -> super::NotificationState {
                 .handle(),
         ),
         pool: app_state::domain_types::SqlxPgPool::from(pool),
-        project_git_info: git_info::domain_types::project_git_info(),
+        project_git_info: git_info::domain_types::project_git_info_value(),
     }
 }
 

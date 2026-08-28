@@ -1,3 +1,4 @@
+#[path = "domain_types.rs"]
 pub mod domain_types;
 
 pub fn local_config() -> Result<domain_types::RuntimeTestConfig, domain_types::ServiceBaseUrlError>

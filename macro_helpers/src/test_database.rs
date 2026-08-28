@@ -1,10 +1,10 @@
-#[path = "test_database/sanitized_database_target.rs"]
+#[path = "sanitized_database_target.rs"]
 mod sanitized_database_target;
-#[path = "test_database/url_error.rs"]
+#[path = "url_error.rs"]
 mod url_error;
-#[path = "test_database/url_ref.rs"]
+#[path = "url_ref.rs"]
 mod url_ref;
-#[path = "test_database/validate_test_database_url.rs"]
+#[path = "validate_test_database_url.rs"]
 mod validate_test_database_url;
 
 pub use sanitized_database_target::SanitizedDatabaseTarget;

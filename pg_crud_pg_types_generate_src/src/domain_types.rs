@@ -1,9 +1,9 @@
 #[path = "contract_tests.rs"]
 mod contract_tests;
-#[path = "filter_kind.rs"]
-mod filter_kind;
 #[path = "pg_name.rs"]
 mod pg_name;
+#[path = "pg_type_filter_kind.rs"]
+mod pg_type_filter_kind;
 #[path = "pg_type_spec.rs"]
 mod pg_type_spec;
 #[path = "rust_type_wire_kind.rs"]

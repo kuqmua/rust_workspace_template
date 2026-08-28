@@ -2,34 +2,36 @@
 #![allow(clippy::single_call_fn)] // one bounded query serves the read-only table inspection boundary
 #![allow(clippy::field_scoped_visibility_modifiers, clippy::wildcard_imports)] // split repository adapters expose private wrappers and vocabulary only through this facade
 
-#[path = "adapters_repository_data_tables/base_sql.rs"]
+#[path = "base_sql.rs"]
 mod base_sql;
-#[path = "adapters_repository_data_tables/data_columns.rs"]
+#[path = "data_columns.rs"]
 mod data_columns;
-#[path = "adapters_repository_data_tables/data_filter.rs"]
+#[path = "data_filter.rs"]
 mod data_filter;
-#[path = "adapters_repository_data_tables/data_flt.rs"]
+#[path = "data_flt.rs"]
 mod data_flt;
-#[path = "adapters_repository_data_tables/data_flt_json.rs"]
+#[path = "data_flt_json.rs"]
 mod data_flt_json;
-#[path = "adapters_repository_data_tables/data_permissions_flt.rs"]
+#[path = "data_permissions_flt.rs"]
 mod data_permissions_flt;
-#[path = "adapters_repository_data_tables/data_role_permissions_flt.rs"]
+#[path = "data_role_permissions_flt.rs"]
 mod data_role_permissions_flt;
-#[path = "adapters_repository_data_tables/data_roles_flt.rs"]
+#[path = "data_roles_flt.rs"]
 mod data_roles_flt;
-#[path = "adapters_repository_data_tables/data_system_settings_flt.rs"]
+#[path = "data_system_settings_flt.rs"]
 mod data_system_settings_flt;
-#[path = "adapters_repository_data_tables/data_user_roles_flt.rs"]
+#[path = "data_user_roles_flt.rs"]
 mod data_user_roles_flt;
-#[path = "adapters_repository_data_tables/data_users_flt.rs"]
+#[path = "data_users_flt.rs"]
 mod data_users_flt;
-#[path = "adapters_repository_data_tables/filtered_sql.rs"]
+#[path = "filtered_sql.rs"]
 mod filtered_sql;
-#[path = "adapters_repository_data_tables/read.rs"]
+#[path = "read.rs"]
 mod read;
 
-use super::{AdminPageTotalCount, AdminRepositoryError, SqlxAdminRepositoryPoolRef, page_total};
+use super::{
+    AdminPageTotalCount, AdminRepositoryError, SqlxAdminRepositoryPoolRef, repository_page_total,
+};
 use base_sql::base_sql;
 use data_columns::data_columns;
 use data_filter::data_filter;

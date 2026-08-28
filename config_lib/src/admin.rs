@@ -1,32 +1,32 @@
-#[path = "admin/admin_access_token_ttl_seconds.rs"]
+#[path = "admin_access_token_ttl_seconds.rs"]
 mod admin_access_token_ttl_seconds;
-#[path = "admin/admin_login_failure_limit.rs"]
+#[path = "admin_login_failure_limit.rs"]
 mod admin_login_failure_limit;
-#[path = "admin/admin_password_hash_concurrency.rs"]
+#[path = "admin_password_hash_concurrency.rs"]
 mod admin_password_hash_concurrency;
-#[path = "admin/admin_positive_u64_parsing_error.rs"]
+#[path = "admin_positive_u64_parsing_error.rs"]
 mod admin_positive_u64_parsing_error;
-#[path = "admin/admin_positive_usize_parsing_error.rs"]
+#[path = "admin_positive_usize_parsing_error.rs"]
 mod admin_positive_usize_parsing_error;
-#[path = "admin/admin_refresh_token_ttl_seconds.rs"]
+#[path = "admin_refresh_token_ttl_seconds.rs"]
 mod admin_refresh_token_ttl_seconds;
-#[path = "admin/admin_session_limit.rs"]
+#[path = "admin_session_limit.rs"]
 mod admin_session_limit;
-#[path = "admin/admin_sign_in_rate_limit.rs"]
+#[path = "admin_sign_in_rate_limit.rs"]
 mod admin_sign_in_rate_limit;
-#[path = "admin/admin_token_audience.rs"]
+#[path = "admin_token_audience.rs"]
 mod admin_token_audience;
-#[path = "admin/admin_token_issuer.rs"]
+#[path = "admin_token_issuer.rs"]
 mod admin_token_issuer;
-#[path = "admin/parse_admin_positive_u64.rs"]
+#[path = "parse_admin_positive_u64.rs"]
 mod parse_admin_positive_u64;
-#[path = "admin/parse_admin_token_text.rs"]
+#[path = "parse_admin_token_text.rs"]
 mod parse_admin_token_text;
-#[path = "admin/try_from_std_env_var_ok_admin_password_hash_concurrency_error.rs"]
+#[path = "try_from_std_env_var_ok_admin_password_hash_concurrency_error.rs"]
 mod try_from_std_env_var_ok_admin_password_hash_concurrency_error;
-#[path = "admin/try_from_std_env_var_ok_admin_positive_u64_error.rs"]
+#[path = "try_from_std_env_var_ok_admin_positive_u64_error.rs"]
 mod try_from_std_env_var_ok_admin_positive_u64_error;
-#[path = "admin/try_from_std_env_var_ok_admin_token_text_error.rs"]
+#[path = "try_from_std_env_var_ok_admin_token_text_error.rs"]
 mod try_from_std_env_var_ok_admin_token_text_error;
 
 pub use admin_access_token_ttl_seconds::*;

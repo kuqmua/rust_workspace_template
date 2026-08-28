@@ -1,15 +1,20 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "wrap_derive/proc_macro2_derive_tokens_ref.rs"]
+#[path = "proc_macro2_derive_tokens_ref.rs"]
 mod proc_macro2_derive_tokens_ref;
-#[path = "wrap_derive/wrap_derive.rs"]
-mod wrap_derive;
+#[must_use]
+pub fn wrap_derive(
+    v: ProcMacro2DeriveTokensRef<'_>,
+) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+{
+    let tokens = v.0;
+    quote::quote! {#[derive(#(#tokens),*)]}.into()
+}
 
 pub use proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef;
-pub use wrap_derive::wrap_derive;
-
 #[cfg(test)]
 mod tests {
     #[test]

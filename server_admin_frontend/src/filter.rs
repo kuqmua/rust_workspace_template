@@ -10,9 +10,9 @@ mod admin_data_grid_filter_option;
 #[path = "admin_data_grid_input_type.rs"]
 mod admin_data_grid_input_type;
 
-#[path = "filter/admin_data_grid_filter.rs"]
+#[path = "admin_data_grid_filter.rs"]
 mod admin_data_grid_filter;
-#[path = "filter/leptos_admin_filter_operation_signal.rs"]
+#[path = "leptos_admin_filter_operation_signal.rs"]
 mod leptos_admin_filter_operation_signal;
 
 pub(super) use admin_data_grid_filter::admin_data_grid_filter;

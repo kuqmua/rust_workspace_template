@@ -1,39 +1,39 @@
-#[path = "types/env_parse_error.rs"]
+#[path = "env_parse_error.rs"]
 mod env_parse_error;
-#[path = "types/env_var_error.rs"]
+#[path = "env_var_error.rs"]
 mod env_var_error;
-#[path = "types/env_var_name_ref.rs"]
-mod env_var_name_ref;
-#[path = "types/env_var_result_var_error.rs"]
+#[path = "env_var_result_var_error.rs"]
 mod env_var_result_var_error;
-#[path = "types/env_var_value_ref.rs"]
+#[path = "env_var_value_ref.rs"]
 mod env_var_value_ref;
-#[path = "types/parse_ctx_ref.rs"]
+#[path = "parse_ctx_ref.rs"]
 mod parse_ctx_ref;
-#[path = "types/parse_from_env_var_from_str.rs"]
+#[path = "parse_env_var_name_ref.rs"]
+mod parse_env_var_name_ref;
+#[path = "parse_from_env_var_from_str.rs"]
 mod parse_from_env_var_from_str;
-#[path = "types/parse_from_env_var_with.rs"]
+#[path = "parse_from_env_var_with.rs"]
 mod parse_from_env_var_with;
-#[path = "types/parse_from_str_with_ctx.rs"]
+#[path = "parse_from_str_with_ctx.rs"]
 mod parse_from_str_with_ctx;
-#[path = "types/src_place_type.rs"]
+#[path = "src_place_type.rs"]
 mod src_place_type;
-#[path = "types/svc_mode.rs"]
+#[path = "svc_mode.rs"]
 mod svc_mode;
-#[path = "types/tracing_format.rs"]
+#[path = "tracing_format.rs"]
 mod tracing_format;
-#[path = "types/tracing_level.rs"]
+#[path = "tracing_level.rs"]
 mod tracing_level;
-#[path = "types/tracing_level_name.rs"]
+#[path = "tracing_level_name.rs"]
 mod tracing_level_name;
 
 use super::{ConfigLibStringWrapperTryFromStringError, EnvVarName, StdEnvVarOk};
 use env_parse_error::EnvParseError;
 use env_var_error::EnvVarError;
-use env_var_name_ref::EnvVarNameRef;
 use env_var_result_var_error::EnvVarResultVarError;
 use env_var_value_ref::EnvVarValueRef;
 use parse_ctx_ref::ParseCtxRef;
+use parse_env_var_name_ref::ParseEnvVarNameRef;
 use parse_from_env_var_from_str::parse_from_env_var_from_str;
 use parse_from_env_var_with::parse_from_env_var_with;
 use parse_from_str_with_ctx::parse_from_str_with_ctx;
@@ -147,7 +147,7 @@ mod tests {
     fn parse_from_env_var_with_wraps_missing_var_context() {
         let parsed = super::parse_from_env_var_with(
             env_result(Err(std::env::VarError::NotPresent)),
-            super::EnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
+            super::ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
             |_v| Ok(()),
         );
         let error = parsed.expect_err(constants_str::D2F3B74A);
@@ -169,7 +169,7 @@ mod tests {
     fn parse_from_env_var_with_passes_value_into_parse_callback() {
         let parsed = super::parse_from_env_var_with(
             env_result(Ok(String::from(constants_str::SRC_ALT))),
-            super::EnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
+            super::ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
             |v| Ok(v.0.to_owned()),
         );
         assert_eq!(parsed, Ok(String::from("src")));
@@ -178,7 +178,7 @@ mod tests {
     fn parse_from_env_var_from_str_parses_bool_when_input_is_valid() {
         let parsed = super::parse_from_env_var_from_str::<bool>(
             env_result(Ok(String::from(constants_str::TRUE))),
-            super::EnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
+            super::ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
             super::ParseCtxRef::from(constants_str::BOOL_PARSE),
         );
         assert_eq!(parsed, Ok(true));
@@ -187,7 +187,7 @@ mod tests {
     fn parse_from_env_var_from_str_wraps_context_when_parse_fails() {
         let error = super::parse_from_env_var_from_str::<bool>(
             env_result(Ok(String::from(constants_str::X))),
-            super::EnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
+            super::ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
             super::ParseCtxRef::from(constants_str::BOOL_PARSE),
         )
         .expect_err(constants_str::VALUE_7E4B3F19);

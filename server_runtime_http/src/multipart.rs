@@ -1,42 +1,42 @@
-#[path = "multipart/file_staging_action.rs"]
+#[path = "file_staging_action.rs"]
 mod file_staging_action;
-#[path = "multipart/file_staging_directory_name.rs"]
+#[path = "file_staging_directory_name.rs"]
 mod file_staging_directory_name;
-#[path = "multipart/identifier_file_storage_relative_path.rs"]
+#[path = "identifier_file_storage_relative_path.rs"]
 mod identifier_file_storage_relative_path;
-#[path = "multipart/multipart_bytes.rs"]
+#[path = "multipart_bytes.rs"]
 mod multipart_bytes;
-#[path = "multipart/multipart_bytes_part.rs"]
+#[path = "multipart_bytes_part.rs"]
 mod multipart_bytes_part;
-#[path = "multipart/multipart_bytes_parts.rs"]
+#[path = "multipart_bytes_parts.rs"]
 mod multipart_bytes_parts;
-#[path = "multipart/multipart_field_name.rs"]
+#[path = "multipart_field_name.rs"]
 mod multipart_field_name;
-#[path = "multipart/multipart_file_name.rs"]
+#[path = "multipart_file_name.rs"]
 mod multipart_file_name;
-#[path = "multipart/multipart_payload_maximum.rs"]
+#[path = "multipart_payload_maximum.rs"]
 mod multipart_payload_maximum;
-#[path = "multipart/multipart_request_error.rs"]
+#[path = "multipart_request_error.rs"]
 mod multipart_request_error;
-#[path = "multipart/multipart_text_part.rs"]
+#[path = "multipart_text_part.rs"]
 mod multipart_text_part;
-#[path = "multipart/multipart_text_parts.rs"]
+#[path = "multipart_text_parts.rs"]
 mod multipart_text_parts;
-#[path = "multipart/multipart_text_value.rs"]
+#[path = "multipart_text_value.rs"]
 mod multipart_text_value;
-#[path = "multipart/multipart_upload_request.rs"]
+#[path = "multipart_upload_request.rs"]
 mod multipart_upload_request;
-#[path = "multipart/multipart_value_error.rs"]
+#[path = "multipart_value_error.rs"]
 mod multipart_value_error;
-#[path = "multipart/multipart_value_length.rs"]
+#[path = "multipart_value_length.rs"]
 mod multipart_value_length;
-#[path = "multipart/staging_directory_name.rs"]
+#[path = "staging_directory_name.rs"]
 mod staging_directory_name;
-#[path = "multipart/storage_path_segment.rs"]
+#[path = "storage_path_segment.rs"]
 mod storage_path_segment;
-#[path = "multipart/storage_path_segment_error.rs"]
+#[path = "storage_path_segment_error.rs"]
 mod storage_path_segment_error;
-#[path = "multipart/storage_relative_path_buf.rs"]
+#[path = "storage_relative_path_buf.rs"]
 mod storage_relative_path_buf;
 
 pub use file_staging_action::FileStagingAction;

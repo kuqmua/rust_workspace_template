@@ -1,14 +1,14 @@
-#[path = "secret_text/bounded_secret_text.rs"]
+#[path = "bounded_secret_text.rs"]
 mod bounded_secret_text;
-#[path = "secret_text/bounded_secret_text_error.rs"]
+#[path = "bounded_secret_text_error.rs"]
 mod bounded_secret_text_error;
-#[path = "secret_text/secret_text_match.rs"]
+#[path = "secret_text_match.rs"]
 mod secret_text_match;
-#[path = "secret_text/secret_text_minimum_bytes.rs"]
+#[path = "secret_text_minimum_bytes.rs"]
 mod secret_text_minimum_bytes;
-#[path = "secret_text/secret_text_ref.rs"]
+#[path = "secret_text_ref.rs"]
 mod secret_text_ref;
-#[path = "secret_text/secret_texts_match.rs"]
+#[path = "secret_texts_match.rs"]
 mod secret_texts_match;
 
 pub use bounded_secret_text::BoundedSecretText;

@@ -177,11 +177,13 @@ fn audit_resource_identifier_uses_target_identifier() {
 #[test]
 fn open_api_contains_auth_and_user_security_contracts() {
     frontend_contract_validation::domain_types::openapi_validation::validate_openapi_schema_references(
-        &utoipa::openapi::OpenApi::from(super::open_api()),
+        &utoipa::openapi::OpenApi::from(super::admin_api_open_api()),
     )
     .expect("2151641d open_api_contains_auth_and_user_security_contracts invariant must hold");
-    let document = serde_json::to_value(utoipa::openapi::OpenApi::from(super::open_api()))
-        .expect("869d28d7 open_api_contains_auth_and_user_security_contracts invariant must hold");
+    let document = serde_json::to_value(
+        utoipa::openapi::OpenApi::from(super::admin_api_open_api()),
+    )
+    .expect("869d28d7 open_api_contains_auth_and_user_security_contracts invariant must hold");
     let paths = document
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)

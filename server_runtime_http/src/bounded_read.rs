@@ -1,52 +1,52 @@
-#[path = "bounded_read/bounded_bytes.rs"]
+#[path = "bounded_bytes.rs"]
 mod bounded_bytes;
-#[path = "bounded_read/bounded_json_read_error.rs"]
+#[path = "bounded_json_read_error.rs"]
 mod bounded_json_read_error;
-#[path = "bounded_read/bounded_json_text.rs"]
+#[path = "bounded_json_text.rs"]
 mod bounded_json_text;
-#[path = "bounded_read/bounded_read_concurrency_arc_semaphore.rs"]
+#[path = "bounded_read_concurrency_arc_semaphore.rs"]
 mod bounded_read_concurrency_arc_semaphore;
-#[path = "bounded_read/bounded_read_concurrency_maximum_non_zero_usize.rs"]
+#[path = "bounded_read_concurrency_maximum_non_zero_usize.rs"]
 mod bounded_read_concurrency_maximum_non_zero_usize;
-#[path = "bounded_read/bounded_read_error.rs"]
+#[path = "bounded_read_error.rs"]
 mod bounded_read_error;
-#[path = "bounded_read/bounded_read_from_utf8_error.rs"]
+#[path = "bounded_read_from_utf8_error.rs"]
 mod bounded_read_from_utf8_error;
-#[path = "bounded_read/bounded_read_io_error.rs"]
+#[path = "bounded_read_io_error.rs"]
 mod bounded_read_io_error;
-#[path = "bounded_read/bounded_read_maximum_bytes.rs"]
+#[path = "bounded_read_maximum_bytes.rs"]
 mod bounded_read_maximum_bytes;
-#[path = "bounded_read/bounded_read_observed_bytes.rs"]
+#[path = "bounded_read_observed_bytes.rs"]
 mod bounded_read_observed_bytes;
-#[path = "bounded_read/bounded_text.rs"]
+#[path = "bounded_text.rs"]
 mod bounded_text;
-#[path = "bounded_read/classify_not_found_io_error.rs"]
+#[path = "classify_not_found_io_error.rs"]
 mod classify_not_found_io_error;
-#[path = "bounded_read/ensure_size_within_limit.rs"]
+#[path = "ensure_size_within_limit.rs"]
 mod ensure_size_within_limit;
-#[path = "bounded_read/io_error_presence_disposition.rs"]
+#[path = "io_error_presence_disposition.rs"]
 mod io_error_presence_disposition;
-#[path = "bounded_read/parse_bounded_json.rs"]
+#[path = "parse_bounded_json.rs"]
 mod parse_bounded_json;
-#[path = "bounded_read/parse_bounded_json_owned.rs"]
+#[path = "parse_bounded_json_owned.rs"]
 mod parse_bounded_json_owned;
-#[path = "bounded_read/path_ref.rs"]
+#[path = "path_ref.rs"]
 mod path_ref;
-#[path = "bounded_read/read_bounded_file.rs"]
+#[path = "read_bounded_file.rs"]
 mod read_bounded_file;
-#[path = "bounded_read/read_bounded_file_async.rs"]
+#[path = "read_bounded_file_async.rs"]
 mod read_bounded_file_async;
-#[path = "bounded_read/read_bounded_http_response.rs"]
+#[path = "read_bounded_http_response.rs"]
 mod read_bounded_http_response;
-#[path = "bounded_read/read_bounded_json_file_async.rs"]
+#[path = "read_bounded_json_file_async.rs"]
 mod read_bounded_json_file_async;
-#[path = "bounded_read/read_bounded_json_http_response.rs"]
+#[path = "read_bounded_json_http_response.rs"]
 mod read_bounded_json_http_response;
-#[path = "bounded_read/reqwest_error.rs"]
+#[path = "reqwest_error.rs"]
 mod reqwest_error;
-#[path = "bounded_read/reqwest_response.rs"]
+#[path = "reqwest_response.rs"]
 mod reqwest_response;
-#[path = "bounded_read/serde_json_error.rs"]
+#[path = "serde_json_error.rs"]
 mod serde_json_error;
 
 pub use bounded_bytes::BoundedBytes;

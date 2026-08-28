@@ -1,12 +1,12 @@
-#[path = "geojson/geo_json_document_text.rs"]
+#[path = "geo_json_document_text.rs"]
 mod geo_json_document_text;
-#[path = "geojson/geo_json_validation.rs"]
+#[path = "geo_json_validation.rs"]
 mod geo_json_validation;
-#[path = "geojson/geo_json_validation_error.rs"]
+#[path = "geo_json_validation_error.rs"]
 mod geo_json_validation_error;
-#[path = "geojson/serde_json_geo_json_error.rs"]
+#[path = "serde_json_geo_json_error.rs"]
 mod serde_json_geo_json_error;
-#[path = "geojson/supported_geo_json_type_validation.rs"]
+#[path = "supported_geo_json_type_validation.rs"]
 mod supported_geo_json_type_validation;
 
 pub use geo_json_document_text::GeoJsonDocumentText;

@@ -1,6 +1,10 @@
+#[path = "domain_types.rs"]
 mod domain_types;
+#[path = "migrate_notification.rs"]
 mod migrate_notification;
+#[path = "routes.rs"]
 mod routes;
+#[path = "run.rs"]
 mod run;
 
 #[tokio::main]

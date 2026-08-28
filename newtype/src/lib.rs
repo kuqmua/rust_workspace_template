@@ -1,3 +1,4 @@
+#[path = "domain_types.rs"]
 mod domain_types;
 
 #[cfg(test)]
@@ -1673,4 +1674,5 @@ fn identifier_to_snake(
         .expect("2e7a9c4f identifier_to_snake invariant must hold")
 }
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

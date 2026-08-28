@@ -1,3 +1,4 @@
+#[path = "syn_item_enum_mut_ref.rs"]
 mod syn_item_enum_mut_ref;
 #[proc_macro_attribute]
 pub fn errors_with_location(

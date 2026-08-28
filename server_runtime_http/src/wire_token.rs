@@ -1,6 +1,6 @@
-#[path = "wire_token/versioned_url_safe_wire_token_text.rs"]
+#[path = "versioned_url_safe_wire_token_text.rs"]
 mod versioned_url_safe_wire_token_text;
-#[path = "wire_token/versioned_url_safe_wire_token_text_error.rs"]
+#[path = "versioned_url_safe_wire_token_text_error.rs"]
 mod versioned_url_safe_wire_token_text_error;
 
 pub use versioned_url_safe_wire_token_text::VersionedUrlSafeWireTokenText;

@@ -1,32 +1,32 @@
-#[path = "route_coverage/missing_required_test_categories.rs"]
+#[path = "missing_required_test_categories.rs"]
 mod missing_required_test_categories;
-#[path = "route_coverage/required_test_categories.rs"]
+#[path = "required_test_categories.rs"]
 mod required_test_categories;
-#[path = "route_coverage/route_access.rs"]
+#[path = "route_access.rs"]
 mod route_access;
-#[path = "route_coverage/route_coverage_descriptor.rs"]
+#[path = "route_coverage_descriptor.rs"]
 mod route_coverage_descriptor;
-#[path = "route_coverage/route_coverage_error.rs"]
+#[path = "route_coverage_error.rs"]
 mod route_coverage_error;
-#[path = "route_coverage/route_coverage_evidence.rs"]
+#[path = "route_coverage_evidence.rs"]
 mod route_coverage_evidence;
-#[path = "route_coverage/route_coverage_obligation.rs"]
+#[path = "route_coverage_obligation.rs"]
 mod route_coverage_obligation;
-#[path = "route_coverage/route_database_usage.rs"]
+#[path = "route_database_usage.rs"]
 mod route_database_usage;
-#[path = "route_coverage/route_json_body_usage.rs"]
+#[path = "route_json_body_usage.rs"]
 mod route_json_body_usage;
-#[path = "route_coverage/route_mutation.rs"]
+#[path = "route_mutation.rs"]
 mod route_mutation;
-#[path = "route_coverage/route_response_kind.rs"]
+#[path = "route_response_kind.rs"]
 mod route_response_kind;
-#[path = "route_coverage/route_test_capabilities.rs"]
+#[path = "route_test_capabilities.rs"]
 mod route_test_capabilities;
-#[path = "route_coverage/route_test_categories.rs"]
+#[path = "route_test_categories.rs"]
 mod route_test_categories;
-#[path = "route_coverage/route_test_category.rs"]
+#[path = "route_test_category.rs"]
 mod route_test_category;
-#[path = "route_coverage/validate_route_coverage.rs"]
+#[path = "validate_route_coverage.rs"]
 mod validate_route_coverage;
 
 pub use missing_required_test_categories::missing_required_test_categories;

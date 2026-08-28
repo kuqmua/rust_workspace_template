@@ -1,22 +1,22 @@
-#[path = "domain_types/http_runtime_test_status.rs"]
+#[path = "http_runtime_test_status.rs"]
 mod http_runtime_test_status;
-#[path = "domain_types/reqwest_runtime_test_client.rs"]
+#[path = "reqwest_runtime_test_client.rs"]
 mod reqwest_runtime_test_client;
-#[path = "domain_types/reqwest_runtime_test_response.rs"]
+#[path = "reqwest_runtime_test_response.rs"]
 mod reqwest_runtime_test_response;
-#[path = "domain_types/runtime_test_config.rs"]
+#[path = "runtime_test_config.rs"]
 mod runtime_test_config;
-#[path = "domain_types/runtime_test_error.rs"]
+#[path = "runtime_test_error.rs"]
 mod runtime_test_error;
-#[path = "domain_types/runtime_test_kind.rs"]
+#[path = "runtime_test_kind.rs"]
 mod runtime_test_kind;
-#[path = "domain_types/runtime_test_report.rs"]
+#[path = "runtime_test_report.rs"]
 mod runtime_test_report;
-#[path = "domain_types/runtime_test_url.rs"]
+#[path = "runtime_test_url.rs"]
 mod runtime_test_url;
-#[path = "domain_types/service_base_url.rs"]
+#[path = "service_base_url.rs"]
 mod service_base_url;
-#[path = "domain_types/service_base_url_error.rs"]
+#[path = "service_base_url_error.rs"]
 mod service_base_url_error;
 
 pub use http_runtime_test_status::HttpRuntimeTestStatus;

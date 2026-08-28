@@ -1,26 +1,26 @@
-#[path = "source/build_generate_where_filters.rs"]
+#[path = "build_generate_where_filters.rs"]
 mod build_generate_where_filters;
-#[path = "source/built_generate_where_filters_model.rs"]
+#[path = "built_generate_where_filters_model.rs"]
 mod built_generate_where_filters_model;
-#[path = "source/emit_generate_where_filters.rs"]
+#[path = "emit_generate_where_filters.rs"]
 mod emit_generate_where_filters;
-#[path = "source/generate_where_filters.rs"]
+#[path = "generate_where_filters.rs"]
 mod generate_where_filters;
-#[path = "source/generate_where_filters_pipeline_error.rs"]
+#[path = "generate_where_filters_pipeline_error.rs"]
 mod generate_where_filters_pipeline_error;
-#[path = "source/parse_generate_where_filters.rs"]
+#[path = "parse_generate_where_filters.rs"]
 mod parse_generate_where_filters;
-#[path = "source/parsed_generate_where_filters_config.rs"]
+#[path = "parsed_generate_where_filters_config.rs"]
 mod parsed_generate_where_filters_config;
-#[path = "source/proc_macro2_generate_where_filters_input.rs"]
+#[path = "proc_macro2_generate_where_filters_input.rs"]
 mod proc_macro2_generate_where_filters_input;
-#[path = "source/proc_macro2_generate_where_filters_token_stream.rs"]
+#[path = "proc_macro2_generate_where_filters_token_stream.rs"]
 mod proc_macro2_generate_where_filters_token_stream;
-#[path = "source/serde_json_generate_where_filters_error.rs"]
+#[path = "serde_json_generate_where_filters_error.rs"]
 mod serde_json_generate_where_filters_error;
-#[path = "source/validate_generate_where_filters.rs"]
+#[path = "validate_generate_where_filters.rs"]
 mod validate_generate_where_filters;
-#[path = "source/validated_generate_where_filters_config.rs"]
+#[path = "validated_generate_where_filters_config.rs"]
 mod validated_generate_where_filters_config;
 
 pub use build_generate_where_filters::build_generate_where_filters;

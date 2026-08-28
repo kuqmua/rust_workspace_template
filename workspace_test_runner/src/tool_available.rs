@@ -1,7 +1,7 @@
-#![allow(clippy::single_call_fn)] // tool discovery has one mode-composition owner
-
-pub(crate) fn tool_available(
-    path: crate::domain_types::ToolPath,
-) -> crate::domain_types::ToolAvailable {
-    crate::domain_types::ToolAvailable::from(std::path::Path::new(path.get()).exists())
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+pub(crate) struct ToolAvailable(bool);
+impl ToolAvailable {
+    pub(crate) const fn get(self) -> bool {
+        self.0
+    }
 }

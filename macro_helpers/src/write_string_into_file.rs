@@ -1,28 +1,28 @@
-#[path = "write_string_into_file/generated_file_maximum_bytes.rs"]
+#[path = "generated_file_maximum_bytes.rs"]
 mod generated_file_maximum_bytes;
-#[path = "write_string_into_file/should_write_string.rs"]
+#[path = "should_write_string.rs"]
 mod should_write_string;
-#[path = "write_string_into_file/should_write_string_into_file.rs"]
+#[path = "should_write_string_into_file.rs"]
 mod should_write_string_into_file;
-#[path = "write_string_into_file/string_file_content_ref.rs"]
+#[path = "string_file_content_ref.rs"]
 mod string_file_content_ref;
-#[path = "write_string_into_file/try_write_string_into_file.rs"]
+#[path = "try_write_string_into_file.rs"]
 mod try_write_string_into_file;
-#[path = "write_string_into_file/try_write_string_into_file_with_outcome.rs"]
+#[path = "try_write_string_into_file_with_outcome.rs"]
 mod try_write_string_into_file_with_outcome;
-#[path = "write_string_into_file/try_write_string_into_path.rs"]
+#[path = "try_write_string_into_path.rs"]
 mod try_write_string_into_path;
-#[path = "write_string_into_file/try_write_string_into_path_with_outcome.rs"]
+#[path = "try_write_string_into_path_with_outcome.rs"]
 mod try_write_string_into_path_with_outcome;
-#[path = "write_string_into_file/validate_existing_file_text.rs"]
+#[path = "validate_existing_file_text.rs"]
 mod validate_existing_file_text;
-#[path = "write_string_into_file/write_path_outcome.rs"]
+#[path = "write_path_outcome.rs"]
 mod write_path_outcome;
-#[path = "write_string_into_file/write_string_if_needed.rs"]
+#[path = "write_string_if_needed.rs"]
 mod write_string_if_needed;
-#[path = "write_string_into_file/written_file_path_buf.rs"]
+#[path = "written_file_path_buf.rs"]
 mod written_file_path_buf;
-#[path = "write_string_into_file/written_file_path_ref.rs"]
+#[path = "written_file_path_ref.rs"]
 mod written_file_path_ref;
 
 use generated_file_maximum_bytes::GeneratedFileMaximumBytes;

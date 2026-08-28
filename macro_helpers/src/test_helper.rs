@@ -1,20 +1,20 @@
-#[path = "test_helper/assert_file_content.rs"]
+#[path = "assert_file_content.rs"]
 mod assert_file_content;
-#[path = "test_helper/assert_file_path_ref.rs"]
+#[path = "assert_file_path_ref.rs"]
 mod assert_file_path_ref;
-#[path = "test_helper/cleanup_test_file.rs"]
+#[path = "cleanup_test_file.rs"]
 mod cleanup_test_file;
-#[path = "test_helper/expected_file_content.rs"]
+#[path = "expected_file_content.rs"]
 mod expected_file_content;
-#[path = "test_helper/expected_file_content_ref.rs"]
+#[path = "expected_file_content_ref.rs"]
 mod expected_file_content_ref;
-#[path = "test_helper/std_assert_file_path.rs"]
+#[path = "std_assert_file_path.rs"]
 mod std_assert_file_path;
-#[path = "test_helper/test_path.rs"]
+#[path = "test_path.rs"]
 mod test_path;
-#[path = "test_helper/test_path_stem.rs"]
+#[path = "test_path_stem.rs"]
 mod test_path_stem;
-#[path = "test_helper/test_path_stem_ref.rs"]
+#[path = "test_path_stem_ref.rs"]
 mod test_path_stem_ref;
 
 pub(crate) use assert_file_content::assert_file_content;

@@ -56,7 +56,7 @@ pub(crate) async fn run(
                         crate::domain_types::NotificationState {
                             metrics,
                             pool: app_state::domain_types::SqlxPgPool::from(pool),
-                            project_git_info: git_info::domain_types::project_git_info(),
+                            project_git_info: git_info::domain_types::project_git_info_value(),
                         },
                         crate::domain_types::NotificationBodyMaximumBytes::from(
                             notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,

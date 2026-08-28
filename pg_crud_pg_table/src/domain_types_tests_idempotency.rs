@@ -1,14 +1,14 @@
 #[test]
 fn request_hash_is_stable_and_payload_sensitive() {
-    let first = super::pg_table_idempotency_request_hash(super::PgTableIdempotencyBodyRef::from(
-        b"same payload".as_slice(),
-    ));
-    let second = super::pg_table_idempotency_request_hash(super::PgTableIdempotencyBodyRef::from(
-        b"same payload".as_slice(),
-    ));
-    let changed = super::pg_table_idempotency_request_hash(super::PgTableIdempotencyBodyRef::from(
-        b"changed payload".as_slice(),
-    ));
+    let first = super::calculate_pg_table_idempotency_request_hash(
+        super::PgTableIdempotencyBodyRef::from(b"same payload".as_slice()),
+    );
+    let second = super::calculate_pg_table_idempotency_request_hash(
+        super::PgTableIdempotencyBodyRef::from(b"same payload".as_slice()),
+    );
+    let changed = super::calculate_pg_table_idempotency_request_hash(
+        super::PgTableIdempotencyBodyRef::from(b"changed payload".as_slice()),
+    );
     assert_eq!(first, second);
     assert_ne!(first, changed);
 }

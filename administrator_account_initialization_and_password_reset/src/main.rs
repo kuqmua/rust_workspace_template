@@ -3,11 +3,17 @@
     reason = "constants_str is used by binary unit tests"
 )]
 
+#[path = "domain_types.rs"]
 mod domain_types;
+#[path = "error_status.rs"]
 mod error_status;
+#[path = "parse_args.rs"]
 mod parse_args;
+#[path = "password_from_bytes.rs"]
 mod password_from_bytes;
+#[path = "password_from_file.rs"]
 mod password_from_file;
+#[path = "run.rs"]
 mod run;
 
 fn main() -> domain_types::AdministratorAccountCommandExitCode {

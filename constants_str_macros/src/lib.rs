@@ -1,3 +1,4 @@
+#[path = "domain_types.rs"]
 mod domain_types;
 
 #[proc_macro]

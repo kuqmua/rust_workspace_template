@@ -1,26 +1,55 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "list_total/list_items.rs"]
+#[path = "list_items.rs"]
 mod list_items;
-#[path = "list_total/list_offset.rs"]
+#[path = "list_offset.rs"]
 mod list_offset;
-#[path = "list_total/list_page.rs"]
+#[path = "list_page.rs"]
 mod list_page;
-#[path = "list_total/list_rows.rs"]
+#[path = "list_rows.rs"]
 mod list_rows;
-#[path = "list_total/list_rows_presence.rs"]
+#[path = "list_rows_presence.rs"]
 mod list_rows_presence;
-#[path = "list_total/list_total.rs"]
-mod list_total;
-#[path = "list_total/list_total_error.rs"]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::IntoInnerFrom,
+)]
+pub struct ListTotal(i64);
+
+impl TryFrom<i64> for ListTotal {
+    type Error = ListTotalError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value < constants_i64::ZERO {
+            Err(ListTotalError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+
+impl From<u32> for ListTotal {
+    fn from(value: u32) -> Self {
+        Self(i64::from(value))
+    }
+}
+#[path = "list_total_error.rs"]
 mod list_total_error;
-#[path = "list_total/list_total_source.rs"]
+#[path = "list_total_source.rs"]
 mod list_total_source;
-#[path = "list_total/run_list_with_total.rs"]
+#[path = "resolve_list_total_source.rs"]
+mod resolve_list_total_source;
+#[path = "run_list_with_total.rs"]
 mod run_list_with_total;
-#[path = "list_total/window_total_presence.rs"]
+#[path = "window_total_presence.rs"]
 mod window_total_presence;
 
 pub use list_items::ListItems;
@@ -28,9 +57,9 @@ pub use list_offset::ListOffset;
 pub use list_page::ListPage;
 pub use list_rows::ListRows;
 pub use list_rows_presence::ListRowsPresence;
-pub use list_total::ListTotal;
 pub use list_total_error::ListTotalError;
-pub use list_total_source::{ListTotalSource, list_total_source};
+pub use list_total_source::ListTotalSource;
+pub use resolve_list_total_source::resolve_list_total_source;
 pub use run_list_with_total::run_list_with_total;
 pub use window_total_presence::WindowTotalPresence;
 
@@ -172,7 +201,7 @@ mod tests {
     #[test]
     fn window_total_avoids_separate_count_query() {
         assert_eq!(
-            super::list_total_source(
+            super::resolve_list_total_source(
                 crate::domain_types::PaginationOffset::from(constants_i32::ZERO).into(),
                 super::ListRowsPresence::Present,
                 super::WindowTotalPresence::Present,
@@ -184,7 +213,7 @@ mod tests {
     #[test]
     fn empty_first_page_has_zero_total_without_count_query() {
         assert_eq!(
-            super::list_total_source(
+            super::resolve_list_total_source(
                 crate::domain_types::PaginationOffset::from(constants_i32::ZERO).into(),
                 super::ListRowsPresence::Empty,
                 super::WindowTotalPresence::Absent,
@@ -196,7 +225,7 @@ mod tests {
     #[test]
     fn empty_later_page_requires_count_query() {
         assert_eq!(
-            super::list_total_source(
+            super::resolve_list_total_source(
                 crate::domain_types::PaginationOffset::from(1i32).into(),
                 super::ListRowsPresence::Empty,
                 super::WindowTotalPresence::Absent,

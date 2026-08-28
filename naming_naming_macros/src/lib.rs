@@ -1,3 +1,4 @@
+#[path = "domain_types.rs"]
 mod domain_types;
 
 fn generate_impl_to_tokens_token_stream(

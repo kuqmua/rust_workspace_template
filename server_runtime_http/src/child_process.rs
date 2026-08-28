@@ -1,44 +1,44 @@
-#[path = "child_process/child_diagnostic.rs"]
+#[path = "child_diagnostic.rs"]
 mod child_diagnostic;
-#[path = "child_process/child_diagnostic_maximum_non_zero_usize.rs"]
+#[path = "child_diagnostic_maximum_non_zero_usize.rs"]
 mod child_diagnostic_maximum_non_zero_usize;
-#[path = "child_process/child_exit_status.rs"]
+#[path = "child_exit_status.rs"]
 mod child_exit_status;
-#[path = "child_process/child_process_completion.rs"]
+#[path = "child_process_completion.rs"]
 mod child_process_completion;
-#[path = "child_process/child_process_error.rs"]
+#[path = "child_process_error.rs"]
 mod child_process_error;
-#[path = "child_process/child_process_id.rs"]
+#[path = "child_process_id.rs"]
 mod child_process_id;
-#[path = "child_process/child_process_io_error.rs"]
+#[path = "child_process_io_error.rs"]
 mod child_process_io_error;
-#[path = "child_process/child_process_report.rs"]
+#[path = "child_process_report.rs"]
 mod child_process_report;
-#[path = "child_process/child_process_reports.rs"]
+#[path = "child_process_reports.rs"]
 mod child_process_reports;
-#[path = "child_process/child_process_set.rs"]
+#[path = "child_process_set.rs"]
 mod child_process_set;
-#[path = "child_process/child_process_set_error.rs"]
+#[path = "child_process_set_error.rs"]
 mod child_process_set_error;
-#[path = "child_process/child_process_set_maximum_non_zero_usize.rs"]
+#[path = "child_process_set_maximum_non_zero_usize.rs"]
 mod child_process_set_maximum_non_zero_usize;
-#[path = "child_process/child_process_succeeded.rs"]
+#[path = "child_process_succeeded.rs"]
 mod child_process_succeeded;
-#[path = "child_process/child_process_supervisor.rs"]
+#[path = "child_process_supervisor.rs"]
 mod child_process_supervisor;
-#[path = "child_process/join_diagnostic.rs"]
+#[path = "join_diagnostic.rs"]
 mod join_diagnostic;
-#[path = "child_process/read_child_diagnostic.rs"]
+#[path = "read_child_diagnostic.rs"]
 mod read_child_diagnostic;
-#[path = "child_process/std_collections_child_process_map.rs"]
+#[path = "std_collections_child_process_map.rs"]
 mod std_collections_child_process_map;
-#[path = "child_process/tokio_child_diagnostic_task.rs"]
+#[path = "tokio_child_diagnostic_task.rs"]
 mod tokio_child_diagnostic_task;
-#[path = "child_process/tokio_child_process.rs"]
+#[path = "tokio_child_process.rs"]
 mod tokio_child_process;
-#[path = "child_process/tokio_child_process_join_error.rs"]
+#[path = "tokio_child_process_join_error.rs"]
 mod tokio_child_process_join_error;
-#[path = "child_process/tokio_managed_child.rs"]
+#[path = "tokio_managed_child.rs"]
 mod tokio_managed_child;
 
 pub use child_diagnostic::ChildDiagnostic;

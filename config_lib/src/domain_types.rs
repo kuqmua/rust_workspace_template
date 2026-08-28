@@ -43,100 +43,100 @@ pub use pg_pool::{
     PgPoolMaxLifetimeSeconds, PgPoolMinConnections, RequestTimeoutSeconds,
     TryFromStdEnvVarOkPgPoolMaxConnectionsError,
 };
-#[path = "domain_types/std_env_var_ok.rs"]
+#[path = "std_env_var_ok.rs"]
 mod std_env_var_ok;
 pub use std_env_var_ok::*;
-#[path = "domain_types/config_lib_string_wrapper_try_from_string_error.rs"]
+#[path = "config_lib_string_wrapper_try_from_string_error.rs"]
 mod config_lib_string_wrapper_try_from_string_error;
 pub use config_lib_string_wrapper_try_from_string_error::*;
-#[path = "domain_types/std_env_var_ok_ref.rs"]
+#[path = "std_env_var_ok_ref.rs"]
 mod std_env_var_ok_ref;
 pub use std_env_var_ok_ref::*;
-#[path = "domain_types/env_var_name_ref.rs"]
+#[path = "env_var_name_ref.rs"]
 mod env_var_name_ref;
 pub use env_var_name_ref::*;
-#[path = "domain_types/env_var_name.rs"]
+#[path = "env_var_name.rs"]
 mod env_var_name;
 pub use env_var_name::*;
-#[path = "domain_types/chrono_fixed_offset_error.rs"]
+#[path = "chrono_fixed_offset_error.rs"]
 mod chrono_fixed_offset_error;
 pub use chrono_fixed_offset_error::*;
-#[path = "domain_types/i32_parse_int_error.rs"]
+#[path = "i32_parse_int_error.rs"]
 mod i32_parse_int_error;
 pub use i32_parse_int_error::*;
-#[path = "domain_types/u32_parse_int_error.rs"]
+#[path = "u32_parse_int_error.rs"]
 mod u32_parse_int_error;
 pub use u32_parse_int_error::*;
-#[path = "domain_types/usize_parse_int_error.rs"]
+#[path = "usize_parse_int_error.rs"]
 mod usize_parse_int_error;
 pub use usize_parse_int_error::*;
-#[path = "domain_types/timezone_seconds.rs"]
+#[path = "timezone_seconds.rs"]
 mod timezone_seconds;
 use timezone_seconds::TimezoneSeconds;
-#[path = "domain_types/chrono_east_fixed_offset.rs"]
+#[path = "chrono_east_fixed_offset.rs"]
 mod chrono_east_fixed_offset;
 use chrono_east_fixed_offset::ChronoEastFixedOffset;
-#[path = "domain_types/try_from_std_env_var_ok.rs"]
+#[path = "try_from_std_env_var_ok.rs"]
 mod try_from_std_env_var_ok;
 pub use try_from_std_env_var_ok::*;
-#[path = "domain_types/config_field_sensitivity.rs"]
+#[path = "config_field_sensitivity.rs"]
 mod config_field_sensitivity;
 pub use config_field_sensitivity::*;
-#[path = "domain_types/config_field_requirement.rs"]
+#[path = "config_field_requirement.rs"]
 mod config_field_requirement;
 pub use config_field_requirement::*;
-#[path = "domain_types/config_example_validity.rs"]
+#[path = "config_example_validity.rs"]
 mod config_example_validity;
 pub use config_example_validity::*;
-#[path = "domain_types/config_field_example_ref.rs"]
+#[path = "config_field_example_ref.rs"]
 mod config_field_example_ref;
 pub use config_field_example_ref::*;
-#[path = "domain_types/config_rust_type_name.rs"]
+#[path = "config_rust_type_name.rs"]
 mod config_rust_type_name;
 pub use config_rust_type_name::*;
-#[path = "domain_types/config_field_descriptor.rs"]
+#[path = "config_field_descriptor.rs"]
 mod config_field_descriptor;
 pub use config_field_descriptor::*;
-#[path = "domain_types/std_config_secret_string.rs"]
+#[path = "std_config_secret_string.rs"]
 mod std_config_secret_string;
 pub use std_config_secret_string::*;
-#[path = "domain_types/secrecy_secret_box_string.rs"]
+#[path = "secrecy_secret_box_string.rs"]
 mod secrecy_secret_box_string;
 pub use secrecy_secret_box_string::*;
-#[path = "domain_types/config_non_zero_u64.rs"]
+#[path = "config_non_zero_u64.rs"]
 mod config_non_zero_u64;
 pub use config_non_zero_u64::*;
-#[path = "domain_types/config_non_zero_usize.rs"]
+#[path = "config_non_zero_usize.rs"]
 mod config_non_zero_usize;
 pub use config_non_zero_usize::*;
-#[path = "domain_types/parse_int_error.rs"]
+#[path = "parse_int_error.rs"]
 mod parse_int_error;
 pub use parse_int_error::*;
-#[path = "domain_types/parse_bool_error.rs"]
+#[path = "parse_bool_error.rs"]
 mod parse_bool_error;
 pub use parse_bool_error::*;
-#[path = "domain_types/chrono_timezone.rs"]
+#[path = "chrono_timezone.rs"]
 mod chrono_timezone;
 pub use chrono_timezone::*;
-#[path = "domain_types/try_from_std_env_var_ok_timezone_error.rs"]
+#[path = "try_from_std_env_var_ok_timezone_error.rs"]
 mod try_from_std_env_var_ok_timezone_error;
 pub use try_from_std_env_var_ok_timezone_error::*;
-#[path = "domain_types/try_from_std_env_var_ok_svc_mode_error.rs"]
+#[path = "try_from_std_env_var_ok_svc_mode_error.rs"]
 mod try_from_std_env_var_ok_svc_mode_error;
 pub use try_from_std_env_var_ok_svc_mode_error::*;
-#[path = "domain_types/parse_required_env_var.rs"]
+#[path = "parse_required_env_var.rs"]
 mod parse_required_env_var;
 pub use parse_required_env_var::*;
-#[path = "domain_types/try_map_non_empty_env_value.rs"]
+#[path = "try_map_non_empty_env_value.rs"]
 mod try_map_non_empty_env_value;
 use try_map_non_empty_env_value::try_map_non_empty_env_value;
-#[path = "domain_types/parse_from_str_with_error.rs"]
+#[path = "parse_from_str_with_error.rs"]
 mod parse_from_str_with_error;
 use parse_from_str_with_error::parse_from_str_with_error;
-#[path = "domain_types/parse_east_fixed_offset.rs"]
+#[path = "parse_east_fixed_offset.rs"]
 mod parse_east_fixed_offset;
 use parse_east_fixed_offset::parse_east_fixed_offset;
-#[path = "domain_types/config_lib_string_wrapper_max_len.rs"]
+#[path = "config_lib_string_wrapper_max_len.rs"]
 mod config_lib_string_wrapper_max_len;
 use config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN;
 

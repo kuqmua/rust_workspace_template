@@ -3,33 +3,33 @@ generate_where_filters::generate_where_filters!({
     "whole_write_into_file": "False"
 });
 
-#[path = "domain_types/between.rs"]
+#[path = "between.rs"]
 mod between;
-#[path = "domain_types/between_try_new_error.rs"]
+#[path = "between_try_new_error.rs"]
 mod between_try_new_error;
-#[path = "domain_types/bounded_vec.rs"]
+#[path = "bounded_vec.rs"]
 mod bounded_vec;
-#[path = "domain_types/bounded_vec_len.rs"]
+#[path = "bounded_vec_len.rs"]
 mod bounded_vec_len;
-#[path = "domain_types/bounded_vec_try_new_error.rs"]
+#[path = "bounded_vec_try_new_error.rs"]
 mod bounded_vec_try_new_error;
-#[path = "domain_types/default_regex_pattern.rs"]
+#[path = "default_regex_pattern.rs"]
 mod default_regex_pattern;
-#[path = "domain_types/encode_format.rs"]
+#[path = "encode_format.rs"]
 mod encode_format;
-#[path = "domain_types/pg_type_not_empty_unique_vec.rs"]
+#[path = "pg_type_not_empty_unique_vec.rs"]
 mod pg_type_not_empty_unique_vec;
-#[path = "domain_types/regex_case.rs"]
+#[path = "regex_case.rs"]
 mod regex_case;
-#[path = "domain_types/regex_case_postgreql_syntax.rs"]
+#[path = "regex_case_postgreql_syntax.rs"]
 mod regex_case_postgreql_syntax;
-#[path = "domain_types/regex_error.rs"]
+#[path = "regex_error.rs"]
 mod regex_error;
-#[path = "domain_types/regex_regex.rs"]
+#[path = "regex_regex.rs"]
 mod regex_regex;
-#[path = "domain_types/regex_regex_try_from_string_error.rs"]
+#[path = "regex_regex_try_from_string_error.rs"]
 mod regex_regex_try_from_string_error;
-#[path = "domain_types/variant.rs"]
+#[path = "variant.rs"]
 mod variant;
 
 pub use between::*;

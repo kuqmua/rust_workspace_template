@@ -1,18 +1,18 @@
-#[path = "authorization_catalog/admin_data_columns_csv_ref.rs"]
+#[path = "admin_data_columns_csv_ref.rs"]
 mod admin_data_columns_csv_ref;
-#[path = "authorization_catalog/admin_data_order_ref.rs"]
+#[path = "admin_data_order_ref.rs"]
 mod admin_data_order_ref;
-#[path = "authorization_catalog/admin_data_table.rs"]
+#[path = "admin_data_table.rs"]
 mod admin_data_table;
-#[path = "authorization_catalog/admin_data_table_spec.rs"]
+#[path = "admin_data_table_spec.rs"]
 mod admin_data_table_spec;
-#[path = "authorization_catalog/admin_data_table_str_ref.rs"]
+#[path = "admin_data_table_str_ref.rs"]
 mod admin_data_table_str_ref;
-#[path = "authorization_catalog/admin_permission.rs"]
+#[path = "admin_permission.rs"]
 mod admin_permission;
-#[path = "authorization_catalog/admin_permission_str_ref.rs"]
+#[path = "admin_permission_str_ref.rs"]
 mod admin_permission_str_ref;
-#[path = "authorization_catalog/admin_permission_value.rs"]
+#[path = "admin_permission_value.rs"]
 mod admin_permission_value;
 
 pub use admin_data_columns_csv_ref::AdminDataColumnsCsvRef;

@@ -24,7 +24,7 @@ fn test_state() -> std::sync::Arc<dyn super::CommonRoutesParameters> {
     })
 }
 fn test_commit_link() -> String {
-    git_info::domain_types::git_commit_link(constants_str::TEST_VALUES_COMMIT)
+    git_info::domain_types::build_git_commit_link(constants_str::TEST_VALUES_COMMIT)
         .as_ref()
         .to_owned()
 }
@@ -124,7 +124,7 @@ fn git_info_response_contains_commit_link() {
 fn git_info_payload_from_state_contains_commit_link() {
     let state = test_state();
     let payload = super::make_git_info_payload(
-        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()),
+        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()),
     );
     assert_git_info_commit(&payload, test_commit_link().as_str());
 }
@@ -141,7 +141,7 @@ fn not_found_payload_from_state_uses_uri_and_swagger_path() {
     let state = test_state();
     let payload = super::make_not_found_payload(
         uri_ref(&uri),
-        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()),
+        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref()),
     );
     assert_not_found_payload_with_commit(&payload, &test_commit_link(), constants_str::MISSING);
 }
@@ -165,7 +165,8 @@ fn no_route_prefix_stays_stable() {
 fn make_state_payload_uses_state_trait_object() {
     let state = test_state();
     assert_eq!(
-        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref()).as_ref(),
+        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref())
+            .as_ref(),
         test_commit_link()
     );
 }
@@ -181,7 +182,7 @@ fn make_state_payload_passes_commit_link_to_mapper() {
     let state = test_state();
     let actual = format!(
         "v={}",
-        git_info::domain_types::GitCommitLinkProvider::git_commit_link_cow(state.as_ref())
+        git_info::domain_types::GitCommitLinkProvider::build_git_commit_link_cow(state.as_ref())
     );
     assert_eq!(actual, format!("v={}", test_commit_link()));
 }

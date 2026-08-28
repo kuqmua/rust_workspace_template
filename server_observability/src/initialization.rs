@@ -1,18 +1,18 @@
-#[path = "initialization/init_service_observability.rs"]
+#[path = "init_service_observability.rs"]
 mod init_service_observability;
-#[path = "initialization/observability_guard.rs"]
+#[path = "observability_guard.rs"]
 mod observability_guard;
-#[path = "initialization/observability_init_error.rs"]
+#[path = "observability_init_error.rs"]
 mod observability_init_error;
-#[path = "initialization/opentelemetry_otlp_exporter_build_error.rs"]
+#[path = "opentelemetry_otlp_exporter_build_error.rs"]
 mod opentelemetry_otlp_exporter_build_error;
-#[path = "initialization/opentelemetry_sdk_observability_shutdown_error.rs"]
+#[path = "opentelemetry_sdk_observability_shutdown_error.rs"]
 mod opentelemetry_sdk_observability_shutdown_error;
-#[path = "initialization/opentelemetry_sdk_tracer_provider.rs"]
+#[path = "opentelemetry_sdk_tracer_provider.rs"]
 mod opentelemetry_sdk_tracer_provider;
-#[path = "initialization/service_name.rs"]
+#[path = "service_name.rs"]
 mod service_name;
-#[path = "initialization/tracing_subscriber_init_error.rs"]
+#[path = "tracing_subscriber_init_error.rs"]
 mod tracing_subscriber_init_error;
 
 pub use init_service_observability::init_service_observability;

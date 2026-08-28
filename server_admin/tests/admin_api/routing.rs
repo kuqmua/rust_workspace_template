@@ -34,7 +34,7 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
 )]
 async fn runtime_auth_router_contains_every_open_api_operation() {
     let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
-        server_admin::domain_types::auth::open_api(),
+        server_admin::domain_types::auth::admin_api_open_api(),
     ))
     .expect("71599514 runtime_auth_router_contains_every_open_api_operation invariant must hold");
     let paths = document

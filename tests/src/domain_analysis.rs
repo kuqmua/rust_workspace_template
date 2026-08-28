@@ -1309,11 +1309,11 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                     return self.external_root_segment(super::types::SynTypeRef::from(&*qself.ty));
                 }
                 let first_segment = ty_path_ref.path.segments.first()?;
-                let first_identifier = first_segment.ident.to_string();
-                if first_identifier == constants_str::CRATE
-                    || first_identifier == constants_str::SELF_ALT
-                    || first_identifier == constants_str::SUPER
-                    || self.repo_crates.as_ref().contains(&first_identifier)
+                let parse_first_identifier = first_segment.ident.to_string();
+                if parse_first_identifier == constants_str::CRATE
+                    || parse_first_identifier == constants_str::SELF_ALT
+                    || parse_first_identifier == constants_str::SUPER
+                    || self.repo_crates.as_ref().contains(&parse_first_identifier)
                 {
                     return ty_path_ref.path.segments.iter().find_map(|segment| {
                         self.external_root_segment_from_arguments(
@@ -1402,11 +1402,11 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                     return self.external_leaf_segment(super::types::SynTypeRef::from(&*qself.ty));
                 }
                 let first_segment = ty_path_ref.path.segments.first()?;
-                let first_identifier = first_segment.ident.to_string();
-                if first_identifier == constants_str::CRATE
-                    || first_identifier == constants_str::SELF_ALT
-                    || first_identifier == constants_str::SUPER
-                    || self.repo_crates.as_ref().contains(&first_identifier)
+                let parse_first_identifier = first_segment.ident.to_string();
+                if parse_first_identifier == constants_str::CRATE
+                    || parse_first_identifier == constants_str::SELF_ALT
+                    || parse_first_identifier == constants_str::SUPER
+                    || self.repo_crates.as_ref().contains(&parse_first_identifier)
                 {
                     return ty_path_ref.path.segments.iter().find_map(|segment| {
                         self.external_leaf_segment_from_arguments(

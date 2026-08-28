@@ -1,22 +1,22 @@
-#[path = "path_policy/http_allowed_path_prefix_ref.rs"]
+#[path = "http_allowed_path_prefix_ref.rs"]
 mod http_allowed_path_prefix_ref;
-#[path = "path_policy/http_normalized_path.rs"]
+#[path = "http_normalized_path.rs"]
 mod http_normalized_path;
-#[path = "path_policy/http_normalized_path_error.rs"]
+#[path = "http_normalized_path_error.rs"]
 mod http_normalized_path_error;
-#[path = "path_policy/http_proxy_path.rs"]
+#[path = "http_proxy_path.rs"]
 mod http_proxy_path;
-#[path = "path_policy/http_proxy_path_error.rs"]
+#[path = "http_proxy_path_error.rs"]
 mod http_proxy_path_error;
-#[path = "path_policy/http_proxy_path_prefix_match.rs"]
+#[path = "http_proxy_path_prefix_match.rs"]
 mod http_proxy_path_prefix_match;
-#[path = "path_policy/http_proxy_path_ref.rs"]
+#[path = "http_proxy_path_ref.rs"]
 mod http_proxy_path_ref;
-#[path = "path_policy/http_request_path_ref.rs"]
+#[path = "http_request_path_ref.rs"]
 mod http_request_path_ref;
-#[path = "path_policy/normalize_identifier_path.rs"]
+#[path = "normalize_identifier_path.rs"]
 mod normalize_identifier_path;
-#[path = "path_policy/proxy_path_matches_prefix.rs"]
+#[path = "proxy_path_matches_prefix.rs"]
 mod proxy_path_matches_prefix;
 
 pub use http_allowed_path_prefix_ref::HttpAllowedPathPrefixRef;

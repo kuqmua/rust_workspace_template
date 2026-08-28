@@ -1,4 +1,5 @@
 [advisories]
 ignore = [
   "RUSTSEC-2021-0141", # dotenv is kept for existing configuration behavior
+  "RUSTSEC-2026-0235", # rkyv is an inactive optional rust_decimal dependency and is absent from the all-feature graph
 ]

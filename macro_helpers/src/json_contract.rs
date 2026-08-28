@@ -1,10 +1,10 @@
-#[path = "json_contract/contract_error.rs"]
+#[path = "contract_error.rs"]
 mod contract_error;
-#[path = "json_contract/ensure_json_contract_round_trip.rs"]
+#[path = "ensure_json_contract_round_trip.rs"]
 mod ensure_json_contract_round_trip;
-#[path = "json_contract/json_fixture_ref.rs"]
+#[path = "json_fixture_ref.rs"]
 mod json_fixture_ref;
-#[path = "json_contract/serde_json_error.rs"]
+#[path = "serde_json_error.rs"]
 mod serde_json_error;
 
 pub use contract_error::ContractError;

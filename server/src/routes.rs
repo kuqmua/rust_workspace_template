@@ -23,7 +23,9 @@ pub(super) fn routes(
             open_api_contract.path().as_ref(),
             axum::routing::on(
                 axum::routing::MethodFilter::from(
-                    frontend_contract::domain_types::axum_method_filter(open_api_contract.method()),
+                    frontend_contract::domain_types::to_axum_method_filter(
+                        open_api_contract.method(),
+                    ),
                 ),
                 async || {
                     axum::Json(utoipa::openapi::OpenApi::from(
@@ -44,7 +46,9 @@ pub(super) fn routes(
             metrics_contract.path().as_ref(),
             axum::routing::on(
                 axum::routing::MethodFilter::from(
-                    frontend_contract::domain_types::axum_method_filter(metrics_contract.method()),
+                    frontend_contract::domain_types::to_axum_method_filter(
+                        metrics_contract.method(),
+                    ),
                 ),
                 async move || {
                     server_runtime_http::domain_types::MetricsResponseBody::try_from(

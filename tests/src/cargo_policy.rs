@@ -763,6 +763,49 @@ fn workspace_crates_are_direct_children_of_workspace_root() {
     );
 }
 #[test]
+fn workspace_crate_src_modules_are_flat() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let workspace_names = snapshot.workspace_crate_names();
+        let mut violations = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .flat_map(|package| {
+                let crate_directory =
+                    package.manifest_path.as_std_path().parent().expect(
+                        "92161504 workspace_crate_src_modules_are_flat invariant must hold",
+                    );
+                let source_directory = crate_directory.join(constants_str::SRC_ALT);
+                if !source_directory.is_dir() {
+                    return Vec::new();
+                }
+                walkdir::WalkDir::new(source_directory.as_path())
+                    .min_depth(constants_usize::ONE)
+                    .into_iter()
+                    .map(|entry| entry.unwrap_or_else(|error| panic!("49938956 {error}")))
+                    .filter(|entry| !entry.file_type().is_dir())
+                    .filter(|entry| {
+                        entry.path().extension().and_then(std::ffi::OsStr::to_str)
+                            == Some(constants_str::RS)
+                    })
+                    .filter_map(move |entry| {
+                        (entry.path().parent() != Some(source_directory.as_path()))
+                            .then(|| entry.path().display().to_string())
+                    })
+                    .collect::<Vec<String>>()
+            })
+            .collect::<Vec<String>>();
+        violations.sort_unstable();
+        assert!(
+            violations.is_empty(),
+            "037f95b6 Rust module files must be stored directly in each crate's src directory:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+#[test]
 fn workspace_members_sorted_alphabetically() {
     let workspace = super::workspace_table_from_cargo_toml();
     let members_vec = super::workspace_members_as_strs(

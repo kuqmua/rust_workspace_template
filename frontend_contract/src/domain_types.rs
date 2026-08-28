@@ -46,7 +46,7 @@ pub use route::{
     server_route_metadata, typed_parameterized_route_path, typed_route_path,
 };
 #[cfg(not(target_arch = "wasm32"))]
-pub use route::{AxumMethodFilter, axum_method_filter};
+pub use route::{AxumMethodFilter, to_axum_method_filter};
 pub use route_coverage::{
     AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,

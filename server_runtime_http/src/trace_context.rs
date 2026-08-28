@@ -1,34 +1,34 @@
-#[path = "trace_context/extract_remote_trace_context.rs"]
+#[path = "extract_remote_trace_context.rs"]
 mod extract_remote_trace_context;
-#[path = "trace_context/http_header_extractor.rs"]
+#[path = "http_header_extractor.rs"]
 mod http_header_extractor;
-#[path = "trace_context/http_header_injector.rs"]
+#[path = "http_header_injector.rs"]
 mod http_header_injector;
-#[path = "trace_context/http_host_ref.rs"]
+#[path = "http_host_ref.rs"]
 mod http_host_ref;
-#[path = "trace_context/http_method_ref.rs"]
+#[path = "http_method_ref.rs"]
 mod http_method_ref;
-#[path = "trace_context/http_opentelemetry_header_map_mut.rs"]
+#[path = "http_opentelemetry_header_map_mut.rs"]
 mod http_opentelemetry_header_map_mut;
-#[path = "trace_context/http_opentelemetry_header_map_ref.rs"]
+#[path = "http_opentelemetry_header_map_ref.rs"]
 mod http_opentelemetry_header_map_ref;
-#[path = "trace_context/http_trace_parent.rs"]
+#[path = "http_trace_parent.rs"]
 mod http_trace_parent;
-#[path = "trace_context/http_trace_parent_error.rs"]
+#[path = "http_trace_parent_error.rs"]
 mod http_trace_parent_error;
-#[path = "trace_context/http_trace_state.rs"]
+#[path = "http_trace_state.rs"]
 mod http_trace_state;
-#[path = "trace_context/http_trace_state_error.rs"]
+#[path = "http_trace_state_error.rs"]
 mod http_trace_state_error;
-#[path = "trace_context/inject_trace_context.rs"]
+#[path = "inject_trace_context.rs"]
 mod inject_trace_context;
-#[path = "trace_context/opentelemetry_context.rs"]
+#[path = "opentelemetry_context.rs"]
 mod opentelemetry_context;
-#[path = "trace_context/outbound_trace_context.rs"]
+#[path = "outbound_trace_context.rs"]
 mod outbound_trace_context;
-#[path = "trace_context/reqwest_request.rs"]
+#[path = "reqwest_request.rs"]
 mod reqwest_request;
-#[path = "trace_context/reqwest_request_builder.rs"]
+#[path = "reqwest_request_builder.rs"]
 mod reqwest_request_builder;
 
 pub use extract_remote_trace_context::extract_remote_trace_context;

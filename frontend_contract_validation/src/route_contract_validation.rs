@@ -1,24 +1,24 @@
-#[path = "route_contract_validation/http_contract_body.rs"]
+#[path = "http_contract_body.rs"]
 mod http_contract_body;
-#[path = "route_contract_validation/http_contract_body_kind.rs"]
+#[path = "http_contract_body_kind.rs"]
 mod http_contract_body_kind;
-#[path = "route_contract_validation/http_contract_expectation.rs"]
+#[path = "http_contract_expectation.rs"]
 mod http_contract_expectation;
-#[path = "route_contract_validation/http_contract_mismatch.rs"]
+#[path = "http_contract_mismatch.rs"]
 mod http_contract_mismatch;
-#[path = "route_contract_validation/http_contract_observation.rs"]
+#[path = "http_contract_observation.rs"]
 mod http_contract_observation;
-#[path = "route_contract_validation/http_contract_status.rs"]
+#[path = "http_contract_status.rs"]
 mod http_contract_status;
-#[path = "route_contract_validation/route_contract_mismatch.rs"]
+#[path = "route_contract_mismatch.rs"]
 mod route_contract_mismatch;
-#[path = "route_contract_validation/route_contract_mismatches.rs"]
+#[path = "route_contract_mismatches.rs"]
 mod route_contract_mismatches;
-#[path = "route_contract_validation/run_http_contract_fixture.rs"]
+#[path = "run_http_contract_fixture.rs"]
 mod run_http_contract_fixture;
-#[path = "route_contract_validation/validate_route_contract_metadata.rs"]
+#[path = "validate_route_contract_metadata.rs"]
 mod validate_route_contract_metadata;
-#[path = "route_contract_validation/validate_typed_route_contract.rs"]
+#[path = "validate_typed_route_contract.rs"]
 mod validate_typed_route_contract;
 
 pub use http_contract_body::HttpContractBody;

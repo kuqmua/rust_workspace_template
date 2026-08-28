@@ -1,26 +1,83 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "auth_session_keep_alive/auth_session_instant.rs"]
+#[path = "auth_session_instant.rs"]
 mod auth_session_instant;
-#[path = "auth_session_keep_alive/auth_session_keep_alive.rs"]
-mod auth_session_keep_alive;
-#[path = "auth_session_keep_alive/auth_session_keep_alive_decision.rs"]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AuthSessionKeepAlive {
+    interval: AuthSessionRefreshIntervalDuration,
+    next: Option<AuthSessionInstant>,
+    state: AuthSessionRefreshState,
+}
+
+impl AuthSessionKeepAlive {
+    pub fn begin(
+        &mut self,
+        now: AuthSessionInstant,
+        presence: AuthSessionPresence,
+    ) -> AuthSessionKeepAliveDecision {
+        if presence == AuthSessionPresence::Missing {
+            self.mark_missing();
+            return AuthSessionKeepAliveDecision::SkipMissing;
+        }
+        if self.state == AuthSessionRefreshState::Running {
+            return AuthSessionKeepAliveDecision::SkipAlreadyRunning;
+        }
+        if let Some(next) = self.next
+            && now.0 < next.0
+        {
+            return AuthSessionKeepAliveDecision::SkipNotDue { next };
+        }
+        self.state = AuthSessionRefreshState::Running;
+        AuthSessionKeepAliveDecision::RefreshNow
+    }
+
+    pub fn finish(
+        &mut self,
+        now: AuthSessionInstant,
+        outcome: AuthSessionRefreshOutcome,
+    ) -> AuthSessionRefreshOutcome {
+        self.state = AuthSessionRefreshState::Idle;
+        self.next = match outcome {
+            AuthSessionRefreshOutcome::Failed | AuthSessionRefreshOutcome::Refreshed => now
+                .0
+                .checked_add(self.interval.0)
+                .map(AuthSessionInstant::from),
+            AuthSessionRefreshOutcome::Rejected => None,
+        };
+        outcome
+    }
+
+    pub const fn mark_missing(&mut self) {
+        self.next = None;
+        self.state = AuthSessionRefreshState::Idle;
+    }
+
+    #[must_use]
+    pub const fn new(interval: AuthSessionRefreshIntervalDuration) -> Self {
+        Self {
+            interval,
+            next: None,
+            state: AuthSessionRefreshState::Idle,
+        }
+    }
+}
+#[path = "auth_session_keep_alive_decision.rs"]
 mod auth_session_keep_alive_decision;
-#[path = "auth_session_keep_alive/auth_session_keep_alive_error.rs"]
+#[path = "auth_session_keep_alive_error.rs"]
 mod auth_session_keep_alive_error;
-#[path = "auth_session_keep_alive/auth_session_presence.rs"]
+#[path = "auth_session_presence.rs"]
 mod auth_session_presence;
-#[path = "auth_session_keep_alive/auth_session_refresh_interval_duration.rs"]
+#[path = "auth_session_refresh_interval_duration.rs"]
 mod auth_session_refresh_interval_duration;
-#[path = "auth_session_keep_alive/auth_session_refresh_outcome.rs"]
+#[path = "auth_session_refresh_outcome.rs"]
 mod auth_session_refresh_outcome;
-#[path = "auth_session_keep_alive/auth_session_refresh_state.rs"]
+#[path = "auth_session_refresh_state.rs"]
 mod auth_session_refresh_state;
 
 pub use auth_session_instant::AuthSessionInstant;
-pub use auth_session_keep_alive::AuthSessionKeepAlive;
 pub use auth_session_keep_alive_decision::AuthSessionKeepAliveDecision;
 pub use auth_session_keep_alive_error::AuthSessionKeepAliveError;
 pub use auth_session_presence::AuthSessionPresence;

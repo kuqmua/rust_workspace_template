@@ -1,122 +1,122 @@
 #![allow(clippy::wildcard_imports)] // split security implementation modules share a private facade vocabulary
-#[path = "security/admin_auth_collection_max_len.rs"]
+#[path = "admin_auth_collection_max_len.rs"]
 mod admin_auth_collection_max_len;
 use admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN;
-#[path = "security/admin_password_change_required.rs"]
+#[path = "admin_password_change_required.rs"]
 mod admin_password_change_required;
 pub(crate) use admin_password_change_required::*;
-#[path = "security/admin_secret_text_error.rs"]
+#[path = "admin_secret_text_error.rs"]
 mod admin_secret_text_error;
 pub use admin_secret_text_error::*;
-#[path = "security/admin_permissions.rs"]
-mod admin_permissions;
-pub(crate) use admin_permissions::*;
-#[path = "security/admin_role_names.rs"]
+#[path = "admin_auth_permissions.rs"]
+mod admin_auth_permissions;
+pub(crate) use admin_auth_permissions::*;
+#[path = "admin_role_names.rs"]
 mod admin_role_names;
 pub(crate) use admin_role_names::*;
-#[path = "security/admin_auth_collection_error.rs"]
+#[path = "admin_auth_collection_error.rs"]
 mod admin_auth_collection_error;
 pub(crate) use admin_auth_collection_error::*;
-#[path = "security/admin_shared_semaphore_arc.rs"]
+#[path = "admin_shared_semaphore_arc.rs"]
 mod admin_shared_semaphore_arc;
 pub use admin_shared_semaphore_arc::*;
-#[path = "security/tokio_admin_join_error.rs"]
+#[path = "tokio_admin_join_error.rs"]
 mod tokio_admin_join_error;
 pub use tokio_admin_join_error::*;
-#[path = "security/tokio_admin_acquire_error.rs"]
+#[path = "tokio_admin_acquire_error.rs"]
 mod tokio_admin_acquire_error;
 pub use tokio_admin_acquire_error::*;
-#[path = "security/tokio_admin_owned_semaphore_permit.rs"]
+#[path = "tokio_admin_owned_semaphore_permit.rs"]
 mod tokio_admin_owned_semaphore_permit;
 pub(crate) use tokio_admin_owned_semaphore_permit::*;
-#[path = "security/argon2_admin_password_hash_error.rs"]
+#[path = "argon2_admin_password_hash_error.rs"]
 mod argon2_admin_password_hash_error;
 pub use argon2_admin_password_hash_error::*;
-#[path = "security/sqlx_admin_error.rs"]
+#[path = "sqlx_admin_error.rs"]
 mod sqlx_admin_error;
 pub use sqlx_admin_error::*;
-#[path = "security/admin_password.rs"]
+#[path = "admin_password.rs"]
 mod admin_password;
 pub use admin_password::*;
-#[path = "security/admin_password_try_from_string_error.rs"]
+#[path = "admin_password_try_from_string_error.rs"]
 mod admin_password_try_from_string_error;
 pub use admin_password_try_from_string_error::*;
-#[path = "security/admin_password_hash.rs"]
+#[path = "admin_password_hash.rs"]
 mod admin_password_hash;
 pub use admin_password_hash::*;
-#[path = "security/admin_jwt_secret.rs"]
+#[path = "admin_jwt_secret.rs"]
 mod admin_jwt_secret;
 pub use admin_jwt_secret::*;
-#[path = "security/admin_opaque_token.rs"]
+#[path = "admin_opaque_token.rs"]
 mod admin_opaque_token;
 pub use admin_opaque_token::*;
-#[path = "security/admin_refresh_token.rs"]
+#[path = "admin_refresh_token.rs"]
 mod admin_refresh_token;
 pub use admin_refresh_token::*;
-#[path = "security/admin_token_hash.rs"]
+#[path = "admin_token_hash.rs"]
 mod admin_token_hash;
 pub use admin_token_hash::*;
-#[path = "security/admin_generated_token.rs"]
+#[path = "admin_generated_token.rs"]
 mod admin_generated_token;
 pub use admin_generated_token::*;
-#[path = "security/token.rs"]
+#[path = "token.rs"]
 mod token;
 pub use token::*;
-#[path = "security/admin_cookie_secure.rs"]
+#[path = "admin_cookie_secure.rs"]
 mod admin_cookie_secure;
 pub use admin_cookie_secure::*;
-#[path = "security/admin_cookie_max_age_seconds.rs"]
+#[path = "admin_cookie_max_age_seconds.rs"]
 mod admin_cookie_max_age_seconds;
 pub use admin_cookie_max_age_seconds::*;
-#[path = "security/std_admin_cookie.rs"]
+#[path = "std_admin_cookie.rs"]
 mod std_admin_cookie;
 pub use std_admin_cookie::*;
-#[path = "security/http_admin_header_map_ref.rs"]
+#[path = "http_admin_header_map_ref.rs"]
 mod http_admin_header_map_ref;
 pub use http_admin_header_map_ref::*;
-#[path = "security/admin_cookie_kind.rs"]
+#[path = "admin_cookie_kind.rs"]
 mod admin_cookie_kind;
 pub use admin_cookie_kind::*;
-#[path = "security/build_admin_cookie.rs"]
+#[path = "build_admin_cookie.rs"]
 mod build_admin_cookie;
 pub use build_admin_cookie::*;
-#[path = "security/clear_admin_cookie.rs"]
+#[path = "clear_admin_cookie.rs"]
 mod clear_admin_cookie;
 pub use clear_admin_cookie::*;
-#[path = "security/find_admin_cookie.rs"]
+#[path = "find_admin_cookie.rs"]
 mod find_admin_cookie;
 pub use find_admin_cookie::*;
-#[path = "security/admin_password_hash_concurrency.rs"]
+#[path = "admin_password_hash_concurrency.rs"]
 mod admin_password_hash_concurrency;
 pub use admin_password_hash_concurrency::*;
-#[path = "security/admin_unix_token_stream.rs"]
+#[path = "admin_unix_token_stream.rs"]
 mod admin_unix_token_stream;
 pub use admin_unix_token_stream::*;
-#[path = "security/admin_session_id.rs"]
+#[path = "admin_session_id.rs"]
 mod admin_session_id;
 pub use admin_session_id::*;
-#[path = "security/admin_access_claims.rs"]
+#[path = "admin_access_claims.rs"]
 mod admin_access_claims;
 pub use admin_access_claims::*;
-#[path = "security/admin_password_hash_error.rs"]
+#[path = "admin_password_hash_error.rs"]
 mod admin_password_hash_error;
 pub use admin_password_hash_error::*;
-#[path = "security/admin_password_hasher.rs"]
+#[path = "admin_password_hasher.rs"]
 mod admin_password_hasher;
 pub use admin_password_hasher::*;
-#[path = "security/jsonwebtoken_admin_error.rs"]
+#[path = "jsonwebtoken_admin_error.rs"]
 mod jsonwebtoken_admin_error;
 pub use jsonwebtoken_admin_error::*;
-#[path = "security/admin_access_token_error.rs"]
+#[path = "admin_access_token_error.rs"]
 mod admin_access_token_error;
 pub use admin_access_token_error::*;
-#[path = "security/std_admin_access_token.rs"]
+#[path = "std_admin_access_token.rs"]
 mod std_admin_access_token;
 pub use std_admin_access_token::*;
-#[path = "security/encode_access_token.rs"]
+#[path = "encode_access_token.rs"]
 mod encode_access_token;
 pub use encode_access_token::*;
-#[path = "security/decode_access_token.rs"]
+#[path = "decode_access_token.rs"]
 mod decode_access_token;
 pub use decode_access_token::*;
 
@@ -143,7 +143,7 @@ impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
         }
     }
 }
-impl utoipa::PartialSchema for AdminPermissions {
+impl utoipa::PartialSchema for AdminAuthPermissions {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::domain_types::vector::BoundedVec<
             super::AdminPermission,
@@ -152,7 +152,7 @@ impl utoipa::PartialSchema for AdminPermissions {
         > as utoipa::PartialSchema>::schema()
     }
 }
-impl utoipa::ToSchema for AdminPermissions {}
+impl utoipa::ToSchema for AdminAuthPermissions {}
 impl utoipa::PartialSchema for AdminRoleNames {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::domain_types::vector::BoundedVec<
@@ -163,7 +163,7 @@ impl utoipa::PartialSchema for AdminRoleNames {
     }
 }
 impl utoipa::ToSchema for AdminRoleNames {}
-impl TryFrom<Vec<super::AdminPermission>> for AdminPermissions {
+impl TryFrom<Vec<super::AdminPermission>> for AdminAuthPermissions {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<super::AdminPermission>) -> Result<Self, Self::Error> {
         bounded_types::domain_types::vector::BoundedVec::try_from(value)

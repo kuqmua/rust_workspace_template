@@ -159,8 +159,8 @@ mod tests {
         let structure = make_structure(git_info);
         assert_eq!(structure.as_ref(), constants_str::TEST_VALUES_COMMIT);
         assert_eq!(
-            git_info::domain_types::GitCommitLinkProvider::git_commit_link(&structure),
-            git_info::domain_types::git_commit_link(constants_str::TEST_VALUES_COMMIT)
+            git_info::domain_types::GitCommitLinkProvider::build_git_commit_link(&structure),
+            git_info::domain_types::build_git_commit_link(constants_str::TEST_VALUES_COMMIT)
         );
     }
 }

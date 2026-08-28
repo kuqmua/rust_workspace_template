@@ -1,34 +1,34 @@
-#[path = "execution/command_duration.rs"]
+#[path = "command_duration.rs"]
 mod command_duration;
-#[path = "execution/command_duration_millis.rs"]
+#[path = "command_duration_millis.rs"]
 mod command_duration_millis;
-#[path = "execution/command_idx.rs"]
+#[path = "command_idx.rs"]
 mod command_idx;
-#[path = "execution/command_run.rs"]
+#[path = "command_run.rs"]
 mod command_run;
-#[path = "execution/command_started_at_instant.rs"]
+#[path = "command_started_at_instant.rs"]
 mod command_started_at_instant;
-#[path = "execution/command_succeeded.rs"]
+#[path = "command_succeeded.rs"]
 mod command_succeeded;
-#[path = "execution/command_text.rs"]
+#[path = "command_text.rs"]
 mod command_text;
-#[path = "execution/command_texts.rs"]
+#[path = "command_texts.rs"]
 mod command_texts;
-#[path = "execution/commands_ref.rs"]
+#[path = "commands_ref.rs"]
 mod commands_ref;
-#[path = "execution/execution_io_error.rs"]
+#[path = "execution_io_error.rs"]
 mod execution_io_error;
-#[path = "execution/failed_test_names.rs"]
+#[path = "failed_test_names.rs"]
 mod failed_test_names;
-#[path = "execution/run_commands.rs"]
+#[path = "run_commands.rs"]
 mod run_commands;
-#[path = "execution/run_counter.rs"]
+#[path = "run_counter.rs"]
 mod run_counter;
-#[path = "execution/strip_ansi.rs"]
+#[path = "strip_ansi.rs"]
 mod strip_ansi;
-#[path = "execution/summary_text.rs"]
+#[path = "summary_text.rs"]
 mod summary_text;
-#[path = "execution/text_ref.rs"]
+#[path = "text_ref.rs"]
 mod text_ref;
 
 use command_duration::CommandDuration;

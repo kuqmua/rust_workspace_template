@@ -1,30 +1,30 @@
-#[path = "pg_rate_limit/enforce_pg_rate_limit.rs"]
+#[path = "enforce_pg_rate_limit.rs"]
 mod enforce_pg_rate_limit;
-#[path = "pg_rate_limit/pg_rate_limit_decision.rs"]
+#[path = "pg_rate_limit_decision.rs"]
 mod pg_rate_limit_decision;
-#[path = "pg_rate_limit/pg_rate_limit_error.rs"]
+#[path = "pg_rate_limit_error.rs"]
 mod pg_rate_limit_error;
-#[path = "pg_rate_limit/pg_rate_limit_key_part_max_len.rs"]
+#[path = "pg_rate_limit_key_part_max_len.rs"]
 mod pg_rate_limit_key_part_max_len;
-#[path = "pg_rate_limit/pg_rate_limit_maximum.rs"]
+#[path = "pg_rate_limit_maximum.rs"]
 mod pg_rate_limit_maximum;
-#[path = "pg_rate_limit/pg_rate_limit_maximum_non_zero_i64.rs"]
+#[path = "pg_rate_limit_maximum_non_zero_i64.rs"]
 mod pg_rate_limit_maximum_non_zero_i64;
-#[path = "pg_rate_limit/pg_rate_limit_query_ref.rs"]
+#[path = "pg_rate_limit_query_ref.rs"]
 mod pg_rate_limit_query_ref;
-#[path = "pg_rate_limit/pg_rate_limit_scope_ref.rs"]
+#[path = "pg_rate_limit_scope_ref.rs"]
 mod pg_rate_limit_scope_ref;
-#[path = "pg_rate_limit/pg_rate_limit_subject_ref.rs"]
+#[path = "pg_rate_limit_subject_ref.rs"]
 mod pg_rate_limit_subject_ref;
-#[path = "pg_rate_limit/pg_rate_limit_validation_error.rs"]
+#[path = "pg_rate_limit_validation_error.rs"]
 mod pg_rate_limit_validation_error;
-#[path = "pg_rate_limit/pg_rate_limit_window_seconds.rs"]
+#[path = "pg_rate_limit_window_seconds.rs"]
 mod pg_rate_limit_window_seconds;
-#[path = "pg_rate_limit/pg_rate_limit_window_seconds_non_zero_i32.rs"]
+#[path = "pg_rate_limit_window_seconds_non_zero_i32.rs"]
 mod pg_rate_limit_window_seconds_non_zero_i32;
-#[path = "pg_rate_limit/sqlx_pg_rate_limit_error.rs"]
+#[path = "sqlx_pg_rate_limit_error.rs"]
 mod sqlx_pg_rate_limit_error;
-#[path = "pg_rate_limit/sqlx_pg_rate_limit_pool_ref.rs"]
+#[path = "sqlx_pg_rate_limit_pool_ref.rs"]
 mod sqlx_pg_rate_limit_pool_ref;
 
 pub use enforce_pg_rate_limit::enforce_pg_rate_limit;

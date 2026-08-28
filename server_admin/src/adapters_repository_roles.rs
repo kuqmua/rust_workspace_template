@@ -1,10 +1,10 @@
-#[path = "adapters_repository_roles/admin_active_administrator_count.rs"]
+#[path = "admin_active_administrator_count.rs"]
 mod admin_active_administrator_count;
-#[path = "adapters_repository_roles/last_admin_state.rs"]
+#[path = "last_admin_state.rs"]
 mod last_admin_state;
-#[path = "adapters_repository_roles/lock_last_admin.rs"]
+#[path = "lock_last_admin.rs"]
 mod lock_last_admin;
-#[path = "adapters_repository_roles/read_last_admin_state.rs"]
+#[path = "read_last_admin_state.rs"]
 mod read_last_admin_state;
 
 use admin_active_administrator_count::AdminActiveAdministratorCount;

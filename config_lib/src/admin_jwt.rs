@@ -1,10 +1,10 @@
-#[path = "admin_jwt/admin_jwt_secret.rs"]
+#[path = "admin_jwt_secret.rs"]
 mod admin_jwt_secret;
-#[path = "admin_jwt/admin_jwt_secret_max_count.rs"]
+#[path = "admin_jwt_secret_max_count.rs"]
 mod admin_jwt_secret_max_count;
-#[path = "admin_jwt/admin_jwt_secret_min_len.rs"]
+#[path = "admin_jwt_secret_min_len.rs"]
 mod admin_jwt_secret_min_len;
-#[path = "admin_jwt/try_from_std_env_var_ok_admin_jwt_secret_error.rs"]
+#[path = "try_from_std_env_var_ok_admin_jwt_secret_error.rs"]
 mod try_from_std_env_var_ok_admin_jwt_secret_error;
 
 pub use admin_jwt_secret::{AdminJwtSecret, AdminJwtSecretProvider};

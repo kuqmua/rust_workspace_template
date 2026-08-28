@@ -1,12 +1,12 @@
-#[path = "identity_creation_plan/identity_creation_decision.rs"]
+#[path = "identity_creation_decision.rs"]
 mod identity_creation_decision;
-#[path = "identity_creation_plan/identity_presence.rs"]
+#[path = "identity_presence.rs"]
 mod identity_presence;
-#[path = "identity_creation_plan/identity_role_presence.rs"]
+#[path = "identity_role_presence.rs"]
 mod identity_role_presence;
-#[path = "identity_creation_plan/identity_spec.rs"]
+#[path = "identity_spec.rs"]
 mod identity_spec;
-#[path = "identity_creation_plan/plan_identity_creation.rs"]
+#[path = "plan_identity_creation.rs"]
 mod plan_identity_creation;
 
 pub use identity_creation_decision::IdentityCreationDecision;

@@ -1,22 +1,22 @@
-#[path = "health/add_health_routes.rs"]
+#[path = "add_health_routes.rs"]
 mod add_health_routes;
-#[path = "health/health_component_status.rs"]
+#[path = "health_component_status.rs"]
 mod health_component_status;
-#[path = "health/health_probe_succeeded.rs"]
+#[path = "health_probe_succeeded.rs"]
 mod health_probe_succeeded;
-#[path = "health/health_probe_timeout_duration.rs"]
+#[path = "health_probe_timeout_duration.rs"]
 mod health_probe_timeout_duration;
-#[path = "health/health_readiness.rs"]
+#[path = "health_readiness.rs"]
 mod health_readiness;
-#[path = "health/health_ready_error.rs"]
+#[path = "health_ready_error.rs"]
 mod health_ready_error;
-#[path = "health/health_snapshot.rs"]
+#[path = "health_snapshot.rs"]
 mod health_snapshot;
-#[path = "health/run_health_probe.rs"]
+#[path = "run_health_probe.rs"]
 mod run_health_probe;
-#[path = "health/service_liveness_snapshot.rs"]
+#[path = "service_liveness_snapshot.rs"]
 mod service_liveness_snapshot;
-#[path = "health/shared_health_readiness_arc.rs"]
+#[path = "shared_health_readiness_arc.rs"]
 mod shared_health_readiness_arc;
 
 pub use add_health_routes::add_health_routes;

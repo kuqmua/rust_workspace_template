@@ -1,28 +1,28 @@
-#[path = "page_transport/client_error.rs"]
+#[path = "client_error.rs"]
 mod client_error;
-#[path = "page_transport/decode_api_problem.rs"]
+#[path = "decode_api_problem.rs"]
 mod decode_api_problem;
-#[path = "page_transport/page_contract.rs"]
+#[path = "page_contract.rs"]
 mod page_contract;
-#[path = "page_transport/transport.rs"]
+#[path = "transport.rs"]
 mod transport;
-#[path = "page_transport/transport_body.rs"]
+#[path = "transport_body.rs"]
 mod transport_body;
-#[path = "page_transport/transport_error.rs"]
+#[path = "transport_error.rs"]
 mod transport_error;
-#[path = "page_transport/transport_idempotency_key.rs"]
+#[path = "transport_idempotency_key.rs"]
 mod transport_idempotency_key;
-#[path = "page_transport/transport_if_match.rs"]
+#[path = "transport_if_match.rs"]
 mod transport_if_match;
-#[path = "page_transport/transport_path.rs"]
+#[path = "transport_path.rs"]
 mod transport_path;
-#[path = "page_transport/transport_request.rs"]
+#[path = "transport_request.rs"]
 mod transport_request;
-#[path = "page_transport/transport_response.rs"]
+#[path = "transport_response.rs"]
 mod transport_response;
-#[path = "page_transport/transport_retry_after.rs"]
+#[path = "transport_retry_after.rs"]
 mod transport_retry_after;
-#[path = "page_transport/transport_status.rs"]
+#[path = "transport_status.rs"]
 mod transport_status;
 
 pub use client_error::ClientError;

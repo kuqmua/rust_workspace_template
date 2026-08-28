@@ -1,18 +1,18 @@
-#[path = "secure_cookie/build_secure_strict_cookie.rs"]
+#[path = "build_secure_strict_cookie.rs"]
 mod build_secure_strict_cookie;
-#[path = "secure_cookie/http_cookie_access.rs"]
+#[path = "http_cookie_access.rs"]
 mod http_cookie_access;
-#[path = "secure_cookie/http_cookie_name.rs"]
+#[path = "http_cookie_name.rs"]
 mod http_cookie_name;
-#[path = "secure_cookie/http_cookie_secure.rs"]
+#[path = "http_cookie_secure.rs"]
 mod http_cookie_secure;
-#[path = "secure_cookie/http_cookie_value.rs"]
+#[path = "http_cookie_value.rs"]
 mod http_cookie_value;
-#[path = "secure_cookie/http_secure_cookie_error.rs"]
+#[path = "http_secure_cookie_error.rs"]
 mod http_secure_cookie_error;
-#[path = "secure_cookie/http_set_cookie_header_value.rs"]
+#[path = "http_set_cookie_header_value.rs"]
 mod http_set_cookie_header_value;
-#[path = "secure_cookie/std_cookie_max_age_seconds.rs"]
+#[path = "std_cookie_max_age_seconds.rs"]
 mod std_cookie_max_age_seconds;
 
 pub use build_secure_strict_cookie::build_secure_strict_cookie;

@@ -1,20 +1,20 @@
-#[path = "batched_cleanup/cleanup_batch_count.rs"]
+#[path = "cleanup_batch_count.rs"]
 mod cleanup_batch_count;
-#[path = "batched_cleanup/cleanup_batch_size.rs"]
+#[path = "cleanup_batch_size.rs"]
 mod cleanup_batch_size;
-#[path = "batched_cleanup/cleanup_batch_size_error.rs"]
+#[path = "cleanup_batch_size_error.rs"]
 mod cleanup_batch_size_error;
-#[path = "batched_cleanup/cleanup_batch_size_non_zero_u64.rs"]
+#[path = "cleanup_batch_size_non_zero_u64.rs"]
 mod cleanup_batch_size_non_zero_u64;
-#[path = "batched_cleanup/cleanup_completion.rs"]
+#[path = "cleanup_completion.rs"]
 mod cleanup_completion;
-#[path = "batched_cleanup/cleanup_continuation.rs"]
+#[path = "cleanup_continuation.rs"]
 mod cleanup_continuation;
-#[path = "batched_cleanup/cleanup_report.rs"]
+#[path = "cleanup_report.rs"]
 mod cleanup_report;
-#[path = "batched_cleanup/cleanup_rows.rs"]
+#[path = "cleanup_rows.rs"]
 mod cleanup_rows;
-#[path = "batched_cleanup/run_batched_cleanup.rs"]
+#[path = "run_batched_cleanup.rs"]
 mod run_batched_cleanup;
 
 pub use cleanup_batch_count::CleanupBatchCount;

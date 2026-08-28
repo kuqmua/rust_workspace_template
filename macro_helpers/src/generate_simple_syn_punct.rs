@@ -1,17 +1,39 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "generate_simple_syn_punct/generate_simple_syn_punct.rs"]
-mod generate_simple_syn_punct;
-#[path = "generate_simple_syn_punct/string_syn_punct.rs"]
+#[must_use]
+pub fn generate_simple_syn_punct<I, S>(v: I) -> SynPathSegments
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    let mut accumulator =
+        syn::punctuated::Punctuated::<syn::PathSegment, syn::token::PathSep>::new();
+    let mut iter = v.into_iter().peekable();
+    while let Some(element) = iter.next() {
+        accumulator.push_value(syn::PathSegment {
+            ident: proc_macro2::Ident::new(element.as_ref(), proc_macro2::Span::call_site()),
+            arguments: syn::PathArguments::None,
+        });
+        if iter.peek().is_some() {
+            accumulator.push_punct(syn::token::PathSep {
+                spans: [
+                    proc_macro2::Span::call_site(),
+                    proc_macro2::Span::call_site(),
+                ],
+            });
+        }
+    }
+    SynPathSegments::from(accumulator)
+}
+#[path = "string_syn_punct.rs"]
 mod string_syn_punct;
-#[path = "generate_simple_syn_punct/syn_path_segment.rs"]
+#[path = "syn_path_segment.rs"]
 mod syn_path_segment;
-#[path = "generate_simple_syn_punct/syn_path_segments.rs"]
+#[path = "syn_path_segments.rs"]
 mod syn_path_segments;
-
-pub use generate_simple_syn_punct::generate_simple_syn_punct;
 pub use string_syn_punct::string_syn_punct;
 pub use syn_path_segment::SynPathSegment;
 pub use syn_path_segments::SynPathSegments;

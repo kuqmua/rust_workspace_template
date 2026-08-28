@@ -446,11 +446,11 @@ impl TryFrom<&String> for StatusCode {
         }
     }
 }
-#[path = "status_code/only_one.rs"]
+#[path = "only_one.rs"]
 mod only_one;
-#[path = "status_code/only_one_status_code_error.rs"]
+#[path = "only_one_status_code_error.rs"]
 mod only_one_status_code_error;
-#[path = "status_code/syn_status_code_variant_ref.rs"]
+#[path = "syn_status_code_variant_ref.rs"]
 mod syn_status_code_variant_ref;
 
 pub use only_one::only_one;

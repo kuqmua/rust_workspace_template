@@ -1,18 +1,20 @@
-#[path = "identity/admin_api_body_max_bytes.rs"]
+#[path = "admin_api_body_max_bytes.rs"]
 mod admin_api_body_max_bytes;
-#[path = "identity/admin_display_name.rs"]
+#[path = "admin_display_name.rs"]
 mod admin_display_name;
-#[path = "identity/admin_login.rs"]
+#[path = "admin_login.rs"]
 mod admin_login;
-#[path = "identity/admin_new_password.rs"]
+#[path = "admin_new_password.rs"]
 mod admin_new_password;
-#[path = "identity/admin_password.rs"]
+#[path = "admin_password.rs"]
 mod admin_password;
-#[path = "identity/admin_role_name.rs"]
+#[path = "admin_role_name.rs"]
 mod admin_role_name;
-#[path = "identity/admin_text.rs"]
+#[path = "admin_text.rs"]
 mod admin_text;
-#[path = "identity/positive_non_zero_i64.rs"]
+#[path = "default_admin_api_body_max_bytes.rs"]
+mod default_admin_api_body_max_bytes;
+#[path = "positive_non_zero_i64.rs"]
 mod positive_non_zero_i64;
 
 pub const ADMIN_DISPLAY_NAME_MAX_CHARS: usize = 256usize;
@@ -43,13 +45,14 @@ const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
 };
 
 pub(crate) use admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE;
-pub use admin_api_body_max_bytes::{AdminApiBodyMaxBytes, admin_api_body_max_bytes};
+pub use admin_api_body_max_bytes::AdminApiBodyMaxBytes;
 pub use admin_display_name::*;
 pub use admin_login::*;
 pub use admin_new_password::*;
 pub use admin_password::*;
 pub use admin_role_name::*;
 pub use admin_text::*;
+pub use default_admin_api_body_max_bytes::default_admin_api_body_max_bytes;
 pub use positive_non_zero_i64::PositiveNonZeroI64;
 
 #[cfg(test)]

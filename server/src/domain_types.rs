@@ -1,73 +1,73 @@
-#[path = "domain_types/server_io_error.rs"]
+#[path = "server_io_error.rs"]
 mod server_io_error;
 pub(crate) use server_io_error::*;
-#[path = "domain_types/server_runtime_serve_error.rs"]
+#[path = "server_runtime_serve_error.rs"]
 mod server_runtime_serve_error;
 pub(crate) use server_runtime_serve_error::*;
-#[path = "domain_types/metrics_exporter_prometheus_build_error.rs"]
+#[path = "metrics_exporter_prometheus_build_error.rs"]
 mod metrics_exporter_prometheus_build_error;
 pub(crate) use metrics_exporter_prometheus_build_error::*;
-#[path = "domain_types/metrics_exporter_prometheus_renderer.rs"]
+#[path = "metrics_exporter_prometheus_renderer.rs"]
 mod metrics_exporter_prometheus_renderer;
 pub(crate) use metrics_exporter_prometheus_renderer::*;
-#[path = "domain_types/server_runtime_request_timeout_error.rs"]
+#[path = "server_runtime_request_timeout_error.rs"]
 mod server_runtime_request_timeout_error;
 pub(crate) use server_runtime_request_timeout_error::*;
-#[path = "domain_types/server_runtime_run_interval_error.rs"]
+#[path = "server_runtime_run_interval_error.rs"]
 mod server_runtime_run_interval_error;
 pub(crate) use server_runtime_run_interval_error::*;
-#[path = "domain_types/server_runtime_background_task_shutdown_error.rs"]
+#[path = "server_runtime_background_task_shutdown_error.rs"]
 mod server_runtime_background_task_shutdown_error;
 pub(crate) use server_runtime_background_task_shutdown_error::*;
-#[path = "domain_types/server_observability_init_error.rs"]
+#[path = "server_observability_init_error.rs"]
 mod server_observability_init_error;
 pub(crate) use server_observability_init_error::*;
-#[path = "domain_types/server_observability_shutdown_error.rs"]
+#[path = "server_observability_shutdown_error.rs"]
 mod server_observability_shutdown_error;
 pub(crate) use server_observability_shutdown_error::*;
-#[path = "domain_types/server_admin_cleanup_cfg_error.rs"]
+#[path = "server_admin_cleanup_cfg_error.rs"]
 mod server_admin_cleanup_cfg_error;
 pub(crate) use server_admin_cleanup_cfg_error::*;
-#[path = "domain_types/admin_metrics_error.rs"]
+#[path = "admin_metrics_error.rs"]
 mod admin_metrics_error;
 pub(crate) use admin_metrics_error::*;
-#[path = "domain_types/server_config_error.rs"]
+#[path = "server_config_error.rs"]
 mod server_config_error;
 pub(crate) use server_config_error::*;
-#[path = "domain_types/server_config_production_error.rs"]
+#[path = "server_config_production_error.rs"]
 mod server_config_production_error;
 pub(crate) use server_config_production_error::*;
-#[path = "domain_types/sqlx_server_pg_connect_error.rs"]
+#[path = "sqlx_server_pg_connect_error.rs"]
 mod sqlx_server_pg_connect_error;
 pub(crate) use sqlx_server_pg_connect_error::*;
-#[path = "domain_types/server_admin_migrate_error.rs"]
+#[path = "server_admin_migrate_error.rs"]
 mod server_admin_migrate_error;
 pub(crate) use server_admin_migrate_error::*;
-#[path = "domain_types/server_admin_auth_svc_state_build_error.rs"]
+#[path = "server_admin_auth_svc_state_build_error.rs"]
 mod server_admin_auth_svc_state_build_error;
 pub(crate) use server_admin_auth_svc_state_build_error::*;
-#[path = "domain_types/server_runtime_content_security_policy_error.rs"]
+#[path = "server_runtime_content_security_policy_error.rs"]
 mod server_runtime_content_security_policy_error;
 pub(crate) use server_runtime_content_security_policy_error::*;
-#[path = "domain_types/server_runtime_trusted_proxy_ranges_parse_error.rs"]
+#[path = "server_runtime_trusted_proxy_ranges_parse_error.rs"]
 mod server_runtime_trusted_proxy_ranges_parse_error;
 pub(crate) use server_runtime_trusted_proxy_ranges_parse_error::*;
-#[path = "domain_types/axum_api_routes.rs"]
+#[path = "axum_api_routes.rs"]
 mod axum_api_routes;
 pub(crate) use axum_api_routes::*;
-#[path = "domain_types/http_body_maximum_bytes.rs"]
+#[path = "http_body_maximum_bytes.rs"]
 mod http_body_maximum_bytes;
 pub(crate) use http_body_maximum_bytes::*;
-#[path = "domain_types/shared_server_app_state_arc.rs"]
+#[path = "shared_server_app_state_arc.rs"]
 mod shared_server_app_state_arc;
 pub(crate) use shared_server_app_state_arc::*;
-#[path = "domain_types/tokio_server_runtime.rs"]
+#[path = "tokio_server_runtime.rs"]
 mod tokio_server_runtime;
 pub(crate) use tokio_server_runtime::*;
-#[path = "domain_types/server_exit_code.rs"]
+#[path = "server_exit_code.rs"]
 mod server_exit_code;
 pub(crate) use server_exit_code::*;
-#[path = "domain_types/run_server_error.rs"]
+#[path = "run_server_error.rs"]
 mod run_server_error;
 pub(crate) use run_server_error::*;
 

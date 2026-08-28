@@ -444,7 +444,7 @@ pub use is_string_empty::IsStringEmpty;
 pub use is_string_empty_res::IsStringEmptyRes;
 pub use list_total::{
     ListItems, ListOffset, ListPage, ListRows, ListRowsPresence, ListTotal, ListTotalError,
-    ListTotalSource, WindowTotalPresence, list_total_source, run_list_with_total,
+    ListTotalSource, WindowTotalPresence, resolve_list_total_source, run_list_with_total,
 };
 pub use lock_pg_relation_resources::lock_pg_relation_resources;
 pub use non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds;

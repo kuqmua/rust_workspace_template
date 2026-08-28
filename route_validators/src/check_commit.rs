@@ -1,11 +1,19 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[path = "axum_commit_to_str_conversion_error.rs"]
 mod axum_commit_to_str_conversion_error;
-#[path = "check_commit/check_commit.rs"]
-mod check_commit;
+pub fn check_commit(
+    enable_api_git_commit_check: EnableApiGitCommitCheck,
+    headers: crate::domain_types::header_value::AxumHeadersRef<'_>,
+) -> Result<(), CommitError> {
+    if !enable_api_git_commit_check.0 {
+        return Ok(());
+    }
+    validate_commit_header(headers)
+}
 #[path = "commit_error.rs"]
 mod commit_error;
 #[path = "commit_header_name.rs"]
@@ -26,8 +34,7 @@ mod validate_commit_header;
 mod validate_commit_header_value;
 
 pub use axum_commit_to_str_conversion_error::AxumCommitToStrConversionError;
-pub use check_commit::check_commit;
-pub use commit_error::CommitError;
+pub use commit_error::{CommitError, CommitErrorWithSerde};
 pub use commit_not_eq_message::CommitNotEqMessage;
 pub use commit_to_use::CommitToUse;
 pub use enable_api_git_commit_check::EnableApiGitCommitCheck;
@@ -64,7 +71,11 @@ mod tests {
         make_headers_with_commit(constants_str::TEST_VALUES_WRONG_COMMIT)
     }
     fn make_headers_with_project_commit() -> crate::domain_types::test_helper::AxumTestHeaders {
-        make_headers_with_commit(git_info::domain_types::project_git_info().commit().as_ref())
+        make_headers_with_commit(
+            git_info::domain_types::project_git_info_value()
+                .commit()
+                .as_ref(),
+        )
     }
     fn make_headers_with_non_utf8_commit() -> crate::domain_types::test_helper::AxumTestHeaders {
         make_headers_with_commit_header_value(
@@ -141,7 +152,7 @@ mod tests {
         );
         assert_eq!(
             commit_to_use,
-            <&'static str>::from(git_info::domain_types::project_git_commit_link_ref()),
+            <&'static str>::from(git_info::domain_types::project_git_commit_link_ref_value()),
         );
     }
     fn assert_wrong_commit_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
@@ -203,7 +214,9 @@ mod tests {
             ))
             .map(crate::domain_types::header_value::HeaderStrRef::get),
             constants_str::E1D07F53,
-            &git_info::domain_types::project_git_info().commit().as_ref(),
+            &git_info::domain_types::project_git_info_value()
+                .commit()
+                .as_ref(),
         );
     }
     #[test]
@@ -276,7 +289,9 @@ mod tests {
         crate::domain_types::test_helper::expect_ok(
             super::validate_commit_header_value(
                 crate::domain_types::header_value::HeaderStrRef::from(
-                    git_info::domain_types::project_git_info().commit().as_ref(),
+                    git_info::domain_types::project_git_info_value()
+                        .commit()
+                        .as_ref(),
                 ),
             ),
             constants_str::VALUE_5EF927D2,
@@ -315,13 +330,13 @@ mod tests {
     }
     #[test]
     fn project_commit_is_recognized_by_git_info_helper() {
-        assert!(git_info::domain_types::is_project_commit(
-            git_info::domain_types::project_git_info().commit()
+        assert!(git_info::domain_types::check_is_project_commit(
+            git_info::domain_types::project_git_info_value().commit()
         ));
     }
     #[test]
     fn non_project_commit_is_rejected_by_git_info_helper() {
-        assert!(!git_info::domain_types::is_project_commit(
+        assert!(!git_info::domain_types::check_is_project_commit(
             constants_str::TEST_VALUES_WRONG_COMMIT
         ));
     }

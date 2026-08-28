@@ -148,6 +148,6 @@ pub fn make_test_server_app_state() -> ServerAppState<'static> {
             sqlx::PgPool::connect_lazy(constants_str::TEST_VALUES_UNREACHABLE_DATABASE_URL)
                 .expect("d53d8ff0 make_test_server_app_state invariant must hold"),
         ),
-        project_git_info: git_info::domain_types::project_git_info(),
+        project_git_info: git_info::domain_types::project_git_info_value(),
     }
 }

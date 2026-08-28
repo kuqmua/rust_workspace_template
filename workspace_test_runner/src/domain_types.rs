@@ -5,73 +5,73 @@ pub(crate) const MEASURE_REPEAT_COUNT: usize = 1000;
 const RUNNER_MODE_MAX_LEN: usize = 1_024usize;
 pub(crate) const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
 const CLEAN_ANSI_TEXT_MAX_LEN: usize = 16_777_216;
-#[path = "domain_types/measurement_name.rs"]
+#[path = "measurement_name.rs"]
 mod measurement_name;
 pub(crate) use measurement_name::*;
-#[path = "domain_types/cargo_args.rs"]
+#[path = "cargo_args.rs"]
 mod cargo_args;
 pub(crate) use cargo_args::*;
-#[path = "domain_types/stderr_text_ref.rs"]
+#[path = "stderr_text_ref.rs"]
 mod stderr_text_ref;
 pub(crate) use stderr_text_ref::*;
-#[path = "domain_types/ansi_text_ref.rs"]
+#[path = "ansi_text_ref.rs"]
 mod ansi_text_ref;
 pub(crate) use ansi_text_ref::*;
-#[path = "domain_types/clean_ansi_text.rs"]
+#[path = "clean_ansi_text.rs"]
 mod clean_ansi_text;
 pub(crate) use clean_ansi_text::*;
-#[path = "domain_types/memusage_key.rs"]
+#[path = "memusage_key.rs"]
 mod memusage_key;
 pub(crate) use memusage_key::*;
-#[path = "domain_types/memusage_row_name.rs"]
+#[path = "memusage_row_name.rs"]
 mod memusage_row_name;
 pub(crate) use memusage_row_name::*;
-#[path = "domain_types/memusage_column_idx.rs"]
+#[path = "memusage_column_idx.rs"]
 mod memusage_column_idx;
 pub(crate) use memusage_column_idx::*;
-#[path = "domain_types/memusage_value_ref.rs"]
+#[path = "memusage_value_ref.rs"]
 mod memusage_value_ref;
 pub(crate) use memusage_value_ref::*;
-#[path = "domain_types/program_path_ref.rs"]
+#[path = "program_path_ref.rs"]
 mod program_path_ref;
 pub(crate) use program_path_ref::*;
-#[path = "domain_types/program_args_ref.rs"]
+#[path = "program_args_ref.rs"]
 mod program_args_ref;
 pub(crate) use program_args_ref::*;
-#[path = "domain_types/memusage_prog_name_ref.rs"]
+#[path = "memusage_prog_name_ref.rs"]
 mod memusage_prog_name_ref;
 pub(crate) use memusage_prog_name_ref::*;
-#[path = "domain_types/quote_token_stream_generate_pg_table_measure_input_token_stream.rs"]
+#[path = "quote_token_stream_generate_pg_table_measure_input_token_stream.rs"]
 mod quote_token_stream_generate_pg_table_measure_input_token_stream;
 pub(crate) use quote_token_stream_generate_pg_table_measure_input_token_stream::*;
-#[path = "domain_types/tool_name.rs"]
+#[path = "tool_name.rs"]
 mod tool_name;
 pub(crate) use tool_name::*;
-#[path = "domain_types/tool_path.rs"]
+#[path = "tool_path.rs"]
 mod tool_path;
 pub(crate) use tool_path::*;
-#[path = "domain_types/tool_available.rs"]
+#[path = "tool_available.rs"]
 mod tool_available;
 pub(crate) use tool_available::*;
-#[path = "domain_types/runner_mode.rs"]
+#[path = "runner_mode.rs"]
 mod runner_mode;
 pub(crate) use runner_mode::*;
-#[path = "domain_types/allocation_tool.rs"]
+#[path = "allocation_tool.rs"]
 mod allocation_tool;
 pub(crate) use allocation_tool::*;
-#[path = "domain_types/macro_generation_measurements.rs"]
+#[path = "macro_generation_measurements.rs"]
 mod macro_generation_measurements;
 pub(crate) use macro_generation_measurements::*;
-#[path = "domain_types/allocation_tools.rs"]
+#[path = "allocation_tools.rs"]
 mod allocation_tools;
 pub(crate) use allocation_tools::*;
-#[path = "domain_types/strip_ansi_codes.rs"]
+#[path = "strip_ansi_codes.rs"]
 mod strip_ansi_codes;
 pub(crate) use strip_ansi_codes::*;
-#[path = "domain_types/memusage_heap_value.rs"]
+#[path = "memusage_heap_value.rs"]
 mod memusage_heap_value;
 pub(crate) use memusage_heap_value::*;
-#[path = "domain_types/memusage_table_value.rs"]
+#[path = "memusage_table_value.rs"]
 mod memusage_table_value;
 pub(crate) use memusage_table_value::*;
 

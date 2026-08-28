@@ -1,8 +1,8 @@
-#[path = "http_status/frontend_contract_body_error.rs"]
+#[path = "frontend_contract_body_error.rs"]
 mod frontend_contract_body_error;
-#[path = "http_status/http_status_try_from_u16_error.rs"]
+#[path = "http_status_try_from_u16_error.rs"]
 mod http_status_try_from_u16_error;
-#[path = "http_status/known_http_status.rs"]
+#[path = "known_http_status.rs"]
 mod known_http_status;
 
 pub use frontend_contract_body_error::FrontendContractBodyError;

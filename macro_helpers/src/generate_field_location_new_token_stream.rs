@@ -1,14 +1,14 @@
-#[path = "generate_field_location_new_token_stream/field_location_column.rs"]
+#[path = "field_location_column.rs"]
 mod field_location_column;
-#[path = "generate_field_location_new_token_stream/field_location_column_non_zero_u32.rs"]
+#[path = "field_location_column_non_zero_u32.rs"]
 mod field_location_column_non_zero_u32;
-#[path = "generate_field_location_new_token_stream/field_location_coordinate_try_from_u32_error.rs"]
+#[path = "field_location_coordinate_try_from_u32_error.rs"]
 mod field_location_coordinate_try_from_u32_error;
-#[path = "generate_field_location_new_token_stream/field_location_file.rs"]
+#[path = "field_location_file.rs"]
 mod field_location_file;
-#[path = "generate_field_location_new_token_stream/field_location_line.rs"]
+#[path = "field_location_line.rs"]
 mod field_location_line;
-#[path = "generate_field_location_new_token_stream/field_location_line_non_zero_u32.rs"]
+#[path = "field_location_line_non_zero_u32.rs"]
 mod field_location_line_non_zero_u32;
 
 pub use field_location_column::FieldLocationColumn;

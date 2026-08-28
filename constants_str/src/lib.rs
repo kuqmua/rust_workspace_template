@@ -7,8 +7,11 @@
 //! conformance tests; `SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
 //! `pg_crud_common::domain_types::PgSqlIdentifier`, not an application-schema declaration.
 
+#[path = "catalog.rs"]
 mod catalog;
+#[path = "integration_fixtures.rs"]
 mod integration_fixtures;
+#[path = "test_fixtures.rs"]
 mod test_fixtures;
 
 pub use catalog::*;
@@ -290,7 +293,7 @@ pub const CODE_STYLE_RUNTIME_ARC_OWNER_REASONS: [&str; 7] = [
     "bounded reads share a Tokio semaphore across asynchronous readers",
     "runtime limits share immutable concurrency budgets across tasks",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 39] = [
+pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 38] = [
     "bounded_types/src/btree.rs",
     "bounded_types/src/hash.rs",
     "bounded_types/src/lib.rs",
@@ -308,7 +311,6 @@ pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 39] = [
     "pg_crud_common/src/bounded_unique_vec.rs",
     "pg_crud_common/src/bounded_vec.rs",
     "pg_crud_common/src/list_total.rs",
-    "pg_crud_common/src/list_total/list_total_source.rs",
     "pg_crud_common/src/pagination.rs",
     "pg_crud_common/src/query_fragment.rs",
     VALUE_1ACC98BE,
@@ -331,7 +333,7 @@ pub const CODE_STYLE_FACADE_REEXPORT_SUFFIXES: [&str; 39] = [
     "server_runtime_http/src/domain_types.rs",
     "server_runtime_http/src/http_client.rs",
 ];
-pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 39] = [
+pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 38] = [
     "bounded B-tree map facade preserves the public collection path across owner modules",
     "bounded hash map facade preserves the public collection path across owner modules",
     "bounded types facade exports validated string and collection families",
@@ -349,7 +351,6 @@ pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 39] = [
     "bounded unique vector facade preserves public collection paths across owner modules",
     "bounded vector facade preserves public vector types across owner modules",
     "list result facade preserves public pagination result paths across owner modules",
-    "list total source function module preserves its colliding enum path through a nested same-named module",
     "pagination facade preserves public pagination value types across owner modules",
     "query fragment facade preserves public query-building types across owner modules",
     "PG CRUD macro common facade preserves its public token-generation API across responsibility modules",

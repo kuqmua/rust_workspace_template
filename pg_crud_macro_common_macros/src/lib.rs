@@ -1,7 +1,8 @@
 #[proc_macro]
 pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
-    let Some(name) = workspace_macro_helpers::domain_types::first_identifier(&mut iter) else {
+    let Some(name) = workspace_macro_helpers::domain_types::parse_first_identifier(&mut iter)
+    else {
         return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_045,
         )

@@ -1,19 +1,63 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "bounded_unique_vec/bounded_unique_vec.rs"]
-mod bounded_unique_vec;
-#[path = "bounded_unique_vec/bounded_unique_vec_visitor_phantom_data.rs"]
-mod bounded_unique_vec_visitor_phantom_data;
-#[path = "bounded_unique_vec/serde_prealloc_max_items.rs"]
-mod serde_prealloc_max_items;
-#[path = "bounded_unique_vec/unique_vec_error.rs"]
-mod unique_vec_error;
-#[path = "bounded_unique_vec/unique_vec_len.rs"]
-mod unique_vec_len;
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    serde::Serialize,
+    newtype::AsRefTarget,
+)]
+#[serde(transparent)]
+pub struct BoundedUniqueVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 
-pub use bounded_unique_vec::BoundedUniqueVec;
+impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
+    for BoundedUniqueVec<T, MIN, MAX>
+{
+    type Error = UniqueVecError;
+
+    fn try_from(values: Vec<T>) -> Result<Self, Self::Error> {
+        let bounded_values =
+            bounded_types::domain_types::vector::BoundedVec::<T, MIN, MAX>::try_from(values)
+                .map_err(UniqueVecError::from)?
+                .into_inner();
+        if bounded_values.iter().enumerate().any(|(idx, item)| {
+            bounded_values
+                .get(..idx)
+                .is_some_and(|seen| seen.contains(item))
+        }) {
+            return Err(Self::Error::Duplicate);
+        }
+        Ok(Self(bounded_values))
+    }
+}
+
+impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: usize>
+    serde::Deserialize<'de> for BoundedUniqueVec<T, MIN, MAX>
+{
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_seq(
+            bounded_unique_vec_visitor_phantom_data::BoundedUniqueVecVisitorPhantomData::from(
+                std::marker::PhantomData,
+            ),
+        )
+    }
+}
+#[path = "bounded_unique_vec_visitor_phantom_data.rs"]
+mod bounded_unique_vec_visitor_phantom_data;
+#[path = "serde_prealloc_max_items.rs"]
+mod serde_prealloc_max_items;
+#[path = "unique_vec_error.rs"]
+mod unique_vec_error;
+#[path = "unique_vec_len.rs"]
+mod unique_vec_len;
 pub use unique_vec_error::UniqueVecError;
 pub use unique_vec_len::UniqueVecLen;
 

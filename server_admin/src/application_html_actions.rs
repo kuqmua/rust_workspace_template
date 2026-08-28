@@ -9,15 +9,15 @@ mod settings;
 #[path = "application_html_actions_users.rs"]
 mod users;
 
-#[path = "application_html_actions/assignment_action.rs"]
+#[path = "admin_html_action_router.rs"]
+mod admin_html_action_router;
+#[path = "assignment_action.rs"]
 mod assignment_action;
-#[path = "application_html_actions/root.rs"]
+#[path = "root.rs"]
 mod root;
-#[path = "application_html_actions/router.rs"]
-mod router;
 
+pub(super) use admin_html_action_router::admin_html_action_router;
 use assignment_action::assignment_action;
 pub(super) use root::AdminHtmlActionRouteRegistry;
 #[cfg(test)]
 pub(super) use root::root;
-pub(super) use router::router;

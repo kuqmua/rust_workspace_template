@@ -1,27 +1,29 @@
-#[path = "origin/allow_origin_suffix.rs"]
+#[path = "allow_origin_suffix.rs"]
 mod allow_origin_suffix;
-#[path = "origin/allowed_origin.rs"]
+#[path = "allowed_origin.rs"]
 mod allowed_origin;
-#[path = "origin/allowed_origin_error.rs"]
+#[path = "allowed_origin_error.rs"]
 mod allowed_origin_error;
-#[path = "origin/allowed_origins.rs"]
+#[path = "allowed_origins.rs"]
 mod allowed_origins;
-#[path = "origin/allowed_origins_error.rs"]
+#[path = "allowed_origins_error.rs"]
 mod allowed_origins_error;
-#[path = "origin/http_origin_authority_text.rs"]
+#[path = "http_origin_authority_text.rs"]
 mod http_origin_authority_text;
-#[path = "origin/http_origin_headers_ref.rs"]
+#[path = "http_origin_headers_ref.rs"]
 mod http_origin_headers_ref;
-#[path = "origin/http_origin_scheme_text.rs"]
+#[path = "http_origin_scheme_text.rs"]
 mod http_origin_scheme_text;
-#[path = "origin/http_origin_text_ref.rs"]
+#[path = "http_origin_text_ref.rs"]
 mod http_origin_text_ref;
-#[path = "origin/parsed_http_origin_ref.rs"]
+#[path = "parsed_http_origin_ref.rs"]
 mod parsed_http_origin_ref;
-#[path = "origin/request_origin_allowed.rs"]
+#[path = "request_origin_allowed.rs"]
 mod request_origin_allowed;
-#[path = "origin/request_origin_value_is_allowed.rs"]
+#[path = "request_origin_value_is_allowed.rs"]
 mod request_origin_value_is_allowed;
+#[path = "resolve_request_origin_allowed.rs"]
+mod resolve_request_origin_allowed;
 
 use allow_origin_suffix::AllowOriginSuffix;
 pub use allowed_origin::AllowedOrigin;
@@ -33,8 +35,9 @@ pub use http_origin_headers_ref::HttpOriginHeadersRef;
 use http_origin_scheme_text::HttpOriginSchemeText;
 use http_origin_text_ref::HttpOriginTextRef;
 use parsed_http_origin_ref::ParsedHttpOriginRef;
-pub use request_origin_allowed::{RequestOriginAllowed, request_origin_allowed};
+pub use request_origin_allowed::RequestOriginAllowed;
 use request_origin_value_is_allowed::request_origin_value_is_allowed;
+pub use resolve_request_origin_allowed::resolve_request_origin_allowed;
 
 #[cfg(test)]
 mod tests {
@@ -75,7 +78,7 @@ mod tests {
             http::header::ORIGIN,
             http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH),
         );
-        assert!(!bool::from(super::request_origin_allowed(
+        assert!(!bool::from(super::resolve_request_origin_allowed(
             super::HttpOriginHeadersRef::from(&headers),
             &allowed_origins(),
         )));
@@ -88,7 +91,7 @@ mod tests {
             http::header::REFERER,
             http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_SETTINGS_UPPER),
         );
-        assert!(bool::from(super::request_origin_allowed(
+        assert!(bool::from(super::resolve_request_origin_allowed(
             super::HttpOriginHeadersRef::from(&headers),
             &allowed_origins(),
         )));

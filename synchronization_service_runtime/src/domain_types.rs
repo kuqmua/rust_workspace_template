@@ -1,12 +1,12 @@
-#[path = "domain_types/synchronization_payload.rs"]
+#[path = "synchronization_payload.rs"]
 mod synchronization_payload;
-#[path = "domain_types/synchronization_payload_max_bytes.rs"]
+#[path = "synchronization_payload_max_bytes.rs"]
 mod synchronization_payload_max_bytes;
-#[path = "domain_types/synchronization_payload_too_large.rs"]
+#[path = "synchronization_payload_too_large.rs"]
 mod synchronization_payload_too_large;
-#[path = "domain_types/synchronization_runtime_configuration.rs"]
+#[path = "synchronization_runtime_configuration.rs"]
 mod synchronization_runtime_configuration;
-#[path = "domain_types/synchronization_source.rs"]
+#[path = "synchronization_source.rs"]
 mod synchronization_source;
 
 pub use synchronization_payload::SynchronizationPayload;

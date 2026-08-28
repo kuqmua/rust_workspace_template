@@ -1,12 +1,12 @@
-#[path = "url_builder/api_url.rs"]
+#[path = "api_url.rs"]
 mod api_url;
-#[path = "url_builder/api_url_build_error.rs"]
+#[path = "api_url_build_error.rs"]
 mod api_url_build_error;
-#[path = "url_builder/api_url_component_encode_set.rs"]
+#[path = "api_url_component_encode_set.rs"]
 mod api_url_component_encode_set;
-#[path = "url_builder/api_url_path_segment_ref.rs"]
+#[path = "api_url_path_segment_ref.rs"]
 mod api_url_path_segment_ref;
-#[path = "url_builder/api_url_query_component_ref.rs"]
+#[path = "api_url_query_component_ref.rs"]
 mod api_url_query_component_ref;
 
 pub use api_url::ApiUrl;

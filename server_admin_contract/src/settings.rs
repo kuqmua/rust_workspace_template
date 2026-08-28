@@ -1,22 +1,22 @@
-#[path = "settings/admin_branding_view.rs"]
+#[path = "admin_branding_view.rs"]
 mod admin_branding_view;
-#[path = "settings/admin_optional_setting.rs"]
+#[path = "admin_optional_setting.rs"]
 mod admin_optional_setting;
-#[path = "settings/admin_setting.rs"]
+#[path = "admin_setting.rs"]
 mod admin_setting;
-#[path = "settings/admin_setting_input_kind.rs"]
+#[path = "admin_setting_input_kind.rs"]
 mod admin_setting_input_kind;
-#[path = "settings/admin_setting_label.rs"]
+#[path = "admin_setting_label.rs"]
 mod admin_setting_label;
-#[path = "settings/admin_setting_name.rs"]
+#[path = "admin_setting_name.rs"]
 mod admin_setting_name;
-#[path = "settings/admin_setting_optionality.rs"]
+#[path = "admin_setting_optionality.rs"]
 mod admin_setting_optionality;
-#[path = "settings/admin_setting_spec.rs"]
+#[path = "admin_setting_spec.rs"]
 mod admin_setting_spec;
-#[path = "settings/admin_settings_view.rs"]
+#[path = "admin_settings_view.rs"]
 mod admin_settings_view;
-#[path = "settings/admin_update_settings_req.rs"]
+#[path = "admin_update_settings_req.rs"]
 mod admin_update_settings_req;
 
 pub use admin_branding_view::AdminBrandingView;

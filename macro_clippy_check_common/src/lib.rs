@@ -1,3 +1,4 @@
+#[path = "generated_crate_steps.rs"]
 mod generated_crate_steps;
 
 #[cfg(feature = "test-utils")]

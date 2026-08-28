@@ -1,19 +1,41 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "redacted_url/redact_rtsp_url_userinfo.rs"]
+#[path = "redact_rtsp_url_userinfo.rs"]
 mod redact_rtsp_url_userinfo;
-#[path = "redacted_url/redact_url_userinfo.rs"]
+#[path = "redact_url_userinfo.rs"]
 mod redact_url_userinfo;
-#[path = "redacted_url/redacted_url.rs"]
-mod redacted_url;
-#[path = "redacted_url/redacted_url_text_ref.rs"]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::FromInner)]
+pub struct RedactedUrl(Option<crate::domain_types::RequiredNulFreeBoundedText>);
+
+impl AsRef<str> for RedactedUrl {
+    fn as_ref(&self) -> &str {
+        self.0
+            .as_ref()
+            .map_or(constants_str::REDACTED_ALT_3, AsRef::as_ref)
+    }
+}
+
+impl std::fmt::Display for RedactedUrl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
+impl std::fmt::Debug for RedactedUrl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple(constants_str::REDACTED_URL)
+            .field(&self.as_ref())
+            .finish()
+    }
+}
+#[path = "redacted_url_text_ref.rs"]
 mod redacted_url_text_ref;
 
 pub use redact_rtsp_url_userinfo::redact_rtsp_url_userinfo;
 pub use redact_url_userinfo::redact_url_userinfo;
-pub use redacted_url::RedactedUrl;
 pub use redacted_url_text_ref::RedactedUrlTextRef;
 
 #[cfg(test)]

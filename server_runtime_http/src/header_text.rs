@@ -1,16 +1,16 @@
-#[path = "header_text/http_header_name.rs"]
+#[path = "http_header_name.rs"]
 mod http_header_name;
-#[path = "header_text/http_header_text_bytes.rs"]
+#[path = "http_header_text_bytes.rs"]
 mod http_header_text_bytes;
-#[path = "header_text/http_header_text_maximum_bytes.rs"]
+#[path = "http_header_text_maximum_bytes.rs"]
 mod http_header_text_maximum_bytes;
-#[path = "header_text/http_header_text_maximum_bytes_error.rs"]
+#[path = "http_header_text_maximum_bytes_error.rs"]
 mod http_header_text_maximum_bytes_error;
-#[path = "header_text/http_header_text_maximum_bytes_non_zero_usize.rs"]
+#[path = "http_header_text_maximum_bytes_non_zero_usize.rs"]
 mod http_header_text_maximum_bytes_non_zero_usize;
-#[path = "header_text/http_header_text_ref.rs"]
+#[path = "http_header_text_ref.rs"]
 mod http_header_text_ref;
-#[path = "header_text/http_header_text_resolution.rs"]
+#[path = "http_header_text_resolution.rs"]
 mod http_header_text_resolution;
 
 pub use http_header_name::HttpHeaderName;

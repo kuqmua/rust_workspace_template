@@ -1,18 +1,18 @@
-#[path = "persistence/admin_audit_resource_id.rs"]
+#[path = "admin_audit_resource_id.rs"]
 mod admin_audit_resource_id;
-#[path = "persistence/admin_audit_success_ref.rs"]
+#[path = "admin_audit_success_ref.rs"]
 mod admin_audit_success_ref;
-#[path = "persistence/admin_db_ref.rs"]
+#[path = "admin_db_ref.rs"]
 mod admin_db_ref;
-#[path = "persistence/load_authenticated_admin.rs"]
+#[path = "load_authenticated_admin.rs"]
 mod load_authenticated_admin;
-#[path = "persistence/load_authenticated_admin_from_db.rs"]
+#[path = "load_authenticated_admin_from_db.rs"]
 mod load_authenticated_admin_from_db;
-#[path = "persistence/record_audit_success_in_connection.rs"]
+#[path = "record_audit_success_in_connection.rs"]
 mod record_audit_success_in_connection;
-#[path = "persistence/record_login_attempt.rs"]
+#[path = "record_login_attempt.rs"]
 mod record_login_attempt;
-#[path = "persistence/sqlx_admin_pg_connection_ref.rs"]
+#[path = "sqlx_admin_pg_connection_ref.rs"]
 mod sqlx_admin_pg_connection_ref;
 
 pub(super) use admin_audit_resource_id::AdminAuditResourceId;

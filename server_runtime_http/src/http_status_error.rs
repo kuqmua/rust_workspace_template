@@ -1,8 +1,8 @@
-#[path = "http_status_error/classify_http_error_status.rs"]
+#[path = "classify_http_error_status.rs"]
 mod classify_http_error_status;
-#[path = "http_status_error/http_error_class.rs"]
+#[path = "http_error_class.rs"]
 mod http_error_class;
-#[path = "http_status_error/http_error_status.rs"]
+#[path = "http_error_status.rs"]
 mod http_error_status;
 
 pub use classify_http_error_status::classify_http_error_status;

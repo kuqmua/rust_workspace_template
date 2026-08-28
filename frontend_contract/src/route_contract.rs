@@ -1,30 +1,76 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "route_contract/action_contract.rs"]
+#[path = "action_contract.rs"]
 mod action_contract;
-#[path = "route_contract/action_contracts.rs"]
+#[path = "action_contracts.rs"]
 mod action_contracts;
-#[path = "route_contract/authentication_requirement.rs"]
+#[path = "authentication_requirement.rs"]
 mod authentication_requirement;
-#[path = "route_contract/confirmation_requirement.rs"]
+#[path = "confirmation_requirement.rs"]
 mod confirmation_requirement;
-#[path = "route_contract/http_method.rs"]
+#[path = "http_method.rs"]
 mod http_method;
-#[path = "route_contract/mutation_kind.rs"]
+#[path = "mutation_kind.rs"]
 mod mutation_kind;
-#[path = "route_contract/operation_kind.rs"]
+#[path = "operation_kind.rs"]
 mod operation_kind;
-#[path = "route_contract/route_contract.rs"]
-mod route_contract;
-#[path = "route_contract/route_contracts.rs"]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RouteContract {
+    path: super::ContractStr,
+    authentication: AuthenticationRequirement,
+    method: HttpMethod,
+    mutation: MutationKind,
+    success_status: SuccessStatus,
+}
+
+impl RouteContract {
+    #[must_use]
+    pub const fn new(
+        authentication: AuthenticationRequirement,
+        method: HttpMethod,
+        mutation: MutationKind,
+        path: super::ContractStr,
+        success_status: SuccessStatus,
+    ) -> Self {
+        Self {
+            path,
+            authentication,
+            method,
+            mutation,
+            success_status,
+        }
+    }
+    #[must_use]
+    pub const fn authentication(self) -> AuthenticationRequirement {
+        self.authentication
+    }
+    #[must_use]
+    pub const fn method(self) -> HttpMethod {
+        self.method
+    }
+    #[must_use]
+    pub const fn mutation(self) -> MutationKind {
+        self.mutation
+    }
+    #[must_use]
+    pub const fn path(self) -> super::ContractStr {
+        self.path
+    }
+    #[must_use]
+    pub const fn success_status(self) -> SuccessStatus {
+        self.success_status
+    }
+}
+#[path = "route_contracts.rs"]
 mod route_contracts;
-#[path = "route_contract/route_error_policy.rs"]
+#[path = "route_error_policy.rs"]
 mod route_error_policy;
-#[path = "route_contract/route_error_status.rs"]
+#[path = "route_error_status.rs"]
 mod route_error_status;
-#[path = "route_contract/success_status.rs"]
+#[path = "success_status.rs"]
 mod success_status;
 
 pub use action_contract::ActionContract;
@@ -34,7 +80,6 @@ pub use confirmation_requirement::ConfirmationRequirement;
 pub use http_method::HttpMethod;
 pub use mutation_kind::MutationKind;
 pub use operation_kind::OperationKind;
-pub use route_contract::RouteContract;
 pub use route_contracts::RouteContracts;
 pub use route_error_policy::RouteErrorPolicy;
 pub use route_error_status::RouteErrorStatus;

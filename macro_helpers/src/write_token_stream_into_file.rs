@@ -1,10 +1,10 @@
-#[path = "write_token_stream_into_file/format_with_cargofmt.rs"]
+#[path = "format_with_cargofmt.rs"]
 mod format_with_cargofmt;
-#[path = "write_token_stream_into_file/proc_macro2_token_stream_ref.rs"]
+#[path = "proc_macro2_token_stream_ref.rs"]
 mod proc_macro2_token_stream_ref;
-#[path = "write_token_stream_into_file/should_write_token_stream_into_file.rs"]
+#[path = "should_write_token_stream_into_file.rs"]
 mod should_write_token_stream_into_file;
-#[path = "write_token_stream_into_file/try_maybe_write_token_stream_into_file.rs"]
+#[path = "try_maybe_write_token_stream_into_file.rs"]
 mod try_maybe_write_token_stream_into_file;
 
 pub use format_with_cargofmt::FormatWithCargofmt;

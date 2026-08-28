@@ -2172,7 +2172,7 @@ constants_str_macros::define_str_constants! {
         SERVER_RETURNED_AN_ERROR_RESPONSE = ["server returned an error response"];
         SERVER_SRC_RUN_SERVER_RS = ["server/src/run_server.rs"];
         SERVER_SRC_APPLICATION_ADMIN_API_RS = ["server/src/routes.rs"];
-        SERVER_ADMIN_HTML_MODULE_DIR = ["server_admin/src/application_html_"];
+        SERVER_ADMIN_HTML_MODULE_DIR = ["server_admin/src/admin_html_"];
         SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_LOCATIONS = ["../server_admin/src/application_html_actions_roles.rs::role_permissions\n../server_admin/src/application_html_actions_users.rs::user_roles"];
         SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_REASON = ["typed route endpoints retain distinct request extractors and resource targets while delegating shared assignment logic to assignment_action"];
         SERVER_ADMIN_SRC_LIB_RS = ["server_admin/src/domain_types.rs"];

@@ -7,14 +7,22 @@
     reason = "repository policy forbids for loops"
 )]
 
+#[path = "admin_fixture.rs"]
 mod admin_fixture;
+#[path = "check_tool_available.rs"]
+mod check_tool_available;
+#[path = "domain_types.rs"]
 mod domain_types;
+#[path = "execution.rs"]
 mod execution;
+#[path = "mode.rs"]
 mod mode;
+#[path = "print_without_measurement_footer.rs"]
 mod print_without_measurement_footer;
+#[path = "print_without_memusage_footer.rs"]
 mod print_without_memusage_footer;
+#[path = "run_workspace_tests.rs"]
 mod run_workspace_tests;
-mod tool_available;
 
 fn main() {
     let mode = mode::mode();
@@ -78,11 +86,12 @@ fn main() {
             let output_bytes = (0..domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
                 constants_usize::ZERO,
                 |accumulator, _| {
-                    let output = generate_pg_types_src::domain_types::source::generate_pg_types(
-                        macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                            &input,
-                        ),
-                    );
+                    let output =
+                        generate_pg_types_src::domain_types::source::generate_pg_types_tokens(
+                            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                                &input,
+                            ),
+                        );
                     accumulator.saturating_add(output.to_string().len())
                 },
             );

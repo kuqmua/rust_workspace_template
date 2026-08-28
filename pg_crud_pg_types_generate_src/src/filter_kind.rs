@@ -1,15 +1,16 @@
-#![allow(
-    clippy::single_call_fn,
-    reason = "the filter projection is a physical boundary between descriptors and emitters"
-)]
-pub(super) fn filter_kind<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind>(
-    spec: crate::domain_types::pg_type_spec::PgTypeSpec<
-        CanBeNullable,
-        CanBePrimaryKey,
-        FilterKind,
-        PgName,
-        WireKind,
-    >,
-) -> FilterKind {
-    spec.filter_kind
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+pub(super) enum FilterKind {
+    Bool,
+    Bytes,
+    Date,
+    IntervalOrInet,
+    Mac,
+    Money,
+    Number,
+    Range,
+    String,
+    Time,
+    Timestamp,
+    TimestampTz,
+    Uuid,
 }

@@ -97,7 +97,7 @@ mod data_tables_list;
 mod extractors;
 #[path = "html.rs"]
 mod html;
-#[path = "application_auth/jsonwebtoken_admin_encoding_key.rs"]
+#[path = "jsonwebtoken_admin_encoding_key.rs"]
 mod jsonwebtoken_admin_encoding_key;
 #[path = "persistence.rs"]
 mod persistence;
@@ -126,136 +126,136 @@ mod state;
 #[path = "application_users.rs"]
 mod users;
 pub use jsonwebtoken_admin_encoding_key::*;
-#[path = "application_auth/std_admin_access_ttl_seconds.rs"]
+#[path = "std_admin_access_ttl_seconds.rs"]
 mod std_admin_access_ttl_seconds;
 pub use std_admin_access_ttl_seconds::*;
-#[path = "application_auth/std_admin_refresh_ttl_seconds.rs"]
+#[path = "std_admin_refresh_ttl_seconds.rs"]
 mod std_admin_refresh_ttl_seconds;
 pub use std_admin_refresh_ttl_seconds::*;
-#[path = "application_auth/std_admin_session_limit.rs"]
+#[path = "std_admin_session_limit.rs"]
 mod std_admin_session_limit;
 pub use std_admin_session_limit::*;
-#[path = "application_auth/std_admin_failure_threshold.rs"]
+#[path = "std_admin_failure_threshold.rs"]
 mod std_admin_failure_threshold;
 pub use std_admin_failure_threshold::*;
-#[path = "application_auth/admin_auth_positive_value_error.rs"]
+#[path = "admin_auth_positive_value_error.rs"]
 mod admin_auth_positive_value_error;
 pub use admin_auth_positive_value_error::*;
-#[path = "application_auth/std_admin_failure_delay_millis.rs"]
+#[path = "std_admin_failure_delay_millis.rs"]
 mod std_admin_failure_delay_millis;
 pub use std_admin_failure_delay_millis::*;
-#[path = "application_auth/admin_auth_policy.rs"]
+#[path = "admin_auth_policy.rs"]
 mod admin_auth_policy;
 pub use admin_auth_policy::*;
-#[path = "application_auth/admin_auth_svc_state.rs"]
+#[path = "admin_auth_svc_state.rs"]
 mod admin_auth_svc_state;
 pub use admin_auth_svc_state::*;
-#[path = "application_auth/shared_admin_auth_svc_state_arc.rs"]
+#[path = "shared_admin_auth_svc_state_arc.rs"]
 mod shared_admin_auth_svc_state_arc;
 pub use shared_admin_auth_svc_state_arc::*;
-#[path = "application_auth/admin_auth_svc_state_build_error.rs"]
+#[path = "admin_auth_svc_state_build_error.rs"]
 mod admin_auth_svc_state_build_error;
 pub use admin_auth_svc_state_build_error::*;
-#[path = "application_auth/authenticated_admin.rs"]
+#[path = "authenticated_admin.rs"]
 mod authenticated_admin;
 pub use authenticated_admin::*;
-#[path = "application_auth/admin_audit_query.rs"]
+#[path = "admin_audit_query.rs"]
 mod admin_audit_query;
 pub use admin_audit_query::*;
-#[path = "application_auth/http_admin_header_map.rs"]
+#[path = "http_admin_header_map.rs"]
 mod http_admin_header_map;
 pub use http_admin_header_map::*;
-#[path = "application_auth/http_admin_header_value_error.rs"]
+#[path = "http_admin_header_value_error.rs"]
 mod http_admin_header_value_error;
 pub use http_admin_header_value_error::*;
-#[path = "application_auth/axum_admin_response.rs"]
+#[path = "axum_admin_response.rs"]
 mod axum_admin_response;
 pub use axum_admin_response::*;
-#[path = "application_auth/axum_admin_auth_router.rs"]
+#[path = "axum_admin_auth_router.rs"]
 mod axum_admin_auth_router;
 pub use axum_admin_auth_router::*;
-#[path = "application_auth/utoipa_admin_auth_open_api.rs"]
+#[path = "utoipa_admin_auth_open_api.rs"]
 mod utoipa_admin_auth_open_api;
 pub use utoipa_admin_auth_open_api::*;
-#[path = "application_auth/html_routes.rs"]
-mod html_routes;
-pub use html_routes::*;
-#[path = "application_auth/admin_html_swagger_enabled.rs"]
+#[path = "admin_auth_html_routes.rs"]
+mod admin_auth_html_routes;
+pub use admin_auth_html_routes::*;
+#[path = "admin_html_swagger_enabled.rs"]
 mod admin_html_swagger_enabled;
 pub use admin_html_swagger_enabled::*;
-#[path = "application_auth/html_routes_with_swagger.rs"]
+#[path = "html_routes_with_swagger.rs"]
 mod html_routes_with_swagger;
 pub use html_routes_with_swagger::*;
-#[path = "application_auth/admin_session_bundle.rs"]
+#[path = "admin_session_bundle.rs"]
 mod admin_session_bundle;
 pub use admin_session_bundle::*;
-#[path = "application_auth/admin_session_error.rs"]
+#[path = "admin_session_error.rs"]
 mod admin_session_error;
 pub use admin_session_error::*;
-#[path = "application_auth/std_admin_rate_limit_count.rs"]
+#[path = "std_admin_rate_limit_count.rs"]
 mod std_admin_rate_limit_count;
 pub(crate) use std_admin_rate_limit_count::*;
-#[path = "application_auth/std_admin_rate_limit_window_seconds.rs"]
+#[path = "std_admin_rate_limit_window_seconds.rs"]
 mod std_admin_rate_limit_window_seconds;
 pub(crate) use std_admin_rate_limit_window_seconds::*;
-#[path = "application_auth/admin_audit_query_parts.rs"]
+#[path = "admin_audit_query_parts.rs"]
 mod admin_audit_query_parts;
 pub(crate) use admin_audit_query_parts::*;
-#[path = "application_auth/admin_auth_req.rs"]
+#[path = "admin_auth_req.rs"]
 mod admin_auth_req;
 pub(crate) use admin_auth_req::*;
-#[path = "application_auth/admin_peer_addr.rs"]
+#[path = "admin_peer_addr.rs"]
 mod admin_peer_addr;
 pub(crate) use admin_peer_addr::*;
-#[path = "application_auth/admin_sign_in_json.rs"]
+#[path = "admin_sign_in_json.rs"]
 mod admin_sign_in_json;
 pub(crate) use admin_sign_in_json::*;
-#[path = "application_auth/axum_admin_json.rs"]
+#[path = "axum_admin_json.rs"]
 mod axum_admin_json;
 pub(crate) use axum_admin_json::*;
-#[path = "application_auth/axum_admin_form.rs"]
+#[path = "axum_admin_form.rs"]
 mod axum_admin_form;
 pub(crate) use axum_admin_form::*;
-#[path = "application_auth/axum_admin_path.rs"]
+#[path = "axum_admin_path.rs"]
 mod axum_admin_path;
 pub(crate) use axum_admin_path::*;
-#[path = "application_auth/axum_admin_query.rs"]
+#[path = "axum_admin_query.rs"]
 mod axum_admin_query;
 pub(crate) use axum_admin_query::*;
-#[path = "application_auth/admin_session_path.rs"]
+#[path = "admin_session_path.rs"]
 mod admin_session_path;
 pub(crate) use admin_session_path::*;
-#[path = "application_auth/admin_error.rs"]
+#[path = "admin_error.rs"]
 mod admin_error;
 pub(crate) use admin_error::*;
-#[path = "application_auth/axum_admin_state_router.rs"]
+#[path = "axum_admin_state_router.rs"]
 mod axum_admin_state_router;
 pub(crate) use axum_admin_state_router::*;
-#[path = "application_auth/jsonwebtoken_admin_decoding_keys.rs"]
+#[path = "jsonwebtoken_admin_decoding_keys.rs"]
 mod jsonwebtoken_admin_decoding_keys;
 use jsonwebtoken_admin_decoding_keys::*;
-#[path = "application_auth/std_admin_access_ttl_seconds_non_zero_u64.rs"]
+#[path = "std_admin_access_ttl_seconds_non_zero_u64.rs"]
 mod std_admin_access_ttl_seconds_non_zero_u64;
 use std_admin_access_ttl_seconds_non_zero_u64::*;
-#[path = "application_auth/std_admin_refresh_ttl_seconds_non_zero_u64.rs"]
+#[path = "std_admin_refresh_ttl_seconds_non_zero_u64.rs"]
 mod std_admin_refresh_ttl_seconds_non_zero_u64;
 use std_admin_refresh_ttl_seconds_non_zero_u64::*;
-#[path = "application_auth/std_admin_session_limit_non_zero_usize.rs"]
+#[path = "std_admin_session_limit_non_zero_usize.rs"]
 mod std_admin_session_limit_non_zero_usize;
 use std_admin_session_limit_non_zero_usize::*;
-#[path = "application_auth/admin_password_from_contract.rs"]
+#[path = "admin_password_from_contract.rs"]
 mod admin_password_from_contract;
 use admin_password_from_contract::*;
-#[path = "application_auth/admin_new_password_from_contract.rs"]
+#[path = "admin_new_password_from_contract.rs"]
 mod admin_new_password_from_contract;
 use admin_new_password_from_contract::*;
-#[path = "application_auth/authenticated_admin_contract.rs"]
+#[path = "authenticated_admin_contract.rs"]
 mod authenticated_admin_contract;
 use authenticated_admin_contract::*;
-#[path = "application_auth/admin_error_response_parts.rs"]
+#[path = "admin_error_response_parts.rs"]
 mod admin_error_response_parts;
 use admin_error_response_parts::*;
-pub use routes::{open_api, routes};
+pub use routes::{admin_api_open_api, routes};
 
 frontend_contract::domain_types::api_operation_error!(AdminAuditLogError,);
 frontend_contract::domain_types::api_operation_error!(AdminAuditExportError,);

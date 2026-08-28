@@ -1,10 +1,12 @@
+#[path = "domain_types.rs"]
 mod domain_types;
 
 fn generate_tp(
     input: domain_types::proc_macro2_generate_tp_input::ProcMacro2GenerateTpInput,
 ) -> domain_types::proc_macro2_generate_tp_output::ProcMacro2GenerateTpOutput {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
-    let Some(name) = workspace_macro_helpers::domain_types::first_identifier(&mut iter) else {
+    let Some(name) = workspace_macro_helpers::domain_types::parse_first_identifier(&mut iter)
+    else {
         return domain_types::proc_macro2_generate_tp_output::ProcMacro2GenerateTpOutput::from(
             workspace_macro_helpers::domain_types::compile_error_token_stream(
                 constants_str::COMPILE_ERROR_CE_076,
@@ -55,7 +57,8 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         .into();
     }
     let mut name_iter = parts.remove(0).into_iter();
-    let Some(name) = workspace_macro_helpers::domain_types::first_identifier(&mut name_iter) else {
+    let Some(name) = workspace_macro_helpers::domain_types::parse_first_identifier(&mut name_iter)
+    else {
         return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_077,
         )
@@ -78,7 +81,8 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro]
 pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
-    let Some(name) = workspace_macro_helpers::domain_types::first_identifier(&mut iter) else {
+    let Some(name) = workspace_macro_helpers::domain_types::parse_first_identifier(&mut iter)
+    else {
         return workspace_macro_helpers::domain_types::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_082,
         )

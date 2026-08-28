@@ -1,3 +1,4 @@
+#[path = "domain_types.rs"]
 mod domain_types;
 
 // Intentional process-wide state: std exposes the panic hook as one global slot, and this guard

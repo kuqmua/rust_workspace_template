@@ -46,8 +46,10 @@ pub(super) async fn sessions(
         server_admin_contract::domain_types::AdminSessionViews::try_from(items)
             .map_err(|_error| crate::repository::AdminRepositoryError::InvalidStoredValue)
             .map_err(super::shared::map_repository_error::map_repository_error)?,
-        crate::repository::page_total(crate::repository::AdminPageTotalCount::from(total))
-            .map_err(super::shared::map_repository_error::map_repository_error)?,
+        crate::repository::repository_page_total(crate::repository::AdminPageTotalCount::from(
+            total,
+        ))
+        .map_err(super::shared::map_repository_error::map_repository_error)?,
     );
     Ok(super::shared::json_response::json_response(page))
 }

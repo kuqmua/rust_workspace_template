@@ -1,9 +1,9 @@
-#[path = "client/form_value_error.rs"]
-mod form_value_error;
-#[path = "client/typed_client.rs"]
+#[path = "create_form_value_error.rs"]
+mod create_form_value_error;
+#[path = "typed_client.rs"]
 mod typed_client;
 
-use form_value_error::form_value_error;
+use create_form_value_error::create_form_value_error;
 pub use typed_client::TypedClient;
 
 #[cfg(test)]

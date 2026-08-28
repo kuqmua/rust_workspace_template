@@ -1,33 +1,33 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
 
-#[path = "domain_types/admin_audit_log_id.rs"]
+#[path = "admin_audit_log_id.rs"]
 mod admin_audit_log_id;
-#[path = "domain_types/admin_id_try_from_i64_error.rs"]
+#[path = "admin_id_try_from_i64_error.rs"]
 mod admin_id_try_from_i64_error;
-#[path = "domain_types/admin_non_zero_usize.rs"]
+#[path = "admin_non_zero_usize.rs"]
 mod admin_non_zero_usize;
-#[path = "domain_types/admin_permission_id.rs"]
+#[path = "admin_permission_id.rs"]
 mod admin_permission_id;
-#[path = "domain_types/admin_permission_name.rs"]
+#[path = "admin_permission_name.rs"]
 mod admin_permission_name;
-#[path = "domain_types/admin_resource_text.rs"]
+#[path = "admin_resource_text.rs"]
 mod admin_resource_text;
-#[path = "domain_types/admin_role_id.rs"]
+#[path = "admin_role_id.rs"]
 mod admin_role_id;
-#[path = "domain_types/admin_socket_addr.rs"]
+#[path = "admin_socket_addr.rs"]
 mod admin_socket_addr;
-#[path = "domain_types/admin_user_id.rs"]
+#[path = "admin_user_id.rs"]
 mod admin_user_id;
-#[path = "domain_types/secrecy_admin_string.rs"]
+#[path = "secrecy_admin_string.rs"]
 mod secrecy_admin_string;
-#[path = "domain_types/std_admin_bool.rs"]
+#[path = "std_admin_bool.rs"]
 mod std_admin_bool;
-#[path = "domain_types/std_admin_str_ref.rs"]
+#[path = "std_admin_str_ref.rs"]
 mod std_admin_str_ref;
-#[path = "domain_types/std_admin_string.rs"]
+#[path = "std_admin_string.rs"]
 mod std_admin_string;
-#[path = "domain_types/uuid_admin_value.rs"]
+#[path = "uuid_admin_value.rs"]
 mod uuid_admin_value;
 
 pub use admin_audit_log_id::AdminAuditLogId;

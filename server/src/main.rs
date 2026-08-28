@@ -1,9 +1,16 @@
+#[path = "configuration.rs"]
 mod configuration;
+#[path = "domain_types.rs"]
 mod domain_types;
+#[path = "frontend_fallback_routes.rs"]
 mod frontend_fallback_routes;
+#[path = "interval.rs"]
 mod interval;
+#[path = "make_postgresql_pool.rs"]
 mod make_postgresql_pool;
+#[path = "mount_service_routes.rs"]
 mod mount_service_routes;
+#[path = "run_server.rs"]
 mod run_server;
 
 fn main() -> domain_types::ServerExitCode {

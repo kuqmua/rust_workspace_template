@@ -1,99 +1,99 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::shadow_reuse)]
-#[path = "test_helper/test_exp_id.rs"]
+#[path = "test_exp_id.rs"]
 mod test_exp_id;
 pub(crate) use test_exp_id::*;
-#[path = "test_helper/axum_test_headers.rs"]
+#[path = "axum_test_headers.rs"]
 mod axum_test_headers;
 pub(crate) use axum_test_headers::*;
-#[path = "test_helper/axum_test_headers_mut_ref.rs"]
+#[path = "axum_test_headers_mut_ref.rs"]
 mod axum_test_headers_mut_ref;
 pub(crate) use axum_test_headers_mut_ref::*;
-#[path = "test_helper/axum_test_header_value.rs"]
+#[path = "axum_test_header_value.rs"]
 mod axum_test_header_value;
 pub(crate) use axum_test_header_value::*;
-#[path = "test_helper/block_on.rs"]
+#[path = "block_on.rs"]
 mod block_on;
 pub(crate) use block_on::*;
-#[path = "test_helper/panic_unexpected_variant.rs"]
+#[path = "panic_unexpected_variant.rs"]
 mod panic_unexpected_variant;
 pub(crate) use panic_unexpected_variant::*;
-#[path = "test_helper/expect_variant.rs"]
+#[path = "expect_variant.rs"]
 mod expect_variant;
 pub(crate) use expect_variant::*;
-#[path = "test_helper/expect_variant_ref.rs"]
+#[path = "expect_variant_ref.rs"]
 mod expect_variant_ref;
 pub(crate) use expect_variant_ref::*;
-#[path = "test_helper/expect_ok.rs"]
+#[path = "expect_ok.rs"]
 mod expect_ok;
 pub(crate) use expect_ok::*;
-#[path = "test_helper/assert_ok_eq.rs"]
+#[path = "assert_ok_eq.rs"]
 mod assert_ok_eq;
 pub(crate) use assert_ok_eq::*;
-#[path = "test_helper/expect_error.rs"]
+#[path = "expect_error.rs"]
 mod expect_error;
 pub(crate) use expect_error::*;
-#[path = "test_helper/expect_error_mapped.rs"]
+#[path = "expect_error_mapped.rs"]
 mod expect_error_mapped;
 pub(crate) use expect_error_mapped::*;
-#[path = "test_helper/expect_error_variant_ref.rs"]
+#[path = "expect_error_variant_ref.rs"]
 mod expect_error_variant_ref;
 pub(crate) use expect_error_variant_ref::*;
-#[path = "test_helper/assert_err_status_code.rs"]
+#[path = "assert_err_status_code.rs"]
 mod assert_err_status_code;
 pub(crate) use assert_err_status_code::*;
-#[path = "test_helper/assert_err_status_code_only.rs"]
+#[path = "assert_err_status_code_only.rs"]
 mod assert_err_status_code_only;
 pub(crate) use assert_err_status_code_only::*;
-#[path = "test_helper/assert_err_status_code_variant_ref.rs"]
+#[path = "assert_err_status_code_variant_ref.rs"]
 mod assert_err_status_code_variant_ref;
 pub(crate) use assert_err_status_code_variant_ref::*;
-#[path = "test_helper/expect_err_variant_ref_with_status.rs"]
+#[path = "expect_err_variant_ref_with_status.rs"]
 mod expect_err_variant_ref_with_status;
 pub(crate) use expect_err_variant_ref_with_status::*;
-#[path = "test_helper/make_headers_with_entry.rs"]
+#[path = "make_headers_with_entry.rs"]
 mod make_headers_with_entry;
 pub(crate) use make_headers_with_entry::*;
-#[path = "test_helper/replace_header_name.rs"]
+#[path = "replace_header_name.rs"]
 mod replace_header_name;
 pub(crate) use replace_header_name::*;
-#[path = "test_helper/non_utf8_header_value.rs"]
+#[path = "non_utf8_header_value.rs"]
 mod non_utf8_header_value;
 pub(crate) use non_utf8_header_value::*;
-#[path = "test_helper/assert_panics.rs"]
+#[path = "assert_panics.rs"]
 mod assert_panics;
 pub(crate) use assert_panics::*;
-#[path = "test_helper/test_panic_text.rs"]
+#[path = "test_panic_text.rs"]
 mod test_panic_text;
 use test_panic_text::*;
-#[path = "test_helper/test_poll_count.rs"]
+#[path = "test_poll_count.rs"]
 mod test_poll_count;
 use test_poll_count::*;
-#[path = "test_helper/test_poll_limit_reached.rs"]
+#[path = "test_poll_limit_reached.rs"]
 mod test_poll_limit_reached;
 use test_poll_limit_reached::*;
-#[path = "test_helper/insert_header_no_prev.rs"]
+#[path = "insert_header_no_prev.rs"]
 mod insert_header_no_prev;
 use insert_header_no_prev::*;
-#[path = "test_helper/is_block_on_poll_limit_reached.rs"]
+#[path = "is_block_on_poll_limit_reached.rs"]
 mod is_block_on_poll_limit_reached;
 use is_block_on_poll_limit_reached::*;
-#[path = "test_helper/increment_block_on_poll_count.rs"]
+#[path = "increment_block_on_poll_count.rs"]
 mod increment_block_on_poll_count;
 use increment_block_on_poll_count::*;
-#[path = "test_helper/map_or_panic_unexpected_variant.rs"]
+#[path = "map_or_panic_unexpected_variant.rs"]
 mod map_or_panic_unexpected_variant;
 use map_or_panic_unexpected_variant::*;
-#[path = "test_helper/panic_unexpected_result.rs"]
+#[path = "panic_unexpected_result.rs"]
 mod panic_unexpected_result;
 use panic_unexpected_result::*;
-#[path = "test_helper/map_err.rs"]
+#[path = "map_err.rs"]
 mod map_err;
 use map_err::*;
-#[path = "test_helper/map_err_after_status_check.rs"]
+#[path = "map_err_after_status_check.rs"]
 mod map_err_after_status_check;
 use map_err_after_status_check::*;
-#[path = "test_helper/max_block_on_polls.rs"]
+#[path = "max_block_on_polls.rs"]
 mod max_block_on_polls;
 use max_block_on_polls::*;
 

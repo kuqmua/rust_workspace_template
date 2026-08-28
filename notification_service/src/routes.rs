@@ -1,17 +1,17 @@
-#[path = "routes/create_notification.rs"]
+#[path = "create_notification.rs"]
 mod create_notification;
-#[path = "routes/metrics.rs"]
+#[path = "metrics.rs"]
 mod metrics;
-#[path = "routes/notification_api_route_registry.rs"]
+#[path = "notification_api_route_registry.rs"]
 mod notification_api_route_registry;
-#[path = "routes/notification_route_registry.rs"]
+#[path = "notification_route_registry.rs"]
 mod notification_route_registry;
-#[path = "routes/open_api.rs"]
+#[path = "open_api.rs"]
 mod open_api;
 #[cfg(test)]
-#[path = "routes/open_api_document.rs"]
+#[path = "open_api_document.rs"]
 mod open_api_document;
-#[path = "routes/router.rs"]
+#[path = "router.rs"]
 mod router;
 
 #[cfg(test)]

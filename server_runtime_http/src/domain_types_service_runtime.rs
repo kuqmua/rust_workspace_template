@@ -1,14 +1,10 @@
-#[path = "domain_types_service_runtime/build_service_runtime.rs"]
+#[path = "build_service_runtime.rs"]
 mod build_service_runtime;
-#[path = "domain_types_service_runtime/service_runtime_io_error.rs"]
+#[path = "service_runtime_io_error.rs"]
 mod service_runtime_io_error;
-#[path = "domain_types_service_runtime/tokio_service_runtime.rs"]
+#[path = "tokio_service_runtime.rs"]
 mod tokio_service_runtime;
-#[cfg(not(unix))]
-#[path = "domain_types_service_runtime/non_unix/wait_for_service_shutdown_signal.rs"]
-mod wait_for_service_shutdown_signal;
-#[cfg(unix)]
-#[path = "domain_types_service_runtime/unix/wait_for_service_shutdown_signal.rs"]
+#[path = "wait_for_service_shutdown_signal.rs"]
 mod wait_for_service_shutdown_signal;
 
 pub use build_service_runtime::build_service_runtime;

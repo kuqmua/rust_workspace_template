@@ -1,10 +1,18 @@
+#[path = "domain_types.rs"]
 mod domain_types;
+#[path = "template_fs_copy_template_tree.rs"]
 mod template_fs_copy_template_tree;
+#[path = "template_fs_insert_once.rs"]
 mod template_fs_insert_once;
+#[path = "template_fs_read_bounded_text.rs"]
 mod template_fs_read_bounded_text;
+#[path = "template_fs_rename_identity.rs"]
 mod template_fs_rename_identity;
+#[path = "template_fs_replace_file.rs"]
 mod template_fs_replace_file;
+#[path = "template_fs_should_skip.rs"]
 mod template_fs_should_skip;
+#[path = "template_fs_write_text.rs"]
 mod template_fs_write_text;
 
 fn workspace_root() -> Result<domain_types::ScaffoldPathRef<'static>, domain_types::ScaffoldError> {

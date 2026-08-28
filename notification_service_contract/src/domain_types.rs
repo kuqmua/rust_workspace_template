@@ -1,22 +1,22 @@
-#[path = "domain_types/create_notification_req.rs"]
+#[path = "create_notification_req.rs"]
 mod create_notification_req;
-#[path = "domain_types/create_notification_res.rs"]
+#[path = "create_notification_res.rs"]
 mod create_notification_res;
-#[path = "domain_types/create_notification_route.rs"]
+#[path = "create_notification_route.rs"]
 mod create_notification_route;
-#[path = "domain_types/notification_api_body_max_bytes.rs"]
+#[path = "notification_api_body_max_bytes.rs"]
 mod notification_api_body_max_bytes;
-#[path = "domain_types/notification_message.rs"]
+#[path = "notification_message.rs"]
 mod notification_message;
-#[path = "domain_types/notification_message_max_len.rs"]
+#[path = "notification_message_max_len.rs"]
 mod notification_message_max_len;
-#[path = "domain_types/notification_message_try_from_string_error.rs"]
+#[path = "notification_message_try_from_string_error.rs"]
 mod notification_message_try_from_string_error;
-#[path = "domain_types/notification_operational_route.rs"]
+#[path = "notification_operational_route.rs"]
 mod notification_operational_route;
-#[path = "domain_types/notification_route.rs"]
+#[path = "notification_route.rs"]
 mod notification_route;
-#[path = "domain_types/uuid_notification_id.rs"]
+#[path = "uuid_notification_id.rs"]
 mod uuid_notification_id;
 
 pub use create_notification_req::CreateNotificationReq;

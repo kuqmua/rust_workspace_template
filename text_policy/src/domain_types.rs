@@ -3,37 +3,37 @@
     reason = "validators stay adjacent to their domain wrappers and ranges retain minimum-then-maximum order"
 )]
 
-#[path = "domain_types/bounded_text_policy_error.rs"]
+#[path = "bounded_text_policy_error.rs"]
 mod bounded_text_policy_error;
-#[path = "domain_types/fixed_length_ascii_hex_text.rs"]
+#[path = "fixed_length_ascii_hex_text.rs"]
 mod fixed_length_ascii_hex_text;
-#[path = "domain_types/fixed_length_ascii_hex_text_error.rs"]
+#[path = "fixed_length_ascii_hex_text_error.rs"]
 mod fixed_length_ascii_hex_text_error;
-#[path = "domain_types/non_empty_trimmed_text.rs"]
+#[path = "non_empty_trimmed_text.rs"]
 mod non_empty_trimmed_text;
-#[path = "domain_types/password_length.rs"]
+#[path = "password_length.rs"]
 mod password_length;
-#[path = "domain_types/password_length_range.rs"]
+#[path = "password_length_range.rs"]
 mod password_length_range;
-#[path = "domain_types/password_length_range_error.rs"]
+#[path = "password_length_range_error.rs"]
 mod password_length_range_error;
-#[path = "domain_types/password_policy_violation.rs"]
+#[path = "password_policy_violation.rs"]
 mod password_policy_violation;
-#[path = "domain_types/password_text_ref.rs"]
+#[path = "password_text_ref.rs"]
 mod password_text_ref;
-#[path = "domain_types/required_nul_free_bounded_text.rs"]
+#[path = "required_nul_free_bounded_text.rs"]
 mod required_nul_free_bounded_text;
-#[path = "domain_types/url_safe_token_part_maximum_bytes.rs"]
+#[path = "url_safe_token_part_maximum_bytes.rs"]
 mod url_safe_token_part_maximum_bytes;
-#[path = "domain_types/url_safe_token_part_ref.rs"]
+#[path = "url_safe_token_part_ref.rs"]
 mod url_safe_token_part_ref;
-#[path = "domain_types/url_safe_token_part_text.rs"]
+#[path = "url_safe_token_part_text.rs"]
 mod url_safe_token_part_text;
-#[path = "domain_types/url_safe_token_part_text_error.rs"]
+#[path = "url_safe_token_part_text_error.rs"]
 mod url_safe_token_part_text_error;
-#[path = "domain_types/validate_password_policy.rs"]
+#[path = "validate_password_policy.rs"]
 mod validate_password_policy;
-#[path = "domain_types/validate_url_safe_token_part.rs"]
+#[path = "validate_url_safe_token_part.rs"]
 mod validate_url_safe_token_part;
 
 pub use bounded_text_policy_error::BoundedTextPolicyError;

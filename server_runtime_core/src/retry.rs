@@ -1,14 +1,14 @@
-#[path = "retry/retry_attempts_non_zero_usize.rs"]
+#[path = "retry_attempts_non_zero_usize.rs"]
 mod retry_attempts_non_zero_usize;
-#[path = "retry/retry_delay_duration.rs"]
+#[path = "retry_delay_duration.rs"]
 mod retry_delay_duration;
-#[path = "retry/retry_outcome.rs"]
+#[path = "retry_outcome.rs"]
 mod retry_outcome;
-#[path = "retry/retry_policy.rs"]
+#[path = "retry_policy.rs"]
 mod retry_policy;
-#[path = "retry/run_with_retries.rs"]
+#[path = "run_with_retries.rs"]
 mod run_with_retries;
-#[path = "retry/std_retry_attempts_error.rs"]
+#[path = "std_retry_attempts_error.rs"]
 mod std_retry_attempts_error;
 
 pub use retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize;

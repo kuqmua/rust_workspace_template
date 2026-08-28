@@ -1,28 +1,28 @@
-#[path = "audit_branding/admin_audit_details_bytes.rs"]
+#[path = "admin_audit_details_bytes.rs"]
 mod admin_audit_details_bytes;
-#[path = "audit_branding/admin_audit_details_max_bytes.rs"]
+#[path = "admin_audit_details_max_bytes.rs"]
 mod admin_audit_details_max_bytes;
-#[path = "audit_branding/admin_audit_details_too_large.rs"]
+#[path = "admin_audit_details_too_large.rs"]
 mod admin_audit_details_too_large;
-#[path = "audit_branding/admin_audit_timestamp.rs"]
+#[path = "admin_audit_timestamp.rs"]
 mod admin_audit_timestamp;
-#[path = "audit_branding/admin_default_route.rs"]
+#[path = "admin_default_route.rs"]
 mod admin_default_route;
-#[path = "audit_branding/admin_main_logo.rs"]
+#[path = "admin_main_logo.rs"]
 mod admin_main_logo;
-#[path = "audit_branding/admin_organization_contacts.rs"]
+#[path = "admin_organization_contacts.rs"]
 mod admin_organization_contacts;
-#[path = "audit_branding/admin_organization_name.rs"]
+#[path = "admin_organization_name.rs"]
 mod admin_organization_name;
-#[path = "audit_branding/admin_primary_color.rs"]
+#[path = "admin_primary_color.rs"]
 mod admin_primary_color;
-#[path = "audit_branding/admin_site_name.rs"]
+#[path = "admin_site_name.rs"]
 mod admin_site_name;
-#[path = "audit_branding/admin_support_url.rs"]
+#[path = "admin_support_url.rs"]
 mod admin_support_url;
-#[path = "audit_branding/admin_tab_title.rs"]
+#[path = "admin_tab_title.rs"]
 mod admin_tab_title;
-#[path = "audit_branding/serde_json_admin_audit_details.rs"]
+#[path = "serde_json_admin_audit_details.rs"]
 mod serde_json_admin_audit_details;
 
 pub use admin_audit_details_bytes::AdminAuditDetailsBytes;

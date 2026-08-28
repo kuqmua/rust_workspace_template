@@ -1,27 +1,29 @@
-#[path = "outbound_url/outbound_address_disposition.rs"]
+#[path = "outbound_address_disposition.rs"]
 mod outbound_address_disposition;
-#[path = "outbound_url/outbound_allowed_host.rs"]
+#[path = "outbound_allowed_host.rs"]
 mod outbound_allowed_host;
-#[path = "outbound_url/outbound_host_allowlist.rs"]
+#[path = "outbound_host_allowlist.rs"]
 mod outbound_host_allowlist;
-#[path = "outbound_url/outbound_host_allowlist_error.rs"]
+#[path = "outbound_host_allowlist_error.rs"]
 mod outbound_host_allowlist_error;
-#[path = "outbound_url/outbound_host_policy.rs"]
+#[path = "outbound_host_policy.rs"]
 mod outbound_host_policy;
-#[path = "outbound_url/outbound_ip_addr.rs"]
+#[path = "outbound_ip_addr.rs"]
 mod outbound_ip_addr;
-#[path = "outbound_url/outbound_url_error.rs"]
+#[path = "outbound_url_error.rs"]
 mod outbound_url_error;
-#[path = "outbound_url/outbound_url_policy.rs"]
+#[path = "outbound_url_policy.rs"]
 mod outbound_url_policy;
-#[path = "outbound_url/outbound_url_scheme.rs"]
+#[path = "outbound_url_scheme.rs"]
 mod outbound_url_scheme;
-#[path = "outbound_url/outbound_url_text_ref.rs"]
+#[path = "outbound_url_text_ref.rs"]
 mod outbound_url_text_ref;
-#[path = "outbound_url/reqwest_outbound_url.rs"]
+#[path = "reqwest_outbound_url.rs"]
 mod reqwest_outbound_url;
+#[path = "resolve_outbound_address_disposition.rs"]
+mod resolve_outbound_address_disposition;
 
-use outbound_address_disposition::{OutboundAddressDisposition, outbound_address_disposition};
+use outbound_address_disposition::OutboundAddressDisposition;
 pub use outbound_allowed_host::OutboundAllowedHost;
 pub use outbound_host_allowlist::OutboundHostAllowlist;
 pub use outbound_host_allowlist_error::OutboundHostAllowlistError;
@@ -32,6 +34,7 @@ pub use outbound_url_policy::OutboundUrlPolicy;
 pub use outbound_url_scheme::OutboundUrlScheme;
 pub use outbound_url_text_ref::OutboundUrlTextRef;
 pub use reqwest_outbound_url::ReqwestOutboundUrl;
+use resolve_outbound_address_disposition::resolve_outbound_address_disposition;
 
 #[cfg(test)]
 mod tests {

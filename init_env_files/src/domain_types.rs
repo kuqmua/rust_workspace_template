@@ -1,64 +1,64 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::arbitrary_source_item_ordering)] // keep each split module adjacent to the facade import that exposes it
 
-#[path = "domain_types/run_mode.rs"]
+#[path = "run_mode.rs"]
 mod run_mode;
 pub(crate) use run_mode::*;
-#[path = "domain_types/initialization_status.rs"]
+#[path = "initialization_status.rs"]
 mod initialization_status;
 pub(crate) use initialization_status::*;
-#[path = "domain_types/initialization_entry.rs"]
+#[path = "initialization_entry.rs"]
 mod initialization_entry;
 pub(crate) use initialization_entry::*;
-#[path = "domain_types/env_content.rs"]
+#[path = "env_content.rs"]
 mod env_content;
 pub(crate) use env_content::*;
-#[path = "domain_types/env_content_ref.rs"]
+#[path = "env_content_ref.rs"]
 mod env_content_ref;
 pub(crate) use env_content_ref::*;
-#[path = "domain_types/env_key.rs"]
+#[path = "env_key.rs"]
 mod env_key;
 pub(crate) use env_key::*;
-#[path = "domain_types/env_keys.rs"]
+#[path = "env_keys.rs"]
 mod env_keys;
 pub(crate) use env_keys::*;
-#[path = "domain_types/workspace_member.rs"]
+#[path = "workspace_member.rs"]
 mod workspace_member;
 pub(crate) use workspace_member::*;
-#[path = "domain_types/workspace_root_path_ref.rs"]
+#[path = "workspace_root_path_ref.rs"]
 mod workspace_root_path_ref;
 pub(crate) use workspace_root_path_ref::*;
-#[path = "domain_types/init_path_ref.rs"]
+#[path = "init_path_ref.rs"]
 mod init_path_ref;
 pub(crate) use init_path_ref::*;
-#[path = "domain_types/init_max_bytes.rs"]
+#[path = "init_max_bytes.rs"]
 mod init_max_bytes;
 pub(crate) use init_max_bytes::*;
-#[path = "domain_types/init_path_exists.rs"]
+#[path = "init_path_exists.rs"]
 mod init_path_exists;
 pub(crate) use init_path_exists::*;
-#[path = "domain_types/init_entries.rs"]
+#[path = "init_entries.rs"]
 mod init_entries;
 pub(crate) use init_entries::*;
-#[path = "domain_types/init_io_error.rs"]
+#[path = "init_io_error.rs"]
 mod init_io_error;
 pub(crate) use init_io_error::*;
-#[path = "domain_types/server_runtime_bounded_read_error.rs"]
+#[path = "server_runtime_bounded_read_error.rs"]
 mod server_runtime_bounded_read_error;
 pub(crate) use server_runtime_bounded_read_error::*;
-#[path = "domain_types/toml_init_error.rs"]
+#[path = "toml_init_error.rs"]
 mod toml_init_error;
 pub(crate) use toml_init_error::*;
-#[path = "domain_types/init_string_error.rs"]
+#[path = "init_string_error.rs"]
 mod init_string_error;
 pub(crate) use init_string_error::*;
-#[path = "domain_types/initialize_error.rs"]
+#[path = "initialize_error.rs"]
 mod initialize_error;
 pub(crate) use initialize_error::*;
-#[path = "domain_types/environment_keys.rs"]
+#[path = "environment_keys.rs"]
 mod environment_keys;
 use environment_keys::environment_keys;
-#[path = "domain_types/initialize.rs"]
+#[path = "initialize.rs"]
 mod initialize;
 pub(crate) use initialize::*;
 

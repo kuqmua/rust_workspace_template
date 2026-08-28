@@ -1,32 +1,32 @@
-#[path = "notification/axum_notification_json.rs"]
+#[path = "axum_notification_json.rs"]
 mod axum_notification_json;
-#[path = "notification/axum_notification_router.rs"]
+#[path = "axum_notification_router.rs"]
 mod axum_notification_router;
-#[path = "notification/axum_notification_state.rs"]
+#[path = "axum_notification_state.rs"]
 mod axum_notification_state;
-#[path = "notification/http_notification_header_map.rs"]
+#[path = "http_notification_header_map.rs"]
 mod http_notification_header_map;
-#[path = "notification/notification_api_token.rs"]
+#[path = "notification_api_token.rs"]
 mod notification_api_token;
-#[path = "notification/notification_api_token_authorized.rs"]
+#[path = "notification_api_token_authorized.rs"]
 mod notification_api_token_authorized;
-#[path = "notification/notification_api_token_error.rs"]
+#[path = "notification_api_token_error.rs"]
 mod notification_api_token_error;
-#[path = "notification/notification_api_token_ref.rs"]
+#[path = "notification_api_token_ref.rs"]
 mod notification_api_token_ref;
-#[path = "notification/notification_message.rs"]
+#[path = "notification_message.rs"]
 mod notification_message;
-#[path = "notification/notification_message_error.rs"]
+#[path = "notification_message_error.rs"]
 mod notification_message_error;
-#[path = "notification/notification_request.rs"]
+#[path = "notification_request.rs"]
 mod notification_request;
-#[path = "notification/notification_router.rs"]
+#[path = "notification_router.rs"]
 mod notification_router;
-#[path = "notification/notification_sender.rs"]
+#[path = "notification_sender.rs"]
 mod notification_sender;
-#[path = "notification/notification_service_state.rs"]
+#[path = "notification_service_state.rs"]
 mod notification_service_state;
-#[path = "notification/send_notification.rs"]
+#[path = "send_notification.rs"]
 mod send_notification;
 
 use axum_notification_json::AxumNotificationJson;

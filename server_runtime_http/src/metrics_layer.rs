@@ -3,35 +3,35 @@
     reason = "owner modules and related behavior retain their intentional facade ordering"
 )]
 
-#[path = "metrics_layer/http_metrics_layer.rs"]
+#[path = "http_metrics_layer.rs"]
 mod http_metrics_layer;
-#[path = "metrics_layer/http_metrics_path_cache.rs"]
+#[path = "http_metrics_path_cache.rs"]
 mod http_metrics_path_cache;
-#[path = "metrics_layer/http_metrics_path_cache_maximum.rs"]
+#[path = "http_metrics_path_cache_maximum.rs"]
 mod http_metrics_path_cache_maximum;
-#[path = "metrics_layer/http_metrics_path_cache_maximum_non_zero_usize.rs"]
+#[path = "http_metrics_path_cache_maximum_non_zero_usize.rs"]
 mod http_metrics_path_cache_maximum_non_zero_usize;
-#[path = "metrics_layer/http_metrics_path_cache_maximum_try_from_usize_error.rs"]
+#[path = "http_metrics_path_cache_maximum_try_from_usize_error.rs"]
 mod http_metrics_path_cache_maximum_try_from_usize_error;
-#[path = "metrics_layer/http_metrics_path_entries_rw_lock.rs"]
+#[path = "http_metrics_path_entries_rw_lock.rs"]
 mod http_metrics_path_entries_rw_lock;
-#[path = "metrics_layer/http_metrics_path_text.rs"]
+#[path = "http_metrics_path_text.rs"]
 mod http_metrics_path_text;
-#[path = "metrics_layer/http_metrics_path_text_error.rs"]
+#[path = "http_metrics_path_text_error.rs"]
 mod http_metrics_path_text_error;
-#[path = "metrics_layer/http_metrics_path_text_ref.rs"]
+#[path = "http_metrics_path_text_ref.rs"]
 mod http_metrics_path_text_ref;
-#[path = "metrics_layer/http_metrics_service.rs"]
+#[path = "http_metrics_service.rs"]
 mod http_metrics_service;
-#[path = "metrics_layer/http_metrics_tower_layer.rs"]
+#[path = "http_metrics_tower_layer.rs"]
 mod http_metrics_tower_layer;
-#[path = "metrics_layer/metrics_response_body.rs"]
+#[path = "metrics_response_body.rs"]
 mod metrics_response_body;
-#[path = "metrics_layer/metrics_response_body_error.rs"]
+#[path = "metrics_response_body_error.rs"]
 mod metrics_response_body_error;
-#[path = "metrics_layer/metrics_shared_string.rs"]
+#[path = "metrics_shared_string.rs"]
 mod metrics_shared_string;
-#[path = "metrics_layer/shared_http_metrics_path_cache_arc.rs"]
+#[path = "shared_http_metrics_path_cache_arc.rs"]
 mod shared_http_metrics_path_cache_arc;
 
 pub use http_metrics_layer::HttpMetricsLayer;

@@ -1,23 +1,24 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "route_registration_contract/axum_route_method_router.rs"]
+#[path = "axum_route_method_router.rs"]
 mod axum_route_method_router;
-#[path = "route_registration_contract/registered_route_path.rs"]
+#[path = "registered_route_path.rs"]
 mod registered_route_path;
-#[path = "route_registration_contract/route_method_router.rs"]
+#[path = "route_method_router.rs"]
 mod route_method_router;
-#[path = "route_registration_contract/route_registration_contract.rs"]
-mod route_registration_contract;
+pub trait RouteRegistrationContract: Copy {
+    fn method(self) -> super::RouteMethod;
+    fn path(self) -> RegisteredRoutePath;
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use axum_route_method_router::AxumRouteMethodRouter;
 pub use registered_route_path::RegisteredRoutePath;
 #[cfg(not(target_arch = "wasm32"))]
 pub use route_method_router::route_method_router;
-pub use route_registration_contract::RouteRegistrationContract;
-
 #[cfg(test)]
 mod tests {
     #[test]

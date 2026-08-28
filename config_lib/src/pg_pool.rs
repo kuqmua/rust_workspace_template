@@ -1,22 +1,22 @@
-#[path = "pg_pool/parse_pg_pool_non_zero_seconds.rs"]
+#[path = "parse_pg_pool_non_zero_seconds.rs"]
 mod parse_pg_pool_non_zero_seconds;
-#[path = "pg_pool/pg_pool_acquire_timeout_seconds.rs"]
+#[path = "pg_pool_acquire_timeout_seconds.rs"]
 mod pg_pool_acquire_timeout_seconds;
-#[path = "pg_pool/pg_pool_config_parse_error.rs"]
+#[path = "pg_pool_config_parse_error.rs"]
 mod pg_pool_config_parse_error;
-#[path = "pg_pool/pg_pool_idle_timeout_seconds.rs"]
+#[path = "pg_pool_idle_timeout_seconds.rs"]
 mod pg_pool_idle_timeout_seconds;
-#[path = "pg_pool/pg_pool_max_connections.rs"]
+#[path = "pg_pool_max_connections.rs"]
 mod pg_pool_max_connections;
-#[path = "pg_pool/pg_pool_max_connections_try_from_u32_error.rs"]
+#[path = "pg_pool_max_connections_try_from_u32_error.rs"]
 mod pg_pool_max_connections_try_from_u32_error;
-#[path = "pg_pool/pg_pool_max_lifetime_seconds.rs"]
+#[path = "pg_pool_max_lifetime_seconds.rs"]
 mod pg_pool_max_lifetime_seconds;
-#[path = "pg_pool/pg_pool_min_connections.rs"]
+#[path = "pg_pool_min_connections.rs"]
 mod pg_pool_min_connections;
-#[path = "pg_pool/request_timeout_seconds.rs"]
+#[path = "request_timeout_seconds.rs"]
 mod request_timeout_seconds;
-#[path = "pg_pool/try_from_std_env_var_ok_pg_pool_max_connections_error.rs"]
+#[path = "try_from_std_env_var_ok_pg_pool_max_connections_error.rs"]
 mod try_from_std_env_var_ok_pg_pool_max_connections_error;
 
 use parse_pg_pool_non_zero_seconds::parse_pg_pool_non_zero_seconds;

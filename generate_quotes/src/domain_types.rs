@@ -1,46 +1,48 @@
-#[path = "domain_types/binary_double_quote_style.rs"]
+#[path = "binary_double_quote_style.rs"]
 mod binary_double_quote_style;
-#[path = "domain_types/binary_double_quoted_str.rs"]
+#[path = "binary_double_quoted_str.rs"]
 mod binary_double_quoted_str;
-#[path = "domain_types/binary_double_quoted_token_stream.rs"]
+#[path = "binary_double_quoted_token_stream.rs"]
 mod binary_double_quoted_token_stream;
-#[path = "domain_types/binary_single_quote_style.rs"]
+#[path = "binary_single_quote_style.rs"]
 mod binary_single_quote_style;
-#[path = "domain_types/binary_single_quotes_str.rs"]
+#[path = "binary_single_quotes_str.rs"]
 mod binary_single_quotes_str;
-#[path = "domain_types/binary_single_quotes_token_stream.rs"]
+#[path = "binary_single_quotes_token_stream.rs"]
 mod binary_single_quotes_token_stream;
-#[path = "domain_types/double_quote_style.rs"]
+#[path = "build_quote_style.rs"]
+mod build_quote_style;
+#[path = "double_quote_style.rs"]
 mod double_quote_style;
-#[path = "domain_types/double_quoted_string.rs"]
+#[path = "double_quoted_string.rs"]
 mod double_quoted_string;
-#[path = "domain_types/dq_token_stream.rs"]
+#[path = "dq_token_stream.rs"]
 mod dq_token_stream;
-#[path = "domain_types/proc_macro2_quoted_literal_token_stream.rs"]
+#[path = "proc_macro2_quoted_literal_token_stream.rs"]
 mod proc_macro2_quoted_literal_token_stream;
-#[path = "domain_types/quote_char.rs"]
+#[path = "quote_char.rs"]
 mod quote_char;
-#[path = "domain_types/quote_literal.rs"]
+#[path = "quote_literal.rs"]
 mod quote_literal;
-#[path = "domain_types/quote_panic_id.rs"]
+#[path = "quote_panic_id.rs"]
 mod quote_panic_id;
-#[path = "domain_types/quote_prefix.rs"]
+#[path = "quote_prefix.rs"]
 mod quote_prefix;
-#[path = "domain_types/quote_str.rs"]
+#[path = "quote_str.rs"]
 mod quote_str;
-#[path = "domain_types/quote_style.rs"]
+#[path = "quote_style.rs"]
 mod quote_style;
-#[path = "domain_types/quote_token_stream.rs"]
+#[path = "quote_token_stream.rs"]
 mod quote_token_stream;
-#[path = "domain_types/quoted_literal.rs"]
+#[path = "quoted_literal.rs"]
 mod quoted_literal;
-#[path = "domain_types/quoted_literal_max_len.rs"]
+#[path = "quoted_literal_max_len.rs"]
 mod quoted_literal_max_len;
-#[path = "domain_types/single_quote_style.rs"]
+#[path = "single_quote_style.rs"]
 mod single_quote_style;
-#[path = "domain_types/single_quotes_str.rs"]
+#[path = "single_quotes_str.rs"]
 mod single_quotes_str;
-#[path = "domain_types/single_quotes_token_stream.rs"]
+#[path = "single_quotes_token_stream.rs"]
 mod single_quotes_token_stream;
 
 use binary_double_quote_style::binary_double_quote_style;
@@ -49,6 +51,7 @@ pub use binary_double_quoted_token_stream::binary_double_quoted_token_stream;
 use binary_single_quote_style::binary_single_quote_style;
 pub use binary_single_quotes_str::binary_single_quotes_str;
 pub use binary_single_quotes_token_stream::binary_single_quotes_token_stream;
+use build_quote_style::build_quote_style;
 use double_quote_style::double_quote_style;
 pub use double_quoted_string::double_quoted_string;
 pub use dq_token_stream::dq_token_stream;
@@ -59,7 +62,6 @@ use quote_panic_id::QuotePanicId;
 use quote_prefix::QuotePrefix;
 use quote_str::quote_str;
 use quote_style::QuoteStyle;
-use quote_style::quote_style;
 use quote_token_stream::quote_token_stream;
 pub use quoted_literal::QuotedLiteral;
 use quoted_literal_max_len::QUOTED_LITERAL_MAX_LEN;

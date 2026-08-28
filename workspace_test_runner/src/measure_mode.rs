@@ -9,7 +9,7 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
             crate::domain_types::allocation_tools()
                 .iter()
                 .try_fold((), |(), tool| {
-                    let available = crate::tool_available::tool_available(tool.path());
+                    let available = crate::check_tool_available::check_tool_available(tool.path());
                     println!(
                         "measurement=allocation_tool_available tool={} path={} available={}",
                         tool.name().get(),
@@ -341,11 +341,12 @@ pub(crate) fn measure_mode() -> Result<(), ()> {
                 ),
                 |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
                     let started = std::time::Instant::now();
-                    let output = generate_pg_types_src::domain_types::source::generate_pg_types(
-                        macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
-                            &generate_pg_types_input_token_stream,
-                        ),
-                    );
+                    let output =
+                        generate_pg_types_src::domain_types::source::generate_pg_types_tokens(
+                            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(
+                                &generate_pg_types_input_token_stream,
+                            ),
+                        );
                     let wall_us = started.elapsed().as_micros();
                     (
                         min_wall_us.min(wall_us),

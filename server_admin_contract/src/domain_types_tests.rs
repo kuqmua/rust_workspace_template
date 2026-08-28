@@ -157,7 +157,7 @@ fn authentication_route_family_has_valid_coverage() {
     assert_eq!(
         <super::AdminAuthenticationRouteFamily as frontend_contract::domain_types::RouteFamily>::body_limit()
             .map(frontend_contract::domain_types::RouteBodyLimit::get),
-        Some(super::admin_api_body_max_bytes().get())
+        Some(super::default_admin_api_body_max_bytes().get())
     );
 }
 #[test]

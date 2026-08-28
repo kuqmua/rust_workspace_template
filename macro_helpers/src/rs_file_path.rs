@@ -1,13 +1,18 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "rs_file_path/rs_file_path.rs"]
-mod rs_file_path;
-#[path = "rs_file_path/rs_file_path_buf.rs"]
+// The owner module retains lint-sensitive semantics from the original implementation.
+#[allow(clippy::single_call_fn)]
+pub(crate) fn rs_file_path<P>(file_name: P) -> RsFilePathBuf
+where
+    P: AsRef<std::path::Path>,
+{
+    RsFilePathBuf::from(file_name.as_ref().with_extension(constants_str::RS))
+}
+#[path = "rs_file_path_buf.rs"]
 mod rs_file_path_buf;
-
-pub(crate) use rs_file_path::rs_file_path;
 pub(crate) use rs_file_path_buf::RsFilePathBuf;
 #[cfg(test)]
 mod tests {

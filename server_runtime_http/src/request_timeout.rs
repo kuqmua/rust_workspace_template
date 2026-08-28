@@ -1,14 +1,14 @@
-#[path = "request_timeout/request_timeout_body.rs"]
+#[path = "request_timeout_body.rs"]
 mod request_timeout_body;
-#[path = "request_timeout/request_timeout_error.rs"]
+#[path = "request_timeout_error.rs"]
 mod request_timeout_error;
-#[path = "request_timeout/request_timeout_layer.rs"]
+#[path = "request_timeout_layer.rs"]
 mod request_timeout_layer;
-#[path = "request_timeout/request_timeout_service.rs"]
+#[path = "request_timeout_service.rs"]
 mod request_timeout_service;
-#[path = "request_timeout/request_timeout_tower_layer.rs"]
+#[path = "request_timeout_tower_layer.rs"]
 mod request_timeout_tower_layer;
-#[path = "request_timeout/std_request_timeout_message.rs"]
+#[path = "std_request_timeout_message.rs"]
 mod std_request_timeout_message;
 
 use request_timeout_body::RequestTimeoutBody;

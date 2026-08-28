@@ -3,39 +3,39 @@
     reason = "owner modules and related behavior retain their intentional facade ordering"
 )]
 
-#[path = "client_ip/client_addr_parse_error.rs"]
+#[path = "client_addr_parse_error.rs"]
 mod client_addr_parse_error;
-#[path = "client_ip/client_socket_addr.rs"]
+#[path = "client_socket_addr.rs"]
 mod client_socket_addr;
-#[path = "client_ip/http_header_map_ref.rs"]
+#[path = "http_header_map_ref.rs"]
 mod http_header_map_ref;
-#[path = "client_ip/ipnet_network.rs"]
+#[path = "ipnet_network.rs"]
 mod ipnet_network;
-#[path = "client_ip/parse_int_error.rs"]
+#[path = "parse_int_error.rs"]
 mod parse_int_error;
-#[path = "client_ip/parse_trusted_proxy_ranges.rs"]
+#[path = "parse_trusted_proxy_ranges.rs"]
 mod parse_trusted_proxy_ranges;
-#[path = "client_ip/parsed_ip_addr.rs"]
+#[path = "parsed_ip_addr.rs"]
 mod parsed_ip_addr;
-#[path = "client_ip/resolve_client_ip.rs"]
+#[path = "resolve_client_ip.rs"]
 mod resolve_client_ip;
-#[path = "client_ip/resolve_header_text.rs"]
+#[path = "resolve_header_text.rs"]
 mod resolve_header_text;
-#[path = "client_ip/resolved_client_ip_addr.rs"]
+#[path = "resolved_client_ip_addr.rs"]
 mod resolved_client_ip_addr;
-#[path = "client_ip/std_range_contains.rs"]
+#[path = "std_range_contains.rs"]
 mod std_range_contains;
-#[path = "client_ip/trusted_proxy_range.rs"]
+#[path = "trusted_proxy_range.rs"]
 mod trusted_proxy_range;
-#[path = "client_ip/trusted_proxy_range_parse_error.rs"]
+#[path = "trusted_proxy_range_parse_error.rs"]
 mod trusted_proxy_range_parse_error;
-#[path = "client_ip/trusted_proxy_ranges.rs"]
+#[path = "trusted_proxy_ranges.rs"]
 mod trusted_proxy_ranges;
-#[path = "client_ip/trusted_proxy_ranges_error.rs"]
+#[path = "trusted_proxy_ranges_error.rs"]
 mod trusted_proxy_ranges_error;
-#[path = "client_ip/trusted_proxy_ranges_parse_error.rs"]
+#[path = "trusted_proxy_ranges_parse_error.rs"]
 mod trusted_proxy_ranges_parse_error;
-#[path = "client_ip/trusted_proxy_ranges_text_ref.rs"]
+#[path = "trusted_proxy_ranges_text_ref.rs"]
 mod trusted_proxy_ranges_text_ref;
 
 pub use client_addr_parse_error::ClientAddrParseError;

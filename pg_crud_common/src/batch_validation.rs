@@ -1,18 +1,18 @@
-#[path = "batch_validation/batch_duplicate_policy.rs"]
+#[path = "batch_duplicate_policy.rs"]
 mod batch_duplicate_policy;
-#[path = "batch_validation/batch_invalid_item_count.rs"]
+#[path = "batch_invalid_item_count.rs"]
 mod batch_invalid_item_count;
-#[path = "batch_validation/batch_invalid_items.rs"]
+#[path = "batch_invalid_items.rs"]
 mod batch_invalid_items;
-#[path = "batch_validation/batch_processed_item_count.rs"]
+#[path = "batch_processed_item_count.rs"]
 mod batch_processed_item_count;
-#[path = "batch_validation/batch_records_b_tree_map.rs"]
+#[path = "batch_records_b_tree_map.rs"]
 mod batch_records_b_tree_map;
-#[path = "batch_validation/batch_stopped_early.rs"]
+#[path = "batch_stopped_early.rs"]
 mod batch_stopped_early;
-#[path = "batch_validation/batch_validation_report.rs"]
+#[path = "batch_validation_report.rs"]
 mod batch_validation_report;
-#[path = "batch_validation/validate_batch_by_key.rs"]
+#[path = "validate_batch_by_key.rs"]
 mod validate_batch_by_key;
 
 pub use batch_duplicate_policy::BatchDuplicatePolicy;

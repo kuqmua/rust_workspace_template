@@ -1,14 +1,14 @@
-#[path = "domain_types/is_primary_key.rs"]
+#[path = "is_primary_key.rs"]
 mod is_primary_key;
-#[path = "domain_types/maybe_primary_key.rs"]
+#[path = "maybe_primary_key.rs"]
 mod maybe_primary_key;
-#[path = "domain_types/pagination_starts_with_one.rs"]
+#[path = "pagination_starts_with_one.rs"]
 mod pagination_starts_with_one;
-#[path = "domain_types/pagination_starts_with_one_raw.rs"]
+#[path = "pagination_starts_with_one_raw.rs"]
 mod pagination_starts_with_one_raw;
-#[path = "domain_types/pagination_starts_with_one_try_new_error.rs"]
+#[path = "pagination_starts_with_one_try_new_error.rs"]
 mod pagination_starts_with_one_try_new_error;
-#[path = "domain_types/pagination_starts_with_one_value.rs"]
+#[path = "pagination_starts_with_one_value.rs"]
 mod pagination_starts_with_one_value;
 
 pub use is_primary_key::IsPrimaryKey;

@@ -1,14 +1,14 @@
-#[path = "get_macro_attribute/find_macro_attribute.rs"]
+#[path = "find_macro_attribute.rs"]
 mod find_macro_attribute;
-#[path = "get_macro_attribute/macro_attr_error.rs"]
+#[path = "macro_attr_error.rs"]
 mod macro_attr_error;
-#[path = "get_macro_attribute/proc_macro2_macro_attr_meta_list_token_stream_ref.rs"]
+#[path = "proc_macro2_macro_attr_meta_list_token_stream_ref.rs"]
 mod proc_macro2_macro_attr_meta_list_token_stream_ref;
-#[path = "get_macro_attribute/syn_macro_attr_ref.rs"]
+#[path = "syn_macro_attr_ref.rs"]
 mod syn_macro_attr_ref;
-#[path = "get_macro_attribute/try_get_macro_attr_meta_list_token_stream.rs"]
+#[path = "try_get_macro_attr_meta_list_token_stream.rs"]
 mod try_get_macro_attr_meta_list_token_stream;
-#[path = "get_macro_attribute/try_get_macro_attribute.rs"]
+#[path = "try_get_macro_attribute.rs"]
 mod try_get_macro_attribute;
 
 pub use find_macro_attribute::find_macro_attribute;

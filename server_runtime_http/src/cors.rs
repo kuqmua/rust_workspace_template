@@ -1,16 +1,16 @@
-#[path = "cors/cors_allow_origin_max_bytes.rs"]
+#[path = "cors_allow_origin_max_bytes.rs"]
 mod cors_allow_origin_max_bytes;
-#[path = "cors/cors_allow_origin_max_items.rs"]
+#[path = "cors_allow_origin_max_items.rs"]
 mod cors_allow_origin_max_items;
-#[path = "cors/cors_allow_origin_split_ch.rs"]
+#[path = "cors_allow_origin_split_ch.rs"]
 mod cors_allow_origin_split_ch;
-#[path = "cors/http_cors_allow_origin_header_values.rs"]
+#[path = "http_cors_allow_origin_header_values.rs"]
 mod http_cors_allow_origin_header_values;
-#[path = "cors/http_cors_allow_origin_header_values_error.rs"]
+#[path = "http_cors_allow_origin_header_values_error.rs"]
 mod http_cors_allow_origin_header_values_error;
-#[path = "cors/http_cors_allow_origin_text_ref.rs"]
+#[path = "http_cors_allow_origin_text_ref.rs"]
 mod http_cors_allow_origin_text_ref;
-#[path = "cors/parse_cors_allow_origin.rs"]
+#[path = "parse_cors_allow_origin.rs"]
 mod parse_cors_allow_origin;
 
 use cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES;

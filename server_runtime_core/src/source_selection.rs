@@ -1,16 +1,23 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "source_selection/select_sources.rs"]
+#[path = "select_sources.rs"]
 mod select_sources;
-#[path = "source_selection/source_selection.rs"]
-mod source_selection;
-#[path = "source_selection/source_selection_error.rs"]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SourceSelection<'source_lt, LocalSource, RemoteSource> {
+    Local(&'source_lt LocalSource),
+    LocalAndRemote {
+        local: &'source_lt LocalSource,
+        remote: &'source_lt RemoteSource,
+    },
+    Remote(&'source_lt RemoteSource),
+}
+#[path = "source_selection_error.rs"]
 mod source_selection_error;
 
 pub use select_sources::select_sources;
-pub use source_selection::SourceSelection;
 pub use source_selection_error::SourceSelectionError;
 
 #[cfg(test)]

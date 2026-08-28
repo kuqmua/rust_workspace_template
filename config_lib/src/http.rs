@@ -1,12 +1,12 @@
-#[path = "http/content_security_policy.rs"]
+#[path = "content_security_policy.rs"]
 mod content_security_policy;
-#[path = "http/content_security_policy_error.rs"]
+#[path = "content_security_policy_error.rs"]
 mod content_security_policy_error;
-#[path = "http/maximum_size_of_http_body_in_bytes.rs"]
+#[path = "maximum_size_of_http_body_in_bytes.rs"]
 mod maximum_size_of_http_body_in_bytes;
-#[path = "http/maximum_size_of_http_body_in_bytes_try_from_usize_error.rs"]
+#[path = "maximum_size_of_http_body_in_bytes_try_from_usize_error.rs"]
 mod maximum_size_of_http_body_in_bytes_try_from_usize_error;
-#[path = "http/try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error.rs"]
+#[path = "try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error.rs"]
 mod try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error;
 
 pub use content_security_policy::ContentSecurityPolicy;

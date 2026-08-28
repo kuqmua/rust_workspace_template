@@ -1,14 +1,14 @@
-#[path = "domain_types_security_headers/forwarded_proto_trust.rs"]
+#[path = "forwarded_proto_trust.rs"]
 mod forwarded_proto_trust;
-#[path = "domain_types_security_headers/http_content_security_policy.rs"]
+#[path = "http_content_security_policy.rs"]
 mod http_content_security_policy;
-#[path = "domain_types_security_headers/http_content_security_policy_error.rs"]
+#[path = "http_content_security_policy_error.rs"]
 mod http_content_security_policy_error;
-#[path = "domain_types_security_headers/security_headers_layer.rs"]
+#[path = "security_headers_layer.rs"]
 mod security_headers_layer;
-#[path = "domain_types_security_headers/security_headers_service.rs"]
+#[path = "security_headers_service.rs"]
 mod security_headers_service;
-#[path = "domain_types_security_headers/security_headers_tower_layer.rs"]
+#[path = "security_headers_tower_layer.rs"]
 mod security_headers_tower_layer;
 
 pub use forwarded_proto_trust::ForwardedProtoTrust;

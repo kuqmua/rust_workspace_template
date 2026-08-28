@@ -1,20 +1,20 @@
-#[path = "domain_types/case_from_string.rs"]
+#[path = "case_from_string.rs"]
 mod case_from_string;
-#[path = "domain_types/case_string.rs"]
+#[path = "case_string.rs"]
 mod case_string;
-#[path = "domain_types/case_string_max_len.rs"]
+#[path = "case_string_max_len.rs"]
 mod case_string_max_len;
-#[path = "domain_types/convert_case_kind.rs"]
+#[path = "convert_case_kind.rs"]
 mod convert_case_kind;
-#[path = "domain_types/display_case_str.rs"]
+#[path = "display_case_str.rs"]
 mod display_case_str;
-#[path = "domain_types/proc_macro2_case_token_stream.rs"]
+#[path = "proc_macro2_case_token_stream.rs"]
 mod proc_macro2_case_token_stream;
-#[path = "domain_types/str_case.rs"]
+#[path = "str_case.rs"]
 mod str_case;
-#[path = "domain_types/to_token_stream_or_panic.rs"]
+#[path = "to_token_stream_or_panic.rs"]
 mod to_token_stream_or_panic;
-#[path = "domain_types/tokenized_case_str.rs"]
+#[path = "tokenized_case_str.rs"]
 mod tokenized_case_str;
 
 use case_from_string::case_from_string;

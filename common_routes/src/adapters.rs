@@ -1,24 +1,24 @@
-#[path = "adapters/common_route_registry.rs"]
+#[path = "common_route_registry.rs"]
 mod common_route_registry;
-#[path = "adapters/common_routes.rs"]
+#[path = "common_routes.rs"]
 mod common_routes;
-#[path = "adapters/database_is_ready.rs"]
+#[path = "database_is_ready.rs"]
 mod database_is_ready;
-#[path = "adapters/git_info.rs"]
-mod git_info;
-#[path = "adapters/health.rs"]
+#[path = "git_info_response.rs"]
+mod git_info_response;
+#[path = "health.rs"]
 mod health;
-#[path = "adapters/health_check.rs"]
+#[path = "health_check.rs"]
 mod health_check;
-#[path = "adapters/health_live.rs"]
+#[path = "health_live.rs"]
 mod health_live;
-#[path = "adapters/health_ready.rs"]
+#[path = "health_ready.rs"]
 mod health_ready;
-#[path = "adapters/health_report_response.rs"]
+#[path = "health_report_response.rs"]
 mod health_report_response;
-#[path = "adapters/open_api.rs"]
+#[path = "open_api.rs"]
 mod open_api;
-#[path = "adapters/readiness_report.rs"]
+#[path = "readiness_report.rs"]
 mod readiness_report;
 
 pub use common_routes::common_routes;

@@ -4,7 +4,7 @@
     reason = "the stable SSR facade delegates to screen, document, and table modules; test view rendering requires the named extension trait"
 )]
 
-#[path = "ssr/admin_ssr_html_try_from_string_error.rs"]
+#[path = "admin_ssr_html_try_from_string_error.rs"]
 mod admin_ssr_html_try_from_string_error;
 #[path = "crud_render_role_create.rs"]
 mod crud_render_role_create;
@@ -39,47 +39,47 @@ mod table_pagination;
 #[path = "text_page.rs"]
 mod text_page;
 pub use admin_ssr_html_try_from_string_error::*;
-#[path = "ssr/admin_ssr_text_try_from_string_error.rs"]
+#[path = "admin_ssr_text_try_from_string_error.rs"]
 mod admin_ssr_text_try_from_string_error;
 pub use admin_ssr_text_try_from_string_error::*;
-#[path = "ssr/admin_ssr_error_message.rs"]
+#[path = "admin_ssr_error_message.rs"]
 mod admin_ssr_error_message;
 pub use admin_ssr_error_message::*;
-#[path = "ssr/admin_ssr_text.rs"]
+#[path = "admin_ssr_text.rs"]
 mod admin_ssr_text;
 pub use admin_ssr_text::*;
-#[path = "ssr/admin_ssr_html.rs"]
+#[path = "admin_ssr_html.rs"]
 mod admin_ssr_html;
 pub use admin_ssr_html::*;
-#[path = "ssr/render_user_create.rs"]
+#[path = "render_user_create.rs"]
 mod render_user_create;
 pub use render_user_create::*;
-#[path = "ssr/render_user_manage.rs"]
+#[path = "render_user_manage.rs"]
 mod render_user_manage;
 pub use render_user_manage::*;
-#[path = "ssr/render_role_create.rs"]
+#[path = "render_role_create.rs"]
 mod render_role_create;
 pub use render_role_create::*;
-#[path = "ssr/render_role_manage.rs"]
+#[path = "render_role_manage.rs"]
 mod render_role_manage;
 pub use render_role_manage::*;
-#[path = "ssr/render_admin_permissions_page.rs"]
+#[path = "render_admin_permissions_page.rs"]
 mod render_admin_permissions_page;
 pub use render_admin_permissions_page::*;
-#[path = "ssr/render_admin_sessions_page.rs"]
+#[path = "render_admin_sessions_page.rs"]
 mod render_admin_sessions_page;
 pub use render_admin_sessions_page::*;
-#[path = "ssr/render_admin_profile_page.rs"]
+#[path = "render_admin_profile_page.rs"]
 mod render_admin_profile_page;
 pub use render_admin_profile_page::*;
-#[path = "ssr/render_admin_settings_page.rs"]
+#[path = "render_admin_settings_page.rs"]
 mod render_admin_settings_page;
 pub use render_admin_settings_page::*;
-#[path = "ssr/render_view.rs"]
+#[path = "render_view.rs"]
 mod render_view;
 use render_view::render_view;
 #[cfg(test)]
-#[path = "ssr/admin_ssr_view_ext.rs"]
+#[path = "admin_ssr_view_ext.rs"]
 mod admin_ssr_view_ext;
 #[cfg(test)]
 use admin_ssr_view_ext::*;

@@ -1,76 +1,76 @@
-#[path = "emission_types/derive_or_impl.rs"]
+#[path = "derive_or_impl.rs"]
 mod derive_or_impl;
 pub use derive_or_impl::*;
-#[path = "emission_types/proc_macro2_generated_rust_token_stream_vec.rs"]
+#[path = "proc_macro2_generated_rust_token_stream_vec.rs"]
 mod proc_macro2_generated_rust_token_stream_vec;
 pub use proc_macro2_generated_rust_token_stream_vec::*;
-#[path = "emission_types/non_null_or_nullable_str.rs"]
+#[path = "non_null_or_nullable_str.rs"]
 mod non_null_or_nullable_str;
 pub use non_null_or_nullable_str::*;
-#[path = "emission_types/is_nullable_prefix_str.rs"]
+#[path = "is_nullable_prefix_str.rs"]
 mod is_nullable_prefix_str;
 pub use is_nullable_prefix_str::*;
-#[path = "emission_types/import_snake_case_str.rs"]
+#[path = "import_snake_case_str.rs"]
 mod import_snake_case_str;
 pub use import_snake_case_str::*;
-#[path = "emission_types/import_path_str.rs"]
+#[path = "import_path_str.rs"]
 mod import_path_str;
 pub use import_path_str::*;
-#[path = "emission_types/dimension_number.rs"]
+#[path = "dimension_number.rs"]
 mod dimension_number;
 pub use dimension_number::*;
-#[path = "emission_types/struct_els_len.rs"]
+#[path = "struct_els_len.rs"]
 mod struct_els_len;
 pub use struct_els_len::*;
-#[path = "emission_types/de_len.rs"]
+#[path = "de_len.rs"]
 mod de_len;
 pub use de_len::*;
-#[path = "emission_types/wrap_into_braces.rs"]
+#[path = "wrap_into_braces.rs"]
 mod wrap_into_braces;
 pub use wrap_into_braces::*;
-#[path = "emission_types/parse_token_stream_strings.rs"]
+#[path = "parse_token_stream_strings.rs"]
 mod parse_token_stream_strings;
 pub use parse_token_stream_strings::*;
-#[path = "emission_types/parse_error_id_ref.rs"]
+#[path = "parse_error_id_ref.rs"]
 mod parse_error_id_ref;
 pub use parse_error_id_ref::*;
-#[path = "emission_types/panic_uuid_ref.rs"]
+#[path = "panic_uuid_ref.rs"]
 mod panic_uuid_ref;
 pub use panic_uuid_ref::*;
-#[path = "emission_types/syn_identifier_type_refs.rs"]
+#[path = "syn_identifier_type_refs.rs"]
 mod syn_identifier_type_refs;
 pub use syn_identifier_type_refs::*;
-#[path = "emission_types/syn_field_refs.rs"]
+#[path = "syn_field_refs.rs"]
 mod syn_field_refs;
 pub use syn_field_refs::*;
-#[path = "emission_types/is_standard_non_null.rs"]
+#[path = "is_standard_non_null.rs"]
 mod is_standard_non_null;
 pub use is_standard_non_null::*;
-#[path = "emission_types/is_nullable.rs"]
+#[path = "is_nullable.rs"]
 mod is_nullable;
 pub use is_nullable::*;
-#[path = "emission_types/import.rs"]
+#[path = "import.rs"]
 mod import;
 pub use import::*;
-#[path = "emission_types/read_or_update.rs"]
+#[path = "read_or_update.rs"]
 mod read_or_update;
 pub use read_or_update::*;
-#[path = "emission_types/default_some_one_or_default_some_one_with_max_page_size.rs"]
+#[path = "default_some_one_or_default_some_one_with_max_page_size.rs"]
 mod default_some_one_or_default_some_one_with_max_page_size;
 pub use default_some_one_or_default_some_one_with_max_page_size::*;
-#[path = "emission_types/eq_or_eq_using_fields.rs"]
+#[path = "eq_or_eq_using_fields.rs"]
 mod eq_or_eq_using_fields;
 pub use eq_or_eq_using_fields::*;
-#[path = "emission_types/eq_operator_variant.rs"]
+#[path = "eq_operator_variant.rs"]
 mod eq_operator_variant;
 pub use eq_operator_variant::*;
-#[path = "emission_types/dimension.rs"]
+#[path = "dimension.rs"]
 mod dimension;
 pub use dimension::*;
-#[path = "emission_types/dimension_index_number.rs"]
+#[path = "dimension_index_number.rs"]
 mod dimension_index_number;
 pub use dimension_index_number::*;
-#[path = "emission_types/is_nl_prefix_str_max_len.rs"]
+#[path = "is_nl_prefix_str_max_len.rs"]
 mod is_nl_prefix_str_max_len;
 use is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN;
 

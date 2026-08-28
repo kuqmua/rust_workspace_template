@@ -1,22 +1,22 @@
-#[path = "domain_types/display_plus_to_tokens.rs"]
+#[path = "display_plus_to_tokens.rs"]
 mod display_plus_to_tokens;
-#[path = "domain_types/hash_map.rs"]
+#[path = "hash_map.rs"]
 mod hash_map;
-#[path = "domain_types/hash_map_snake_case.rs"]
+#[path = "hash_map_snake_case.rs"]
 mod hash_map_snake_case;
-#[path = "domain_types/hash_map_upper_camel_case.rs"]
+#[path = "hash_map_upper_camel_case.rs"]
 mod hash_map_upper_camel_case;
 #[path = "parameter.rs"]
 pub mod parameter;
-#[path = "domain_types/swagger_url_path_prefix.rs"]
+#[path = "swagger_url_path_prefix.rs"]
 mod swagger_url_path_prefix;
-#[path = "domain_types/swagger_url_path_self_quotes_str.rs"]
+#[path = "swagger_url_path_self_quotes_str.rs"]
 mod swagger_url_path_self_quotes_str;
-#[path = "domain_types/swagger_url_path_self_quotes_str_value.rs"]
+#[path = "swagger_url_path_self_quotes_str_value.rs"]
 mod swagger_url_path_self_quotes_str_value;
-#[path = "domain_types/swagger_url_path_self_quotes_token_stream.rs"]
+#[path = "swagger_url_path_self_quotes_token_stream.rs"]
 mod swagger_url_path_self_quotes_token_stream;
-#[path = "domain_types/swagger_url_path_self_quotes_token_stream_value.rs"]
+#[path = "swagger_url_path_self_quotes_token_stream_value.rs"]
 mod swagger_url_path_self_quotes_token_stream_value;
 
 pub use display_plus_to_tokens::DisplayPlusToTokens;

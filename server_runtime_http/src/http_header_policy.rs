@@ -1,16 +1,16 @@
-#[path = "http_header_policy/build_attachment_content_disposition.rs"]
+#[path = "build_attachment_content_disposition.rs"]
 mod build_attachment_content_disposition;
-#[path = "http_header_policy/content_disposition_percent_encode_set.rs"]
+#[path = "content_disposition_percent_encode_set.rs"]
 mod content_disposition_percent_encode_set;
-#[path = "http_header_policy/http_attachment_file_name_ref.rs"]
+#[path = "http_attachment_file_name_ref.rs"]
 mod http_attachment_file_name_ref;
-#[path = "http_header_policy/http_content_disposition.rs"]
+#[path = "http_content_disposition.rs"]
 mod http_content_disposition;
-#[path = "http_header_policy/http_content_disposition_error.rs"]
+#[path = "http_content_disposition_error.rs"]
 mod http_content_disposition_error;
-#[path = "http_header_policy/http_content_length.rs"]
+#[path = "http_content_length.rs"]
 mod http_content_length;
-#[path = "http_header_policy/http_content_length_error.rs"]
+#[path = "http_content_length_error.rs"]
 mod http_content_length_error;
 
 pub use build_attachment_content_disposition::build_attachment_content_disposition;

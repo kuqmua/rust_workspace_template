@@ -110,7 +110,7 @@ pub use csp::{
 pub use fallback::{
     FallbackResponseMode, HttpAcceptHeaderMaximumBytes, HttpFallbackApiPrefixRef,
     HttpFallbackMetricsPathRef, HttpFallbackRequestPathRef, HttpOptionalAcceptHeaderRef,
-    fallback_response_mode,
+    resolve_fallback_response_mode,
 };
 pub use geojson::{GeoJsonDocumentText, GeoJsonValidationError, SerdeJsonGeoJsonError};
 pub use header_text::{
@@ -137,7 +137,8 @@ pub use http_policy::{
     HttpBearerTokenRef, HttpContentTypeTextRef, HttpCookieHeadersRef, HttpCookieNameRef,
     HttpCookieValueRef, OptionalJsonBodyPresence, OptionalJsonContentType,
     OptionalJsonContentTypeDecision, classify_optional_json_content_type,
-    optional_json_content_type_decision, resolve_bearer_authorization, resolve_unique_cookie,
+    resolve_bearer_authorization, resolve_optional_json_content_type_decision,
+    resolve_unique_cookie,
 };
 pub use http_request_span_config::HttpRequestSpanConfig;
 pub use http_status_error::{HttpErrorClass, HttpErrorStatus, classify_http_error_status};
@@ -170,7 +171,7 @@ pub use notification::{
 };
 pub use origin::{
     AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
-    RequestOriginAllowed, request_origin_allowed,
+    RequestOriginAllowed, resolve_request_origin_allowed,
 };
 pub use outbound_url::{
     OutboundAllowedHost, OutboundHostAllowlist, OutboundHostAllowlistError, OutboundHostPolicy,

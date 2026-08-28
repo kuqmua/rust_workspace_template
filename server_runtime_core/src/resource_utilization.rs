@@ -1,35 +1,66 @@
 #![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::module_inception,
-    reason = "same-named type and function owners require nested modules under the facade"
+    reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[path = "resource_utilization/calculate_resource_utilization.rs"]
+#[path = "calculate_resource_utilization.rs"]
 mod calculate_resource_utilization;
-#[path = "resource_utilization/critical_percent.rs"]
+#[path = "critical_percent.rs"]
 mod critical_percent;
-#[path = "resource_utilization/reject_non_essential_writes_percent.rs"]
+#[path = "reject_non_essential_writes_percent.rs"]
 mod reject_non_essential_writes_percent;
-#[path = "resource_utilization/resource_amount.rs"]
+#[path = "resource_amount.rs"]
 mod resource_amount;
-#[path = "resource_utilization/resource_utilization.rs"]
-mod resource_utilization;
-#[path = "resource_utilization/resource_utilization_error.rs"]
+#[allow(
+    clippy::field_scoped_visibility_modifiers,
+    reason = "the owner-module split exposes representation only to its parent facade"
+)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ResourceUtilization {
+    pub(super) maximum: ResourceAmount,
+    pub(super) used: ResourceAmount,
+    pub(super) percent: ResourceUtilizationPercent,
+    pub(super) status: ResourceUtilizationStatus,
+}
+
+impl ResourceUtilization {
+    #[must_use]
+    pub const fn maximum(self) -> ResourceAmount {
+        self.maximum
+    }
+
+    #[must_use]
+    pub const fn percent(self) -> ResourceUtilizationPercent {
+        self.percent
+    }
+
+    #[must_use]
+    pub const fn status(self) -> ResourceUtilizationStatus {
+        self.status
+    }
+
+    #[must_use]
+    pub const fn used(self) -> ResourceAmount {
+        self.used
+    }
+}
+#[path = "resource_utilization_error.rs"]
 mod resource_utilization_error;
-#[path = "resource_utilization/resource_utilization_known_percent.rs"]
+#[path = "resource_utilization_known_percent.rs"]
 mod resource_utilization_known_percent;
-#[path = "resource_utilization/resource_utilization_percent.rs"]
+#[path = "resource_utilization_percent.rs"]
 mod resource_utilization_percent;
-#[path = "resource_utilization/resource_utilization_percent_try_from_u8_error.rs"]
+#[path = "resource_utilization_percent_try_from_u8_error.rs"]
 mod resource_utilization_percent_try_from_u8_error;
-#[path = "resource_utilization/resource_utilization_status.rs"]
+#[path = "resource_utilization_status.rs"]
 mod resource_utilization_status;
-#[path = "resource_utilization/warning_percent.rs"]
+#[path = "warning_percent.rs"]
 mod warning_percent;
 
 pub use calculate_resource_utilization::calculate_resource_utilization;
 use critical_percent::CRITICAL_PERCENT;
 use reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT;
 pub use resource_amount::ResourceAmount;
-pub use resource_utilization::ResourceUtilization;
 pub use resource_utilization_error::ResourceUtilizationError;
 use resource_utilization_known_percent::ResourceUtilizationKnownPercent;
 pub use resource_utilization_percent::ResourceUtilizationPercent;

@@ -2,95 +2,95 @@
 //! Generated Rust table descriptors are compile-time expectations and must be
 //! checked against a database with all migrations applied before deployment.
 
-#[path = "db_schema_conformance/db_catalog_snapshot.rs"]
+#[path = "db_catalog_snapshot.rs"]
 mod db_catalog_snapshot;
-#[path = "db_schema_conformance/db_column_contract_snapshot.rs"]
+#[path = "db_column_contract_snapshot.rs"]
 mod db_column_contract_snapshot;
-#[path = "db_schema_conformance/db_column_contract_snapshots.rs"]
+#[path = "db_column_contract_snapshots.rs"]
 mod db_column_contract_snapshots;
-#[path = "db_schema_conformance/db_column_has_server_default.rs"]
+#[path = "db_column_has_server_default.rs"]
 mod db_column_has_server_default;
-#[path = "db_schema_conformance/db_column_nullable.rs"]
+#[path = "db_column_nullable.rs"]
 mod db_column_nullable;
-#[path = "db_schema_conformance/db_column_snapshot.rs"]
+#[path = "db_column_snapshot.rs"]
 mod db_column_snapshot;
-#[path = "db_schema_conformance/db_column_snapshots.rs"]
+#[path = "db_column_snapshots.rs"]
 mod db_column_snapshots;
-#[path = "db_schema_conformance/db_column_spec.rs"]
+#[path = "db_column_spec.rs"]
 mod db_column_spec;
-#[path = "db_schema_conformance/db_column_specs.rs"]
+#[path = "db_column_specs.rs"]
 mod db_column_specs;
-#[path = "db_schema_conformance/db_default_spec.rs"]
+#[path = "db_default_spec.rs"]
 mod db_default_spec;
-#[path = "db_schema_conformance/db_default_specs.rs"]
+#[path = "db_default_specs.rs"]
 mod db_default_specs;
-#[path = "db_schema_conformance/db_extended_table_schema.rs"]
+#[path = "db_extended_table_schema.rs"]
 mod db_extended_table_schema;
-#[path = "db_schema_conformance/db_key_contract_snapshot.rs"]
+#[path = "db_key_contract_snapshot.rs"]
 mod db_key_contract_snapshot;
-#[path = "db_schema_conformance/db_key_contract_snapshots.rs"]
+#[path = "db_key_contract_snapshots.rs"]
 mod db_key_contract_snapshots;
-#[path = "db_schema_conformance/db_key_spec.rs"]
+#[path = "db_key_spec.rs"]
 mod db_key_spec;
-#[path = "db_schema_conformance/db_key_specs.rs"]
+#[path = "db_key_specs.rs"]
 mod db_key_specs;
-#[path = "db_schema_conformance/db_object_kind.rs"]
+#[path = "db_object_kind.rs"]
 mod db_object_kind;
-#[path = "db_schema_conformance/db_object_snapshot.rs"]
+#[path = "db_object_snapshot.rs"]
 mod db_object_snapshot;
-#[path = "db_schema_conformance/db_object_snapshots.rs"]
+#[path = "db_object_snapshots.rs"]
 mod db_object_snapshots;
-#[path = "db_schema_conformance/db_object_spec.rs"]
+#[path = "db_object_spec.rs"]
 mod db_object_spec;
-#[path = "db_schema_conformance/db_object_specs.rs"]
+#[path = "db_object_specs.rs"]
 mod db_object_specs;
-#[path = "db_schema_conformance/db_schema_conformance_error.rs"]
+#[path = "db_schema_conformance_error.rs"]
 mod db_schema_conformance_error;
-#[path = "db_schema_conformance/db_schema_name_ref.rs"]
+#[path = "db_schema_name_ref.rs"]
 mod db_schema_name_ref;
-#[path = "db_schema_conformance/db_schema_text.rs"]
+#[path = "db_schema_text.rs"]
 mod db_schema_text;
-#[path = "db_schema_conformance/db_schema_text_error.rs"]
+#[path = "db_schema_text_error.rs"]
 mod db_schema_text_error;
-#[path = "db_schema_conformance/db_schema_texts.rs"]
+#[path = "db_schema_texts.rs"]
 mod db_schema_texts;
-#[path = "db_schema_conformance/db_static_schema_text.rs"]
+#[path = "db_static_schema_text.rs"]
 mod db_static_schema_text;
-#[path = "db_schema_conformance/db_static_schema_texts.rs"]
+#[path = "db_static_schema_texts.rs"]
 mod db_static_schema_texts;
-#[path = "db_schema_conformance/db_table_name_ref.rs"]
+#[path = "db_table_name_ref.rs"]
 mod db_table_name_ref;
-#[path = "db_schema_conformance/db_table_schema.rs"]
+#[path = "db_table_schema.rs"]
 mod db_table_schema;
-#[path = "db_schema_conformance/db_table_snapshot.rs"]
+#[path = "db_table_snapshot.rs"]
 mod db_table_snapshot;
-#[path = "db_schema_conformance/inspect_postgres_catalog.rs"]
+#[path = "inspect_postgres_catalog.rs"]
 mod inspect_postgres_catalog;
-#[path = "db_schema_conformance/inspect_postgres_table.rs"]
+#[path = "inspect_postgres_table.rs"]
 mod inspect_postgres_table;
-#[path = "db_schema_conformance/pg_column_schema.rs"]
+#[path = "pg_column_schema.rs"]
 mod pg_column_schema;
-#[path = "db_schema_conformance/schema_text.rs"]
+#[path = "schema_text.rs"]
 mod schema_text;
-#[path = "db_schema_conformance/schema_texts.rs"]
+#[path = "schema_texts.rs"]
 mod schema_texts;
-#[path = "db_schema_conformance/sqlx_db_schema_inspection_error.rs"]
+#[path = "sqlx_db_schema_inspection_error.rs"]
 mod sqlx_db_schema_inspection_error;
-#[path = "db_schema_conformance/sqlx_pg_pool_ref.rs"]
+#[path = "sqlx_pg_pool_ref.rs"]
 mod sqlx_pg_pool_ref;
-#[path = "db_schema_conformance/static_schema_text.rs"]
+#[path = "static_schema_text.rs"]
 mod static_schema_text;
-#[path = "db_schema_conformance/static_schema_texts.rs"]
+#[path = "static_schema_texts.rs"]
 mod static_schema_texts;
-#[path = "db_schema_conformance/validate_generated_postgres_table.rs"]
+#[path = "validate_generated_postgres_table.rs"]
 mod validate_generated_postgres_table;
-#[path = "db_schema_conformance/validate_postgres_catalog.rs"]
+#[path = "validate_postgres_catalog.rs"]
 mod validate_postgres_catalog;
-#[path = "db_schema_conformance/validate_postgres_table_extensions.rs"]
+#[path = "validate_postgres_table_extensions.rs"]
 mod validate_postgres_table_extensions;
-#[path = "db_schema_conformance/validate_postgres_table_schema.rs"]
+#[path = "validate_postgres_table_schema.rs"]
 mod validate_postgres_table_schema;
-#[path = "db_schema_conformance/validate_snapshot.rs"]
+#[path = "validate_snapshot.rs"]
 mod validate_snapshot;
 
 pub use db_catalog_snapshot::DbCatalogSnapshot;

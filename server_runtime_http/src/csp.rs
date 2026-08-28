@@ -1,12 +1,12 @@
-#[path = "csp/http_csp_builder.rs"]
+#[path = "http_csp_builder.rs"]
 mod http_csp_builder;
-#[path = "csp/http_csp_directive_name.rs"]
+#[path = "http_csp_directive_name.rs"]
 mod http_csp_directive_name;
-#[path = "csp/http_csp_directive_value.rs"]
+#[path = "http_csp_directive_value.rs"]
 mod http_csp_directive_value;
-#[path = "csp/http_csp_maximum_bytes_error.rs"]
+#[path = "http_csp_maximum_bytes_error.rs"]
 mod http_csp_maximum_bytes_error;
-#[path = "csp/http_csp_token_error.rs"]
+#[path = "http_csp_token_error.rs"]
 mod http_csp_token_error;
 
 pub use http_csp_builder::HttpCspBuilder;

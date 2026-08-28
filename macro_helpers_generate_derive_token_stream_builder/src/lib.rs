@@ -1,3 +1,4 @@
+#[path = "domain_types.rs"]
 mod domain_types;
 
 // The owner module retains lint-sensitive semantics from the original implementation.

@@ -1,10 +1,10 @@
-#[path = "table_sort/admin_table_sort_field.rs"]
+#[path = "admin_table_sort_field.rs"]
 mod admin_table_sort_field;
-#[path = "table_sort/admin_table_sort_field_try_from_key_error.rs"]
+#[path = "admin_table_sort_field_try_from_key_error.rs"]
 mod admin_table_sort_field_try_from_key_error;
-#[path = "table_sort/admin_table_sort_key_ref.rs"]
+#[path = "admin_table_sort_key_ref.rs"]
 mod admin_table_sort_key_ref;
-#[path = "table_sort/admin_table_sort_values.rs"]
+#[path = "admin_table_sort_values.rs"]
 mod admin_table_sort_values;
 
 pub use admin_table_sort_field::AdminTableSortField;

@@ -1,8 +1,8 @@
-#[path = "execution_plan/execute_plan.rs"]
+#[path = "execute_plan.rs"]
 mod execute_plan;
-#[path = "execution_plan/execution_mode.rs"]
+#[path = "execution_mode.rs"]
 mod execution_mode;
-#[path = "execution_plan/execution_report.rs"]
+#[path = "execution_report.rs"]
 mod execution_report;
 
 pub use execute_plan::execute_plan;

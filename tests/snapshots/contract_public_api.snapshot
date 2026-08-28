@@ -33,7 +33,7 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures pub async fn send_contract( &self, contract: crate::domain_types::RouteContract, route_path: crate::domain_types::ContractStr, ) -> Result<crate::domain_types::TransportBody, crate::domain_types::ClientError>
 #[allow(clippy::future_not_send)] // Transport intentionally permits single-threaded WASM futures pub async fn send_parameterized<Route>( &self, parameter: &Route::Parameter, body: Route::Request, ) -> Result<Route::Response, crate::domain_types::ClientError> where Route: crate::domain_types::ParameterizedRoute,
 #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy pub fn register_openapi_schema<Schema>(components: &mut UtoipaOpenApiComponentsRefMut<'_>) where Schema: utoipa::ToSchema,
-#[cfg(not(target_arch = "wasm32"))] #[must_use] pub fn axum_method_filter(method: crate::domain_types::HttpMethod) -> AxumMethodFilter
+#[cfg(not(target_arch = "wasm32"))] #[must_use] pub fn to_axum_method_filter(method: crate::domain_types::HttpMethod) -> AxumMethodFilter
 #[cfg(not(target_arch = "wasm32"))] pub fn route_method_router<State, Endpoint, Marker>( method: super::super::RouteMethod, endpoint: Endpoint, ) -> super::AxumRouteMethodRouter<State> where State: Clone + Send + Sync + 'static, Endpoint: axum::handler::Handler<Marker, State> + Clone + Send + Sync + 'static, Marker: 'static,
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, )] pub struct ApiUrlQueryComponentRef<'value_lt>(pub(super) &'value_lt str);
 #[derive( optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, )] pub struct AuthSessionInstant(pub(super) std::time::Instant);
@@ -99,7 +99,7 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteResponseKind { Buffered, Streaming, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub enum RouteTestCategory { DatabaseFixture, FixtureHook, JsonRoundTrip, Metadata, StreamingResponse, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub struct ApiUrlPathSegmentRef<'value_lt>(pub(super) &'value_lt str);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthSessionKeepAlive { interval: super::AuthSessionRefreshIntervalDuration, next: Option<super::AuthSessionInstant>, state: super::AuthSessionRefreshState, }
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthSessionKeepAlive { interval: AuthSessionRefreshIntervalDuration, next: Option<AuthSessionInstant>, state: AuthSessionRefreshState, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthSessionRefreshIntervalDuration(pub(super) std::time::Duration);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub struct AuthenticatedTransport;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)] pub struct ParameterizedRoutePathTryFromStringError;
@@ -128,7 +128,7 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)] pub enum ValueFormat { Bool, Bytes, Date, DateTime, Float32, Float64, Inet, Int16, Int32, Int64, Interval, Mac, Range, Text, Time, Timestamp, TimestampTz, Uuid, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)] pub struct ActionContract { route: super::RouteContract, confirmation: super::ConfirmationRequirement, operation: super::OperationKind, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)] pub struct FieldContract { filters: FilterContracts, label: ContractStr, name: ContractStr, placeholder: FieldPlaceholder, type_contract: TypeContract, order: FieldOrder, creatable: FieldCapability, filterable: FieldCapability, primary_key: PrimaryKeyKind, readable: FieldCapability, sortable: FieldCapability, updatable: FieldCapability, visibility: FieldVisibility, }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)] pub struct RouteContract { path: super::super::ContractStr, authentication: super::AuthenticationRequirement, method: super::HttpMethod, mutation: super::MutationKind, success_status: super::SuccessStatus, }
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)] pub struct RouteContract { path: super::ContractStr, authentication: AuthenticationRequirement, method: HttpMethod, mutation: MutationKind, success_status: SuccessStatus, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)] pub struct TypeContract { maximum: NumericBound, minimum: NumericBound, example: ValueExample, format: ValueFormat, input_kind: InputKind, nullability: Nullability, step: InputStep, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)] pub struct RouteSchemaContract { metadata: RouteMetadata, request_schema: Option<UtoipaOpenApiRouteSchema>, response_schema: Option<UtoipaOpenApiRouteSchema>, }
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)] pub struct TypedClient<Transport> { path_prefix: crate::domain_types::TransportPath, transport: Transport, }
@@ -143,8 +143,8 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)] pub struct UtoipaOpenApiRefMut<'value_lt>(pub(super) &'value_lt mut utoipa::openapi::OpenApi);
 #[must_use] pub const fn access(self) -> crate::domain_types::RouteAccess
 #[must_use] pub const fn actions(&self) -> &super::super::ActionContracts
+#[must_use] pub const fn authentication(self) -> AuthenticationRequirement
 #[must_use] pub const fn authentication(self) -> crate::domain_types::AuthenticationRequirement
-#[must_use] pub const fn authentication(self) -> super::AuthenticationRequirement
 #[must_use] pub const fn body(&self) -> &Route::Request
 #[must_use] pub const fn body(&self) -> &Route::Response
 #[must_use] pub const fn body(&self) -> &super::TransportBody
@@ -170,13 +170,13 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[must_use] pub const fn maximum(self) -> NumericBound
 #[must_use] pub const fn metadata(&self) -> RouteMetadata
 #[must_use] pub const fn metadata(self) -> crate::domain_types::RouteMetadata
-#[must_use] pub const fn method(self) -> super::HttpMethod
+#[must_use] pub const fn method(self) -> HttpMethod
 #[must_use] pub const fn minimum(self) -> NumericBound
+#[must_use] pub const fn mutation(self) -> MutationKind
 #[must_use] pub const fn mutation(self) -> crate::domain_types::RouteMutation
-#[must_use] pub const fn mutation(self) -> super::MutationKind
 #[must_use] pub const fn name(self) -> ContractStr
 #[must_use] pub const fn new( actions: super::super::ActionContracts, fields: super::super::FieldContracts, path: super::super::ContractStr, routes: super::super::RouteContracts, title: super::super::ContractStr, ) -> Self
-#[must_use] pub const fn new( authentication: super::AuthenticationRequirement, method: super::HttpMethod, mutation: super::MutationKind, path: super::super::ContractStr, success_status: super::SuccessStatus, ) -> Self
+#[must_use] pub const fn new( authentication: AuthenticationRequirement, method: HttpMethod, mutation: MutationKind, path: super::ContractStr, success_status: SuccessStatus, ) -> Self
 #[must_use] pub const fn new( body: super::TransportBody, path: super::TransportPath, route: super::super::RouteContract, ) -> Self
 #[must_use] pub const fn new( database: RouteDatabaseUsage, json_body: RouteJsonBodyUsage, response: RouteResponseKind, ) -> Self
 #[must_use] pub const fn new( metadata: crate::domain_types::RouteMetadata, access: RouteAccess, mutation: RouteMutation, evidence: RouteCoverageEvidence, ) -> Self
@@ -186,7 +186,7 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[must_use] pub const fn new(body: super::TransportBody, status: super::TransportStatus) -> Self
 #[must_use] pub const fn new(error: FormValueError, field: ContractStr) -> Self
 #[must_use] pub const fn new(input_kind: InputKind, format: ValueFormat, nullability: Nullability) -> Self
-#[must_use] pub const fn new(interval: super::AuthSessionRefreshIntervalDuration) -> Self
+#[must_use] pub const fn new(interval: AuthSessionRefreshIntervalDuration) -> Self
 #[must_use] pub const fn new(obligations: &'static [RouteCoverageObligation]) -> Self
 #[must_use] pub const fn new(operation: super::OperationKind, route: super::RouteContract) -> Self
 #[must_use] pub const fn new_with_policy( authentication: crate::domain_types::AuthenticationRequirement, error_statuses: &'static [crate::domain_types::RouteErrorStatus], method: RouteMethod, mutation: crate::domain_types::RouteMutation, openapi_operation_id: crate::domain_types::ContractStr, path: crate::domain_types::ContractStr, success_status: crate::domain_types::SuccessStatus, ) -> Self
@@ -197,7 +197,7 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[must_use] pub const fn path(&self) -> &super::TransportPath
 #[must_use] pub const fn path(&self) -> super::super::ContractStr
 #[must_use] pub const fn path(self) -> crate::domain_types::ContractStr
-#[must_use] pub const fn path(self) -> super::super::ContractStr
+#[must_use] pub const fn path(self) -> super::ContractStr
 #[must_use] pub const fn placeholder(self) -> FieldPlaceholder
 #[must_use] pub const fn primary_key(self) -> PrimaryKeyKind
 #[must_use] pub const fn readable(self) -> FieldCapability
@@ -214,8 +214,8 @@ pub trait CommonRoutesParameters: git_info::domain_types::GitCommitLinkProvider 
 #[must_use] pub const fn status(&self) -> super::TransportStatus
 #[must_use] pub const fn statuses( self, authentication: super::AuthenticationRequirement, mutation: super::super::RouteMutation, ) -> &'static [super::RouteErrorStatus]
 #[must_use] pub const fn step(self) -> InputStep
+#[must_use] pub const fn success_status(self) -> SuccessStatus
 #[must_use] pub const fn success_status(self) -> crate::domain_types::SuccessStatus
-#[must_use] pub const fn success_status(self) -> super::SuccessStatus
 #[must_use] pub const fn supports_filtering(self) -> CapabilitySupport
 #[must_use] pub const fn supports_sorting(self) -> CapabilitySupport
 #[must_use] pub const fn title(&self) -> super::super::ContractStr
@@ -290,8 +290,8 @@ pub fn apply_openapi_path_parameter_contract<Route>( operation: &mut utoipa::ope
 pub fn apply_openapi_request_contract<Route>(operation: &mut utoipa::openapi::path::Operation) where Route: TypedRoute,
 pub fn apply_openapi_security_contract<Route>( operation: &mut utoipa::openapi::path::Operation, authenticated_scheme: OpenApiSecuritySchemeRef<'_>, csrf_scheme: OpenApiSecuritySchemeRef<'_>, ) where Route: TypedRoute,
 pub fn apply_openapi_success_contract<Route>(operation: &mut utoipa::openapi::path::Operation) where Route: TypedRoute,
-pub fn begin( &mut self, now: super::AuthSessionInstant, presence: super::AuthSessionPresence, ) -> super::AuthSessionKeepAliveDecision
-pub fn finish( &mut self, now: super::AuthSessionInstant, outcome: super::AuthSessionRefreshOutcome, ) -> super::AuthSessionRefreshOutcome
+pub fn begin( &mut self, now: AuthSessionInstant, presence: AuthSessionPresence, ) -> AuthSessionKeepAliveDecision
+pub fn finish( &mut self, now: AuthSessionInstant, outcome: AuthSessionRefreshOutcome, ) -> AuthSessionRefreshOutcome
 pub fn push_path_segment(&mut self, segment: super::ApiUrlPathSegmentRef<'_>)
 pub fn push_query_pair( &mut self, name: super::ApiUrlQueryComponentRef<'_>, value: super::ApiUrlQueryComponentRef<'_>, )
 pub fn register_openapi_route_schemas<Route>(document: &mut UtoipaOpenApiRefMut<'_>) where Route: TypedRoute,
@@ -305,7 +305,7 @@ pub trait HasTypeContract { fn type_contract() -> TypeContract; }
 pub trait ParameterizedRoute: TypedRoute { type Parameter; fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath; }
 pub trait RouteFamily { const ROUTE_COUNT: usize = constants_usize::ZERO; #[must_use] fn body_limit() -> Option<RouteBodyLimit> { None } fn coverage_descriptors() -> RouteCoverageDescriptors; #[must_use] fn schema_contracts() -> RouteSchemaContracts { RouteSchemaContracts::default() } fn route_metadata() -> RouteMetadataList { RouteMetadataList::from( bounded_types::domain_types::vector::BoundedVec::from_max_iter( bounded_types::domain_types::vector::BoundedVec::from(Self::coverage_descriptors()) .into_iter() .map(crate::domain_types::RouteCoverageDescriptor::metadata), ), ) } }
 pub trait RouteInFamily<Family> where Family: RouteFamily, { }
-pub trait RouteRegistrationContract: Copy { fn method(self) -> super::super::RouteMethod; fn path(self) -> super::RegisteredRoutePath; }
+pub trait RouteRegistrationContract: Copy { fn method(self) -> super::RouteMethod; fn path(self) -> RegisteredRoutePath; }
 pub trait RouteTransport {}
 pub trait Transport { fn send( &self, request: super::TransportRequest, ) -> impl Future<Output = Result<super::TransportResponse, super::TransportError>> + '_; }
 pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::DeserializeOwned; type Response: serde::Serialize + serde::de::DeserializeOwned; type Transport: RouteTransport; fn metadata() -> RouteMetadata; #[must_use] fn openapi_request_schema() -> Option<UtoipaOpenApiRouteSchema> { None } #[must_use] fn openapi_request_body_schema() -> Option<UtoipaOpenApiRouteSchema> { None } #[must_use] fn openapi_response_schema() -> Option<UtoipaOpenApiRouteSchema> { None } #[must_use] fn openapi_error_response_schema( _status: crate::domain_types::RouteErrorStatus, ) -> Option<UtoipaOpenApiRouteSchema> { Some(UtoipaOpenApiRouteSchema::from( <crate::domain_types::ApiProblem as utoipa::PartialSchema>::schema(), )) } #[must_use] fn openapi_path_parameter() -> Option<UtoipaOpenApiPathParameter> { None } #[must_use] fn request_body() -> RouteRequestBody { RouteRequestBody::Absent } fn register_openapi_schemas(_components: &mut UtoipaOpenApiComponentsRefMut<'_>) {} }
@@ -606,10 +606,10 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn value(self) -> super::super::PositiveNonZeroI64
 #[must_use] pub const fn value_shape(&self) -> frontend_contract::domain_types::FilterValueShape
 #[must_use] pub const fn values(&self) -> &[#[contract_struct_api(slice = crate::domain_types::AdminText)]]
-#[must_use] pub fn admin_api_body_max_bytes() -> super::super::AdminApiBodyMaxBytes
 #[must_use] pub fn admin_parameterized_route_path<Route>(parameter: &Route::Parameter) -> AdminRoutePath where Route: frontend_contract::domain_types::ParameterizedRoute,
 #[must_use] pub fn authentication(self) -> frontend_contract::domain_types::AuthenticationRequirement
 #[must_use] pub fn can_access( &self, page: crate::domain_types::AdminPage, ) -> crate::domain_types::AdminBool
+#[must_use] pub fn default_admin_api_body_max_bytes() -> AdminApiBodyMaxBytes
 #[must_use] pub fn from_frontend_path(path: crate::domain_types::AdminPagePathRef<'_>) -> Option<Self>
 #[must_use] pub fn from_settings(value: &super::AdminSettingsView) -> Self
 #[must_use] pub fn frontend_path(self) -> crate::domain_types::AdminDataTableFrontendPath

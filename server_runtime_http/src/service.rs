@@ -1,14 +1,14 @@
-#[path = "service/add_status_route.rs"]
+#[path = "add_status_route.rs"]
 mod add_status_route;
-#[path = "service/serve_io_error.rs"]
+#[path = "serve_io_error.rs"]
 mod serve_io_error;
-#[path = "service/serve_with_graceful_shutdown.rs"]
+#[path = "serve_with_graceful_shutdown.rs"]
 mod serve_with_graceful_shutdown;
-#[path = "service/serve_with_graceful_shutdown_error.rs"]
+#[path = "serve_with_graceful_shutdown_error.rs"]
 mod serve_with_graceful_shutdown_error;
-#[path = "service/service_runtime.rs"]
+#[path = "service_runtime.rs"]
 mod service_runtime;
-#[path = "service/tokio_tcp_listener.rs"]
+#[path = "tokio_tcp_listener.rs"]
 mod tokio_tcp_listener;
 
 pub use add_status_route::add_status_route;

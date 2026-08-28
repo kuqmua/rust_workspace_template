@@ -1,14 +1,14 @@
-#[path = "domain_types/development_identity_count.rs"]
+#[path = "development_identity_count.rs"]
 mod development_identity_count;
-#[path = "domain_types/development_identity_creation_plan.rs"]
+#[path = "development_identity_creation_plan.rs"]
 mod development_identity_creation_plan;
-#[path = "domain_types/development_identity_creation_summary.rs"]
+#[path = "development_identity_creation_summary.rs"]
 mod development_identity_creation_summary;
-#[path = "domain_types/development_identity_specs.rs"]
+#[path = "development_identity_specs.rs"]
 mod development_identity_specs;
-#[path = "domain_types/development_identity_specs_error.rs"]
+#[path = "development_identity_specs_error.rs"]
 mod development_identity_specs_error;
-#[path = "domain_types/development_identity_specs_max_len.rs"]
+#[path = "development_identity_specs_max_len.rs"]
 mod development_identity_specs_max_len;
 
 pub use development_identity_count::DevelopmentIdentityCount;

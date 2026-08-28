@@ -149,6 +149,6 @@ pub(crate) async fn query_audit_log(
         server_admin_contract::domain_types::AdminAuditViews::try_from(views)
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
         next_cursor,
-        super::page_total(super::AdminPageTotalCount::from(total))?,
+        super::repository_page_total(super::AdminPageTotalCount::from(total))?,
     ))
 }

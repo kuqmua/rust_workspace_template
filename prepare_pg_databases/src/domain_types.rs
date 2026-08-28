@@ -1,30 +1,30 @@
-#[path = "domain_types/database_preparation_spec.rs"]
+#[path = "database_preparation_spec.rs"]
 mod database_preparation_spec;
-#[path = "domain_types/database_url.rs"]
+#[path = "database_url.rs"]
 mod database_url;
-#[path = "domain_types/database_url_error.rs"]
+#[path = "database_url_error.rs"]
 mod database_url_error;
-#[path = "domain_types/migration_commands.rs"]
+#[path = "migration_commands.rs"]
 mod migration_commands;
-#[path = "domain_types/migrations_source.rs"]
+#[path = "migrations_source.rs"]
 mod migrations_source;
-#[path = "domain_types/migrations_source_error.rs"]
+#[path = "migrations_source_error.rs"]
 mod migrations_source_error;
-#[path = "domain_types/process_argument.rs"]
+#[path = "process_argument.rs"]
 mod process_argument;
-#[path = "domain_types/process_arguments.rs"]
+#[path = "process_arguments.rs"]
 mod process_arguments;
-#[path = "domain_types/process_command.rs"]
+#[path = "process_command.rs"]
 mod process_command;
-#[path = "domain_types/process_commands.rs"]
+#[path = "process_commands.rs"]
 mod process_commands;
-#[path = "domain_types/process_program.rs"]
+#[path = "process_program.rs"]
 mod process_program;
-#[path = "domain_types/process_static_argument.rs"]
+#[path = "process_static_argument.rs"]
 mod process_static_argument;
-#[path = "domain_types/validate_database_url.rs"]
+#[path = "validate_database_url.rs"]
 mod validate_database_url;
-#[path = "domain_types/validate_migrations_source.rs"]
+#[path = "validate_migrations_source.rs"]
 mod validate_migrations_source;
 
 pub use database_preparation_spec::DatabasePreparationSpec;

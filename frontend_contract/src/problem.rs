@@ -1,20 +1,20 @@
-#[path = "problem/api_problem.rs"]
+#[path = "api_problem.rs"]
 mod api_problem;
-#[path = "problem/api_problem_detail.rs"]
+#[path = "api_problem_detail.rs"]
 mod api_problem_detail;
-#[path = "problem/api_problem_error.rs"]
+#[path = "api_problem_error.rs"]
 mod api_problem_error;
-#[path = "problem/api_problem_field.rs"]
+#[path = "api_problem_field.rs"]
 mod api_problem_field;
-#[path = "problem/api_problem_kind.rs"]
+#[path = "api_problem_kind.rs"]
 mod api_problem_kind;
-#[path = "problem/api_problem_request_id.rs"]
+#[path = "api_problem_request_id.rs"]
 mod api_problem_request_id;
-#[path = "problem/api_problem_status.rs"]
+#[path = "api_problem_status.rs"]
 mod api_problem_status;
-#[path = "problem/api_problem_violation.rs"]
+#[path = "api_problem_violation.rs"]
 mod api_problem_violation;
-#[path = "problem/api_problem_violations.rs"]
+#[path = "api_problem_violations.rs"]
 mod api_problem_violations;
 
 pub use api_problem::ApiProblem;

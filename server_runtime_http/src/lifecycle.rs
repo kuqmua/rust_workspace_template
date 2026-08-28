@@ -1,28 +1,28 @@
-#[path = "lifecycle/abort_and_wait_task.rs"]
+#[path = "abort_and_wait_task.rs"]
 mod abort_and_wait_task;
-#[path = "lifecycle/background_task.rs"]
+#[path = "background_task.rs"]
 mod background_task;
-#[path = "lifecycle/background_task_outcome.rs"]
+#[path = "background_task_outcome.rs"]
 mod background_task_outcome;
-#[path = "lifecycle/background_task_shutdown_error.rs"]
+#[path = "background_task_shutdown_error.rs"]
 mod background_task_shutdown_error;
-#[path = "lifecycle/request_timeout_duration.rs"]
+#[path = "request_timeout_duration.rs"]
 mod request_timeout_duration;
-#[path = "lifecycle/run_interval_duration.rs"]
+#[path = "run_interval_duration.rs"]
 mod run_interval_duration;
-#[path = "lifecycle/spawn_interval_task.rs"]
+#[path = "spawn_interval_task.rs"]
 mod spawn_interval_task;
-#[path = "lifecycle/std_request_timeout_try_from_duration_error.rs"]
+#[path = "std_request_timeout_try_from_duration_error.rs"]
 mod std_request_timeout_try_from_duration_error;
-#[path = "lifecycle/std_run_interval_try_from_duration_error.rs"]
+#[path = "std_run_interval_try_from_duration_error.rs"]
 mod std_run_interval_try_from_duration_error;
-#[path = "lifecycle/tokio_abort_task.rs"]
+#[path = "tokio_abort_task.rs"]
 mod tokio_abort_task;
-#[path = "lifecycle/tokio_background_task_join.rs"]
+#[path = "tokio_background_task_join.rs"]
 mod tokio_background_task_join;
-#[path = "lifecycle/tokio_background_task_shutdown_sender.rs"]
+#[path = "tokio_background_task_shutdown_sender.rs"]
 mod tokio_background_task_shutdown_sender;
-#[path = "lifecycle/tokio_task_join_error.rs"]
+#[path = "tokio_task_join_error.rs"]
 mod tokio_task_join_error;
 
 pub use abort_and_wait_task::abort_and_wait_task;

@@ -1,14 +1,14 @@
-#[path = "spec/bind_count.rs"]
+#[path = "bind_count.rs"]
 mod bind_count;
-#[path = "spec/filter_spec.rs"]
+#[path = "filter_spec.rs"]
 mod filter_spec;
-#[path = "spec/filter_spec_valid.rs"]
+#[path = "filter_spec_valid.rs"]
 mod filter_spec_valid;
-#[path = "spec/filter_sql_operator.rs"]
+#[path = "filter_sql_operator.rs"]
 mod filter_sql_operator;
-#[path = "spec/filter_sql_suffix.rs"]
+#[path = "filter_sql_suffix.rs"]
 mod filter_sql_suffix;
-#[path = "spec/filter_value_shape.rs"]
+#[path = "filter_value_shape.rs"]
 mod filter_value_shape;
 
 use bind_count::BindCount;

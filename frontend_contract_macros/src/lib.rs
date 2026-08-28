@@ -2,6 +2,7 @@
     clippy::arbitrary_source_item_ordering,
     reason = "proc-macro parser models precede their entrypoints while related derive parsers remain adjacent"
 )]
+#[path = "domain_types.rs"]
 mod domain_types;
 #[allow(
     clippy::single_call_fn,
@@ -917,7 +918,7 @@ pub fn route_registry(
                         frontend_contract::domain_types::typed_route_path::<#routes>().as_ref(),
                         axum::routing::on(
                             axum::routing::MethodFilter::from(
-                                frontend_contract::domain_types::axum_method_filter(
+                                frontend_contract::domain_types::to_axum_method_filter(
                                     <#routes as frontend_contract::domain_types::TypedRoute>::metadata()
                                         .contract()
                                         .method()
@@ -2305,4 +2306,5 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
 }
 
 #[cfg(test)]
+#[path = "tests.rs"]
 mod tests;

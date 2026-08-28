@@ -17,12 +17,14 @@ pub(super) fn filter_spec_contract_is_valid(
                 .get()
             && crate::domain_types::schema::schema_uses_text_value::schema_uses_text_value(spec)
                 .get()
-                != crate::domain_types::sql::filter_sql_suffix::filter_sql_suffix(spec)
+                != crate::domain_types::sql::filter_sql_suffix_value::filter_sql_suffix_value(spec)
                     .as_ref()
                     .is_empty()
-            && !crate::domain_types::sql::filter_sql_operator::filter_sql_operator(spec)
-                .as_ref()
-                .is_empty(),
+            && !crate::domain_types::sql::filter_sql_operator_value::filter_sql_operator_value(
+                spec,
+            )
+            .as_ref()
+            .is_empty(),
     )
 }
 #[cfg(test)]
@@ -60,9 +62,11 @@ mod tests {
                     .get()
             );
             assert!(
-                !crate::domain_types::sql::filter_sql_operator::filter_sql_operator(spec)
-                    .as_ref()
-                    .is_empty()
+                !crate::domain_types::sql::filter_sql_operator_value::filter_sql_operator_value(
+                    spec
+                )
+                .as_ref()
+                .is_empty()
             );
         });
     }

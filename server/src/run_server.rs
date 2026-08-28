@@ -128,7 +128,7 @@ pub(super) async fn run_server(
                 ),
             ),
             pg_pool,
-            project_git_info: git_info::domain_types::project_git_info(),
+            project_git_info: git_info::domain_types::project_git_info_value(),
         },
     ));
     let metrics_renderer = metrics_exporter_prometheus::PrometheusBuilder::new()

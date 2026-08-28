@@ -1,20 +1,20 @@
-#[path = "repository/admin_page_total_count.rs"]
+#[path = "admin_page_total_count.rs"]
 mod admin_page_total_count;
-#[path = "repository/admin_recent_login_failure_count.rs"]
+#[path = "admin_recent_login_failure_count.rs"]
 mod admin_recent_login_failure_count;
-#[path = "repository/admin_repository_error.rs"]
+#[path = "admin_repository_error.rs"]
 mod admin_repository_error;
-#[path = "repository/admin_sign_in_user.rs"]
+#[path = "admin_sign_in_user.rs"]
 mod admin_sign_in_user;
-#[path = "repository/page_total.rs"]
-mod page_total;
-#[path = "repository/replace_role_permissions_outcome.rs"]
+#[path = "replace_role_permissions_outcome.rs"]
 mod replace_role_permissions_outcome;
-#[path = "repository/replace_user_roles_outcome.rs"]
+#[path = "replace_user_roles_outcome.rs"]
 mod replace_user_roles_outcome;
-#[path = "repository/sqlx_admin_repository_connection_mut_ref.rs"]
+#[path = "repository_page_total.rs"]
+mod repository_page_total;
+#[path = "sqlx_admin_repository_connection_mut_ref.rs"]
 mod sqlx_admin_repository_connection_mut_ref;
-#[path = "repository/sqlx_admin_repository_pool_ref.rs"]
+#[path = "sqlx_admin_repository_pool_ref.rs"]
 mod sqlx_admin_repository_pool_ref;
 
 #[path = "adapters_repository_data_tables.rs"]
@@ -42,8 +42,8 @@ pub(crate) use admin_page_total_count::AdminPageTotalCount;
 pub(crate) use admin_recent_login_failure_count::AdminRecentLoginFailureCount;
 pub(crate) use admin_repository_error::AdminRepositoryError;
 pub(crate) use admin_sign_in_user::AdminSignInUser;
-pub(crate) use page_total::page_total;
 pub(crate) use replace_role_permissions_outcome::ReplaceRolePermissionsOutcome;
 pub(crate) use replace_user_roles_outcome::ReplaceUserRolesOutcome;
+pub(crate) use repository_page_total::repository_page_total;
 pub(crate) use sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef;
 pub(crate) use sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef;

@@ -102,13 +102,13 @@ license = "MIT"
 edition = "2024"
 
 [workspace.dependencies]
-argon2 = { version = "=0.5.3", default-features = false, features = [
-  "std",
+argon2 = { version = "=0.6.0", default-features = false, features = [
+  "alloc",
   "password-hash",
-  "rand",
+  "getrandom",
   "zeroize",
 ] }
-base64 = { version = "=0.23.0", default-features = false, features = ["alloc"] }
+base64 = { version = "=0.23.1", default-features = false, features = ["alloc"] }
 serde = { version = "=1.0.229", default-features = false, features = [
   "std",
   "derive",
@@ -118,7 +118,7 @@ serde_json = { version = "=1.0.151", default-features = false, features = [
   "std",
 ] }
 proptest = { version = "=1.11.0", default-features = false, features = ["std"] }
-toml = { version = "=1.1.3", default-features = false, features = [
+toml = { version = "=1.1.4", default-features = false, features = [
   "std",
   "serde",
   "parse",
@@ -129,15 +129,15 @@ regex = { version = "=1.13.1", default-features = false, features = [
   "perf",
   "unicode",
 ] }
-convert_case = { version = "=0.11.0", default-features = false }
-atomic-write-file = { version = "=0.3.0", default-features = false }
+convert_case = { version = "=0.12.0", default-features = false }
+atomic-write-file = { version = "=0.3.1", default-features = false }
 base16ct = { version = "=1.0.0", default-features = false, features = ["alloc"] }
-cookie = { version = "=0.18.1", default-features = false }
+cookie = { version = "=0.18.2", default-features = false }
 geojson = { version = "=1.0.0", default-features = false }
-ipnet = { version = "=2.12.0", default-features = false, features = ["std"] }
+ipnet = { version = "=2.12.1", default-features = false, features = ["std"] }
 mime = { version = "=0.3.17", default-features = false }
 percent-encoding = { version = "=2.3.2", default-features = false, features = ["alloc"] }
-uuid = { version = "=1.24.0", default-features = false, features = [
+uuid = { version = "=1.26.0", default-features = false, features = [
   "std",
   "serde",
   "v4",
@@ -173,9 +173,9 @@ singlestage = { version = "=0.4.1", default-features = false, features = [
 libfuzzer-sys = { version = "=0.4.13", default-features = false, features = [
   "link_libfuzzer",
 ] }
-wasm-bindgen = { version = "=0.2.126", default-features = false }
-wasm-bindgen-futures = { version = "=0.4.76", default-features = false }
-web-sys = { version = "=0.3.103", default-features = false }
+wasm-bindgen = { version = "=0.2.127", default-features = false }
+wasm-bindgen-futures = { version = "=0.4.77", default-features = false }
+web-sys = { version = "=0.3.104", default-features = false }
 tokio = { version = "=1.53.1", default-features = false, features = [
   "fs",
   "io-util",
@@ -223,9 +223,9 @@ tower-http = { version = "=0.7.0", default-features = false, features = [
   "set-header",
 ] }
 http-body = { version = "=1.1.0", default-features = false }
-http = { version = "=1.4.2", default-features = false }
+http = { version = "=1.5.0", default-features = false }
 hmac = { version = "=0.13.0", default-features = false }
-futures = { version = "=0.3.33", default-features = false, features = [
+futures = { version = "=0.3.34", default-features = false, features = [
   "std",
   "async-await",
   "executor",
@@ -263,21 +263,21 @@ chrono = { version = "=0.4.45", default-features = false, features = [
   "clock",
   "serde",
 ] }
-thiserror = { version = "=2.0.19", default-features = false }
+thiserror = { version = "=2.0.20", default-features = false }
 jsonwebtoken = { version = "=11.0.0", default-features = false, features = [
   "aws_lc_rs",
 ] }
 strum = { version = "=0.28.0", default-features = false }
 strum_macros = { version = "=0.28.0", default-features = false }
 dotenv = { version = "=0.15.0", default-features = false }
-time = { version = "=0.3.54", default-features = false, features = [
+time = { version = "=0.3.55", default-features = false, features = [
   "std",
   "serde",
 ] }
 quote = { version = "=1.0.47", default-features = false, features = [
   "proc-macro",
 ] }
-syn = { version = "=3.0.3", default-features = false, features = [
+syn = { version = "=3.0.4", default-features = false, features = [
   "clone-impls",
   "derive",
   "parsing",
@@ -307,7 +307,7 @@ criterion = { version = "=0.8.2", default-features = false, features = [
   "cargo_bench_support",
 ] }
 walkdir = { version = "=2.5.0", default-features = false }
-trybuild = { version = "=1.0.118", default-features = false }
+trybuild = { version = "=1.0.120", default-features = false }
 git-version = { version = "=0.3.9", default-features = false }
 app_state = { path = "./app_state" }
 bounded_types = { path = "./bounded_types" }

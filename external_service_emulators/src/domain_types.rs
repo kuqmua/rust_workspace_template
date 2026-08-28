@@ -1,19 +1,22 @@
-#[path = "domain_types/mock_notification_inbox.rs"]
+#[path = "create_mock_notification_provider.rs"]
+mod create_mock_notification_provider;
+#[path = "mock_notification_inbox.rs"]
 mod mock_notification_inbox;
-#[path = "domain_types/mock_notification_provider.rs"]
+#[path = "mock_notification_provider.rs"]
 mod mock_notification_provider;
-#[path = "domain_types/mock_notification_provider_closed.rs"]
+#[path = "mock_notification_provider_closed.rs"]
 mod mock_notification_provider_closed;
-#[path = "domain_types/remote_sync_request_count.rs"]
+#[path = "remote_sync_request_count.rs"]
 mod remote_sync_request_count;
-#[path = "domain_types/remote_sync_source.rs"]
+#[path = "remote_sync_source.rs"]
 mod remote_sync_source;
-#[path = "domain_types/tokio_mock_notification_receiver.rs"]
+#[path = "tokio_mock_notification_receiver.rs"]
 mod tokio_mock_notification_receiver;
-#[path = "domain_types/tokio_mock_notification_sender.rs"]
+#[path = "tokio_mock_notification_sender.rs"]
 mod tokio_mock_notification_sender;
+pub use create_mock_notification_provider::create_mock_notification_provider;
 pub use mock_notification_inbox::MockNotificationInbox;
-pub use mock_notification_provider::{MockNotificationProvider, mock_notification_provider};
+pub use mock_notification_provider::MockNotificationProvider;
 pub use mock_notification_provider_closed::MockNotificationProviderClosed;
 pub use remote_sync_request_count::RemoteSyncRequestCount;
 pub use remote_sync_source::RemoteSyncSource;
@@ -41,7 +44,7 @@ mod tests {
 
     #[tokio::test]
     async fn notification_provider_records_messages_through_runtime_contract() {
-        let (provider, mut inbox) = super::mock_notification_provider();
+        let (provider, mut inbox) = super::create_mock_notification_provider();
         let message = server_runtime_http::domain_types::NotificationMessage::try_from(
             constants_str::TEST_NOTIFICATION_MESSAGE.to_owned(),
         )
