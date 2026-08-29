@@ -1,4 +1,3 @@
-#![allow(clippy::wildcard_imports)] // split security implementation modules share a private facade vocabulary
 pub use admin_access_claims::*;
 pub use admin_access_token_error::*;
 pub(crate) use admin_auth_collection_error::*;

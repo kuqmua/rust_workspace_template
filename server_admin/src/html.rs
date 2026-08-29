@@ -1,8 +1,3 @@
-#![allow(
-    clippy::shadow_reuse,
-    reason = "form adapters deliberately replace unvalidated extractor values with validated domain values"
-)]
-
 // Root-owned module compatibility wrappers.
 mod actions {
     pub use crate::application_html_actions::*;

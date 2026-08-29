@@ -1,4 +1,3 @@
-#![allow(clippy::wildcard_imports)] // split page modules share a private facade vocabulary
 use admin_crud_page::*;
 pub(crate) use admin_html_open_api::*;
 use admin_html_page_route_registry::*;

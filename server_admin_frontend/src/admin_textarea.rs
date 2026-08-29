@@ -4,7 +4,6 @@
     clippy::impl_trait_in_params,
     clippy::multiple_inherent_impl,
     clippy::needless_pass_by_value,
-    clippy::option_if_let_else,
     clippy::same_name_method,
     clippy::shadow_reuse,
     clippy::unused_trait_names,
@@ -29,12 +28,12 @@ pub(crate) fn AdminTextarea(
         crate::leptos_admin_input_signal::LeptosAdminInputSignal,
     >,
 ) -> impl leptos::prelude::IntoView {
-    match bind_value {
-        Some(value) => leptos::prelude::IntoAny::into_any(leptos::view! {
-            <singlestage::Textarea attr:data-name="Textarea" attr:class="ui-textarea field-sizing-content flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:aria-invalid:ring-destructive/40 md:text-sm" name=String::from(name.as_ref()) required=required disabled=disabled value=value.signal() />
-        }),
-        None => leptos::prelude::IntoAny::into_any(leptos::view! {
+    bind_value.map_or_else(
+        || leptos::prelude::IntoAny::into_any(leptos::view! {
             <singlestage::Textarea attr:data-name="Textarea" attr:class="ui-textarea field-sizing-content flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:aria-invalid:ring-destructive/40 md:text-sm" name=String::from(name.as_ref()) required=required disabled=disabled />
         }),
-    }
+        |value| leptos::prelude::IntoAny::into_any(leptos::view! {
+            <singlestage::Textarea attr:data-name="Textarea" attr:class="ui-textarea field-sizing-content flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:aria-invalid:ring-destructive/40 md:text-sm" name=String::from(name.as_ref()) required=required disabled=disabled value=value.signal() />
+        }),
+    )
 }

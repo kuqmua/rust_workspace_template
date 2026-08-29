@@ -1,4 +1,3 @@
-#![allow(clippy::module_inception)] // the routes function owns the required same-named module
 #[must_use]
 pub fn admin_auth_routes(state: crate::SharedAdminAuthSvcStateArc) -> crate::AxumAdminAuthRouter {
     let base_router = AdminAuthRouteRegistry::router()

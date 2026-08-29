@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::arbitrary_source_item_ordering)] // split domain modules remain grouped with their facade imports
 pub(crate) const DIRECT_GENERATION_REPEAT_COUNT: usize = 5;
 pub(crate) const MEASURE_REPEAT_COUNT: usize = 1000;
 pub(crate) const RUNNER_MODE_MAX_LEN: usize = 1_024usize;

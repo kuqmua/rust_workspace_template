@@ -1,7 +1,5 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#![allow(clippy::field_scoped_visibility_modifiers, clippy::wildcard_imports)] // split repository adapters expose private wrappers and vocabulary only through this facade
-
 use crate::{
     AdminPageTotalCount, AdminRepositoryError, SqlxAdminRepositoryPoolRef, repository_page_total,
 };

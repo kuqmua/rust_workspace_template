@@ -1,6 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::arbitrary_source_item_ordering)] // keep each split module adjacent to the facade import that exposes it
-
 pub(crate) use crate::env_content::*;
 pub(crate) use crate::env_content_ref::*;
 pub(crate) use crate::env_key::*;

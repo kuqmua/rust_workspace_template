@@ -1,6 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::needless_for_each)] // utoipa 4 generated OpenAPI registration uses iterator callbacks
-#![allow(clippy::wildcard_imports)] // split authentication modules share a private facade vocabulary
 pub use admin_audit_query::*;
 pub(crate) use admin_audit_query_parts::*;
 pub use admin_auth_html_routes::*;

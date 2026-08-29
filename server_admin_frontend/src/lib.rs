@@ -2,7 +2,6 @@
     unused_imports,
     unreachable_pub,
     clippy::arbitrary_source_item_ordering,
-    clippy::multiple_inherent_impl,
     clippy::shadow_reuse,
     clippy::tests_outside_test_module,
     clippy::unused_trait_names,

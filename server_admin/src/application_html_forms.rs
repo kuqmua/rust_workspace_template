@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "HTML form DTOs are deserialized in this module and consumed by the sibling action adapter"
-)]
-
 pub(crate) use admin_html_form_key::*;
 pub(crate) use admin_html_form_key_error::*;
 pub(crate) use admin_html_form_selected_max_items::*;

@@ -1,6 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::needless_for_each, clippy::partial_pub_fields)] // generated contracts expose operation fields while source table fields stay private to protect password hashes
-
 pub(crate) use admin_generated_route_contract::AdminGeneratedRouteContract;
 pub(crate) use admin_generated_table::AdminGeneratedTable;
 pub use admin_permissions::*;
