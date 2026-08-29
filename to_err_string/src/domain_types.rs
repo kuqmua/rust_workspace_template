@@ -1,11 +1,10 @@
-use crate::as_ref_str_to_owned::as_ref_str_to_owned;
-pub use crate::error_text::{ErrorText, ErrorTextTryFromStringError};
+use super::as_ref_str_to_owned::as_ref_str_to_owned;
+pub use super::error_text::{ErrorText, ErrorTextTryFromStringError};
 #[cfg(test)]
-use crate::error_text_max_len::ERROR_TEXT_MAX_LEN;
-use crate::static_str_to_owned::static_str_to_owned;
-use crate::static_str_to_owned_input::StaticStrToOwnedInput;
-pub use crate::to_err_string::ToErrString;
-
+use super::error_text_max_len::ERROR_TEXT_MAX_LEN;
+use super::static_str_to_owned::static_str_to_owned;
+use super::static_str_to_owned_input::StaticStrToOwnedInput;
+pub use super::to_err_string::ToErrString;
 to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
 #[cfg(not(target_arch = "wasm32"))]
 to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| format!("{v:#?}"));

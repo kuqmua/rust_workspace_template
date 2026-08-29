@@ -1,4 +1,4 @@
-use crate::{AdminCleanupCfg, AdminCleanupError, AdminCleanupReport, AdminCleanupRows};
+use super::{AdminCleanupCfg, AdminCleanupError, AdminCleanupReport, AdminCleanupRows};
 
 pub async fn cleanup_admin_tables(
     pool: app_state::SqlxPgPoolRef<'_>,

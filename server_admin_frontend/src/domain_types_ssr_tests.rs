@@ -49,20 +49,20 @@ pub(crate) fn test_branding() -> server_admin_contract::domain_types::AdminBrand
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod crud {
-    pub use crate::crud_tests::*;
+    pub use super::super::crud_tests::*;
 }
 pub(crate) mod data_grid {
-    pub use crate::data_grid_tests::*;
+    pub use super::super::data_grid_tests::*;
 }
 pub(crate) mod document {
-    pub use crate::domain_types_ssr_tests_document::*;
+    pub use super::super::domain_types_ssr_tests_document::*;
 }
 pub(crate) mod navigation {
-    pub use crate::domain_types_ssr_tests_navigation::*;
+    pub use super::super::domain_types_ssr_tests_navigation::*;
 }
 pub(crate) mod settings {
-    pub use crate::domain_types_ssr_tests_settings::*;
+    pub use super::super::domain_types_ssr_tests_settings::*;
 }
 pub(crate) mod static_pages {
-    pub use crate::static_pages_tests::*;
+    pub use super::super::static_pages_tests::*;
 }

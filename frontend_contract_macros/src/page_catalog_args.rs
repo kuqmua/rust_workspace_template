@@ -1,4 +1,4 @@
-use crate::SynIdent;
+use super::SynIdent;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 pub(crate) struct PageCatalogArgs {

@@ -1,10 +1,9 @@
-pub use crate::bounded_secret_text::BoundedSecretText;
-pub use crate::bounded_secret_text_error::BoundedSecretTextError;
-pub use crate::secret_text_match::SecretTextMatch;
-use crate::secret_text_minimum_bytes::SECRET_TEXT_MINIMUM_BYTES;
-pub use crate::secret_text_ref::SecretTextRef;
-pub use crate::secret_texts_match::secret_texts_match;
-
+pub use super::bounded_secret_text::BoundedSecretText;
+pub use super::bounded_secret_text_error::BoundedSecretTextError;
+pub use super::secret_text_match::SecretTextMatch;
+use super::secret_text_minimum_bytes::SECRET_TEXT_MINIMUM_BYTES;
+pub use super::secret_text_ref::SecretTextRef;
+pub use super::secret_texts_match::secret_texts_match;
 #[cfg(test)]
 mod tests {
     fn bounded_secret(value: &str) -> super::BoundedSecretText {

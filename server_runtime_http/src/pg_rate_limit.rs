@@ -1,16 +1,15 @@
-pub use crate::enforce_pg_rate_limit::enforce_pg_rate_limit;
-pub use crate::pg_rate_limit_decision::PgRateLimitDecision;
-pub use crate::pg_rate_limit_error::PgRateLimitError;
-use crate::pg_rate_limit_key_part_max_len::PG_RATE_LIMIT_KEY_PART_MAX_LEN;
-pub use crate::pg_rate_limit_maximum::PgRateLimitMaximum;
-pub use crate::pg_rate_limit_query_ref::PgRateLimitQueryRef;
-pub use crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef;
-pub use crate::pg_rate_limit_subject_ref::PgRateLimitSubjectRef;
-pub use crate::pg_rate_limit_validation_error::PgRateLimitValidationError;
-pub use crate::pg_rate_limit_window_seconds::PgRateLimitWindowSeconds;
-pub use crate::sqlx_pg_rate_limit_error::SqlxPgRateLimitError;
-pub use crate::sqlx_pg_rate_limit_pool_ref::SqlxPgRateLimitPoolRef;
-
+pub use super::enforce_pg_rate_limit::enforce_pg_rate_limit;
+pub use super::pg_rate_limit_decision::PgRateLimitDecision;
+pub use super::pg_rate_limit_error::PgRateLimitError;
+use super::pg_rate_limit_key_part_max_len::PG_RATE_LIMIT_KEY_PART_MAX_LEN;
+pub use super::pg_rate_limit_maximum::PgRateLimitMaximum;
+pub use super::pg_rate_limit_query_ref::PgRateLimitQueryRef;
+pub use super::pg_rate_limit_scope_ref::PgRateLimitScopeRef;
+pub use super::pg_rate_limit_subject_ref::PgRateLimitSubjectRef;
+pub use super::pg_rate_limit_validation_error::PgRateLimitValidationError;
+pub use super::pg_rate_limit_window_seconds::PgRateLimitWindowSeconds;
+pub use super::sqlx_pg_rate_limit_error::SqlxPgRateLimitError;
+pub use super::sqlx_pg_rate_limit_pool_ref::SqlxPgRateLimitPoolRef;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -71,38 +70,38 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod enforce_pg_rate_limit {
-    pub use crate::enforce_pg_rate_limit::*;
+    pub use super::super::enforce_pg_rate_limit::*;
 }
 mod pg_rate_limit_decision {
-    pub use crate::pg_rate_limit_decision::*;
+    pub use super::super::pg_rate_limit_decision::*;
 }
 mod pg_rate_limit_error {
-    pub use crate::pg_rate_limit_error::*;
+    pub use super::super::pg_rate_limit_error::*;
 }
 mod pg_rate_limit_key_part_max_len {
-    pub use crate::pg_rate_limit_key_part_max_len::*;
+    pub use super::super::pg_rate_limit_key_part_max_len::*;
 }
 mod pg_rate_limit_maximum {
-    pub use crate::pg_rate_limit_maximum::*;
+    pub use super::super::pg_rate_limit_maximum::*;
 }
 mod pg_rate_limit_query_ref {
-    pub use crate::pg_rate_limit_query_ref::*;
+    pub use super::super::pg_rate_limit_query_ref::*;
 }
 mod pg_rate_limit_scope_ref {
-    pub use crate::pg_rate_limit_scope_ref::*;
+    pub use super::super::pg_rate_limit_scope_ref::*;
 }
 mod pg_rate_limit_subject_ref {
-    pub use crate::pg_rate_limit_subject_ref::*;
+    pub use super::super::pg_rate_limit_subject_ref::*;
 }
 mod pg_rate_limit_validation_error {
-    pub use crate::pg_rate_limit_validation_error::*;
+    pub use super::super::pg_rate_limit_validation_error::*;
 }
 mod pg_rate_limit_window_seconds {
-    pub use crate::pg_rate_limit_window_seconds::*;
+    pub use super::super::pg_rate_limit_window_seconds::*;
 }
 mod sqlx_pg_rate_limit_error {
-    pub use crate::sqlx_pg_rate_limit_error::*;
+    pub use super::super::sqlx_pg_rate_limit_error::*;
 }
 mod sqlx_pg_rate_limit_pool_ref {
-    pub use crate::sqlx_pg_rate_limit_pool_ref::*;
+    pub use super::super::sqlx_pg_rate_limit_pool_ref::*;
 }

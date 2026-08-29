@@ -1,4 +1,4 @@
-use crate::domain_types::FirstCommaStripped;
+use super::domain_types::FirstCommaStripped;
 
 pub fn strip_first_comma<I>(input: &mut I) -> FirstCommaStripped
 where

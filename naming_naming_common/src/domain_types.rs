@@ -1,8 +1,8 @@
-use crate::convert_case_kind::ConvertCaseKind;
-use crate::display_case_str::display_case_str;
-use crate::str_case::str_case;
-use crate::to_token_stream_or_panic::to_token_stream_or_panic;
-use crate::tokenized_case_str::tokenized_case_str;
+use super::convert_case_kind::ConvertCaseKind;
+use super::display_case_str::display_case_str;
+use super::str_case::str_case;
+use super::to_token_stream_or_panic::to_token_stream_or_panic;
+use super::tokenized_case_str::tokenized_case_str;
 
 naming_common_macros::case_trait_pair!(
     AsRefStrToUpperCamelCaseStr,

@@ -1,7 +1,7 @@
-use crate::create_role::create_role;
-use crate::delete_role::delete_role;
-use crate::role_permissions::role_permissions;
-use crate::update_role::update_role;
+use super::create_role::create_role;
+use super::delete_role::delete_role;
+use super::role_permissions::role_permissions;
+use super::update_role::update_role;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::endpoint_registry(

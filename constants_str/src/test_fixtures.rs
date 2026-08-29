@@ -2306,7 +2306,7 @@ pub const VALUE_48A99713: &str = "ui-card settings-card flex flex-col gap-4 roun
 pub const VALUE_C2720445: &str = "unique";
 pub const VALUE_28E5EBAB: &str = "url";
 pub const VALUE_444213A9: &str = "use leptos::prelude::{ElementChild};";
-pub const VALUE_B2B1AD10: &str = "use leptos::prelude::{ElementChild};\nuse std::fmt::Debug;\npub use crate::config::{Config, ConfigTryFromEnvError};";
+pub const VALUE_B2B1AD10: &str = "use crate::local::Item;\nuse std::fmt::Debug;\npub use crate::config::{Config, ConfigTryFromEnvError};";
 pub const VALUE_F6A331AA: &str = "user input failures map to stable API categories";
 pub const VALUE_8F942A25: &str = "user_id=9223372036854775807&confirmation=true";
 pub const VALUE_C6919F81: &str = "users.read";
@@ -2390,7 +2390,7 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrapp
 pub const CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON: &str =
     "single_call_fn suppressions must be attached to exact items";
 pub const CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE: &str = "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 }";
-pub const CODE_STYLE_DECLARED_CHILD_USE_FIXTURE: &str = "mod child;\nuse super::child::Item;";
+pub const CODE_STYLE_DECLARED_CHILD_USE_FIXTURE: &str = "mod child;\nuse crate::child::Item;";
 pub const CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH: &str = "../fixture/src/declared_child.rs";
 pub const CODE_STYLE_NESTED_OWNER_USE_FIXTURE_PATH: &str = "../fixture/src/owner/nested_owner.rs";
 pub const CODE_STYLE_TYPE_DECLARATIONS_FIXTURE: &str = "struct StructName; enum EnumName {} union UnionName { value: u8 } trait TraitName {} type AliasName = u8; trait TraitAliasName = TraitName;";

@@ -1,20 +1,19 @@
-pub use crate::extract_remote_trace_context::extract_remote_trace_context;
-use crate::http_header_extractor::HttpHeaderExtractor;
-use crate::http_header_injector::HttpHeaderInjector;
-pub use crate::http_host_ref::HttpHostRef;
-pub use crate::http_method_ref::HttpMethodRef;
-pub use crate::http_opentelemetry_header_map_mut::HttpOpentelemetryHeaderMapMut;
-pub use crate::http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef;
-pub use crate::http_trace_parent::HttpTraceParent;
-pub use crate::http_trace_parent_error::HttpTraceParentError;
-pub use crate::http_trace_state::HttpTraceState;
-pub use crate::http_trace_state_error::HttpTraceStateError;
-pub use crate::inject_trace_context::inject_trace_context;
-pub use crate::opentelemetry_context::OpentelemetryContext;
-pub use crate::outbound_trace_context::OutboundTraceContext;
-pub use crate::reqwest_request::ReqwestRequest;
-pub use crate::reqwest_request_builder::ReqwestRequestBuilder;
-
+pub use super::extract_remote_trace_context::extract_remote_trace_context;
+use super::http_header_extractor::HttpHeaderExtractor;
+use super::http_header_injector::HttpHeaderInjector;
+pub use super::http_host_ref::HttpHostRef;
+pub use super::http_method_ref::HttpMethodRef;
+pub use super::http_opentelemetry_header_map_mut::HttpOpentelemetryHeaderMapMut;
+pub use super::http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef;
+pub use super::http_trace_parent::HttpTraceParent;
+pub use super::http_trace_parent_error::HttpTraceParentError;
+pub use super::http_trace_state::HttpTraceState;
+pub use super::http_trace_state_error::HttpTraceStateError;
+pub use super::inject_trace_context::inject_trace_context;
+pub use super::opentelemetry_context::OpentelemetryContext;
+pub use super::outbound_trace_context::OutboundTraceContext;
+pub use super::reqwest_request::ReqwestRequest;
+pub use super::reqwest_request_builder::ReqwestRequestBuilder;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -141,50 +140,50 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod extract_remote_trace_context {
-    pub use crate::extract_remote_trace_context::*;
+    pub use super::super::extract_remote_trace_context::*;
 }
 mod http_header_extractor {
-    pub use crate::http_header_extractor::*;
+    pub use super::super::http_header_extractor::*;
 }
 mod http_header_injector {
-    pub use crate::http_header_injector::*;
+    pub use super::super::http_header_injector::*;
 }
 mod http_host_ref {
-    pub use crate::http_host_ref::*;
+    pub use super::super::http_host_ref::*;
 }
 mod http_method_ref {
-    pub use crate::http_method_ref::*;
+    pub use super::super::http_method_ref::*;
 }
 mod http_opentelemetry_header_map_mut {
-    pub use crate::http_opentelemetry_header_map_mut::*;
+    pub use super::super::http_opentelemetry_header_map_mut::*;
 }
 mod http_opentelemetry_header_map_ref {
-    pub use crate::http_opentelemetry_header_map_ref::*;
+    pub use super::super::http_opentelemetry_header_map_ref::*;
 }
 mod http_trace_parent {
-    pub use crate::http_trace_parent::*;
+    pub use super::super::http_trace_parent::*;
 }
 mod http_trace_parent_error {
-    pub use crate::http_trace_parent_error::*;
+    pub use super::super::http_trace_parent_error::*;
 }
 mod http_trace_state {
-    pub use crate::http_trace_state::*;
+    pub use super::super::http_trace_state::*;
 }
 mod http_trace_state_error {
-    pub use crate::http_trace_state_error::*;
+    pub use super::super::http_trace_state_error::*;
 }
 mod inject_trace_context {
-    pub use crate::inject_trace_context::*;
+    pub use super::super::inject_trace_context::*;
 }
 mod opentelemetry_context {
-    pub use crate::opentelemetry_context::*;
+    pub use super::super::opentelemetry_context::*;
 }
 mod outbound_trace_context {
-    pub use crate::outbound_trace_context::*;
+    pub use super::super::outbound_trace_context::*;
 }
 mod reqwest_request {
-    pub use crate::reqwest_request::*;
+    pub use super::super::reqwest_request::*;
 }
 mod reqwest_request_builder {
-    pub use crate::reqwest_request_builder::*;
+    pub use super::super::reqwest_request_builder::*;
 }

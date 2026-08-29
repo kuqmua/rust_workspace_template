@@ -1,10 +1,9 @@
-use crate::request_timeout_body::RequestTimeoutBody;
-use crate::request_timeout_error::RequestTimeoutError;
-pub use crate::request_timeout_layer::RequestTimeoutLayer;
-use crate::request_timeout_service::RequestTimeoutService;
-use crate::request_timeout_tower_layer::RequestTimeoutTowerLayer;
-use crate::std_request_timeout_message::StdRequestTimeoutMessage;
-
+use super::request_timeout_body::RequestTimeoutBody;
+use super::request_timeout_error::RequestTimeoutError;
+pub use super::request_timeout_layer::RequestTimeoutLayer;
+use super::request_timeout_service::RequestTimeoutService;
+use super::request_timeout_tower_layer::RequestTimeoutTowerLayer;
+use super::std_request_timeout_message::StdRequestTimeoutMessage;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -45,20 +44,20 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod request_timeout_body {
-    pub use crate::request_timeout_body::*;
+    pub use super::super::request_timeout_body::*;
 }
 mod request_timeout_error {
-    pub use crate::request_timeout_error::*;
+    pub use super::super::request_timeout_error::*;
 }
 mod request_timeout_layer {
-    pub use crate::request_timeout_layer::*;
+    pub use super::super::request_timeout_layer::*;
 }
 mod request_timeout_service {
-    pub use crate::request_timeout_service::*;
+    pub use super::super::request_timeout_service::*;
 }
 mod request_timeout_tower_layer {
-    pub use crate::request_timeout_tower_layer::*;
+    pub use super::super::request_timeout_tower_layer::*;
 }
 mod std_request_timeout_message {
-    pub use crate::std_request_timeout_message::*;
+    pub use super::super::std_request_timeout_message::*;
 }

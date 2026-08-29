@@ -1,4 +1,4 @@
-use crate::domain_types::{QuoteChar, QuotePanicId, QuotePrefix, QuoteStyle};
+use super::domain_types::{QuoteChar, QuotePanicId, QuotePrefix, QuoteStyle};
 
 pub(crate) const fn build_quote_style(
     panic_id: QuotePanicId,

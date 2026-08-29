@@ -43,22 +43,21 @@ impl SingleFlight {
     }
 }
 
-use crate::arc_single_flight_rw_lock::ArcSingleFlightRwLock;
-pub use crate::single_flight_acquire::SingleFlightAcquire;
-use crate::single_flight_inner::SingleFlightInner;
-pub use crate::single_flight_key::SingleFlightKey;
-pub use crate::single_flight_key_error::SingleFlightKeyError;
-use crate::single_flight_key_maximum_bytes::SINGLE_FLIGHT_KEY_MAXIMUM_BYTES;
-pub use crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize;
-pub use crate::single_flight_owner::SingleFlightOwner;
-use crate::single_flight_rw_lock_write_guard::SingleFlightRwLockWriteGuard;
-use crate::single_flight_signal::SingleFlightSignal;
-pub use crate::single_flight_wait_outcome::SingleFlightWaitOutcome;
-pub use crate::single_flight_waiter::SingleFlightWaiter;
-use crate::tokio_single_flight_receiver::TokioSingleFlightReceiver;
-use crate::tokio_single_flight_sender::TokioSingleFlightSender;
-use crate::write_inner::write_inner;
-
+use super::arc_single_flight_rw_lock::ArcSingleFlightRwLock;
+pub use super::single_flight_acquire::SingleFlightAcquire;
+use super::single_flight_inner::SingleFlightInner;
+pub use super::single_flight_key::SingleFlightKey;
+pub use super::single_flight_key_error::SingleFlightKeyError;
+use super::single_flight_key_maximum_bytes::SINGLE_FLIGHT_KEY_MAXIMUM_BYTES;
+pub use super::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize;
+pub use super::single_flight_owner::SingleFlightOwner;
+use super::single_flight_rw_lock_write_guard::SingleFlightRwLockWriteGuard;
+use super::single_flight_signal::SingleFlightSignal;
+pub use super::single_flight_wait_outcome::SingleFlightWaitOutcome;
+pub use super::single_flight_waiter::SingleFlightWaiter;
+use super::tokio_single_flight_receiver::TokioSingleFlightReceiver;
+use super::tokio_single_flight_sender::TokioSingleFlightSender;
+use super::write_inner::write_inner;
 #[cfg(test)]
 mod tests {
     fn single_flight_key() -> super::SingleFlightKey {

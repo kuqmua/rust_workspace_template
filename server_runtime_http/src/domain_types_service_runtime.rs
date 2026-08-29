@@ -1,8 +1,7 @@
-pub use crate::build_service_runtime::build_service_runtime;
-pub use crate::service_runtime_io_error::ServiceRuntimeIoError;
-pub use crate::tokio_service_runtime::TokioServiceRuntime;
-pub use crate::wait_for_service_shutdown_signal::wait_for_service_shutdown_signal;
-
+pub use super::build_service_runtime::build_service_runtime;
+pub use super::service_runtime_io_error::ServiceRuntimeIoError;
+pub use super::tokio_service_runtime::TokioServiceRuntime;
+pub use super::wait_for_service_shutdown_signal::wait_for_service_shutdown_signal;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -16,14 +15,14 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod build_service_runtime {
-    pub use crate::build_service_runtime::*;
+    pub use super::super::build_service_runtime::*;
 }
 mod service_runtime_io_error {
-    pub use crate::service_runtime_io_error::*;
+    pub use super::super::service_runtime_io_error::*;
 }
 mod tokio_service_runtime {
-    pub use crate::tokio_service_runtime::*;
+    pub use super::super::tokio_service_runtime::*;
 }
 mod wait_for_service_shutdown_signal {
-    pub use crate::wait_for_service_shutdown_signal::*;
+    pub use super::super::wait_for_service_shutdown_signal::*;
 }

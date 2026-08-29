@@ -1,7 +1,7 @@
 #[cfg(feature = "test-utils")]
-use crate::domain_types::SelectAlias;
+use super::domain_types::SelectAlias;
 #[cfg(feature = "test-utils")]
-use crate::{
+use super::{
     DefaultSomeOneElementMaxPageSize, NotEmptyUniqueVec, PgType, PgTypeGreaterThanTest,
     PgTypeGreaterThanVariant, V,
 };

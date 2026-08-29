@@ -1,4 +1,4 @@
-use crate::{AdminSessionError, HttpAdminHeaderValueError};
+use super::{AdminSessionError, HttpAdminHeaderValueError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminError {

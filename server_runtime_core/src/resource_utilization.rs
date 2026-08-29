@@ -36,17 +36,16 @@ impl ResourceUtilization {
     }
 }
 
-pub use crate::calculate_resource_utilization::calculate_resource_utilization;
-use crate::critical_percent::CRITICAL_PERCENT;
-use crate::reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT;
-pub use crate::resource_amount::ResourceAmount;
-pub use crate::resource_utilization_error::ResourceUtilizationError;
-use crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent;
-pub use crate::resource_utilization_percent::ResourceUtilizationPercent;
-pub use crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error;
-pub use crate::resource_utilization_status::ResourceUtilizationStatus;
-use crate::warning_percent::WARNING_PERCENT;
-
+pub use super::calculate_resource_utilization::calculate_resource_utilization;
+use super::critical_percent::CRITICAL_PERCENT;
+use super::reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT;
+pub use super::resource_amount::ResourceAmount;
+pub use super::resource_utilization_error::ResourceUtilizationError;
+use super::resource_utilization_known_percent::ResourceUtilizationKnownPercent;
+pub use super::resource_utilization_percent::ResourceUtilizationPercent;
+pub use super::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error;
+pub use super::resource_utilization_status::ResourceUtilizationStatus;
+use super::warning_percent::WARNING_PERCENT;
 #[cfg(test)]
 mod tests {
     fn calculate(used: u64, maximum: u64) -> super::ResourceUtilization {

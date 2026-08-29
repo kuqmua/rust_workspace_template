@@ -7,7 +7,7 @@ where
 {
     RsFilePathBuf::from(file_name.as_ref().with_extension(constants_str::RS))
 }
-pub(crate) use crate::rs_file_path_buf::RsFilePathBuf;
+pub(crate) use super::rs_file_path_buf::RsFilePathBuf;
 #[cfg(test)]
 mod tests {
     #[test]

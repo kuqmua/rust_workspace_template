@@ -2,11 +2,11 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-use crate::lease_entry::LeaseEntry;
-pub use crate::lease_heartbeat::*;
-pub use crate::lease_id::*;
-pub use crate::lease_ids::*;
-pub use crate::lease_key::*;
+use super::lease_entry::LeaseEntry;
+pub use super::lease_heartbeat::*;
+pub use super::lease_id::*;
+pub use super::lease_ids::*;
+pub use super::lease_key::*;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub struct LeaseRegistry {
     inner: TokioLeaseRegistryRwLockArc,
@@ -122,19 +122,18 @@ impl LeaseRegistry {
         })
     }
 }
-use crate::lease_registry_inner::LeaseRegistryInner;
-pub use crate::lease_registry_maximum_non_zero_usize::*;
-pub use crate::lease_reservation::*;
-pub use crate::lease_stale_timeout_duration::*;
-pub use crate::lease_state::*;
-pub use crate::lease_text_error::*;
-use crate::lease_text_maximum_bytes::LEASE_TEXT_MAXIMUM_BYTES;
-use crate::lease_text_ref::LeaseTextRef;
-pub use crate::std_lease_stale_timeout_error::*;
-use crate::tokio_lease_instant::TokioLeaseInstant;
-use crate::tokio_lease_registry_rw_lock_arc::TokioLeaseRegistryRwLockArc;
-use crate::validate_lease_text::validate_lease_text;
-
+use super::lease_registry_inner::LeaseRegistryInner;
+pub use super::lease_registry_maximum_non_zero_usize::*;
+pub use super::lease_reservation::*;
+pub use super::lease_stale_timeout_duration::*;
+pub use super::lease_state::*;
+pub use super::lease_text_error::*;
+use super::lease_text_maximum_bytes::LEASE_TEXT_MAXIMUM_BYTES;
+use super::lease_text_ref::LeaseTextRef;
+pub use super::std_lease_stale_timeout_error::*;
+use super::tokio_lease_instant::TokioLeaseInstant;
+use super::tokio_lease_registry_rw_lock_arc::TokioLeaseRegistryRwLockArc;
+use super::validate_lease_text::validate_lease_text;
 #[cfg(test)]
 mod tests {
     fn id(value: &str) -> super::LeaseId {

@@ -1,4 +1,4 @@
-use crate::domain_types::{PasswordLengthRange, PasswordPolicyViolation, PasswordTextRef};
+use super::domain_types::{PasswordLengthRange, PasswordPolicyViolation, PasswordTextRef};
 
 pub fn validate_password_policy(
     password: PasswordTextRef<'_>,

@@ -1,4 +1,4 @@
-use crate::domain_types::StdTimeDurationNanosTryFromU32Error;
+use super::domain_types::StdTimeDurationNanosTryFromU32Error;
 
 #[derive(
     Debug,

@@ -1,12 +1,11 @@
-pub use crate::cleanup_batch_count::CleanupBatchCount;
-pub use crate::cleanup_batch_size::CleanupBatchSize;
-pub use crate::cleanup_batch_size_error::CleanupBatchSizeError;
-pub use crate::cleanup_completion::CleanupCompletion;
-pub use crate::cleanup_continuation::CleanupContinuation;
-pub use crate::cleanup_report::CleanupReport;
-pub use crate::cleanup_rows::CleanupRows;
-pub use crate::run_batched_cleanup::run_batched_cleanup;
-
+pub use super::cleanup_batch_count::CleanupBatchCount;
+pub use super::cleanup_batch_size::CleanupBatchSize;
+pub use super::cleanup_batch_size_error::CleanupBatchSizeError;
+pub use super::cleanup_completion::CleanupCompletion;
+pub use super::cleanup_continuation::CleanupContinuation;
+pub use super::cleanup_report::CleanupReport;
+pub use super::cleanup_rows::CleanupRows;
+pub use super::run_batched_cleanup::run_batched_cleanup;
 #[cfg(test)]
 mod tests {
     #[tokio::test]
@@ -56,26 +55,26 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod cleanup_batch_count {
-    pub use crate::cleanup_batch_count::*;
+    pub use super::super::cleanup_batch_count::*;
 }
 mod cleanup_batch_size {
-    pub use crate::cleanup_batch_size::*;
+    pub use super::super::cleanup_batch_size::*;
 }
 mod cleanup_batch_size_error {
-    pub use crate::cleanup_batch_size_error::*;
+    pub use super::super::cleanup_batch_size_error::*;
 }
 mod cleanup_completion {
-    pub use crate::cleanup_completion::*;
+    pub use super::super::cleanup_completion::*;
 }
 mod cleanup_continuation {
-    pub use crate::cleanup_continuation::*;
+    pub use super::super::cleanup_continuation::*;
 }
 mod cleanup_report {
-    pub use crate::cleanup_report::*;
+    pub use super::super::cleanup_report::*;
 }
 mod cleanup_rows {
-    pub use crate::cleanup_rows::*;
+    pub use super::super::cleanup_rows::*;
 }
 mod run_batched_cleanup {
-    pub use crate::run_batched_cleanup::*;
+    pub use super::super::run_batched_cleanup::*;
 }

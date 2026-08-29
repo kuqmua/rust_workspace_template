@@ -1,4 +1,4 @@
-use crate::{
+use super::{
     AdminGeneratedTable, AdminPermissions, AdminRolePermissions, AdminRoles, AdminSystemSettings,
     AdminUserRoles, AdminUsers,
 };

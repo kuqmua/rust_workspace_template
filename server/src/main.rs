@@ -177,7 +177,7 @@ fn main() -> domain_types::ServerExitCode {
                         let http_gzip_enabled = *config.http_gzip_enabled;
                         let request_timeout_seconds = config.request_timeout_seconds.get();
                         let app_state = domain_types::SharedServerAppStateArc::from(std::sync::Arc::new(
-                            server_app_state::domain_types::ServerAppState {
+                            server_app_state::ServerAppState {
                                 bulk_item_budget: server_runtime_http::domain_types::ResourceBudget::new(
                                     server_runtime_http::domain_types::ResourceBudgetMaximum::from(
                                         std::num::NonZeroUsize::new(4_096usize).unwrap_or(std::num::NonZeroUsize::MIN),
@@ -259,7 +259,7 @@ fn main() -> domain_types::ServerExitCode {
                             let generated_admin_auth_state = admin_auth_state.clone();
                             let generated_table_logic_state: std::sync::Arc<
                                 dyn server_admin::domain_types::CombinationOfAppStateLogicTraits,
-                            > = std::sync::Arc::<server_app_state::domain_types::ServerAppState<'static>>::clone(
+                            > = std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(
                                 app_state.get(),
                             );
                             let generated_table_state =
@@ -330,7 +330,7 @@ fn main() -> domain_types::ServerExitCode {
                         };
                         let operational_routes = axum::Router::from(common_routes::common_routes(
                             common_routes::ArcCommonRoutesAppState::from(std::sync::Arc::<
-                                server_app_state::domain_types::ServerAppState<'static>,
+                                server_app_state::ServerAppState<'static>,
                             >::clone(app_state.get())),
                         ));
                         let request_timeout = server_runtime_http::domain_types::RequestTimeoutDuration::try_from(

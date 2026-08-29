@@ -15,8 +15,8 @@ pub(crate) struct AdminCsrQuery {
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod csr_page_from_location {
-    pub use crate::csr_page_from_location::*;
+    pub use super::super::csr_page_from_location::*;
 }
 pub(crate) mod location {
-    pub use crate::location::*;
+    pub use super::super::location::*;
 }

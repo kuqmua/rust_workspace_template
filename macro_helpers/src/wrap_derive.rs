@@ -11,7 +11,7 @@ pub fn wrap_derive(
     quote::quote! {#[derive(#(#tokens),*)]}.into()
 }
 
-pub use crate::proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef;
+pub use super::proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef;
 #[cfg(test)]
 mod tests {
     #[test]

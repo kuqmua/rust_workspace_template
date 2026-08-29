@@ -1,4 +1,4 @@
-use crate::AxumMethodFilter;
+use super::AxumMethodFilter;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[must_use]

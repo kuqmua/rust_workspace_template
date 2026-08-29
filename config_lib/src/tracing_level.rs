@@ -1,4 +1,4 @@
-use crate::TracingLevelName;
+use super::TracingLevelName;
 
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]

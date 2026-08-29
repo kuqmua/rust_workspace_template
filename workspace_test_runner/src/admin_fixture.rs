@@ -1,8 +1,7 @@
-pub(crate) use crate::admin_fixture_string::AdminFixtureString;
+pub(crate) use super::admin_fixture_string::AdminFixtureString;
 #[cfg(test)]
-pub(crate) use crate::admin_fixture_string::AdminFixtureStringTryFromStringError;
-pub(crate) use crate::create_admin_fixture_string::create_admin_fixture_string;
-
+pub(crate) use super::admin_fixture_string::AdminFixtureStringTryFromStringError;
+pub(crate) use super::create_admin_fixture_string::create_admin_fixture_string;
 #[cfg(test)]
 mod tests {
     #[test]

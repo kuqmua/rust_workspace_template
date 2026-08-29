@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 #[derive(
     Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,

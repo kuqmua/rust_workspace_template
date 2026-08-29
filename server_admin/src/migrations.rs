@@ -4,11 +4,11 @@ pub(crate) use sqlx_admin_migrator_ref::SqlxAdminMigratorRef;
 
 // Root-owned module compatibility wrappers.
 mod admin_migrator {
-    pub use crate::admin_migrator::*;
+    pub use super::super::admin_migrator::*;
 }
 mod migrator {
-    pub use crate::migrator::*;
+    pub use super::super::migrator::*;
 }
 mod sqlx_admin_migrator_ref {
-    pub use crate::sqlx_admin_migrator_ref::*;
+    pub use super::super::sqlx_admin_migrator_ref::*;
 }

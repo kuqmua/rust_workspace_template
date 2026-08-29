@@ -1,4 +1,4 @@
-use crate::domain_types::{StdUniqueOptionSetContains, StdUniqueOptionSetIsEmpty};
+use super::domain_types::{StdUniqueOptionSetContains, StdUniqueOptionSetIsEmpty};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone)]
 pub struct UniqueOptionBTreeSet<OptionValue>(std::collections::BTreeSet<OptionValue>);

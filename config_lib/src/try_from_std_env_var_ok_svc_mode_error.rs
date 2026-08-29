@@ -1,4 +1,4 @@
-use crate::{StdEnvVarOk, TryFromStdEnvVarOk, types};
+use super::{StdEnvVarOk, TryFromStdEnvVarOk, types};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,

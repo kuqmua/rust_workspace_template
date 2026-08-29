@@ -1,4 +1,4 @@
-use crate::AdminAuditQueryParts;
+use super::AdminAuditQueryParts;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, utoipa::IntoParams,

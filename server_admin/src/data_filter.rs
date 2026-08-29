@@ -1,4 +1,4 @@
-use crate::{DataFlt, DataFltJson};
+use super::{DataFlt, DataFltJson};
 
 pub(crate) fn data_filter(
     table: server_admin_contract::domain_types::AdminDataTable,

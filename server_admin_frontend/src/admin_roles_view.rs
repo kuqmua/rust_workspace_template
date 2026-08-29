@@ -39,5 +39,5 @@ pub(crate) fn AdminRolesView(
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod csr_admin_role_row {
-    pub use crate::csr_admin_role_row::*;
+    pub use super::super::csr_admin_role_row::*;
 }

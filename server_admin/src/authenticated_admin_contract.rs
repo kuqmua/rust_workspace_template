@@ -1,4 +1,4 @@
-use crate::{AdminError, AuthenticatedAdmin};
+use super::{AdminError, AuthenticatedAdmin};
 
 pub(crate) fn authenticated_admin_contract(
     value: &AuthenticatedAdmin,

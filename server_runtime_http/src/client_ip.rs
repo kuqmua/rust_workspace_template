@@ -3,24 +3,23 @@
     reason = "owner modules and related behavior retain their intentional facade ordering"
 )]
 
-pub use crate::client_addr_parse_error::ClientAddrParseError;
-pub use crate::client_socket_addr::ClientSocketAddr;
-pub use crate::http_header_map_ref::HttpHeaderMapRef;
-use crate::ipnet_network::IpnetNetwork;
-pub use crate::parse_int_error::ParseIntError;
-pub use crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges;
-use crate::parsed_ip_addr::ParsedIpAddr;
-pub use crate::resolve_client_ip::resolve_client_ip;
-pub use crate::resolve_header_text::resolve_header_text;
-pub use crate::resolved_client_ip_addr::ResolvedClientIpAddr;
-use crate::std_range_contains::StdRangeContains;
-pub use crate::trusted_proxy_range::TrustedProxyRange;
-pub use crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError;
-pub use crate::trusted_proxy_ranges::TrustedProxyRanges;
-pub use crate::trusted_proxy_ranges_error::TrustedProxyRangesError;
-pub use crate::trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError;
-pub use crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef;
-
+pub use super::client_addr_parse_error::ClientAddrParseError;
+pub use super::client_socket_addr::ClientSocketAddr;
+pub use super::http_header_map_ref::HttpHeaderMapRef;
+use super::ipnet_network::IpnetNetwork;
+pub use super::parse_int_error::ParseIntError;
+pub use super::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges;
+use super::parsed_ip_addr::ParsedIpAddr;
+pub use super::resolve_client_ip::resolve_client_ip;
+pub use super::resolve_header_text::resolve_header_text;
+pub use super::resolved_client_ip_addr::ResolvedClientIpAddr;
+use super::std_range_contains::StdRangeContains;
+pub use super::trusted_proxy_range::TrustedProxyRange;
+pub use super::trusted_proxy_range_parse_error::TrustedProxyRangeParseError;
+pub use super::trusted_proxy_ranges::TrustedProxyRanges;
+pub use super::trusted_proxy_ranges_error::TrustedProxyRangesError;
+pub use super::trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError;
+pub use super::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef;
 #[cfg(test)]
 mod tests {
     fn range(value: &str) -> super::TrustedProxyRange {
@@ -198,53 +197,53 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod client_addr_parse_error {
-    pub use crate::client_addr_parse_error::*;
+    pub use super::super::client_addr_parse_error::*;
 }
 mod client_socket_addr {
-    pub use crate::client_socket_addr::*;
+    pub use super::super::client_socket_addr::*;
 }
 mod http_header_map_ref {
-    pub use crate::http_header_map_ref::*;
+    pub use super::super::http_header_map_ref::*;
 }
 mod ipnet_network {
-    pub use crate::ipnet_network::*;
+    pub use super::super::ipnet_network::*;
 }
 mod parse_int_error {
-    pub use crate::parse_int_error::*;
+    pub use super::super::parse_int_error::*;
 }
 mod parse_trusted_proxy_ranges {
-    pub use crate::parse_trusted_proxy_ranges::*;
+    pub use super::super::parse_trusted_proxy_ranges::*;
 }
 mod parsed_ip_addr {
-    pub use crate::parsed_ip_addr::*;
+    pub use super::super::parsed_ip_addr::*;
 }
 mod resolve_client_ip {
-    pub use crate::resolve_client_ip::*;
+    pub use super::super::resolve_client_ip::*;
 }
 mod resolve_header_text {
-    pub use crate::resolve_header_text::*;
+    pub use super::super::resolve_header_text::*;
 }
 mod resolved_client_ip_addr {
-    pub use crate::resolved_client_ip_addr::*;
+    pub use super::super::resolved_client_ip_addr::*;
 }
 mod std_range_contains {
-    pub use crate::std_range_contains::*;
+    pub use super::super::std_range_contains::*;
 }
 mod trusted_proxy_range {
-    pub use crate::trusted_proxy_range::*;
+    pub use super::super::trusted_proxy_range::*;
 }
 mod trusted_proxy_range_parse_error {
-    pub use crate::trusted_proxy_range_parse_error::*;
+    pub use super::super::trusted_proxy_range_parse_error::*;
 }
 mod trusted_proxy_ranges {
-    pub use crate::trusted_proxy_ranges::*;
+    pub use super::super::trusted_proxy_ranges::*;
 }
 mod trusted_proxy_ranges_error {
-    pub use crate::trusted_proxy_ranges_error::*;
+    pub use super::super::trusted_proxy_ranges_error::*;
 }
 mod trusted_proxy_ranges_parse_error {
-    pub use crate::trusted_proxy_ranges_parse_error::*;
+    pub use super::super::trusted_proxy_ranges_parse_error::*;
 }
 mod trusted_proxy_ranges_text_ref {
-    pub use crate::trusted_proxy_ranges_text_ref::*;
+    pub use super::super::trusted_proxy_ranges_text_ref::*;
 }

@@ -1,24 +1,23 @@
-pub use crate::file_staging_action::FileStagingAction;
-pub use crate::file_staging_directory_name::FileStagingDirectoryName;
-pub use crate::identifier_file_storage_relative_path::identifier_file_storage_relative_path;
-pub use crate::multipart_bytes::MultipartBytes;
-pub use crate::multipart_bytes_part::MultipartBytesPart;
-use crate::multipart_bytes_parts::MultipartBytesParts;
-pub use crate::multipart_field_name::MultipartFieldName;
-pub use crate::multipart_file_name::MultipartFileName;
-pub use crate::multipart_payload_maximum::MultipartPayloadMaximum;
-pub use crate::multipart_request_error::MultipartRequestError;
-pub use crate::multipart_text_part::MultipartTextPart;
-use crate::multipart_text_parts::MultipartTextParts;
-pub use crate::multipart_text_value::MultipartTextValue;
-pub use crate::multipart_upload_request::MultipartUploadRequest;
-pub use crate::multipart_value_error::MultipartValueError;
-pub use crate::multipart_value_length::MultipartValueLength;
-pub use crate::staging_directory_name::staging_directory_name;
-pub use crate::storage_path_segment::StoragePathSegment;
-pub use crate::storage_path_segment_error::StoragePathSegmentError;
-pub use crate::storage_relative_path_buf::StorageRelativePathBuf;
-
+pub use super::file_staging_action::FileStagingAction;
+pub use super::file_staging_directory_name::FileStagingDirectoryName;
+pub use super::identifier_file_storage_relative_path::identifier_file_storage_relative_path;
+pub use super::multipart_bytes::MultipartBytes;
+pub use super::multipart_bytes_part::MultipartBytesPart;
+use super::multipart_bytes_parts::MultipartBytesParts;
+pub use super::multipart_field_name::MultipartFieldName;
+pub use super::multipart_file_name::MultipartFileName;
+pub use super::multipart_payload_maximum::MultipartPayloadMaximum;
+pub use super::multipart_request_error::MultipartRequestError;
+pub use super::multipart_text_part::MultipartTextPart;
+use super::multipart_text_parts::MultipartTextParts;
+pub use super::multipart_text_value::MultipartTextValue;
+pub use super::multipart_upload_request::MultipartUploadRequest;
+pub use super::multipart_value_error::MultipartValueError;
+pub use super::multipart_value_length::MultipartValueLength;
+pub use super::staging_directory_name::staging_directory_name;
+pub use super::storage_path_segment::StoragePathSegment;
+pub use super::storage_path_segment_error::StoragePathSegmentError;
+pub use super::storage_relative_path_buf::StorageRelativePathBuf;
 #[cfg(test)]
 mod tests {
     fn field_name() -> super::MultipartFieldName {
@@ -221,62 +220,62 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod file_staging_action {
-    pub use crate::file_staging_action::*;
+    pub use super::super::file_staging_action::*;
 }
 mod file_staging_directory_name {
-    pub use crate::file_staging_directory_name::*;
+    pub use super::super::file_staging_directory_name::*;
 }
 mod identifier_file_storage_relative_path {
-    pub use crate::identifier_file_storage_relative_path::*;
+    pub use super::super::identifier_file_storage_relative_path::*;
 }
 mod multipart_bytes {
-    pub use crate::multipart_bytes::*;
+    pub use super::super::multipart_bytes::*;
 }
 mod multipart_bytes_part {
-    pub use crate::multipart_bytes_part::*;
+    pub use super::super::multipart_bytes_part::*;
 }
 mod multipart_bytes_parts {
-    pub use crate::multipart_bytes_parts::*;
+    pub use super::super::multipart_bytes_parts::*;
 }
 mod multipart_field_name {
-    pub use crate::multipart_field_name::*;
+    pub use super::super::multipart_field_name::*;
 }
 mod multipart_file_name {
-    pub use crate::multipart_file_name::*;
+    pub use super::super::multipart_file_name::*;
 }
 mod multipart_payload_maximum {
-    pub use crate::multipart_payload_maximum::*;
+    pub use super::super::multipart_payload_maximum::*;
 }
 mod multipart_request_error {
-    pub use crate::multipart_request_error::*;
+    pub use super::super::multipart_request_error::*;
 }
 mod multipart_text_part {
-    pub use crate::multipart_text_part::*;
+    pub use super::super::multipart_text_part::*;
 }
 mod multipart_text_parts {
-    pub use crate::multipart_text_parts::*;
+    pub use super::super::multipart_text_parts::*;
 }
 mod multipart_text_value {
-    pub use crate::multipart_text_value::*;
+    pub use super::super::multipart_text_value::*;
 }
 mod multipart_upload_request {
-    pub use crate::multipart_upload_request::*;
+    pub use super::super::multipart_upload_request::*;
 }
 mod multipart_value_error {
-    pub use crate::multipart_value_error::*;
+    pub use super::super::multipart_value_error::*;
 }
 mod multipart_value_length {
-    pub use crate::multipart_value_length::*;
+    pub use super::super::multipart_value_length::*;
 }
 mod staging_directory_name {
-    pub use crate::staging_directory_name::*;
+    pub use super::super::staging_directory_name::*;
 }
 mod storage_path_segment {
-    pub use crate::storage_path_segment::*;
+    pub use super::super::storage_path_segment::*;
 }
 mod storage_path_segment_error {
-    pub use crate::storage_path_segment_error::*;
+    pub use super::super::storage_path_segment_error::*;
 }
 mod storage_relative_path_buf {
-    pub use crate::storage_relative_path_buf::*;
+    pub use super::super::storage_relative_path_buf::*;
 }

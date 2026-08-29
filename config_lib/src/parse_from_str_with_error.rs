@@ -1,4 +1,4 @@
-use crate::StdEnvVarOkRef;
+use super::StdEnvVarOkRef;
 
 pub(super) fn parse_from_str_with_error<T, ParseError, Error>(
     v: StdEnvVarOkRef<'_>,

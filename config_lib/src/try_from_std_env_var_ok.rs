@@ -1,4 +1,4 @@
-use crate::StdEnvVarOk;
+use super::StdEnvVarOk;
 
 pub trait TryFromStdEnvVarOk: Sized {
     type Error;

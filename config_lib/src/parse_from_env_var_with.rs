@@ -1,4 +1,4 @@
-use crate::{EnvParseError, EnvVarError, EnvVarResultVarError, EnvVarValueRef, ParseEnvVarNameRef};
+use super::{EnvParseError, EnvVarError, EnvVarResultVarError, EnvVarValueRef, ParseEnvVarNameRef};
 
 #[cfg(test)]
 pub(super) fn parse_from_env_var_with<T>(

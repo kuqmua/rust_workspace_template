@@ -1,4 +1,4 @@
-use crate::domain_types::artifact::JsonContractSnapshotError;
+use super::domain_types::artifact::JsonContractSnapshotError;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,

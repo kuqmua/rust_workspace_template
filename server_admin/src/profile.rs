@@ -1,4 +1,4 @@
-use crate::csr_page;
+use super::csr_page;
 
 #[frontend_contract::route_error(AdminProfilePageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner

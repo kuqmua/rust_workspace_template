@@ -1,7 +1,7 @@
 #[cfg(test)]
-use super::{test_admin, test_branding};
+use super::AdminSsrViewExt;
 #[cfg(test)]
-use crate::AdminSsrViewExt;
+use super::{test_admin, test_branding};
 
 #[test]
 fn data_grid() {

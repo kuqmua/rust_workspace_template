@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 pub fn validate_postgres_table_schema(
     expected: DbTableSnapshot,

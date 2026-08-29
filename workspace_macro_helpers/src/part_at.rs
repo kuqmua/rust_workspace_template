@@ -1,4 +1,4 @@
-use crate::domain_types::{PartIndex, ProcMacro2MacroTokens, ProcMacro2TopLevelCommaParts};
+use super::domain_types::{PartIndex, ProcMacro2MacroTokens, ProcMacro2TopLevelCommaParts};
 
 #[must_use]
 pub fn part_at<I>(parts: &ProcMacro2TopLevelCommaParts, idx: I) -> Option<ProcMacro2MacroTokens>

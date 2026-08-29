@@ -38,5 +38,5 @@ pub(crate) async fn revoke_session(
 
 // Root-owned module compatibility wrappers.
 mod admin_html_session_action_route_registry {
-    pub use crate::admin_html_session_action_route_registry::*;
+    pub use super::super::admin_html_session_action_route_registry::*;
 }

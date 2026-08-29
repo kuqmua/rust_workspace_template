@@ -1,10 +1,9 @@
-pub use crate::reqwest_client::ReqwestClient;
-pub use crate::reqwest_client_build_error::ReqwestClientBuildError;
-pub use crate::reqwest_client_policy::ReqwestClientPolicy;
-pub use crate::reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration;
-pub use crate::reqwest_request_timeout_duration::ReqwestRequestTimeoutDuration;
-pub use crate::std_reqwest_timeout_error::StdReqwestTimeoutError;
-
+pub use super::reqwest_client::ReqwestClient;
+pub use super::reqwest_client_build_error::ReqwestClientBuildError;
+pub use super::reqwest_client_policy::ReqwestClientPolicy;
+pub use super::reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration;
+pub use super::reqwest_request_timeout_duration::ReqwestRequestTimeoutDuration;
+pub use super::std_reqwest_timeout_error::StdReqwestTimeoutError;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -22,26 +21,26 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod reqwest_client {
-    pub use crate::reqwest_client::*;
+    pub use super::super::reqwest_client::*;
 }
 mod reqwest_client_build_error {
-    pub use crate::reqwest_client_build_error::*;
+    pub use super::super::reqwest_client_build_error::*;
 }
 mod reqwest_client_policy {
-    pub use crate::reqwest_client_policy::*;
+    pub use super::super::reqwest_client_policy::*;
 }
 mod reqwest_connect_timeout_duration {
-    pub use crate::reqwest_connect_timeout_duration::*;
+    pub use super::super::reqwest_connect_timeout_duration::*;
 }
 mod reqwest_request_timeout_duration {
-    pub use crate::reqwest_request_timeout_duration::*;
+    pub use super::super::reqwest_request_timeout_duration::*;
 }
 mod std_reqwest_timeout_duration_ref {
-    pub use crate::std_reqwest_timeout_duration_ref::*;
+    pub use super::super::std_reqwest_timeout_duration_ref::*;
 }
 mod std_reqwest_timeout_error {
-    pub use crate::std_reqwest_timeout_error::*;
+    pub use super::super::std_reqwest_timeout_error::*;
 }
 mod tracing_http_client_span {
-    pub use crate::tracing_http_client_span::*;
+    pub use super::super::tracing_http_client_span::*;
 }

@@ -12,9 +12,8 @@ pub enum SourceSelection<'source_lt, LocalSource, RemoteSource> {
     Remote(&'source_lt RemoteSource),
 }
 
-pub use crate::select_sources::select_sources;
-pub use crate::source_selection_error::SourceSelectionError;
-
+pub use super::select_sources::select_sources;
+pub use super::source_selection_error::SourceSelectionError;
 #[cfg(test)]
 mod tests {
     #[test]

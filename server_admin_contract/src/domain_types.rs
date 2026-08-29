@@ -1,11 +1,10 @@
 pub mod collections {
-    pub use crate::*;
+    pub use super::super::*;
 }
 
-pub use crate::*;
-
-pub use crate::identity::*;
-pub use crate::{
+pub use super::identity::*;
+pub use super::*;
+pub use super::{
     AdminBool, AdminDataTableFilterQuery, AdminDataTableQuery, AdminFilterField,
     AdminFilterOperationKey, AdminFilterValue, AdminPageLimit, AdminPageLimitError,
     AdminPageOffset, AdminPageTotal, AdminSortDirection, AdminTableQuery, AdminTableSearch,
@@ -13,8 +12,8 @@ pub use crate::{
 };
 
 #[cfg(test)]
-use crate::ADMIN_COLLECTION_MAX_ITEMS;
-pub use crate::{
+use super::ADMIN_COLLECTION_MAX_ITEMS;
+pub use super::{
     AdminAuditCursor, AdminAuditExport, AdminAuditExportCsv, AdminAuditPage, AdminAuditView,
     AdminChangeOwnPasswordReq, AdminCreateRoleReq, AdminCreateRoleRes, AdminCreateUserReq,
     AdminCreateUserRes, AdminDataColumn, AdminDataColumns, AdminDataFilter, AdminDataFilters,
@@ -24,23 +23,23 @@ pub use crate::{
     AdminSignInRes, AdminUpdateRoleReq, AdminUpdateUserReq, AdminUserSummary, AdminUsersPage,
     AuthenticatedAdmin, InputKind,
 };
-pub use crate::{
+pub use super::{
     AdminAuditViews, AdminCollectionError, AdminDataRows, AdminDataTables, AdminOptionalSettings,
     AdminPermissionIds, AdminPermissionSummaries, AdminPermissionValues, AdminRoleIds,
     AdminRoleNames, AdminRoleSummaries, AdminSessionViews, AdminTexts, AdminUserSummaries,
 };
 
-pub use crate::{
+pub use super::{
     AdminBrandingView, AdminOptionalSetting, AdminSetting, AdminSettingInputKind,
     AdminSettingLabel, AdminSettingName, AdminSettingOptionality, AdminSettingSpec,
     AdminSettingsView, AdminUpdateSettingsReq,
 };
 
-pub use crate::{
+pub use super::{
     AdminNoBody, AdminSessionIdentifier, AdminSessionTimestamp, AdminSessionView, AdminSessionsPage,
 };
 
-pub use crate::{
+pub use super::{
     AdminAuditExportRoute, AdminAuditLogRoute, AdminAuthenticationRouteFamily, AdminBrandingRoute,
     AdminChangeOwnPasswordRoute, AdminCreateRoleRoute, AdminCreateUserRoute,
     AdminDataTableFrontendPath, AdminDataTableRoute, AdminDataTablesRoute, AdminDeleteRoleRoute,

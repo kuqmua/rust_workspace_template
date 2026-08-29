@@ -1,29 +1,28 @@
-pub use crate::bounded_bytes::BoundedBytes;
-pub use crate::bounded_json_read_error::BoundedJsonReadError;
-pub use crate::bounded_json_text::BoundedJsonText;
-pub use crate::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore;
-pub use crate::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize;
-pub use crate::bounded_read_error::BoundedReadError;
-pub use crate::bounded_read_from_utf8_error::BoundedReadFromUtf8Error;
-pub use crate::bounded_read_io_error::BoundedReadIoError;
-pub use crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes;
-use crate::bounded_read_observed_bytes::BoundedReadObservedBytes;
-pub use crate::bounded_text::BoundedText;
-pub use crate::classify_not_found_io_error::classify_not_found_io_error;
-use crate::ensure_size_within_limit::ensure_size_within_limit;
-pub use crate::io_error_presence_disposition::IoErrorPresenceDisposition;
-pub use crate::parse_bounded_json::parse_bounded_json;
-use crate::parse_bounded_json_owned::parse_bounded_json_owned;
-pub use crate::path_ref::PathRef;
-pub use crate::read_bounded_file::read_bounded_file;
-pub use crate::read_bounded_file_async::read_bounded_file_async;
-pub use crate::read_bounded_http_response::read_bounded_http_response;
-pub use crate::read_bounded_json_file_async::read_bounded_json_file_async;
-pub use crate::read_bounded_json_http_response::read_bounded_json_http_response;
-pub use crate::reqwest_error::ReqwestError;
-pub use crate::reqwest_response::ReqwestResponse;
-pub use crate::serde_json_error::SerdeJsonError;
-
+pub use super::bounded_bytes::BoundedBytes;
+pub use super::bounded_json_read_error::BoundedJsonReadError;
+pub use super::bounded_json_text::BoundedJsonText;
+pub use super::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore;
+pub use super::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize;
+pub use super::bounded_read_error::BoundedReadError;
+pub use super::bounded_read_from_utf8_error::BoundedReadFromUtf8Error;
+pub use super::bounded_read_io_error::BoundedReadIoError;
+pub use super::bounded_read_maximum_bytes::BoundedReadMaximumBytes;
+use super::bounded_read_observed_bytes::BoundedReadObservedBytes;
+pub use super::bounded_text::BoundedText;
+pub use super::classify_not_found_io_error::classify_not_found_io_error;
+use super::ensure_size_within_limit::ensure_size_within_limit;
+pub use super::io_error_presence_disposition::IoErrorPresenceDisposition;
+pub use super::parse_bounded_json::parse_bounded_json;
+use super::parse_bounded_json_owned::parse_bounded_json_owned;
+pub use super::path_ref::PathRef;
+pub use super::read_bounded_file::read_bounded_file;
+pub use super::read_bounded_file_async::read_bounded_file_async;
+pub use super::read_bounded_http_response::read_bounded_http_response;
+pub use super::read_bounded_json_file_async::read_bounded_json_file_async;
+pub use super::read_bounded_json_http_response::read_bounded_json_http_response;
+pub use super::reqwest_error::ReqwestError;
+pub use super::reqwest_response::ReqwestResponse;
+pub use super::serde_json_error::SerdeJsonError;
 #[cfg(test)]
 mod tests {
     fn unique_path(name: &str) -> std::path::PathBuf {
@@ -184,77 +183,77 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod bounded_bytes {
-    pub use crate::bounded_bytes::*;
+    pub use super::super::bounded_bytes::*;
 }
 mod bounded_json_read_error {
-    pub use crate::bounded_json_read_error::*;
+    pub use super::super::bounded_json_read_error::*;
 }
 mod bounded_json_text {
-    pub use crate::bounded_json_text::*;
+    pub use super::super::bounded_json_text::*;
 }
 mod bounded_read_concurrency_arc_semaphore {
-    pub use crate::bounded_read_concurrency_arc_semaphore::*;
+    pub use super::super::bounded_read_concurrency_arc_semaphore::*;
 }
 mod bounded_read_concurrency_maximum_non_zero_usize {
-    pub use crate::bounded_read_concurrency_maximum_non_zero_usize::*;
+    pub use super::super::bounded_read_concurrency_maximum_non_zero_usize::*;
 }
 mod bounded_read_error {
-    pub use crate::bounded_read_error::*;
+    pub use super::super::bounded_read_error::*;
 }
 mod bounded_read_from_utf8_error {
-    pub use crate::bounded_read_from_utf8_error::*;
+    pub use super::super::bounded_read_from_utf8_error::*;
 }
 mod bounded_read_io_error {
-    pub use crate::bounded_read_io_error::*;
+    pub use super::super::bounded_read_io_error::*;
 }
 mod bounded_read_maximum_bytes {
-    pub use crate::bounded_read_maximum_bytes::*;
+    pub use super::super::bounded_read_maximum_bytes::*;
 }
 mod bounded_read_observed_bytes {
-    pub use crate::bounded_read_observed_bytes::*;
+    pub use super::super::bounded_read_observed_bytes::*;
 }
 mod bounded_text {
-    pub use crate::bounded_text::*;
+    pub use super::super::bounded_text::*;
 }
 mod classify_not_found_io_error {
-    pub use crate::classify_not_found_io_error::*;
+    pub use super::super::classify_not_found_io_error::*;
 }
 mod ensure_size_within_limit {
-    pub use crate::ensure_size_within_limit::*;
+    pub use super::super::ensure_size_within_limit::*;
 }
 mod io_error_presence_disposition {
-    pub use crate::io_error_presence_disposition::*;
+    pub use super::super::io_error_presence_disposition::*;
 }
 mod parse_bounded_json {
-    pub use crate::parse_bounded_json::*;
+    pub use super::super::parse_bounded_json::*;
 }
 mod parse_bounded_json_owned {
-    pub use crate::parse_bounded_json_owned::*;
+    pub use super::super::parse_bounded_json_owned::*;
 }
 mod path_ref {
-    pub use crate::path_ref::*;
+    pub use super::super::path_ref::*;
 }
 mod read_bounded_file {
-    pub use crate::read_bounded_file::*;
+    pub use super::super::read_bounded_file::*;
 }
 mod read_bounded_file_async {
-    pub use crate::read_bounded_file_async::*;
+    pub use super::super::read_bounded_file_async::*;
 }
 mod read_bounded_http_response {
-    pub use crate::read_bounded_http_response::*;
+    pub use super::super::read_bounded_http_response::*;
 }
 mod read_bounded_json_file_async {
-    pub use crate::read_bounded_json_file_async::*;
+    pub use super::super::read_bounded_json_file_async::*;
 }
 mod read_bounded_json_http_response {
-    pub use crate::read_bounded_json_http_response::*;
+    pub use super::super::read_bounded_json_http_response::*;
 }
 mod reqwest_error {
-    pub use crate::reqwest_error::*;
+    pub use super::super::reqwest_error::*;
 }
 mod reqwest_response {
-    pub use crate::reqwest_response::*;
+    pub use super::super::reqwest_response::*;
 }
 mod serde_json_error {
-    pub use crate::serde_json_error::*;
+    pub use super::super::serde_json_error::*;
 }

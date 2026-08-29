@@ -1,4 +1,4 @@
-use crate::domain_types::UuidAdminValue;
+use super::domain_types::UuidAdminValue;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum AdminResourceText {

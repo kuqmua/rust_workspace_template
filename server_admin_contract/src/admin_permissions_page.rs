@@ -1,4 +1,4 @@
-use crate::domain_types::AdminPermissionSummary;
+use super::domain_types::AdminPermissionSummary;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

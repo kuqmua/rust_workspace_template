@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-use crate::{
+use super::{
     AdminPageTotalCount, AdminRepositoryError, SqlxAdminRepositoryPoolRef, repository_page_total,
 };
 pub(crate) use data_flt::DataFlt;
@@ -14,26 +14,26 @@ pub(crate) use data_users_flt::DataUsersFlt;
 
 // Root-owned module compatibility wrappers.
 mod data_flt {
-    pub use crate::data_flt::*;
+    pub use super::super::data_flt::*;
 }
 mod data_flt_json {
-    pub use crate::data_flt_json::*;
+    pub use super::super::data_flt_json::*;
 }
 mod data_permissions_flt {
-    pub use crate::data_permissions_flt::*;
+    pub use super::super::data_permissions_flt::*;
 }
 mod data_role_permissions_flt {
-    pub use crate::data_role_permissions_flt::*;
+    pub use super::super::data_role_permissions_flt::*;
 }
 mod data_roles_flt {
-    pub use crate::data_roles_flt::*;
+    pub use super::super::data_roles_flt::*;
 }
 mod data_system_settings_flt {
-    pub use crate::data_system_settings_flt::*;
+    pub use super::super::data_system_settings_flt::*;
 }
 mod data_user_roles_flt {
-    pub use crate::data_user_roles_flt::*;
+    pub use super::super::data_user_roles_flt::*;
 }
 mod data_users_flt {
-    pub use crate::data_users_flt::*;
+    pub use super::super::data_users_flt::*;
 }

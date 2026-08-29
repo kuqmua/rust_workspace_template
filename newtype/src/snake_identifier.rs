@@ -1,13 +1,11 @@
-use crate::{SNAKE_IDENT_MAX_LEN, SnakeIdentifierifierLen, SnakeIdentifierifierTryFromStringError};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) struct SnakeIdentifier(String);
 impl TryFrom<String> for SnakeIdentifier {
-    type Error = SnakeIdentifierifierTryFromStringError;
+    type Error = crate::SnakeIdentifierifierTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > SNAKE_IDENT_MAX_LEN {
-            return Err(SnakeIdentifierifierTryFromStringError(
-                SnakeIdentifierifierLen::from(value.len()),
+        if value.len() > crate::SNAKE_IDENT_MAX_LEN {
+            return Err(crate::SnakeIdentifierifierTryFromStringError(
+                crate::SnakeIdentifierifierLen::from(value.len()),
             ));
         }
         Ok(Self(value))

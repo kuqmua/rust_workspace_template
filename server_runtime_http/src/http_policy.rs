@@ -1,19 +1,18 @@
-pub use crate::bearer_authorization_resolution::BearerAuthorizationResolution;
-pub use crate::classify_optional_json_content_type::classify_optional_json_content_type;
-pub use crate::cookie_resolution::CookieResolution;
-pub use crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef;
-pub use crate::http_bearer_token_ref::HttpBearerTokenRef;
-pub use crate::http_content_type_text_ref::HttpContentTypeTextRef;
-pub use crate::http_cookie_headers_ref::HttpCookieHeadersRef;
-pub use crate::http_cookie_name_ref::HttpCookieNameRef;
-pub use crate::http_cookie_value_ref::HttpCookieValueRef;
-pub use crate::optional_json_body_presence::OptionalJsonBodyPresence;
-pub use crate::optional_json_content_type::OptionalJsonContentType;
-pub use crate::optional_json_content_type_decision::OptionalJsonContentTypeDecision;
-pub use crate::resolve_bearer_authorization::resolve_bearer_authorization;
-pub use crate::resolve_optional_json_content_type_decision::resolve_optional_json_content_type_decision;
-pub use crate::resolve_unique_cookie::resolve_unique_cookie;
-
+pub use super::bearer_authorization_resolution::BearerAuthorizationResolution;
+pub use super::classify_optional_json_content_type::classify_optional_json_content_type;
+pub use super::cookie_resolution::CookieResolution;
+pub use super::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef;
+pub use super::http_bearer_token_ref::HttpBearerTokenRef;
+pub use super::http_content_type_text_ref::HttpContentTypeTextRef;
+pub use super::http_cookie_headers_ref::HttpCookieHeadersRef;
+pub use super::http_cookie_name_ref::HttpCookieNameRef;
+pub use super::http_cookie_value_ref::HttpCookieValueRef;
+pub use super::optional_json_body_presence::OptionalJsonBodyPresence;
+pub use super::optional_json_content_type::OptionalJsonContentType;
+pub use super::optional_json_content_type_decision::OptionalJsonContentTypeDecision;
+pub use super::resolve_bearer_authorization::resolve_bearer_authorization;
+pub use super::resolve_optional_json_content_type_decision::resolve_optional_json_content_type_decision;
+pub use super::resolve_unique_cookie::resolve_unique_cookie;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -66,47 +65,47 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod bearer_authorization_resolution {
-    pub use crate::bearer_authorization_resolution::*;
+    pub use super::super::bearer_authorization_resolution::*;
 }
 mod classify_optional_json_content_type {
-    pub use crate::classify_optional_json_content_type::*;
+    pub use super::super::classify_optional_json_content_type::*;
 }
 mod cookie_resolution {
-    pub use crate::cookie_resolution::*;
+    pub use super::super::cookie_resolution::*;
 }
 mod http_authorization_header_text_ref {
-    pub use crate::http_authorization_header_text_ref::*;
+    pub use super::super::http_authorization_header_text_ref::*;
 }
 mod http_bearer_token_ref {
-    pub use crate::http_bearer_token_ref::*;
+    pub use super::super::http_bearer_token_ref::*;
 }
 mod http_content_type_text_ref {
-    pub use crate::http_content_type_text_ref::*;
+    pub use super::super::http_content_type_text_ref::*;
 }
 mod http_cookie_headers_ref {
-    pub use crate::http_cookie_headers_ref::*;
+    pub use super::super::http_cookie_headers_ref::*;
 }
 mod http_cookie_name_ref {
-    pub use crate::http_cookie_name_ref::*;
+    pub use super::super::http_cookie_name_ref::*;
 }
 mod http_cookie_value_ref {
-    pub use crate::http_cookie_value_ref::*;
+    pub use super::super::http_cookie_value_ref::*;
 }
 mod optional_json_body_presence {
-    pub use crate::optional_json_body_presence::*;
+    pub use super::super::optional_json_body_presence::*;
 }
 mod optional_json_content_type {
-    pub use crate::optional_json_content_type::*;
+    pub use super::super::optional_json_content_type::*;
 }
 mod optional_json_content_type_decision {
-    pub use crate::optional_json_content_type_decision::*;
+    pub use super::super::optional_json_content_type_decision::*;
 }
 mod resolve_bearer_authorization {
-    pub use crate::resolve_bearer_authorization::*;
+    pub use super::super::resolve_bearer_authorization::*;
 }
 mod resolve_optional_json_content_type_decision {
-    pub use crate::resolve_optional_json_content_type_decision::*;
+    pub use super::super::resolve_optional_json_content_type_decision::*;
 }
 mod resolve_unique_cookie {
-    pub use crate::resolve_unique_cookie::*;
+    pub use super::super::resolve_unique_cookie::*;
 }

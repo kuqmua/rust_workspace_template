@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::{
+use super::{
     ChronoFixedOffsetError, I32ParseIntError, StdEnvVarOk, StdEnvVarOkRef, TimezoneSeconds,
     TryFromStdEnvVarOk, TryFromStdEnvVarOkTimezoneError, parse_east_fixed_offset,
     parse_from_str_with_error,

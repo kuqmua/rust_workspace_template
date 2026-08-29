@@ -1,12 +1,11 @@
-pub use crate::display_plus_to_tokens::DisplayPlusToTokens;
-pub use crate::hash_map::HashMap;
-pub use crate::hash_map_snake_case::HashMapSnakeCase;
-pub use crate::hash_map_upper_camel_case::HashMapUpperCamelCase;
-pub use crate::parameter;
-pub use crate::swagger_url_path_prefix::SwaggerUrlPathPrefix;
-pub use crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr;
-pub use crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream;
-
+pub use super::display_plus_to_tokens::DisplayPlusToTokens;
+pub use super::hash_map::HashMap;
+pub use super::hash_map_snake_case::HashMapSnakeCase;
+pub use super::hash_map_upper_camel_case::HashMapUpperCamelCase;
+pub use super::parameter;
+pub use super::swagger_url_path_prefix::SwaggerUrlPathPrefix;
+pub use super::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr;
+pub use super::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream;
 naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["primary", "key"],
     ["serde"],

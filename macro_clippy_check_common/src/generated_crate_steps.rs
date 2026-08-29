@@ -3,28 +3,21 @@
     reason = "the generated execution steps precede their supporting owner modules"
 )]
 #[cfg(feature = "test-utils")]
-pub(crate) const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
-    GeneratedCrateStep::new(
+pub(crate) const GENERATED_CRATE_STEPS: [crate::generated_crate_step::GeneratedCrateStep; 4] = [
+    crate::generated_crate_step::GeneratedCrateStep::new(
         &constants_str::MACRO_CLIPPY_CARGO_FMT_ARGS,
-        GeneratedCratePhase::Formatting,
+        crate::generated_crate_phase::GeneratedCratePhase::Formatting,
     ),
-    GeneratedCrateStep::new(
+    crate::generated_crate_step::GeneratedCrateStep::new(
         &constants_str::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
-        GeneratedCratePhase::Compilation,
+        crate::generated_crate_phase::GeneratedCratePhase::Compilation,
     ),
-    GeneratedCrateStep::new(
+    crate::generated_crate_step::GeneratedCrateStep::new(
         &constants_str::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
-        GeneratedCratePhase::Clippy,
+        crate::generated_crate_phase::GeneratedCratePhase::Clippy,
     ),
-    GeneratedCrateStep::new(
+    crate::generated_crate_step::GeneratedCrateStep::new(
         &constants_str::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS,
-        GeneratedCratePhase::Test,
+        crate::generated_crate_phase::GeneratedCratePhase::Test,
     ),
 ];
-
-#[cfg(feature = "test-utils")]
-pub(crate) use crate::generated_crate_phase::GeneratedCratePhase;
-#[cfg(feature = "test-utils")]
-pub(crate) use crate::generated_crate_step::GeneratedCrateStep;
-#[cfg(feature = "test-utils")]
-pub(crate) use crate::remove_dir_on_drop::RemoveDirOnDrop;

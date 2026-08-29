@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 pub async fn validate_generated_postgres_table<Table>(
     pool: SqlxPgPoolRef<'_>,

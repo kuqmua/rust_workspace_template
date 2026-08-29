@@ -1,4 +1,4 @@
-use crate::{AdminGeneratedTable, UtoipaAdminOpenApi};
+use super::{AdminGeneratedTable, UtoipaAdminOpenApi};
 
 #[must_use]
 pub fn generated_open_api() -> UtoipaAdminOpenApi {

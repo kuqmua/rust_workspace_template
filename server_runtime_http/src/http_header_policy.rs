@@ -1,11 +1,10 @@
-pub use crate::build_attachment_content_disposition::build_attachment_content_disposition;
-use crate::content_disposition_percent_encode_set::CONTENT_DISPOSITION_PERCENT_ENCODE_SET;
-pub use crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef;
-pub use crate::http_content_disposition::HttpContentDisposition;
-pub use crate::http_content_disposition_error::HttpContentDispositionError;
-pub use crate::http_content_length::HttpContentLength;
-pub use crate::http_content_length_error::HttpContentLengthError;
-
+pub use super::build_attachment_content_disposition::build_attachment_content_disposition;
+use super::content_disposition_percent_encode_set::CONTENT_DISPOSITION_PERCENT_ENCODE_SET;
+pub use super::http_attachment_file_name_ref::HttpAttachmentFileNameRef;
+pub use super::http_content_disposition::HttpContentDisposition;
+pub use super::http_content_disposition_error::HttpContentDispositionError;
+pub use super::http_content_length::HttpContentLength;
+pub use super::http_content_length_error::HttpContentLengthError;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -36,23 +35,23 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod build_attachment_content_disposition {
-    pub use crate::build_attachment_content_disposition::*;
+    pub use super::super::build_attachment_content_disposition::*;
 }
 mod content_disposition_percent_encode_set {
-    pub use crate::content_disposition_percent_encode_set::*;
+    pub use super::super::content_disposition_percent_encode_set::*;
 }
 mod http_attachment_file_name_ref {
-    pub use crate::http_attachment_file_name_ref::*;
+    pub use super::super::http_attachment_file_name_ref::*;
 }
 mod http_content_disposition {
-    pub use crate::http_content_disposition::*;
+    pub use super::super::http_content_disposition::*;
 }
 mod http_content_disposition_error {
-    pub use crate::http_content_disposition_error::*;
+    pub use super::super::http_content_disposition_error::*;
 }
 mod http_content_length {
-    pub use crate::http_content_length::*;
+    pub use super::super::http_content_length::*;
 }
 mod http_content_length_error {
-    pub use crate::http_content_length_error::*;
+    pub use super::super::http_content_length_error::*;
 }

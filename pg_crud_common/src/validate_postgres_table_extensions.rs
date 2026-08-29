@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 pub async fn validate_postgres_table_extensions<Table>(
     pool: SqlxPgPoolRef<'_>,

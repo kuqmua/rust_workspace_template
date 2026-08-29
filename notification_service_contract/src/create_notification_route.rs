@@ -1,4 +1,4 @@
-use crate::domain_types::{CreateNotificationReq, CreateNotificationRes};
+use super::domain_types::{CreateNotificationReq, CreateNotificationRes};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,

@@ -94,14 +94,13 @@ impl HttpErrorDiagnostic {
     }
 }
 
-pub use crate::http_error_code::HttpErrorCode;
-pub use crate::http_error_telemetry::HttpErrorTelemetry;
-pub use crate::http_error_type::HttpErrorType;
-use crate::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext;
-pub(super) use crate::std_http_error_backtrace::StdHttpErrorBacktrace;
-pub(super) use crate::std_http_error_chain::StdHttpErrorChain;
-pub(super) use crate::tracing_http_span_trace::TracingHttpSpanTrace;
-
+pub use super::http_error_code::HttpErrorCode;
+pub use super::http_error_telemetry::HttpErrorTelemetry;
+pub use super::http_error_type::HttpErrorType;
+use super::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext;
+pub(super) use super::std_http_error_backtrace::StdHttpErrorBacktrace;
+pub(super) use super::std_http_error_chain::StdHttpErrorChain;
+pub(super) use super::tracing_http_span_trace::TracingHttpSpanTrace;
 #[cfg(test)]
 mod tests {
     #[test]

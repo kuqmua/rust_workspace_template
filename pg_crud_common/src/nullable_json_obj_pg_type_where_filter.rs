@@ -1,4 +1,4 @@
-use crate::{
+use super::{
     AddOperator, AllEnumVariants, AllEnumVariantsArrayDefaultSomeOneElement, DefaultSomeOneElement,
     NotEmptyUniqueVec, PgTypeWhereFilter, QueryPartError, QueryPartFragment, QueryPartIncrementMut,
     SqlColumnRef, SqlxPostgresQuery, SqlxPostgresQueryBindError,

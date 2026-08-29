@@ -1,4 +1,4 @@
-use crate::domain_types::{FileStoragePathError, MAXIMUM_OPERATION_ID_BYTES};
+use super::domain_types::{FileStoragePathError, MAXIMUM_OPERATION_ID_BYTES};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,

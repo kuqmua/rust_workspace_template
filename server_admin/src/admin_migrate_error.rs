@@ -1,4 +1,4 @@
-use crate::{AdminMigrateErrorInner, SqlxAdminMigrateError};
+use super::{AdminMigrateErrorInner, SqlxAdminMigrateError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 #[error("failed to prepare administrator schema: {0}")]

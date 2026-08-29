@@ -1,4 +1,4 @@
-use crate::{AdminGeneratedTable, SharedAdminGeneratedTableStateArc};
+use super::{AdminGeneratedTable, SharedAdminGeneratedTableStateArc};
 
 #[must_use]
 pub fn generated_routes(

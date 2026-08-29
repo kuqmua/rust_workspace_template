@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::domain_types::ProcMacro2MacroTokens;
+use super::domain_types::ProcMacro2MacroTokens;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct TopLevelCommaPart(pub(super) ProcMacro2MacroTokens);

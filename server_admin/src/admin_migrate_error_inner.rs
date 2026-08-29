@@ -1,4 +1,4 @@
-use crate::SqlxAdminMigrateError;
+use super::SqlxAdminMigrateError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminMigrateErrorInner {

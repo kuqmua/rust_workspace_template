@@ -106,8 +106,8 @@ mod validate_commit_header;
 #[cfg(test)]
 mod validate_commit_header_value;
 
-pub use crate::axum_http_status_code::AxumHttpStatusCode;
-pub use crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider;
+pub use axum_http_status_code::AxumHttpStatusCode;
+pub use axum_http_status_code_provider::AxumHttpStatusCodeProvider;
 pub(crate) use check_body_size::*;
 pub(crate) use check_commit::*;
 #[cfg(test)]

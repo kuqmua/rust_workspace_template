@@ -1,12 +1,11 @@
-pub use crate::init_service_observability::init_service_observability;
-pub use crate::observability_guard::ObservabilityGuard;
-pub use crate::observability_init_error::ObservabilityInitError;
-pub use crate::opentelemetry_otlp_exporter_build_error::OpentelemetryOtlpExporterBuildError;
-pub use crate::opentelemetry_sdk_observability_shutdown_error::OpentelemetrySdkObservabilityShutdownError;
-pub(crate) use crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider;
-pub use crate::service_name::ServiceName;
-pub use crate::tracing_subscriber_init_error::TracingSubscriberInitError;
-
+pub use super::init_service_observability::init_service_observability;
+pub use super::observability_guard::ObservabilityGuard;
+pub use super::observability_init_error::ObservabilityInitError;
+pub use super::opentelemetry_otlp_exporter_build_error::OpentelemetryOtlpExporterBuildError;
+pub use super::opentelemetry_sdk_observability_shutdown_error::OpentelemetrySdkObservabilityShutdownError;
+pub(crate) use super::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider;
+pub use super::service_name::ServiceName;
+pub use super::tracing_subscriber_init_error::TracingSubscriberInitError;
 #[cfg(test)]
 mod tests {
     #[test]

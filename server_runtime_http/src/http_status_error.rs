@@ -1,7 +1,6 @@
-pub use crate::classify_http_error_status::classify_http_error_status;
-pub use crate::http_error_class::HttpErrorClass;
-pub use crate::http_error_status::HttpErrorStatus;
-
+pub use super::classify_http_error_status::classify_http_error_status;
+pub use super::http_error_class::HttpErrorClass;
+pub use super::http_error_status::HttpErrorStatus;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -64,11 +63,11 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod classify_http_error_status {
-    pub use crate::classify_http_error_status::*;
+    pub use super::super::classify_http_error_status::*;
 }
 mod http_error_class {
-    pub use crate::http_error_class::*;
+    pub use super::super::http_error_class::*;
 }
 mod http_error_status {
-    pub use crate::http_error_status::*;
+    pub use super::super::http_error_status::*;
 }

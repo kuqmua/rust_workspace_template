@@ -2,7 +2,7 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use crate::domain_types::*;
+use super::domain_types::*;
 
 pub fn generate_pg_type_where_token_stream<T>(
     attrs_token_stream: &dyn quote::ToTokens,

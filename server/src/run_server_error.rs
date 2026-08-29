@@ -1,4 +1,4 @@
-use crate::domain_types::{
+use super::domain_types::{
     MetricsExporterPrometheusBuildError, ServerIoError, SqlxServerPgConnectError,
 };
 

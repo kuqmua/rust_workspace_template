@@ -1,4 +1,4 @@
-use crate::AdminHtmlFormText;
+use super::AdminHtmlFormText;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]

@@ -1,4 +1,4 @@
-use crate::AdminHtmlFormKeyError;
+use super::AdminHtmlFormKeyError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

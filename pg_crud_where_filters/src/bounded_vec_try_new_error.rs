@@ -1,4 +1,4 @@
-use crate::domain_types::BoundedVecLen;
+use super::domain_types::BoundedVecLen;
 
 #[location::errors_with_location]
 #[derive(

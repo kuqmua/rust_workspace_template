@@ -311,5 +311,5 @@ fn open_api_contains_auth_and_user_security_contracts() {
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod helper {
-    pub use crate::application_tests_helper::*;
+    pub use super::super::application_tests_helper::*;
 }

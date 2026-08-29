@@ -14,8 +14,8 @@ use admin_auth_route_registry::AdminAuthRouteRegistry;
 
 // Root-owned module compatibility wrappers.
 mod admin_api_open_api {
-    pub use crate::admin_api_open_api::*;
+    pub use super::super::admin_api_open_api::*;
 }
 mod admin_auth_route_registry {
-    pub use crate::admin_auth_route_registry::*;
+    pub use super::super::admin_auth_route_registry::*;
 }

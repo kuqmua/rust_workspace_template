@@ -1,4 +1,4 @@
-use crate::{AdminMigrateError, SqlxAdminMigrateError};
+use super::{AdminMigrateError, SqlxAdminMigrateError};
 
 pub async fn prepare_postgresql(
     pool: app_state::SqlxPgPoolRef<'_>,

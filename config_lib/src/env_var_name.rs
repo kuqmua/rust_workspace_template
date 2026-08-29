@@ -1,4 +1,4 @@
-use crate::{CONFIG_LIB_STRING_WRAPPER_MAX_LEN, ConfigLibStringWrapperTryFromStringError};
+use super::{CONFIG_LIB_STRING_WRAPPER_MAX_LEN, ConfigLibStringWrapperTryFromStringError};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, newtype::Display,

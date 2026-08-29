@@ -1,4 +1,4 @@
-use crate::{code_style_snapshot, domain_analysis, source_analysis, types};
+use super::{code_style_snapshot, domain_analysis, source_analysis, types};
 
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) enum RustOrClippy {

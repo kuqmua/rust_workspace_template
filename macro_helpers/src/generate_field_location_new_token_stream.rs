@@ -1,7 +1,7 @@
-pub use crate::field_location_column::FieldLocationColumn;
-pub use crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
-pub use crate::field_location_file::FieldLocationFile;
-pub use crate::field_location_line::FieldLocationLine;
+pub use super::field_location_column::FieldLocationColumn;
+pub use super::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
+pub use super::field_location_file::FieldLocationFile;
+pub use super::field_location_line::FieldLocationLine;
 #[must_use]
 pub fn generate_field_location_new_token_stream(
     file: FieldLocationFile,

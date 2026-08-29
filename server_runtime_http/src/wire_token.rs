@@ -1,6 +1,5 @@
-pub use crate::versioned_url_safe_wire_token_text::VersionedUrlSafeWireTokenText;
-pub use crate::versioned_url_safe_wire_token_text_error::VersionedUrlSafeWireTokenTextError;
-
+pub use super::versioned_url_safe_wire_token_text::VersionedUrlSafeWireTokenText;
+pub use super::versioned_url_safe_wire_token_text_error::VersionedUrlSafeWireTokenTextError;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -23,8 +22,8 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod versioned_url_safe_wire_token_text {
-    pub use crate::versioned_url_safe_wire_token_text::*;
+    pub use super::super::versioned_url_safe_wire_token_text::*;
 }
 mod versioned_url_safe_wire_token_text_error {
-    pub use crate::versioned_url_safe_wire_token_text_error::*;
+    pub use super::super::versioned_url_safe_wire_token_text_error::*;
 }

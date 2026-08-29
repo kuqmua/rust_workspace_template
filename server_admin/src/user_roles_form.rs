@@ -1,4 +1,4 @@
-use crate::{AdminHtmlFormText, StdAdminHtmlSelected};
+use super::{AdminHtmlFormText, StdAdminHtmlSelected};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 pub(crate) struct UserRolesForm {

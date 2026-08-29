@@ -1,7 +1,7 @@
-pub use crate::format_with_cargofmt::FormatWithCargofmt;
-pub use crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef;
-pub use crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile;
-pub use crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file;
+pub use super::format_with_cargofmt::FormatWithCargofmt;
+pub use super::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef;
+pub use super::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile;
+pub use super::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file;
 #[cfg(test)]
 mod tests {
     #[test]

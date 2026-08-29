@@ -1,4 +1,4 @@
-use crate::{
+use super::{
     ConfigExampleValidity, ConfigFieldExampleRef, ConfigFieldRequirement, ConfigFieldSensitivity,
     ConfigRustTypeName, EnvVarNameRef, StdEnvVarOk,
 };

@@ -1,4 +1,4 @@
-use crate::domain_types::{FileStorageRootPathBuf, StoragePathRef};
+use super::domain_types::{FileStorageRootPathBuf, StoragePathRef};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_constructor::New)]
 pub struct SafeFileStorage {

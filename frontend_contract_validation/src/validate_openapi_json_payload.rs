@@ -1,4 +1,4 @@
-use crate::openapi_validation::{
+use super::openapi_validation::{
     OpenApiPayloadValidationError, OpenApiSchemaMismatch, SerdeJsonOpenApiSerializationError,
 };
 

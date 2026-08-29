@@ -486,14 +486,14 @@ fn observed_client_preparation_injects_context_and_creates_child_span() {
 
 // Root-owned module compatibility wrappers.
 mod request_id {
-    pub use crate::domain_types_tests_request_id::*;
+    pub use super::super::domain_types_tests_request_id::*;
 }
 mod resource_budget {
-    pub use crate::domain_types_tests_resource_budget::*;
+    pub use super::super::domain_types_tests_resource_budget::*;
 }
 mod security_headers {
-    pub use crate::domain_types_tests_security_headers::*;
+    pub use super::super::domain_types_tests_security_headers::*;
 }
 mod service_runtime {
-    pub use crate::domain_types_tests_service_runtime::*;
+    pub use super::super::domain_types_tests_service_runtime::*;
 }

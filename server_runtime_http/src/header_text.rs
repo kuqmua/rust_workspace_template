@@ -1,10 +1,9 @@
-pub use crate::http_header_name::HttpHeaderName;
-pub use crate::http_header_text_bytes::HttpHeaderTextBytes;
-pub use crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes;
-pub use crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError;
-pub use crate::http_header_text_ref::HttpHeaderTextRef;
-pub use crate::http_header_text_resolution::HttpHeaderTextResolution;
-
+pub use super::http_header_name::HttpHeaderName;
+pub use super::http_header_text_bytes::HttpHeaderTextBytes;
+pub use super::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes;
+pub use super::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError;
+pub use super::http_header_text_ref::HttpHeaderTextRef;
+pub use super::http_header_text_resolution::HttpHeaderTextResolution;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -73,20 +72,20 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod http_header_name {
-    pub use crate::http_header_name::*;
+    pub use super::super::http_header_name::*;
 }
 mod http_header_text_bytes {
-    pub use crate::http_header_text_bytes::*;
+    pub use super::super::http_header_text_bytes::*;
 }
 mod http_header_text_maximum_bytes {
-    pub use crate::http_header_text_maximum_bytes::*;
+    pub use super::super::http_header_text_maximum_bytes::*;
 }
 mod http_header_text_maximum_bytes_error {
-    pub use crate::http_header_text_maximum_bytes_error::*;
+    pub use super::super::http_header_text_maximum_bytes_error::*;
 }
 mod http_header_text_ref {
-    pub use crate::http_header_text_ref::*;
+    pub use super::super::http_header_text_ref::*;
 }
 mod http_header_text_resolution {
-    pub use crate::http_header_text_resolution::*;
+    pub use super::super::http_header_text_resolution::*;
 }

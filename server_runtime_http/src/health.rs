@@ -1,13 +1,13 @@
-pub use crate::add_health_routes::add_health_routes;
-pub use crate::health_component_status::HealthComponentStatus;
-pub use crate::health_probe_succeeded::HealthProbeSucceeded;
-pub use crate::health_probe_timeout_duration::HealthProbeTimeoutDuration;
-pub use crate::health_readiness::HealthReadiness;
-use crate::health_ready_error::HealthReadyError;
-pub use crate::health_snapshot::HealthSnapshot;
-pub use crate::run_health_probe::run_health_probe;
-pub use crate::service_liveness_snapshot::ServiceLivenessSnapshot;
-use crate::shared_health_readiness_arc::SharedHealthReadinessArc;
+pub use super::add_health_routes::add_health_routes;
+pub use super::health_component_status::HealthComponentStatus;
+pub use super::health_probe_succeeded::HealthProbeSucceeded;
+pub use super::health_probe_timeout_duration::HealthProbeTimeoutDuration;
+pub use super::health_readiness::HealthReadiness;
+use super::health_ready_error::HealthReadyError;
+pub use super::health_snapshot::HealthSnapshot;
+pub use super::run_health_probe::run_health_probe;
+pub use super::service_liveness_snapshot::ServiceLivenessSnapshot;
+use super::shared_health_readiness_arc::SharedHealthReadinessArc;
 #[cfg(test)]
 mod tests {
     #[tokio::test(start_paused = true)]
@@ -85,32 +85,32 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod add_health_routes {
-    pub use crate::add_health_routes::*;
+    pub use super::super::add_health_routes::*;
 }
 mod health_component_status {
-    pub use crate::health_component_status::*;
+    pub use super::super::health_component_status::*;
 }
 mod health_probe_succeeded {
-    pub use crate::health_probe_succeeded::*;
+    pub use super::super::health_probe_succeeded::*;
 }
 mod health_probe_timeout_duration {
-    pub use crate::health_probe_timeout_duration::*;
+    pub use super::super::health_probe_timeout_duration::*;
 }
 mod health_readiness {
-    pub use crate::health_readiness::*;
+    pub use super::super::health_readiness::*;
 }
 mod health_ready_error {
-    pub use crate::health_ready_error::*;
+    pub use super::super::health_ready_error::*;
 }
 mod health_snapshot {
-    pub use crate::health_snapshot::*;
+    pub use super::super::health_snapshot::*;
 }
 mod run_health_probe {
-    pub use crate::run_health_probe::*;
+    pub use super::super::run_health_probe::*;
 }
 mod service_liveness_snapshot {
-    pub use crate::service_liveness_snapshot::*;
+    pub use super::super::service_liveness_snapshot::*;
 }
 mod shared_health_readiness_arc {
-    pub use crate::shared_health_readiness_arc::*;
+    pub use super::super::shared_health_readiness_arc::*;
 }

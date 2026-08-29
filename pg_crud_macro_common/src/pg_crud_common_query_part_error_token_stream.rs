@@ -2,7 +2,7 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use crate::domain_types::*;
+use super::domain_types::*;
 
 #[must_use]
 pub fn pg_crud_common_query_part_error_token_stream()

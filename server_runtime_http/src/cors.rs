@@ -1,10 +1,10 @@
-use crate::cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES;
-use crate::cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS;
-use crate::cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH;
-pub use crate::http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues;
-pub use crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError;
-pub use crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef;
-pub use crate::parse_cors_allow_origin::parse_cors_allow_origin;
+use super::cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES;
+use super::cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS;
+use super::cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH;
+pub use super::http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues;
+pub use super::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError;
+pub use super::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef;
+pub use super::parse_cors_allow_origin::parse_cors_allow_origin;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -69,23 +69,23 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod cors_allow_origin_max_bytes {
-    pub use crate::cors_allow_origin_max_bytes::*;
+    pub use super::super::cors_allow_origin_max_bytes::*;
 }
 mod cors_allow_origin_max_items {
-    pub use crate::cors_allow_origin_max_items::*;
+    pub use super::super::cors_allow_origin_max_items::*;
 }
 mod cors_allow_origin_split_ch {
-    pub use crate::cors_allow_origin_split_ch::*;
+    pub use super::super::cors_allow_origin_split_ch::*;
 }
 mod http_cors_allow_origin_header_values {
-    pub use crate::http_cors_allow_origin_header_values::*;
+    pub use super::super::http_cors_allow_origin_header_values::*;
 }
 mod http_cors_allow_origin_header_values_error {
-    pub use crate::http_cors_allow_origin_header_values_error::*;
+    pub use super::super::http_cors_allow_origin_header_values_error::*;
 }
 mod http_cors_allow_origin_text_ref {
-    pub use crate::http_cors_allow_origin_text_ref::*;
+    pub use super::super::http_cors_allow_origin_text_ref::*;
 }
 mod parse_cors_allow_origin {
-    pub use crate::parse_cors_allow_origin::*;
+    pub use super::super::parse_cors_allow_origin::*;
 }

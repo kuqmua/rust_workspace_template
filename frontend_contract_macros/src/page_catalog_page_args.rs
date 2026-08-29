@@ -1,4 +1,4 @@
-use crate::SynExpr;
+use super::SynExpr;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]

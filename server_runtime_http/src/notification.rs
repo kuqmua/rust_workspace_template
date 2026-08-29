@@ -1,19 +1,18 @@
-use crate::axum_notification_json::AxumNotificationJson;
-pub use crate::axum_notification_router::AxumNotificationRouter;
-use crate::axum_notification_state::AxumNotificationState;
-use crate::http_notification_header_map::HttpNotificationHeaderMap;
-pub use crate::notification_api_token::NotificationApiToken;
-pub use crate::notification_api_token_authorized::NotificationApiTokenAuthorized;
-pub use crate::notification_api_token_error::NotificationApiTokenError;
-pub use crate::notification_api_token_ref::NotificationApiTokenRef;
-pub use crate::notification_message::NotificationMessage;
-pub use crate::notification_message_error::NotificationMessageError;
-pub use crate::notification_request::NotificationRequest;
-pub use crate::notification_router::notification_router;
-pub use crate::notification_sender::NotificationSender;
-pub use crate::notification_service_state::NotificationServiceState;
-use crate::send_notification::send_notification;
-
+use super::axum_notification_json::AxumNotificationJson;
+pub use super::axum_notification_router::AxumNotificationRouter;
+use super::axum_notification_state::AxumNotificationState;
+use super::http_notification_header_map::HttpNotificationHeaderMap;
+pub use super::notification_api_token::NotificationApiToken;
+pub use super::notification_api_token_authorized::NotificationApiTokenAuthorized;
+pub use super::notification_api_token_error::NotificationApiTokenError;
+pub use super::notification_api_token_ref::NotificationApiTokenRef;
+pub use super::notification_message::NotificationMessage;
+pub use super::notification_message_error::NotificationMessageError;
+pub use super::notification_request::NotificationRequest;
+pub use super::notification_router::notification_router;
+pub use super::notification_sender::NotificationSender;
+pub use super::notification_service_state::NotificationServiceState;
+use super::send_notification::send_notification;
 #[cfg(test)]
 mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
@@ -91,47 +90,47 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod axum_notification_json {
-    pub use crate::axum_notification_json::*;
+    pub use super::super::axum_notification_json::*;
 }
 mod axum_notification_router {
-    pub use crate::axum_notification_router::*;
+    pub use super::super::axum_notification_router::*;
 }
 mod axum_notification_state {
-    pub use crate::axum_notification_state::*;
+    pub use super::super::axum_notification_state::*;
 }
 mod http_notification_header_map {
-    pub use crate::http_notification_header_map::*;
+    pub use super::super::http_notification_header_map::*;
 }
 mod notification_api_token {
-    pub use crate::notification_api_token::*;
+    pub use super::super::notification_api_token::*;
 }
 mod notification_api_token_authorized {
-    pub use crate::notification_api_token_authorized::*;
+    pub use super::super::notification_api_token_authorized::*;
 }
 mod notification_api_token_error {
-    pub use crate::notification_api_token_error::*;
+    pub use super::super::notification_api_token_error::*;
 }
 mod notification_api_token_ref {
-    pub use crate::notification_api_token_ref::*;
+    pub use super::super::notification_api_token_ref::*;
 }
 mod notification_message {
-    pub use crate::notification_message::*;
+    pub use super::super::notification_message::*;
 }
 mod notification_message_error {
-    pub use crate::notification_message_error::*;
+    pub use super::super::notification_message_error::*;
 }
 mod notification_request {
-    pub use crate::notification_request::*;
+    pub use super::super::notification_request::*;
 }
 mod notification_router {
-    pub use crate::notification_router::*;
+    pub use super::super::notification_router::*;
 }
 mod notification_sender {
-    pub use crate::notification_sender::*;
+    pub use super::super::notification_sender::*;
 }
 mod notification_service_state {
-    pub use crate::notification_service_state::*;
+    pub use super::super::notification_service_state::*;
 }
 mod send_notification {
-    pub use crate::send_notification::*;
+    pub use super::super::send_notification::*;
 }

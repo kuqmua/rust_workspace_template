@@ -1,4 +1,4 @@
-use crate::domain_types::{StdAdminString, StdAdminStringTryFromStringError};
+use super::domain_types::{StdAdminString, StdAdminStringTryFromStringError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefOwned, newtype::FromInner)]
 pub struct SecrecyAdminString(secrecy::SecretBox<StdAdminString>);

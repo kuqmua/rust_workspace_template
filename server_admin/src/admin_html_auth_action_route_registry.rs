@@ -1,6 +1,6 @@
-use crate::change_password::change_password;
-use crate::sign_in::sign_in;
-use crate::sign_out::sign_out;
+use super::change_password::change_password;
+use super::sign_in::sign_in;
+use super::sign_out::sign_out;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::endpoint_registry(

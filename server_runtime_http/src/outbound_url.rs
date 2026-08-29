@@ -1,16 +1,15 @@
-use crate::outbound_address_disposition::OutboundAddressDisposition;
-pub use crate::outbound_allowed_host::OutboundAllowedHost;
-pub use crate::outbound_host_allowlist::OutboundHostAllowlist;
-pub use crate::outbound_host_allowlist_error::OutboundHostAllowlistError;
-pub use crate::outbound_host_policy::OutboundHostPolicy;
-pub use crate::outbound_ip_addr::OutboundIpAddr;
-pub use crate::outbound_url_error::OutboundUrlError;
-pub use crate::outbound_url_policy::OutboundUrlPolicy;
-pub use crate::outbound_url_scheme::OutboundUrlScheme;
-pub use crate::outbound_url_text_ref::OutboundUrlTextRef;
-pub use crate::reqwest_outbound_url::ReqwestOutboundUrl;
-use crate::resolve_outbound_address_disposition::resolve_outbound_address_disposition;
-
+use super::outbound_address_disposition::OutboundAddressDisposition;
+pub use super::outbound_allowed_host::OutboundAllowedHost;
+pub use super::outbound_host_allowlist::OutboundHostAllowlist;
+pub use super::outbound_host_allowlist_error::OutboundHostAllowlistError;
+pub use super::outbound_host_policy::OutboundHostPolicy;
+pub use super::outbound_ip_addr::OutboundIpAddr;
+pub use super::outbound_url_error::OutboundUrlError;
+pub use super::outbound_url_policy::OutboundUrlPolicy;
+pub use super::outbound_url_scheme::OutboundUrlScheme;
+pub use super::outbound_url_text_ref::OutboundUrlTextRef;
+pub use super::reqwest_outbound_url::ReqwestOutboundUrl;
+use super::resolve_outbound_address_disposition::resolve_outbound_address_disposition;
 #[cfg(test)]
 mod tests {
     const POLICY: super::OutboundUrlPolicy = super::OutboundUrlPolicy::new(
@@ -140,38 +139,38 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod outbound_address_disposition {
-    pub use crate::outbound_address_disposition::*;
+    pub use super::super::outbound_address_disposition::*;
 }
 mod outbound_allowed_host {
-    pub use crate::outbound_allowed_host::*;
+    pub use super::super::outbound_allowed_host::*;
 }
 mod outbound_host_allowlist {
-    pub use crate::outbound_host_allowlist::*;
+    pub use super::super::outbound_host_allowlist::*;
 }
 mod outbound_host_allowlist_error {
-    pub use crate::outbound_host_allowlist_error::*;
+    pub use super::super::outbound_host_allowlist_error::*;
 }
 mod outbound_host_policy {
-    pub use crate::outbound_host_policy::*;
+    pub use super::super::outbound_host_policy::*;
 }
 mod outbound_ip_addr {
-    pub use crate::outbound_ip_addr::*;
+    pub use super::super::outbound_ip_addr::*;
 }
 mod outbound_url_error {
-    pub use crate::outbound_url_error::*;
+    pub use super::super::outbound_url_error::*;
 }
 mod outbound_url_policy {
-    pub use crate::outbound_url_policy::*;
+    pub use super::super::outbound_url_policy::*;
 }
 mod outbound_url_scheme {
-    pub use crate::outbound_url_scheme::*;
+    pub use super::super::outbound_url_scheme::*;
 }
 mod outbound_url_text_ref {
-    pub use crate::outbound_url_text_ref::*;
+    pub use super::super::outbound_url_text_ref::*;
 }
 mod reqwest_outbound_url {
-    pub use crate::reqwest_outbound_url::*;
+    pub use super::super::reqwest_outbound_url::*;
 }
 mod resolve_outbound_address_disposition {
-    pub use crate::resolve_outbound_address_disposition::*;
+    pub use super::super::resolve_outbound_address_disposition::*;
 }

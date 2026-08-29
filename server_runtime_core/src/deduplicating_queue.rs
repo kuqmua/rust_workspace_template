@@ -48,11 +48,10 @@ where
     }
 }
 
-use crate::collections_hash_set::CollectionsHashSet;
-use crate::collections_vec_deque::CollectionsVecDeque;
-pub use crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize;
-pub use crate::queue_push::QueuePush;
-
+use super::collections_hash_set::CollectionsHashSet;
+use super::collections_vec_deque::CollectionsVecDeque;
+pub use super::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize;
+pub use super::queue_push::QueuePush;
 #[cfg(test)]
 mod tests {
     #[test]

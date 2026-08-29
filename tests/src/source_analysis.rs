@@ -976,32 +976,25 @@ impl UseImportVisitor {
             }),
         })
     }
+
+    fn use_tree_is_crate_rooted(use_tree: &syn::UseTree) -> bool {
+        matches!(use_tree, syn::UseTree::Path(path) if path.ident == constants_str::CRATE)
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
     fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
-        if matches!(i.vis, syn::Visibility::Inherited) {
-            let is_leptos_prelude_import = if let syn::UseTree::Path(leptos) = &i.tree
-                && let syn::UseTree::Path(prelude) = leptos.tree.as_ref()
-            {
-                leptos.ident == constants_str::CODE_STYLE_LEPTOS_CRATE
-                    && prelude.ident == constants_str::CODE_STYLE_PRELUDE_MODULE
-                    && matches!(prelude.tree.as_ref(), syn::UseTree::Group(_))
-            } else {
-                false
-            };
-            if !is_leptos_prelude_import {
-                self.found_non_public_use_import.set_true();
-            }
-        } else if let Some(root) = match &i.tree {
-            syn::UseTree::Path(use_path) => Some(use_path.ident.to_string()),
-            syn::UseTree::Rename(use_rename) => Some(use_rename.ident.to_string()),
-            syn::UseTree::Name(use_name) => Some(use_name.ident.to_string()),
-            syn::UseTree::Glob(_) | syn::UseTree::Group(_) => None,
-        } {
-            self.public_use_roots.push(root);
-        } else {
-            self.public_use_roots
-                .push(String::from(constants_str::ASTERISK));
+        if matches!(i.vis, syn::Visibility::Inherited) && Self::use_tree_is_crate_rooted(&i.tree) {
+            self.found_non_public_use_import.set_true();
+        }
+        if !matches!(i.vis, syn::Visibility::Inherited) && Self::use_tree_is_crate_rooted(&i.tree) {
+            self.public_use_roots.push(match &i.tree {
+                syn::UseTree::Path(use_path) => use_path.ident.to_string(),
+                syn::UseTree::Rename(use_rename) => use_rename.ident.to_string(),
+                syn::UseTree::Name(use_name) => use_name.ident.to_string(),
+                syn::UseTree::Glob(_) | syn::UseTree::Group(_) => {
+                    String::from(constants_str::ASTERISK)
+                }
+            });
         }
         if Self::use_tree_contains_rename(super::types::SynUseTreeRef::from(&i.tree)).get() {
             self.found_use_rename.set_true();

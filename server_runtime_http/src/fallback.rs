@@ -1,11 +1,10 @@
-pub use crate::fallback_response_mode::FallbackResponseMode;
-pub use crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes;
-pub use crate::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef;
-pub use crate::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef;
-pub use crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef;
-pub use crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef;
-pub use crate::resolve_fallback_response_mode::resolve_fallback_response_mode;
-
+pub use super::fallback_response_mode::FallbackResponseMode;
+pub use super::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes;
+pub use super::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef;
+pub use super::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef;
+pub use super::http_fallback_request_path_ref::HttpFallbackRequestPathRef;
+pub use super::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef;
+pub use super::resolve_fallback_response_mode::resolve_fallback_response_mode;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -40,23 +39,23 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod fallback_response_mode {
-    pub use crate::fallback_response_mode::*;
+    pub use super::super::fallback_response_mode::*;
 }
 mod http_accept_header_maximum_bytes {
-    pub use crate::http_accept_header_maximum_bytes::*;
+    pub use super::super::http_accept_header_maximum_bytes::*;
 }
 mod http_fallback_api_prefix_ref {
-    pub use crate::http_fallback_api_prefix_ref::*;
+    pub use super::super::http_fallback_api_prefix_ref::*;
 }
 mod http_fallback_metrics_path_ref {
-    pub use crate::http_fallback_metrics_path_ref::*;
+    pub use super::super::http_fallback_metrics_path_ref::*;
 }
 mod http_fallback_request_path_ref {
-    pub use crate::http_fallback_request_path_ref::*;
+    pub use super::super::http_fallback_request_path_ref::*;
 }
 mod http_optional_accept_header_ref {
-    pub use crate::http_optional_accept_header_ref::*;
+    pub use super::super::http_optional_accept_header_ref::*;
 }
 mod resolve_fallback_response_mode {
-    pub use crate::resolve_fallback_response_mode::*;
+    pub use super::super::resolve_fallback_response_mode::*;
 }

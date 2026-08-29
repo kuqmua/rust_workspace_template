@@ -1,9 +1,8 @@
-pub use crate::http_csp_builder::HttpCspBuilder;
-pub use crate::http_csp_directive_name::HttpCspDirectiveName;
-pub use crate::http_csp_directive_value::HttpCspDirectiveValue;
-pub use crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError;
-pub use crate::http_csp_token_error::HttpCspTokenError;
-
+pub use super::http_csp_builder::HttpCspBuilder;
+pub use super::http_csp_directive_name::HttpCspDirectiveName;
+pub use super::http_csp_directive_value::HttpCspDirectiveValue;
+pub use super::http_csp_maximum_bytes_error::HttpCspMaximumBytesError;
+pub use super::http_csp_token_error::HttpCspTokenError;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -50,17 +49,17 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod http_csp_builder {
-    pub use crate::http_csp_builder::*;
+    pub use super::super::http_csp_builder::*;
 }
 mod http_csp_directive_name {
-    pub use crate::http_csp_directive_name::*;
+    pub use super::super::http_csp_directive_name::*;
 }
 mod http_csp_directive_value {
-    pub use crate::http_csp_directive_value::*;
+    pub use super::super::http_csp_directive_value::*;
 }
 mod http_csp_maximum_bytes_error {
-    pub use crate::http_csp_maximum_bytes_error::*;
+    pub use super::super::http_csp_maximum_bytes_error::*;
 }
 mod http_csp_token_error {
-    pub use crate::http_csp_token_error::*;
+    pub use super::super::http_csp_token_error::*;
 }

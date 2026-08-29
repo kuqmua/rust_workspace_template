@@ -680,6 +680,55 @@ fn non_root_workspace_modules_are_not_reexport_only_facades() {
 }
 
 #[test]
+fn environment_initializer_non_root_modules_use_explicit_crate_paths() {
+    #[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+    struct CrateImportVisitor {
+        lines: Vec<usize>,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for CrateImportVisitor {
+        fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
+            if matches!(i.vis, syn::Visibility::Inherited)
+                && matches!(
+                    &i.tree,
+                    syn::UseTree::Path(path) if path.ident == constants_str::CRATE
+                )
+            {
+                self.lines.push(i.use_token.span.start().line);
+            }
+            syn::visit::visit_item_use(self, i);
+        }
+    }
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| {
+                file.path()
+                    .as_ref()
+                    .components()
+                    .any(|component| component.as_os_str() == constants_str::INIT_ENV_FILES)
+                    && file
+                        .path()
+                        .as_ref()
+                        .file_stem()
+                        .is_none_or(|file_stem| file_stem != constants_str::MAIN)
+            })
+            .filter_map(|file| {
+                let mut visitor = CrateImportVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
+                (!visitor.lines.is_empty())
+                    .then(|| format!("{}: {:?}", file.path().as_ref().display(), visitor.lines))
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "87fc2a91 init_env_files non-root modules must use explicit crate paths instead of `use crate::...`:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
 fn production_modules_contain_at_most_one_named_owner() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let target_roots = snapshot

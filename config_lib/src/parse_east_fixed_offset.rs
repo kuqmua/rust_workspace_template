@@ -1,4 +1,4 @@
-use crate::{ChronoFixedOffsetError, ChronoTimezone, TimezoneSeconds};
+use super::{ChronoFixedOffsetError, ChronoTimezone, TimezoneSeconds};
 
 pub(super) fn parse_east_fixed_offset(
     v: TimezoneSeconds,

@@ -18,8 +18,8 @@ pub(crate) fn AdminProfileView(
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod admin_change_password {
-    pub use crate::admin_change_password::*;
+    pub use super::super::admin_change_password::*;
 }
 pub(crate) mod admin_profile_account {
-    pub use crate::admin_profile_account::*;
+    pub use super::super::admin_profile_account::*;
 }

@@ -1,4 +1,4 @@
-use crate::AdminAuthPositiveValueError;
+use super::AdminAuthPositiveValueError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, thiserror::Error)]
 pub enum AdminAuthSvcStateBuildError {

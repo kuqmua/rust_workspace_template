@@ -1,9 +1,9 @@
-use crate::create_user::create_user;
-use crate::delete_user::delete_user;
-use crate::update_user::update_user;
-use crate::user_ban::user_ban;
-use crate::user_password::user_password;
-use crate::user_roles::user_roles;
+use super::create_user::create_user;
+use super::delete_user::delete_user;
+use super::update_user::update_user;
+use super::user_ban::user_ban;
+use super::user_password::user_password;
+use super::user_roles::user_roles;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::endpoint_registry(

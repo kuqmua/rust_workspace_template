@@ -1,4 +1,4 @@
-use crate::domain_types::{FIRST_IDENT_MAX_LEN, FirstIdentifierifierTryFromStringError};
+use super::domain_types::{FIRST_IDENT_MAX_LEN, FirstIdentifierifierTryFromStringError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]

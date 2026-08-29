@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::AdminSsrViewExt;
+use super::AdminSsrViewExt;
 
 #[test]
 fn pagination_preserves_server_side_navigation() {

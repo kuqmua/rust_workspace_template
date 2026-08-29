@@ -1,10 +1,8 @@
 #[cfg(feature = "test-utils")]
-use crate::domain_types::{ServerAppState, test_env};
-
 #[cfg(feature = "test-utils")]
 #[must_use]
-pub fn make_test_server_app_state() -> ServerAppState<'static> {
-    ServerAppState {
+pub fn make_test_server_app_state() -> crate::ServerAppState<'static> {
+    crate::ServerAppState {
         bulk_item_budget: server_runtime_core::ResourceBudget::new(
             server_runtime_core::ResourceBudgetMaximum::try_from(8usize)
                 .expect("86d3d452 make_test_server_app_state invariant must hold"),
@@ -14,69 +12,69 @@ pub fn make_test_server_app_state() -> ServerAppState<'static> {
             cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(
                 constants_str::ASTERISK.to_owned(),
             ),
-            content_security_policy: test_env(
+            content_security_policy: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
                 )
                 .expect("957dc3b8 make_test_server_app_state invariant must hold"),
             ),
-            database_url: test_env(
+            database_url: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUES_UNREACHABLE_DATABASE_URL.to_owned(),
                 )
                 .expect("3e33c100 make_test_server_app_state invariant must hold"),
             ),
-            admin_jwt_secret: test_env(
+            admin_jwt_secret: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
                 )
                 .expect("f29cc79a make_test_server_app_state invariant must hold"),
             ),
-            admin_token_audience: test_env(
+            admin_token_audience: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_AUDIENCE.to_owned(),
                 )
                 .expect("5b218444 make_test_server_app_state invariant must hold"),
             ),
-            admin_token_issuer: test_env(
+            admin_token_issuer: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_ISSUER.to_owned(),
                 )
                 .expect("8357484d make_test_server_app_state invariant must hold"),
             ),
-            admin_access_token_ttl_seconds: test_env(
+            admin_access_token_ttl_seconds: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::VALUE_900.to_owned(),
                 )
                 .expect("4e1b2430 make_test_server_app_state invariant must hold"),
             ),
-            admin_password_hash_concurrency: test_env(
+            admin_password_hash_concurrency: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_1.to_owned())
                     .expect("763e1bd9 make_test_server_app_state invariant must hold"),
             ),
-            admin_login_failure_limit: test_env(
+            admin_login_failure_limit: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_10.to_owned())
                     .expect("fb8d620e make_test_server_app_state invariant must hold"),
             ),
-            admin_refresh_token_ttl_seconds: test_env(
+            admin_refresh_token_ttl_seconds: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::VALUE_3600.to_owned(),
                 )
                 .expect("467a6513 make_test_server_app_state invariant must hold"),
             ),
-            admin_session_limit: test_env(
+            admin_session_limit: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_20.to_owned())
                     .expect("b26f4a08 make_test_server_app_state invariant must hold"),
             ),
-            admin_sign_in_rate_limit: test_env(
+            admin_sign_in_rate_limit: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_10.to_owned())
                     .expect("53224f39 make_test_server_app_state invariant must hold"),
             ),
-            admin_swagger_enabled: test_env(
+            admin_swagger_enabled: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::TRUE.to_owned())
                     .expect("818b46e8 make_test_server_app_state invariant must hold"),
             ),
-            http_gzip_enabled: test_env(
+            http_gzip_enabled: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::TRUE.to_owned())
                     .expect("7c36108e make_test_server_app_state invariant must hold"),
             ),
@@ -91,29 +89,29 @@ pub fn make_test_server_app_state() -> ServerAppState<'static> {
             ),
             pg_pool_max_connections: config_lib::domain_types::PgPoolMaxConnections::try_from(1u32)
                 .expect("58530f0e make_test_server_app_state invariant must hold"),
-            pg_pool_min_connections: test_env(
+            pg_pool_min_connections: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::VALUE_0.to_owned())
                     .expect("d816fc9a make_test_server_app_state invariant must hold"),
             ),
-            pg_pool_acquire_timeout_seconds: test_env(
+            pg_pool_acquire_timeout_seconds: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
                 .expect("48634ca9 make_test_server_app_state invariant must hold"),
             ),
-            pg_pool_idle_timeout_seconds: test_env(
+            pg_pool_idle_timeout_seconds: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
                 .expect("4d68545f make_test_server_app_state invariant must hold"),
             ),
-            pg_pool_max_lifetime_seconds: test_env(
+            pg_pool_max_lifetime_seconds: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
                 .expect("8b271546 make_test_server_app_state invariant must hold"),
             ),
-            request_timeout_seconds: test_env(
+            request_timeout_seconds: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(
                     constants_str::TEST_VALUE_30.to_owned(),
                 )
@@ -135,7 +133,7 @@ pub fn make_test_server_app_state() -> ServerAppState<'static> {
                 constants_str::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
             ),
             enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck(false),
-            admin_cookie_secure: test_env(
+            admin_cookie_secure: crate::test_env(
                 config_lib::domain_types::StdEnvVarOk::try_from(constants_str::FALSE.to_owned())
                     .expect("dbe97ef3 make_test_server_app_state invariant must hold"),
             ),

@@ -70,20 +70,20 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod authorize_custom {
-    pub use crate::authorize_custom::*;
+    pub use super::super::authorize_custom::*;
 }
 pub(crate) mod json_response {
-    pub use crate::json_response::*;
+    pub use super::super::json_response::*;
 }
 pub(crate) mod map_repository_error {
-    pub use crate::map_repository_error::*;
+    pub use super::super::map_repository_error::*;
 }
 pub(crate) mod map_unique_violation {
-    pub use crate::map_unique_violation::*;
+    pub use super::super::map_unique_violation::*;
 }
 pub(crate) mod page_total {
-    pub use crate::page_total::*;
+    pub use super::super::page_total::*;
 }
 pub(crate) mod validate_table_sort {
-    pub use crate::validate_table_sort::*;
+    pub use super::super::validate_table_sort::*;
 }

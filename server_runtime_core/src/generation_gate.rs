@@ -28,9 +28,9 @@ impl GenerationGate {
     }
 }
 
-pub use crate::generation::Generation;
-use crate::generation_atomic_u64::GenerationAtomicU64;
-pub use crate::generation_commit::GenerationCommit;
+pub use super::generation::Generation;
+use super::generation_atomic_u64::GenerationAtomicU64;
+pub use super::generation_commit::GenerationCommit;
 #[cfg(test)]
 mod tests {
     #[test]

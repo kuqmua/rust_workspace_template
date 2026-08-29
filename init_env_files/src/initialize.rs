@@ -1,26 +1,20 @@
-use crate::{
-    EnvContent, EnvContentRef, EnvKey, InitEntries, InitMaxBytes, InitPathRef, InitializationEntry,
-    InitializationStatus, InitializeError, RunMode, WorkspaceMember, WorkspaceRootPathRef,
-    environment_keys,
-};
-
 #[allow(
     clippy::needless_for_each,
     clippy::single_call_fn,
     reason = "provides one testable dry-run and apply entry point; repository policy forbids for loops"
 )]
 pub(crate) fn initialize(
-    root: WorkspaceRootPathRef<'_>,
-    mode: RunMode,
-) -> Result<InitEntries, InitializeError> {
+    root: crate::WorkspaceRootPathRef<'_>,
+    mode: crate::RunMode,
+) -> Result<crate::InitEntries, crate::InitializeError> {
     let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
     let manifest = crate::read_bounded_content::read_bounded_content(
-        InitPathRef::from(manifest_path.as_path()),
-        InitMaxBytes::from(constants_usize::VALUE_1_048_576),
+        crate::InitPathRef::from(manifest_path.as_path()),
+        crate::InitMaxBytes::from(constants_usize::VALUE_1_048_576),
     )
-    .map_err(|source| InitializeError::ReadManifest { source })?;
+    .map_err(|source| crate::InitializeError::ReadManifest { source })?;
     let value = toml::from_str::<toml::Value>(manifest.as_ref()).map_err(|source| {
-        InitializeError::ManifestParse {
+        crate::InitializeError::ManifestParse {
             source: source.into(),
         }
     })?;
@@ -28,11 +22,11 @@ pub(crate) fn initialize(
         .get(constants_str::WORKSPACE)
         .and_then(|workspace| workspace.get(constants_str::MEMBERS))
         .and_then(toml::Value::as_array)
-        .ok_or(InitializeError::MembersMissing)?
+        .ok_or(crate::InitializeError::MembersMissing)?
         .iter()
         .filter_map(toml::Value::as_str)
         .map(|raw_member| {
-            let member = WorkspaceMember::try_from(raw_member.to_owned())?;
+            let member = crate::WorkspaceMember::try_from(raw_member.to_owned())?;
             let member_path = std::path::Path::new(member.as_ref());
             if !member.as_ref().is_empty()
                 && member_path.is_relative()
@@ -42,10 +36,10 @@ pub(crate) fn initialize(
             {
                 Ok(member)
             } else {
-                Err(InitializeError::InvalidMember { member })
+                Err(crate::InitializeError::InvalidMember { member })
             }
         })
-        .collect::<Result<Vec<WorkspaceMember>, InitializeError>>()?;
+        .collect::<Result<Vec<crate::WorkspaceMember>, crate::InitializeError>>()?;
     members
         .into_iter()
         .try_fold(Vec::new(), |mut entries, member| {
@@ -53,29 +47,30 @@ pub(crate) fn initialize(
                 .as_ref()
                 .join(member.as_ref())
                 .join(constants_str::ENV_EXAMPLE);
-            if !bool::from(crate::path_exists::path_exists(InitPathRef::from(
+            if !bool::from(crate::path_exists::path_exists(crate::InitPathRef::from(
                 example_path.as_path(),
             ))) {
                 return Ok(entries);
             }
             let content = crate::read_bounded_content::read_bounded_content(
-                InitPathRef::from(example_path.as_path()),
-                InitMaxBytes::from(constants_usize::VALUE_1_048_576),
+                crate::InitPathRef::from(example_path.as_path()),
+                crate::InitMaxBytes::from(constants_usize::VALUE_1_048_576),
             )
-            .map_err(|source| InitializeError::ReadExample { source })?;
+            .map_err(|source| crate::InitializeError::ReadExample { source })?;
             let environment_path = root.as_ref().join(member.as_ref()).join(constants_str::ENV);
-            let status = if bool::from(crate::path_exists::path_exists(InitPathRef::from(
+            let status = if bool::from(crate::path_exists::path_exists(crate::InitPathRef::from(
                 environment_path.as_path(),
             ))) {
                 let current = crate::read_bounded_content::read_bounded_content(
-                    InitPathRef::from(environment_path.as_path()),
-                    InitMaxBytes::from(constants_usize::VALUE_1_048_576),
+                    crate::InitPathRef::from(environment_path.as_path()),
+                    crate::InitMaxBytes::from(constants_usize::VALUE_1_048_576),
                 )
-                .map_err(|source| InitializeError::ReadExample { source })?;
-                let current_keys = environment_keys(EnvContentRef::from(current.as_ref()))?
-                    .0
-                    .into_iter()
-                    .collect::<std::collections::BTreeSet<EnvKey>>();
+                .map_err(|source| crate::InitializeError::ReadExample { source })?;
+                let current_keys =
+                    crate::environment_keys(crate::EnvContentRef::from(current.as_ref()))?
+                        .0
+                        .into_iter()
+                        .collect::<std::collections::BTreeSet<crate::EnvKey>>();
                 let missing = content
                     .as_ref()
                     .lines()
@@ -95,35 +90,37 @@ pub(crate) fn initialize(
                         merged_text.push_str(line);
                         merged_text.push('\n');
                     });
-                    Some(EnvContent::try_from(merged_text)?)
+                    Some(crate::EnvContent::try_from(merged_text)?)
                 };
                 match merged {
-                    None => InitializationStatus::SkippedExisting,
-                    Some(_merged) if mode == RunMode::DryRun => InitializationStatus::WouldUpdate,
+                    None => crate::InitializationStatus::SkippedExisting,
+                    Some(_merged) if mode == crate::RunMode::DryRun => {
+                        crate::InitializationStatus::WouldUpdate
+                    }
                     Some(merged_content) => {
                         crate::write_content::write_content(
-                            InitPathRef::from(environment_path.as_path()),
-                            EnvContentRef::from(merged_content.as_ref()),
+                            crate::InitPathRef::from(environment_path.as_path()),
+                            crate::EnvContentRef::from(merged_content.as_ref()),
                         )?;
-                        InitializationStatus::Updated
+                        crate::InitializationStatus::Updated
                     }
                 }
-            } else if mode == RunMode::DryRun {
-                InitializationStatus::WouldCreate
+            } else if mode == crate::RunMode::DryRun {
+                crate::InitializationStatus::WouldCreate
             } else {
                 crate::write_content::write_content(
-                    InitPathRef::from(environment_path.as_path()),
-                    EnvContentRef::from(content.as_ref()),
+                    crate::InitPathRef::from(environment_path.as_path()),
+                    crate::EnvContentRef::from(content.as_ref()),
                 )?;
-                InitializationStatus::Created
+                crate::InitializationStatus::Created
             };
-            entries.push(InitializationEntry {
-                keys: environment_keys(EnvContentRef::from(content.as_ref()))?,
+            entries.push(crate::InitializationEntry {
+                keys: crate::environment_keys(crate::EnvContentRef::from(content.as_ref()))?,
                 member,
                 status,
             });
             Ok(entries)
         })
         .map(bounded_types::BoundedVec::from_max_iter)
-        .map(InitEntries::from)
+        .map(crate::InitEntries::from)
 }

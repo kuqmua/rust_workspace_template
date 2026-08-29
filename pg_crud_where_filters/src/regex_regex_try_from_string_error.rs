@@ -1,4 +1,4 @@
-use crate::domain_types::RegexError;
+use super::domain_types::RegexError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum RegexRegexTryFromStringError {

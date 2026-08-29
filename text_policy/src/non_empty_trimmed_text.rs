@@ -1,4 +1,4 @@
-use crate::domain_types::BoundedTextPolicyError;
+use super::domain_types::BoundedTextPolicyError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,

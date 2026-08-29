@@ -1,12 +1,11 @@
-pub use crate::build_secure_strict_cookie::build_secure_strict_cookie;
-pub use crate::http_cookie_access::HttpCookieAccess;
-pub use crate::http_cookie_name::HttpCookieName;
-pub use crate::http_cookie_secure::HttpCookieSecure;
-pub use crate::http_cookie_value::HttpCookieValue;
-pub use crate::http_secure_cookie_error::HttpSecureCookieError;
-pub use crate::http_set_cookie_header_value::HttpSetCookieHeaderValue;
-pub use crate::std_cookie_max_age_seconds::StdCookieMaxAgeSeconds;
-
+pub use super::build_secure_strict_cookie::build_secure_strict_cookie;
+pub use super::http_cookie_access::HttpCookieAccess;
+pub use super::http_cookie_name::HttpCookieName;
+pub use super::http_cookie_secure::HttpCookieSecure;
+pub use super::http_cookie_value::HttpCookieValue;
+pub use super::http_secure_cookie_error::HttpSecureCookieError;
+pub use super::http_set_cookie_header_value::HttpSetCookieHeaderValue;
+pub use super::std_cookie_max_age_seconds::StdCookieMaxAgeSeconds;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -77,26 +76,26 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod build_secure_strict_cookie {
-    pub use crate::build_secure_strict_cookie::*;
+    pub use super::super::build_secure_strict_cookie::*;
 }
 mod http_cookie_access {
-    pub use crate::http_cookie_access::*;
+    pub use super::super::http_cookie_access::*;
 }
 mod http_cookie_name {
-    pub use crate::http_cookie_name::*;
+    pub use super::super::http_cookie_name::*;
 }
 mod http_cookie_secure {
-    pub use crate::http_cookie_secure::*;
+    pub use super::super::http_cookie_secure::*;
 }
 mod http_cookie_value {
-    pub use crate::http_cookie_value::*;
+    pub use super::super::http_cookie_value::*;
 }
 mod http_secure_cookie_error {
-    pub use crate::http_secure_cookie_error::*;
+    pub use super::super::http_secure_cookie_error::*;
 }
 mod http_set_cookie_header_value {
-    pub use crate::http_set_cookie_header_value::*;
+    pub use super::super::http_set_cookie_header_value::*;
 }
 mod std_cookie_max_age_seconds {
-    pub use crate::std_cookie_max_age_seconds::*;
+    pub use super::super::std_cookie_max_age_seconds::*;
 }

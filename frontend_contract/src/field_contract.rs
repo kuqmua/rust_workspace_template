@@ -15,34 +15,34 @@ mod tests {
         assert_eq!(contract.format(), super::ValueFormat::Int64);
     }
 }
-pub use crate::capability_support::*;
-pub use crate::contract_i64::*;
-pub use crate::contract_str::*;
-pub use crate::field_capability::*;
-pub use crate::field_order::*;
-pub use crate::field_placeholder::*;
-pub use crate::field_visibility::*;
-pub use crate::filter_contracts::*;
-pub use crate::filter_form_value_contract::*;
-pub use crate::filter_operation::*;
-pub use crate::filter_value_shape::*;
-pub use crate::filter_wire_json::*;
-pub use crate::form_field_error::*;
-pub use crate::form_field_name_ref::*;
-pub use crate::form_value::*;
-pub use crate::form_value_contract::*;
-pub use crate::form_value_error::*;
-pub use crate::form_value_ref::*;
-pub use crate::has_filter_contracts::*;
-pub use crate::has_type_contract::*;
-pub use crate::input_kind::*;
-pub use crate::input_step::*;
-pub use crate::nullability::*;
-pub use crate::numeric_bound::*;
-pub use crate::primary_key_kind::*;
-pub use crate::type_contract::*;
-pub use crate::value_example::*;
-pub use crate::value_format::*;
+pub use super::capability_support::*;
+pub use super::contract_i64::*;
+pub use super::contract_str::*;
+pub use super::field_capability::*;
+pub use super::field_order::*;
+pub use super::field_placeholder::*;
+pub use super::field_visibility::*;
+pub use super::filter_contracts::*;
+pub use super::filter_form_value_contract::*;
+pub use super::filter_operation::*;
+pub use super::filter_value_shape::*;
+pub use super::filter_wire_json::*;
+pub use super::form_field_error::*;
+pub use super::form_field_name_ref::*;
+pub use super::form_value::*;
+pub use super::form_value_contract::*;
+pub use super::form_value_error::*;
+pub use super::form_value_ref::*;
+pub use super::has_filter_contracts::*;
+pub use super::has_type_contract::*;
+pub use super::input_kind::*;
+pub use super::input_step::*;
+pub use super::nullability::*;
+pub use super::numeric_bound::*;
+pub use super::primary_key_kind::*;
+pub use super::type_contract::*;
+pub use super::value_example::*;
+pub use super::value_format::*;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FieldContract {
     filters: FilterContracts,
@@ -181,5 +181,5 @@ impl FieldContract {
         self
     }
 }
-use crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS;
-pub use crate::field_contracts::*;
+use super::empty_filter_contracts::EMPTY_FILTER_CONTRACTS;
+pub use super::field_contracts::*;

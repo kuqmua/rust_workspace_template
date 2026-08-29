@@ -1,4 +1,4 @@
-use crate::domain_types::FirstIdentifier;
+use super::domain_types::FirstIdentifier;
 
 pub fn parse_first_identifier<I>(input: &mut I) -> Option<FirstIdentifier>
 where

@@ -1,4 +1,4 @@
-use crate::domain_types::ProcMacro2MacroTokens;
+use super::domain_types::ProcMacro2MacroTokens;
 
 pub fn compile_error_token_stream<S>(message: S) -> ProcMacro2MacroTokens
 where

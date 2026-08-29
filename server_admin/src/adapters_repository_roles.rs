@@ -24,14 +24,14 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod admin_active_administrator_count {
-    pub use crate::admin_active_administrator_count::*;
+    pub use super::super::admin_active_administrator_count::*;
 }
 mod last_admin_state {
-    pub use crate::last_admin_state::*;
+    pub use super::super::last_admin_state::*;
 }
 mod lock_last_admin {
-    pub use crate::lock_last_admin::*;
+    pub use super::super::lock_last_admin::*;
 }
 mod read_last_admin_state {
-    pub use crate::read_last_admin_state::*;
+    pub use super::super::read_last_admin_state::*;
 }

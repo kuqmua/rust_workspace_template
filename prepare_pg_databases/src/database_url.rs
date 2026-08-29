@@ -1,4 +1,4 @@
-use crate::domain_types::DatabaseUrlError;
+use super::domain_types::DatabaseUrlError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

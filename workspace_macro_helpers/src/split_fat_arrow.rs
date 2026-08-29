@@ -1,4 +1,4 @@
-use crate::domain_types::ProcMacro2MacroTokens;
+use super::domain_types::ProcMacro2MacroTokens;
 
 #[must_use]
 pub fn split_fat_arrow<T>(input: T) -> Option<(ProcMacro2MacroTokens, ProcMacro2MacroTokens)>

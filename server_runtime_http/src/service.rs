@@ -1,10 +1,9 @@
-pub use crate::add_status_route::add_status_route;
-pub use crate::serve_io_error::ServeIoError;
-pub use crate::serve_with_graceful_shutdown::serve_with_graceful_shutdown;
-pub use crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError;
-pub use crate::service_runtime::ServiceRuntime;
-pub use crate::tokio_tcp_listener::TokioTcpListener;
-
+pub use super::add_status_route::add_status_route;
+pub use super::serve_io_error::ServeIoError;
+pub use super::serve_with_graceful_shutdown::serve_with_graceful_shutdown;
+pub use super::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError;
+pub use super::service_runtime::ServiceRuntime;
+pub use super::tokio_tcp_listener::TokioTcpListener;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -18,20 +17,20 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod add_status_route {
-    pub use crate::add_status_route::*;
+    pub use super::super::add_status_route::*;
 }
 mod serve_io_error {
-    pub use crate::serve_io_error::*;
+    pub use super::super::serve_io_error::*;
 }
 mod serve_with_graceful_shutdown {
-    pub use crate::serve_with_graceful_shutdown::*;
+    pub use super::super::serve_with_graceful_shutdown::*;
 }
 mod serve_with_graceful_shutdown_error {
-    pub use crate::serve_with_graceful_shutdown_error::*;
+    pub use super::super::serve_with_graceful_shutdown_error::*;
 }
 mod service_runtime {
-    pub use crate::service_runtime::*;
+    pub use super::super::service_runtime::*;
 }
 mod tokio_tcp_listener {
-    pub use crate::tokio_tcp_listener::*;
+    pub use super::super::tokio_tcp_listener::*;
 }

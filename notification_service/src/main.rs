@@ -44,8 +44,8 @@ mod open_api;
 mod open_api_document;
 mod router;
 #[cfg(test)]
-pub(crate) use crate::open_api_document::open_api_document;
-pub(crate) use crate::router::build_notification_router;
+pub(crate) use open_api_document::open_api_document;
+pub(crate) use router::build_notification_router;
 mod sqlx_notification_database_error;
 mod sqlx_notification_migration_error;
 

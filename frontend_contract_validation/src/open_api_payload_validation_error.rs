@@ -1,4 +1,4 @@
-use crate::openapi_validation::{OpenApiSchemaMismatch, SerdeJsonOpenApiSerializationError};
+use super::openapi_validation::{OpenApiSchemaMismatch, SerdeJsonOpenApiSerializationError};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay, thiserror::Error,

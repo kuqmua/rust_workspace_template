@@ -1,4 +1,4 @@
-use crate::domain_types::{
+use super::domain_types::{
     FirstIdentifier, PartIndex, ProcMacro2TopLevelCommaParts, parse_first_identifier, part_at,
 };
 

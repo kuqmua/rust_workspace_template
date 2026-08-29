@@ -1,4 +1,4 @@
-use crate::{AdminCrudPage, crud_page};
+use super::{AdminCrudPage, crud_page};
 
 pub(crate) async fn crud_resource_page(
     auth: crate::AdminAuthReq,

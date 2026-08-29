@@ -1,4 +1,4 @@
-use crate::domain_types::NOTIFICATION_API_BODY_MAX_BYTES;
+use super::domain_types::NOTIFICATION_API_BODY_MAX_BYTES;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

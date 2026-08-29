@@ -1,44 +1,43 @@
-pub use admin_access_claims::*;
-pub use admin_access_token_error::*;
-pub(crate) use admin_auth_collection_error::*;
+pub use super::admin_access_claims::*;
+pub use super::admin_access_token_error::*;
+pub(crate) use super::admin_auth_collection_error::*;
+pub(crate) use super::admin_auth_permissions::*;
+pub use super::admin_cookie_kind::*;
+pub use super::admin_cookie_max_age_seconds::*;
+pub use super::admin_cookie_secure::*;
+pub use super::admin_generated_token::*;
+pub use super::admin_jwt_secret::*;
+pub use super::admin_opaque_token::*;
+pub use super::admin_password::*;
+pub(crate) use super::admin_password_change_required::*;
+pub use super::admin_password_hash::*;
+pub use super::admin_password_hash_concurrency::*;
+pub use super::admin_password_hash_error::*;
+pub use super::admin_password_hasher::*;
+pub use super::admin_password_try_from_string_error::*;
+pub use super::admin_refresh_token::*;
+pub(crate) use super::admin_role_names::*;
+pub use super::admin_secret_text_error::*;
+pub use super::admin_session_id::*;
+pub use super::admin_shared_semaphore_arc::*;
+pub use super::admin_token_hash::*;
+pub use super::admin_unix_token_stream::*;
+pub use super::argon2_admin_password_hash_error::*;
+pub use super::build_admin_cookie::*;
+pub use super::clear_admin_cookie::*;
+pub use super::decode_access_token::*;
+pub use super::encode_access_token::*;
+pub use super::find_admin_cookie::*;
+pub use super::http_admin_header_map_ref::*;
+pub use super::jsonwebtoken_admin_error::*;
+pub use super::sqlx_admin_error::*;
+pub use super::std_admin_access_token::*;
+pub use super::std_admin_cookie::*;
+pub use super::token::*;
+pub use super::tokio_admin_acquire_error::*;
+pub use super::tokio_admin_join_error::*;
+pub(crate) use super::tokio_admin_owned_semaphore_permit::*;
 use admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN;
-pub(crate) use admin_auth_permissions::*;
-pub use admin_cookie_kind::*;
-pub use admin_cookie_max_age_seconds::*;
-pub use admin_cookie_secure::*;
-pub use admin_generated_token::*;
-pub use admin_jwt_secret::*;
-pub use admin_opaque_token::*;
-pub use admin_password::*;
-pub(crate) use admin_password_change_required::*;
-pub use admin_password_hash::*;
-pub use admin_password_hash_concurrency::*;
-pub use admin_password_hash_error::*;
-pub use admin_password_hasher::*;
-pub use admin_password_try_from_string_error::*;
-pub use admin_refresh_token::*;
-pub(crate) use admin_role_names::*;
-pub use admin_secret_text_error::*;
-pub use admin_session_id::*;
-pub use admin_shared_semaphore_arc::*;
-pub use admin_token_hash::*;
-pub use admin_unix_token_stream::*;
-pub use argon2_admin_password_hash_error::*;
-pub use build_admin_cookie::*;
-pub use clear_admin_cookie::*;
-pub use decode_access_token::*;
-pub use encode_access_token::*;
-pub use find_admin_cookie::*;
-pub use http_admin_header_map_ref::*;
-pub use jsonwebtoken_admin_error::*;
-pub use sqlx_admin_error::*;
-pub use std_admin_access_token::*;
-pub use std_admin_cookie::*;
-pub use token::*;
-pub use tokio_admin_acquire_error::*;
-pub use tokio_admin_join_error::*;
-pub(crate) use tokio_admin_owned_semaphore_permit::*;
-
 impl From<server_admin_core::domain_types::StdAdminStringTryFromStringError>
     for AdminSecretTextError
 {
@@ -352,122 +351,122 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod admin_auth_collection_max_len {
-    pub use crate::admin_auth_collection_max_len::*;
+    pub use super::super::admin_auth_collection_max_len::*;
 }
 mod admin_password_change_required {
-    pub use crate::admin_password_change_required::*;
+    pub use super::super::admin_password_change_required::*;
 }
 mod admin_secret_text_error {
-    pub use crate::admin_secret_text_error::*;
+    pub use super::super::admin_secret_text_error::*;
 }
 mod admin_auth_permissions {
-    pub use crate::admin_auth_permissions::*;
+    pub use super::super::admin_auth_permissions::*;
 }
 mod admin_role_names {
-    pub use crate::admin_role_names::*;
+    pub use super::super::admin_role_names::*;
 }
 mod admin_auth_collection_error {
-    pub use crate::admin_auth_collection_error::*;
+    pub use super::super::admin_auth_collection_error::*;
 }
 mod admin_shared_semaphore_arc {
-    pub use crate::admin_shared_semaphore_arc::*;
+    pub use super::super::admin_shared_semaphore_arc::*;
 }
 mod tokio_admin_join_error {
-    pub use crate::tokio_admin_join_error::*;
+    pub use super::super::tokio_admin_join_error::*;
 }
 mod tokio_admin_acquire_error {
-    pub use crate::tokio_admin_acquire_error::*;
+    pub use super::super::tokio_admin_acquire_error::*;
 }
 mod tokio_admin_owned_semaphore_permit {
-    pub use crate::tokio_admin_owned_semaphore_permit::*;
+    pub use super::super::tokio_admin_owned_semaphore_permit::*;
 }
 mod argon2_admin_password_hash_error {
-    pub use crate::argon2_admin_password_hash_error::*;
+    pub use super::super::argon2_admin_password_hash_error::*;
 }
 mod sqlx_admin_error {
-    pub use crate::sqlx_admin_error::*;
+    pub use super::super::sqlx_admin_error::*;
 }
 mod admin_password {
-    pub use crate::admin_password::*;
+    pub use super::super::admin_password::*;
 }
 mod admin_password_try_from_string_error {
-    pub use crate::admin_password_try_from_string_error::*;
+    pub use super::super::admin_password_try_from_string_error::*;
 }
 mod admin_password_hash {
-    pub use crate::admin_password_hash::*;
+    pub use super::super::admin_password_hash::*;
 }
 mod admin_jwt_secret {
-    pub use crate::admin_jwt_secret::*;
+    pub use super::super::admin_jwt_secret::*;
 }
 mod admin_opaque_token {
-    pub use crate::admin_opaque_token::*;
+    pub use super::super::admin_opaque_token::*;
 }
 mod admin_refresh_token {
-    pub use crate::admin_refresh_token::*;
+    pub use super::super::admin_refresh_token::*;
 }
 mod admin_token_hash {
-    pub use crate::admin_token_hash::*;
+    pub use super::super::admin_token_hash::*;
 }
 mod admin_generated_token {
-    pub use crate::admin_generated_token::*;
+    pub use super::super::admin_generated_token::*;
 }
 mod token {
-    pub use crate::token::*;
+    pub use super::super::token::*;
 }
 mod admin_cookie_secure {
-    pub use crate::admin_cookie_secure::*;
+    pub use super::super::admin_cookie_secure::*;
 }
 mod admin_cookie_max_age_seconds {
-    pub use crate::admin_cookie_max_age_seconds::*;
+    pub use super::super::admin_cookie_max_age_seconds::*;
 }
 mod std_admin_cookie {
-    pub use crate::std_admin_cookie::*;
+    pub use super::super::std_admin_cookie::*;
 }
 mod http_admin_header_map_ref {
-    pub use crate::http_admin_header_map_ref::*;
+    pub use super::super::http_admin_header_map_ref::*;
 }
 mod admin_cookie_kind {
-    pub use crate::admin_cookie_kind::*;
+    pub use super::super::admin_cookie_kind::*;
 }
 mod build_admin_cookie {
-    pub use crate::build_admin_cookie::*;
+    pub use super::super::build_admin_cookie::*;
 }
 mod clear_admin_cookie {
-    pub use crate::clear_admin_cookie::*;
+    pub use super::super::clear_admin_cookie::*;
 }
 mod find_admin_cookie {
-    pub use crate::find_admin_cookie::*;
+    pub use super::super::find_admin_cookie::*;
 }
 mod admin_password_hash_concurrency {
-    pub use crate::admin_password_hash_concurrency::*;
+    pub use super::super::admin_password_hash_concurrency::*;
 }
 mod admin_unix_token_stream {
-    pub use crate::admin_unix_token_stream::*;
+    pub use super::super::admin_unix_token_stream::*;
 }
 mod admin_session_id {
-    pub use crate::admin_session_id::*;
+    pub use super::super::admin_session_id::*;
 }
 mod admin_access_claims {
-    pub use crate::admin_access_claims::*;
+    pub use super::super::admin_access_claims::*;
 }
 mod admin_password_hash_error {
-    pub use crate::admin_password_hash_error::*;
+    pub use super::super::admin_password_hash_error::*;
 }
 mod admin_password_hasher {
-    pub use crate::admin_password_hasher::*;
+    pub use super::super::admin_password_hasher::*;
 }
 mod jsonwebtoken_admin_error {
-    pub use crate::jsonwebtoken_admin_error::*;
+    pub use super::super::jsonwebtoken_admin_error::*;
 }
 mod admin_access_token_error {
-    pub use crate::admin_access_token_error::*;
+    pub use super::super::admin_access_token_error::*;
 }
 mod std_admin_access_token {
-    pub use crate::std_admin_access_token::*;
+    pub use super::super::std_admin_access_token::*;
 }
 mod encode_access_token {
-    pub use crate::encode_access_token::*;
+    pub use super::super::encode_access_token::*;
 }
 mod decode_access_token {
-    pub use crate::decode_access_token::*;
+    pub use super::super::decode_access_token::*;
 }

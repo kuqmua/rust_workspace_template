@@ -1,4 +1,4 @@
-use crate::domain_types::{SynFieldsNamedRef, SynFieldsUnnamedRef};
+use super::domain_types::{SynFieldsNamedRef, SynFieldsUnnamedRef};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub enum SynStructShapeRef<'shape_lt> {

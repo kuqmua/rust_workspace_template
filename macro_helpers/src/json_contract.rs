@@ -1,7 +1,7 @@
-pub use crate::contract_error::ContractError;
-pub use crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip;
-pub use crate::json_fixture_ref::JsonFixtureRef;
-pub use crate::serde_json_error::SerdeJsonError;
+pub use super::contract_error::ContractError;
+pub use super::ensure_json_contract_round_trip::ensure_json_contract_round_trip;
+pub use super::json_fixture_ref::JsonFixtureRef;
+pub use super::serde_json_error::SerdeJsonError;
 #[cfg(test)]
 mod tests {
     #[derive(

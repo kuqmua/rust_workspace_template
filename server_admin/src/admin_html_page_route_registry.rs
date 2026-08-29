@@ -1,4 +1,4 @@
-use crate::{
+use super::{
     admin_html_sessions_page, data_tables, permissions, profile, roles, roles_create_page,
     roles_manage_page, settings, sign_in_page, users, users_create_page, users_manage_page,
     version,

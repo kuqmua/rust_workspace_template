@@ -39,5 +39,5 @@ pub(crate) fn AdminUsersView(
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod csr_admin_user_row {
-    pub use crate::csr_admin_user_row::*;
+    pub use super::super::csr_admin_user_row::*;
 }

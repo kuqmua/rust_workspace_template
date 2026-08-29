@@ -48,9 +48,8 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
         )
     }
 }
-pub use crate::unique_vec_error::UniqueVecError;
-pub use crate::unique_vec_len::UniqueVecLen;
-
+pub use super::unique_vec_error::UniqueVecError;
+pub use super::unique_vec_len::UniqueVecLen;
 #[cfg(test)]
 mod tests {
     #[test]

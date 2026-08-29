@@ -1,4 +1,4 @@
-use crate::domain_types::FileStorageIoError;
+use super::domain_types::FileStorageIoError;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum FileStorageError {

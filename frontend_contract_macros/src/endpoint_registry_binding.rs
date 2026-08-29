@@ -1,4 +1,4 @@
-use crate::{SynEndpointRegistryContract, SynEndpointRegistryEndpoint};
+use super::{SynEndpointRegistryContract, SynEndpointRegistryEndpoint};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

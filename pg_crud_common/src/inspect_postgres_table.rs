@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 pub async fn inspect_postgres_table(
     pool: SqlxPgPoolRef<'_>,

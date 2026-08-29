@@ -1,4 +1,4 @@
-use crate::{ChronoFixedOffsetError, I32ParseIntError};
+use super::{ChronoFixedOffsetError, I32ParseIntError};
 
 #[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum TryFromStdEnvVarOkTimezoneError {

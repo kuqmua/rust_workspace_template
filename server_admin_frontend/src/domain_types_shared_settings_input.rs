@@ -1,7 +1,6 @@
-pub(crate) use crate::admin_setting_disabled::AdminSettingDisabled;
-pub(crate) use crate::admin_setting_inputs::admin_setting_inputs;
-pub(super) use crate::admin_setting_required::AdminSettingRequired;
-
+pub(crate) use super::admin_setting_disabled::AdminSettingDisabled;
+pub(crate) use super::admin_setting_inputs::admin_setting_inputs;
+pub(super) use super::admin_setting_required::AdminSettingRequired;
 impl crate::domain_types::with_owner::input::LeptosAdminInputSignal {
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn value(self) -> super::values::admin_setting_input_value::AdminSettingInputValue {
@@ -13,11 +12,11 @@ impl crate::domain_types::with_owner::input::LeptosAdminInputSignal {
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod admin_setting_disabled {
-    pub use crate::admin_setting_disabled::*;
+    pub use super::super::admin_setting_disabled::*;
 }
 pub(crate) mod admin_setting_inputs {
-    pub use crate::admin_setting_inputs::*;
+    pub use super::super::admin_setting_inputs::*;
 }
 pub(crate) mod admin_setting_required {
-    pub use crate::admin_setting_required::*;
+    pub use super::super::admin_setting_required::*;
 }

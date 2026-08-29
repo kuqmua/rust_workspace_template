@@ -1,4 +1,4 @@
-use crate::{SynExpr, SynType, SynTypedRouteErrors};
+use super::{SynExpr, SynType, SynTypedRouteErrors};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]

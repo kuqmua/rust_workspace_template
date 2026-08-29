@@ -25,47 +25,47 @@ pub(crate) fn start() {
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod admin_app {
-    pub use crate::admin_app::*;
+    pub use super::super::admin_app::*;
 }
 pub(crate) mod admin_csr_query {
-    pub use crate::admin_csr_query::*;
+    pub use super::super::admin_csr_query::*;
 }
 pub(crate) mod admin_data_grid {
-    pub use crate::admin_data_grid::*;
+    pub use super::super::admin_data_grid::*;
 }
 pub(crate) mod admin_pagination {
-    pub use crate::admin_pagination::*;
+    pub use super::super::admin_pagination::*;
 }
 pub(crate) mod admin_permissions_view {
-    pub use crate::admin_permissions_view::*;
+    pub use super::super::admin_permissions_view::*;
 }
 pub(crate) mod admin_profile_view {
-    pub use crate::admin_profile_view::*;
+    pub use super::super::admin_profile_view::*;
 }
 pub(crate) mod admin_roles_view {
-    pub use crate::admin_roles_view::*;
+    pub use super::super::admin_roles_view::*;
 }
 pub(crate) mod admin_sessions_view {
-    pub use crate::admin_sessions_view::*;
+    pub use super::super::admin_sessions_view::*;
 }
 pub(crate) mod admin_settings_view {
-    pub use crate::admin_settings_view::*;
+    pub use super::super::admin_settings_view::*;
 }
 pub(crate) mod admin_users_view {
-    pub use crate::admin_users_view::*;
+    pub use super::super::admin_users_view::*;
 }
 pub(crate) mod csr_admin_nav {
-    pub use crate::csr_admin_nav::*;
+    pub use super::super::csr_admin_nav::*;
 }
 pub(crate) mod fetch_page {
-    pub use crate::fetch_page::*;
+    pub use super::super::fetch_page::*;
 }
 pub(crate) mod http {
-    pub use crate::http::*;
+    pub use super::super::http::*;
 }
 pub(crate) mod mutation {
-    pub use crate::domain_types_start_mutation::*;
+    pub use super::super::domain_types_start_mutation::*;
 }
 pub(crate) mod state {
-    pub use crate::state::*;
+    pub use super::super::state::*;
 }

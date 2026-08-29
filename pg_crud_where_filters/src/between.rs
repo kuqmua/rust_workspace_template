@@ -1,4 +1,4 @@
-use crate::domain_types::BetweenTryNewError;
+use super::domain_types::BetweenTryNewError;
 
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]

@@ -8,10 +8,10 @@ pub trait RouteRegistrationContract: Copy {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use crate::axum_route_method_router::AxumRouteMethodRouter;
-pub use crate::registered_route_path::RegisteredRoutePath;
+pub use super::axum_route_method_router::AxumRouteMethodRouter;
+pub use super::registered_route_path::RegisteredRoutePath;
 #[cfg(not(target_arch = "wasm32"))]
-pub use crate::route_method_router::route_method_router;
+pub use super::route_method_router::route_method_router;
 #[cfg(test)]
 mod tests {
     #[test]

@@ -1,4 +1,4 @@
-use crate::domain_types::{StaleBeforeSystemTime, StdStaleStagingEntryLimit};
+use super::domain_types::{StaleBeforeSystemTime, StdStaleStagingEntryLimit};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StaleStagingCleanupCfg {

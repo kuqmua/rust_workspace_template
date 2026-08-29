@@ -1,13 +1,11 @@
-use crate::{InitIoError, InitStringError, TomlInitError, WorkspaceMember};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum InitializeError {
     #[error("workspace member path is invalid: {member}")]
-    InvalidMember { member: WorkspaceMember },
+    InvalidMember { member: crate::WorkspaceMember },
     #[error("failed to parse workspace manifest")]
     ManifestParse {
         #[source]
-        source: TomlInitError,
+        source: crate::TomlInitError,
     },
     #[error("workspace manifest does not contain a members array")]
     MembersMissing,
@@ -22,10 +20,10 @@ pub(crate) enum InitializeError {
         source: server_runtime_http::domain_types::BoundedReadError,
     },
     #[error(transparent)]
-    String(#[from] InitStringError),
+    String(#[from] crate::InitStringError),
     #[error("failed to write environment file")]
     WriteEnvironment {
         #[source]
-        source: InitIoError,
+        source: crate::InitIoError,
     },
 }

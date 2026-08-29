@@ -1,5 +1,3 @@
-use crate::InitStringError;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -11,7 +9,7 @@ use crate::InitStringError;
     newtype::Display,
     newtype::TryFrom,
 )]
-#[try_from(error = InitStringError, validator = |value: &str| {
-    if value.is_empty() || value.len() > 4_096usize { Err(InitStringError) } else { Ok(()) }
+#[try_from(error = crate::InitStringError, validator = |value: &str| {
+    if value.is_empty() || value.len() > 4_096usize { Err(crate::InitStringError) } else { Ok(()) }
 })]
 pub(crate) struct WorkspaceMember(String);

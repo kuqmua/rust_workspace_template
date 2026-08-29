@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::domain_types::{
+use super::domain_types::{
     ChronoLocationDateTime, ChronoLocationDisplayTimezone, FormatterRefMut,
     LOC_DISPLAY_UTC_OFFSET_SECS, LocationColumn, LocationCommit, LocationDuration, LocationFile,
     LocationFileRef, LocationLine, Occr,

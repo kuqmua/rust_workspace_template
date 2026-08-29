@@ -1,4 +1,4 @@
-use crate::admin_html_open_api;
+use super::admin_html_open_api;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[frontend_contract::endpoint_registry(

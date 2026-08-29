@@ -1,4 +1,4 @@
-use crate::domain_types::{ProcMacro2MacroTokens, ProcMacro2TopLevelCommaParts};
+use super::domain_types::{ProcMacro2MacroTokens, ProcMacro2TopLevelCommaParts};
 
 pub fn split_top_level_commas<T>(input: T) -> ProcMacro2TopLevelCommaParts
 where

@@ -1,4 +1,4 @@
-use crate::domain_types::LOC_FILE_MAX_LEN;
+use super::domain_types::LOC_FILE_MAX_LEN;
 
 #[derive(
     Debug,

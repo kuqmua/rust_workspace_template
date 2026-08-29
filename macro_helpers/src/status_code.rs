@@ -447,9 +447,8 @@ impl TryFrom<&String> for StatusCode {
     }
 }
 
-pub use crate::only_one::only_one;
-pub use crate::only_one_status_code_error::OnlyOneStatusCodeError;
-
+pub use super::only_one::only_one;
+pub use super::only_one_status_code_error::OnlyOneStatusCodeError;
 #[cfg(test)]
 mod tests {
     #[test]

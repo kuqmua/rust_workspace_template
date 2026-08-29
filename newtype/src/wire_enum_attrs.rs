@@ -1,11 +1,9 @@
-use crate::{SynExpr, SynIdentifier};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module consumes this parsed domain model
 #[derive(generate_accessor::Getters)]
 pub(crate) struct WireEnumAttrs {
-    error_message: SynExpr,
-    ref_type: SynIdentifier,
+    error_message: crate::SynExpr,
+    ref_type: crate::SynIdentifier,
 }
 impl syn::parse::Parse for WireEnumAttrs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
@@ -15,9 +13,9 @@ impl syn::parse::Parse for WireEnumAttrs {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == constants_str::WIRE_ENUM_REF_TYPE {
-                ref_type = Some(SynIdentifier::from(input.parse::<syn::Ident>()?));
+                ref_type = Some(crate::SynIdentifier::from(input.parse::<syn::Ident>()?));
             } else if name == constants_str::WIRE_ENUM_ERROR_MESSAGE {
-                error_message = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                error_message = Some(crate::SynExpr::from(input.parse::<syn::Expr>()?));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,

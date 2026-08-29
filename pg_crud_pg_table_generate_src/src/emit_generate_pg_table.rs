@@ -1,6 +1,6 @@
-use crate::compile_error_message::CompileErrorMessage;
-use crate::compile_error_token_stream::pg_table_compile_error_tokens;
-use crate::table_test_names::TableTestNames;
+use super::compile_error_message::CompileErrorMessage;
+use super::compile_error_token_stream::pg_table_compile_error_tokens;
+use super::table_test_names::TableTestNames;
 //todo decide where to do error log (maybe add in some places)
 //todo generate route what will return cols of the table and their rust and postgersql types
 //todo created at and updated at fields + created by + updated by

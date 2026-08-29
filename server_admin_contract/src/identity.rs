@@ -25,17 +25,16 @@ pub(crate) const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
     .is_ok()
 };
 
-pub(crate) use crate::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE;
-pub use crate::admin_api_body_max_bytes::AdminApiBodyMaxBytes;
-pub use crate::admin_display_name::*;
-pub use crate::admin_login::*;
-pub use crate::admin_new_password::*;
-pub use crate::admin_password::*;
-pub use crate::admin_role_name::*;
-pub use crate::admin_text::*;
-pub use crate::default_admin_api_body_max_bytes::default_admin_api_body_max_bytes;
-pub use crate::positive_non_zero_i64::PositiveNonZeroI64;
-
+pub(crate) use super::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE;
+pub use super::admin_api_body_max_bytes::AdminApiBodyMaxBytes;
+pub use super::admin_display_name::*;
+pub use super::admin_login::*;
+pub use super::admin_new_password::*;
+pub use super::admin_password::*;
+pub use super::admin_role_name::*;
+pub use super::admin_text::*;
+pub use super::default_admin_api_body_max_bytes::default_admin_api_body_max_bytes;
+pub use super::positive_non_zero_i64::PositiveNonZeroI64;
 #[cfg(test)]
 mod tests {
     #[test]

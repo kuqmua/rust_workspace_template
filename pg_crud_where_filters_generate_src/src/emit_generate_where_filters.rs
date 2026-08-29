@@ -1,5 +1,5 @@
-use crate::source::ProcMacro2GenerateWhereFiltersTokenStream;
-use crate::source::ValidatedGenerateWhereFiltersConfig;
+use super::source::ProcMacro2GenerateWhereFiltersTokenStream;
+use super::source::ValidatedGenerateWhereFiltersConfig;
 #[must_use]
 pub fn emit_generate_where_filters(
     validated: ValidatedGenerateWhereFiltersConfig,

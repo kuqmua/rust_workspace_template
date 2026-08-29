@@ -1,5 +1,3 @@
-use crate::InitStringError;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -8,8 +6,8 @@ use crate::InitStringError;
     newtype::AsRefStr,
     newtype::TryFrom,
 )]
-#[try_from(error = InitStringError, validator = |value: &str| {
-    if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) { Err(InitStringError) } else { Ok(()) }
+#[try_from(error = crate::InitStringError, validator = |value: &str| {
+    if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) { Err(crate::InitStringError) } else { Ok(()) }
 })]
 pub(crate) struct EnvContent(String);
 impl From<server_runtime_http::domain_types::BoundedText> for EnvContent {

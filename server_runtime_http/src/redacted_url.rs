@@ -27,10 +27,9 @@ impl std::fmt::Debug for RedactedUrl {
     }
 }
 
-pub use crate::redact_rtsp_url_userinfo::redact_rtsp_url_userinfo;
-pub use crate::redact_url_userinfo::redact_url_userinfo;
-pub use crate::redacted_url_text_ref::RedactedUrlTextRef;
-
+pub use super::redact_rtsp_url_userinfo::redact_rtsp_url_userinfo;
+pub use super::redact_url_userinfo::redact_url_userinfo;
+pub use super::redacted_url_text_ref::RedactedUrlTextRef;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -88,11 +87,11 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod redact_rtsp_url_userinfo {
-    pub use crate::redact_rtsp_url_userinfo::*;
+    pub use super::super::redact_rtsp_url_userinfo::*;
 }
 mod redact_url_userinfo {
-    pub use crate::redact_url_userinfo::*;
+    pub use super::super::redact_url_userinfo::*;
 }
 mod redacted_url_text_ref {
-    pub use crate::redacted_url_text_ref::*;
+    pub use super::super::redacted_url_text_ref::*;
 }

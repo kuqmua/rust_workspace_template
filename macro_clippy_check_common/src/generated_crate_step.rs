@@ -2,7 +2,7 @@
 #[constructor(pub(super))]
 pub(crate) struct GeneratedCrateStep {
     args: &'static [&'static str],
-    phase: crate::generated_crate_steps::GeneratedCratePhase,
+    phase: crate::generated_crate_phase::GeneratedCratePhase,
 }
 
 impl GeneratedCrateStep {
@@ -10,7 +10,7 @@ impl GeneratedCrateStep {
         self.args
     }
 
-    pub(crate) const fn phase(&self) -> crate::generated_crate_steps::GeneratedCratePhase {
+    pub(crate) const fn phase(&self) -> crate::generated_crate_phase::GeneratedCratePhase {
         self.phase
     }
 }

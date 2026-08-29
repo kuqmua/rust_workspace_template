@@ -99,5 +99,5 @@ pub(crate) async fn update_settings(
 
 // Root-owned module compatibility wrappers.
 mod admin_html_settings_action_route_registry {
-    pub use crate::admin_html_settings_action_route_registry::*;
+    pub use super::super::admin_html_settings_action_route_registry::*;
 }

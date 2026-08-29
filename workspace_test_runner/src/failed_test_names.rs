@@ -1,4 +1,4 @@
-use crate::execution::{CommandText, CommandTexts, TextRef};
+use super::execution::{CommandText, CommandTexts, TextRef};
 
 #[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(super) fn failed_test_names(log_text: TextRef<'_>) -> CommandTexts {

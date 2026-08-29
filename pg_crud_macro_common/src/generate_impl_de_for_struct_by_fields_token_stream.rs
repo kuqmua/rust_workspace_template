@@ -2,7 +2,7 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use crate::domain_types::*;
+use super::domain_types::*;
 
 pub fn generate_impl_de_for_struct_by_fields_token_stream(
     identifier: &dyn naming::domain_types::DisplayPlusToTokens,

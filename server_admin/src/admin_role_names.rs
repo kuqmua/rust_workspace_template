@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::ADMIN_AUTH_COLLECTION_MAX_LEN;
+use super::ADMIN_AUTH_COLLECTION_MAX_LEN;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,

@@ -24,12 +24,12 @@ where
         })
 }
 
-pub use crate::axum_body::AxumBody;
-pub use crate::axum_body_size_error::AxumBodySizeError;
-pub use crate::body_size_error::{BodySizeError, BodySizeErrorWithSerde};
-pub use crate::body_size_limit_bytes::BodySizeLimitBytes;
-pub use crate::bytes_body_bytes::BytesBodyBytes;
-pub use crate::http_body_size_hint::HttpBodySizeHint;
+pub use super::axum_body::AxumBody;
+pub use super::axum_body_size_error::AxumBodySizeError;
+pub use super::body_size_error::{BodySizeError, BodySizeErrorWithSerde};
+pub use super::body_size_limit_bytes::BodySizeLimitBytes;
+pub use super::bytes_body_bytes::BytesBodyBytes;
+pub use super::http_body_size_hint::HttpBodySizeHint;
 #[cfg(test)]
 mod tests {
     fn expect_reached_max_size(

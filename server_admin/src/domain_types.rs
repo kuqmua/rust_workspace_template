@@ -11,28 +11,27 @@ pub use server_admin_core::domain_types::{
     AdminUserId, SecrecyAdminString, StdAdminBool, StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 
-pub use maintenance::*;
-pub use security::*;
-
+pub use super::maintenance::*;
+pub use super::security::*;
 // Root-owned module compatibility wrappers.
 pub mod auth {
-    pub use crate::application_auth::*;
+    pub use super::super::application_auth::*;
 }
 mod generated_auth {
-    pub use crate::generated_auth::*;
+    pub use super::super::generated_auth::*;
 }
 pub mod generated_tables {
-    pub use crate::generated_tables::*;
+    pub use super::super::generated_tables::*;
 }
 mod hash_opaque_token {
-    pub use crate::hash_opaque_token::*;
+    pub use super::super::hash_opaque_token::*;
 }
 mod rbac {
-    pub use crate::rbac::*;
+    pub use super::super::rbac::*;
 }
 mod maintenance {
-    pub use crate::maintenance::*;
+    pub use super::super::maintenance::*;
 }
 mod security {
-    pub use crate::security::*;
+    pub use super::super::security::*;
 }

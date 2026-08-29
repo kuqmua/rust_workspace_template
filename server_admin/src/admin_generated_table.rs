@@ -1,4 +1,4 @@
-use crate::{
+use super::{
     AdminGeneratedRouteContract, AdminPermissions, AdminPermissionsOpenApi,
     AdminPermissionsRouteContract, AdminRolePermissions, AdminRolePermissionsOpenApi,
     AdminRolePermissionsRouteContract, AdminRoles, AdminRolesOpenApi, AdminRolesRouteContract,

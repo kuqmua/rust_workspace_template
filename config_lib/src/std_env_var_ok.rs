@@ -2,7 +2,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use crate::{CONFIG_LIB_STRING_WRAPPER_MAX_LEN, ConfigLibStringWrapperTryFromStringError};
+use super::{CONFIG_LIB_STRING_WRAPPER_MAX_LEN, ConfigLibStringWrapperTryFromStringError};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
 pub struct StdEnvVarOk(pub(super) String);

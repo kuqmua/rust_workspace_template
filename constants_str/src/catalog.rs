@@ -16,6 +16,7 @@ constants_str_macros::define_str_constants! {
         ROLE_PERMISSIONS = ["role_permissions"];
         USER_ROLES = ["user_roles"];
         INDEX_HTML = ["index.html"];
+        INIT_ENV_FILES = ["init_env_files"];
         NOTIFICATION_ROUTE_PATH = ["/v1/notifications"];
         SHARED_VALUES_CHECK = ["check"];
         SHARED_VALUES_ALL_TARGETS = ["--all-targets"];

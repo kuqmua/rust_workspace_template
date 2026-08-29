@@ -3,21 +3,20 @@
     reason = "owner modules and related behavior retain their intentional facade ordering"
 )]
 
-pub use crate::http_metrics_layer::HttpMetricsLayer;
-use crate::http_metrics_path_cache::HttpMetricsPathCache;
-pub use crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum;
-pub use crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError;
-use crate::http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock;
-use crate::http_metrics_path_text::HttpMetricsPathText;
-use crate::http_metrics_path_text_error::HttpMetricsPathTextError;
-use crate::http_metrics_path_text_ref::HttpMetricsPathTextRef;
-use crate::http_metrics_service::HttpMetricsService;
-use crate::http_metrics_tower_layer::HttpMetricsTowerLayer;
-pub use crate::metrics_response_body::MetricsResponseBody;
-pub use crate::metrics_response_body_error::MetricsResponseBodyError;
-use crate::metrics_shared_string::MetricsSharedString;
-use crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc;
-
+pub use super::http_metrics_layer::HttpMetricsLayer;
+use super::http_metrics_path_cache::HttpMetricsPathCache;
+pub use super::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum;
+pub use super::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError;
+use super::http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock;
+use super::http_metrics_path_text::HttpMetricsPathText;
+use super::http_metrics_path_text_error::HttpMetricsPathTextError;
+use super::http_metrics_path_text_ref::HttpMetricsPathTextRef;
+use super::http_metrics_service::HttpMetricsService;
+use super::http_metrics_tower_layer::HttpMetricsTowerLayer;
+pub use super::metrics_response_body::MetricsResponseBody;
+pub use super::metrics_response_body_error::MetricsResponseBodyError;
+use super::metrics_shared_string::MetricsSharedString;
+use super::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc;
 #[cfg(test)]
 mod tests {
     async fn call_method(router: axum::Router, method: http::Method) -> http::StatusCode {
@@ -167,44 +166,44 @@ mod tests {
 
 // Root-owned module compatibility wrappers.
 mod http_metrics_layer {
-    pub use crate::http_metrics_layer::*;
+    pub use super::super::http_metrics_layer::*;
 }
 mod http_metrics_path_cache {
-    pub use crate::http_metrics_path_cache::*;
+    pub use super::super::http_metrics_path_cache::*;
 }
 mod http_metrics_path_cache_maximum {
-    pub use crate::http_metrics_path_cache_maximum::*;
+    pub use super::super::http_metrics_path_cache_maximum::*;
 }
 mod http_metrics_path_cache_maximum_try_from_usize_error {
-    pub use crate::http_metrics_path_cache_maximum_try_from_usize_error::*;
+    pub use super::super::http_metrics_path_cache_maximum_try_from_usize_error::*;
 }
 mod http_metrics_path_entries_rw_lock {
-    pub use crate::http_metrics_path_entries_rw_lock::*;
+    pub use super::super::http_metrics_path_entries_rw_lock::*;
 }
 mod http_metrics_path_text {
-    pub use crate::http_metrics_path_text::*;
+    pub use super::super::http_metrics_path_text::*;
 }
 mod http_metrics_path_text_error {
-    pub use crate::http_metrics_path_text_error::*;
+    pub use super::super::http_metrics_path_text_error::*;
 }
 mod http_metrics_path_text_ref {
-    pub use crate::http_metrics_path_text_ref::*;
+    pub use super::super::http_metrics_path_text_ref::*;
 }
 mod http_metrics_service {
-    pub use crate::http_metrics_service::*;
+    pub use super::super::http_metrics_service::*;
 }
 mod http_metrics_tower_layer {
-    pub use crate::http_metrics_tower_layer::*;
+    pub use super::super::http_metrics_tower_layer::*;
 }
 mod metrics_response_body {
-    pub use crate::metrics_response_body::*;
+    pub use super::super::metrics_response_body::*;
 }
 mod metrics_response_body_error {
-    pub use crate::metrics_response_body_error::*;
+    pub use super::super::metrics_response_body_error::*;
 }
 mod metrics_shared_string {
-    pub use crate::metrics_shared_string::*;
+    pub use super::super::metrics_shared_string::*;
 }
 mod shared_http_metrics_path_cache_arc {
-    pub use crate::shared_http_metrics_path_cache_arc::*;
+    pub use super::super::shared_http_metrics_path_cache_arc::*;
 }

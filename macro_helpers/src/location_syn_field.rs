@@ -32,4 +32,4 @@ pub fn location_syn_field() -> SynLocationField {
         }),
     })
 }
-pub use crate::syn_location_field::SynLocationField;
+pub use super::syn_location_field::SynLocationField;

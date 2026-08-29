@@ -1,4 +1,4 @@
-use crate::admin_fixture::AdminFixtureString;
+use super::admin_fixture::AdminFixtureString;
 
 pub(crate) fn create_admin_fixture_string<Value>(
     value: impl TryInto<AdminFixtureString>,

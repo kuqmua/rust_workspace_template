@@ -34,8 +34,8 @@ pub(crate) fn AdminSettingsView(
 
 // Root-owned module compatibility wrappers.
 pub(crate) mod reset {
-    pub use crate::reset::*;
+    pub use super::super::reset::*;
 }
 pub(crate) mod save {
-    pub use crate::save::*;
+    pub use super::super::save::*;
 }

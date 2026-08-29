@@ -1,4 +1,4 @@
-use crate::domain_types::LocationCoordinateTryFromU32Error;
+use super::domain_types::LocationCoordinateTryFromU32Error;
 
 #[derive(
     Debug,

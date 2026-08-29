@@ -1,9 +1,9 @@
-pub use crate::find_macro_attribute::find_macro_attribute;
-pub use crate::macro_attr_error::MacroAttrError;
-pub use crate::proc_macro2_macro_attr_meta_list_token_stream_ref::ProcMacro2MacroAttrMetaListTokenStreamRef;
-pub use crate::syn_macro_attr_ref::SynMacroAttrRef;
-pub use crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream;
-pub use crate::try_get_macro_attribute::try_get_macro_attribute;
+pub use super::find_macro_attribute::find_macro_attribute;
+pub use super::macro_attr_error::MacroAttrError;
+pub use super::proc_macro2_macro_attr_meta_list_token_stream_ref::ProcMacro2MacroAttrMetaListTokenStreamRef;
+pub use super::syn_macro_attr_ref::SynMacroAttrRef;
+pub use super::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream;
+pub use super::try_get_macro_attribute::try_get_macro_attribute;
 #[cfg(test)]
 mod tests {
     fn attrs() -> Vec<syn::Attribute> {
