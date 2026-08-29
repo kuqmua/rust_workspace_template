@@ -134,7 +134,7 @@ fn runtime_test_module_exclusion_uses_test_filename() {
 fn environment_initializer_is_in_runtime_policy_scope() {
     assert!(
         super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../init_env_files/src/domain_types.rs"
+            "../init_env_files/src/initialize.rs"
         )))
         .get(),
         "86c8a1dd"

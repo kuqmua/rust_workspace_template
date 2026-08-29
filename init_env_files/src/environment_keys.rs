@@ -1,4 +1,4 @@
-use crate::domain_types::{EnvContentRef, EnvKey, EnvKeys, InitStringError};
+use crate::{EnvContentRef, EnvKey, EnvKeys, InitStringError};
 
 pub(super) fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringError> {
     content

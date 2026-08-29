@@ -564,7 +564,7 @@ fn domain_boundaries_use_repository_declared_types() {
 fn environment_initializer_is_in_domain_boundary_policy_scope() {
     assert!(
         super::domain_type_policy_should_check_path(super::types::PathRef::from(
-            std::path::Path::new("init_env_files/src/domain_types.rs")
+            std::path::Path::new("init_env_files/src/initialize.rs")
         ))
         .get(),
         "c4a791e2"

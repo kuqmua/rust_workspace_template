@@ -776,7 +776,6 @@ pub const VALUE_8443FF5D: &str =
     "../git_info/src/domain_types.rs::try_from\n../git_info/src/domain_types.rs::try_from";
 pub const VALUE_A4489C21: &str =
     "../git_info/src/domain_types.rs::validate\n../git_info/src/domain_types.rs::validate";
-pub const VALUE_A2FD7F33: &str = "../init_env_files/src/domain_types.rs";
 pub const VALUE_BE04A453: &str = "../macro_clippy_check_common/src/lib.rs:String::from";
 pub const VALUE_2D81C306: &str = "../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_const_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_const_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_new_for_identifier_token_stream";
 pub const VALUE_F43CC42D: &str = "../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_const_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_const_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_pub_try_new_for_identifier_token_stream\n../macro_helpers/src/generate_new_or_try_new.rs::generate_impl_try_new_for_identifier_token_stream";
@@ -1632,7 +1631,6 @@ pub const VALUE_C9F14A66: &str =
 pub const VALUE_BECDB8D8: &str = "independent syntax policies implement required syn Visit callbacks for different control-flow constructs";
 pub const VALUE_E3D9A7E6: &str = "infallible fixed-size array conversions require raw storage; Vec conversion and serde delegate to bounded_types";
 pub const VALUE_D99F528C: &str = "infrastructure_failed";
-pub const VALUE_E5F20F68: &str = "init_env_files/src/domain_types.rs";
 pub const VALUE_A5C068D6: &str = "inline-flex items-center rounded-sm text-sm font-medium text-foreground/70 transition-colors hover:text-foreground focus:outline-none";
 pub const VALUE_A842957F: &str = "integration fixture shape predates per-attribute reasons";
 pub const VALUE_6B847A0E: &str = "into";

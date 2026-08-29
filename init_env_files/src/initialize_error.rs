@@ -1,4 +1,4 @@
-use crate::domain_types::{InitIoError, InitStringError, TomlInitError, WorkspaceMember};
+use crate::{InitIoError, InitStringError, TomlInitError, WorkspaceMember};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum InitializeError {

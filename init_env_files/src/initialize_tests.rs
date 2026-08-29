@@ -20,9 +20,9 @@ fn fixture() -> std::path::PathBuf {
 #[test]
 fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
     let root = fixture();
-    let dry = crate::domain_types::initialize(
-        crate::domain_types::WorkspaceRootPathRef::from(root.as_path()),
-        crate::domain_types::RunMode::DryRun,
+    let dry = crate::initialize(
+        crate::WorkspaceRootPathRef::from(root.as_path()),
+        crate::RunMode::DryRun,
     )
     .expect("93ce4136 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
@@ -30,12 +30,12 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
             .first()
             .expect("14b080ca dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
             .status,
-        crate::domain_types::InitializationStatus::WouldCreate
+        crate::InitializationStatus::WouldCreate
     );
     assert!(!root.join("service/.env").exists());
-    let applied = crate::domain_types::initialize(
-        crate::domain_types::WorkspaceRootPathRef::from(root.as_path()),
-        crate::domain_types::RunMode::Apply,
+    let applied = crate::initialize(
+        crate::WorkspaceRootPathRef::from(root.as_path()),
+        crate::RunMode::Apply,
     )
     .expect("d58ed6a5 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
@@ -44,16 +44,16 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
             .first()
             .expect("c366cc59 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
             .status,
-        crate::domain_types::InitializationStatus::Created
+        crate::InitializationStatus::Created
     );
     std::fs::write(
         root.join(constants_str::SERVICE_ENV),
         constants_str::SECRET_CUSTOM_NEWLINE,
     )
     .expect("2d67b058 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
-    let updated = crate::domain_types::initialize(
-        crate::domain_types::WorkspaceRootPathRef::from(root.as_path()),
-        crate::domain_types::RunMode::Apply,
+    let updated = crate::initialize(
+        crate::WorkspaceRootPathRef::from(root.as_path()),
+        crate::RunMode::Apply,
     )
     .expect("546af7b6 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
@@ -62,15 +62,15 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
             .first()
             .expect("195600ec dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
             .status,
-        crate::domain_types::InitializationStatus::Updated
+        crate::InitializationStatus::Updated
     );
     let updated_content = std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
         .expect("bd9f5208 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert!(updated_content.contains("SECRET=custom"));
     assert!(updated_content.contains("PUBLIC=value"));
-    let repeated = crate::domain_types::initialize(
-        crate::domain_types::WorkspaceRootPathRef::from(root.as_path()),
-        crate::domain_types::RunMode::Apply,
+    let repeated = crate::initialize(
+        crate::WorkspaceRootPathRef::from(root.as_path()),
+        crate::RunMode::Apply,
     )
     .expect("a452843a dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
@@ -79,7 +79,7 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
             .first()
             .expect("37a0752c dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
             .status,
-        crate::domain_types::InitializationStatus::SkippedExisting
+        crate::InitializationStatus::SkippedExisting
     );
     std::fs::remove_dir_all(root)
         .expect("bd9180ca dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
@@ -93,11 +93,11 @@ fn escaping_member_is_rejected() {
     )
     .expect("350646f2 escaping_member_is_rejected invariant must hold");
     assert!(matches!(
-        crate::domain_types::initialize(
-            crate::domain_types::WorkspaceRootPathRef::from(root.as_path()),
-            crate::domain_types::RunMode::DryRun
+        crate::initialize(
+            crate::WorkspaceRootPathRef::from(root.as_path()),
+            crate::RunMode::DryRun
         ),
-        Err(crate::domain_types::InitializeError::InvalidMember { .. })
+        Err(crate::InitializeError::InvalidMember { .. })
     ));
     std::fs::remove_dir_all(root)
         .expect("d9154402 escaping_member_is_rejected invariant must hold");
@@ -112,11 +112,11 @@ fn oversized_environment_example_is_rejected() {
     )
     .expect("f6290e85 oversized_environment_example_is_rejected invariant must hold");
     assert!(matches!(
-        crate::domain_types::initialize(
-            crate::domain_types::WorkspaceRootPathRef::from(root.as_path()),
-            crate::domain_types::RunMode::DryRun
+        crate::initialize(
+            crate::WorkspaceRootPathRef::from(root.as_path()),
+            crate::RunMode::DryRun
         ),
-        Err(crate::domain_types::InitializeError::ReadExample {
+        Err(crate::InitializeError::ReadExample {
             source: server_runtime_http::domain_types::BoundedReadError::ExceedsMaximum { .. }
         })
     ));

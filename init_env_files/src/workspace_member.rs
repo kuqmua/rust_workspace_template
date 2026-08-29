@@ -1,4 +1,4 @@
-use crate::domain_types::InitStringError;
+use crate::InitStringError;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,

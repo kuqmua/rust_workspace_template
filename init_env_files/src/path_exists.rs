@@ -1,5 +1,3 @@
-pub(crate) fn path_exists(
-    path: crate::domain_types::InitPathRef<'_>,
-) -> crate::domain_types::InitPathExists {
-    crate::domain_types::InitPathExists::from(path.get().exists())
+pub(crate) fn path_exists(path: crate::InitPathRef<'_>) -> crate::InitPathExists {
+    crate::InitPathExists::from(path.get().exists())
 }

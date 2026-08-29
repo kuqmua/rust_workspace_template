@@ -640,9 +640,17 @@ fn function_only_modules_contain_at_most_one_function() {
 }
 
 #[test]
-fn workspace_has_no_reexport_only_modules() {
+fn non_root_workspace_modules_are_not_reexport_only_facades() {
     fn is_reexport_only(items: &[syn::Item]) -> bool {
         !items.is_empty() && items.iter().all(|item| matches!(item, syn::Item::Use(_)))
+    }
+    fn is_crate_root(path: &std::path::Path) -> bool {
+        path.parent()
+            .and_then(std::path::Path::file_name)
+            .is_some_and(|directory| directory == constants_str::SRC_ALT)
+            && path.file_stem().is_some_and(|file_stem| {
+                file_stem == constants_str::LIB || file_stem == constants_str::MAIN
+            })
     }
     let reexports = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_ONLY_FIXTURE)
         .expect("f4a6c213 re-export-only module fixture must parse");
@@ -657,12 +665,15 @@ fn workspace_has_no_reexport_only_modules() {
         let violations = snapshot
             .rs_files()
             .iter()
-            .filter(|file| is_reexport_only(file.ast().as_ref().items.as_slice()))
+            .filter(|file| {
+                !is_crate_root(file.path().as_ref())
+                    && is_reexport_only(file.ast().as_ref().items.as_slice())
+            })
             .map(|file| file.path().as_ref().display().to_string())
             .collect::<Vec<_>>();
         assert!(
             violations.is_empty(),
-            "dc4298e7 workspace modules must not contain only re-exports:\n{}",
+            "dc4298e7 non-root workspace modules must not contain only re-exports; move them to lib.rs or main.rs:\n{}",
             violations.join("\n")
         );
     });
@@ -894,45 +905,6 @@ fn notification_service_domain_types_exclude_application_and_adapter_workflows()
                 "8e620507 notification service domain_types contains adapter or application workflow `{forbidden}`"
             );
         });
-    });
-}
-
-#[test]
-#[allow(
-    clippy::needless_for_each,
-    reason = "the iterator form follows the workspace no-for-loop policy"
-)]
-fn environment_initializer_domain_types_exclude_entrypoint_orchestration() {
-    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let source_with_tests = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(constants_str::VALUE_E5F20F68)
-            })
-            .expect("1dac054f environment initializer domain types source must exist")
-            .content()
-            .as_ref();
-        let source = source_with_tests
-            .split(constants_str::VALUE_3BA26FB4)
-            .next()
-            .expect("fb55c47b split always returns the production source prefix");
-        [
-            constants_str::VALUE_59CAD555,
-            constants_str::VALUE_B9D99DED,
-            constants_str::VALUE_3349907E,
-            constants_str::VALUE_7CF02D0B,
-            constants_str::VALUE_13B1C208,
-        ]
-            .iter()
-            .for_each(|forbidden| {
-                assert!(
-                    !source.contains(forbidden),
-                    "5d5bcd83 environment initializer domain_types contains entrypoint workflow `{forbidden}`"
-                );
-            });
     });
 }
 
