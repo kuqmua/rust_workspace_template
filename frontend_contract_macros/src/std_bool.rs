@@ -4,11 +4,7 @@
     Copy,
     Default,
     newtype::FromInner,
+    newtype::GetInner,
     newtype::IntoInnerFrom,
 )]
 pub(crate) struct StdBool(bool);
-impl StdBool {
-    pub(crate) const fn get(self) -> bool {
-        self.0
-    }
-}

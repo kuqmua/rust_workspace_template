@@ -1,8 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::GetInner,
+)]
 pub(crate) struct FilterSpecValid(bool);
-
-impl FilterSpecValid {
-    pub(crate) const fn get(self) -> bool {
-        self.0
-    }
-}
