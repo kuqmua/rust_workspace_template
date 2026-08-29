@@ -104,9 +104,9 @@ fn field_getters_are_generated() {
 }
 
 #[test]
-fn struct_fields_do_not_use_crate_visibility() {
+fn struct_fields_do_not_use_restricted_visibility() {
     let reviewed = std::collections::BTreeMap::from(
-        constants_str::test_fixtures::CODE_STYLE_REVIEWED_CRATE_VISIBLE_FIELD_OWNERS,
+        constants_str::test_fixtures::CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS,
     );
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed = std::collections::BTreeMap::<&str, usize>::new();
@@ -123,7 +123,9 @@ fn struct_fields_do_not_use_crate_visibility() {
             } else {
                 violations.extend(
                     visitor.violations.into_iter().map(|item| {
-                        format!("{path} exposes a crate-visible struct field in {item}")
+                        format!(
+                            "{path} exposes a restricted-visible struct field in {item}; keep the field private and expose getter methods, preferably with #[derive(generate_accessor::Getters)]"
+                        )
                     }),
                 );
             }
@@ -135,7 +137,7 @@ fn struct_fields_do_not_use_crate_visibility() {
                 .unwrap_or(constants_usize::ZERO);
             (count != *expected).then(|| {
                 format!(
-                    "crate-visible field inventory changed for {owner}: expected={expected}, observed={count}"
+                    "restricted-visible field inventory changed for {owner}: expected={expected}, observed={count}"
                 )
             })
         }));
@@ -592,6 +594,17 @@ fn struct_field_visibility_policy_rejects_restricted_visibility() {
             "Example::public",
         ],
         "e69e2e99"
+    );
+    let mut restricted_visitor = super::source_analysis::CrateVisibleStructFieldVisitor::default();
+    syn::visit::Visit::visit_file(&mut restricted_visitor, &ast);
+    assert_eq!(
+        restricted_visitor.violations.as_slice(),
+        [
+            "Example::parent",
+            "Example::workspace",
+            "Example::restricted"
+        ],
+        "c47b61e9"
     );
 }
 #[test]

@@ -20,6 +20,8 @@ generate_pg_table_src = { workspace = true }
 generate_pg_types_src = { workspace = true }
 generate_where_filters_src = { workspace = true }
 frontend_contract = { workspace = true }
+generate_accessor = { workspace = true }
+generate_constructor = { workspace = true }
 macro_helpers = { workspace = true, features = ["test-utils"] }
 newtype = { workspace = true }
 pg_crud_common = { workspace = true }

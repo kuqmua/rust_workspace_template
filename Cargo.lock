@@ -6544,6 +6544,8 @@ dependencies = [
  "constants_u64",
  "constants_usize",
  "frontend_contract",
+ "generate_accessor",
+ "generate_constructor",
  "generate_pg_table_src",
  "generate_pg_types_src",
  "generate_where_filters_src",

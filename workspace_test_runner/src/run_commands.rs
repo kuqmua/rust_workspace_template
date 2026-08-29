@@ -48,15 +48,15 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
                             false,
                         ),
                     };
-                    crate::command_run::CommandRun {
-                        idx: crate::command_idx::CommandIdx::from(idx),
-                        log_text: crate::command_text::CommandText::try_from(log_text)
+                    crate::command_run::CommandRun::new(
+                        started_at.elapsed(),
+                        crate::command_idx::CommandIdx::from(idx),
+                        crate::command_text::CommandText::try_from(log_text)
                             .unwrap_or_else(crate::command_text::CommandText::from),
-                        status_text: crate::command_text::CommandText::try_from(status_text)
+                        crate::command_text::CommandText::try_from(status_text)
                             .unwrap_or_else(crate::command_text::CommandText::from),
-                        succeeded: crate::command_succeeded::CommandSucceeded::from(succeeded),
-                        duration: started_at.elapsed(),
-                    }
+                        crate::command_succeeded::CommandSucceeded::from(succeeded),
+                    )
                 })
             })
             .collect::<Vec<_>>()
@@ -68,7 +68,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
         crate::summary_text::SummaryText::try_from(String::new()).map_err(|_error| ())?;
     let mut succeeded = true;
     command_runs.sort_by_key(|command_run_result| match command_run_result {
-        Ok(command_run) => command_run.idx.get(),
+        Ok(command_run) => command_run.get_idx().get(),
         Err(_panic) => usize::MAX,
     });
     command_runs.into_iter().try_for_each(|command_run_result| {
@@ -84,7 +84,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
         };
         let (program, args) = commands
             .0
-            .get(command_run.idx.get())
+            .get(command_run.get_idx().get())
             .copied()
             .ok_or(())?;
         let parts = std::iter::once(program)
@@ -117,11 +117,11 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             .collect::<String>();
         let log_name = crate::command_text::CommandText::try_from(format!(
             "{:02}-{sanitized}.log",
-            command_run.idx.get()
+            command_run.get_idx().get()
         ))
         .unwrap_or_else(crate::command_text::CommandText::from);
         let log_path = run_dir.join(log_name.as_ref());
-        if let Err(error) = std::fs::write(log_path.as_path(), command_run.log_text.as_ref()) {
+        if let Err(error) = std::fs::write(log_path.as_path(), command_run.get_log_text().as_ref()) {
             eprintln!(
                 "failed to write test result log {}: {}",
                 log_path.display(),
@@ -130,7 +130,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             return Err(());
         }
         let failed_test_names = crate::failed_test_names::failed_test_names(crate::text_ref::TextRef::from(
-            command_run.log_text.as_ref(),
+            command_run.get_log_text().as_ref(),
         ));
         let failed_names_capacity = failed_test_names
             .as_ref()
@@ -158,14 +158,14 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             crate::text_ref::TextRef::from(
                 format!(
                 "command={program} args={args:?} duration_ms={} status={} log={} failed_tests={failed_names}\n",
-                command_run.duration.as_millis(),
-                command_run.status_text.as_ref(),
+                command_run.get_duration().as_millis(),
+                command_run.get_status_text().as_ref(),
                 log_path.display()
             )
             .as_str(),
             ),
         )?;
-        if !command_run.succeeded.get() {
+        if !command_run.get_succeeded().get() {
             succeeded = false;
         }
         Ok(())

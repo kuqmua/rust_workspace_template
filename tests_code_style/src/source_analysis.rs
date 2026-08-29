@@ -230,15 +230,7 @@ impl<'ast> syn::visit::Visit<'ast> for CrateVisibleStructFieldVisitor {
         i.fields
             .iter()
             .enumerate()
-            .filter(|(_, field)| {
-                matches!(
-                    &field.vis,
-                    syn::Visibility::Restricted(visibility)
-                        if visibility
-                            .path
-                            .is_ident(constants_str::test_fixtures::CODE_STYLE_CRATE_VISIBILITY_PATH)
-                )
-            })
+            .filter(|(_, field)| matches!(field.vis, syn::Visibility::Restricted(_)))
             .for_each(|(index, field)| {
                 let field_name = field
                     .ident
