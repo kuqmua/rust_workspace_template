@@ -12,8 +12,6 @@ pub mod dimension;
 pub mod dimension_index_number;
 pub mod dimension_number;
 #[cfg(test)]
-pub mod domain_types_tests;
-#[cfg(test)]
 pub mod domain_types_token_emission_tests;
 pub mod emission_types;
 pub mod eq_operator_variant;
@@ -89,6 +87,8 @@ pub mod serde_error_enum_d_token_stream_builder;
 pub mod struct_els_len;
 pub mod syn_field_refs;
 pub mod syn_identifier_type_refs;
+#[cfg(test)]
+pub mod tests_domain_types;
 pub mod wrap_into_braces;
 pub mod wrap_into_scopes_token_stream;
 

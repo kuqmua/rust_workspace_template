@@ -8,7 +8,7 @@ where
     T: std::str::FromStr,
     T::Err: std::fmt::Display,
 {
-    crate::parse_from_env_var_with::parse_from_env_var_with(env_v, env_var_name, |v| {
-        crate::parse_from_str_with_ctx::parse_from_str_with_ctx(v, parse_ctx)
+    crate::parse_from_env_var_with_tests::parse_from_env_var_with(env_v, env_var_name, |v| {
+        crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx(v, parse_ctx)
     })
 }

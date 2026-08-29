@@ -35,7 +35,7 @@ members = [
   "location_lib_location",
   "location_lib_location_macros",
   "location_lib_location_test",
-  "macro_clippy_check_common",
+  "macro_clippy_check_test_common",
   "macro_helpers",
   "macro_helpers_generate_derive_token_stream_builder",
   "naming",
@@ -337,7 +337,7 @@ init_env_files = { path = "./init_env_files" }
 location_lib = { path = "./location_lib" }
 location_macros = { path = "./location_lib_location_macros" }
 location = { path = "./location_lib_location" }
-macro_clippy_check_common = { path = "./macro_clippy_check_common", default-features = false }
+macro_clippy_check_test_common = { path = "./macro_clippy_check_test_common", default-features = false }
 macro_helpers = { path = "./macro_helpers" }
 naming = { path = "./naming" }
 naming_common = { path = "./naming_naming_common" }

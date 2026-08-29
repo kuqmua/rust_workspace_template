@@ -1592,7 +1592,7 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "generate_pg_table_src",
- "macro_clippy_check_common",
+ "macro_clippy_check_test_common",
  "macro_helpers",
  "optimal_memory_layout",
  "proc-macro2",
@@ -1642,7 +1642,7 @@ dependencies = [
  "constants_usize",
  "frontend_contract",
  "generate_pg_types_src",
- "macro_clippy_check_common",
+ "macro_clippy_check_test_common",
  "macro_helpers",
  "optimal_memory_layout",
  "pg_types_chrono_net",
@@ -1702,7 +1702,7 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "generate_where_filters_src",
- "macro_clippy_check_common",
+ "macro_clippy_check_test_common",
  "macro_helpers",
  "optimal_memory_layout",
  "pg_crud_common",
@@ -2691,7 +2691,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "macro_clippy_check_common"
+name = "macro_clippy_check_test_common"
 version = "0.1.0"
 dependencies = [
  "constants_i32",

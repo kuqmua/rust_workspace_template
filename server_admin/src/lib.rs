@@ -220,8 +220,6 @@ pub mod delete_role;
 pub mod delete_user;
 #[cfg(test)]
 pub mod domain_types_generated_tables_tests;
-#[cfg(test)]
-pub mod domain_types_tests;
 pub mod encode_access_token;
 pub mod enforce_rate_limit;
 pub mod extractors;
@@ -339,6 +337,8 @@ pub mod std_admin_session_limit;
 pub mod success_redirect_impl;
 #[cfg(test)]
 pub mod tests;
+#[cfg(test)]
+pub mod tests_domain_types;
 pub mod token;
 pub mod tokio_admin_acquire_error;
 pub mod tokio_admin_join_error;

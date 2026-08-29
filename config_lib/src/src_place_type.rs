@@ -71,7 +71,7 @@ impl SrcPlaceType {
     pub(super) fn parse_src_place_type_from_env_var(
         v: crate::env_var_result_var_error::EnvVarResultVarError,
     ) -> Result<Self, crate::env_parse_error::EnvParseError> {
-        crate::parse_from_env_var_from_str::parse_from_env_var_from_str(
+        crate::parse_from_env_var_from_str_tests::parse_from_env_var_from_str(
             v,
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
                 constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,

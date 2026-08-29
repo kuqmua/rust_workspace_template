@@ -31,8 +31,9 @@ pub mod command_texts;
 pub mod commands_ref;
 pub mod create_admin_fixture_string;
 pub mod domain_types;
-pub mod execution;
 pub mod execution_io_error;
+#[cfg(test)]
+pub mod execution_tests;
 pub mod failed_test_names;
 pub mod generate_pg_table_measure_input_token_stream;
 pub mod macro_generation_measurements;

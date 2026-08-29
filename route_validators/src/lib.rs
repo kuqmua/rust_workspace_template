@@ -54,7 +54,8 @@ pub mod expect_variant;
 pub mod expect_variant_ref;
 #[cfg(test)]
 pub mod header_str_ref;
-pub mod header_value;
+#[cfg(test)]
+pub mod header_value_tests;
 pub mod http_body_size_hint;
 #[cfg(test)]
 pub mod increment_block_on_poll_count;

@@ -764,6 +764,48 @@ fn workspace_modules_reject_local_root_use_imports() {
 }
 
 #[test]
+fn production_named_modules_contain_production_items() {
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| {
+                !crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(
+                    file.path().as_ref(),
+                ))
+                .get()
+            })
+            .filter(|file| {
+                !file
+                    .path()
+                    .as_ref()
+                    .file_stem()
+                    .and_then(std::ffi::OsStr::to_str)
+                    .is_some_and(|file_stem| {
+                        file_stem.split('_').any(|segment| {
+                            segment == constants_str::catalog::TEST_ALT_3
+                                || segment == constants_str::catalog::TESTS_ALT
+                        })
+                    })
+            })
+            .filter(|file| !file.ast().as_ref().items.is_empty())
+            .filter(|file| {
+                file.ast().as_ref().items.iter().all(|item| {
+                    crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item))
+                        .get()
+                })
+            })
+            .map(|file| file.path().as_ref().display().to_string())
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "b40d6e2a modules containing only test-gated items must use a test-specific filename and module name:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
 fn production_modules_contain_at_most_one_named_owner() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let target_roots = snapshot

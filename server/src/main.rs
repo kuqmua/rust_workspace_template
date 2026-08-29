@@ -1,6 +1,5 @@
 pub mod admin_metrics_error;
 pub mod axum_api_routes;
-pub mod domain_types;
 pub mod frontend_fallback_routes;
 pub mod http_body_maximum_bytes;
 pub mod make_postgresql_pool;
@@ -12,6 +11,8 @@ pub mod server_exit_code;
 pub mod server_io_error;
 pub mod shared_server_app_state_arc;
 pub mod sqlx_server_pg_connect_error;
+#[cfg(test)]
+pub mod tests_domain_types;
 pub mod tokio_server_runtime;
 
 fn main() -> server_exit_code::ServerExitCode {

@@ -74,13 +74,13 @@ fn component_serde_accepts_exact_runtime_limit() {
 #[test]
 fn check_status_maps_success_and_failure() {
     assert_eq!(
-        crate::map_health_check_status::map_health_check_status(
+        crate::map_health_check_status_tests::map_health_check_status(
             crate::health_check_succeeded::HealthCheckSucceeded(true)
         ),
         crate::axum_health_check_status::AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
     );
     assert_eq!(
-        crate::map_health_check_status::map_health_check_status(
+        crate::map_health_check_status_tests::map_health_check_status(
             crate::health_check_succeeded::HealthCheckSucceeded(false)
         ),
         crate::axum_health_check_status::AxumHealthCheckStatus::from(

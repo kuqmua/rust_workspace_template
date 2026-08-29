@@ -20,10 +20,12 @@ pub mod open_api_schema_references_b_tree_set;
 pub mod open_api_security_expectation;
 pub mod open_api_validation_error;
 pub mod openapi_schema_references;
-pub mod openapi_validation;
+#[cfg(test)]
+pub mod openapi_validation_tests;
 pub mod route_contract_mismatch;
 pub mod route_contract_mismatches;
-pub mod route_contract_validation;
+#[cfg(test)]
+pub mod route_contract_validation_tests;
 pub mod run_http_contract_fixture;
 pub mod runtime_routes_ref;
 pub mod serde_json_open_api_serialization_error;

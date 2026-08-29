@@ -2,7 +2,8 @@
 pub mod generated_crate_phase;
 #[cfg(feature = "test-utils")]
 pub mod generated_crate_step;
-pub mod generated_crate_steps;
+#[cfg(any(test, feature = "test-utils"))]
+pub mod generated_crate_steps_tests;
 #[cfg(feature = "test-utils")]
 pub mod remove_dir_on_drop;
 
@@ -175,7 +176,7 @@ categories = ["category"]
         crate_path.join(constants_str::catalog::CARGO_LOCK),
     )
     .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
-    generated_crate_steps::GENERATED_CRATE_STEPS
+    generated_crate_steps_tests::GENERATED_CRATE_STEPS
         .iter()
         .fold((), |(), step| {
             let status = macro_helpers::tool_command::ToolCommand::new(
@@ -212,7 +213,7 @@ mod tests {
         fn new() -> Self {
             let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             let path = std::env::temp_dir().join(format!(
-                "macro_clippy_check_common_{}_{}",
+                "macro_clippy_check_test_common_{}_{}",
                 std::process::id(),
                 seq
             ));

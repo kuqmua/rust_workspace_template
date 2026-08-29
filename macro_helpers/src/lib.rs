@@ -63,10 +63,12 @@ pub mod generate_serde_version_of_named_syn_variant;
 pub mod generate_simple_syn_punct;
 pub mod generate_try_new_token_stream_impl;
 pub mod generated_file_maximum_bytes;
-pub mod get_macro_attribute;
+#[cfg(test)]
+pub mod get_macro_attribute_tests;
 pub mod impl_identifier_token_stream_impl;
 #[cfg(feature = "test-utils")]
-pub mod json_contract;
+#[cfg(test)]
+pub mod json_contract_tests;
 #[cfg(feature = "test-utils")]
 pub mod json_fixture_ref;
 pub mod location_field_attr;
@@ -86,14 +88,16 @@ pub mod proc_macro2_token_stream_ref;
 pub mod process_command;
 pub mod process_exit_status;
 pub mod process_output;
-pub mod rs_file_path;
 pub mod rs_file_path_buf;
+#[cfg(test)]
+pub mod rs_file_path_tests;
 #[cfg(feature = "test-utils")]
 pub mod sanitized_database_target;
 #[cfg(feature = "test-utils")]
 pub mod serde_json_error;
 pub mod should_write_string;
-pub mod should_write_string_into_file;
+#[cfg(test)]
+pub mod should_write_string_into_file_tests;
 pub mod should_write_token_stream_into_file;
 pub mod status_code;
 #[cfg(test)]
@@ -126,8 +130,10 @@ pub mod try_get_macro_attribute;
 pub mod try_maybe_write_token_stream_into_file;
 pub mod try_write_string_into_file;
 pub mod try_write_string_into_file_with_outcome;
-pub mod try_write_string_into_path;
-pub mod try_write_string_into_path_with_outcome;
+#[cfg(test)]
+pub mod try_write_string_into_path_tests;
+#[cfg(test)]
+pub mod try_write_string_into_path_with_outcome_tests;
 #[cfg(feature = "test-utils")]
 pub mod url_error;
 #[cfg(feature = "test-utils")]
@@ -138,8 +144,11 @@ pub mod validate_test_database_url;
 pub mod with_attr_token_stream_impl;
 pub mod wrap_derive;
 pub mod write_path_outcome;
-pub mod write_string_if_needed;
-pub mod write_string_into_file;
-pub mod write_token_stream_into_file;
+#[cfg(test)]
+pub mod write_string_if_needed_tests;
+#[cfg(test)]
+pub mod write_string_into_file_tests;
+#[cfg(test)]
+pub mod write_token_stream_into_file_tests;
 pub mod written_file_path_buf;
 pub mod written_file_path_ref;

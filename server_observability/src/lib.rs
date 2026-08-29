@@ -1,5 +1,6 @@
 pub mod init_service_observability;
-pub mod initialization;
+#[cfg(test)]
+pub mod initialization_tests;
 pub mod observability_guard;
 pub mod observability_init_error;
 pub mod observed_error;

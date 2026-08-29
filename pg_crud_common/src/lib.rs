@@ -15,8 +15,9 @@ pub mod batch_invalid_items;
 pub mod batch_processed_item_count;
 pub mod batch_records_b_tree_map;
 pub mod batch_stopped_early;
-pub mod batch_validation;
 pub mod batch_validation_report;
+#[cfg(test)]
+pub mod batch_validation_tests;
 pub mod bool_test_cases_vec;
 pub mod bounded_b_tree_map;
 pub mod bounded_b_tree_map_error;
@@ -93,8 +94,6 @@ pub mod domain_types;
 pub mod domain_types_db_schema_conformance_tests;
 #[cfg(test)]
 pub mod domain_types_query_pagination_tests;
-#[cfg(test)]
-pub mod domain_types_tests_operator_to_query_part;
 pub mod duplicate_candidates;
 pub mod duplicate_idx;
 pub mod eq_operator;
@@ -246,6 +245,8 @@ pub mod string_test_cases_vec;
 pub mod take_fst_dup;
 pub mod take_fst_dup_by;
 pub mod take_fst_dup_by_hash;
+#[cfg(test)]
+pub mod tests_domain_types_operator_to_query_part;
 pub mod transaction_failure;
 pub mod try_new_unique_vec;
 pub mod u16_test_cases_vec;

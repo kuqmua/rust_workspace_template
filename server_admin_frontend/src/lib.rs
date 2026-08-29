@@ -107,7 +107,8 @@ pub mod admin_ssr_text;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_ssr_text_try_from_string_error;
 #[cfg(test)]
-pub mod admin_ssr_view_ext;
+#[cfg(test)]
+pub mod admin_ssr_view_ext_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_table_load_error;
 pub mod admin_table_query_direction;

@@ -1,5 +1,5 @@
 [package]
-name = "macro_clippy_check_common"
+name = "macro_clippy_check_test_common"
 version.workspace = true
 publish.workspace = true
 description.workspace = true

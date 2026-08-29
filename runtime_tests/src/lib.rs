@@ -1,4 +1,3 @@
-pub mod domain_types;
 pub mod http_runtime_test_status;
 pub mod reqwest_runtime_test_client;
 pub mod reqwest_runtime_test_response;
@@ -9,6 +8,8 @@ pub mod runtime_test_report;
 pub mod runtime_test_url;
 pub mod service_base_url;
 pub mod service_base_url_error;
+#[cfg(test)]
+pub mod tests_domain_types;
 
 pub fn local_config()
 -> Result<runtime_test_config::RuntimeTestConfig, service_base_url_error::ServiceBaseUrlError> {

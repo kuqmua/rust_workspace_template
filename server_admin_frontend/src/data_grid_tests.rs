@@ -69,7 +69,7 @@ fn data_grid() {
 
     let default_query =
         server_admin_contract::admin_data_table_query::AdminDataTableQuery::default();
-    let html = crate::admin_ssr_view_ext::AdminSsrViewExt::render_admin_ssr(
+    let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
         crate::data_table_grid::data_table_grid(&view, &default_query),
     );
 
@@ -102,7 +102,7 @@ fn data_grid() {
         ),
         server_admin_contract::admin_table_query::AdminTableQuery::default(),
     );
-    let filters_html = crate::admin_ssr_view_ext::AdminSsrViewExt::render_admin_ssr(
+    let filters_html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
         crate::data_table_grid::data_table_grid(&filter_view, &query),
     );
     assert!(

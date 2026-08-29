@@ -532,7 +532,7 @@ constants_str_macros::define_str_constants! {
         pub INITIALIZE_ENVIRONMENT_FILES = ["/init_env_files/"];
         pub ITEMS_CM = ["/items/cm"];
         pub ITEMS_CO = ["/items/co"];
-        pub MACRO_CLIPPY_CHECK_COMMON = ["/macro_clippy_check_common/"];
+        pub MACRO_CLIPPY_CHECK_TEST_COMMON = ["/macro_clippy_check_test_common/"];
         pub MACRO_HELPERS = ["/macro_helpers/"];
         pub METRICS = ["/metrics"];
         pub HTTP_METRICS_ERRORS_TOTAL = ["http_errors_total"];

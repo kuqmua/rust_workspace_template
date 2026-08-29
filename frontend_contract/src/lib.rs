@@ -39,10 +39,11 @@ pub mod authentication_requirement;
 pub mod axum_method_filter;
 pub mod axum_route_method_router;
 pub mod capability_support;
-pub mod client;
 pub mod client_error;
 pub mod client_request;
 pub mod client_route_metadata;
+#[cfg(test)]
+pub mod client_tests;
 pub mod confirmation_requirement;
 pub mod contract_i64;
 pub mod contract_str;
@@ -82,28 +83,30 @@ pub mod open_api_security_scheme_ref;
 pub mod openapi_route_metadata;
 pub mod operation_kind;
 pub mod page_contract;
-pub mod page_transport;
+#[cfg(test)]
+pub mod page_transport_tests;
 pub mod parameterized_route;
 pub mod parameterized_route_path;
 pub mod parameterized_route_path_try_from_string_error;
 pub mod primary_key_kind;
-pub mod problem;
+#[cfg(test)]
+pub mod problem_tests;
 pub mod public_transport;
 pub mod register_openapi_route_schemas;
 pub mod register_openapi_schema;
 pub mod registered_route_path;
 pub mod required_test_categories;
-pub mod route;
 pub mod route_access;
 pub mod route_body_limit;
 pub mod route_contract;
 pub mod route_contracts;
-pub mod route_coverage;
 pub mod route_coverage_descriptor;
 pub mod route_coverage_descriptors;
 pub mod route_coverage_error;
 pub mod route_coverage_evidence;
 pub mod route_coverage_obligation;
+#[cfg(test)]
+pub mod route_coverage_tests;
 pub mod route_database_usage;
 pub mod route_error_policy;
 pub mod route_error_status;
@@ -125,6 +128,8 @@ pub mod route_schema_contracts;
 pub mod route_test_capabilities;
 pub mod route_test_categories;
 pub mod route_test_category;
+#[cfg(test)]
+pub mod route_tests;
 pub mod route_transport;
 pub mod server_response;
 pub mod server_route_metadata;
@@ -147,7 +152,8 @@ pub mod typed_client;
 pub mod typed_parameterized_route_path;
 pub mod typed_route;
 pub mod typed_route_path;
-pub mod url_builder;
+#[cfg(test)]
+pub mod url_builder_tests;
 pub mod utoipa_open_api_components_ref_mut;
 pub mod utoipa_open_api_path_parameter;
 pub mod utoipa_open_api_ref_mut;

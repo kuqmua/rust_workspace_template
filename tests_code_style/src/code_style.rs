@@ -955,7 +955,7 @@ pub(crate) fn domain_type_policy_should_check_path(
             .as_ref()
             .to_string_lossy()
             .trim_start_matches(constants_str::catalog::TEXT_ALT_9)
-            .starts_with(constants_str::test_fixtures::CODE_STYLE_MACRO_CLIPPY_CHECK_COMMON_SRC)
+            .starts_with(constants_str::test_fixtures::CODE_STYLE_MACRO_CLIPPY_CHECK_TEST_COMMON_SRC)
         || (path.as_ref().exists() && is_test_crate_source_path(path).get())
         || path
             .as_ref()

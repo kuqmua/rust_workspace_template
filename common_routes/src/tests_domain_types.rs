@@ -66,15 +66,15 @@ fn assert_not_found_payload_with_commit(
 fn assert_no_route_message(actual: &to_err_string::error_text::ErrorText, uri_suffix: &str) {
     assert_eq!(
         actual.as_ref(),
-        crate::make_no_route_message_for_suffix::make_no_route_message_for_suffix(suffix_ref(
-            uri_suffix
-        ))
+        crate::make_no_route_message_for_suffix_tests::make_no_route_message_for_suffix(
+            suffix_ref(uri_suffix)
+        )
         .as_ref()
     );
 }
 #[test]
 fn git_info_response_shape_stays_stable() {
-    let git_info = crate::make_git_info_payload::make_git_info_payload(b_cow(
+    let git_info = crate::make_git_info_payload_tests::make_git_info_payload(b_cow(
         constants_str::catalog::TEST_VALUES_COMMIT,
     ));
     assert_git_info_commit(&git_info, constants_str::catalog::TEST_VALUES_COMMIT);
@@ -82,7 +82,7 @@ fn git_info_response_shape_stays_stable() {
 #[test]
 fn not_found_response_shape_stays_stable() {
     let uri = axum::http::Uri::from_static(constants_str::catalog::UNKNOWN);
-    let not_found = crate::make_not_found_payload::make_not_found_payload(
+    let not_found = crate::make_not_found_payload_tests::make_not_found_payload(
         uri_ref(&uri),
         b_cow(constants_str::catalog::TEST_VALUES_WRONG_COMMIT),
     );
@@ -96,16 +96,16 @@ fn not_found_response_shape_stays_stable() {
 fn no_route_message_includes_uri() {
     let uri = axum::http::Uri::from_static(constants_str::catalog::MISSING_PATH);
     assert_no_route_message(
-        &crate::make_no_route_message::make_no_route_message(uri_ref(&uri)),
+        &crate::make_no_route_message_tests::make_no_route_message(uri_ref(&uri)),
         constants_str::catalog::MISSING_PATH,
     );
 }
 #[test]
 fn no_route_message_for_suffix_uses_prefix_once() {
     assert_no_route_message(
-        &crate::make_no_route_message_for_suffix::make_no_route_message_for_suffix(suffix_ref(
-            constants_str::catalog::MISSING_PATH,
-        )),
+        &crate::make_no_route_message_for_suffix_tests::make_no_route_message_for_suffix(
+            suffix_ref(constants_str::catalog::MISSING_PATH),
+        ),
         constants_str::catalog::MISSING_PATH,
     );
 }
@@ -113,7 +113,7 @@ fn no_route_message_for_suffix_uses_prefix_once() {
 fn uri_suffix_prefers_path_and_query_when_query_exists() {
     let uri = axum::http::Uri::from_static(constants_str::catalog::MISSING_PATH_QUESTION_LIMIT_10);
     assert_eq!(
-        crate::uri_suffix::uri_suffix(uri_ref(&uri)).0,
+        crate::uri_suffix_tests::uri_suffix(uri_ref(&uri)).0,
         "/missing/path?limit=10"
     );
 }
@@ -121,7 +121,7 @@ fn uri_suffix_prefers_path_and_query_when_query_exists() {
 fn no_route_message_keeps_query_parameters() {
     let uri = axum::http::Uri::from_static(constants_str::catalog::MISSING_PATH_QUESTION_LIMIT_10);
     assert_no_route_message(
-        &crate::make_no_route_message::make_no_route_message(uri_ref(&uri)),
+        &crate::make_no_route_message_tests::make_no_route_message(uri_ref(&uri)),
         constants_str::catalog::MISSING_PATH_QUESTION_LIMIT_10,
     );
 }
@@ -133,13 +133,13 @@ fn status_code_constants_are_stable_for_common_routes() {
 #[test]
 fn git_info_response_contains_commit_link() {
     let exp_commit = test_commit_link();
-    let payload = crate::make_git_info_payload::make_git_info_payload(test_commit_link_cow());
+    let payload = crate::make_git_info_payload_tests::make_git_info_payload(test_commit_link_cow());
     assert_git_info_commit(&payload, &exp_commit);
 }
 #[test]
 fn git_info_payload_from_state_contains_commit_link() {
     let state = test_state();
-    let payload = crate::make_git_info_payload::make_git_info_payload(
+    let payload = crate::make_git_info_payload_tests::make_git_info_payload(
         git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
             state.as_ref(),
         ),
@@ -150,7 +150,7 @@ fn git_info_payload_from_state_contains_commit_link() {
 fn not_found_response_uses_uri_and_swagger_path() {
     let uri = axum::http::Uri::from_static(constants_str::catalog::MISSING);
     let commit_link = test_commit_link();
-    let payload = crate::make_not_found_payload::make_not_found_payload(
+    let payload = crate::make_not_found_payload_tests::make_not_found_payload(
         uri_ref(&uri),
         test_commit_link_cow(),
     );
@@ -160,7 +160,7 @@ fn not_found_response_uses_uri_and_swagger_path() {
 fn not_found_payload_from_state_uses_uri_and_swagger_path() {
     let uri = axum::http::Uri::from_static(constants_str::catalog::MISSING);
     let state = test_state();
-    let payload = crate::make_not_found_payload::make_not_found_payload(
+    let payload = crate::make_not_found_payload_tests::make_not_found_payload(
         uri_ref(&uri),
         git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
             state.as_ref(),
@@ -175,12 +175,13 @@ fn not_found_payload_from_state_uses_uri_and_swagger_path() {
 #[test]
 fn not_found_payload_for_suffix_uses_given_suffix_and_swagger_path() {
     let commit_link = test_commit_link();
-    let payload = crate::make_not_found_payload_with_message::make_not_found_payload_with_message(
-        crate::make_no_route_message_for_suffix::make_no_route_message_for_suffix(suffix_ref(
-            constants_str::catalog::MISSING,
-        )),
-        test_commit_link_cow(),
-    );
+    let payload =
+        crate::make_not_found_payload_with_message_tests::make_not_found_payload_with_message(
+            crate::make_no_route_message_for_suffix_tests::make_no_route_message_for_suffix(
+                suffix_ref(constants_str::catalog::MISSING),
+            ),
+            test_commit_link_cow(),
+        );
     assert_not_found_payload_with_commit(&payload, &commit_link, constants_str::catalog::MISSING);
 }
 #[test]
@@ -204,7 +205,7 @@ fn make_state_payload_uses_state_trait_object() {
 #[test]
 fn make_json_response_wraps_success_payload() {
     let response = crate::make_json_response::make_json_response(
-        crate::make_git_info_payload::make_git_info_payload(b_cow(
+        crate::make_git_info_payload_tests::make_git_info_payload(b_cow(
             constants_str::catalog::TEST_VALUES_COMMIT,
         )),
     );
@@ -228,7 +229,7 @@ fn make_state_payload_passes_commit_link_to_mapper() {
 fn make_commit_json_response_combines_status_and_commit_payload() {
     let state = test_state();
     let response = crate::make_json_response::make_json_response(
-        crate::make_git_info_payload::make_git_info_payload(
+        crate::make_git_info_payload_tests::make_git_info_payload(
             git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
                 state.as_ref(),
             ),

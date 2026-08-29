@@ -79,9 +79,9 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 16] = [
     "/init_env_files/src/write_content.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HELPER_WRITE_STRING_FS_OWNER_SUFFIX,
-    "/macro_helpers/src/should_write_string_into_file.rs",
+    "/macro_helpers/src/should_write_string_into_file_tests.rs",
     "/macro_helpers/src/try_write_string_into_file_with_outcome.rs",
-    "/macro_helpers/src/write_token_stream_into_file.rs",
+    "/macro_helpers/src/write_token_stream_into_file_tests.rs",
     "/workspace_scaffold/src/main.rs",
     "/workspace_scaffold/src/template_fs_copy_template_tree.rs",
     "/workspace_scaffold/src/template_fs_insert_once.rs",
@@ -110,10 +110,11 @@ pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str =
     "../tests_code_style/src/domain_type_policy_fixture.rs";
 pub const CODE_STYLE_BOUNDED_TYPES_SRC: &str = "../bounded_types/src";
 pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
-pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str = "/macro_clippy_check_common/src/lib.rs";
+pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str =
+    "/macro_clippy_check_test_common/src/lib.rs";
 pub const CODE_STYLE_MACROS_HELPER_TEST_FS_OWNER_SUFFIX: &str = "/macro_helpers/src/test_helper.rs";
 pub const CODE_STYLE_MACROS_HELPER_WRITE_STRING_FS_OWNER_SUFFIX: &str =
-    "/macro_helpers/src/write_string_into_file.rs";
+    "/macro_helpers/src/write_string_into_file_tests.rs";
 pub const CODE_STYLE_PRELUDE_MODULE: &str = "prelude";
 pub const CODE_STYLE_TESTS_SRC_ROOT: &str = "../tests_code_style/src";
 pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];

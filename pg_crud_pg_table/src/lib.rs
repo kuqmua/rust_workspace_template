@@ -11,8 +11,6 @@ pub mod cleanup_pg_table_idempotency;
 pub mod combination_of_app_state_logic_traits;
 pub mod complete_pg_table_idempotency;
 pub mod complete_pg_table_idempotency_in_connection;
-#[cfg(test)]
-pub mod domain_types_tests_idempotency;
 pub mod ensure_pg_table_idempotency_schema;
 pub mod generate_cm_query_string;
 pub mod generate_co_query_string;
@@ -69,6 +67,8 @@ pub mod sqlx_pg_table_idempotency_error;
 pub mod sqlx_pg_table_pg_connection_ref;
 #[cfg(test)]
 pub mod tests;
+#[cfg(test)]
+pub mod tests_domain_types_idempotency;
 pub mod update_selector_fmt;
 
 // The owner module retains lint-sensitive semantics from the original implementation.

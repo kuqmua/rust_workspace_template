@@ -1,6 +1,6 @@
 #[test]
 fn pagination_preserves_server_side_navigation() {
-    let html = crate::admin_ssr_view_ext::AdminSsrViewExt::render_admin_ssr(
+    let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
         crate::table_pagination::table_pagination(
             server_admin_contract::admin_page::AdminPage::Users,
             &server_admin_contract::admin_table_query::AdminTableQuery::default(),
@@ -35,7 +35,7 @@ fn pagination_preserves_server_side_navigation() {
             ),
             None,
         );
-    let filtered_html = crate::admin_ssr_view_ext::AdminSsrViewExt::render_admin_ssr(
+    let filtered_html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
         crate::table_pagination::table_pagination(
             server_admin_contract::admin_page::AdminPage::Tables,
             &server_admin_contract::admin_table_query::AdminTableQuery::default(),

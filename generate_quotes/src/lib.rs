@@ -5,7 +5,6 @@ pub mod binary_single_quote_style;
 pub mod binary_single_quotes_str;
 pub mod binary_single_quotes_token_stream;
 pub mod build_quote_style;
-pub mod domain_types;
 pub mod double_quote_style;
 pub mod double_quoted_string;
 pub mod dq_token_stream;
@@ -22,3 +21,5 @@ pub mod quoted_literal_max_len;
 pub mod single_quote_style;
 pub mod single_quotes_str;
 pub mod single_quotes_token_stream;
+#[cfg(test)]
+pub mod tests_domain_types;

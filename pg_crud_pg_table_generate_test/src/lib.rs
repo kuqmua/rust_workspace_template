@@ -94,7 +94,7 @@ mod tests {
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
     fn pg_table_generate_clippy() {
-        macro_clippy_check_common::clippy_check(
+        macro_clippy_check_test_common::clippy_check(
             constants_str::catalog::GENERATE_PG_TABLE_TEST_CNT,
             constants_str::catalog::PG_CRUD_PG_TABLE,
             constants_str::catalog::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,

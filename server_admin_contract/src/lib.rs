@@ -211,11 +211,11 @@ pub mod domain_types_routes_tests;
 pub mod domain_types_sessions_tests;
 #[cfg(test)]
 pub mod domain_types_settings_tests;
-#[cfg(test)]
-pub mod domain_types_tests;
 pub mod identity;
 pub mod positive_non_zero_i64;
 pub mod serde_json_admin_audit_details;
+#[cfg(test)]
+pub mod tests_domain_types;
 #[cfg(test)]
 mod table_sort_tests {
     #[test]

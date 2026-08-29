@@ -1,7 +1,6 @@
 pub mod database_preparation_spec;
 pub mod database_url;
 pub mod database_url_error;
-pub mod domain_types;
 pub mod migration_commands;
 pub mod migrations_source;
 pub mod migrations_source_error;
@@ -11,3 +10,5 @@ pub mod process_command;
 pub mod process_commands;
 pub mod process_program;
 pub mod process_static_argument;
+#[cfg(test)]
+pub mod tests_domain_types;

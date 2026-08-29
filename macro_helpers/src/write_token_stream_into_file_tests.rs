@@ -5,7 +5,7 @@ mod tests {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::catalog::MACRO_HELPERS_SKIP,
         ));
-        let path = crate::rs_file_path::rs_file_path(&base);
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
             constants_str::catalog::STRUCT_SKIPWRITE.parse().expect("5994e7e2 try_maybe_write_token_stream_into_file_skips_when_flag_is_false invariant must hold");
         crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
@@ -22,7 +22,7 @@ mod tests {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::catalog::MACRO_HELPERS_WRITE,
         ));
-        let path = crate::rs_file_path::rs_file_path(&base);
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
             constants_str::catalog::STRUCT_DIDWRITE.parse().expect("6c20f49a try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true invariant must hold");
         let expected = ts.to_string();
@@ -44,7 +44,7 @@ mod tests {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::catalog::MACRO_HELPERS_TRY_WRITE,
         ));
-        let path = crate::rs_file_path::rs_file_path(&base);
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
             constants_str::catalog::STRUCT_TRYDIDWRITE.parse().expect("f771ac2d try_maybe_write_token_stream_into_file_writes_tokens_when_enabled invariant must hold");
         let expected = ts.to_string();
@@ -66,7 +66,7 @@ mod tests {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::catalog::MACRO_HELPERS_TRY_WRITE_PATH,
         ));
-        let path = crate::rs_file_path::rs_file_path(&base);
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
         let ts: proc_macro2::TokenStream =
             constants_str::catalog::STRUCT_PATHINPUT.parse().expect("f9b0cd83 try_maybe_write_token_stream_into_file_accepts_path_input invariant must hold");
         let expected = ts.to_string();
@@ -89,7 +89,7 @@ mod tests {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::catalog::MACRO_HELPERS_TRY_RUN_RUSTFMT,
         ));
-        let path = crate::rs_file_path::rs_file_path(&base);
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
         std::fs::write(&path, constants_str::catalog::STRUCT_B).expect("7091840d try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
         let ts: proc_macro2::TokenStream = constants_str::catalog::STRUCT_A.parse().expect("0f30ca53 try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled invariant must hold");
         crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(

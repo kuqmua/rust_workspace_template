@@ -1,7 +1,6 @@
 pub mod closure_identifier_and_body;
 pub mod collection_max_len;
 pub mod compile_error_token_stream;
-pub mod domain_types;
 pub mod first_comma_stripped;
 pub mod first_ident_max_len;
 pub mod first_identifier;
@@ -21,5 +20,7 @@ pub mod syn_derive_input_ref;
 pub mod syn_fields_named_ref;
 pub mod syn_fields_unnamed_ref;
 pub mod syn_struct_shape_ref;
+#[cfg(test)]
+pub mod tests_domain_types;
 pub mod top_level_comma_part;
 pub mod unique_option_b_tree_set;

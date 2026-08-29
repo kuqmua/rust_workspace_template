@@ -14,7 +14,7 @@ optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
 quote = { workspace = true }
 frontend_contract = { workspace = true }
-macro_clippy_check_common = { workspace = true, features = ["test-utils"] }
+macro_clippy_check_test_common = { workspace = true, features = ["test-utils"] }
 generate_pg_types_src = { workspace = true }
 macro_helpers = { workspace = true, features = ["test-utils"] }
 chrono = { workspace = true }
@@ -29,4 +29,4 @@ utoipa = { workspace = true }
 workspace = true
 
 [features]
-test-utils = ["macro_clippy_check_common/test-utils"]
+test-utils = ["macro_clippy_check_test_common/test-utils"]

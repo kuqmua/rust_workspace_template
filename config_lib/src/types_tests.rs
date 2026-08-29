@@ -94,7 +94,7 @@ mod tests {
     }
     #[test]
     fn parse_src_place_type_env_value_parses_case_insensitively() {
-        let parsed = crate::parse_from_str_with_ctx::parse_from_str_with_ctx::<
+        let parsed = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<
             crate::src_place_type::SrcPlaceType,
         >(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::catalog::GITHUB),
@@ -106,7 +106,7 @@ mod tests {
     }
     #[test]
     fn parse_src_place_type_env_value_wraps_parse_context() {
-        let error = crate::parse_from_str_with_ctx::parse_from_str_with_ctx::<
+        let error = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<
             crate::src_place_type::SrcPlaceType,
         >(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::catalog::BAD),
@@ -121,7 +121,7 @@ mod tests {
     }
     #[test]
     fn parse_from_env_var_with_wraps_missing_var_context() {
-        let parsed = crate::parse_from_env_var_with::parse_from_env_var_with(
+        let parsed = crate::parse_from_env_var_with_tests::parse_from_env_var_with(
             env_result(Err(std::env::VarError::NotPresent)),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
                 constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
@@ -145,7 +145,7 @@ mod tests {
     }
     #[test]
     fn parse_from_env_var_with_passes_value_into_parse_callback() {
-        let parsed = crate::parse_from_env_var_with::parse_from_env_var_with(
+        let parsed = crate::parse_from_env_var_with_tests::parse_from_env_var_with(
             env_result(Ok(String::from(constants_str::catalog::SRC_ALT))),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
                 constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
@@ -156,7 +156,7 @@ mod tests {
     }
     #[test]
     fn parse_from_env_var_from_str_parses_bool_when_input_is_valid() {
-        let parsed = crate::parse_from_env_var_from_str::parse_from_env_var_from_str::<bool>(
+        let parsed = crate::parse_from_env_var_from_str_tests::parse_from_env_var_from_str::<bool>(
             env_result(Ok(String::from(constants_str::catalog::TRUE))),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
                 constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
@@ -167,7 +167,7 @@ mod tests {
     }
     #[test]
     fn parse_from_env_var_from_str_wraps_context_when_parse_fails() {
-        let error = crate::parse_from_env_var_from_str::parse_from_env_var_from_str::<bool>(
+        let error = crate::parse_from_env_var_from_str_tests::parse_from_env_var_from_str::<bool>(
             env_result(Ok(String::from(constants_str::catalog::X))),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
                 constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
@@ -198,7 +198,7 @@ mod tests {
     }
     #[test]
     fn parse_from_str_with_ctx_parses_value_when_input_is_valid() {
-        let parsed = crate::parse_from_str_with_ctx::parse_from_str_with_ctx::<bool>(
+        let parsed = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<bool>(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::catalog::TRUE),
             crate::parse_ctx_ref::ParseCtxRef::from(constants_str::catalog::BOOL_PARSE),
         );
@@ -206,7 +206,7 @@ mod tests {
     }
     #[test]
     fn parse_from_str_with_ctx_wraps_context_when_parsing_fails() {
-        let error = crate::parse_from_str_with_ctx::parse_from_str_with_ctx::<bool>(
+        let error = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<bool>(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::catalog::X),
             crate::parse_ctx_ref::ParseCtxRef::from(constants_str::catalog::BOOL_PARSE),
         )

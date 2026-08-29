@@ -21,7 +21,9 @@ pub mod proc_macro2_generate_where_filters_input;
 pub mod proc_macro2_generate_where_filters_token_stream;
 pub mod schema_uses_text_value;
 pub mod serde_json_generate_where_filters_error;
-pub mod source;
-pub mod spec;
+#[cfg(test)]
+pub mod source_tests;
+#[cfg(test)]
+pub mod spec_tests;
 pub mod validate_generate_where_filters;
 pub mod validated_generate_where_filters_config;

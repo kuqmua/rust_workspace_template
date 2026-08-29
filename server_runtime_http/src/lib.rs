@@ -81,14 +81,6 @@ pub mod domain_types;
 pub mod domain_types_request_id;
 pub mod domain_types_security_headers;
 pub mod domain_types_service_runtime;
-#[cfg(test)]
-pub mod domain_types_tests_request_id;
-#[cfg(test)]
-pub mod domain_types_tests_resource_budget;
-#[cfg(test)]
-pub mod domain_types_tests_security_headers;
-#[cfg(test)]
-pub mod domain_types_tests_service_runtime;
 pub mod enforce_pg_rate_limit;
 pub mod ensure_size_within_limit;
 pub mod extract_remote_trace_context;
@@ -355,6 +347,14 @@ pub mod storage_relative_path_buf;
 pub mod supported_geo_json_type_validation;
 #[cfg(test)]
 pub mod tests;
+#[cfg(test)]
+pub mod tests_domain_types_request_id;
+#[cfg(test)]
+pub mod tests_domain_types_resource_budget;
+#[cfg(test)]
+pub mod tests_domain_types_security_headers;
+#[cfg(test)]
+pub mod tests_domain_types_service_runtime;
 pub mod tokio_abort_task;
 pub mod tokio_acquire_error;
 pub mod tokio_background_task_join;

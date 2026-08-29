@@ -23,7 +23,8 @@ pub mod exclusive_run_atomic_bool;
 pub mod exclusive_run_guard;
 pub mod execute_plan;
 pub mod execution_mode;
-pub mod execution_plan;
+#[cfg(test)]
+pub mod execution_plan_tests;
 pub mod execution_report;
 pub mod generation;
 pub mod generation_atomic_u64;
@@ -31,7 +32,8 @@ pub mod generation_commit;
 pub mod generation_gate;
 pub mod idempotency_response_resource_budget_provider;
 pub mod identity_creation_decision;
-pub mod identity_creation_plan;
+#[cfg(test)]
+pub mod identity_creation_plan_tests;
 pub mod identity_presence;
 pub mod identity_role_presence;
 pub mod identity_spec;
@@ -66,17 +68,19 @@ pub mod resource_utilization_known_percent;
 pub mod resource_utilization_percent;
 pub mod resource_utilization_percent_try_from_u8_error;
 pub mod resource_utilization_status;
-pub mod retry;
 pub mod retry_attempts_non_zero_usize;
 pub mod retry_delay_duration;
 pub mod retry_outcome;
 pub mod retry_policy;
+#[cfg(test)]
+pub mod retry_tests;
 pub mod run_reports_vec_deque;
 pub mod run_with_retries;
-pub mod secret_text;
 pub mod secret_text_match;
 pub mod secret_text_minimum_bytes;
 pub mod secret_text_ref;
+#[cfg(test)]
+pub mod secret_text_tests;
 pub mod secret_texts_match;
 pub mod select_sources;
 pub mod shared_atomic_usize_arc;
