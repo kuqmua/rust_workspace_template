@@ -221,9 +221,9 @@ pub(crate) use crate::admin_users_view::*;
 mod axum_admin_frontend_router;
 pub(crate) use crate::axum_admin_frontend_router::*;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-mod crud;
+mod crud_tests;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-pub(crate) use crate::crud::*;
+pub(crate) use crate::crud_tests::*;
 #[cfg(not(target_arch = "wasm32"))]
 mod crud_render_role_create;
 #[cfg(not(target_arch = "wasm32"))]
@@ -265,9 +265,9 @@ mod csrf_token;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use crate::csrf_token::*;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-mod data_grid;
+mod data_grid_tests;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-pub(crate) use crate::data_grid::*;
+pub(crate) use crate::data_grid_tests::*;
 #[cfg(not(target_arch = "wasm32"))]
 mod data_table_grid;
 #[cfg(not(target_arch = "wasm32"))]
@@ -465,9 +465,9 @@ mod state;
 #[cfg(target_arch = "wasm32")]
 pub(crate) use crate::state::*;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-mod static_pages;
+mod static_pages_tests;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-pub(crate) use crate::static_pages::*;
+pub(crate) use crate::static_pages_tests::*;
 mod table;
 pub(crate) use crate::table::*;
 mod table_body;

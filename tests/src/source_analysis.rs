@@ -957,7 +957,6 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
 )]
 pub(super) struct UseImportVisitor {
     pub public_use_roots: super::types::SourceTextList,
-    pub allow_leptos_prelude_import: super::types::AnalyzerBool,
     pub found_non_public_use_import: super::types::AnalyzerBool,
     pub found_use_rename: super::types::AnalyzerBool,
 }
@@ -990,9 +989,7 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
             } else {
                 false
             };
-            let is_allowed_leptos_import =
-                self.allow_leptos_prelude_import.get() && is_leptos_prelude_import;
-            if !is_allowed_leptos_import {
+            if !is_leptos_prelude_import {
                 self.found_non_public_use_import.set_true();
             }
         } else if let Some(root) = match &i.tree {

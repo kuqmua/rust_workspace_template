@@ -1,4 +1,6 @@
 mod domain_types;
+#[cfg(test)]
+mod domain_types_tests;
 mod env_content;
 mod env_content_ref;
 mod env_key;

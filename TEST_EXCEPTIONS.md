@@ -4,47 +4,69 @@ This document inventories deliberate exceptions and reviewed baselines used by t
 policy tests. The Rust declarations linked below remain authoritative; an exception must be
 removed there when its reason or owner is no longer valid.
 
+## Reduction status
+
+The centralized inventories contained 113 entries at the start of the reduction pass. They now
+contain 11 entries. Inline reviewed inventories are tracked separately because several represent
+generated snapshots or occurrence groups rather than one exception per entry.
+
+| Reduction category | Removed |
+| --- | ---: |
+| Centralized path/type inventories | 102 |
+| Duplicate-function reviewed groups | 41 |
+| Shared-dispatch, ignored-`map_err`, and `select!` records | 65 |
+| `usize::MAX` owners | 14 |
+| Generated diagnostic interpolation records | 1 |
+| Library test-ownership exceptions | 23 |
+| Library print owners | 5 |
+| Repository-specific benchmark and test-fixture paths | 2 |
+| Allocations inside hot loops | 2 |
+| **Total removed** | **255** |
+
+Stale checks were added or strengthened for duplicate functions, direct filesystem owners,
+shared-dispatch usage, ignored `map_err` bindings, `usize::MAX` owners, generated diagnostics,
+large modules, raw-`Vec` wrappers, and other exact inventories. New observations remain violations
+and were not copied into reviewed inventories.
+
 ## Central path inventories
 
 | Inventory | Entries | What it permits |
 | --- | ---: | --- |
 | `CODE_STYLE_CLIPPY_LINT_EXCEPTIONS` | 0 | Clippy lints missing from the workspace lint catalog. No exceptions currently exist. |
-| `CODE_STYLE_REVIEWED_PUBLIC_FIELD_*` | 14 owner/type records | Specifically named non-private fields required by macro, wire, generated-query, configuration, or application-state contracts. |
-| `CODE_STYLE_DIRECT_FS_OWNER_*` | 20 files | Direct environment, filesystem, command-line, or generated-file operations at their owning adapters. |
-| `CODE_STYLE_TEST_CRATE_*` | 6 crates | Crates treated as test-only boundaries. |
+| `CODE_STYLE_REVIEWED_PUBLIC_FIELD_*` | 1 owner/type record | Three `SynField` fields consumed by macro generators across crate boundaries. |
+| `CODE_STYLE_DIRECT_FS_OWNER_*` | 10 files | Direct environment, filesystem, command-line, or generated-file operations at their owning adapters. |
+| Test-only crates | 0 explicit entries | Test crates are recognized by a `test` name segment or the exact plural `tests` package name. |
 | `CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES` | 0 | Whole-file owners allowed to perform unbounded reads. No exceptions currently exist. |
-| `CODE_STYLE_RUNTIME_TEST_HELPER_*` | 5 files | Deterministic test helpers allowed to use test-only panic/fixture construction behavior. |
-| `CODE_STYLE_RUNTIME_ARC_OWNER_*` | 7 files | Runtime owners where `Arc` represents real cross-task or cross-thread sharing. |
-| `CODE_STYLE_LEPTOS_PRELUDE_*` | 55 files | Exact UI owners allowed to import `leptos::prelude::{...}` because view macros require traits in lexical scope. |
-| `CODE_STYLE_SINGLE_SOURCE_OWNER_*` | 6 files | Canonical owners of bounded reads, SQL identifiers, PostgreSQL classification, process commands, string constants, and scaffold templates. |
+| Runtime test-helper paths | 0 | Test-only modules use recognized test filenames, so no dedicated exception inventory remains. |
+| Runtime `Arc` paths | 0 explicit entries | Construction is allowed only in a repository wrapper whose name explicitly contains `Arc` or `Shared` and whose field contains `Arc`. |
+| Leptos prelude paths | 0 explicit entries | The exact grouped `leptos::prelude::{...}` form is a framework syntax boundary rather than a per-file exception. |
+| Duplicate single-source owner inventory | 0 | Canonical owners are enforced directly by their policies; no parallel metadata list remains. |
 
 Definitions and per-entry reasons are in
-[`constants_str/src/lib.rs`](constants_str/src/lib.rs). Every non-empty path inventory is checked
-for equal path/reason counts, uniqueness, a non-empty reason, and a current target by
-`retained_path_exception_inventories_are_exact_justified_unique_and_current`.
+[`constants_str/src/lib.rs`](constants_str/src/lib.rs). The direct-filesystem inventory checks equal
+path/reason counts, current targets, and actual suppressions. The public-field inventory compares
+its expected fields with exact current observations.
 
-### Test-only crates
+### Test-only crate convention
 
-- `generate_pg_table_test`
-- `generate_pg_types_test`
-- `generate_where_filters_test`
-- `location_test`
-- `tests`
-- `workspace_test_runner`
+Packages named `tests` or containing an underscore-delimited `test` segment are test-only
+boundaries. This recognizes the generated validation crates, `location_test`, `tests`, and
+`workspace_test_runner` without maintaining a per-package exception list. A production-like name
+such as `contest_service` is covered by the policy test and remains in runtime-policy scope.
 
 ### Non-source directory boundaries
 
-- `location_lib_location_test/src` — macro fixture with raw `Vec` fields required by its input contract.
-- `pg_crud_common/benches` — benchmark-only code outside the production domain API.
-- `tests/src/domain_type_policy_fixture.rs` — analyzer fixture, not production domain code.
+- Test-only crates are recognized by package-name convention rather than repository paths.
+- Any `benches` directory is recognized structurally as a benchmark boundary; no repository path exception is needed.
+- Analyzer fixtures under a recognized test crate are covered by the test-crate boundary rather
+  than repository-specific path exceptions.
 
 ### Import exception
 
-Private imports and all public reexports are otherwise rejected. The only private-import exception
-is a grouped import rooted exactly at `leptos::prelude` in one of the 55 reviewed frontend owner
-files. Files declaring child modules and nested owner modules do not receive a general exception.
-The owner list and individual reasons are `CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES` and
-`CODE_STYLE_LEPTOS_PRELUDE_REASONS`.
+Private imports and all public reexports are otherwise rejected. The only recognized private-import
+syntax boundary is a grouped import rooted exactly at `leptos::prelude`, whose traits must be in
+lexical scope for view macro expansion. This is checked structurally and no path, crate-root,
+module-declaring-file, or nested-module allowlist remains.
 
 ## Inline reviewed inventories
 
@@ -53,20 +75,20 @@ specific than a reusable path list.
 
 | Policy test | Reviewed exception or baseline |
 | --- | --- |
-| `library_crates_with_public_logic_own_tests` | Macro/generator and narrowly scoped support crates whose behavior is exercised by downstream or generated tests. Each record contains a crate name and reason. |
-| `expect_and_panic_messages_start_with_unique_diagnostic_ids` | Four generated diagnostic-message interpolations whose identifiers are supplied by their generators or fixture catalogs. |
+| `library_crates_with_public_logic_own_tests` | Empty; all library crates with public logic must now own tests. |
+| `expect_and_panic_messages_start_with_unique_diagnostic_ids` | Three current generated diagnostic-message interpolations whose identifiers are supplied by their generators or fixture catalogs. |
 | `unit_tests_use_deterministic_time_and_randomness_patterns` | One reviewed `Instant::now` owner used for the runtime measurement test. |
 | `process_static_state_matches_reviewed_inventory` | Eight exact `(path, static identifier, reason)` records, including the cached module-declaration graph. |
-| `library_print_macros_have_reviewed_terminal_owners` | Five exact terminal/process-boundary owner paths. |
+| `library_sources_do_not_use_print_macros` | No reviewed owners remain; library print macros are rejected unconditionally. |
 | `large_module_exceptions_are_exact_and_still_needed` | Two production modules currently above the responsibility line limit. The test rejects missing or stale entries. |
-| `allocations_inside_loops_match_reviewed_inventory` | Exact allocation sites that remain accepted inside loops. |
+| `allocations_inside_loops_match_reviewed_inventory` | Six exact allocation sites that remain accepted inside loops; two hot-loop allocations were removed. |
 | `contract_public_api_matches_reviewed_snapshot` | Reviewed public API snapshots for contract crates. |
-| `arc_lock_and_trait_object_usage_matches_reviewed_inventory` | Exact `Arc`, lock, and trait-object occurrences with expected counts and reasons. |
-| `ignored_map_err_bindings_match_reviewed_inventory` | Exact ignored `map_err` binding occurrences with expected counts and reasons. |
+| `arc_lock_and_trait_object_usage_matches_reviewed_inventory` | Exact current `Arc`, lock, and trait-object occurrences with expected counts and reasons; 27 zero-observation records were removed. |
+| `ignored_map_err_bindings_match_reviewed_inventory` | Exact current ignored `map_err` binding occurrences with expected counts and reasons; 35 zero-observation records were removed. |
 | `raw_vec_tuple_wrappers_match_reviewed_inventory` | Exact raw-`Vec` tuple wrappers retained at reviewed boundaries. |
-| `usize_max_usage_matches_reviewed_inventory` | Exact owners of `usize::MAX` expressions. |
-| `select_sites_match_reviewed_cancellation_inventory` | Exact `select!` owners, occurrence counts, and cancellation-safety reasons. |
-| `substantial_function_bodies_have_one_source_of_truth` | Reviewed groups of intentionally similar function bodies with extraction reasons. |
+| `usize_max_usage_matches_reviewed_inventory` | 2 current bounded-container owners; 14 zero-observation owners were removed. |
+| `select_sites_match_reviewed_cancellation_inventory` | Empty after removing all 3 obsolete reviewed owners; current `select!` sites are violations. |
+| `substantial_function_bodies_have_one_source_of_truth` | 38 current groups of intentionally similar function bodies with extraction reasons; stale groups are rejected. |
 
 The inline inventories are defined in:
 
@@ -117,4 +139,3 @@ code emitted inside `quote!`; it does not exempt an entire production crate from
 - General private-import exceptions for crate roots, module-declaring files, or nested modules: none.
 - Name-based exceptions for external leaf wrapper types: none.
 - Abort or transmute call exceptions: none.
-

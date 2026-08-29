@@ -410,105 +410,6 @@ fn workspace_normal_dependency_graph_is_acyclic() {
 }
 #[test]
 fn library_crates_with_public_logic_own_tests() {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-    struct TestOwnershipException {
-        crate_name: &'static str,
-        reason: &'static str,
-    }
-    let exceptions = [
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_CA3132B2,
-            reason: constants_str::VALUE_0936B9F6,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::CONFIG_LIB_MACROS,
-            reason: constants_str::VALUE_266462B1,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_198286F1,
-            reason: constants_str::VALUE_EE790765,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_BC0C50B5,
-            reason: constants_str::VALUE_266462B1,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_B797AB3D,
-            reason: constants_str::VALUE_CBD059B2,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_3BD49AF7,
-            reason: constants_str::VALUE_1F27BD33,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_C354B535,
-            reason: constants_str::VALUE_4F0D0D6A,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_B58CD11D,
-            reason: constants_str::VALUE_32955237,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_49A3E4A5,
-            reason: constants_str::VALUE_FCF0F5CE,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_11CDC13C,
-            reason: constants_str::VALUE_50445A70,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_2A9F7F88,
-            reason: constants_str::VALUE_2BAE5A74,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_62CE157E,
-            reason: constants_str::VALUE_DE92495B,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::GENERATE_PG_TABLE,
-            reason: constants_str::VALUE_5035064F,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
-            reason: constants_str::VALUE_2953C66F,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_E644078E,
-            reason: constants_str::VALUE_17A89871,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_D13E7908,
-            reason: constants_str::VALUE_17A89871,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_174C657A,
-            reason: constants_str::VALUE_17A89871,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_A2832C3A,
-            reason: constants_str::VALUE_17A89871,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME,
-            reason: constants_str::VALUE_FCB0537D,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_25EADB03,
-            reason: constants_str::VALUE_25894D8E,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_39C24497,
-            reason: constants_str::VALUE_5FE31A84,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_AEC33C7D,
-            reason: constants_str::VALUE_04D1B7A1,
-        },
-        TestOwnershipException {
-            crate_name: constants_str::VALUE_DF1A7C9C,
-            reason: constants_str::VALUE_9BF87B94,
-        },
-    ];
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
         let workspace_directories = snapshot
@@ -565,10 +466,7 @@ fn library_crates_with_public_logic_own_tests() {
                     .found
                     .get()
                 });
-                let reviewed = exceptions.iter().any(|exception| {
-                    package.name == exception.crate_name && !exception.reason.is_empty()
-                });
-                (has_public_logic && !has_owned_test && !reviewed).then(|| package.name.to_string())
+                (has_public_logic && !has_owned_test).then(|| package.name.to_string())
             })
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "44cd2db7 {violations:#?}");

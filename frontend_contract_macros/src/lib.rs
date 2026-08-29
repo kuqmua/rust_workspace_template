@@ -908,50 +908,50 @@ impl syn::parse::Parse for TypedRouteArgs {
         while !input.is_empty() {
             let name: syn::Ident = input.parse()?;
             let _equals: syn::Token![=] = input.parse()?;
-            match name.to_string().as_str() {
-                constants_str::TYPED_ROUTE_FIELD_AUTHENTICATION => {
+            match &name {
+                value if value == constants_str::TYPED_ROUTE_FIELD_AUTHENTICATION => {
                     authentication = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::TYPED_ROUTE_FIELD_ERROR_STATUSES => {
+                value if value == constants_str::TYPED_ROUTE_FIELD_ERROR_STATUSES => {
                     error_statuses = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::TYPED_ROUTE_FIELD_ERROR_RESPONSE => {
+                value if value == constants_str::TYPED_ROUTE_FIELD_ERROR_RESPONSE => {
                     error_response = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
-                constants_str::TYPED_ROUTE_FIELD_ERROR_POLICY => {
+                value if value == constants_str::TYPED_ROUTE_FIELD_ERROR_POLICY => {
                     error_policy = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::METHOD => {
+                value if value == constants_str::METHOD => {
                     method = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::OPENAPI_OPERATION_ID => {
+                value if value == constants_str::OPENAPI_OPERATION_ID => {
                     openapi_operation_id = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::MUTATION => {
+                value if value == constants_str::MUTATION => {
                     mutation = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::OBLIGATIONS => {
+                value if value == constants_str::OBLIGATIONS => {
                     obligations = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::TYPED_ROUTE_FIELD_PATH => {
+                value if value == constants_str::TYPED_ROUTE_FIELD_PATH => {
                     path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::TYPED_ROUTE_FIELD_PATH_PARAMETER => {
+                value if value == constants_str::TYPED_ROUTE_FIELD_PATH_PARAMETER => {
                     path_parameter = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
-                constants_str::REQUEST => {
+                value if value == constants_str::REQUEST => {
                     request = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
-                constants_str::TYPED_ROUTE_FIELD_REQUEST_BODY => {
+                value if value == constants_str::TYPED_ROUTE_FIELD_REQUEST_BODY => {
                     request_body = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::RESPONSE => {
+                value if value == constants_str::RESPONSE => {
                     response = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
-                constants_str::TYPED_ROUTE_FIELD_SUCCESS_STATUS => {
+                value if value == constants_str::TYPED_ROUTE_FIELD_SUCCESS_STATUS => {
                     success_status = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                constants_str::TRANSPORT => {
+                value if value == constants_str::TRANSPORT => {
                     transport = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
                 _ => {

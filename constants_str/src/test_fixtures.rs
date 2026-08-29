@@ -112,7 +112,6 @@ pub const VALUE_5DC81FA2: &str = "5dc81fa2";
 pub const VALUE_4792B3E0: &str = "4792b3e0";
 pub const TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID: &str = "[1,1,999]";
 pub const TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID: &str = "[1,999]";
-pub const SERVER_RUNTIME_SRC_LIMITS_RS: &str = "server_runtime_http/src/limits.rs";
 pub const TEST_SQL_LIKE_INPUT: &str = "alpha";
 pub const TEST_SQL_LIKE_CONTAINS_PATTERN: &str = "%alpha%";
 pub const TEST_SQL_LIKE_STARTS_WITH_PATTERN: &str = "alpha%";
@@ -1684,7 +1683,7 @@ pub const VALUE_BDEB5C57: &str =
     "macro_helpers/src/pagination_start_end_initialization_token_stream.rs";
 pub const VALUE_C652C5A2: &str = "macro_helpers/src/status_code.rs";
 pub const VALUE_3E2D4173: &str = "macro_helpers/src/test_database.rs";
-pub const VALUE_865824F9: &str = "macro_helpers/src/test_helper.rs";
+pub const VALUE_865824F9: &str = "macro_helpers/src/test_path.rs";
 pub const VALUE_DB7F37E1: &str = "macro_helpers/src/wrap_derive.rs";
 pub const VALUE_60D35589: &str = "macro_helpers/src/write_string_into_file.rs";
 pub const VALUE_427B03A1: &str = "macro_helpers_generate_derive_token_stream_builder/src/lib.rs";
@@ -1938,7 +1937,7 @@ pub const VALUE_E0C5B098: &str = "server-runtime-client-test";
 pub const VALUE_00BCCC04: &str = "server-runtime-test";
 pub const VALUE_47325207: &str = "server/src/domain_types.rs";
 pub const VALUE_6D090579: &str = "server_admin";
-pub const VALUE_96554632: &str = "server_admin/src/migrations.rs";
+pub const VALUE_96554632: &str = "server_admin/src/admin_migrator.rs";
 pub const VALUE_AF9C2B7F: &str = "server_admin/src/adapters_repository_audit.rs";
 pub const VALUE_FF6D4857: &str = "server_admin/src/adapters/repository/cleanup.rs";
 pub const VALUE_8E182ED1: &str = "server_admin/src/adapters_repository_data_tables.rs";
@@ -2099,7 +2098,7 @@ pub const VALUE_AF7C24A2: &str = "test.error";
 pub const VALUE_CF4DCEBB: &str = "test_failure";
 pub const VALUE_D0549AF3: &str = "test_fixtures";
 pub const VALUE_4A3D63F7: &str = "tests/src/code_style.rs";
-pub const VALUE_959AEDDC: &str = "tests/src/snapshot.rs";
+pub const VALUE_959AEDDC: &str = "tests/src/code_style_snapshot.rs";
 pub const VALUE_B2FEB0FD: &str = "the CLI runner needs collision-free process-local artifact names";
 pub const VALUE_2773E6CE: &str = "the HTTP runtime must not depend on application or route crates";
 pub const VALUE_FDB078C8: &str =
@@ -2333,9 +2332,7 @@ pub const VALUE_1A456B0D: &str = "workspace_scaffold/src/domain_types.rs";
 pub const VALUE_5FB76CAF: &str = "workspace_scaffold/src/service_catalog.rs";
 pub const VALUE_532433A4: &str = "workspace_test_runner/src/admin_fixture.rs";
 pub const VALUE_3930BC5E: &str = "workspace_test_runner/src/create_admin_fixture_string.rs";
-pub const VALUE_392D41BA: &str = "workspace_test_runner/src/execution.rs";
-pub const VALUE_7841C081: &str = "workspace_test_runner/src/print_without_measurement_footer.rs";
-pub const VALUE_53C49EA1: &str = "workspace_test_runner/src/print_without_memusage_footer.rs";
+pub const VALUE_392D41BA: &str = "workspace_test_runner/src/run_counter.rs";
 pub const VALUE_9D0FC67D: &str =
     "workspace_test_runner/src/generate_pg_table_measure_input_token_stream.rs";
 pub const VALUE_F45EC0EE: &str = "workspace_test_runner/src/domain_types.rs";
@@ -2365,7 +2362,7 @@ pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_FIELD_RS: &str =
 pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_INPUT_RS: &str =
     "server_admin_frontend/src/domain_types_with_owner_input.rs";
 pub const CODE_STYLE_MACRO_CLIPPY_CHECK_COMMON_SRC: &str = "macro_clippy_check_common/src";
-pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 27] = [
+pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 24] = [
     "../server_runtime_http/src/request_timeout_duration.rs::try_from\n../server_runtime_http/src/run_interval_duration.rs::try_from",
     "../server_runtime_core/src/bounded_secret_text.rs::try_from\n../server_runtime_core/src/secret_text_ref.rs::try_from",
     "../generate_quotes/src/binary_single_quote_style.rs::binary_single_quote_style\n../generate_quotes/src/single_quote_style.rs::single_quote_style",
@@ -2379,15 +2376,12 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 27] = [
     "../server_runtime_http/src/notification_api_token.rs::try_from\n../server_runtime_http/src/pg_rate_limit_scope_ref.rs::try_from\n../server_runtime_http/src/pg_rate_limit_subject_ref.rs::try_from",
     "../server_admin_frontend/src/admin_ssr_html.rs::try_from\n../server_admin_frontend/src/admin_ssr_text.rs::try_from",
     "../server_admin/src/delete_role.rs::delete_role\n../server_admin/src/delete_user.rs::delete_user",
-    "../server_admin/src/role_permissions.rs::role_permissions\n../server_admin/src/user_roles.rs::user_roles",
     "../pg_crud_common/src/pg_filter_text.rs::try_from\n../pg_crud_common/src/sql_like_pattern.rs::try_from\n../runtime_tests/src/runtime_test_url.rs::try_from",
     "../config_lib/src/secrecy_secret_box_string.rs::try_from\n../server_admin_core/src/secrecy_admin_string.rs::try_from",
-    "../git_info/src/git_commit_id.rs::validate\n../git_info/src/git_commit_link.rs::validate",
     "../pg_crud_macro_common/src/generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/generate_impl_pg_crud_common_default_some_one_element_token_stream.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream",
     "../server_runtime_http/src/http_normalized_path.rs::try_from\n../server_runtime_http/src/metrics_response_body.rs::try_from",
     "../pg_crud_macro_common/src/import.rs::to_path\n../pg_crud_macro_common/src/is_nullable.rs::non_null_or_nullable_str\n../pg_crud_where_filters/src/regex_case.rs::postgreql_syntax",
     "../pg_crud_macro_common/src/generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/generate_impl_pg_crud_default_some_one_element_token_stream.rs::generate_impl_pg_crud_default_some_one_element_token_stream",
-    "../frontend_contract/src/api_problem_status.rs::validate\n../frontend_contract/src/transport_status.rs::validate\n../frontend_contract_validation/src/http_contract_status.rs::validate\n../frontend_contract_validation/src/open_api_response_status.rs::validate",
     "../pg_crud_common/src/pg_type_where.rs::visit_str\n../pg_crud_where_filters/src/between.rs::visit_str",
     "../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from",
     "../pg_crud_common/src/cursor_payload.rs::try_from\n../pg_crud_common/src/signed_cursor.rs::try_from",

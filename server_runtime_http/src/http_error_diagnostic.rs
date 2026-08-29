@@ -41,14 +41,24 @@ impl HttpErrorDiagnostic {
     }
 
     fn error_chain(error: &(dyn std::error::Error + 'static)) -> StdHttpErrorChain {
-        let mut error_chain = error.to_string();
-        let mut optional_source = error.source();
-        while let Some(source) = optional_source {
-            error_chain.push_str(constants_str::HTTP_ERROR_CHAIN_SEPARATOR);
-            error_chain.push_str(source.to_string().as_str());
-            optional_source = source.source();
+        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        struct ErrorChain<'error_lt>(&'error_lt (dyn std::error::Error + 'static));
+        impl std::fmt::Display for ErrorChain<'_> {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                let mut is_first = true;
+                let mut current = Some(self.0);
+                while let Some(error) = current {
+                    if !is_first {
+                        f.write_str(constants_str::HTTP_ERROR_CHAIN_SEPARATOR)?;
+                    }
+                    std::fmt::Display::fmt(error, f)?;
+                    is_first = false;
+                    current = error.source();
+                }
+                Ok(())
+            }
         }
-        StdHttpErrorChain::from(error_chain.into_boxed_str())
+        StdHttpErrorChain::from(ErrorChain(error).to_string().into_boxed_str())
     }
 
     pub(crate) const fn error_chain_text(&self) -> &StdHttpErrorChain {

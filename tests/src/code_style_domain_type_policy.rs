@@ -571,9 +571,9 @@ fn environment_initializer_is_in_domain_boundary_policy_scope() {
     );
 }
 #[test]
-fn workspace_test_runner_is_in_domain_boundary_policy_scope() {
+fn workspace_test_runner_uses_test_crate_domain_boundary() {
     assert!(
-        super::domain_type_policy_should_check_path(super::types::PathRef::from(
+        !super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_SRC)
         ))
         .get(),
@@ -619,10 +619,10 @@ fn server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     );
 }
 #[test]
-fn domain_fixture_directory_exclusions_are_owner_exact() {
+fn domain_fixture_and_benchmark_directory_boundaries_are_exact() {
     assert!(
         !super::domain_type_policy_should_check_path(super::types::PathRef::from(
-            std::path::Path::new("../location_lib_location_test/src/lib.rs")
+            std::path::Path::new("../location_lib_location_test/src/main.rs")
         ))
         .get(),
         "4ab6e2d1"
@@ -642,7 +642,7 @@ fn domain_fixture_directory_exclusions_are_owner_exact() {
         "09e5a6bc"
     );
     assert!(
-        super::domain_type_policy_should_check_path(super::types::PathRef::from(
+        !super::domain_type_policy_should_check_path(super::types::PathRef::from(
             std::path::Path::new("../server/benches/query.rs")
         ))
         .get(),

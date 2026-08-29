@@ -27,9 +27,6 @@ pub mod generated_tables {
 mod hash_opaque_token {
     pub use crate::hash_opaque_token::*;
 }
-mod password {
-    pub use crate::password::*;
-}
 mod rbac {
     pub use crate::rbac::*;
 }

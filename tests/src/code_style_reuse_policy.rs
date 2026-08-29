@@ -124,19 +124,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
     });
     let mut reviewed_groups = vec![
         ReviewedDuplicateGroup {
-            locations: constants_str::STRING_CONSTANT_METADATA_FIXTURE_LOCATIONS,
-            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS,
-            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::STRING_CONSTANT_ROUTE_METADATA_FIXTURE_LOCATIONS,
-            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::STRING_CONSTANT_ANALYZER_VISITOR_LOCATIONS,
             reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
         },
         ReviewedDuplicateGroup {
@@ -148,160 +136,32 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::VALUE_9DA4CB90,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_CD2A0018,
-            reason: constants_str::VALUE_A7AE2844,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_A4FF3FB6,
-            reason: constants_str::VALUE_39649F62,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_4FDDA503,
             reason: constants_str::VALUE_BBB02CF4,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_8443FF5D,
-            reason: constants_str::VALUE_DC8C52AC,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_4793A5FE,
             reason: constants_str::VALUE_95569DAB,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_D63A5858,
-            reason: constants_str::VALUE_EA3A9D65,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_422EC2EB,
-            reason: constants_str::VALUE_69F67A0D,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_148FAD59,
-            reason: constants_str::VALUE_0EA9A6EE,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_LOCATIONS,
-            reason: constants_str::SERVER_ADMIN_HTML_ASSIGNMENT_ENDPOINT_DUPLICATE_REASON,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_7E4078D9,
-            reason: constants_str::VALUE_D526A9A1,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_5BB2B57A,
-            reason: constants_str::VALUE_B334A087,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_287FCBEB,
             reason: constants_str::VALUE_A6A100E2,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_DCB5D4F2,
-            reason: constants_str::VALUE_349BC694,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_88A7A661,
             reason: constants_str::VALUE_589704B1,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_7005B03A,
-            reason: constants_str::VALUE_114A067A,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_05051852,
-            reason: constants_str::VALUE_C5C34D0B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_522C0343,
-            reason: constants_str::VALUE_586A9953,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_292E1A7F,
             reason: constants_str::VALUE_F311E43F,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_A4489C21,
-            reason: constants_str::VALUE_ECC17834,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_02000EC4,
-            reason: constants_str::VALUE_761A94E7,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_43BDEFF3,
-            reason: constants_str::VALUE_FE253AFB,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS,
             reason: constants_str::VALUE_FE253AFB,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_1C550714,
-            reason: constants_str::VALUE_C1DC2D40,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_757BD453,
-            reason: constants_str::VALUE_FD1E21A1,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_F0DC6ADA,
-            reason: constants_str::VALUE_A6259CF3,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_DBB9C433,
-            reason: constants_str::VALUE_9C6E0958,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_E26644F4,
-            reason: constants_str::VALUE_C9F14A66,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_4CB1E1F3,
-            reason: constants_str::VALUE_9ADBC564,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_66B5730A,
-            reason: constants_str::VALUE_D6EC9B66,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_27922A80,
-            reason: constants_str::VALUE_BC659900,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_599796F1,
             reason: constants_str::VALUE_8A3C621C,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_F2B019BA,
-            reason: constants_str::VALUE_BB0F504B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_CD85A891,
-            reason: constants_str::VALUE_424D0EAB,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_CBBA0BFF,
-            reason: constants_str::VALUE_6E80E87B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_0D4F3549,
-            reason: constants_str::VALUE_BECDB8D8,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_FBAC771A,
-            reason: constants_str::VALUE_DA10DE3B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_B90EA89F,
-            reason: constants_str::VALUE_3A40A71C,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_5BE6CC71,
-            reason: constants_str::VALUE_BB0F504B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_07C16E6D,
-            reason: constants_str::VALUE_5A4F5CD4,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_224F7450,
@@ -312,20 +172,8 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::VALUE_D0150024,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_944342EF,
-            reason: constants_str::VALUE_5805C05B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_2D700ED6,
-            reason: constants_str::VALUE_647D5C11,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::VALUE_AE96131E,
             reason: constants_str::VALUE_879AE029,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_7A32C552,
-            reason: constants_str::VALUE_23A957C9,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_51DBE253,
@@ -380,6 +228,14 @@ fn substantial_function_bodies_have_one_source_of_truth() {
         }
     })
     .collect::<Vec<String>>();
+    let stale_reviewed = reviewed
+        .keys()
+        .filter(|locations| !matched_reviewed.contains(*locations))
+        .collect::<Vec<&String>>();
+    assert!(
+        stale_reviewed.is_empty(),
+        "8f3c1a72 stale duplicate-function exceptions: {stale_reviewed:#?}"
+    );
     assert!(
         duplicates.is_empty(),
         "substantial duplicate function bodies found; extract one source of truth:\n{}",

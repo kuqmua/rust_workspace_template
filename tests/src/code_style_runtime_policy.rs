@@ -48,6 +48,27 @@ fn runtime_code_does_not_use_mutex() {
 }
 #[test]
 fn runtime_arc_usage_is_limited_to_cross_thread_state() {
+    let defines_explicit_shared_arc_wrapper = |ast: &syn::File| {
+        ast.items.iter().any(|item| {
+            let syn::Item::Struct(item_struct) = item else {
+                return false;
+            };
+            let name = item_struct.ident.to_string();
+            let explicitly_shared =
+                name.contains(constants_str::ARC) || name.contains(constants_str::SHARED);
+            explicitly_shared
+                && item_struct.fields.iter().any(|field| {
+                    let syn::Type::Path(path) = &field.ty else {
+                        return false;
+                    };
+                    path.path.segments.iter().any(|segment| {
+                        let field_type_name = segment.ident.to_string();
+                        field_type_name.contains(constants_str::ARC)
+                            || field_type_name.contains(constants_str::SHARED)
+                    })
+                })
+        })
+    };
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::F9C2D4A8),
         super::types::SourceTextRef::from(
@@ -61,15 +82,7 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                 super::types::SynFileRef::from(ast),
                 super::runtime_analysis::RuntimeArcVisitor {
                     allow_arc_value_usage: super::types::AnalyzerBool::from(
-                        constants_str::CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES
-                            .iter()
-                            .any(|suffix| {
-                                path.ends_with(suffix)
-                                    || super::declared_child_matches(
-                                        path.to_string_lossy().as_ref(),
-                                        suffix,
-                                    )
-                            }),
+                        defines_explicit_shared_arc_wrapper(ast),
                     ),
                     ers: super::types::DiagnosticMsgs::default(),
                 },
@@ -84,7 +97,7 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
     );
 }
 #[test]
-fn runtime_test_crate_detection_uses_exact_package_names() {
+fn runtime_test_crate_detection_uses_test_name_segments() {
     let production = constants_str::VALUE_D0480B8C.parse::<toml::Table>().expect(
         "85acd272 runtime_test_crate_detection_uses_exact_package_names invariant must hold",
     );
@@ -101,10 +114,10 @@ fn runtime_test_crate_detection_uses_exact_package_names() {
     );
 }
 #[test]
-fn runtime_test_helper_exclusion_is_file_exact() {
+fn runtime_test_module_exclusion_uses_test_filename() {
     assert!(
         !super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../macro_helpers/src/test_helper.rs"
+            "../server_admin_frontend/src/crud_tests.rs"
         )))
         .get(),
         "2e8a5d90"

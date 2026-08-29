@@ -823,15 +823,14 @@ pub(crate) fn domain_type_policy_should_check_path(
 ) -> types::AnalyzerBool {
     if path
         .as_ref()
-        .starts_with(constants_str::CODE_STYLE_PG_CRUD_COMMON_BENCHES)
+        .components()
+        .any(|component| component.as_os_str() == constants_str::BENCHES)
         || path
             .as_ref()
             .to_string_lossy()
             .trim_start_matches(constants_str::TEXT_ALT_9)
             .starts_with(constants_str::CODE_STYLE_MACRO_CLIPPY_CHECK_COMMON_SRC)
-        || path
-            .as_ref()
-            .starts_with(constants_str::CODE_STYLE_LOCATION_TEST_SRC)
+        || (path.as_ref().exists() && is_test_crate_source_path(path).get())
         || path
             .as_ref()
             .starts_with(constants_str::CODE_STYLE_BOUNDED_TYPES_SRC)
@@ -1343,16 +1342,7 @@ pub(crate) fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
 }
 
 pub(crate) fn is_runtime_policy_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {
-    let path_text = path.as_ref().to_string_lossy();
     if is_test_source_path(path).get() {
-        return types::AnalyzerBool::default();
-    }
-    if constants_str::CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES
-        .iter()
-        .any(|suffix| {
-            path_text.ends_with(suffix) || declared_child_matches(path_text.as_ref(), suffix)
-        })
-    {
         return types::AnalyzerBool::default();
     }
     if !path
@@ -1399,7 +1389,12 @@ pub(crate) fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerB
             .and_then(toml::Value::as_table)
             .and_then(|package| package.get(constants_str::NAME))
             .and_then(toml::Value::as_str)
-            .is_some_and(|name| constants_str::CODE_STYLE_TEST_CRATE_NAMES.contains(&name)),
+            .is_some_and(|name| {
+                name == constants_str::TESTS_ALT
+                    || name
+                        .split('_')
+                        .any(|segment| segment == constants_str::TEST_ALT_3)
+            }),
     )
 }
 pub(crate) fn is_test_crate_source_path(path: types::PathRef<'_>) -> types::AnalyzerBool {

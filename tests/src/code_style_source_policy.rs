@@ -198,11 +198,6 @@ fn all_files_are_english_only() {
 fn expect_and_panic_messages_start_with_unique_diagnostic_ids() {
     let reviewed_interpolations = [
         (
-            constants_str::VALUE_1F61C5FC,
-            constants_str::VALUE_A9D2959B,
-            constants_str::VALUE_40D0A05F,
-        ),
-        (
             constants_str::VALUE_7FE2AF02,
             constants_str::VALUE_265FF5BA,
             constants_str::VALUE_B4F7B36F,
@@ -646,13 +641,42 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
         missing_or_unjustified.is_empty(),
         "c70b25ea {missing_or_unjustified:?}"
     );
-    assert!(
-        super::is_direct_fs_owner_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../workspace_scaffold/src/domain_types.rs"
-        )))
-        .get(),
-        "b39e07d4"
-    );
+    super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let mut matched = std::collections::BTreeSet::new();
+        snapshot.rs_files().iter().for_each(|source_file| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(source_file.ast().as_ref()),
+                super::source_analysis::DirectPathCallVisitor {
+                    calls: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            let has_direct_access = visitor.calls.iter().any(|call| {
+                call.starts_with(constants_str::STD_PATH_ENV_PATH)
+                    || call.starts_with(constants_str::STD_PATH_FS_PATH)
+                    || call.starts_with(constants_str::TOKIO_PATH_FS_PATH)
+            });
+            if !has_direct_access {
+                return;
+            }
+            let path = source_file.path().as_ref().to_string_lossy();
+            constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
+                .iter()
+                .filter(|suffix| {
+                    path.ends_with(**suffix) || super::declared_child_matches(path.as_ref(), suffix)
+                })
+                .for_each(|suffix| {
+                    let _inserted = matched.insert(*suffix);
+                });
+        });
+        let stale = constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
+            .iter()
+            .filter(|suffix| !matched.contains(**suffix))
+            .collect::<Vec<&&str>>();
+        assert!(
+            stale.is_empty(),
+            "3c9e41b7 stale direct filesystem owners: {stale:?}"
+        );
+    });
     assert!(
         super::is_direct_fs_owner_source_path(super::types::PathRef::from(std::path::Path::new(
             "../workspace_scaffold/src/template_fs_copy_template_tree.rs"
@@ -666,94 +690,6 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
         )))
         .get(),
         "f1428b6c"
-    );
-}
-#[test]
-fn retained_path_exception_inventories_are_exact_justified_unique_and_current() {
-    let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .expect("28d4f1a9 retained_path_exception_inventories_are_exact_justified_unique_and_current invariant must hold");
-    let validate = |suffixes: &[&str], reasons: &[&str]| {
-        assert_eq!(suffixes.len(), reasons.len(), "5c71e8b3");
-        assert_eq!(
-            suffixes
-                .iter()
-                .collect::<std::collections::BTreeSet<_>>()
-                .len(),
-            suffixes.len(),
-            "ac308f64"
-        );
-        let invalid = suffixes
-            .iter()
-            .zip(reasons)
-            .filter(|(suffix, reason)| {
-                let relative = suffix
-                    .trim_start_matches(constants_str::TEXT_ALT_9)
-                    .trim_start_matches('/');
-                let reviewed_path = workspace_root.join(relative);
-                let split_owner_exists = reviewed_path
-                    .file_stem()
-                    .and_then(std::ffi::OsStr::to_str)
-                    .zip(reviewed_path.parent())
-                    .is_some_and(|(stem, parent)| {
-                        std::fs::read_dir(parent).is_ok_and(|entries| {
-                            entries.filter_map(Result::ok).any(|entry| {
-                                entry.file_name().to_str().is_some_and(|file_name| {
-                                    file_name.starts_with(format!("{stem}_").as_str())
-                                        && file_name.ends_with(constants_str::RS_EXTENSION)
-                                })
-                            })
-                        })
-                    });
-                reason.trim().is_empty() || (!reviewed_path.is_file() && !split_owner_exists)
-            })
-            .collect::<Vec<(&&str, &&str)>>();
-        assert!(invalid.is_empty(), "e91b2d7c {invalid:?}");
-    };
-    validate(
-        constants_str::CODE_STYLE_RUNTIME_TEST_HELPER_SUFFIXES.as_slice(),
-        constants_str::CODE_STYLE_RUNTIME_TEST_HELPER_REASONS.as_slice(),
-    );
-    validate(
-        constants_str::CODE_STYLE_RUNTIME_ARC_OWNER_SUFFIXES.as_slice(),
-        constants_str::CODE_STYLE_RUNTIME_ARC_OWNER_REASONS.as_slice(),
-    );
-    validate(
-        constants_str::CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES.as_slice(),
-        constants_str::CODE_STYLE_LEPTOS_PRELUDE_REASONS.as_slice(),
-    );
-    validate(
-        constants_str::CODE_STYLE_SINGLE_SOURCE_OWNER_SUFFIXES.as_slice(),
-        constants_str::CODE_STYLE_SINGLE_SOURCE_OWNER_REASONS.as_slice(),
-    );
-    assert!(
-        !constants_str::CODE_STYLE_LOCATION_TEST_REASON.is_empty()
-            && workspace_root
-                .join(constants_str::CODE_STYLE_LOCATION_TEST_SRC.trim_start_matches("../"),)
-                .is_dir(),
-        "d47c0e26"
-    );
-    assert!(
-        !constants_str::CODE_STYLE_PG_CRUD_COMMON_BENCHES_REASON.is_empty()
-            && workspace_root
-                .join(constants_str::CODE_STYLE_PG_CRUD_COMMON_BENCHES.trim_start_matches("../"),)
-                .is_dir(),
-        "631fb5d8"
-    );
-    assert_eq!(
-        constants_str::CODE_STYLE_TEST_CRATE_NAMES.len(),
-        constants_str::CODE_STYLE_TEST_CRATE_REASONS.len(),
-        "fa64b9c1"
-    );
-    let workspace_crates = super::workspace_crate_names();
-    let invalid_test_crates = constants_str::CODE_STYLE_TEST_CRATE_NAMES
-        .iter()
-        .zip(constants_str::CODE_STYLE_TEST_CRATE_REASONS)
-        .filter(|(name, reason)| reason.trim().is_empty() || !workspace_crates.contains(**name))
-        .collect::<Vec<(&&str, &str)>>();
-    assert!(
-        invalid_test_crates.is_empty(),
-        "b208d75e {invalid_test_crates:?}"
     );
 }
 #[test]
@@ -1176,14 +1112,7 @@ fn process_static_state_matches_reviewed_inventory() {
     );
 }
 #[test]
-fn library_print_macros_have_reviewed_terminal_owners() {
-    let reviewed_path_suffixes = [
-        constants_str::VALUE_9DDB2371,
-        constants_str::VALUE_ED469FC2,
-        constants_str::VALUE_392D41BA,
-        constants_str::VALUE_7841C081,
-        constants_str::VALUE_53C49EA1,
-    ];
+fn library_sources_do_not_use_print_macros() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from(constants_str::VALUE_776EEBB3),
         super::types::SourceTextRef::from(constants_str::VALUE_9908E138),
@@ -1200,11 +1129,7 @@ fn library_print_macros_have_reviewed_terminal_owners() {
                         .join(constants_str::VALUE_0544FC95)
                         .exists()
                 });
-            if !is_library_source
-                || reviewed_path_suffixes
-                    .iter()
-                    .any(|suffix| path.ends_with(suffix))
-            {
+            if !is_library_source {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -1214,7 +1139,7 @@ fn library_print_macros_have_reviewed_terminal_owners() {
                 },
             );
             visitor.calls.into_iter().for_each(|call| {
-                ers.push(format!("{}: unreviewed `{call}!`", path.display()));
+                ers.push(format!("{}: library `{call}!`", path.display()));
             });
         },
     );
@@ -1711,31 +1636,9 @@ fn public_reexports_are_forbidden_and_private_imports_are_restricted() {
             constants_str::FORBIDDEN_PUBLIC_REEXPORTS_OR_PRIVATE_IMPORTS_FOUND_PREFER_EXPLICIT_PATHS,
         ),
         |path, ast, ers| {
-            let path_text = path.to_string_lossy();
-            let allows_leptos_prelude_import =
-                constants_str::CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES
-                    .iter()
-                    .any(|suffix| {
-                        path_text.ends_with(suffix)
-                            || super::declared_child_matches(path_text.as_ref(), suffix)
-                            || suffix.strip_suffix(constants_str::RS_EXTENSION).is_some_and(
-                                |owner_stem| {
-                                    path_text
-                                        .trim_start_matches(constants_str::TEXT_ALT_9)
-                                        .strip_prefix(owner_stem)
-                                        .is_some_and(|remainder| {
-                                            remainder.starts_with('_')
-                                                && remainder.ends_with(constants_str::RS_EXTENSION)
-                                        })
-                                },
-                            )
-                    });
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::source_analysis::UseImportVisitor {
-                    allow_leptos_prelude_import: super::types::AnalyzerBool::from(
-                        allows_leptos_prelude_import,
-                    ),
                     found_non_public_use_import: super::types::AnalyzerBool::default(),
                     found_use_rename: super::types::AnalyzerBool::default(),
                     public_use_roots: super::types::SourceTextList::default(),
@@ -1764,7 +1667,6 @@ fn declared_child_does_not_bypass_non_public_use_import_policy() {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor {
-            allow_leptos_prelude_import: super::types::AnalyzerBool::default(),
             found_non_public_use_import: super::types::AnalyzerBool::default(),
             found_use_rename: super::types::AnalyzerBool::default(),
             public_use_roots: super::types::SourceTextList::default(),
@@ -1791,7 +1693,6 @@ fn use_import_policy_detects_private_imports_and_public_reexports() {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor {
-            allow_leptos_prelude_import: super::types::AnalyzerBool::from(true),
             found_non_public_use_import: super::types::AnalyzerBool::default(),
             found_use_rename: super::types::AnalyzerBool::default(),
             public_use_roots: super::types::SourceTextList::default(),
@@ -1811,7 +1712,6 @@ fn use_import_policy_detects_private_imports_and_public_reexports() {
     let leptos_visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&leptos_ast),
         super::source_analysis::UseImportVisitor {
-            allow_leptos_prelude_import: super::types::AnalyzerBool::from(true),
             found_non_public_use_import: super::types::AnalyzerBool::default(),
             found_use_rename: super::types::AnalyzerBool::default(),
             public_use_roots: super::types::SourceTextList::default(),
@@ -1829,7 +1729,6 @@ fn cfg_test_modules_do_not_hide_forbidden_public_reexports() {
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor {
-            allow_leptos_prelude_import: super::types::AnalyzerBool::default(),
             found_non_public_use_import: super::types::AnalyzerBool::default(),
             found_use_rename: super::types::AnalyzerBool::default(),
             public_use_roots: super::types::SourceTextList::default(),

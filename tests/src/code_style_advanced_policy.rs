@@ -899,16 +899,8 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_870DAE5B),
         ),
         (
-            constants_str::VALUE_FD73A503,
-            (constants_usize::ONE, constants_str::VALUE_6A14D7C6),
-        ),
-        (
             constants_str::VALUE_BE04A453,
             (constants_usize::ONE, constants_str::VALUE_D1CA6996),
-        ),
-        (
-            constants_str::VALUE_213316BE,
-            (constants_usize::ONE, constants_str::VALUE_33D9B29A),
         ),
         (
             constants_str::VALUE_94FCEDB7,
@@ -1107,10 +1099,6 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (0, 0, 3, constants_str::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_26637EB1,
-            (0, 0, 83, constants_str::VALUE_F86AE0A7),
-        ),
-        (
             constants_str::VALUE_BDEB5C57,
             (0, 0, 1, constants_str::VALUE_40349028),
         ),
@@ -1131,18 +1119,6 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (0, 0, 10, constants_str::VALUE_AC5E426F),
         ),
         (
-            constants_str::VALUE_30296F9B,
-            (3, 0, 2, constants_str::VALUE_128D5CF3),
-        ),
-        (
-            constants_str::VALUE_47325207,
-            (2, 0, 0, constants_str::VALUE_D94112EA),
-        ),
-        (
-            constants_str::VALUE_12509C8A,
-            (0, 0, 1, constants_str::VALUE_60EE0A5C),
-        ),
-        (
             constants_str::VALUE_9C3011F7,
             (1, 0, 0, constants_str::VALUE_60EE0A5C),
         ),
@@ -1155,72 +1131,8 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (1, 0, 0, constants_str::VALUE_60EE0A5C),
         ),
         (
-            constants_str::VALUE_CF2E8B6C,
-            (0, 0, 1, constants_str::VALUE_3BE6A9B2),
-        ),
-        (
             constants_str::VALUE_EAC3A6DC,
             (0, 0, 2, constants_str::VALUE_0CD339A2),
-        ),
-        (
-            constants_str::VALUE_781D9B03,
-            (0, 0, 1, constants_str::VALUE_EDBFCF78),
-        ),
-        (
-            constants_str::VALUE_EC2A2742,
-            (1, 0, 0, constants_str::VALUE_CC404E23),
-        ),
-        (
-            constants_str::VALUE_E56A7582,
-            (1, 1, 0, constants_str::VALUE_614D1CA5),
-        ),
-        (
-            constants_str::VALUE_90208B18,
-            (1, 1, 0, constants_str::VALUE_D12133A6),
-        ),
-        (
-            constants_str::VALUE_F5E788DA,
-            (1, 1, 0, constants_str::VALUE_FCD145D4),
-        ),
-        (
-            constants_str::VALUE_D9252088,
-            (1, 1, 1, constants_str::VALUE_43771A66),
-        ),
-        (
-            constants_str::VALUE_EFE7711A,
-            (0, 0, 4, constants_str::VALUE_A48897C5),
-        ),
-        (
-            constants_str::VALUE_471AD9D4,
-            (0, 0, 31, constants_str::VALUE_2881252B),
-        ),
-        (
-            constants_str::VALUE_43A074E4,
-            (0, 0, 2, constants_str::VALUE_207C8F2A),
-        ),
-        (
-            constants_str::VALUE_4F121480,
-            (0, 0, 6, constants_str::VALUE_39634CD1),
-        ),
-        (
-            constants_str::VALUE_5C56EDC0,
-            (0, 0, 90, constants_str::VALUE_39634CD1),
-        ),
-        (
-            constants_str::VALUE_7DF10CC7,
-            (0, 0, 31, constants_str::VALUE_71BBA184),
-        ),
-        (
-            constants_str::VALUE_1F61C5FC,
-            (0, 0, 11, constants_str::VALUE_0E6DDA27),
-        ),
-        (
-            constants_str::VALUE_D0A66D2F,
-            (0, 0, 1, constants_str::VALUE_6270BA4A),
-        ),
-        (
-            constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_LIB_RS,
-            (0, 0, 11, constants_str::VALUE_B5B270A8),
         ),
         (
             constants_str::VALUE_7FE2AF02,
@@ -1231,37 +1143,12 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (0, 0, 177, constants_str::VALUE_FB2CE6C2),
         ),
         (
-            constants_str::VALUE_4A7BAF6A,
-            (0, 0, 1, constants_str::VALUE_674BDE12),
-        ),
-        (
             constants_str::VALUE_9D0FC67D,
             (0, 0, 1, constants_str::VALUE_E7909B41),
         ),
         (
-            constants_str::VALUE_91DD0162,
-            (1, 0, 1, constants_str::VALUE_A86D0615),
-        ),
-        (
-            constants_str::CODE_STYLE_SERVER_ADMIN_AUTH_SECURITY_PATH,
-            (1, 0, 0, constants_str::VALUE_93F9D3B6),
-        ),
-        (
             constants_str::VALUE_206B48D7,
             (0, 0, 1, constants_str::VALUE_F5E028C2),
-        ),
-        (
-            constants_str::VALUE_0690A45F,
-            (1, 0, 0, constants_str::VALUE_C1254FA5),
-        ),
-        (
-            constants_str::SERVER_SRC_APPLICATION_ADMIN_API_RS,
-            (
-                1,
-                0,
-                1,
-                constants_str::GENERATED_ADMIN_TABLE_ROUTING_REQUIRES_SHARED_APPLICATION_STATE_DYNAMIC_DISPATCH,
-            ),
         ),
     ]);
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
@@ -1335,72 +1222,8 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
 fn ignored_map_err_bindings_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            constants_str::VALUE_2A60AE5C,
-            (constants_usize::ONE, constants_str::VALUE_6A63CC5A),
-        ),
-        (
             constants_str::VALUE_AC7A6F68,
             (2usize, constants_str::VALUE_3995FF01),
-        ),
-        (
-            constants_str::VALUE_3E2D4173,
-            (constants_usize::ONE, constants_str::VALUE_E5C51E0B),
-        ),
-        (
-            constants_str::VALUE_60D35589,
-            (constants_usize::ONE, constants_str::VALUE_21A96EB2),
-        ),
-        (
-            constants_str::VALUE_8E41EC63,
-            (constants_usize::ONE, constants_str::VALUE_706BFD5F),
-        ),
-        (
-            constants_str::VALUE_01D96FA0,
-            (constants_usize::ONE, constants_str::VALUE_DB13C058),
-        ),
-        (
-            constants_str::VALUE_712F68AD,
-            (constants_usize::ONE, constants_str::VALUE_AE660A47),
-        ),
-        (
-            constants_str::VALUE_30296F9B,
-            (constants_usize::ONE, constants_str::VALUE_6247FF86),
-        ),
-        (
-            constants_str::VALUE_E4D64D33,
-            (constants_usize::ONE, constants_str::VALUE_597ECFA9),
-        ),
-        (
-            constants_str::VALUE_7B7EA9ED,
-            (constants_usize::ONE, constants_str::VALUE_9DAEB1C0),
-        ),
-        (
-            constants_str::VALUE_95516B7B,
-            (constants_usize::ONE, constants_str::VALUE_FBE4E2B3),
-        ),
-        (
-            constants_str::VALUE_112F424A,
-            (constants_usize::ONE, constants_str::VALUE_73E962A6),
-        ),
-        (
-            constants_str::VALUE_CC18D6A2,
-            (constants_usize::ONE, constants_str::VALUE_3A3FB9CA),
-        ),
-        (
-            constants_str::VALUE_CF2E8B6C,
-            (constants_usize::ONE, constants_str::VALUE_657C95A1),
-        ),
-        (
-            constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
-            (constants_usize::ONE, constants_str::VALUE_64B8F96D),
-        ),
-        (
-            constants_str::VALUE_871375E9,
-            (constants_usize::ONE, constants_str::VALUE_A142BD69),
-        ),
-        (
-            constants_str::VALUE_1FC40282,
-            (3usize, constants_str::VALUE_98B81B2D),
         ),
         (
             constants_str::VALUE_769125D7,
@@ -1419,14 +1242,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (8usize, constants_str::VALUE_9111728C),
         ),
         (
-            constants_str::VALUE_E4B07557,
-            (constants_usize::ONE, constants_str::VALUE_556EFD73),
-        ),
-        (
-            constants_str::VALUE_EFE7711A,
-            (constants_usize::ONE, constants_str::VALUE_1134EDB5),
-        ),
-        (
             constants_str::VALUE_11F5A276,
             (2usize, constants_str::VALUE_C1819A84),
         ),
@@ -1439,10 +1254,6 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (2usize, constants_str::VALUE_53588272),
         ),
         (
-            constants_str::VALUE_61FFCD13,
-            (constants_usize::ONE, constants_str::VALUE_324906E5),
-        ),
-        (
             constants_str::VALUE_B29D07A8,
             (constants_usize::ONE, constants_str::VALUE_099B4392),
         ),
@@ -1451,72 +1262,16 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_099B4392),
         ),
         (
-            constants_str::VALUE_237F2CE7,
-            (2usize, constants_str::VALUE_5AF70CDF),
-        ),
-        (
-            constants_str::VALUE_3C187B4E,
-            (constants_usize::ONE, constants_str::VALUE_49479188),
-        ),
-        (
-            constants_str::VALUE_2E474F0E,
-            (constants_usize::ONE, constants_str::VALUE_63C3DBE6),
-        ),
-        (
             constants_str::VALUE_3930BC5E,
             (constants_usize::ONE, constants_str::VALUE_7B6389D8),
-        ),
-        (
-            constants_str::VALUE_392D41BA,
-            (constants_usize::ONE, constants_str::VALUE_0124DA6A),
-        ),
-        (
-            constants_str::VALUE_3DDFB937,
-            (2usize, constants_str::VALUE_0BD83EB3),
-        ),
-        (
-            constants_str::VALUE_1A456B0D,
-            (9usize, constants_str::VALUE_1686EBFE),
         ),
         (
             constants_str::VALUE_E24F0FD4,
             (constants_usize::ONE, constants_str::VALUE_01371493),
         ),
         (
-            constants_str::VALUE_02A23160,
-            (4usize, constants_str::VALUE_C77C8514),
-        ),
-        (
-            constants_str::VALUE_91DD0162,
-            (constants_usize::ONE, constants_str::VALUE_7CCF2159),
-        ),
-        (
             constants_str::VALUE_4C6F4532,
             (8usize, constants_str::VALUE_80247FE1),
-        ),
-        (
-            constants_str::VALUE_8E182ED1,
-            (21usize, constants_str::VALUE_2459C957),
-        ),
-        (
-            constants_str::VALUE_3EB7B056,
-            (6usize, constants_str::VALUE_9E355CCC),
-        ),
-        (
-            constants_str::VALUE_3C6F88B1,
-            (13usize, constants_str::VALUE_0A492916),
-        ),
-        (
-            constants_str::VALUE_6DB550C3,
-            (2usize, constants_str::VALUE_AE5F4132),
-        ),
-        (
-            constants_str::VALUE_1E8EA59C,
-            (15usize, constants_str::VALUE_F6A331AA),
-        ),
-        (
-            constants_str::VALUE_0690A45F,
-            (27usize, constants_str::VALUE_FD41C49E),
         ),
         (
             constants_str::VALUE_DC454021,
@@ -1531,30 +1286,8 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
             (6usize, constants_str::VALUE_FD41C49E),
         ),
         (
-            constants_str::SERVER_ADMIN_SRC_ADAPTERS_REPOSITORY_RS,
-            (
-                11usize,
-                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
-            ),
-        ),
-        (
-            constants_str::CODE_STYLE_SERVER_ADMIN_MAINTENANCE_PATH,
-            (
-                constants_usize::ONE,
-                constants_str::INLINED_ADMIN_OPERATIONS_DISCARD_TYPED_CONVERSION_DETAILS_AT_THE_HTTP_BOUNDARY,
-            ),
-        ),
-        (
             constants_str::VALUE_F3169686,
             (5usize, constants_str::VALUE_FAE4D1C8),
-        ),
-        (
-            constants_str::VALUE_4715BB8A,
-            (9usize, constants_str::VALUE_E66DA136),
-        ),
-        (
-            constants_str::VALUE_7177655A,
-            (2usize, constants_str::VALUE_A8C9EDA6),
         ),
         (
             constants_str::VALUE_27AB06E9,
@@ -1746,62 +1479,6 @@ fn usize_max_usage_matches_reviewed_inventory() {
             constants_str::VALUE_2483AEA6,
             (3usize, constants_str::VALUE_245849CA),
         ),
-        (
-            constants_str::VALUE_EEF4AEDA,
-            (constants_usize::ONE, constants_str::VALUE_491B16F9),
-        ),
-        (
-            constants_str::VALUE_7615091D,
-            (constants_usize::ONE, constants_str::VALUE_17CAA05F),
-        ),
-        (
-            constants_str::CODE_STYLE_FRONTEND_ROUTE_CONTRACT_PATH,
-            (2usize, constants_str::VALUE_17CAA05F),
-        ),
-        (
-            constants_str::VALUE_B7324575,
-            (3usize, constants_str::VALUE_459ADA27),
-        ),
-        (
-            constants_str::VALUE_E66CEAFB,
-            (constants_usize::ONE, constants_str::VALUE_6FEEC711),
-        ),
-        (
-            constants_str::VALUE_321E6445,
-            (constants_usize::ONE, constants_str::VALUE_835ED0BA),
-        ),
-        (
-            constants_str::VALUE_A2FD7F33,
-            (3usize, constants_str::VALUE_E55D8523),
-        ),
-        (
-            constants_str::VALUE_9DB464C8,
-            (3usize, constants_str::VALUE_FE6462D2),
-        ),
-        (
-            constants_str::VALUE_4389D615,
-            (2usize, constants_str::VALUE_28A0F9A4),
-        ),
-        (
-            constants_str::VALUE_2EF7512D,
-            (3usize, constants_str::VALUE_2F0348B3),
-        ),
-        (
-            constants_str::VALUE_57DDC4BF,
-            (constants_usize::ONE, constants_str::VALUE_845FE7CB),
-        ),
-        (
-            constants_str::VALUE_20BD9443,
-            (3usize, constants_str::VALUE_37D955B5),
-        ),
-        (
-            constants_str::VALUE_CCA2C2FA,
-            (constants_usize::ONE, constants_str::VALUE_0BF03626),
-        ),
-        (
-            constants_str::VALUE_A7EBF5D2,
-            (2usize, constants_str::VALUE_ACA763E9),
-        ),
     ]);
     reviewed
         .values()
@@ -1848,12 +1525,12 @@ fn usize_max_usage_matches_reviewed_inventory() {
                     violations.push(format!("unreviewed usize::MAX owner: {path}"));
                 }
             });
-        assert!(violations.is_empty(), "cfc5175f {violations:#?}");
         let expected = reviewed
             .iter()
             .map(|(path, (count, _reason))| (*path, *count))
             .collect::<std::collections::BTreeMap<&str, usize>>();
         assert_eq!(observed, expected, "cfc5175f usize::MAX inventory changed");
+        assert!(violations.is_empty(), "cfc5175f {violations:#?}");
     });
 }
 
@@ -1875,23 +1552,7 @@ fn usize_max_expression_visitor_skips_test_modules() {
 
 #[test]
 fn select_sites_match_reviewed_cancellation_inventory() {
-    let reviewed = [
-        (
-            constants_str::VALUE_404ABD4C,
-            constants_usize::ONE,
-            constants_str::VALUE_D799E1E8,
-        ),
-        (
-            constants_str::VALUE_BAC9ADDA,
-            constants_usize::ONE,
-            constants_str::VALUE_5337167F,
-        ),
-        (
-            constants_str::VALUE_3CE86070,
-            constants_usize::ONE,
-            constants_str::VALUE_C8647B8D,
-        ),
-    ];
+    let reviewed = <[(&str, usize, &str); 0]>::default();
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed = std::collections::BTreeMap::<String, usize>::new();
         let mut violations = snapshot

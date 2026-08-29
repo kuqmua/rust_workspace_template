@@ -4,3 +4,14 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
 pub struct AdminSharedSemaphoreArc(pub(crate) std::sync::Arc<tokio::sync::Semaphore>);
+
+impl AdminSharedSemaphoreArc {
+    #[must_use]
+    #[allow(clippy::missing_const_for_fn)] // Tokio semaphore and Arc constructors are not const
+    #[allow(clippy::single_call_fn)] // Arc construction stays inside its cross-thread state owner
+    pub(crate) fn new(max_concurrent_hashes: crate::AdminPasswordHashConcurrency) -> Self {
+        Self(std::sync::Arc::new(tokio::sync::Semaphore::new(
+            max_concurrent_hashes.get().get(),
+        )))
+    }
+}
