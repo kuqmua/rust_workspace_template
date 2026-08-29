@@ -10,16 +10,12 @@
     schemars::JsonSchema,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::Display,
+    newtype::FromInner,
 )]
 #[serde(try_from = "u32")]
 #[schema(value_type = u32)]
 #[schemars(with = "u32")]
 pub struct LocationColumn(std::num::NonZeroU32);
-impl From<std::num::NonZeroU32> for LocationColumn {
-    fn from(value: std::num::NonZeroU32) -> Self {
-        Self(value)
-    }
-}
 impl TryFrom<u32> for LocationColumn {
     type Error = crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error;
 

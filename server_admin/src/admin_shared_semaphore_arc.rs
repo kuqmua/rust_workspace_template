@@ -12,7 +12,7 @@ impl AdminSharedSemaphoreArc {
     pub(crate) fn new(
         max_concurrent_hashes: crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency,
     ) -> Self {
-        Self(std::sync::Arc::new(tokio::sync::Semaphore::new(
+        Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
             max_concurrent_hashes.get().get(),
         )))
     }

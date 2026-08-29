@@ -63,43 +63,126 @@ pub(crate) fn declared_children() -> &'static std::collections::BTreeSet<(String
             let Some(parent) = owner_rel.parent() else {
                 continue;
             };
-            ast.items.iter().for_each(|item| {
-                let syn::Item::Mod(item_mod) = item else {
-                    return;
-                };
-                item_mod.attrs.iter().for_each(|attr| {
-                    if !attr.path().is_ident(constants_str::catalog::PATH_ALT_5) {
+            #[allow(
+                clippy::items_after_statements,
+                clippy::needless_for_each,
+                reason = "recursive compatibility-module discovery stays beside the parsed owner it processes"
+            )]
+            fn collect_modules(
+                items: &[syn::Item],
+                owner_rel: &std::path::Path,
+                parent: &std::path::Path,
+                workspace_root: &std::path::Path,
+                declarations: &mut std::collections::BTreeSet<(String, String)>,
+            ) {
+                items.iter().for_each(|item| {
+                    let syn::Item::Mod(item_mod) = item else {
                         return;
+                    };
+                    let child_rel = parent
+                        .join(item_mod.ident.to_string())
+                        .with_extension(constants_str::catalog::RS);
+                    if workspace_root.join(child_rel.as_path()).is_file() {
+                        let _inserted = declarations.insert((
+                            owner_rel.to_string_lossy().into_owned(),
+                            child_rel.to_string_lossy().into_owned(),
+                        ));
                     }
-                    let syn::Meta::NameValue(name_value) = &attr.meta else {
-                        return;
-                    };
-                    let syn::Expr::Lit(expr_lit) = &name_value.value else {
-                        return;
-                    };
-                    let syn::Lit::Str(path_lit) = &expr_lit.lit else {
-                        return;
-                    };
-                    let _inserted = declarations.insert((
-                        owner_rel.to_string_lossy().into_owned(),
-                        parent.join(path_lit.value()).to_string_lossy().into_owned(),
-                    ));
+                    item_mod.attrs.iter().for_each(|attr| {
+                        if !attr.path().is_ident(constants_str::catalog::PATH_ALT_5) {
+                            return;
+                        }
+                        let syn::Meta::NameValue(name_value) = &attr.meta else {
+                            return;
+                        };
+                        let syn::Expr::Lit(expr_lit) = &name_value.value else {
+                            return;
+                        };
+                        let syn::Lit::Str(path_lit) = &expr_lit.lit else {
+                            return;
+                        };
+                        let _inserted = declarations.insert((
+                            owner_rel.to_string_lossy().into_owned(),
+                            parent.join(path_lit.value()).to_string_lossy().into_owned(),
+                        ));
+                    });
+                    if let Some((_brace, nested_items)) = &item_mod.content {
+                        collect_modules(
+                            nested_items,
+                            owner_rel,
+                            parent,
+                            workspace_root,
+                            declarations,
+                        );
+                    }
                 });
-            });
+            }
+            collect_modules(
+                ast.items.as_slice(),
+                owner_rel,
+                parent,
+                workspace_root,
+                &mut declarations,
+            );
         }
         declarations
     })
 }
+
+#[allow(
+    clippy::single_call_fn,
+    reason = "runtime-source classification keeps test-only child detection independently testable"
+)]
+pub(crate) fn is_cfg_test_declared_child(path: &std::path::Path) -> bool {
+    let Some(file_name) = path.file_name() else {
+        return false;
+    };
+    let Some(parent) = path.parent() else {
+        return false;
+    };
+    [
+        parent
+            .join(constants_str::catalog::LIB)
+            .with_extension(constants_str::catalog::RS),
+        parent
+            .join(constants_str::catalog::MAIN)
+            .with_extension(constants_str::catalog::RS),
+    ]
+    .iter()
+    .filter_map(|owner_path| std::fs::read_to_string(owner_path).ok())
+    .filter_map(|content| syn::parse_file(content.as_str()).ok())
+    .flat_map(|ast| ast.items.into_iter())
+    .any(|item| {
+        let syn::Item::Mod(item_mod) = item else {
+            return false;
+        };
+        let declared_file_name = std::path::Path::new(item_mod.ident.to_string().as_str())
+            .with_extension(constants_str::catalog::RS);
+        declared_file_name.file_name() == Some(file_name)
+            && item_mod.attrs.iter().any(|attr| {
+                attr.path().is_ident(constants_str::catalog::CFG_ALT)
+                    && matches!(
+                        &attr.meta,
+                        syn::Meta::List(list)
+                            if list.tokens.to_string().contains(constants_str::catalog::TEST_ALT_3)
+                    )
+            })
+    })
+}
 pub(crate) fn declared_child_matches(path: &str, owner: &str) -> bool {
-    declared_children().contains(&(
-        owner
-            .trim_start_matches(constants_str::catalog::TEXT_ALT_9)
-            .trim_start_matches('/')
-            .to_owned(),
-        path.trim_start_matches(constants_str::catalog::TEXT_ALT_9)
-            .trim_start_matches('/')
-            .to_owned(),
-    ))
+    let owner_rel = owner
+        .trim_start_matches(constants_str::catalog::TEXT_ALT_9)
+        .trim_start_matches('/');
+    let path_rel = path
+        .trim_start_matches(constants_str::catalog::TEXT_ALT_9)
+        .trim_start_matches('/');
+    declared_children().contains(&(owner_rel.to_owned(), path_rel.to_owned())) || {
+        let owner_path = std::path::Path::new(owner_rel);
+        let child_path = std::path::Path::new(path_rel);
+        owner_path.file_stem().and_then(std::ffi::OsStr::to_str)
+            == Some(constants_str::catalog::DOMAIN_TYPES)
+            && owner_path.parent() == child_path.parent()
+    }
 }
 pub(crate) fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
     let syn::Expr::Call(call) = expression else {
@@ -1417,6 +1500,9 @@ pub(crate) fn is_runtime_policy_source_path(
     path: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
     if is_test_source_path(path).get() {
+        return crate::types::AnalyzerBool::default();
+    }
+    if is_cfg_test_declared_child(path.as_ref()) {
         return crate::types::AnalyzerBool::default();
     }
     if !path

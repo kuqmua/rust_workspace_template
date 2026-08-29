@@ -70,11 +70,17 @@ pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 1] =
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_REASONS: [&str; 1] =
     ["macro generators consume the parsed field descriptor across crate boundaries"];
 pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 1] = ["SynField"];
-pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 10] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 16] = [
+    "/administrator_account_initialization_and_password_reset/src/main.rs",
+    "/config_lib/src/parse_required_env_var.rs",
+    "/config_lib/src/src_place_type.rs",
     "/file_storage/src/adapters.rs",
+    "/init_env_files/src/main.rs",
     "/init_env_files/src/write_content.rs",
     CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX,
     CODE_STYLE_MACROS_HELPER_WRITE_STRING_FS_OWNER_SUFFIX,
+    "/macro_helpers/src/should_write_string_into_file.rs",
+    "/macro_helpers/src/try_write_string_into_file_with_outcome.rs",
     "/macro_helpers/src/write_token_stream_into_file.rs",
     "/workspace_scaffold/src/main.rs",
     "/workspace_scaffold/src/template_fs_copy_template_tree.rs",
@@ -82,11 +88,17 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 10] = [
     "/workspace_scaffold/src/template_fs_replace_file.rs",
     "/workspace_scaffold/src/template_fs_write_text.rs",
 ];
-pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 10] = [
+pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 16] = [
+    "administrator account command owns command-line argument parsing",
+    "configuration environment adapter owns required environment-variable reads",
+    "source-place configuration adapter owns its environment-variable read",
     "file storage adapter owns persisted file lifecycle operations",
+    "environment initializer entry point owns command-line argument parsing",
     "environment initializer write adapter owns environment-file writes",
     "macro Clippy fixture builder owns temporary crate filesystem operations",
     "generated string writer owns generated source file comparison and updates",
+    "generated string write decision owns source-file metadata comparison",
+    "generated string write adapter owns source-file metadata comparison",
     "token stream writer owns rustfmt execution for generated source files",
     "workspace scaffold entry point owns command-line parsing and dispatch",
     "workspace scaffold copy adapter owns bounded template traversal and copying",

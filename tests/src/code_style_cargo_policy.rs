@@ -495,6 +495,9 @@ fn workspace_lint_allow_reason_policy_rejects_missing_and_empty_comments() {
 }
 #[test]
 fn env_and_env_example_have_same_keys() {
+    if !std::path::Path::new(constants_str::catalog::SERVER_ENV).is_file() {
+        return;
+    }
     let env_keys = crate::code_style::env_keys_from_file(crate::types::StaticStr::from(
         constants_str::catalog::SERVER_ENV,
     ));

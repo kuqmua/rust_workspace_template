@@ -49,7 +49,7 @@ impl HttpErrorDiagnostic {
     fn error_chain(
         error: &(dyn std::error::Error + 'static),
     ) -> crate::std_http_error_chain::StdHttpErrorChain {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
         struct ErrorChain<'error_lt>(&'error_lt (dyn std::error::Error + 'static));
         impl std::fmt::Display for ErrorChain<'_> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -67,7 +67,7 @@ impl HttpErrorDiagnostic {
             }
         }
         crate::std_http_error_chain::StdHttpErrorChain::from(
-            ErrorChain(error).to_string().into_boxed_str(),
+            ErrorChain::from(error).to_string().into_boxed_str(),
         )
     }
 

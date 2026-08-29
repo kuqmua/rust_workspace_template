@@ -1,6 +1,6 @@
-pub(super) fn environment_keys(
-    content: crate::env_content_ref::EnvContentRef<'_>,
-) -> Result<crate::env_keys::EnvKeys, crate::init_string_error::InitStringError> {
+use crate::{EnvContentRef, EnvKey, EnvKeys, InitStringError};
+
+pub(super) fn environment_keys(content: EnvContentRef<'_>) -> Result<EnvKeys, InitStringError> {
     content
         .as_ref()
         .lines()
@@ -8,13 +8,13 @@ pub(super) fn environment_keys(
             let trimmed_line = source_line.trim();
             (!trimmed_line.is_empty() && !trimmed_line.starts_with('#'))
                 .then(|| {
-                    trimmed_line.split_once('=').map(|(key, _value)| {
-                        crate::env_key::EnvKey::try_from(key.trim().to_owned())
-                    })
+                    trimmed_line
+                        .split_once('=')
+                        .map(|(key, _value)| EnvKey::try_from(key.trim().to_owned()))
                 })
                 .flatten()
         })
-        .collect::<Result<Vec<crate::env_key::EnvKey>, crate::init_string_error::InitStringError>>()
+        .collect::<Result<Vec<EnvKey>, InitStringError>>()
         .map(bounded_types::bounded_vec::BoundedVec::from_max_iter)
-        .map(crate::env_keys::EnvKeys::from)
+        .map(EnvKeys::from)
 }

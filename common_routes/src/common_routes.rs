@@ -5,11 +5,13 @@ pub fn common_routes(
     crate::axum_common_routes::AxumCommonRoutes::from(
         super::common_route_registry::CommonRouteRegistry::router()
             .fallback(
-                async |uri: axum::http::Uri, axum::extract::State(app_state_19103bd5_raw)| {
+                async |uri: crate::axum_http_uri::AxumHttpUri,
+                       axum::extract::State(app_state_19103bd5_raw)| {
                     let app_state_19103bd5: crate::arc_common_routes_app_state::ArcCommonRoutesAppState = app_state_19103bd5_raw;
                     let uri_suffix = uri
+                        .get()
                         .path_and_query()
-                        .map_or_else(|| uri.path(), |value| value.as_str());
+                        .map_or_else(|| uri.get().path(), |value| value.as_str());
                     let capacity = constants_str::catalog::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX
                         .len()
                         .saturating_add(uri_suffix.len());

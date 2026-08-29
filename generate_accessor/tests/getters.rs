@@ -19,6 +19,12 @@ mod tests {
     #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
     struct TupleField(u64);
 
+    impl From<u64> for TupleField {
+        fn from(value: u64) -> Self {
+            Self(value)
+        }
+    }
+
     #[test]
     fn generates_named_optional_mutable_and_snake_case_getters() {
         let _proc_macro2_marker: Option<proc_macro2::TokenStream> = None;
@@ -38,7 +44,7 @@ mod tests {
             .get_route_type_upper_camel_case(),
             13
         );
-        assert_eq!(*TupleField(21).get_inner(), 21);
+        assert_eq!(*TupleField::from(21).get_inner(), 21);
     }
 
     const _: usize = constants_str::catalog::DOT.len();

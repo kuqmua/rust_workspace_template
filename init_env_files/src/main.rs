@@ -23,6 +23,11 @@ pub mod workspace_member;
 pub mod workspace_root_path_ref;
 pub mod write_content;
 
+pub(crate) use self::{
+    env_content_ref::EnvContentRef, env_key::EnvKey, env_keys::EnvKeys,
+    init_string_error::InitStringError,
+};
+
 fn main() -> Result<(), initialize_error::InitializeError> {
     let mode = if std::env::args().any(|argument| argument == constants_str::catalog::DRY_RUN) {
         run_mode::RunMode::DryRun

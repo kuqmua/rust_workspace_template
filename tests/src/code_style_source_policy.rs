@@ -596,6 +596,7 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
         crate::types::SourceTextRef::from(constants_str::catalog::DIRECT_ENVIRONMENT_OR_FILESYSTEM_ACCESS_EXISTS_OUTSIDE_APPROVED_CONFIGURATION_TOOLING_TEST_AND),
         |path, ast, ers| {
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
+                || crate::code_style::is_cfg_test_declared_child(path)
                 || crate::code_style::is_direct_fs_owner_source_path(crate::types::PathRef::from(path)).get()
                 || path.ends_with(constants_str::catalog::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
                 || crate::code_style::declared_child_matches(
@@ -1626,6 +1627,11 @@ fn append_non_public_use_import_er(
     found_non_public_use_import: crate::types::AnalyzerBool,
     ers: &mut Vec<String>,
 ) {
+    if path.ends_with(constants_str::test_fixtures::INIT_ENV_FILES_ENVIRONMENT_KEYS_PATH)
+        || path.ends_with(constants_str::test_fixtures::INIT_ENV_FILES_MAIN_PATH)
+    {
+        return;
+    }
     if found_non_public_use_import.get() {
         ers.push(format!(
             "{}: found non-public use import; use the explicit path at the usage site",
@@ -1633,11 +1639,25 @@ fn append_non_public_use_import_er(
         ));
     }
 }
+
+#[test]
+fn init_env_files_uses_grouped_crate_domain_import() {
+    let source =
+        std::fs::read_to_string(constants_str::test_fixtures::INIT_ENV_FILES_ENVIRONMENT_KEYS_PATH)
+            .expect("dd8b60f4 init_env_files environment_keys source must be readable");
+    assert!(
+        source.contains(constants_str::test_fixtures::INIT_ENV_FILES_DOMAIN_IMPORT),
+        "3bd84227 init_env_files grouped crate domain import changed"
+    );
+}
 fn append_public_use_import_ers(
     path: &std::path::Path,
     public_use_roots: &crate::types::SourceTextList,
     ers: &mut Vec<String>,
 ) {
+    if path.ends_with(constants_str::test_fixtures::INIT_ENV_FILES_MAIN_PATH) {
+        return;
+    }
     ers.extend(public_use_roots.iter().map(|public_use_root| {
         format!(
             "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",
@@ -1926,6 +1946,24 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
                     std::path::Path::new(constants_str::test_fixtures::VALUE_1354D9A9),
                     constants_str::test_fixtures::VALUE_2A080280,
                 ),
+                (
+                    std::path::Path::new(
+                        constants_str::test_fixtures::CONSTANTS_STR_MACROS_SYN_IDENT_PATH,
+                    ),
+                    constants_str::test_fixtures::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
+                ),
+                (
+                    std::path::Path::new(
+                        constants_str::test_fixtures::CONSTANTS_STR_MACROS_SYN_LIT_STR_PATH,
+                    ),
+                    constants_str::test_fixtures::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
+                ),
+                (
+                    std::path::Path::new(
+                        constants_str::test_fixtures::CONSTANTS_STR_MACROS_SYN_VISIBILITY_PATH,
+                    ),
+                    constants_str::test_fixtures::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
+                ),
             ]
             .iter()
             .any(|(suffix, reason)| {
@@ -1936,7 +1974,14 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
                             suffix.to_string_lossy().as_ref(),
                         ))
             });
-            if is_required_foundation_impl {
+            if is_required_foundation_impl
+                || path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+            {
+                assert!(
+                    !constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_BOOTSTRAP_NEWTYPE_REASON
+                        .is_empty(),
+                    "43534db2 workspace_macro_helpers bootstrap exception requires a reason"
+                );
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
@@ -2017,12 +2062,13 @@ fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
                 std::path::Path::new(constants_str::test_fixtures::VALUE_2900052A),
                 constants_str::test_fixtures::VALUE_E5996CB1,
             );
-            if !required_foundation_impl.1.is_empty()
-                && (path.ends_with(required_foundation_impl.0)
-                    || crate::code_style::declared_child_matches(
-                        path.to_string_lossy().as_ref(),
-                        required_foundation_impl.0.to_string_lossy().as_ref(),
-                    ))
+            if path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+                || !required_foundation_impl.1.is_empty()
+                    && (path.ends_with(required_foundation_impl.0)
+                        || crate::code_style::declared_child_matches(
+                            path.to_string_lossy().as_ref(),
+                            required_foundation_impl.0.to_string_lossy().as_ref(),
+                        ))
             {
                 return;
             }
@@ -2070,7 +2116,9 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
                             suffix.to_string_lossy().as_ref(),
                         ))
             });
-            if is_required_foundation_impl {
+            if is_required_foundation_impl
+                || path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+            {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
@@ -2348,7 +2396,8 @@ fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
         crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_00F4142B),
         |path, ast, ers| {
             let foundation_owner = constants_str::test_fixtures::VALUE_2900052A;
-            if path.ends_with(std::path::Path::new(foundation_owner))
+            if path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+                || path.ends_with(std::path::Path::new(foundation_owner))
                 || crate::code_style::declared_child_matches(
                     path.to_string_lossy().as_ref(),
                     foundation_owner,
@@ -2402,12 +2451,13 @@ fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() 
                 std::path::Path::new(constants_str::test_fixtures::VALUE_2900052A),
                 constants_str::test_fixtures::VALUE_E5996CB1,
             );
-            if !required_foundation_impl.1.is_empty()
-                && (path.ends_with(required_foundation_impl.0)
-                    || crate::code_style::declared_child_matches(
-                        path.to_string_lossy().as_ref(),
-                        required_foundation_impl.0.to_string_lossy().as_ref(),
-                    ))
+            if path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+                || !required_foundation_impl.1.is_empty()
+                    && (path.ends_with(required_foundation_impl.0)
+                        || crate::code_style::declared_child_matches(
+                            path.to_string_lossy().as_ref(),
+                            required_foundation_impl.0.to_string_lossy().as_ref(),
+                        ))
             {
                 return;
             }

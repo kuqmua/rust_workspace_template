@@ -615,6 +615,18 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         let _: bool = self.names.insert(i.ident.to_string());
+        if i.attrs.iter().any(|attr| {
+            attr.path().is_ident(constants_str::catalog::DERIVE)
+                && matches!(
+                    &attr.meta,
+                    syn::Meta::List(list)
+                        if list.tokens.to_string().contains(constants_str::catalog::BOUNDEDSTRING)
+                )
+        }) {
+            let mut generated_error_name = i.ident.to_string();
+            generated_error_name.push_str(constants_str::catalog::TRYFROMSTRINGERROR);
+            let _: bool = self.names.insert(generated_error_name);
+        }
         syn::visit::visit_item_struct(self, i);
     }
     fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
@@ -1390,6 +1402,14 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         let leaf_segment_ref = leaf_segment.get();
         let root_segment_ref = root_segment.get();
         let item_ref = item.as_ref();
+        if root_segment_ref.ident == constants_str::catalog::STD
+            && leaf_segment_ref
+                .ident
+                .to_string()
+                .starts_with(constants_str::test_fixtures::CODE_STYLE_NON_ZERO_PREFIX)
+        {
+            return;
+        }
         let required_segment = if root_segment_ref.ident == constants_str::catalog::STD {
             leaf_segment_ref
         } else {

@@ -27,6 +27,7 @@ pub mod notification_service_error;
 pub mod notification_state;
 #[cfg(test)]
 pub mod open_api_document;
+pub mod shared_notification_state_arc;
 pub mod sqlx_notification_database_error;
 pub mod sqlx_notification_migration_error;
 

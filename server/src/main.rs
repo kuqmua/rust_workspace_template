@@ -148,7 +148,7 @@ fn main() -> server_exit_code::ServerExitCode {
                             .map_err(run_server_error::RunServerError::CorsAllowOrigin)?,
                         );
                         let admin_auth_state =
-                            server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(std::sync::Arc::new(
+                            server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from_state(
                                 server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
                                     pg_pool.clone(),
                                     &config.admin_jwt_secret,
@@ -164,7 +164,7 @@ fn main() -> server_exit_code::ServerExitCode {
                                     &config.cors_allow_origin,
                                 )
                                 .map_err(run_server_error::RunServerError::AdminAuthState)?,
-                            ));
+                            );
                         let swagger_enabled = *config.admin_swagger_enabled;
                         let content_security_policy =
                             server_runtime_http::http_content_security_policy::HttpContentSecurityPolicy::try_from(
@@ -177,7 +177,7 @@ fn main() -> server_exit_code::ServerExitCode {
                             );
                         let http_gzip_enabled = *config.http_gzip_enabled;
                         let request_timeout_seconds = config.request_timeout_seconds.get();
-                        let app_state = shared_server_app_state_arc::SharedServerAppStateArc::from(std::sync::Arc::new(
+                        let app_state = shared_server_app_state_arc::SharedServerAppStateArc::from_state(
                             server_app_state::server_app_state::ServerAppState {
                                 bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget::new(
                                     server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::from(
@@ -196,7 +196,7 @@ fn main() -> server_exit_code::ServerExitCode {
                                 pg_pool,
                                 project_git_info: git_info::project_git_info_value::project_git_info_value(),
                             },
-                        ));
+                        );
                         let metrics_renderer = metrics_exporter_prometheus::PrometheusBuilder::new()
                             .install_recorder()
                             .map(metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer::from)

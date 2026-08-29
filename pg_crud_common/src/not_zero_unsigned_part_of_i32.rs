@@ -13,6 +13,7 @@
     serde::Deserialize,
     schemars::JsonSchema,
     optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
 )]
 #[serde(try_from = "i32")]
 pub struct NotZeroUnsignedPartOfI32(pub(super) std::num::NonZeroI32);
@@ -20,12 +21,6 @@ pub struct NotZeroUnsignedPartOfI32(pub(super) std::num::NonZeroI32);
 impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
     fn from(value: std::num::NonZeroU16) -> Self {
         Self::from(std::num::NonZeroI32::from(value))
-    }
-}
-
-impl From<std::num::NonZeroI32> for NotZeroUnsignedPartOfI32 {
-    fn from(value: std::num::NonZeroI32) -> Self {
-        Self(value)
     }
 }
 

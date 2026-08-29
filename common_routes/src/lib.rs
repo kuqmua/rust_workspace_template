@@ -8,6 +8,7 @@
 pub mod arc_common_routes_app_state;
 pub mod axum_common_routes;
 pub mod axum_health_check_status;
+pub mod axum_http_uri;
 #[cfg(test)]
 pub mod axum_http_uri_ref;
 pub mod axum_json_payload;

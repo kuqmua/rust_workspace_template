@@ -2360,29 +2360,21 @@ pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_FIELD_RS: &str =
 pub const SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_INPUT_RS: &str =
     "server_admin_frontend/src/domain_types_with_owner_input.rs";
 pub const CODE_STYLE_MACRO_CLIPPY_CHECK_COMMON_SRC: &str = "macro_clippy_check_common/src";
-pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 24] = [
-    "../server_runtime_http/src/request_timeout_duration.rs::try_from\n../server_runtime_http/src/run_interval_duration.rs::try_from",
+pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 16] = [
     "../server_runtime_core/src/bounded_secret_text.rs::try_from\n../server_runtime_core/src/secret_text_ref.rs::try_from",
     "../generate_quotes/src/binary_single_quote_style.rs::binary_single_quote_style\n../generate_quotes/src/single_quote_style.rs::single_quote_style",
     "../git_info/src/git_commit_id_cow.rs::try_from\n../git_info/src/git_commit_link_cow.rs::try_from",
     "../pg_crud_common/src/bounded_b_tree_map.rs::deserialize\n../pg_crud_common/src/bounded_vec.rs::deserialize\n../pg_crud_where_filters/src/bounded_vec.rs::deserialize",
     "../generate_quotes/src/binary_double_quote_style.rs::binary_double_quote_style\n../generate_quotes/src/double_quote_style.rs::double_quote_style",
-    "../config_lib/src/env_var_name.rs::try_from\n../config_lib/src/std_env_var_ok.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_part_fragment.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from",
     "../server_runtime_http/src/geo_json_validation.rs::validate_geo_json\n../server_runtime_http/src/geo_json_validation.rs::validate_geo_json\n../server_runtime_http/src/geo_json_validation.rs::validate_geo_json",
     "../server_runtime_core/src/lease_id.rs::try_from\n../server_runtime_core/src/lease_key.rs::try_from",
-    "../pg_crud_pg_types_generate_src/src/generate_pg_type_records.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_types.rs::try_from",
     "../server_runtime_http/src/notification_api_token.rs::try_from\n../server_runtime_http/src/pg_rate_limit_scope_ref.rs::try_from\n../server_runtime_http/src/pg_rate_limit_subject_ref.rs::try_from",
     "../server_admin_frontend/src/admin_ssr_html.rs::try_from\n../server_admin_frontend/src/admin_ssr_text.rs::try_from",
     "../server_admin/src/delete_role.rs::delete_role\n../server_admin/src/delete_user.rs::delete_user",
-    "../pg_crud_common/src/pg_filter_text.rs::try_from\n../pg_crud_common/src/sql_like_pattern.rs::try_from\n../runtime_tests/src/runtime_test_url.rs::try_from",
     "../config_lib/src/secrecy_secret_box_string.rs::try_from\n../server_admin_core/src/secrecy_admin_string.rs::try_from",
     "../pg_crud_macro_common/src/generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream.rs::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/generate_impl_pg_crud_common_default_some_one_element_token_stream.rs::generate_impl_pg_crud_common_default_some_one_element_token_stream",
-    "../server_runtime_http/src/http_normalized_path.rs::try_from\n../server_runtime_http/src/metrics_response_body.rs::try_from",
-    "../pg_crud_macro_common/src/import.rs::to_path\n../pg_crud_macro_common/src/is_nullable.rs::non_null_or_nullable_str\n../pg_crud_where_filters/src/regex_case.rs::postgreql_syntax",
     "../pg_crud_macro_common/src/generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream.rs::generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream\n../pg_crud_macro_common/src/generate_impl_pg_crud_default_some_one_element_token_stream.rs::generate_impl_pg_crud_default_some_one_element_token_stream",
     "../pg_crud_common/src/pg_type_where.rs::visit_str\n../pg_crud_where_filters/src/between.rs::visit_str",
-    "../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from",
-    "../pg_crud_common/src/cursor_payload.rs::try_from\n../pg_crud_common/src/signed_cursor.rs::try_from",
     "../pg_crud_common/src/pg_scoped_foreign_key_clause_text.rs::try_from\n../pg_crud_common/src/sql_identifier_list_text.rs::try_from\n../pg_crud_common/src/sql_query_text.rs::try_from",
     "../pg_crud_pg_table/src/pg_table_idempotency_actor.rs::try_from\n../pg_crud_pg_table/src/pg_table_idempotency_key.rs::try_from",
 ];
@@ -2408,3 +2400,17 @@ pub const CODE_STYLE_REEXPORT_ONLY_FIXTURE: &str =
     "pub use crate::first::*; pub(crate) use crate::second::Item;";
 pub const CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE: &str =
     "#[cfg(test)] mod tests { pub use crate::first::*; pub(crate) use crate::second::Item; }";
+pub const INIT_ENV_FILES_ENVIRONMENT_KEYS_PATH: &str = "../init_env_files/src/environment_keys.rs";
+pub const INIT_ENV_FILES_MAIN_PATH: &str = "../init_env_files/src/main.rs";
+pub const INIT_ENV_FILES_DOMAIN_IMPORT: &str =
+    "use crate::{EnvContentRef, EnvKey, EnvKeys, InitStringError};";
+pub const CONSTANTS_STR_MACROS_SYN_IDENT_PATH: &str = "../constants_str_macros/src/syn_ident.rs";
+pub const CONSTANTS_STR_MACROS_SYN_LIT_STR_PATH: &str =
+    "../constants_str_macros/src/syn_lit_str.rs";
+pub const CONSTANTS_STR_MACROS_SYN_VISIBILITY_PATH: &str =
+    "../constants_str_macros/src/syn_visibility.rs";
+pub const CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON: &str =
+    "constants_str_macros cannot depend on newtype because newtype uses constants_str";
+pub const WORKSPACE_MACRO_HELPERS_SRC_PATH: &str = "../workspace_macro_helpers/src";
+pub const WORKSPACE_MACRO_HELPERS_BOOTSTRAP_NEWTYPE_REASON: &str =
+    "workspace_macro_helpers cannot depend on newtype because newtype uses workspace_macro_helpers";

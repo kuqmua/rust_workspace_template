@@ -933,7 +933,10 @@ pub fn emit_generate_where_filters(
         gend
     };
     let text_search_spec = crate::filter_spec::FilterSpec::text_search();
-    #[allow(clippy::if_not_else)]
+    #[allow(
+        clippy::if_not_else,
+        reason = "schema validation failure is the exceptional branch"
+    )]
     let text_search_schema_token_stream = if !crate::schema_uses_text_value::schema_uses_text_value(
         text_search_spec,
     )
@@ -1012,7 +1015,10 @@ pub fn emit_generate_where_filters(
             }
         }
     };
-    #[allow(clippy::if_not_else)]
+    #[allow(
+        clippy::if_not_else,
+        reason = "client validation failure is the exceptional branch"
+    )]
     let text_search_client_token_stream = if !crate::client_uses_text_value::client_uses_text_value(
         text_search_spec,
     )
@@ -1032,7 +1038,10 @@ pub fn emit_generate_where_filters(
             }
         }
     };
-    #[allow(clippy::if_not_else)]
+    #[allow(
+        clippy::if_not_else,
+        reason = "bind-count validation failure is the exceptional branch"
+    )]
     let text_search_bind_token_stream = if !crate::bind_count_matches::bind_count_matches(
         text_search_spec,
         crate::filter_placeholder_count::FilterPlaceholderCount::one(),

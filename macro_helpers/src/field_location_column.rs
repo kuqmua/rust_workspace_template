@@ -2,14 +2,8 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationColumn(pub(super) std::num::NonZeroU32);
-
-impl From<std::num::NonZeroU32> for FieldLocationColumn {
-    fn from(value: std::num::NonZeroU32) -> Self {
-        Self(value)
-    }
-}
 
 impl TryFrom<u32> for FieldLocationColumn {
     type Error =

@@ -996,14 +996,15 @@ pub(super) struct UseImportVisitor {
     reason = "use-tree analyzer helpers are grouped by root extraction, recursive rename detection, and local-root classification to keep policy logic independently testable"
 )]
 impl UseImportVisitor {
-    fn use_tree_root(use_tree: &syn::UseTree) -> String {
-        match use_tree {
+    fn use_tree_root(use_tree: &syn::UseTree) -> crate::types::SourceText {
+        crate::types::SourceText::try_from(match use_tree {
             syn::UseTree::Path(path) => path.ident.to_string(),
             syn::UseTree::Name(name) => name.ident.to_string(),
             syn::UseTree::Rename(rename) => rename.ident.to_string(),
-            syn::UseTree::Glob(_) => "*".to_owned(),
-            syn::UseTree::Group(_) => "{...}".to_owned(),
-        }
+            syn::UseTree::Glob(_) => constants_str::catalog::ASTERISK.to_owned(),
+            syn::UseTree::Group(_) => constants_str::catalog::BRACED_ELLIPSIS.to_owned(),
+        })
+        .expect("e7ab40c1 use-tree roots are bounded Rust identifiers")
     }
 
     fn use_tree_contains_rename(
@@ -1060,7 +1061,8 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
             self.found_non_public_use_import.set_true();
         }
         if !matches!(i.vis, syn::Visibility::Inherited) {
-            self.public_use_roots.push(Self::use_tree_root(&i.tree));
+            self.public_use_roots
+                .push(String::from(Self::use_tree_root(&i.tree)));
         }
         if Self::use_tree_contains_rename(crate::types::SynUseTreeRef::from(&i.tree)).get() {
             self.found_use_rename.set_true();
