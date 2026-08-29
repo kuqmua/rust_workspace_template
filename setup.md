@@ -47,7 +47,13 @@ Run the same required checks used by the repository:
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
 cargo test -p tests_code_style
-cargo test --workspace
+cargo test --workspace --exclude tests_code_style
+```
+
+Run database-backed ignored tests only after provisioning the required services:
+
+```bash
+cargo run -p workspace_test_runner -- database
 ```
 
 Do not suppress warnings locally: CI treats them as errors.

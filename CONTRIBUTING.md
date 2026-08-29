@@ -10,8 +10,13 @@ Before submitting a change, run:
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
 cargo test -p tests_code_style
-cargo test --workspace
+cargo test --workspace --exclude tests_code_style
 ```
 
 Database changes require forward migrations and fresh-schema plus supported-upgrade tests. Public
 HTTP or event changes require compatibility review and corresponding contract tests.
+Run the database-backed ignored suite in a provisioned environment with:
+
+```bash
+cargo run -p workspace_test_runner -- database
+```

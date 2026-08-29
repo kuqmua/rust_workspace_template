@@ -75,6 +75,16 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test -p tests_code_style
 ```
 
+```bash
+cargo test --workspace --exclude tests_code_style
+```
+
+Run database-backed ignored tests only in a provisioned environment:
+
+```bash
+cargo run -p workspace_test_runner -- database
+```
+
 ## Toolchain note
 
 - This repository is intended for the latest Rust nightly toolchain.

@@ -24,6 +24,7 @@ constants_str_macros::define_str_constants! {
         pub SHARED_VALUES_ALL_TARGETS = ["--all-targets"];
         pub SHARED_VALUES_ALL_FEATURES = ["--all-features"];
         pub SHARED_VALUES_EMPTY = ["--"];
+        pub SHARED_VALUES_EXCLUDE = ["--exclude"];
         pub SHARED_VALUES_D = ["-D"];
         pub SHARED_VALUES_WARNINGS = ["warnings"];
         pub SHARED_VALUES_A = ["-A"];

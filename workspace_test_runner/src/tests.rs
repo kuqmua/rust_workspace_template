@@ -116,3 +116,21 @@ fn tests_mode_leaves_ignored_suite_to_database_mode() {
             .all(|(_program, args)| !args.contains(&"--run-ignored"))
     );
 }
+
+#[test]
+fn tests_mode_runs_code_style_once() {
+    assert!(
+        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS
+            .contains(&constants_str::catalog::TESTS_CODE_STYLE)
+    );
+    assert!(
+        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS
+            .windows(constants_usize::TWO)
+            .any(|args| {
+                args == [
+                    constants_str::catalog::SHARED_VALUES_EXCLUDE,
+                    constants_str::catalog::TESTS_CODE_STYLE,
+                ]
+            })
+    );
+}

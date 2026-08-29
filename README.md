@@ -142,7 +142,15 @@ cargo build --release -p notification_service
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
 cargo test -p tests_code_style
-cargo test --workspace
+cargo test --workspace --exclude tests_code_style
+```
+
+The first test command runs repository policy checks. The second runs all other non-ignored
+workspace tests without executing the policy crate twice. Run database-backed ignored tests only
+after provisioning the required services:
+
+```bash
+cargo run -p workspace_test_runner -- database
 ```
 
 CI additionally checks dependency policy, unused dependencies, coverage, documentation, secrets,
@@ -226,6 +234,7 @@ Before using the repository as a new project, replace its template identity in t
 cargo run -p workspace_scaffold -- project order_platform https://github.com/acme/order_platform
 cargo fmt
 cargo test -p tests_code_style
+cargo test --workspace --exclude tests_code_style
 ```
 
 ## License
