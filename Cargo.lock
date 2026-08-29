@@ -5426,7 +5426,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tests"
+name = "tests_code_style"
 version = "0.1.0"
 dependencies = [
  "cargo_metadata",

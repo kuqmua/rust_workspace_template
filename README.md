@@ -141,7 +141,7 @@ cargo build --release -p notification_service
 ```bash
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
-cargo test -p tests code_style
+cargo test -p tests_code_style
 cargo test --workspace
 ```
 
@@ -225,7 +225,7 @@ Before using the repository as a new project, replace its template identity in t
 ```bash
 cargo run -p workspace_scaffold -- project order_platform https://github.com/acme/order_platform
 cargo fmt
-cargo test -p tests code_style
+cargo test -p tests_code_style
 ```
 
 ## License

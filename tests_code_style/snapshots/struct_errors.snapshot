@@ -105,7 +105,7 @@
 ../server_runtime_http/src/tokio_task_join_error.rs:TokioTaskJoinError
 ../server_runtime_http/src/trusted_proxy_ranges_error.rs:TrustedProxyRangesError
 ../synchronization_service_runtime/src/synchronization_payload_too_large.rs:SynchronizationPayloadTooLarge
-../tests/src/types.rs:SourceTextTryFromStringError
+../tests_code_style/src/types.rs:SourceTextTryFromStringError
 ../text_policy/src/password_length_range_error.rs:PasswordLengthRangeError
 ../workspace_scaffold/src/scaffold_io_error.rs:ScaffoldIoError
 ../workspace_test_runner/src/execution_io_error.rs:ExecutionIoError

@@ -46,7 +46,7 @@ Run the same required checks used by the repository:
 ```bash
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
-cargo test -p tests code_style
+cargo test -p tests_code_style
 cargo test --workspace
 ```
 

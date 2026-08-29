@@ -82,7 +82,7 @@ members = [
   "server_runtime_core",
   "server_runtime_http",
   "synchronization_service_runtime",
-  "tests",
+  "tests_code_style",
   "text_policy",
   "to_err_string",
   "to_err_string_to_err_string_macros",

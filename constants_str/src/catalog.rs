@@ -509,7 +509,7 @@ constants_str_macros::define_str_constants! {
         pub SERVER_ADMIN_FRONTEND_SRC_APP = ["../server_admin_frontend/src/domain_types/start/"];
         pub STR_CONSTANTS_SRC_LIB_RS = ["../constants_str/src/lib.rs"];
         pub CONSTANTS_STR_MACROS_SRC_DEFINE_STR_CONSTANTS_INPUT_RS = ["constants_str_macros/src/define_str_constants_input.rs"];
-        pub TESTS_SRC_CODE_STYLE = ["../tests/src/code_style"];
+        pub TESTS_SRC_CODE_STYLE = ["../tests_code_style/src/code_style"];
         pub WORKSPACE_TEST_RUNNER_SRC = ["../workspace_test_runner/src/"];
         pub ENV = [".env"];
         pub ENV_EXAMPLE = [".env.example"];
@@ -597,9 +597,9 @@ constants_str_macros::define_str_constants! {
         pub V1 = ["/v1"];
         pub V1_SLASH = ["/v1/"];
         pub V1_TEST = ["/v1/test"];
-        pub TESTS_SRC = ["/tests/src/"];
-        pub TESTS_SRC_CODE_STYLE_ALT = ["/tests/src/code_style/"];
-        pub TESTS_SRC_LIB_RS = ["/tests/src/lib.rs"];
+        pub TESTS_SRC = ["/tests_code_style/src/"];
+        pub TESTS_SRC_CODE_STYLE_ALT = ["/tests_code_style/src/code_style/"];
+        pub TESTS_SRC_LIB_RS = ["/tests_code_style/src/lib.rs"];
         pub UNKNOWN = ["/unknown"];
         pub USERS_ID = ["/users/{id}"];
         pub WORKSPACE_TEST_RUNNER = ["/workspace_test_runner/"];
@@ -2343,6 +2343,7 @@ constants_str_macros::define_str_constants! {
         pub TEST_HELPER_RS = ["test_helper.rs"];
         pub TEST_UNSTABLE_LINT = ["test_unstable_lint"];
         pub TESTS_ALT = ["tests"];
+        pub TESTS_CODE_STYLE = ["tests_code_style"];
         pub TEXT_PLAIN = ["text/plain"];
         pub THREAD = ["thread"];
         pub TIMEOUT_MINUTES = ["timeout-minutes:"];

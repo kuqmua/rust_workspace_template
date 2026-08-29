@@ -106,7 +106,8 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 16] = [
     "workspace scaffold replacement adapter owns generated file updates",
     "workspace scaffold write adapter owns generated file updates",
 ];
-pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str = "../tests/src/domain_type_policy_fixture.rs";
+pub const CODE_STYLE_DOMAIN_FIXTURE_PATH: &str =
+    "../tests_code_style/src/domain_type_policy_fixture.rs";
 pub const CODE_STYLE_BOUNDED_TYPES_SRC: &str = "../bounded_types/src";
 pub const CODE_STYLE_LEPTOS_CRATE: &str = "leptos";
 pub const CODE_STYLE_MACRO_CLIPPY_FS_OWNER_SUFFIX: &str = "/macro_clippy_check_common/src/lib.rs";
@@ -114,7 +115,7 @@ pub const CODE_STYLE_MACROS_HELPER_TEST_FS_OWNER_SUFFIX: &str = "/macro_helpers/
 pub const CODE_STYLE_MACROS_HELPER_WRITE_STRING_FS_OWNER_SUFFIX: &str =
     "/macro_helpers/src/write_string_into_file.rs";
 pub const CODE_STYLE_PRELUDE_MODULE: &str = "prelude";
-pub const CODE_STYLE_TESTS_SRC_ROOT: &str = "../tests/src";
+pub const CODE_STYLE_TESTS_SRC_ROOT: &str = "../tests_code_style/src";
 pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];
 pub const CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX: &str =
     "/workspace_scaffold/src/domain_types.rs";
@@ -244,7 +245,7 @@ pub const WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS: [&str; 5] = [
     catalog::TEST_ALT_3,
     catalog::SHARED_VALUES_LOCKED,
     catalog::P,
-    catalog::TESTS_ALT,
+    catalog::TESTS_CODE_STYLE,
     catalog::SHARED_VALUES_LIB,
 ];
 pub const WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS: [&str; 5] = [

@@ -2324,7 +2324,7 @@ fn production_code_does_not_use_explicit_leak_apis() {
                 !source_file
                     .path()
                     .as_ref()
-                    .starts_with(constants_str::catalog::TESTS_ALT)
+                    .starts_with(constants_str::catalog::TESTS_CODE_STYLE)
             })
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(

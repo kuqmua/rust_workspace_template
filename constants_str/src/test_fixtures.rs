@@ -675,9 +675,9 @@ pub const CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER: &str = "Self";
 pub const CODE_STYLE_VALUE_IDENTIFIER: &str = "value";
 pub const CODE_STYLE_TARGET_ASSOCIATED_TYPE_IDENTIFIER: &str = "Target";
 pub const STRING_CONSTANT_METADATA_FIXTURE_LOCATIONS: &str = "../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata";
-pub const STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS: &str = "../tests/src/source_analysis.rs::visit_item_enum\n../tests/src/source_analysis.rs::visit_item_struct";
-pub const STRING_CONSTANT_ROUTE_METADATA_FIXTURE_LOCATIONS: &str = "../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../tests/trybuild/route_contract_wrong_path_parameter.rs::metadata";
-pub const STRING_CONSTANT_ANALYZER_VISITOR_LOCATIONS: &str = "../tests/src/advanced_policy.rs::visit_type_path\n../tests/src/runtime_analysis.rs::visit_macro";
+pub const STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS: &str = "../tests_code_style/src/source_analysis.rs::visit_item_enum\n../tests_code_style/src/source_analysis.rs::visit_item_struct";
+pub const STRING_CONSTANT_ROUTE_METADATA_FIXTURE_LOCATIONS: &str = "../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../frontend_contract/src/client.rs::metadata\n../tests_code_style/trybuild/route_contract_wrong_path_parameter.rs::metadata";
+pub const STRING_CONSTANT_ANALYZER_VISITOR_LOCATIONS: &str = "../tests_code_style/src/advanced_policy.rs::visit_type_path\n../tests_code_style/src/runtime_analysis.rs::visit_macro";
 pub const STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES: &str =
     "centralized string constants make otherwise distinct fixtures structurally equivalent";
 
@@ -741,7 +741,7 @@ pub const VALUE_72A10749: &str = "../bounded_types/src/bounded_string.rs::try_fr
 pub const VALUE_2483AEA6: &str = "../bounded_types/src/bounded_vec.rs";
 pub const VALUE_7630EBEC: &str = "../bounded_types/src/bounded_vec.rs:BoundedVec";
 pub const VALUE_86D03626: &str = "../common_routes/src/health_components.rs:HealthComponents";
-pub const VALUE_7E4078D9: &str = "../config_lib/src/domain_types.rs::try_from\n../config_lib/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../tests/src/domain_type_policy_fixture.rs::try_from";
+pub const VALUE_7E4078D9: &str = "../config_lib/src/domain_types.rs::try_from\n../config_lib/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../pg_crud_pg_table/src/domain_types.rs::try_from\n../tests_code_style/src/domain_type_policy_fixture.rs::try_from";
 pub const VALUE_522C0343: &str = "../config_lib/src/domain_types.rs::try_from\n../server_admin_core/src/domain_types.rs::try_from";
 pub const VALUE_4CB1E1F3: &str =
     "../config_lib/src/http.rs::try_from\n../config_lib/src/pg_pool.rs::try_from";
@@ -864,21 +864,21 @@ pub const VALUE_B9937202: &str =
 pub const VALUE_2941B657: &str =
     "../server_runtime_http/src/multipart_text_parts.rs:MultipartTextParts";
 pub const VALUE_422EC2EB: &str = "../server_runtime_http/src/pg_rate_limit.rs::try_from\n../server_runtime_http/src/pg_rate_limit.rs::try_from";
-pub const VALUE_FBAC771A: &str = "../tests/src/advanced_policy.rs::visit_expr_await\n../tests/src/advanced_policy.rs::visit_macro";
-pub const VALUE_0D4F3549: &str = "../tests/src/advanced_policy.rs::visit_expr_loop\n../tests/src/advanced_policy.rs::visit_expr_while\n../tests/src/runtime_analysis.rs::visit_expr_async";
-pub const VALUE_082A5401: &str = "../tests/src/domain_analysis.rs::external_leaf_segment_from_arguments\n../tests/src/domain_analysis.rs::external_root_segment_from_arguments";
-pub const VALUE_4793A5FE: &str = "../tests/src/domain_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/runtime_analysis.rs::visit_item\n../tests/src/source_analysis.rs::visit_item\n../tests/src/source_analysis.rs::visit_item\n../tests/src/source_analysis.rs::visit_item";
-pub const VALUE_224F7450: &str = "../tests/src/domain_analysis.rs::visit_item_enum\n../tests/src/domain_analysis.rs::visit_item_struct\n../tests/src/domain_analysis.rs::visit_item_trait\n../tests/src/domain_analysis.rs::visit_item_union";
-pub const VALUE_3AE4AA02: &str = "../tests/src/domain_analysis.rs::visit_item_impl\n../tests/src/domain_analysis.rs::visit_item_struct";
-pub const VALUE_7005B03A: &str = "../tests/src/code_style.rs::attr_has_bounded_string_derive\n../tests/src/code_style.rs::attr_has_newtype_from_option";
-pub const VALUE_B90EA89F: &str = "../tests/src/code_style.rs::item_impl_contains_len_call\n../tests/src/code_style.rs::len_checked_function_names";
-pub const VALUE_DBB9C433: &str = "../tests/src/code_style.rs::item_impl_is_from\n../tests/src/code_style.rs::item_impl_is_try_from";
-pub const VALUE_A4FF3FB6: &str = "../tests/src/code_style.rs::item_impl_is_from_string\n../tests/src/code_style.rs::item_impl_is_try_from_string";
-pub const VALUE_F0DC6ADA: &str = "../tests/src/code_style.rs::item_struct_derives_conversion\n../tests/src/code_style.rs::item_struct_derives_try_from";
-pub const VALUE_292E1A7F: &str = "../tests/src/runtime_analysis.rs::visit_impl_item_fn\n../tests/src/runtime_analysis.rs::visit_item_fn\n../tests/src/runtime_analysis.rs::visit_trait_item_fn";
-pub const VALUE_4FDDA503: &str = "../tests/src/source_analysis.rs::visit_expr_lit\n../tests/src/source_analysis.rs::visit_expr_lit";
-pub const VALUE_E26644F4: &str = "../tests/src/source_analysis.rs::visit_item_struct\n../tests/src/source_analysis.rs::visit_item_struct\n../tests/src/source_analysis.rs::visit_item_struct";
-pub const VALUE_AE96131E: &str = "../tests/trybuild/route_contract_wrong_request.rs::metadata\n../tests/trybuild/route_contract_wrong_response.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_route.rs::metadata\n../tests/trybuild/route_contract_wrong_transport.rs::metadata";
+pub const VALUE_FBAC771A: &str = "../tests_code_style/src/advanced_policy.rs::visit_expr_await\n../tests_code_style/src/advanced_policy.rs::visit_macro";
+pub const VALUE_0D4F3549: &str = "../tests_code_style/src/advanced_policy.rs::visit_expr_loop\n../tests_code_style/src/advanced_policy.rs::visit_expr_while\n../tests_code_style/src/runtime_analysis.rs::visit_expr_async";
+pub const VALUE_082A5401: &str = "../tests_code_style/src/domain_analysis.rs::external_leaf_segment_from_arguments\n../tests_code_style/src/domain_analysis.rs::external_root_segment_from_arguments";
+pub const VALUE_4793A5FE: &str = "../tests_code_style/src/domain_analysis.rs::visit_item\n../tests_code_style/src/runtime_analysis.rs::visit_item\n../tests_code_style/src/runtime_analysis.rs::visit_item\n../tests_code_style/src/runtime_analysis.rs::visit_item\n../tests_code_style/src/runtime_analysis.rs::visit_item\n../tests_code_style/src/source_analysis.rs::visit_item\n../tests_code_style/src/source_analysis.rs::visit_item\n../tests_code_style/src/source_analysis.rs::visit_item";
+pub const VALUE_224F7450: &str = "../tests_code_style/src/domain_analysis.rs::visit_item_enum\n../tests_code_style/src/domain_analysis.rs::visit_item_struct\n../tests_code_style/src/domain_analysis.rs::visit_item_trait\n../tests_code_style/src/domain_analysis.rs::visit_item_union";
+pub const VALUE_3AE4AA02: &str = "../tests_code_style/src/domain_analysis.rs::visit_item_impl\n../tests_code_style/src/domain_analysis.rs::visit_item_struct";
+pub const VALUE_7005B03A: &str = "../tests_code_style/src/code_style.rs::attr_has_bounded_string_derive\n../tests_code_style/src/code_style.rs::attr_has_newtype_from_option";
+pub const VALUE_B90EA89F: &str = "../tests_code_style/src/code_style.rs::item_impl_contains_len_call\n../tests_code_style/src/code_style.rs::len_checked_function_names";
+pub const VALUE_DBB9C433: &str = "../tests_code_style/src/code_style.rs::item_impl_is_from\n../tests_code_style/src/code_style.rs::item_impl_is_try_from";
+pub const VALUE_A4FF3FB6: &str = "../tests_code_style/src/code_style.rs::item_impl_is_from_string\n../tests_code_style/src/code_style.rs::item_impl_is_try_from_string";
+pub const VALUE_F0DC6ADA: &str = "../tests_code_style/src/code_style.rs::item_struct_derives_conversion\n../tests_code_style/src/code_style.rs::item_struct_derives_try_from";
+pub const VALUE_292E1A7F: &str = "../tests_code_style/src/runtime_analysis.rs::visit_impl_item_fn\n../tests_code_style/src/runtime_analysis.rs::visit_item_fn\n../tests_code_style/src/runtime_analysis.rs::visit_trait_item_fn";
+pub const VALUE_4FDDA503: &str = "../tests_code_style/src/source_analysis.rs::visit_expr_lit\n../tests_code_style/src/source_analysis.rs::visit_expr_lit";
+pub const VALUE_E26644F4: &str = "../tests_code_style/src/source_analysis.rs::visit_item_struct\n../tests_code_style/src/source_analysis.rs::visit_item_struct\n../tests_code_style/src/source_analysis.rs::visit_item_struct";
+pub const VALUE_AE96131E: &str = "../tests_code_style/trybuild/route_contract_wrong_request.rs::metadata\n../tests_code_style/trybuild/route_contract_wrong_response.rs::metadata\n../tests_code_style/trybuild/route_contract_wrong_route.rs::metadata\n../tests_code_style/trybuild/route_contract_wrong_route.rs::metadata\n../tests_code_style/trybuild/route_contract_wrong_transport.rs::metadata";
 pub const VALUE_413BDF99: &str =
     "../workspace_macro_helpers/src/proc_macro2_macro_tokens.rs:ProcMacro2MacroTokens";
 pub const VALUE_EA3B0668: &str = "../workspace_macro_helpers/src/proc_macro2_top_level_comma_parts.rs:ProcMacro2TopLevelCommaParts";
@@ -2095,8 +2095,8 @@ pub const VALUE_4943E43B: &str = "test-session";
 pub const VALUE_AF7C24A2: &str = "test.error";
 pub const VALUE_CF4DCEBB: &str = "test_failure";
 pub const VALUE_D0549AF3: &str = "test_fixtures";
-pub const VALUE_4A3D63F7: &str = "tests/src/code_style.rs";
-pub const VALUE_959AEDDC: &str = "tests/src/code_style_snapshot.rs";
+pub const VALUE_4A3D63F7: &str = "tests_code_style/src/code_style.rs";
+pub const VALUE_959AEDDC: &str = "tests_code_style/src/code_style_snapshot.rs";
 pub const VALUE_B2FEB0FD: &str = "the CLI runner needs collision-free process-local artifact names";
 pub const VALUE_2773E6CE: &str = "the HTTP runtime must not depend on application or route crates";
 pub const VALUE_FDB078C8: &str =
@@ -2386,17 +2386,17 @@ pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 18] = [
     "../server_admin/src/role_permissions.rs::role_permissions\n../server_admin/src/user_roles.rs::user_roles",
     "../common_routes/src/axum_http_uri.rs::from_request_parts\n../server_admin/src/extractors.rs::from_request_parts",
     "../config_lib/src/env_var_name.rs::try_from\n../config_lib/src/std_env_var_ok.rs::try_from\n../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_string.rs::try_from",
-    "../tests/src/code_style_advanced_policy.rs::visit_expr_await\n../tests/src/code_style_advanced_policy.rs::visit_macro",
-    "../frontend_contract/src/route.rs::metadata\n../tests/trybuild/route_contract_wrong_path_parameter.rs::metadata",
+    "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_await\n../tests_code_style/src/code_style_advanced_policy.rs::visit_macro",
+    "../frontend_contract/src/route.rs::metadata\n../tests_code_style/trybuild/route_contract_wrong_path_parameter.rs::metadata",
     "../pg_crud_common/src/cursor_payload.rs::try_from\n../pg_crud_common/src/signed_cursor.rs::try_from\n../server_runtime_http/src/http_metrics_path_text.rs::try_from",
-    "../tests/src/code_style_advanced_policy.rs::visit_expr_loop\n../tests/src/code_style_advanced_policy.rs::visit_expr_while\n../tests/src/runtime_analysis.rs::visit_expr_async",
+    "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_loop\n../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_while\n../tests_code_style/src/runtime_analysis.rs::visit_expr_async",
     "../pg_crud_common/src/sql_like_pattern.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_type_records.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_types.rs::try_from",
     "../server_runtime_http/src/pg_rate_limit_maximum.rs::try_from\n../server_runtime_http/src/pg_rate_limit_window_seconds.rs::try_from",
     "../frontend_contract/src/parameterized_route_path.rs::try_from\n../pg_crud_common/src/pg_filter_text.rs::try_from\n../server_runtime_http/src/http_normalized_path.rs::try_from\n../server_runtime_http/src/metrics_response_body.rs::try_from",
     "../bounded_types/src/bounded_string.rs::try_from\n../bounded_types/src/bounded_vec.rs::try_from",
     "../server_admin/src/user_ban.rs::user_ban\n../server_admin/src/user_password.rs::user_password",
     "../server_runtime_core/src/lease_stale_timeout_duration.rs::try_from\n../server_runtime_http/src/request_timeout_duration.rs::try_from\n../server_runtime_http/src/run_interval_duration.rs::try_from",
-    "../tests/src/source_analysis.rs::visit_item_static\n../tests/src/source_analysis.rs::visit_item_trait\n../tests/src/source_analysis.rs::visit_item_trait_alias\n../tests/src/source_analysis.rs::visit_item_type\n../tests/src/source_analysis.rs::visit_item_union",
+    "../tests_code_style/src/source_analysis.rs::visit_item_static\n../tests_code_style/src/source_analysis.rs::visit_item_trait\n../tests_code_style/src/source_analysis.rs::visit_item_trait_alias\n../tests_code_style/src/source_analysis.rs::visit_item_type\n../tests_code_style/src/source_analysis.rs::visit_item_union",
     "../server_admin/src/page_total.rs::page_total\n../server_admin/src/repository_page_total.rs::repository_page_total",
 ];
 pub const CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026: &str = "distinct domain conversions, generated metadata, and analyzer callbacks intentionally retain independently owned entry points";

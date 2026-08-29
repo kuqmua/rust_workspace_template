@@ -9,7 +9,7 @@ Before submitting a change, run:
 ```bash
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
-cargo test -p tests code_style
+cargo test -p tests_code_style
 cargo test --workspace
 ```
 

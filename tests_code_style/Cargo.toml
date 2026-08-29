@@ -1,5 +1,5 @@
 [package]
-name = "tests"
+name = "tests_code_style"
 version.workspace = true
 publish.workspace = true
 description.workspace = true

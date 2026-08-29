@@ -1556,7 +1556,7 @@ pub(crate) fn is_test_crate(parsed: crate::types::TomlTableRef<'_>) -> crate::ty
             .and_then(|package| package.get(constants_str::catalog::NAME))
             .and_then(toml::Value::as_str)
             .is_some_and(|name| {
-                name == constants_str::catalog::TESTS_ALT
+                name == constants_str::catalog::TESTS_CODE_STYLE
                     || name
                         .split('_')
                         .any(|segment| segment == constants_str::catalog::TEST_ALT_3)
@@ -1579,18 +1579,18 @@ pub(crate) fn is_test_crate_source_path(
 }
 pub(crate) fn is_test_source_path(path: crate::types::PathRef<'_>) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        path.as_ref()
-            .components()
-            .any(|component| component.as_os_str() == constants_str::catalog::TESTS_ALT)
-            || path
-                .as_ref()
-                .file_stem()
-                .and_then(std::ffi::OsStr::to_str)
-                .is_some_and(|file_stem| {
-                    file_stem
-                        .split('_')
-                        .any(|segment| segment == constants_str::catalog::TESTS_ALT)
-                }),
+        path.as_ref().components().any(|component| {
+            component.as_os_str() == constants_str::catalog::TESTS_ALT
+                || component.as_os_str() == constants_str::catalog::TESTS_CODE_STYLE
+        }) || path
+            .as_ref()
+            .file_stem()
+            .and_then(std::ffi::OsStr::to_str)
+            .is_some_and(|file_stem| {
+                file_stem
+                    .split('_')
+                    .any(|segment| segment == constants_str::catalog::TESTS_ALT)
+            }),
     )
 }
 pub(crate) fn is_non_policy_test_source_path(
