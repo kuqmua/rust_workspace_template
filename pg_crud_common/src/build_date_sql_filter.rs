@@ -1,28 +1,29 @@
 pub fn build_date_sql_filter(
-    optional_table_alias: Option<&crate::domain_types::SqlIdentifier>,
-    bounds: crate::domain_types::DateFilterBounds<'_>,
-    bind_start: crate::domain_types::DateSqlBindStartNonZeroU32,
-) -> Result<crate::domain_types::DateSqlFilter, crate::domain_types::DateSqlFilterError> {
+    optional_table_alias: Option<&crate::sql_identifier::SqlIdentifier>,
+    bounds: crate::date_filter_bounds::DateFilterBounds<'_>,
+    bind_start: crate::date_sql_bind_start_non_zero_u32::DateSqlBindStartNonZeroU32,
+) -> Result<crate::date_sql_filter::DateSqlFilter, crate::date_sql_filter_error::DateSqlFilterError>
+{
     let mut bind_index = bind_start.get_inner().get();
     let candidates = [
         (
-            constants_str::CREATED_AT,
-            constants_str::GREATER_OR_EQUAL,
+            constants_str::catalog::CREATED_AT,
+            constants_str::test_fixtures::GREATER_OR_EQUAL,
             bounds.get_created_at_from().copied(),
         ),
         (
-            constants_str::CREATED_AT,
-            constants_str::LESS_OR_EQUAL,
+            constants_str::catalog::CREATED_AT,
+            constants_str::test_fixtures::LESS_OR_EQUAL,
             bounds.get_created_at_to().copied(),
         ),
         (
-            constants_str::UPDATED_AT,
-            constants_str::GREATER_OR_EQUAL,
+            constants_str::catalog::UPDATED_AT,
+            constants_str::test_fixtures::GREATER_OR_EQUAL,
             bounds.get_updated_at_from().copied(),
         ),
         (
-            constants_str::UPDATED_AT,
-            constants_str::LESS_OR_EQUAL,
+            constants_str::catalog::UPDATED_AT,
+            constants_str::test_fixtures::LESS_OR_EQUAL,
             bounds.get_updated_at_to().copied(),
         ),
     ];
@@ -42,14 +43,14 @@ pub fn build_date_sql_filter(
                 .saturating_add(column.len())
                 .saturating_add(constants_usize::ONE)
                 .saturating_add(comparator.len())
-                .saturating_add(constants_str::DOLLAR_SIGN.len())
+                .saturating_add(constants_str::test_fixtures::DOLLAR_SIGN.len())
                 .saturating_add(10usize)
         })
         .sum::<usize>()
         .saturating_add(
             active_count
                 .saturating_sub(constants_usize::ONE)
-                .saturating_mul(constants_str::AND.len()),
+                .saturating_mul(constants_str::catalog::AND.len()),
         );
     let mut fragment = String::with_capacity(fragment_capacity);
     candidates
@@ -59,7 +60,7 @@ pub fn build_date_sql_filter(
                 return Ok(());
             };
             if !fragment.is_empty() {
-                fragment.push_str(constants_str::AND);
+                fragment.push_str(constants_str::catalog::AND);
             }
             if let Some(table_alias) = optional_table_alias {
                 fragment.push_str(table_alias.as_ref());
@@ -68,20 +69,21 @@ pub fn build_date_sql_filter(
             fragment.push_str(column);
             fragment.push(' ');
             fragment.push_str(comparator);
-            fragment.push_str(constants_str::DOLLAR_SIGN);
-            std::fmt::Write::write_fmt(&mut fragment, format_args!("{bind_index}"))
-                .map_err(|_error| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
+            fragment.push_str(constants_str::test_fixtures::DOLLAR_SIGN);
+            std::fmt::Write::write_fmt(&mut fragment, format_args!("{bind_index}")).map_err(
+                |_error| crate::date_sql_filter_error::DateSqlFilterError::FragmentTooLong,
+            )?;
             values.push(**value.get_inner());
             bind_index = bind_index
                 .checked_add(1u32)
-                .ok_or(crate::domain_types::DateSqlFilterError::BindIndexOverflow)?;
+                .ok_or(crate::date_sql_filter_error::DateSqlFilterError::BindIndexOverflow)?;
             Ok(())
         })?;
-    let query_fragment = crate::domain_types::QueryPartFragment::try_from(fragment)
-        .map_err(|_error| crate::domain_types::DateSqlFilterError::FragmentTooLong)?;
-    Ok(crate::domain_types::DateSqlFilter::new(
+    let query_fragment = crate::query_part_fragment::QueryPartFragment::try_from(fragment)
+        .map_err(|_error| crate::date_sql_filter_error::DateSqlFilterError::FragmentTooLong)?;
+    Ok(crate::date_sql_filter::DateSqlFilter::new(
         query_fragment,
-        crate::domain_types::ChronoUtcDateTimes::from(values),
+        crate::chrono_utc_date_times::ChronoUtcDateTimes::from(values),
     ))
 }
 
@@ -89,15 +91,21 @@ pub fn build_date_sql_filter(
 mod tests {
     #[test]
     fn date_bounds_have_ordered_bind_indices_and_values() {
-        let from = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_FROM)
-            .expect("69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
-            .to_utc();
-        let to = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_TO)
-            .expect("91eae791 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
-            .to_utc();
-        let filter = super::build_date_sql_filter(
+        let from =
+            chrono::DateTime::parse_from_rfc3339(constants_str::test_fixtures::TEST_DATE_SQL_FROM)
+                .expect(
+                    "69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold",
+                )
+                .to_utc();
+        let to =
+            chrono::DateTime::parse_from_rfc3339(constants_str::test_fixtures::TEST_DATE_SQL_TO)
+                .expect(
+                    "91eae791 date_bounds_have_ordered_bind_indices_and_values invariant must hold",
+                )
+                .to_utc();
+        let filter = crate::build_date_sql_filter::build_date_sql_filter(
             None,
-            crate::domain_types::DateFilterBounds::new(
+            crate::date_filter_bounds::DateFilterBounds::new(
                 Some((&from).into()),
                 Some((&to).into()),
                 None,
@@ -107,7 +115,10 @@ mod tests {
         )
         .expect("512fa2fb date_bounds_have_ordered_bind_indices_and_values invariant must hold");
         let (fragment, values) = filter.into_parts();
-        assert_eq!(fragment.into_inner(), constants_str::TEST_DATE_SQL_FILTER);
+        assert_eq!(
+            fragment.into_inner(),
+            constants_str::test_fixtures::TEST_DATE_SQL_FILTER
+        );
         assert_eq!(values.as_ref(), &[from, to]);
     }
 }

@@ -2,14 +2,19 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
-use super::*;
 
 #[must_use]
 pub fn generate_cm_query_string(
-    table: PgTableNameRef<'_>,
-    cols: PgTableSqlFragmentRef<'_>,
-    values: PgTableSqlFragmentRef<'_>,
-    cols_to_return: PgTableSqlFragmentRef<'_>,
-) -> PgTableQueryString {
-    generate_insert_query_string(table, cols, values, cols_to_return, InsertValuesFmt::Raw)
+    table: crate::pg_table_name_ref::PgTableNameRef<'_>,
+    cols: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
+    values: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
+    cols_to_return: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
+) -> crate::pg_table_query_string::PgTableQueryString {
+    crate::generate_insert_query_string::generate_insert_query_string(
+        table,
+        cols,
+        values,
+        cols_to_return,
+        crate::insert_values_fmt::InsertValuesFmt::Raw,
+    )
 }

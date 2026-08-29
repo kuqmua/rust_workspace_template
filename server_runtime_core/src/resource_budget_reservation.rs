@@ -5,8 +5,8 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct ResourceBudgetReservation {
-    pub(super) amount: super::ResourceBudgetAmount,
-    pub(super) reserved: super::SharedAtomicUsizeArc,
+    pub(super) amount: crate::resource_budget_amount::ResourceBudgetAmount,
+    pub(super) reserved: crate::shared_atomic_usize_arc::SharedAtomicUsizeArc,
 }
 
 impl Drop for ResourceBudgetReservation {

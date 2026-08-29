@@ -1,15 +1,10 @@
-use super::{
-    FallbackResponseMode, HttpAcceptHeaderMaximumBytes, HttpFallbackApiPrefixRef,
-    HttpFallbackMetricsPathRef, HttpFallbackRequestPathRef, HttpOptionalAcceptHeaderRef,
-};
-
 pub fn resolve_fallback_response_mode(
-    request_path: HttpFallbackRequestPathRef<'_>,
-    api_prefix: HttpFallbackApiPrefixRef<'_>,
-    metrics_path: HttpFallbackMetricsPathRef<'_>,
-    accept: HttpOptionalAcceptHeaderRef<'_>,
-    maximum_accept_bytes: HttpAcceptHeaderMaximumBytes,
-) -> FallbackResponseMode {
+    request_path: crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef<'_>,
+    api_prefix: crate::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef<'_>,
+    metrics_path: crate::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef<'_>,
+    accept: crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef<'_>,
+    maximum_accept_bytes: crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes,
+) -> crate::fallback_response_mode::FallbackResponseMode {
     let normalized_api_prefix = api_prefix.0.strip_suffix('/').unwrap_or(api_prefix.0);
     let api_path = request_path.0 == normalized_api_prefix
         || request_path
@@ -17,7 +12,7 @@ pub fn resolve_fallback_response_mode(
             .strip_prefix(normalized_api_prefix)
             .is_some_and(|suffix| suffix.starts_with('/'));
     if api_path || request_path.0 == metrics_path.0 {
-        return FallbackResponseMode::MachineReadable;
+        return crate::fallback_response_mode::FallbackResponseMode::MachineReadable;
     }
     let accepts_json = accept
         .0
@@ -34,7 +29,7 @@ pub fn resolve_fallback_response_mode(
                     }
                     let mut segments = range.split(';').map(str::trim);
                     segments.next().is_some_and(|media_type| {
-                        media_type.eq_ignore_ascii_case(constants_str::APPLICATION_JSON)
+                        media_type.eq_ignore_ascii_case(constants_str::catalog::APPLICATION_JSON)
                     }) && !segments.any(|parameter| {
                         parameter
                             .split_once('=')
@@ -56,8 +51,8 @@ pub fn resolve_fallback_response_mode(
                 })
         });
     if accepts_json {
-        FallbackResponseMode::MachineReadable
+        crate::fallback_response_mode::FallbackResponseMode::MachineReadable
     } else {
-        FallbackResponseMode::HumanReadable
+        crate::fallback_response_mode::FallbackResponseMode::HumanReadable
     }
 }

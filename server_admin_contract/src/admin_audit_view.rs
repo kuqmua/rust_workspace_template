@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -11,21 +11,21 @@
 #[optimal_memory_layout(skip)]
 pub struct AdminAuditView {
     #[contract_struct_api(borrow)]
-    action: crate::domain_types::AdminText,
+    action: crate::admin_text::AdminText,
     #[contract_struct_api(borrow)]
-    created_at: crate::domain_types::AdminAuditTimestamp,
+    created_at: crate::admin_audit_timestamp::AdminAuditTimestamp,
     #[contract_struct_api(option_borrow)]
-    details: Option<crate::domain_types::SerdeJsonAdminAuditDetails>,
+    details: Option<crate::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails>,
     #[contract_struct_api(copy_ref)]
-    id: crate::domain_types::AdminAuditLogId,
+    id: crate::admin_audit_log_id::AdminAuditLogId,
     #[contract_struct_api(borrow)]
-    resource: crate::domain_types::AdminText,
+    resource: crate::admin_text::AdminText,
     #[contract_struct_api(option_borrow)]
-    resource_id: Option<crate::domain_types::AdminText>,
+    resource_id: Option<crate::admin_text::AdminText>,
     #[contract_struct_api(copy_ref)]
-    succeeded: crate::domain_types::AdminBool,
+    succeeded: crate::admin_bool::AdminBool,
     #[contract_struct_api(copy_ref)]
-    user_id: Option<crate::domain_types::AdminUserId>,
+    user_id: Option<crate::admin_user_id::AdminUserId>,
     #[contract_struct_api(option_borrow)]
-    user_login: Option<crate::domain_types::AdminLogin>,
+    user_login: Option<crate::admin_login::AdminLogin>,
 }

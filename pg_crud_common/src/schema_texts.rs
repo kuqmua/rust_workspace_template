@@ -1,5 +1,11 @@
 pub(crate) fn schema_texts(
     values: Vec<String>,
-) -> Result<Vec<super::DbSchemaText>, super::DbSchemaConformanceError> {
-    values.into_iter().map(super::schema_text).collect()
+) -> Result<
+    Vec<crate::db_schema_text::DbSchemaText>,
+    crate::db_schema_conformance_error::DbSchemaConformanceError,
+> {
+    values
+        .into_iter()
+        .map(crate::schema_text::schema_text)
+        .collect()
 }

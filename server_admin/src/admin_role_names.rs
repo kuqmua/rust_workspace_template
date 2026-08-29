@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::ADMIN_AUTH_COLLECTION_MAX_LEN;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -14,5 +13,9 @@ use super::ADMIN_AUTH_COLLECTION_MAX_LEN;
 )]
 #[serde(transparent)]
 pub(crate) struct AdminRoleNames(
-    pub(crate) bounded_types::BoundedVec<crate::AdminRoleName, 0, { ADMIN_AUTH_COLLECTION_MAX_LEN }>,
+    pub(crate)  bounded_types::bounded_vec::BoundedVec<
+        server_admin_contract::admin_role_name::AdminRoleName,
+        0,
+        { crate::admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN },
+    >,
 );

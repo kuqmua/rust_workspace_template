@@ -10,11 +10,11 @@
 pub struct FiniteF64(f64);
 
 impl TryFrom<f64> for FiniteF64 {
-    type Error = crate::domain_types::FiniteF64Error;
+    type Error = crate::finite_f64_error::FiniteF64Error;
 
     fn try_from(value: f64) -> Result<Self, Self::Error> {
         if !value.is_finite() {
-            return Err(crate::domain_types::FiniteF64Error::NotFinite);
+            return Err(crate::finite_f64_error::FiniteF64Error::NotFinite);
         }
         Ok(Self(value))
     }
@@ -27,11 +27,11 @@ mod tests {
         assert!(
             [f64::NAN, f64::INFINITY, f64::NEG_INFINITY]
                 .into_iter()
-                .all(|value| super::FiniteF64::try_from(value)
-                    == Err(crate::domain_types::FiniteF64Error::NotFinite))
+                .all(|value| crate::finite_f64::FiniteF64::try_from(value)
+                    == Err(crate::finite_f64_error::FiniteF64Error::NotFinite))
         );
         assert_eq!(
-            super::FiniteF64::try_from(1.5f64).map(f64::from),
+            crate::finite_f64::FiniteF64::try_from(1.5f64).map(f64::from),
             Ok(1.5f64)
         );
     }

@@ -1,5 +1,3 @@
-use super::{SynRouteRegistryEndpoint, SynRouteRegistryRoute};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     generate_accessor::Getters,
@@ -7,6 +5,6 @@ use super::{SynRouteRegistryEndpoint, SynRouteRegistryRoute};
 )]
 #[getters(get_mut)]
 pub(crate) struct RouteRegistryBinding {
-    endpoint: SynRouteRegistryEndpoint,
-    route: SynRouteRegistryRoute,
+    endpoint: crate::syn_route_registry_endpoint::SynRouteRegistryEndpoint,
+    route: crate::syn_route_registry_route::SynRouteRegistryRoute,
 }

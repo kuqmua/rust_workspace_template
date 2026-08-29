@@ -1,29 +1,27 @@
-use super::domain_types::{PasswordLengthRange, PasswordPolicyViolation, PasswordTextRef};
-
 pub fn validate_password_policy(
-    password: PasswordTextRef<'_>,
-    range: PasswordLengthRange,
-) -> Result<(), PasswordPolicyViolation> {
+    password: crate::password_text_ref::PasswordTextRef<'_>,
+    range: crate::password_length_range::PasswordLengthRange,
+) -> Result<(), crate::password_policy_violation::PasswordPolicyViolation> {
     if password.0.len() < range.minimum.0 {
-        return Err(PasswordPolicyViolation::TooShort);
+        return Err(crate::password_policy_violation::PasswordPolicyViolation::TooShort);
     }
     if password.0.len() > range.maximum.0 {
-        return Err(PasswordPolicyViolation::TooLong);
+        return Err(crate::password_policy_violation::PasswordPolicyViolation::TooLong);
     }
     if password.0.bytes().any(|byte| byte.is_ascii_whitespace()) {
-        return Err(PasswordPolicyViolation::ContainsWhitespace);
+        return Err(crate::password_policy_violation::PasswordPolicyViolation::ContainsWhitespace);
     }
     if !password.0.bytes().any(|byte| byte.is_ascii_digit()) {
-        return Err(PasswordPolicyViolation::MissingDigit);
+        return Err(crate::password_policy_violation::PasswordPolicyViolation::MissingDigit);
     }
     if !password.0.bytes().any(|byte| byte.is_ascii_lowercase()) {
-        return Err(PasswordPolicyViolation::MissingLowercase);
+        return Err(crate::password_policy_violation::PasswordPolicyViolation::MissingLowercase);
     }
     if !password.0.bytes().any(|byte| byte.is_ascii_uppercase()) {
-        return Err(PasswordPolicyViolation::MissingUppercase);
+        return Err(crate::password_policy_violation::PasswordPolicyViolation::MissingUppercase);
     }
     if !password.0.bytes().any(|byte| byte.is_ascii_punctuation()) {
-        return Err(PasswordPolicyViolation::MissingSpecial);
+        return Err(crate::password_policy_violation::PasswordPolicyViolation::MissingSpecial);
     }
     Ok(())
 }

@@ -4,13 +4,13 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct MockNotificationInbox {
-    pub(super) receiver: super::TokioMockNotificationReceiver,
+    pub(super) receiver: crate::tokio_mock_notification_receiver::TokioMockNotificationReceiver,
 }
 
 impl MockNotificationInbox {
     pub async fn receive(
         &mut self,
-    ) -> Option<server_runtime_http::domain_types::NotificationMessage> {
+    ) -> Option<server_runtime_http::notification_message::NotificationMessage> {
         self.receiver.0.recv().await
     }
 }

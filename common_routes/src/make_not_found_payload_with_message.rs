@@ -1,15 +1,13 @@
-use super::{NotFoundPayload, OpenApiSpecificationPath};
-
 #[cfg(test)]
 pub(super) fn make_not_found_payload_with_message(
-    message: to_err_string::domain_types::ErrorText,
-    commit: git_info::GitCommitLinkCow,
-) -> NotFoundPayload {
-    NotFoundPayload {
+    message: to_err_string::error_text::ErrorText,
+    commit: git_info::git_commit_link_cow::GitCommitLinkCow,
+) -> crate::not_found_payload::NotFoundPayload {
+    crate::not_found_payload::NotFoundPayload {
         commit,
         message,
-        open_api_specification: OpenApiSpecificationPath::from(
-            constants_str::COMMON_ROUTES_SWAGGER_UI,
+        open_api_specification: crate::open_api_specification_path::OpenApiSpecificationPath::from(
+            constants_str::catalog::COMMON_ROUTES_SWAGGER_UI,
         ),
     }
 }

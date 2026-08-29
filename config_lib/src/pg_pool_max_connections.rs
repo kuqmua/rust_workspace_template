@@ -13,7 +13,8 @@
 pub struct PgPoolMaxConnections(pub(super) u32);
 
 impl TryFrom<u32> for PgPoolMaxConnections {
-    type Error = super::PgPoolMaxConnectionsTryFromU32Error;
+    type Error =
+        crate::pg_pool_max_connections_try_from_u32_error::PgPoolMaxConnectionsTryFromU32Error;
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if value == 0 {
             Err(Self::Error::IsZero)
@@ -23,13 +24,13 @@ impl TryFrom<u32> for PgPoolMaxConnections {
     }
 }
 
-impl crate::domain_types::TryFromStdEnvVarOk for PgPoolMaxConnections {
-    type Error = super::TryFromStdEnvVarOkPgPoolMaxConnectionsError;
-    fn try_from_std_env_var_ok(v: crate::domain_types::StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed: u32 = crate::parse_from_str_with_error(
-            crate::domain_types::StdEnvVarOkRef::from(v.0.as_str()),
+impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for PgPoolMaxConnections {
+    type Error = crate::try_from_std_env_var_ok_pg_pool_max_connections_error::TryFromStdEnvVarOkPgPoolMaxConnectionsError;
+    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
+        let parsed: u32 = crate::parse_from_str_with_error::parse_from_str_with_error(
+            crate::std_env_var_ok_ref::StdEnvVarOkRef::from(v.0.as_str()),
             |u32_parsing| Self::Error::U32Parsing {
-                u32_parsing: crate::domain_types::U32ParseIntError::from(u32_parsing),
+                u32_parsing: crate::u32_parse_int_error::U32ParseIntError::from(u32_parsing),
             },
         )?;
         Self::try_from(parsed).map_err(|pg_pool_max_connections| {

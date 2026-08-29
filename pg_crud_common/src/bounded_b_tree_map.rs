@@ -14,8 +14,8 @@ impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
     type Error = super::bounded_b_tree_map_error::BoundedBTreeMapError;
 
     fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedBTreeMap::<K, V, MAX>::try_from(value)
-            .map(bounded_types::BoundedBTreeMap::into_inner)
+        bounded_types::bounded_b_tree_map::BoundedBTreeMap::<K, V, MAX>::try_from(value)
+            .map(bounded_types::bounded_b_tree_map::BoundedBTreeMap::into_inner)
             .map(Self)
             .map_err(|_error| {
                 super::bounded_b_tree_map_error::BoundedBTreeMapError::from(
@@ -43,7 +43,7 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
     where
         D: serde::Deserializer<'de>,
     {
-        let value = <bounded_types::BoundedBTreeMap<K, V, MAX> as serde::Deserialize>::deserialize(
+        let value = <bounded_types::bounded_b_tree_map::BoundedBTreeMap<K, V, MAX> as serde::Deserialize>::deserialize(
             deserializer,
         )?
         .into_inner();
@@ -55,18 +55,19 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
 mod tests {
     #[test]
     fn deserialization_stops_above_limit() {
-        let result = serde_json::from_str::<super::BoundedBTreeMap<String, u8, 1>>(
-            constants_str::TEST_JSON_MAP_WITH_TWO_ENTRIES,
-        );
-        let _error = result.expect_err(constants_str::VALUE_AB603731);
+        let result = serde_json::from_str::<
+            crate::bounded_b_tree_map::BoundedBTreeMap<String, u8, 1>,
+        >(constants_str::test_fixtures::TEST_JSON_MAP_WITH_TWO_ENTRIES);
+        let _error = result.expect_err(constants_str::test_fixtures::VALUE_AB603731);
     }
 
     #[test]
     fn map_at_limit_is_accepted() {
-        let value = serde_json::from_str::<super::BoundedBTreeMap<String, u8, 1>>(
-            constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY,
-        )
-        .expect("298b587f map_at_limit_is_accepted invariant must hold");
+        let value =
+            serde_json::from_str::<crate::bounded_b_tree_map::BoundedBTreeMap<String, u8, 1>>(
+                constants_str::test_fixtures::TEST_JSON_MAP_WITH_ONE_ENTRY,
+            )
+            .expect("298b587f map_at_limit_is_accepted invariant must hold");
         assert_eq!(value.get().len(), constants_usize::ONE);
     }
 }

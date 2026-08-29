@@ -5,7 +5,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(super) struct RequestTimeoutService<Service> {
     pub(super) inner: Service,
-    pub(super) timeout: crate::RequestTimeoutDuration,
+    pub(super) timeout: crate::request_timeout_duration::RequestTimeoutDuration,
 }
 
 impl<Service> tower::Service<axum::extract::Request> for RequestTimeoutService<Service>
@@ -29,7 +29,7 @@ where
                 Ok(response) => response,
                 Err(_elapsed) => {
                     let mut response = axum::response::IntoResponse::into_response(
-                        super::RequestTimeoutError::TimedOut,
+                        crate::request_timeout_error::RequestTimeoutError::TimedOut,
                     );
                     let _previous = response.headers_mut().insert(
                         http::header::RETRY_AFTER,

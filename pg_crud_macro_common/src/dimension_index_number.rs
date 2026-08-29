@@ -1,5 +1,3 @@
-use super::Dimension;
-
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
@@ -9,13 +7,13 @@ pub enum DimensionIndexNumber {
     Two,
     Three,
 }
-impl From<&Dimension> for DimensionIndexNumber {
-    fn from(v: &Dimension) -> Self {
+impl From<&crate::dimension::Dimension> for DimensionIndexNumber {
+    fn from(v: &crate::dimension::Dimension) -> Self {
         match &v {
-            Dimension::One => Self::Zero,
-            Dimension::Two => Self::One,
-            Dimension::Three => Self::Two,
-            Dimension::Four => Self::Three,
+            crate::dimension::Dimension::One => Self::Zero,
+            crate::dimension::Dimension::Two => Self::One,
+            crate::dimension::Dimension::Three => Self::Two,
+            crate::dimension::Dimension::Four => Self::Three,
         }
     }
 }

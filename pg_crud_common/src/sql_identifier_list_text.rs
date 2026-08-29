@@ -9,14 +9,15 @@
 pub(crate) struct SqlIdentifierListText(String);
 
 impl TryFrom<String> for SqlIdentifierListText {
-    type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;
+    type Error =
+        crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+        if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
             Err(
-                crate::domain_types::PgCrudStringWrapperTryFromStringError::TooLong {
+                crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong {
                     len: value.len(),
-                    max: crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN,
+                    max: crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN,
                 },
             )
         } else {

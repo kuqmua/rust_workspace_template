@@ -5,7 +5,7 @@
 pub fn generate_if_write_is_error_token_stream(
     parameters_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> ProcMacro2IfWriteIsErrTokenStream {
+) -> crate::proc_macro2_if_write_is_err_token_stream::ProcMacro2IfWriteIsErrTokenStream {
     quote::quote! {
         if {
             use std::fmt::Write as _;
@@ -16,4 +16,3 @@ pub fn generate_if_write_is_error_token_stream(
     }
     .into()
 }
-pub use super::proc_macro2_if_write_is_err_token_stream::ProcMacro2IfWriteIsErrTokenStream;

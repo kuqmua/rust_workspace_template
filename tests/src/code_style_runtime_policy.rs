@@ -1,16 +1,16 @@
 #[test]
 fn runtime_code_does_not_use_expect_unwrap_or_panic() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(constants_str::C71F2A8D),
-        super::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_FORBIDDEN_EXPECT_UNWRAP_PANIC_CALLS_USE_RESULT_WITH_A),
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::catalog::C71F2A8D),
+        crate::types::SourceTextRef::from(constants_str::catalog::RUNTIME_CODE_CONTAINS_FORBIDDEN_EXPECT_UNWRAP_PANIC_CALLS_USE_RESULT_WITH_A),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
+            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path)).get() {
                 return;
             }
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
                 super::runtime_analysis::RuntimePanicExpectUnwrapVisitor {
-                    ers: super::types::DiagnosticMsgs::default(),
+                    ers: crate::types::DiagnosticMsgs::default(),
                 },
             );
             ers.extend(
@@ -24,23 +24,23 @@ fn runtime_code_does_not_use_expect_unwrap_or_panic() {
 }
 #[test]
 fn runtime_code_does_not_use_mutex() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(constants_str::E3F8A1C5),
-        super::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_MUTEX_USE_IT_ONLY_FOR_JUSTIFIED_INTERIOR_MUTABILITY),
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::catalog::E3F8A1C5),
+        crate::types::SourceTextRef::from(constants_str::catalog::RUNTIME_CODE_CONTAINS_MUTEX_USE_IT_ONLY_FOR_JUSTIFIED_INTERIOR_MUTABILITY),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
+            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path)).get() {
                 return;
             }
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
                 super::runtime_analysis::RuntimeMutexVisitor {
-                    found_count: super::types::AnalyzerCount::default(),
+                    found_count: crate::types::AnalyzerCount::default(),
                 },
             );
-            super::push_repeated_file_error(
-                super::types::DiagnosticMsgsMutRef::from(&mut *ers),
-                super::types::PathRef::from(path),
-                super::types::SourceTextRef::from(constants_str::MUTEX_TYPE_USAGE),
+            crate::code_style::push_repeated_file_error(
+                crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
+                crate::types::PathRef::from(path),
+                crate::types::SourceTextRef::from(constants_str::catalog::MUTEX_TYPE_USAGE),
                 visitor.found_count,
             );
         },
@@ -54,8 +54,8 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                 return false;
             };
             let name = item_struct.ident.to_string();
-            let explicitly_shared =
-                name.contains(constants_str::ARC) || name.contains(constants_str::SHARED);
+            let explicitly_shared = name.contains(constants_str::catalog::ARC)
+                || name.contains(constants_str::catalog::SHARED);
             explicitly_shared
                 && item_struct.fields.iter().any(|field| {
                     let syn::Type::Path(path) = &field.ty else {
@@ -63,28 +63,30 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                     };
                     path.path.segments.iter().any(|segment| {
                         let field_type_name = segment.ident.to_string();
-                        field_type_name.contains(constants_str::ARC)
-                            || field_type_name.contains(constants_str::SHARED)
+                        field_type_name.contains(constants_str::catalog::ARC)
+                            || field_type_name.contains(constants_str::catalog::SHARED)
                     })
                 })
         })
     };
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(constants_str::F9C2D4A8),
-        super::types::SourceTextRef::from(
-            constants_str::RUNTIME_ARC_USAGE_MUST_BE_LIMITED_TO_EXPLICIT_CROSS_THREAD_SHARED_STATE,
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::catalog::F9C2D4A8),
+        crate::types::SourceTextRef::from(
+            constants_str::catalog::RUNTIME_ARC_USAGE_MUST_BE_LIMITED_TO_EXPLICIT_CROSS_THREAD_SHARED_STATE,
         ),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
+            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path))
+                .get()
+            {
                 return;
             }
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
                 super::runtime_analysis::RuntimeArcVisitor {
-                    allow_arc_value_usage: super::types::AnalyzerBool::from(
+                    allow_arc_value_usage: crate::types::AnalyzerBool::from(
                         defines_explicit_shared_arc_wrapper(ast),
                     ),
-                    ers: super::types::DiagnosticMsgs::default(),
+                    ers: crate::types::DiagnosticMsgs::default(),
                 },
             );
             ers.extend(
@@ -98,34 +100,38 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
 }
 #[test]
 fn runtime_test_crate_detection_uses_test_name_segments() {
-    let production = constants_str::VALUE_D0480B8C.parse::<toml::Table>().expect(
-        "85acd272 runtime_test_crate_detection_uses_exact_package_names invariant must hold",
-    );
-    let test_crate = constants_str::VALUE_D6812408.parse::<toml::Table>().expect(
-        "50b60550 runtime_test_crate_detection_uses_exact_package_names invariant must hold",
-    );
+    let production = constants_str::test_fixtures::VALUE_D0480B8C
+        .parse::<toml::Table>()
+        .expect(
+            "85acd272 runtime_test_crate_detection_uses_exact_package_names invariant must hold",
+        );
+    let test_crate = constants_str::test_fixtures::VALUE_D6812408
+        .parse::<toml::Table>()
+        .expect(
+            "50b60550 runtime_test_crate_detection_uses_exact_package_names invariant must hold",
+        );
     assert!(
-        !super::is_test_crate(super::types::TomlTableRef::from(&production)).get(),
+        !crate::code_style::is_test_crate(crate::types::TomlTableRef::from(&production)).get(),
         "3db51a9b"
     );
     assert!(
-        super::is_test_crate(super::types::TomlTableRef::from(&test_crate)).get(),
+        crate::code_style::is_test_crate(crate::types::TomlTableRef::from(&test_crate)).get(),
         "6a5afda4"
     );
 }
 #[test]
 fn runtime_test_module_exclusion_uses_test_filename() {
     assert!(
-        !super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../server_admin_frontend/src/crud_tests.rs"
-        )))
+        !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
+            std::path::Path::new("../server_admin_frontend/src/crud_tests.rs")
+        ))
         .get(),
         "2e8a5d90"
     );
     assert!(
-        super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../server/src/test_helper.rs"
-        )))
+        crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
+            std::path::Path::new("../server/src/test_helper.rs")
+        ))
         .get(),
         "76c1f4b3"
     );
@@ -133,29 +139,31 @@ fn runtime_test_module_exclusion_uses_test_filename() {
 #[test]
 fn environment_initializer_is_in_runtime_policy_scope() {
     assert!(
-        super::is_runtime_policy_source_path(super::types::PathRef::from(std::path::Path::new(
-            "../init_env_files/src/initialize.rs"
-        )))
+        crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
+            std::path::Path::new("../init_env_files/src/initialize.rs")
+        ))
         .get(),
         "86c8a1dd"
     );
 }
 #[test]
 fn async_functions_do_not_make_blocking_executor_calls() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(constants_str::A8E1C6F3),
-        super::types::SourceTextRef::from(
-            constants_str::ASYNC_FUNCTIONS_CONTAIN_BLOCKING_EXECUTOR_CALLS,
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::catalog::A8E1C6F3),
+        crate::types::SourceTextRef::from(
+            constants_str::catalog::ASYNC_FUNCTIONS_CONTAIN_BLOCKING_EXECUTOR_CALLS,
         ),
         |path, ast, ers| {
-            if !super::is_runtime_policy_source_path(super::types::PathRef::from(path)).get() {
+            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path))
+                .get()
+            {
                 return;
             }
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
                 super::runtime_analysis::AsyncBlockingCallVisitor {
-                    async_fn_depth: super::types::AnalyzerCount::default(),
-                    ers: super::types::DiagnosticMsgs::default(),
+                    async_fn_depth: crate::types::AnalyzerCount::default(),
+                    ers: crate::types::DiagnosticMsgs::default(),
                 },
             );
             ers.extend(
@@ -169,31 +177,31 @@ fn async_functions_do_not_make_blocking_executor_calls() {
 }
 #[test]
 fn async_blocking_policy_rejects_sync_filesystem_network_and_executor_calls() {
-    let ast = syn::parse_file(constants_str::VALUE_9AC9CBBD)
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_9AC9CBBD)
         .expect("57a4f701 synchronous_is_allowed invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::AsyncBlockingCallVisitor {
-            async_fn_depth: super::types::AnalyzerCount::default(),
-            ers: super::types::DiagnosticMsgs::default(),
+            async_fn_depth: crate::types::AnalyzerCount::default(),
+            ers: crate::types::DiagnosticMsgs::default(),
         },
     );
     assert_eq!(visitor.ers.len(), 7usize);
 }
 #[test]
 fn unit_tests_do_not_create_external_service_clients() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(constants_str::D1F5B9C7),
-        super::types::SourceTextRef::from(constants_str::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::catalog::D1F5B9C7),
+        crate::types::SourceTextRef::from(constants_str::catalog::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
         |path, ast, ers| {
-            if super::is_test_source_path(super::types::PathRef::from(path)).get() {
+            if crate::code_style::is_test_source_path(crate::types::PathRef::from(path)).get() {
                 return;
             }
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
                 super::runtime_analysis::UnitTestExternalServiceVisitor {
-                    test_depth: super::types::AnalyzerCount::default(),
-                    ers: super::types::DiagnosticMsgs::default(),
+                    test_depth: crate::types::AnalyzerCount::default(),
+                    ers: crate::types::DiagnosticMsgs::default(),
                 },
             );
             ers.extend(
@@ -208,13 +216,13 @@ fn unit_tests_do_not_create_external_service_clients() {
 
 #[test]
 fn external_service_policy_rejects_http_database_and_socket_clients() {
-    let ast = syn::parse_file(constants_str::VALUE_0FE6CFEC)
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_0FE6CFEC)
         .expect("62a4c3a8 external_clients invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor {
-            test_depth: super::types::AnalyzerCount::default(),
-            ers: super::types::DiagnosticMsgs::default(),
+            test_depth: crate::types::AnalyzerCount::default(),
+            ers: crate::types::DiagnosticMsgs::default(),
         },
     );
     assert_eq!(visitor.ers.len(), 5usize, "e165d841");
@@ -222,13 +230,13 @@ fn external_service_policy_rejects_http_database_and_socket_clients() {
 
 #[test]
 fn external_service_policy_requires_a_reason_for_ignored_integration_tests() {
-    let ast = syn::parse_file(constants_str::VALUE_7BBB4BBC)
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_7BBB4BBC)
         .expect("fa48e32b ignored_with_reason invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor {
-            test_depth: super::types::AnalyzerCount::default(),
-            ers: super::types::DiagnosticMsgs::default(),
+            test_depth: crate::types::AnalyzerCount::default(),
+            ers: crate::types::DiagnosticMsgs::default(),
         },
     );
     assert_eq!(visitor.ers.len(), constants_usize::ONE, "31fd7ca0");

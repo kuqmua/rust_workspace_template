@@ -1,5 +1,3 @@
-use super::domain_types::{COLLECTION_MAX_LEN, TopLevelCommaPart};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]
 #[derive(Debug, Clone, Default)]
@@ -7,7 +5,7 @@ pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
 impl TryFrom<Vec<proc_macro2::TokenStream>> for ProcMacro2TopLevelCommaParts {
     type Error = syn::Error;
     fn try_from(value: Vec<proc_macro2::TokenStream>) -> Result<Self, Self::Error> {
-        if value.len() > COLLECTION_MAX_LEN {
+        if value.len() > crate::collection_max_len::COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 stringify!(e54c7219 too many top-level comma parts),
@@ -37,13 +35,13 @@ impl IntoIterator for ProcMacro2TopLevelCommaParts {
 }
 impl syn::parse::Parse for ProcMacro2TopLevelCommaParts {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        let parts =
-            syn::punctuated::Punctuated::<TopLevelCommaPart, syn::Token![,]>::parse_terminated(
-                input,
-            )?
-            .into_iter()
-            .map(|part| part.0.into_inner())
-            .collect::<Vec<_>>();
+        let parts = syn::punctuated::Punctuated::<
+            crate::top_level_comma_part::TopLevelCommaPart,
+            syn::Token![,],
+        >::parse_terminated(input)?
+        .into_iter()
+        .map(|part| part.0.into_inner())
+        .collect::<Vec<_>>();
         Self::try_from(parts)
     }
 }

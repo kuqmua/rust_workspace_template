@@ -4,8 +4,8 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ListPage<Item> {
-    pub(super) items: super::ListItems<Item>,
-    pub(super) total: super::ListTotal,
+    pub(super) items: crate::list_items::ListItems<Item>,
+    pub(super) total: crate::list_total::ListTotal,
 }
 
 impl<Item> ListPage<Item> {
@@ -15,7 +15,7 @@ impl<Item> ListPage<Item> {
     }
 
     #[must_use]
-    pub const fn total(&self) -> super::ListTotal {
+    pub const fn total(&self) -> crate::list_total::ListTotal {
         self.total
     }
 }

@@ -6,12 +6,12 @@
 pub struct HttpMetricsPathCacheMaximum(pub(super) std::num::NonZeroUsize);
 
 impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
-    type Error = super::HttpMetricsPathCacheMaximumTryFromUsizeError;
+    type Error = crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self::from)
-            .ok_or(super::HttpMetricsPathCacheMaximumTryFromUsizeError)
+            .ok_or(crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError)
     }
 }
 

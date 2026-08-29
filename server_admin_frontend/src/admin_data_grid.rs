@@ -7,18 +7,14 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
 )]
 pub(crate) fn AdminDataGrid(
     query: super::admin_csr_query::AdminCsrQuery,
-    view: server_admin_contract::domain_types::AdminDataTableView,
+    view: server_admin_contract::admin_data_table_view::AdminDataTableView,
 ) -> impl leptos::prelude::IntoView {
     let supports_filters = bool::from(view.table().supports_filters());
     let table_path = view.table().frontend_path();
     let total = view.total();
     let limit = u16::from(query.limit);
     let limit_text = limit.to_string();
-    let range = crate::domain_types::shared::pagination::admin_page_range::AdminPageRange::new(
-        query.offset,
-        query.limit,
-        total,
-    );
+    let range = crate::admin_page_range::AdminPageRange::new(query.offset, query.limit, total);
     let filter_field = supports_filters
         .then_some(query.filter_field.as_ref())
         .flatten();
@@ -39,27 +35,24 @@ pub(crate) fn AdminDataGrid(
         query.filter_end.as_ref(),
         query.limit,
     );
-    let page_size_filter =
-        crate::domain_types::shared::table_filters::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
-            filter_field,
-            filter_operation,
-            filter_value,
-            filter_end,
-        );
-    let previous_filter =
-        crate::domain_types::shared::table_filters::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
-            filter_field,
-            filter_operation,
-            filter_value,
-            filter_end,
-        );
-    let next_filter =
-        crate::domain_types::shared::table_filters::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
-            filter_field,
-            filter_operation,
-            filter_value,
-            filter_end,
-        );
+    let page_size_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
+        filter_field,
+        filter_operation,
+        filter_value,
+        filter_end,
+    );
+    let previous_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
+        filter_field,
+        filter_operation,
+        filter_value,
+        filter_end,
+    );
+    let next_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
+        filter_field,
+        filter_operation,
+        filter_value,
+        filter_end,
+    );
     let page_size_action = table_path.as_ref().to_owned();
     let previous_action = table_path.as_ref().to_owned();
     let next_action = table_path.as_ref().to_owned();
@@ -72,21 +65,21 @@ pub(crate) fn AdminDataGrid(
                 <singlestage::PaginationItem class="contents"><form class="table-page-size" method="get" action=page_size_action>
                     {page_size_filter}
                     <input type="hidden" name="offset" value="0" />
-                    <crate::domain_types::with_owner::input::AdminInputGroup>
-                        <crate::domain_types::with_owner::field::AdminField label="Rows"><crate::domain_types::with_owner::input::AdminInput name="limit" kind=crate::domain_types::with_owner::input::AdminInputKind::Number min=server_admin_contract::domain_types::AdminPageLimit::MIN max=server_admin_contract::domain_types::AdminPageLimit::MAX initial_value=limit.to_string() /></crate::domain_types::with_owner::field::AdminField>
-                        <crate::domain_types::with_owner::button::AdminButton>"Apply"</crate::domain_types::with_owner::button::AdminButton>
-                    </crate::domain_types::with_owner::input::AdminInputGroup>
+                    <crate::admin_input_group::AdminInputGroup>
+                        <crate::admin_field::AdminField label="Rows"><crate::admin_input::AdminInput name="limit" kind=crate::admin_input_kind::AdminInputKind::Number min=server_admin_contract::admin_page_limit::AdminPageLimit::MIN max=server_admin_contract::admin_page_limit::AdminPageLimit::MAX initial_value=limit.to_string() /></crate::admin_field::AdminField>
+                        <crate::admin_button::AdminButton>"Apply"</crate::admin_button::AdminButton>
+                    </crate::admin_input_group::AdminInputGroup>
                 </form></singlestage::PaginationItem>
                 <singlestage::PaginationItem class="contents"><form method="get" action=previous_action>
                     <input type="hidden" name="limit" value=previous_limit />
                     {previous_filter}
-                    <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary disabled=bool::from(range.previous_disabled())>"Previous"</crate::domain_types::with_owner::button::AdminButton>
+                    <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary disabled=bool::from(range.previous_disabled())>"Previous"</crate::admin_button::AdminButton>
                 </form></singlestage::PaginationItem>
                 <singlestage::PaginationItem class="contents"><span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), u64::from(total))}</span></singlestage::PaginationItem>
                 <singlestage::PaginationItem class="contents"><form method="get" action=next_action>
                     <input type="hidden" name="limit" value=limit_text />
                     {next_filter}
-                    <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary disabled=bool::from(range.next_disabled())>"Next"</crate::domain_types::with_owner::button::AdminButton>
+                    <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary disabled=bool::from(range.next_disabled())>"Next"</crate::admin_button::AdminButton>
                 </form></singlestage::PaginationItem>
                 </singlestage::PaginationContent>
             </singlestage::Pagination>

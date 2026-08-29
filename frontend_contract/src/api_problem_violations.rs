@@ -10,16 +10,20 @@
     serde::Serialize,
 )]
 #[serde(
-    from = "bounded_types::BoundedVec<super::ApiProblemViolation, { constants_usize::ZERO }, 128usize>"
+    from = "bounded_types::bounded_vec::BoundedVec<crate::api_problem_violation::ApiProblemViolation, { constants_usize::ZERO }, 128usize>"
 )]
 pub(crate) struct ApiProblemViolations(
-    bounded_types::BoundedVec<super::ApiProblemViolation, { constants_usize::ZERO }, 128usize>,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::api_problem_violation::ApiProblemViolation,
+        { constants_usize::ZERO },
+        128usize,
+    >,
 );
 
 impl utoipa::PartialSchema for ApiProblemViolations {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::BoundedVec<
-            super::ApiProblemViolation,
+        <bounded_types::bounded_vec::BoundedVec<
+            crate::api_problem_violation::ApiProblemViolation,
             { constants_usize::ZERO },
             128usize,
         > as utoipa::PartialSchema>::schema()

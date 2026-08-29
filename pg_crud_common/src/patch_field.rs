@@ -65,7 +65,7 @@ mod tests {
     )]
     struct Patch {
         #[serde(default)]
-        value: super::PatchField<String>,
+        value: crate::patch_field::PatchField<String>,
     }
 
     #[test]
@@ -75,7 +75,7 @@ mod tests {
                 "d3e7aa4a deserialization_distinguishes_omitted_null_and_value invariant must hold"
             ),
             Patch {
-                value: super::PatchField::Omitted,
+                value: crate::patch_field::PatchField::Omitted,
             }
         );
         assert_eq!(
@@ -83,7 +83,7 @@ mod tests {
                 "3c55056d deserialization_distinguishes_omitted_null_and_value invariant must hold"
             ),
             Patch {
-                value: super::PatchField::Null,
+                value: crate::patch_field::PatchField::Null,
             }
         );
         assert_eq!(
@@ -91,7 +91,7 @@ mod tests {
                 "4471155f deserialization_distinguishes_omitted_null_and_value invariant must hold"
             ),
             Patch {
-                value: super::PatchField::Value(String::from("next")),
+                value: crate::patch_field::PatchField::Value(String::from("next")),
             }
         );
     }
@@ -100,7 +100,7 @@ mod tests {
     fn serialization_preserves_null_and_value_wire_shapes() {
         assert_eq!(
             serde_json::to_string(&Patch {
-                value: super::PatchField::<String>::Null,
+                value: crate::patch_field::PatchField::<String>::Null,
             })
             .expect(
                 "f2053f9c serialization_preserves_null_and_value_wire_shapes invariant must hold"
@@ -109,7 +109,7 @@ mod tests {
         );
         assert_eq!(
             serde_json::to_string(&Patch {
-                value: super::PatchField::Value(String::from("next")),
+                value: crate::patch_field::PatchField::Value(String::from("next")),
             })
             .expect(
                 "cccae65f serialization_preserves_null_and_value_wire_shapes invariant must hold"

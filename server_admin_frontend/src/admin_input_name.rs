@@ -1,5 +1,5 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct AdminInputName(Box<str>);
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout, Clone, PartialEq, Eq)]
+pub struct AdminInputName(Box<str>);
 
 impl From<&'static str> for AdminInputName {
     fn from(value: &'static str) -> Self {
@@ -7,8 +7,8 @@ impl From<&'static str> for AdminInputName {
     }
 }
 
-impl From<server_admin_contract::domain_types::AdminSettingName> for AdminInputName {
-    fn from(value: server_admin_contract::domain_types::AdminSettingName) -> Self {
+impl From<server_admin_contract::admin_setting_name::AdminSettingName> for AdminInputName {
+    fn from(value: server_admin_contract::admin_setting_name::AdminSettingName) -> Self {
         Self(value.as_ref().to_owned().into_boxed_str())
     }
 }

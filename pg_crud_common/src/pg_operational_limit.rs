@@ -8,12 +8,12 @@
 pub struct PgOperationalLimit(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for PgOperationalLimit {
-    type Error = crate::domain_types::PgOperationalLimitError;
+    type Error = crate::pg_operational_limit_error::PgOperationalLimitError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         std::num::NonZeroU64::new(value)
             .map(Self::from)
-            .ok_or(crate::domain_types::PgOperationalLimitError::ZeroLimit)
+            .ok_or(crate::pg_operational_limit_error::PgOperationalLimitError::ZeroLimit)
     }
 }
 

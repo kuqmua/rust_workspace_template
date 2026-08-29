@@ -1,27 +1,26 @@
-use super::domain_types::{
-    DiskCacheBudgetError, DiskCacheEntry, DiskCacheEvictionPlan, StdDiskCacheSize,
-};
-
 pub fn plan_disk_cache_eviction(
-    entries: &[DiskCacheEntry],
-    maximum: StdDiskCacheSize,
-    incoming: StdDiskCacheSize,
-) -> Result<DiskCacheEvictionPlan, DiskCacheBudgetError> {
+    entries: &[crate::disk_cache_entry::DiskCacheEntry],
+    maximum: crate::std_disk_cache_size::StdDiskCacheSize,
+    incoming: crate::std_disk_cache_size::StdDiskCacheSize,
+) -> Result<
+    crate::disk_cache_eviction_plan::DiskCacheEvictionPlan,
+    crate::disk_cache_budget_error::DiskCacheBudgetError,
+> {
     if incoming.0 > maximum.0 {
-        return Err(DiskCacheBudgetError::IncomingTooLarge);
+        return Err(crate::disk_cache_budget_error::DiskCacheBudgetError::IncomingTooLarge);
     }
     let mut current = entries
         .iter()
         .try_fold(constants_u64::ZERO, |total, entry| {
             total
                 .checked_add(entry.size.0)
-                .ok_or(DiskCacheBudgetError::SizeOverflow)
+                .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)
         })?;
     let mut ordered = entries.iter().collect::<Vec<_>>();
     ordered.sort_unstable_by_key(|entry| entry.modified_at.0);
     let projected = current
         .checked_add(incoming.0)
-        .ok_or(DiskCacheBudgetError::SizeOverflow)?;
+        .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?;
     let required = projected.saturating_sub(maximum.0);
     let remove_capacity = ordered
         .iter()
@@ -38,7 +37,7 @@ pub fn plan_disk_cache_eviction(
     let mut candidates = ordered.into_iter();
     while current
         .checked_add(incoming.0)
-        .ok_or(DiskCacheBudgetError::SizeOverflow)?
+        .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?
         > maximum.0
     {
         let Some(entry) = candidates.next() else {
@@ -47,7 +46,9 @@ pub fn plan_disk_cache_eviction(
         current = current.saturating_sub(entry.size.0);
         remove.push(entry.path.clone());
     }
-    Ok(DiskCacheEvictionPlan::from(
-        bounded_types::BoundedVec::from_max_iter(remove),
-    ))
+    Ok(
+        crate::disk_cache_eviction_plan::DiskCacheEvictionPlan::from(
+            bounded_types::bounded_vec::BoundedVec::from_max_iter(remove),
+        ),
+    )
 }

@@ -15,7 +15,7 @@
 pub(crate) fn AdminInputGroup(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
-    crate::domain_types::with_owner::with_owner(move || {
+    crate::with_owner::with_owner(move || {
         leptos::view! {
             <singlestage::InputGroup class="table-page-size-controls">{children()}</singlestage::InputGroup>
         }

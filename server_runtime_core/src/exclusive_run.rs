@@ -1,5 +1,3 @@
-pub use super::exclusive_run_already_active::ExclusiveRunAlreadyActive;
-pub use super::exclusive_run_guard::ExclusiveRunGuard;
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ExclusiveRun {
     active: crate::exclusive_run_atomic_bool::ExclusiveRunAtomicBool,
@@ -14,7 +12,12 @@ impl ExclusiveRun {
         }
     }
 
-    pub fn try_acquire(&self) -> Result<ExclusiveRunGuard<'_>, ExclusiveRunAlreadyActive> {
+    pub fn try_acquire(
+        &self,
+    ) -> Result<
+        crate::exclusive_run_guard::ExclusiveRunGuard<'_>,
+        crate::exclusive_run_already_active::ExclusiveRunAlreadyActive,
+    > {
         self.active
             .compare_exchange(
                 false,
@@ -22,10 +25,10 @@ impl ExclusiveRun {
                 std::sync::atomic::Ordering::AcqRel,
                 std::sync::atomic::Ordering::Acquire,
             )
-            .map(|_previous| ExclusiveRunGuard {
+            .map(|_previous| crate::exclusive_run_guard::ExclusiveRunGuard {
                 active: &self.active,
             })
-            .map_err(|_active| ExclusiveRunAlreadyActive)
+            .map_err(|_active| crate::exclusive_run_already_active::ExclusiveRunAlreadyActive)
     }
 }
 impl Default for ExclusiveRun {
@@ -43,7 +46,7 @@ mod tests {
             .expect("9b776c85 guard_prevents_overlap_and_releases_on_drop invariant must hold");
         assert!(matches!(
             run.try_acquire(),
-            Err(super::ExclusiveRunAlreadyActive)
+            Err(crate::exclusive_run_already_active::ExclusiveRunAlreadyActive)
         ));
         drop(guard);
         let _next_guard = run

@@ -2,40 +2,40 @@
 pub enum DbSchemaConformanceError {
     #[error("PostgreSQL catalog differs from the expected snapshot")]
     CatalogMismatch {
-        expected: super::DbCatalogSnapshot,
-        observed: super::DbCatalogSnapshot,
+        expected: crate::db_catalog_snapshot::DbCatalogSnapshot,
+        observed: crate::db_catalog_snapshot::DbCatalogSnapshot,
     },
     #[error("PostgreSQL columns differ from the generated table descriptor")]
     ColumnContractMismatch {
-        expected: super::DbColumnContractSnapshots,
-        observed: super::DbColumnContractSnapshots,
+        expected: crate::db_column_contract_snapshots::DbColumnContractSnapshots,
+        observed: crate::db_column_contract_snapshots::DbColumnContractSnapshots,
     },
     #[error("PostgreSQL exact defaults differ from the reviewed table contract")]
     DefaultContractMismatch {
-        expected: super::DbObjectSnapshots,
-        observed: super::DbObjectSnapshots,
+        expected: crate::db_object_snapshots::DbObjectSnapshots,
+        observed: crate::db_object_snapshots::DbObjectSnapshots,
     },
     #[error("generated CRUD configuration refers to a column absent from its table descriptor")]
-    DescriptorFieldMismatch(super::DbSchemaText),
+    DescriptorFieldMismatch(crate::db_schema_text::DbSchemaText),
     #[error("PostgreSQL CHECK/index objects differ from the reviewed table contract")]
     ExtendedObjectContractMismatch {
-        expected: super::DbObjectSnapshots,
-        observed: super::DbObjectSnapshots,
+        expected: crate::db_object_snapshots::DbObjectSnapshots,
+        observed: crate::db_object_snapshots::DbObjectSnapshots,
     },
     #[error("failed to inspect PostgreSQL schema: {0}")]
-    Inspection(super::SqlxDbSchemaInspectionError),
+    Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError),
     #[error("PostgreSQL key constraints differ from the generated table descriptor")]
     KeyContractMismatch {
-        expected: super::DbKeyContractSnapshots,
-        observed: super::DbKeyContractSnapshots,
+        expected: crate::db_key_contract_snapshots::DbKeyContractSnapshots,
+        observed: crate::db_key_contract_snapshots::DbKeyContractSnapshots,
     },
     #[error("PostgreSQL table schema differs from the expected snapshot")]
     Mismatch {
-        expected: super::DbTableSnapshot,
-        observed: super::DbTableSnapshot,
+        expected: crate::db_table_snapshot::DbTableSnapshot,
+        observed: crate::db_table_snapshot::DbTableSnapshot,
     },
     #[error("PostgreSQL schema text exceeds the supported limit")]
-    SchemaTextTooLong(super::DbSchemaTextTryFromStringError),
+    SchemaTextTooLong(crate::db_schema_text::DbSchemaTextTryFromStringError),
     #[error("PostgreSQL returned an unsupported catalog object kind")]
     UnknownObjectKind,
 }

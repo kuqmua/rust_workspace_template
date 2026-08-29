@@ -19,6 +19,7 @@ sqlx = { workspace = true }
 utoipa = { workspace = true }
 app_state = { workspace = true }
 frontend_contract = { workspace = true }
+frontend_contract_macros = { workspace = true }
 git_info = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }

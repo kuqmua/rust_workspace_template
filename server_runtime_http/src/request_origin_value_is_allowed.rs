@@ -1,12 +1,15 @@
 pub(super) fn request_origin_value_is_allowed(
-    value: super::HttpOriginTextRef<'_>,
-    allow_suffix: super::AllowOriginSuffix,
-    allowed_origins: &super::AllowedOrigins,
-) -> super::RequestOriginAllowed {
+    value: crate::http_origin_text_ref::HttpOriginTextRef<'_>,
+    allow_suffix: crate::allow_origin_suffix::AllowOriginSuffix,
+    allowed_origins: &crate::allowed_origins::AllowedOrigins,
+) -> crate::request_origin_allowed::RequestOriginAllowed {
     let Some(parsed) = (|| {
-        let (scheme, remainder) = value.0.trim().split_once(constants_str::TEXT_ALT_10)?;
-        if !scheme.eq_ignore_ascii_case(constants_str::HTTP)
-            && !scheme.eq_ignore_ascii_case(constants_str::HTTPS)
+        let (scheme, remainder) = value
+            .0
+            .trim()
+            .split_once(constants_str::catalog::TEXT_ALT_10)?;
+        if !scheme.eq_ignore_ascii_case(constants_str::catalog::HTTP)
+            && !scheme.eq_ignore_ascii_case(constants_str::catalog::HTTPS)
         {
             return None;
         }
@@ -15,22 +18,24 @@ pub(super) fn request_origin_value_is_allowed(
         if authority.is_empty() || (!allow_suffix.0 && authority_end != remainder.len()) {
             None
         } else {
-            Some(super::ParsedHttpOriginRef {
-                authority: super::HttpOriginTextRef::from(authority),
-                scheme: super::HttpOriginTextRef::from(scheme),
+            Some(crate::parsed_http_origin_ref::ParsedHttpOriginRef {
+                authority: crate::http_origin_text_ref::HttpOriginTextRef::from(authority),
+                scheme: crate::http_origin_text_ref::HttpOriginTextRef::from(scheme),
             })
         }
     })() else {
-        return super::RequestOriginAllowed::from(false);
+        return crate::request_origin_allowed::RequestOriginAllowed::from(false);
     };
-    super::RequestOriginAllowed::from(allowed_origins.0.iter().any(|allowed_origin| {
-        allowed_origin
-            .scheme
-            .0
-            .eq_ignore_ascii_case(parsed.scheme.0)
-            && allowed_origin
-                .authority
+    crate::request_origin_allowed::RequestOriginAllowed::from(allowed_origins.0.iter().any(
+        |allowed_origin| {
+            allowed_origin
+                .scheme
                 .0
-                .eq_ignore_ascii_case(parsed.authority.0)
-    }))
+                .eq_ignore_ascii_case(parsed.scheme.0)
+                && allowed_origin
+                    .authority
+                    .0
+                    .eq_ignore_ascii_case(parsed.authority.0)
+        },
+    ))
 }

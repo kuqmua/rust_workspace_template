@@ -4,19 +4,19 @@
 pub struct StoragePathSegment(String);
 
 impl TryFrom<String> for StoragePathSegment {
-    type Error = super::StoragePathSegmentError;
+    type Error = crate::storage_path_segment_error::StoragePathSegmentError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > constants_usize::VALUE_1_024 {
-            return Err(super::StoragePathSegmentError);
+            return Err(crate::storage_path_segment_error::StoragePathSegmentError);
         }
-        text_policy::domain_types::validate_url_safe_token_part(
-            text_policy::domain_types::UrlSafeTokenPartRef::from(value.as_str()),
-            text_policy::domain_types::UrlSafeTokenPartMaximumBytes::from(
+        text_policy::validate_url_safe_token_part::validate_url_safe_token_part(
+            text_policy::url_safe_token_part_ref::UrlSafeTokenPartRef::from(value.as_str()),
+            text_policy::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes::from(
                 constants_usize::VALUE_1_024,
             ),
         )
-        .map_err(|_error| super::StoragePathSegmentError)?;
+        .map_err(|_error| crate::storage_path_segment_error::StoragePathSegmentError)?;
         Ok(Self(value))
     }
 }

@@ -11,5 +11,5 @@
 )]
 pub struct GitInfo {
     #[schema(value_type = String)]
-    pub(super) commit: git_info::GitCommitLinkCow,
+    pub(super) commit: git_info::git_commit_link_cow::GitCommitLinkCow,
 }

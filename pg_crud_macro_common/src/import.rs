@@ -1,5 +1,3 @@
-use super::{ImportPathStr, ImportSnakeCaseStr};
-
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum Import {
     Crate,
@@ -8,12 +6,13 @@ pub enum Import {
 impl Import {
     pub(crate) fn all_enum_variants(
         self,
-    ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-        macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
+    ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+    {
+        macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             match self {
                 Self::Crate => quote::quote! { crate::AllEnumVariants },
                 Self::PgCrudCommon => {
-                    quote::quote! { pg_crud_common::domain_types::AllEnumVariants }
+                    quote::quote! { pg_crud_common::all_enum_variants::AllEnumVariants }
                 }
             },
         )
@@ -51,19 +50,25 @@ impl Import {
         }
     }
     #[must_use]
-    pub fn sc_str(&self) -> ImportSnakeCaseStr {
+    pub fn sc_str(&self) -> crate::import_snake_case_str::ImportSnakeCaseStr {
         match &self {
-            Self::Crate => ImportSnakeCaseStr::from(constants_str::CRATE),
-            Self::PgCrudCommon => {
-                ImportSnakeCaseStr::from(constants_str::PG_CRUD_COMMON_DOMAIN_TYPES)
-            }
+            Self::Crate => crate::import_snake_case_str::ImportSnakeCaseStr::from(
+                constants_str::catalog::CRATE,
+            ),
+            Self::PgCrudCommon => crate::import_snake_case_str::ImportSnakeCaseStr::from(
+                constants_str::catalog::PG_CRUD_COMMON_DOMAIN_TYPES,
+            ),
         }
     }
     #[must_use]
-    pub fn to_path(&self) -> ImportPathStr {
+    pub fn to_path(&self) -> crate::import_path_str::ImportPathStr {
         match &self {
-            Self::Crate => ImportPathStr::from(constants_str::CRATE),
-            Self::PgCrudCommon => ImportPathStr::from(constants_str::PG_CRUD_COMMON_DOMAIN_TYPES),
+            Self::Crate => {
+                crate::import_path_str::ImportPathStr::from(constants_str::catalog::CRATE)
+            }
+            Self::PgCrudCommon => crate::import_path_str::ImportPathStr::from(
+                constants_str::catalog::PG_CRUD_COMMON_DOMAIN_TYPES,
+            ),
         }
     }
 }
@@ -71,7 +76,7 @@ impl quote::ToTokens for Import {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match &self {
             Self::Crate => quote::quote! { crate },
-            Self::PgCrudCommon => quote::quote! { pg_crud_common::domain_types },
+            Self::PgCrudCommon => quote::quote! { pg_crud_common },
         }
         .to_tokens(tokens);
     }

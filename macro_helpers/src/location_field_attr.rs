@@ -20,10 +20,8 @@ impl std::str::FromStr for LocationFieldAttr {
         Self::ALL
             .into_iter()
             .find(|item| {
-                crate::domain_types::attribute_identifier_string::AttrIdentifierStr::attribute_identifier_string(
-                    item,
-                )
-                .as_ref()
+                crate::attr_identifier_str::AttrIdentifierStr::attribute_identifier_string(item)
+                    .as_ref()
                     == v
             })
             .ok_or(())
@@ -43,30 +41,33 @@ impl TryFrom<&syn::Field> for LocationFieldAttr {
         });
         let optional_attr = supported_attrs.next();
         if supported_attrs.next().is_some() {
-            return Err(constants_str::TWO_OR_MORE_SUPPORTED_ATTRS.to_owned());
+            return Err(constants_str::catalog::TWO_OR_MORE_SUPPORTED_ATTRS.to_owned());
         }
-        optional_attr.map_or_else(|| Err(constants_str::OPT_ATTR_IS_NONE.to_owned()), Ok)
+        optional_attr.map_or_else(
+            || Err(constants_str::catalog::OPT_ATTR_IS_NONE.to_owned()),
+            Ok,
+        )
     }
 }
 
-impl crate::domain_types::attribute_identifier_string::AttrIdentifierStr for LocationFieldAttr {
-    fn attribute_identifier_string(
-        &self,
-    ) -> crate::domain_types::attribute_identifier_string::AttrIdentifierName<'_> {
-        crate::domain_types::attribute_identifier_string::AttrIdentifierName::from(match *self {
-            Self::EoToErrString => constants_str::EO_TO_ERR_STRING,
-            Self::EoToErrStringSerde => constants_str::EO_TO_ERR_STRING_SERDE,
-            Self::EoLocation => constants_str::EO_LOCATION,
-            Self::EoVecToErrString => constants_str::EO_VEC_TO_ERR_STRING,
-            Self::EoVecToErrStringSerde => constants_str::EO_VEC_TO_ERR_STRING_SERDE,
-            Self::EoVecLocation => constants_str::EO_VEC_LOCATION,
+impl crate::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
+    fn attribute_identifier_string(&self) -> crate::attr_identifier_name::AttrIdentifierName<'_> {
+        crate::attr_identifier_name::AttrIdentifierName::from(match *self {
+            Self::EoToErrString => constants_str::catalog::EO_TO_ERR_STRING,
+            Self::EoToErrStringSerde => constants_str::catalog::EO_TO_ERR_STRING_SERDE,
+            Self::EoLocation => constants_str::catalog::EO_LOCATION,
+            Self::EoVecToErrString => constants_str::catalog::EO_VEC_TO_ERR_STRING,
+            Self::EoVecToErrStringSerde => constants_str::catalog::EO_VEC_TO_ERR_STRING_SERDE,
+            Self::EoVecLocation => constants_str::catalog::EO_VEC_LOCATION,
             Self::EoHashMapKStringVToErrString => {
-                constants_str::EO_HASHMAP_K_STRING_V_TO_ERR_STRING
+                constants_str::catalog::EO_HASHMAP_K_STRING_V_TO_ERR_STRING
             }
             Self::EoHashMapKStringVToErrStringSerde => {
-                constants_str::EO_HASHMAP_K_STRING_V_TO_ERR_STRING_SERDE
+                constants_str::catalog::EO_HASHMAP_K_STRING_V_TO_ERR_STRING_SERDE
             }
-            Self::EoHashMapKStringVLocation => constants_str::EO_HASHMAP_K_STRING_V_LOCATION,
+            Self::EoHashMapKStringVLocation => {
+                constants_str::catalog::EO_HASHMAP_K_STRING_V_LOCATION
+            }
         })
     }
 }
@@ -87,17 +88,16 @@ impl LocationFieldAttr {
     #[must_use]
     pub fn to_attr_view_token_stream(
         &self,
-    ) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
-    {
+    ) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
         match format!(
             "#[{}]",
-            crate::domain_types::attribute_identifier_string::AttrIdentifierStr::attribute_identifier_string(self)
+            crate::attr_identifier_str::AttrIdentifierStr::attribute_identifier_string(self)
                 .as_ref()
         )
         .parse::<proc_macro2::TokenStream>()
         {
-            Ok(v) => crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(v),
-            Err(error) => super::compile_error_token_stream::macro_compile_error_tokens(
+            Ok(v) => crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(v),
+            Err(error) => super::macro_compile_error_tokens::macro_compile_error_tokens(
                 super::compile_error_message::CompileErrorMessage::from(&error.to_string()),
             ),
         }

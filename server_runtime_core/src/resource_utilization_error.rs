@@ -4,7 +4,7 @@
 pub enum ResourceUtilizationError {
     #[error(
         "{}",
-        constants_str::RESOURCE_UTILIZATION_MAXIMUM_MUST_BE_GREATER_THAN_ZERO
+        constants_str::test_fixtures::RESOURCE_UTILIZATION_MAXIMUM_MUST_BE_GREATER_THAN_ZERO
     )]
     ZeroMaximum,
 }

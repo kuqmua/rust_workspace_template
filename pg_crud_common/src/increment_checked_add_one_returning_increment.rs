@@ -1,12 +1,12 @@
 pub fn increment_checked_add_one_returning_increment<IncrementTy>(
     increment: &mut IncrementTy,
-) -> Result<super::QueryPartIncrement, crate::domain_types::QueryPartError>
+) -> Result<crate::query_part_increment::QueryPartIncrement, crate::query_part_error::QueryPartError>
 where
-    IncrementTy: super::QueryPartIncrementMut + ?Sized,
+    IncrementTy: crate::query_part_increment_mut::QueryPartIncrementMut + ?Sized,
 {
     increment.checked_add_one().map_or_else(
         || {
-            Err(crate::domain_types::QueryPartError::CheckedAdd {
+            Err(crate::query_part_error::QueryPartError::CheckedAdd {
                 location: location_macros::location!(),
             })
         },
@@ -18,10 +18,10 @@ where
 mod tests {
     #[test]
     fn result_api_maps_overflow_without_mutating_counter() {
-        let mut counter = super::super::QueryPartIncrement::from(u64::MAX);
+        let mut counter = crate::query_part_increment::QueryPartIncrement::from(u64::MAX);
         assert!(matches!(
-            super::increment_checked_add_one_returning_increment(&mut counter),
-            Err(crate::domain_types::QueryPartError::CheckedAdd { .. })
+            crate::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(&mut counter),
+            Err(crate::query_part_error::QueryPartError::CheckedAdd { .. })
         ));
         assert_eq!(counter.get(), u64::MAX);
     }

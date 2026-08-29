@@ -6,11 +6,11 @@
 pub(super) struct HttpOriginSchemeText(pub(super) String);
 
 impl TryFrom<String> for HttpOriginSchemeText {
-    type Error = super::AllowedOriginError;
+    type Error = crate::allowed_origin_error::AllowedOriginError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > 16usize {
-            Err(super::AllowedOriginError)
+            Err(crate::allowed_origin_error::AllowedOriginError)
         } else {
             Ok(Self(value))
         }

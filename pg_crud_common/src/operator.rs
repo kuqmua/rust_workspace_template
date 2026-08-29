@@ -20,7 +20,7 @@ pub enum Operator {
     OrNot,
 }
 
-impl crate::domain_types::DefaultSomeOneElement for Operator {
+impl crate::default_some_one_element::DefaultSomeOneElement for Operator {
     fn default_some_one_element() -> Self {
         Self::default()
     }
@@ -30,24 +30,25 @@ impl Operator {
     #[must_use]
     pub fn to_query_part(
         &self,
-        add_operator: crate::domain_types::AddOperator,
-    ) -> crate::domain_types::QueryPartFragment {
+        add_operator: crate::add_operator::AddOperator,
+    ) -> crate::query_part_fragment::QueryPartFragment {
         let fragment = match (bool::from(add_operator), *self) {
             (false, Self::And | Self::Or) => {
-                return match crate::domain_types::QueryPartFragment::try_from(String::new()) {
+                return match crate::query_part_fragment::QueryPartFragment::try_from(String::new())
+                {
                     Ok(value) => value,
-                    Err(error) => crate::domain_types::QueryPartFragment::from(error),
+                    Err(error) => crate::query_part_fragment::QueryPartFragment::from(error),
                 };
             }
-            (false, Self::AndNot | Self::OrNot) => constants_str::NOT,
-            (true, Self::And) => constants_str::AND_ALT,
-            (true, Self::AndNot) => constants_str::AND_NOT,
-            (true, Self::Or) => constants_str::OR,
-            (true, Self::OrNot) => constants_str::OR_NOT,
+            (false, Self::AndNot | Self::OrNot) => constants_str::catalog::NOT,
+            (true, Self::And) => constants_str::catalog::AND_ALT,
+            (true, Self::AndNot) => constants_str::catalog::AND_NOT,
+            (true, Self::Or) => constants_str::catalog::OR,
+            (true, Self::OrNot) => constants_str::catalog::OR_NOT,
         };
-        match crate::domain_types::QueryPartFragment::try_from(String::from(fragment)) {
+        match crate::query_part_fragment::QueryPartFragment::try_from(String::from(fragment)) {
             Ok(value) => value,
-            Err(error) => crate::domain_types::QueryPartFragment::from(error),
+            Err(error) => crate::query_part_fragment::QueryPartFragment::from(error),
         }
     }
 }

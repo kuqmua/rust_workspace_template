@@ -9,25 +9,25 @@ pub enum CursorPaginationUsage {
 impl CursorPaginationUsage {
     #[must_use]
     pub const fn from_presence(
-        offset: crate::domain_types::OffsetPaginationPresence,
-        cursor: crate::domain_types::SignedCursorPresence,
+        offset: crate::offset_pagination_presence::OffsetPaginationPresence,
+        cursor: crate::signed_cursor_presence::SignedCursorPresence,
     ) -> Self {
         match (offset, cursor) {
             (
-                crate::domain_types::OffsetPaginationPresence::Absent,
-                crate::domain_types::SignedCursorPresence::Absent,
+                crate::offset_pagination_presence::OffsetPaginationPresence::Absent,
+                crate::signed_cursor_presence::SignedCursorPresence::Absent,
             ) => Self::NoOffsetNoCursor,
             (
-                crate::domain_types::OffsetPaginationPresence::Absent,
-                crate::domain_types::SignedCursorPresence::Present,
+                crate::offset_pagination_presence::OffsetPaginationPresence::Absent,
+                crate::signed_cursor_presence::SignedCursorPresence::Present,
             ) => Self::CursorOnly,
             (
-                crate::domain_types::OffsetPaginationPresence::Present,
-                crate::domain_types::SignedCursorPresence::Absent,
+                crate::offset_pagination_presence::OffsetPaginationPresence::Present,
+                crate::signed_cursor_presence::SignedCursorPresence::Absent,
             ) => Self::OffsetOnly,
             (
-                crate::domain_types::OffsetPaginationPresence::Present,
-                crate::domain_types::SignedCursorPresence::Present,
+                crate::offset_pagination_presence::OffsetPaginationPresence::Present,
+                crate::signed_cursor_presence::SignedCursorPresence::Present,
             ) => Self::OffsetAndCursor,
         }
     }
@@ -38,18 +38,18 @@ mod tests {
     #[test]
     fn pagination_usage_distinguishes_cursor_and_offset() {
         assert_eq!(
-            super::CursorPaginationUsage::from_presence(
-                crate::domain_types::OffsetPaginationPresence::Present,
-                crate::domain_types::SignedCursorPresence::Present,
+            crate::cursor_pagination_usage::CursorPaginationUsage::from_presence(
+                crate::offset_pagination_presence::OffsetPaginationPresence::Present,
+                crate::signed_cursor_presence::SignedCursorPresence::Present,
             ),
-            super::CursorPaginationUsage::OffsetAndCursor
+            crate::cursor_pagination_usage::CursorPaginationUsage::OffsetAndCursor
         );
         assert_eq!(
-            super::CursorPaginationUsage::from_presence(
-                crate::domain_types::OffsetPaginationPresence::Absent,
-                crate::domain_types::SignedCursorPresence::Present,
+            crate::cursor_pagination_usage::CursorPaginationUsage::from_presence(
+                crate::offset_pagination_presence::OffsetPaginationPresence::Absent,
+                crate::signed_cursor_presence::SignedCursorPresence::Present,
             ),
-            super::CursorPaginationUsage::CursorOnly
+            crate::cursor_pagination_usage::CursorPaginationUsage::CursorOnly
         );
     }
 }

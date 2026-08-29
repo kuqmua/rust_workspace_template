@@ -18,6 +18,7 @@ optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 constants_str = { workspace = true }
 frontend_contract = { workspace = true }
+frontend_contract_macros = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

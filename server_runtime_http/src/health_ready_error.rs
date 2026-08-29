@@ -1,7 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(super) enum HealthReadyError {
     #[error("service is unavailable")]
-    Unavailable(super::HealthSnapshot),
+    Unavailable(crate::health_snapshot::HealthSnapshot),
 }
 
 impl axum::response::IntoResponse for HealthReadyError {

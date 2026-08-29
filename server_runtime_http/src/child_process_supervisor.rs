@@ -5,60 +5,70 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[must_use]
 pub struct ChildProcessSupervisor {
-    pub(super) child: Option<super::TokioManagedChild>,
-    pub(super) diagnostic: Option<super::TokioChildDiagnosticTask>,
+    pub(super) child: Option<crate::tokio_managed_child::TokioManagedChild>,
+    pub(super) diagnostic: Option<crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask>,
 }
 
 impl ChildProcessSupervisor {
     pub fn new(
-        mut child: super::TokioChildProcess,
-        maximum: super::ChildDiagnosticMaximumNonZeroUsize,
+        mut child: crate::tokio_child_process::TokioChildProcess,
+        maximum: crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize,
     ) -> Self {
         let diagnostic = child.0.stderr.take().map(|stderr| {
-            super::TokioChildDiagnosticTask::from(tokio::spawn(async move {
-                super::read_child_diagnostic(stderr, maximum).await
-            }))
+            crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(tokio::spawn(
+                async move {
+                    crate::read_child_diagnostic::read_child_diagnostic(stderr, maximum).await
+                },
+            ))
         });
         Self {
-            child: Some(super::TokioManagedChild::from(child.0)),
+            child: Some(crate::tokio_managed_child::TokioManagedChild::from(child.0)),
             diagnostic,
         }
     }
 
     pub async fn shutdown(
         mut self,
-        timeout: crate::domain_types::RequestTimeoutDuration,
-    ) -> Result<super::ChildProcessReport, super::ChildProcessError> {
+        timeout: crate::request_timeout_duration::RequestTimeoutDuration,
+    ) -> Result<
+        crate::child_process_report::ChildProcessReport,
+        crate::child_process_error::ChildProcessError,
+    > {
         let mut child = self
             .child
             .take()
-            .ok_or(super::ChildProcessError::MissingChild)?;
+            .ok_or(crate::child_process_error::ChildProcessError::MissingChild)?;
         let (completion, status) = match tokio::time::timeout(timeout.get(), child.0.wait()).await {
             Ok(result) => (
-                super::ChildProcessCompletion::Exited,
+                crate::child_process_completion::ChildProcessCompletion::Exited,
                 result
-                    .map_err(super::ChildProcessIoError::from)
-                    .map_err(super::ChildProcessError::Io)?,
+                    .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+                    .map_err(crate::child_process_error::ChildProcessError::Io)?,
             ),
             Err(_graceful_elapsed) => {
                 child
                     .0
                     .start_kill()
-                    .map_err(super::ChildProcessIoError::from)
-                    .map_err(super::ChildProcessError::Io)?;
+                    .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+                    .map_err(crate::child_process_error::ChildProcessError::Io)?;
                 let status = tokio::time::timeout(timeout.get(), child.0.wait())
                     .await
-                    .map_err(|_kill_elapsed| super::ChildProcessError::Timeout)?
-                    .map_err(super::ChildProcessIoError::from)
-                    .map_err(super::ChildProcessError::Io)?;
-                (super::ChildProcessCompletion::KilledAfterTimeout, status)
+                    .map_err(|_kill_elapsed| {
+                        crate::child_process_error::ChildProcessError::Timeout
+                    })?
+                    .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+                    .map_err(crate::child_process_error::ChildProcessError::Io)?;
+                (
+                    crate::child_process_completion::ChildProcessCompletion::KilledAfterTimeout,
+                    status,
+                )
             }
         };
-        let diagnostic = super::join_diagnostic(self.diagnostic.take()).await?;
-        Ok(super::ChildProcessReport {
+        let diagnostic = crate::join_diagnostic::join_diagnostic(self.diagnostic.take()).await?;
+        Ok(crate::child_process_report::ChildProcessReport {
             completion,
             diagnostic,
-            status: super::ChildExitStatus::from(status),
+            status: crate::child_exit_status::ChildExitStatus::from(status),
         })
     }
 }

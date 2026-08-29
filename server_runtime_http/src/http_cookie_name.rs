@@ -6,7 +6,7 @@
 pub struct HttpCookieName(pub(super) String);
 
 impl TryFrom<String> for HttpCookieName {
-    type Error = super::HttpSecureCookieError;
+    type Error = crate::http_secure_cookie_error::HttpSecureCookieError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let valid = !value.is_empty()
@@ -34,7 +34,7 @@ impl TryFrom<String> for HttpCookieName {
         if valid {
             Ok(Self(value))
         } else {
-            Err(super::HttpSecureCookieError::InvalidName)
+            Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName)
         }
     }
 }

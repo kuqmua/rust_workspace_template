@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -11,14 +11,14 @@
 #[optimal_memory_layout(skip)]
 pub struct AdminUserSummary {
     #[contract_struct_api(borrow)]
-    display_name: crate::domain_types::AdminDisplayName,
+    display_name: crate::admin_display_name::AdminDisplayName,
     #[contract_struct_api(copy_ref)]
-    id: crate::domain_types::AdminUserId,
+    id: crate::admin_user_id::AdminUserId,
     #[contract_struct_api(copy_ref)]
-    is_banned: crate::domain_types::AdminBool,
+    is_banned: crate::admin_bool::AdminBool,
     #[contract_struct_api(borrow)]
-    login: crate::domain_types::AdminLogin,
+    login: crate::admin_login::AdminLogin,
     #[serde(default)]
-    #[contract_struct_api(slice = crate::domain_types::AdminRoleId)]
-    role_ids: crate::domain_types::AdminRoleIds,
+    #[contract_struct_api(slice = crate::admin_role_id::AdminRoleId)]
+    role_ids: crate::admin_role_ids::AdminRoleIds,
 }

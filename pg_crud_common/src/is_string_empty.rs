@@ -1,3 +1,3 @@
 pub trait IsStringEmpty {
-    fn is_string_empty(&self) -> crate::domain_types::IsStringEmptyRes;
+    fn is_string_empty(&self) -> crate::is_string_empty_res::IsStringEmptyRes;
 }

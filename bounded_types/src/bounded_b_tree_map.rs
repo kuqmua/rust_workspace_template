@@ -37,8 +37,8 @@ impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
     }
 
     #[must_use]
-    pub fn len(&self) -> crate::BoundedLen {
-        crate::BoundedLen::from(self.0.len())
+    pub fn len(&self) -> crate::bounded_len::BoundedLen {
+        crate::bounded_len::BoundedLen::from(self.0.len())
     }
 
     pub fn remove(&mut self, key: &K) -> Option<V> {
@@ -49,7 +49,11 @@ impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
         self.0.pop_first()
     }
 
-    pub fn try_insert(&mut self, key: K, value: V) -> Result<Option<V>, crate::BoundedValueError> {
+    pub fn try_insert(
+        &mut self,
+        key: K,
+        value: V,
+    ) -> Result<Option<V>, crate::bounded_value_error::BoundedValueError> {
         let is_full = self.0.len() >= MAX;
         match self.0.entry(key) {
             std::collections::btree_map::Entry::Occupied(mut entry) => {
@@ -57,9 +61,11 @@ impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
             }
             std::collections::btree_map::Entry::Vacant(entry) if is_full => {
                 drop(entry);
-                Err(crate::BoundedValueError::AboveMax {
-                    actual: crate::BoundedLen::from(MAX.saturating_add(constants_usize::ONE)),
-                    max: crate::BoundedLen::from(MAX),
+                Err(crate::bounded_value_error::BoundedValueError::AboveMax {
+                    actual: crate::bounded_len::BoundedLen::from(
+                        MAX.saturating_add(constants_usize::ONE),
+                    ),
+                    max: crate::bounded_len::BoundedLen::from(MAX),
                 })
             }
             std::collections::btree_map::Entry::Vacant(entry) => {
@@ -100,10 +106,13 @@ impl<K: Ord, V, const MAX: usize> From<[(K, V); 0]> for BoundedBTreeMap<K, V, MA
 impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
     for BoundedBTreeMap<K, V, MAX>
 {
-    type Error = crate::BoundedValueError;
+    type Error = crate::bounded_value_error::BoundedValueError;
 
     fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
-        crate::validate_len::<0, MAX>(crate::BoundedLen::from(value.len())).map(|()| Self(value))
+        crate::validate_len::validate_len::<0, MAX>(crate::bounded_len::BoundedLen::from(
+            value.len(),
+        ))
+        .map(|()| Self(value))
     }
 }
 impl<K: Ord + serde::Serialize, V: serde::Serialize, const MAX: usize> serde::Serialize

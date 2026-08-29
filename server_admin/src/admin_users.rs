@@ -21,30 +21,33 @@
 #[allow(dead_code)] // private descriptor fields are consumed by proc-macro expansion and keep password hashes out of the public API
 pub struct AdminUsers {
     #[generate_pg_table_primary_key]
-    id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
-    login: pg_types_text_misc::StringAsNonNullText,
-    display_name: pg_types_text_misc::StringAsNonNullText,
-    password_hash: pg_types_text_misc::StringAsNonNullText,
+    id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+    login: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+    display_name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+    password_hash: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    is_banned: pg_types_numeric::BoolAsNonNullBool,
+    is_banned: pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
     #[generate_pg_table_db_default]
-    must_change_password: pg_types_numeric::BoolAsNonNullBool,
+    must_change_password: pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
     #[generate_pg_table_db_default]
-    created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    created_at: pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
     #[generate_pg_table_db_default]
-    updated_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    updated_at: pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::missing_fields_in_debug)] // password_hash is intentionally represented by a redacted constant
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::ADMINUSERS)
-            .field(constants_str::SQL_NAMES_ID, &self.id)
-            .field(constants_str::LOGIN, &self.login)
-            .field(constants_str::DISPLAY_NAME, &self.display_name)
-            .field(constants_str::PASSWORD_HASH, &constants_str::REDACTED_ALT_3)
-            .field(constants_str::IS_BANNED, &self.is_banned)
-            .field(constants_str::CREATED_AT, &self.created_at)
-            .field(constants_str::UPDATED_AT, &self.updated_at)
+        f.debug_struct(constants_str::catalog::ADMINUSERS)
+            .field(constants_str::catalog::SQL_NAMES_ID, &self.id)
+            .field(constants_str::catalog::LOGIN, &self.login)
+            .field(constants_str::catalog::DISPLAY_NAME, &self.display_name)
+            .field(
+                constants_str::catalog::PASSWORD_HASH,
+                &constants_str::catalog::REDACTED_ALT_3,
+            )
+            .field(constants_str::catalog::IS_BANNED, &self.is_banned)
+            .field(constants_str::catalog::CREATED_AT, &self.created_at)
+            .field(constants_str::catalog::UPDATED_AT, &self.updated_at)
             .finish()
     }
 }

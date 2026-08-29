@@ -1,11 +1,14 @@
 pub async fn enforce_pg_rate_limit(
-    pool: super::SqlxPgRateLimitPoolRef<'_>,
-    query: super::PgRateLimitQueryRef,
-    scope: super::PgRateLimitScopeRef<'_>,
-    subject: super::PgRateLimitSubjectRef<'_>,
-    maximum: super::PgRateLimitMaximum,
-    window_seconds: super::PgRateLimitWindowSeconds,
-) -> Result<super::PgRateLimitDecision, super::PgRateLimitError> {
+    pool: crate::sqlx_pg_rate_limit_pool_ref::SqlxPgRateLimitPoolRef<'_>,
+    query: crate::pg_rate_limit_query_ref::PgRateLimitQueryRef,
+    scope: crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef<'_>,
+    subject: crate::pg_rate_limit_subject_ref::PgRateLimitSubjectRef<'_>,
+    maximum: crate::pg_rate_limit_maximum::PgRateLimitMaximum,
+    window_seconds: crate::pg_rate_limit_window_seconds::PgRateLimitWindowSeconds,
+) -> Result<
+    crate::pg_rate_limit_decision::PgRateLimitDecision,
+    crate::pg_rate_limit_error::PgRateLimitError,
+> {
     sqlx::query_scalar::<_, bool>(query.0)
         .bind(scope.0)
         .bind(subject.0)
@@ -15,10 +18,14 @@ pub async fn enforce_pg_rate_limit(
         .await
         .map(|allowed| {
             if allowed {
-                super::PgRateLimitDecision::Allowed
+                crate::pg_rate_limit_decision::PgRateLimitDecision::Allowed
             } else {
-                super::PgRateLimitDecision::Limited(window_seconds)
+                crate::pg_rate_limit_decision::PgRateLimitDecision::Limited(window_seconds)
             }
         })
-        .map_err(|error| super::PgRateLimitError::Sqlx(super::SqlxPgRateLimitError::from(error)))
+        .map_err(|error| {
+            crate::pg_rate_limit_error::PgRateLimitError::Sqlx(
+                crate::sqlx_pg_rate_limit_error::SqlxPgRateLimitError::from(error),
+            )
+        })
 }

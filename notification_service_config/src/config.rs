@@ -13,19 +13,19 @@ pub struct Config {
     notification_database_url: config_lib::domain_types::DatabaseUrl,
     #[config(accessor)]
     #[config(example = "30")]
-    request_timeout_seconds: config_lib::domain_types::RequestTimeoutSeconds,
+    request_timeout_seconds: config_lib::request_timeout_seconds::RequestTimeoutSeconds,
     #[config(accessor)]
     #[config(example = "127.0.0.1:8081")]
     notification_service_socket_address: config_lib::domain_types::ServiceSocketAddress,
     #[config(accessor)]
     #[config(example = "10")]
-    pg_pool_max_connections: config_lib::domain_types::PgPoolMaxConnections,
+    pg_pool_max_connections: config_lib::pg_pool_max_connections::PgPoolMaxConnections,
     #[config(accessor)]
     #[config(example = "text")]
-    tracing_format: config_lib::domain_types::types::TracingFormat,
+    tracing_format: config_lib::tracing_format::TracingFormat,
     #[config(accessor)]
     #[config(example = "serve")]
-    svc_mode: config_lib::domain_types::types::SvcMode,
+    svc_mode: config_lib::svc_mode::SvcMode,
 }
 
 #[cfg(test)]
@@ -37,7 +37,7 @@ mod tests {
         }
 
         assert!(
-            !constants_str::UPDATE_CONFIG_PROJECTIONS.is_empty(),
+            !constants_str::test_fixtures::UPDATE_CONFIG_PROJECTIONS.is_empty(),
             "4b913df2"
         );
         assert!(is_typed_accessor::<config_lib::domain_types::DatabaseUrl>(
@@ -46,14 +46,16 @@ mod tests {
         assert!(is_typed_accessor::<
             config_lib::domain_types::ServiceSocketAddress,
         >(super::Config::notification_service_socket_address));
+        assert!(
+            is_typed_accessor::<config_lib::tracing_format::TracingFormat>(
+                super::Config::tracing_format
+            )
+        );
         assert!(is_typed_accessor::<
-            config_lib::domain_types::types::TracingFormat,
-        >(super::Config::tracing_format));
-        assert!(is_typed_accessor::<
-            config_lib::domain_types::PgPoolMaxConnections,
+            config_lib::pg_pool_max_connections::PgPoolMaxConnections,
         >(super::Config::pg_pool_max_connections));
         assert!(is_typed_accessor::<
-            config_lib::domain_types::RequestTimeoutSeconds,
+            config_lib::request_timeout_seconds::RequestTimeoutSeconds,
         >(super::Config::request_timeout_seconds));
     }
 }

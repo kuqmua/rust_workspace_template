@@ -1,25 +1,34 @@
 #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ServerAppState<'lt> {
-    pub bulk_item_budget: server_runtime_core::ResourceBudget,
+    pub bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget,
     pub config: server_config::config::Config,
-    pub idempotency_response_budget: server_runtime_core::ResourceBudget,
-    pub pg_pool: app_state::SqlxPgPool,
-    pub project_git_info: git_info::ProjectGitInfo<'lt>,
+    pub idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget,
+    pub pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
+    pub project_git_info: git_info::project_git_info::ProjectGitInfo<'lt>,
 }
 impl ServerAppState<'_> {
     const fn cfg_ref(&self) -> &server_config::config::Config {
         &self.config
     }
 }
-impl common_routes::CommonRoutesParameters for ServerAppState<'_> {}
-impl pg_table::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
-impl server_runtime_core::BulkItemResourceBudgetProvider for ServerAppState<'_> {
-    fn bulk_item_resource_budget(&self) -> &server_runtime_core::ResourceBudget {
+impl common_routes::common_routes_parameters::CommonRoutesParameters for ServerAppState<'_> {}
+impl pg_table::combination_of_app_state_logic_traits::CombinationOfAppStateLogicTraits
+    for ServerAppState<'_>
+{
+}
+impl server_runtime_core::bulk_item_resource_budget_provider::BulkItemResourceBudgetProvider
+    for ServerAppState<'_>
+{
+    fn bulk_item_resource_budget(&self) -> &server_runtime_core::resource_budget::ResourceBudget {
         &self.bulk_item_budget
     }
 }
-impl server_runtime_core::IdempotencyResponseResourceBudgetProvider for ServerAppState<'_> {
-    fn idempotency_response_resource_budget(&self) -> &server_runtime_core::ResourceBudget {
+impl server_runtime_core::idempotency_response_resource_budget_provider::IdempotencyResponseResourceBudgetProvider
+    for ServerAppState<'_>
+{
+    fn idempotency_response_resource_budget(
+        &self,
+    ) -> &server_runtime_core::resource_budget::ResourceBudget {
         &self.idempotency_response_budget
     }
 }
@@ -31,41 +40,41 @@ server_app_state_macros::impl_cfg_accessor!(
 server_app_state_macros::impl_cfg_accessor!(
     config_lib::domain_types::SrcPlaceTypeProvider,
     src_place_type,
-    config_lib::domain_types::types::SrcPlaceType
+    config_lib::src_place_type::SrcPlaceType
 );
 server_app_state_macros::impl_cfg_accessor!(
-    config_lib::domain_types::ChronoTimezoneProvider,
+    config_lib::chrono_timezone::ChronoTimezoneProvider,
     chrono_timezone,
     chrono::FixedOffset
 );
 server_app_state_macros::impl_cfg_accessor!(
-    config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider,
+    config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytesProvider,
     maximum_size_of_http_body_in_bytes,
     usize
 );
 server_app_state_macros::impl_cfg_accessor!(
-    config_lib::domain_types::AdminCookieSecureProvider,
+    config_lib::admin_cookie_secure::AdminCookieSecureProvider,
     admin_cookie_secure,
     bool
 );
 server_app_state_macros::impl_cfg_accessor!(
-    config_lib::domain_types::AdminJwtSecretProvider,
+    config_lib::admin_jwt_secret::AdminJwtSecretProvider,
     admin_jwt_secret,
-    bounded_types::BoundedVec<config_lib::domain_types::SecrecySecretBoxString, 1, 8>
+    bounded_types::bounded_vec::BoundedVec<config_lib::secrecy_secret_box_string::SecrecySecretBoxString, 1, 8>
 );
 server_app_state_macros::impl_cfg_accessor!(
-    config_lib::domain_types::AdminTokenAudienceProvider,
+    config_lib::admin_token_audience::AdminTokenAudienceProvider,
     admin_token_audience,
     String
 );
 server_app_state_macros::impl_cfg_accessor!(
-    config_lib::domain_types::AdminTokenIssuerProvider,
+    config_lib::admin_token_issuer::AdminTokenIssuerProvider,
     admin_token_issuer,
     String
 );
-impl app_state::SqlxPgPoolProvider for ServerAppState<'_> {
-    fn sqlx_pg_pool(&self) -> app_state::SqlxPgPoolRef<'_> {
-        app_state::SqlxPgPoolRef::from(self.pg_pool.as_ref())
+impl app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider for ServerAppState<'_> {
+    fn sqlx_pg_pool(&self) -> app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_> {
+        app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(self.pg_pool.as_ref())
     }
 }
 impl AsRef<str> for ServerAppState<'_> {

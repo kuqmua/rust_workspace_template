@@ -1,43 +1,26 @@
-pub use super::bounded_text_policy_error::BoundedTextPolicyError;
-pub use super::fixed_length_ascii_hex_text::FixedLengthAsciiHexText;
-pub use super::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;
-pub use super::non_empty_trimmed_text::NonEmptyTrimmedText;
-pub use super::password_length::PasswordLength;
-pub use super::password_length_range::PasswordLengthRange;
-pub use super::password_length_range_error::PasswordLengthRangeError;
-pub use super::password_policy_violation::PasswordPolicyViolation;
-pub use super::password_text_ref::PasswordTextRef;
-pub use super::required_nul_free_bounded_text::RequiredNulFreeBoundedText;
-pub(crate) use super::url_safe_token_part_maximum_bytes::URL_SAFE_TOKEN_PART_MAXIMUM_BYTES;
-pub use super::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes;
-pub use super::url_safe_token_part_ref::UrlSafeTokenPartRef;
-pub use super::url_safe_token_part_text::UrlSafeTokenPartText;
-pub use super::url_safe_token_part_text_error::UrlSafeTokenPartTextError;
-pub use super::validate_password_policy::validate_password_policy;
-pub use super::validate_url_safe_token_part::validate_url_safe_token_part;
 #[cfg(test)]
 mod tests {
     #[test]
     fn required_bounded_text_rejects_nul() {
         assert_eq!(
-            super::RequiredNulFreeBoundedText::try_from(
-                constants_str::TEST_TEXT_WITH_NUL.to_owned()
+            crate::required_nul_free_bounded_text::RequiredNulFreeBoundedText::try_from(
+                constants_str::test_fixtures::TEST_TEXT_WITH_NUL.to_owned()
             ),
-            Err(super::BoundedTextPolicyError::ContainsNul)
+            Err(crate::bounded_text_policy_error::BoundedTextPolicyError::ContainsNul)
         );
     }
 
     #[test]
     fn fixed_hex_requires_lowercase_and_exact_length() {
-        let _value = super::FixedLengthAsciiHexText::try_from(
-            constants_str::TEST_GIT_COMMIT_HASH.to_owned(),
+        let _value = crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText::try_from(
+            constants_str::test_fixtures::TEST_GIT_COMMIT_HASH.to_owned(),
         )
         .expect("fdb4f77c fixed_hex_requires_lowercase_and_exact_length invariant must hold");
         assert_eq!(
-            super::FixedLengthAsciiHexText::try_from(
-                constants_str::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
+            crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText::try_from(
+                constants_str::test_fixtures::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
             ),
-            Err(super::FixedLengthAsciiHexTextError::InvalidSymbol)
+            Err(crate::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError::InvalidSymbol)
         );
     }
 
@@ -45,53 +28,70 @@ mod tests {
     fn url_safe_token_policy_is_table_driven() {
         assert_eq!(
             [
-                constants_str::ABC_ALT_3,
-                constants_str::TEST_URL_TOKEN_WITH_SEPARATOR,
+                constants_str::catalog::ABC_ALT_3,
+                constants_str::test_fixtures::TEST_URL_TOKEN_WITH_SEPARATOR,
                 "",
             ]
             .map(|value| {
-                super::validate_url_safe_token_part(
-                    super::UrlSafeTokenPartRef::from(value),
-                    super::UrlSafeTokenPartMaximumBytes::from(128usize),
+                crate::validate_url_safe_token_part::validate_url_safe_token_part(
+                    crate::url_safe_token_part_ref::UrlSafeTokenPartRef::from(value),
+                    crate::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes::from(
+                        128usize,
+                    ),
                 )
             }),
             [
                 Ok(()),
-                Err(super::UrlSafeTokenPartTextError::InvalidSymbol),
-                Err(super::UrlSafeTokenPartTextError::Empty),
+                Err(
+                    crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError::InvalidSymbol
+                ),
+                Err(crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError::Empty),
             ]
         );
         assert_eq!(
-            super::validate_url_safe_token_part(
-                super::UrlSafeTokenPartRef::from(constants_str::ABC_ALT_3),
-                super::UrlSafeTokenPartMaximumBytes::from(2usize),
+            crate::validate_url_safe_token_part::validate_url_safe_token_part(
+                crate::url_safe_token_part_ref::UrlSafeTokenPartRef::from(
+                    constants_str::catalog::ABC_ALT_3
+                ),
+                crate::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes::from(
+                    2usize
+                ),
             ),
-            Err(super::UrlSafeTokenPartTextError::TooLong)
+            Err(crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError::TooLong)
         );
     }
 
     #[test]
     fn password_policy_is_table_driven() {
-        let range = super::PasswordLengthRange::from_prevalidated(
-            super::PasswordLength::from(12usize),
-            super::PasswordLength::from(128usize),
+        let range = crate::password_length_range::PasswordLengthRange::from_prevalidated(
+            crate::password_length::PasswordLength::from(12usize),
+            crate::password_length::PasswordLength::from(128usize),
         );
         assert_eq!(
             [
-                constants_str::TEST_STRONG_PASSWORD,
-                constants_str::PASSWORD,
-                constants_str::TEST_PASSWORD_WITH_WHITESPACE,
+                constants_str::test_fixtures::TEST_STRONG_PASSWORD,
+                constants_str::catalog::PASSWORD,
+                constants_str::test_fixtures::TEST_PASSWORD_WITH_WHITESPACE,
             ]
             .map(|value| {
-                super::validate_password_policy(super::PasswordTextRef::from(value), range)
+                crate::validate_password_policy::validate_password_policy(
+                    crate::password_text_ref::PasswordTextRef::from(value),
+                    range,
+                )
             }),
             [
                 Ok(()),
-                Err(super::PasswordPolicyViolation::TooShort),
-                Err(super::PasswordPolicyViolation::ContainsWhitespace),
+                Err(crate::password_policy_violation::PasswordPolicyViolation::TooShort),
+                Err(crate::password_policy_violation::PasswordPolicyViolation::ContainsWhitespace),
             ]
         );
-        let secret = constants_str::NEVER_PRINT_THIS_VALUE;
-        assert!(!format!("{:?}", super::PasswordTextRef::from(secret)).contains(secret));
+        let secret = constants_str::catalog::NEVER_PRINT_THIS_VALUE;
+        assert!(
+            !format!(
+                "{:?}",
+                crate::password_text_ref::PasswordTextRef::from(secret)
+            )
+            .contains(secret)
+        );
     }
 }

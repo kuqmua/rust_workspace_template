@@ -1,10 +1,8 @@
-use super::AuthenticatedAdmin;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -12,5 +10,5 @@ use super::AuthenticatedAdmin;
 #[contract_struct_api(new)]
 pub struct AdminSignInRes {
     #[contract_struct_api(borrow)]
-    user: AuthenticatedAdmin,
+    user: crate::authenticated_admin::AuthenticatedAdmin,
 }

@@ -1,7 +1,7 @@
 #[must_use]
 pub fn normalize_identifier_path(
-    path: super::HttpRequestPathRef<'_>,
-) -> Option<super::HttpNormalizedPath> {
+    path: crate::http_request_path_ref::HttpRequestPathRef<'_>,
+) -> Option<crate::http_normalized_path::HttpNormalizedPath> {
     if path.0.len() > constants_usize::VALUE_8_192
         || !path.0.bytes().any(|byte| byte.is_ascii_digit())
     {
@@ -17,11 +17,12 @@ pub fn normalize_identifier_path(
                 && segment.len() <= constants_usize::TWENTY.saturating_sub(constants_usize::ONE)
                 && segment.bytes().all(|byte| byte.is_ascii_digit())
             {
-                normalized.push_str(constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
+                normalized
+                    .push_str(constants_str::test_fixtures::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
             } else if uuid::Uuid::parse_str(segment)
                 .is_ok_and(|value| value.get_version_num() == constants_usize::FOUR)
             {
-                normalized.push_str(constants_str::HTTP_NORMALIZED_UUID_SEGMENT);
+                normalized.push_str(constants_str::test_fixtures::HTTP_NORMALIZED_UUID_SEGMENT);
             } else {
                 normalized.push_str(segment);
             }
@@ -31,6 +32,6 @@ pub fn normalize_identifier_path(
     if normalized == path.0 {
         None
     } else {
-        super::HttpNormalizedPath::try_from(normalized).ok()
+        crate::http_normalized_path::HttpNormalizedPath::try_from(normalized).ok()
     }
 }

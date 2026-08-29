@@ -1,6 +1,9 @@
-pub(super) fn case_from_string<S>(v: S, case: super::ConvertCaseKind) -> super::CaseString
+pub(super) fn case_from_string<S>(
+    v: S,
+    case: crate::convert_case_kind::ConvertCaseKind,
+) -> crate::case_string::CaseString
 where
     S: AsRef<str>,
 {
-    super::str_case(v, case)
+    crate::str_case::str_case(v, case)
 }

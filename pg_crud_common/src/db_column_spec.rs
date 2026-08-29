@@ -6,19 +6,19 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct DbColumnSpec {
-    pub(super) data_type: super::DbStaticSchemaText,
-    pub(super) name: super::DbStaticSchemaText,
-    pub(super) has_server_default: super::DbColumnHasServerDefault,
-    pub(super) nullable: super::DbColumnNullable,
+    pub(super) data_type: crate::db_static_schema_text::DbStaticSchemaText,
+    pub(super) name: crate::db_static_schema_text::DbStaticSchemaText,
+    pub(super) has_server_default: crate::db_column_has_server_default::DbColumnHasServerDefault,
+    pub(super) nullable: crate::db_column_nullable::DbColumnNullable,
 }
 
 impl DbColumnSpec {
     #[must_use]
     pub const fn new(
-        name: super::DbStaticSchemaText,
-        data_type: super::DbStaticSchemaText,
-        nullable: super::DbColumnNullable,
-        has_server_default: super::DbColumnHasServerDefault,
+        name: crate::db_static_schema_text::DbStaticSchemaText,
+        data_type: crate::db_static_schema_text::DbStaticSchemaText,
+        nullable: crate::db_column_nullable::DbColumnNullable,
+        has_server_default: crate::db_column_has_server_default::DbColumnHasServerDefault,
     ) -> Self {
         Self {
             data_type,

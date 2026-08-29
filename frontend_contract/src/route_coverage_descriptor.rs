@@ -2,23 +2,22 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::{RouteAccess, RouteCoverageEvidence, RouteMutation};
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteCoverageDescriptor {
-    pub(super) evidence: RouteCoverageEvidence,
-    pub(super) metadata: crate::RouteMetadata,
-    pub(super) access: RouteAccess,
-    pub(super) mutation: RouteMutation,
+    pub(super) evidence: crate::route_coverage_evidence::RouteCoverageEvidence,
+    pub(super) metadata: crate::route_metadata::RouteMetadata,
+    pub(super) access: crate::route_access::RouteAccess,
+    pub(super) mutation: crate::route_mutation::RouteMutation,
 }
 
 impl RouteCoverageDescriptor {
     #[must_use]
     pub const fn new(
-        metadata: crate::RouteMetadata,
-        access: RouteAccess,
-        mutation: RouteMutation,
-        evidence: RouteCoverageEvidence,
+        metadata: crate::route_metadata::RouteMetadata,
+        access: crate::route_access::RouteAccess,
+        mutation: crate::route_mutation::RouteMutation,
+        evidence: crate::route_coverage_evidence::RouteCoverageEvidence,
     ) -> Self {
         Self {
             evidence,
@@ -28,7 +27,7 @@ impl RouteCoverageDescriptor {
         }
     }
     #[must_use]
-    pub const fn metadata(self) -> crate::RouteMetadata {
+    pub const fn metadata(self) -> crate::route_metadata::RouteMetadata {
         self.metadata
     }
 }

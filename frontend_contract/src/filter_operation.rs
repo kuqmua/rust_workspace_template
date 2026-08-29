@@ -1,5 +1,3 @@
-use super::FilterValueShape;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -40,18 +38,22 @@ pub enum FilterOperation {
 }
 impl FilterOperation {
     #[must_use]
-    pub const fn value_shape(self) -> FilterValueShape {
+    pub const fn value_shape(self) -> crate::filter_value_shape::FilterValueShape {
         match self {
-            Self::Between => FilterValueShape::Range,
+            Self::Between => crate::filter_value_shape::FilterValueShape::Range,
             Self::CurrentDate
             | Self::CurrentTime
             | Self::CurrentTimestamp
             | Self::GreaterThanCurrentDate
             | Self::GreaterThanCurrentTime
-            | Self::GreaterThanCurrentTimestamp => FilterValueShape::None,
-            Self::EqToEncodedStringRepresentation => FilterValueShape::EncodedText,
-            Self::In => FilterValueShape::List,
-            Self::Regex => FilterValueShape::Regex,
+            | Self::GreaterThanCurrentTimestamp => {
+                crate::filter_value_shape::FilterValueShape::None
+            }
+            Self::EqToEncodedStringRepresentation => {
+                crate::filter_value_shape::FilterValueShape::EncodedText
+            }
+            Self::In => crate::filter_value_shape::FilterValueShape::List,
+            Self::Regex => crate::filter_value_shape::FilterValueShape::Regex,
             Self::AdjacentWithRange
             | Self::Before
             | Self::Eq
@@ -65,7 +67,7 @@ impl FilterOperation {
             | Self::OverlapWithRange
             | Self::RangeLen
             | Self::StrictlyToLeftOfRange
-            | Self::StrictlyToRightOfRange => FilterValueShape::Scalar,
+            | Self::StrictlyToRightOfRange => crate::filter_value_shape::FilterValueShape::Scalar,
         }
     }
 }

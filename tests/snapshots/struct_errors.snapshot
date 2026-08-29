@@ -2,7 +2,6 @@
 ../administrator_account_initialization_and_password_reset/src/sqlx_administrator_database_connection_error.rs:SqlxAdministratorDatabaseConnectionError
 ../common_routes/src/health_components_error.rs:HealthComponentsError
 ../config_lib/src/env_var_error.rs:EnvVarError
-../config_lib/src/try_from_std_env_var_ok_admin_cookie_secure_error.rs:TryFromStdEnvVarOkAdminCookieSecureError
 ../dev_identity_creation_planner/src/development_identity_specs_error.rs:DevelopmentIdentitySpecsError
 ../external_service_emulators/src/mock_notification_provider_closed.rs:MockNotificationProviderClosed
 ../file_storage/src/file_storage_io_error.rs:FileStorageIoError
@@ -12,7 +11,6 @@
 ../frontend_contract_validation/src/serde_json_open_api_serialization_error.rs:SerdeJsonOpenApiSerializationError
 ../init_env_files/src/init_io_error.rs:InitIoError
 ../init_env_files/src/init_string_error.rs:InitStringError
-../init_env_files/src/server_runtime_bounded_read_error.rs:ServerRuntimeBoundedReadError
 ../init_env_files/src/toml_init_error.rs:TomlInitError
 ../location_lib/src/location_coordinate_try_from_u32_error.rs:LocationCoordinateTryFromU32Error
 ../location_lib/src/std_time_duration_nanos_try_from_u32_error.rs:StdTimeDurationNanosTryFromU32Error
@@ -41,25 +39,11 @@
 ../pg_crud_where_filters/src/regex_error.rs:RegexError
 ../pg_crud_where_filters_generate_src/src/serde_json_generate_where_filters_error.rs:SerdeJsonGenerateWhereFiltersError
 ../server/src/metrics_exporter_prometheus_build_error.rs:MetricsExporterPrometheusBuildError
-../server/src/server_admin_auth_svc_state_build_error.rs:ServerAdminAuthSvcStateBuildError
-../server/src/server_admin_cleanup_cfg_error.rs:ServerAdminCleanupCfgError
-../server/src/server_admin_migrate_error.rs:ServerAdminMigrateError
-../server/src/server_config_error.rs:ServerConfigError
-../server/src/server_config_production_error.rs:ServerConfigProductionError
 ../server/src/server_io_error.rs:ServerIoError
-../server/src/server_observability_init_error.rs:ServerObservabilityInitError
-../server/src/server_observability_shutdown_error.rs:ServerObservabilityShutdownError
-../server/src/server_runtime_background_task_shutdown_error.rs:ServerRuntimeBackgroundTaskShutdownError
-../server/src/server_runtime_content_security_policy_error.rs:ServerRuntimeContentSecurityPolicyError
-../server/src/server_runtime_request_timeout_error.rs:ServerRuntimeRequestTimeoutError
-../server/src/server_runtime_run_interval_error.rs:ServerRuntimeRunIntervalError
-../server/src/server_runtime_serve_error.rs:ServerRuntimeServeError
-../server/src/server_runtime_trusted_proxy_ranges_parse_error.rs:ServerRuntimeTrustedProxyRangesParseError
 ../server/src/sqlx_server_pg_connect_error.rs:SqlxServerPgConnectError
 ../server_admin/src/admin_access_token_error.rs:AdminAccessTokenError
 ../server_admin/src/admin_auth_collection_error.rs:AdminAuthCollectionError
 ../server_admin/src/admin_auth_positive_value_error.rs:AdminAuthPositiveValueError
-../server_admin/src/admin_generated_tables_validation_error.rs:AdminGeneratedTablesValidationError
 ../server_admin/src/admin_html_form_key_error.rs:AdminHtmlFormKeyError
 ../server_admin/src/admin_html_form_text_error.rs:AdminHtmlFormTextError
 ../server_admin/src/admin_migrate_error.rs:AdminMigrateError
@@ -124,5 +108,4 @@
 ../tests/src/types.rs:SourceTextTryFromStringError
 ../text_policy/src/password_length_range_error.rs:PasswordLengthRangeError
 ../workspace_scaffold/src/scaffold_io_error.rs:ScaffoldIoError
-../workspace_scaffold/src/server_runtime_bounded_read_error.rs:ServerRuntimeBoundedReadError
 ../workspace_test_runner/src/execution_io_error.rs:ExecutionIoError

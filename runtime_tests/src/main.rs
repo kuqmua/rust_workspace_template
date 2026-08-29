@@ -3,7 +3,7 @@
     reason = "the package binary delegates to its library, which owns these shared dependencies"
 )]
 
-fn main() -> Result<(), runtime_tests::domain_types::RuntimeTestError> {
+fn main() -> Result<(), runtime_tests::runtime_test_error::RuntimeTestError> {
     let config = runtime_tests::local_config()?;
     let _report = runtime_tests::run(&config)?;
     Ok(())

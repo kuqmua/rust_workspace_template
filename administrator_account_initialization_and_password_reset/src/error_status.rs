@@ -1,19 +1,19 @@
 pub(crate) fn error_status(
-    error: &crate::AdministratorAccountCommandError,
-) -> crate::AdministratorAccountCommandStatus {
-    crate::AdministratorAccountCommandStatus::from(match error {
-        crate::AdministratorAccountCommandError::Args(_)
-        | crate::AdministratorAccountCommandError::PasswordFileValue => 2u8,
-        crate::AdministratorAccountCommandError::InitialAdministratorCreation(
-            server_admin::domain_types::InitialAdministratorCreationError::AlreadyInitialized,
+    error: &crate::administrator_account_command_error::AdministratorAccountCommandError,
+) -> crate::administrator_account_command_status::AdministratorAccountCommandStatus {
+    crate::administrator_account_command_status::AdministratorAccountCommandStatus::from(match error {
+        crate::administrator_account_command_error::AdministratorAccountCommandError::Args(_)
+        | crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFileValue => 2u8,
+        crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(
+            server_admin::initial_administrator_creation_error::InitialAdministratorCreationError::AlreadyInitialized,
         ) => 3u8,
-        crate::AdministratorAccountCommandError::Config(_)
-        | crate::AdministratorAccountCommandError::ConfigProduction(_)
-        | crate::AdministratorAccountCommandError::Connect(_)
-        | crate::AdministratorAccountCommandError::Migrate(_)
-        | crate::AdministratorAccountCommandError::PasswordFile(_)
-        | crate::AdministratorAccountCommandError::PasswordReset(_)
-        | crate::AdministratorAccountCommandError::InitialAdministratorCreation(_) => 1u8,
+        crate::administrator_account_command_error::AdministratorAccountCommandError::Config(_)
+        | crate::administrator_account_command_error::AdministratorAccountCommandError::ConfigProduction(_)
+        | crate::administrator_account_command_error::AdministratorAccountCommandError::Connect(_)
+        | crate::administrator_account_command_error::AdministratorAccountCommandError::Migrate(_)
+        | crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFile(_)
+        | crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordReset(_)
+        | crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(_) => 1u8,
     })
 }
 
@@ -22,16 +22,20 @@ mod tests {
     #[test]
     fn exit_codes_distinguish_invalid_input_and_completed_initial_administrator_creation() {
         assert_eq!(
-            super::error_status(&crate::AdministratorAccountCommandError::Args(
-                crate::AdministratorCommandArgsError::Usage,
-            )),
-            crate::AdministratorAccountCommandStatus::from(2u8)
+            crate::error_status::error_status(
+                &crate::administrator_account_command_error::AdministratorAccountCommandError::Args(
+                    crate::administrator_command_args_error::AdministratorCommandArgsError::Usage,
+                )
+            ),
+            crate::administrator_account_command_status::AdministratorAccountCommandStatus::from(
+                2u8
+            )
         );
         assert_eq!(
-            super::error_status(&crate::AdministratorAccountCommandError::InitialAdministratorCreation(
-                server_admin::domain_types::InitialAdministratorCreationError::AlreadyInitialized,
+            crate::error_status::error_status(&crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(
+                server_admin::initial_administrator_creation_error::InitialAdministratorCreationError::AlreadyInitialized,
             )),
-            crate::AdministratorAccountCommandStatus::from(3u8)
+            crate::administrator_account_command_status::AdministratorAccountCommandStatus::from(3u8)
         );
     }
 }

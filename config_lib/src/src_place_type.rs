@@ -1,7 +1,3 @@
-use super::{
-    EnvParseError, EnvVarError, EnvVarName, EnvVarResultVarError, ParseCtxRef, ParseEnvVarNameRef,
-};
-
 #[derive(
     std::fmt::Debug,
     Default,
@@ -32,30 +28,38 @@ impl SrcPlaceType {
                 "dotenv initialization failed while resolving the source place type"
             );
         }
-        let parsed =
-            EnvVarResultVarError::try_from(std::env::var(constants_str::ENV_NAMES_SRC_PLACE_TYPE))
-                .map_err(EnvParseError::from)
-                .and_then(|env_v| {
-                    let env_var_name =
-                        ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE);
-                    let raw_v = env_v.0.map_err(|source| EnvParseError::Read {
-                        name: EnvVarName::try_from(env_var_name.0.to_owned())
-                            .unwrap_or_else(EnvVarName::from),
-                        source: EnvVarError::from(source),
-                    })?;
-                    raw_v.parse::<Self>().map_err(|error| EnvParseError::Parse {
-                        context: ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
-                        detail: to_err_string::domain_types::ErrorText::try_from(error)
-                            .unwrap_or_else(to_err_string::domain_types::ErrorText::from),
-                    })
-                });
+        let parsed = crate::env_var_result_var_error::EnvVarResultVarError::try_from(
+            std::env::var(constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE),
+        )
+        .map_err(crate::env_parse_error::EnvParseError::from)
+        .and_then(|env_v| {
+            let env_var_name = crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
+                constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
+            );
+            let raw_v = env_v
+                .0
+                .map_err(|source| crate::env_parse_error::EnvParseError::Read {
+                    name: crate::env_var_name::EnvVarName::try_from(env_var_name.0.to_owned())
+                        .unwrap_or_else(crate::env_var_name::EnvVarName::from),
+                    source: crate::env_var_error::EnvVarError::from(source),
+                })?;
+            raw_v
+                .parse::<Self>()
+                .map_err(|error| crate::env_parse_error::EnvParseError::Parse {
+                    context: crate::parse_ctx_ref::ParseCtxRef::from(
+                        constants_str::catalog::CONFIG_SRC_PLACE_TYPE_PARSE_CTX,
+                    ),
+                    detail: to_err_string::error_text::ErrorText::try_from(error)
+                        .unwrap_or_else(to_err_string::error_text::ErrorText::from),
+                })
+        });
         match parsed {
             Ok(v) => v,
             Err(message) => {
                 tracing::warn!(
                     error = %message,
                     default = ?default,
-                    fix = constants_str::CONFIG_SRC_PLACE_TYPE_FIX_MSG,
+                    fix = constants_str::catalog::CONFIG_SRC_PLACE_TYPE_FIX_MSG,
                     "using the default source place type"
                 );
                 default
@@ -65,12 +69,16 @@ impl SrcPlaceType {
 
     #[cfg(test)]
     pub(super) fn parse_src_place_type_from_env_var(
-        v: EnvVarResultVarError,
-    ) -> Result<Self, EnvParseError> {
-        crate::parse_from_env_var_from_str(
+        v: crate::env_var_result_var_error::EnvVarResultVarError,
+    ) -> Result<Self, crate::env_parse_error::EnvParseError> {
+        crate::parse_from_env_var_from_str::parse_from_env_var_from_str(
             v,
-            ParseEnvVarNameRef::from(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
-            ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
+            crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
+                constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
+            ),
+            crate::parse_ctx_ref::ParseCtxRef::from(
+                constants_str::catalog::CONFIG_SRC_PLACE_TYPE_PARSE_CTX,
+            ),
         )
     }
 }

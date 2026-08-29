@@ -10,11 +10,11 @@ use leptos::prelude::{
 
 #[must_use]
 pub fn render_admin_csr(
-    page: server_admin_contract::domain_types::AdminPage,
-    _active_table: Option<server_admin_contract::domain_types::AdminDataTable>,
-    _admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
-    branding: &server_admin_contract::domain_types::AdminBrandingView,
-) -> crate::domain_types::ssr::AdminSsrHtml {
+    page: server_admin_contract::admin_page::AdminPage,
+    _active_table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
+    _admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+) -> crate::admin_ssr_html::AdminSsrHtml {
     let title = branding.tab_title().map_or_else(
         || page.spec().title().as_ref().to_owned(),
         |value| value.as_ref().to_owned(),
@@ -22,12 +22,12 @@ pub fn render_admin_csr(
     let primary_color = branding
         .primary_color()
         .map(|value| format!("--accent:{}", value.as_ref()));
-    crate::render_document(
-        &crate::domain_types::ssr::AdminSsrText::try_from(title)
-            .unwrap_or_else(crate::domain_types::ssr::AdminSsrText::from),
+    crate::render_document::render_document(
+        &crate::admin_ssr_text::AdminSsrText::try_from(title)
+            .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from),
         leptos::view! {
-            <div id=constants_str::ADMIN_CSR_ROOT_ID style=primary_color>
-                <crate::domain_types::with_owner::admin_spinner::AdminSpinner />
+            <div id=constants_str::test_fixtures::ADMIN_CSR_ROOT_ID style=primary_color>
+                <crate::admin_spinner::AdminSpinner />
             </div>
             <script type="module" src="/admin/assets/admin_csr_application.js?v=20260801-37"></script>
         },

@@ -11,19 +11,19 @@ struct Response;
 struct FirstRoute;
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct SecondRoute;
-impl frontend_contract::TypedRoute for FirstRoute {
+impl frontend_contract::typed_route::TypedRoute for FirstRoute {
     type Request = FirstRequest;
     type Response = Response;
-    type Transport = frontend_contract::PublicTransport;
-    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Get, frontend_contract::ContractStr::from(constants_str::FIRST_ALT), frontend_contract::ContractStr::from(constants_str::FIRST)) }
+    type Transport = frontend_contract::public_transport::PublicTransport;
+    fn metadata() -> frontend_contract::route_metadata::RouteMetadata { frontend_contract::route_metadata::RouteMetadata::new(frontend_contract::route_method::RouteMethod::Get, frontend_contract::contract_str::ContractStr::from(constants_str::catalog::FIRST_ALT), frontend_contract::contract_str::ContractStr::from(constants_str::catalog::FIRST)) }
 }
-impl frontend_contract::TypedRoute for SecondRoute {
+impl frontend_contract::typed_route::TypedRoute for SecondRoute {
     type Request = SecondRequest;
     type Response = Response;
-    type Transport = frontend_contract::PublicTransport;
-    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::RouteMethod::Get, frontend_contract::ContractStr::from(constants_str::SECOND_ALT), frontend_contract::ContractStr::from(constants_str::SECOND)) }
+    type Transport = frontend_contract::public_transport::PublicTransport;
+    fn metadata() -> frontend_contract::route_metadata::RouteMetadata { frontend_contract::route_metadata::RouteMetadata::new(frontend_contract::route_method::RouteMethod::Get, frontend_contract::contract_str::ContractStr::from(constants_str::catalog::SECOND_ALT), frontend_contract::contract_str::ContractStr::from(constants_str::catalog::SECOND)) }
 }
 fn main() {
-    let request = frontend_contract::client_request::<FirstRoute>(FirstRequest);
-    let _: frontend_contract::RouteRequest<SecondRoute> = request;
+    let request = frontend_contract::client_request::client_request::<FirstRoute>(FirstRequest);
+    let _: frontend_contract::route_request::RouteRequest<SecondRoute> = request;
 }

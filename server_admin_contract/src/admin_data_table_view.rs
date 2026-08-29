@@ -1,10 +1,8 @@
-use super::{AdminDataColumn, AdminDataColumns, AdminDataRow};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -12,13 +10,13 @@ use super::{AdminDataColumn, AdminDataColumns, AdminDataRow};
 #[contract_struct_api(new)]
 #[optimal_memory_layout(skip)]
 pub struct AdminDataTableView {
-    #[contract_struct_api(slice = AdminDataColumn)]
-    columns: AdminDataColumns,
-    #[contract_struct_api(slice = AdminDataRow)]
-    items: crate::domain_types::AdminDataRows,
+    #[contract_struct_api(slice = crate::admin_data_column::AdminDataColumn)]
+    columns: crate::admin_data_columns::AdminDataColumns,
+    #[contract_struct_api(slice = crate::admin_data_row::AdminDataRow)]
+    items: crate::admin_data_rows::AdminDataRows,
     #[contract_struct_api(copy_ref)]
-    table: crate::domain_types::AdminDataTable,
+    table: crate::admin_data_table::AdminDataTable,
     #[schema(value_type = u64)]
     #[contract_struct_api(copy_ref)]
-    total: crate::domain_types::AdminPageTotal,
+    total: crate::admin_page_total::AdminPageTotal,
 }

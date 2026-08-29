@@ -20,8 +20,10 @@ use leptos::prelude::{Callable, ClassAttribute, ElementChild, OnAttribute};
 )]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminButton(
-    #[prop(default = super::AdminButtonVariant::default())] variant: super::AdminButtonVariant,
-    #[prop(default = super::AdminButtonKind::default())] kind: super::AdminButtonKind,
+    #[prop(default = crate::admin_button_variant::AdminButtonVariant::default())]
+    variant: crate::admin_button_variant::AdminButtonVariant,
+    #[prop(default = crate::admin_button_kind::AdminButtonKind::default())]
+    kind: crate::admin_button_kind::AdminButtonKind,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] command_for: Option<String>,
     #[prop(optional)] command: Option<&'static str>,

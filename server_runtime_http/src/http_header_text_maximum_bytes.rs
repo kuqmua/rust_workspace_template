@@ -12,11 +12,11 @@ impl From<HttpHeaderTextMaximumBytes> for usize {
 }
 
 impl TryFrom<usize> for HttpHeaderTextMaximumBytes {
-    type Error = super::HttpHeaderTextMaximumBytesError;
+    type Error = crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self)
-            .ok_or(super::HttpHeaderTextMaximumBytesError)
+            .ok_or(crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError)
     }
 }

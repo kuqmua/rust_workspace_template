@@ -12,17 +12,17 @@ pub enum RouteMethod {
 }
 impl RouteMethod {
     #[must_use]
-    pub fn as_str(self) -> crate::ContractStr {
-        crate::ContractStr::from(match self {
-            Self::Connect => constants_str::CONNECT,
-            Self::Delete => constants_str::DELETE,
-            Self::Get => constants_str::GET,
-            Self::Head => constants_str::HEAD,
-            Self::Options => constants_str::OPTIONS,
-            Self::Patch => constants_str::PATCH,
-            Self::Post => constants_str::POST,
-            Self::Put => constants_str::PUT,
-            Self::Trace => constants_str::TRACE,
+    pub fn as_str(self) -> crate::contract_str::ContractStr {
+        crate::contract_str::ContractStr::from(match self {
+            Self::Connect => constants_str::catalog::CONNECT,
+            Self::Delete => constants_str::integration_fixtures::DELETE,
+            Self::Get => constants_str::catalog::GET,
+            Self::Head => constants_str::test_fixtures::HEAD,
+            Self::Options => constants_str::test_fixtures::OPTIONS,
+            Self::Patch => constants_str::catalog::PATCH,
+            Self::Post => constants_str::catalog::POST,
+            Self::Put => constants_str::catalog::PUT,
+            Self::Trace => constants_str::test_fixtures::TRACE,
         })
     }
 }

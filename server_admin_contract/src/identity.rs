@@ -15,33 +15,22 @@ pub(crate) const ADMIN_LOGIN_IS_VALID: fn(&str) -> bool = |value| {
     })
 };
 pub(crate) const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
-    text_policy::domain_types::validate_password_policy(
-        text_policy::domain_types::PasswordTextRef::from(value),
-        text_policy::domain_types::PasswordLengthRange::from_prevalidated(
-            text_policy::domain_types::PasswordLength::from(ADMIN_NEW_PASSWORD_MIN_CHARS),
-            text_policy::domain_types::PasswordLength::from(ADMIN_PASSWORD_MAX_CHARS),
+    text_policy::validate_password_policy::validate_password_policy(
+        text_policy::password_text_ref::PasswordTextRef::from(value),
+        text_policy::password_length_range::PasswordLengthRange::from_prevalidated(
+            text_policy::password_length::PasswordLength::from(ADMIN_NEW_PASSWORD_MIN_CHARS),
+            text_policy::password_length::PasswordLength::from(ADMIN_PASSWORD_MAX_CHARS),
         ),
     )
     .is_ok()
 };
-
-pub(crate) use super::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE;
-pub use super::admin_api_body_max_bytes::AdminApiBodyMaxBytes;
-pub use super::admin_display_name::*;
-pub use super::admin_login::*;
-pub use super::admin_new_password::*;
-pub use super::admin_password::*;
-pub use super::admin_role_name::*;
-pub use super::admin_text::*;
-pub use super::default_admin_api_body_max_bytes::default_admin_api_body_max_bytes;
-pub use super::positive_non_zero_i64::PositiveNonZeroI64;
 #[cfg(test)]
 mod tests {
     #[test]
     fn positive_identifier_value_rejects_zero() {
         assert_eq!(
-            super::PositiveNonZeroI64::try_from(constants_i64::ZERO),
-            Err(crate::domain_types::AdminIdTryFromI64Error),
+            crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(constants_i64::ZERO),
+            Err(crate::admin_id_try_from_i64_error::AdminIdTryFromI64Error),
         );
     }
 }

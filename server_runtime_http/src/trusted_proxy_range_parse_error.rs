@@ -3,12 +3,12 @@ pub enum TrustedProxyRangeParseError {
     #[error("trusted proxy address is invalid")]
     InvalidAddress {
         #[source]
-        source: super::ClientAddrParseError,
+        source: crate::client_addr_parse_error::ClientAddrParseError,
     },
     #[error("trusted proxy prefix is invalid")]
     InvalidPrefix {
         #[source]
-        source: super::ParseIntError,
+        source: crate::parse_int_error::ParseIntError,
     },
     #[error("trusted proxy range must use address/prefix notation")]
     MissingPrefix,

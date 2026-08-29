@@ -1,12 +1,11 @@
-use super::domain_types::FirstIdentifier;
-
-pub fn parse_first_identifier<I>(input: &mut I) -> Option<FirstIdentifier>
+pub fn parse_first_identifier<I>(input: &mut I) -> Option<crate::first_identifier::FirstIdentifier>
 where
     I: Iterator<Item = proc_macro2::TokenTree>,
 {
     match input.next()? {
         proc_macro2::TokenTree::Ident(identifier) => Some(
-            FirstIdentifier::try_from(identifier.to_string()).unwrap_or_else(FirstIdentifier::from),
+            crate::first_identifier::FirstIdentifier::try_from(identifier.to_string())
+                .unwrap_or_else(crate::first_identifier::FirstIdentifier::from),
         ),
         proc_macro2::TokenTree::Group(group)
             if group.delimiter() == proc_macro2::Delimiter::None =>

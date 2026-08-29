@@ -12,4 +12,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct DbObjectSnapshots(Vec<super::DbObjectSnapshot>);
+pub struct DbObjectSnapshots(Vec<crate::db_object_snapshot::DbObjectSnapshot>);

@@ -1,5 +1,3 @@
-use super::domain_types::StdTimeDurationNanosTryFromU32Error;
-
 #[derive(
     Debug,
     Clone,
@@ -10,9 +8,9 @@ use super::domain_types::StdTimeDurationNanosTryFromU32Error;
     newtype::TryFrom,
 )]
 #[try_from(
-    error = StdTimeDurationNanosTryFromU32Error,
+    error = crate::std_time_duration_nanos_try_from_u32_error::StdTimeDurationNanosTryFromU32Error,
     validator = |value: &u32| {
-        if *value < 1_000_000_000u32 { Ok(()) } else { Err(StdTimeDurationNanosTryFromU32Error) }
+        if *value < 1_000_000_000u32 { Ok(()) } else { Err(crate::std_time_duration_nanos_try_from_u32_error::StdTimeDurationNanosTryFromU32Error) }
     }
 )]
 pub struct StdTimeDurationNanos(u32);

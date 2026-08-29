@@ -6,6 +6,6 @@ pub(crate) struct AdminCsrfToken(String);
 
 impl std::fmt::Debug for AdminCsrfToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
+        f.write_str(constants_str::catalog::REDACTED_ALT_3)
     }
 }

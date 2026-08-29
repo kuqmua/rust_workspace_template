@@ -1,5 +1,3 @@
-use super::{AdminDataTableFilterQuery, AdminTableQuery};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -12,9 +10,9 @@ use super::{AdminDataTableFilterQuery, AdminTableQuery};
 )]
 pub struct AdminDataTableQuery {
     #[serde(flatten)]
-    filter: AdminDataTableFilterQuery,
+    filter: crate::admin_data_table_filter_query::AdminDataTableFilterQuery,
     #[serde(flatten)]
-    page: AdminTableQuery,
+    page: crate::admin_table_query::AdminTableQuery,
 }
 impl utoipa::IntoParams for AdminDataTableQuery {
     fn into_params(
@@ -22,20 +20,24 @@ impl utoipa::IntoParams for AdminDataTableQuery {
     ) -> Vec<utoipa::openapi::path::Parameter> {
         let parameter_in = parameter_in_provider();
         let mut parameters =
-            <AdminDataTableFilterQuery as utoipa::IntoParams>::into_params(|| parameter_in.clone());
-        parameters.extend(<AdminTableQuery as utoipa::IntoParams>::into_params(|| {
-            parameter_in.clone()
-        }));
+            <crate::admin_data_table_filter_query::AdminDataTableFilterQuery as utoipa::IntoParams>::into_params(|| {
+                parameter_in.clone()
+            });
+        parameters.extend(
+            <crate::admin_table_query::AdminTableQuery as utoipa::IntoParams>::into_params(|| {
+                parameter_in.clone()
+            }),
+        );
         parameters
     }
 }
 impl AdminDataTableQuery {
     #[must_use]
-    pub const fn filter(&self) -> &AdminDataTableFilterQuery {
+    pub const fn filter(&self) -> &crate::admin_data_table_filter_query::AdminDataTableFilterQuery {
         &self.filter
     }
     #[must_use]
-    pub const fn page(&self) -> &AdminTableQuery {
+    pub const fn page(&self) -> &crate::admin_table_query::AdminTableQuery {
         &self.page
     }
 }

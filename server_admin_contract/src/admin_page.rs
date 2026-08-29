@@ -1,8 +1,3 @@
-use super::{
-    AdminFrontendPath, AdminPageCapability, AdminPageClientMode, AdminPageMetadata,
-    AdminPageNavigation, AdminPagePathRef, AdminPageSpec, AdminPageTitle, AdminRoute,
-};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -10,110 +5,110 @@ use super::{
     Copy,
     PartialEq,
     Eq,
-    frontend_contract::PageCatalog,
+    frontend_contract_macros::PageCatalog,
 )]
 #[page_catalog(
-    spec = AdminPageSpec,
-    path_ref = AdminPagePathRef,
+    spec = crate::admin_page_spec::AdminPageSpec,
+    path_ref = crate::admin_page_path_ref::AdminPagePathRef,
     inventory = ADMIN_PAGE_SPECS,
 )]
 pub enum AdminPage {
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None),
-        path = AdminFrontendPath::Users,
-        route = AdminRoute::Users,
-        title = AdminPageTitle::Users,
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(crate::admin_page_client_mode::AdminPageClientMode::CsrTableQuery, None),
+        path = crate::admin_frontend_path::AdminFrontendPath::Users,
+        route = crate::admin_route::AdminRoute::Users,
+        title = crate::admin_page_title::AdminPageTitle::Users,
     )]
     Users,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None),
-        path = AdminFrontendPath::Roles,
-        route = AdminRoute::Roles,
-        title = AdminPageTitle::Roles,
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(crate::admin_page_client_mode::AdminPageClientMode::CsrTableQuery, None),
+        path = crate::admin_frontend_path::AdminFrontendPath::Roles,
+        route = crate::admin_route::AdminRoute::Roles,
+        title = crate::admin_page_title::AdminPageTitle::Roles,
     )]
     Roles,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(AdminPageClientMode::CsrTableQuery, None),
-        path = AdminFrontendPath::Permissions,
-        route = AdminRoute::Permissions,
-        title = AdminPageTitle::Permissions,
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(crate::admin_page_client_mode::AdminPageClientMode::CsrTableQuery, None),
+        path = crate::admin_frontend_path::AdminFrontendPath::Permissions,
+        route = crate::admin_route::AdminRoute::Permissions,
+        title = crate::admin_page_title::AdminPageTitle::Permissions,
     )]
     Permissions,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(
-            AdminPageClientMode::Csr,
-            Some(AdminPageNavigation::Settings),
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Csr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::Settings),
         ),
-        path = AdminFrontendPath::Settings,
-        route = AdminRoute::Settings,
-        title = AdminPageTitle::Settings,
+        path = crate::admin_frontend_path::AdminFrontendPath::Settings,
+        route = crate::admin_route::AdminRoute::Settings,
+        title = crate::admin_page_title::AdminPageTitle::Settings,
     )]
     Settings,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(AdminPageClientMode::Csr, None),
-        path = AdminFrontendPath::Tables,
-        route = AdminRoute::DataTables,
-        title = AdminPageTitle::Tables,
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(crate::admin_page_client_mode::AdminPageClientMode::Csr, None),
+        path = crate::admin_frontend_path::AdminFrontendPath::Tables,
+        route = crate::admin_route::AdminRoute::DataTables,
+        title = crate::admin_page_title::AdminPageTitle::Tables,
     )]
     Tables,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(
-            AdminPageClientMode::Csr,
-            Some(AdminPageNavigation::Sessions),
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Csr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::Sessions),
         ),
-        path = AdminFrontendPath::Sessions,
-        route = AdminRoute::Sessions,
-        title = AdminPageTitle::Sessions,
+        path = crate::admin_frontend_path::AdminFrontendPath::Sessions,
+        route = crate::admin_route::AdminRoute::Sessions,
+        title = crate::admin_page_title::AdminPageTitle::Sessions,
     )]
     Sessions,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(
-            AdminPageClientMode::Ssr,
-            Some(AdminPageNavigation::Metrics),
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Ssr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::Metrics),
         ),
-        path = AdminFrontendPath::Metrics,
-        route = AdminRoute::Metrics,
-        title = AdminPageTitle::Metrics,
+        path = crate::admin_frontend_path::AdminFrontendPath::Metrics,
+        route = crate::admin_route::AdminRoute::Metrics,
+        title = crate::admin_page_title::AdminPageTitle::Metrics,
     )]
     Metrics,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(
-            AdminPageClientMode::Ssr,
-            Some(AdminPageNavigation::Version),
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Ssr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::Version),
         ),
-        path = AdminFrontendPath::Version,
-        route = AdminRoute::Version,
-        title = AdminPageTitle::Version,
+        path = crate::admin_frontend_path::AdminFrontendPath::Version,
+        route = crate::admin_route::AdminRoute::Version,
+        title = crate::admin_page_title::AdminPageTitle::Version,
     )]
     Version,
     #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        metadata = AdminPageMetadata::new(
-            AdminPageClientMode::Csr,
-            Some(AdminPageNavigation::Profile),
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Csr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::Profile),
         ),
-        path = AdminFrontendPath::Profile,
-        route = AdminRoute::ChangeOwnPassword,
-        title = AdminPageTitle::Profile,
+        path = crate::admin_frontend_path::AdminFrontendPath::Profile,
+        route = crate::admin_route::AdminRoute::ChangeOwnPassword,
+        title = crate::admin_page_title::AdminPageTitle::Profile,
     )]
     Profile,
     #[page_catalog_page(
-        capability = AdminPageCapability::Swagger,
-        metadata = AdminPageMetadata::new(
-            AdminPageClientMode::Ssr,
-            Some(AdminPageNavigation::OpenApi),
+        capability = crate::admin_page_capability::AdminPageCapability::Swagger,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Ssr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::OpenApi),
         ),
-        path = AdminFrontendPath::OpenApi,
-        route = AdminRoute::OpenApi,
-        title = AdminPageTitle::Api,
+        path = crate::admin_frontend_path::AdminFrontendPath::OpenApi,
+        route = crate::admin_route::AdminRoute::OpenApi,
+        title = crate::admin_page_title::AdminPageTitle::Api,
     )]
     OpenApi,
 }
@@ -131,27 +126,29 @@ impl AdminPage {
     }
 
     #[must_use]
-    pub fn supports_csr(self) -> crate::domain_types::AdminBool {
+    pub fn supports_csr(self) -> crate::admin_bool::AdminBool {
         self.spec().client_mode().supports_csr()
     }
     #[must_use]
-    pub fn uses_table_query(self) -> crate::domain_types::AdminBool {
+    pub fn uses_table_query(self) -> crate::admin_bool::AdminBool {
         self.spec().client_mode().uses_table_query()
     }
     #[must_use]
-    pub fn path(self) -> frontend_contract::ContractStr {
+    pub fn path(self) -> frontend_contract::contract_str::ContractStr {
         self.spec().path()
     }
     #[must_use]
-    pub const fn route(self) -> Option<AdminRoute> {
+    pub const fn route(self) -> Option<crate::admin_route::AdminRoute> {
         Some(self.spec().route())
     }
     #[must_use]
-    pub fn title(self) -> frontend_contract::ContractStr {
+    pub fn title(self) -> frontend_contract::contract_str::ContractStr {
         self.spec().title()
     }
     #[must_use]
-    pub fn authentication(self) -> frontend_contract::AuthenticationRequirement {
+    pub fn authentication(
+        self,
+    ) -> frontend_contract::authentication_requirement::AuthenticationRequirement {
         self.spec().route().contract().authentication()
     }
 }

@@ -3,7 +3,7 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
-pub(super) struct AxumNotificationJson(pub(super) super::NotificationRequest);
+pub(super) struct AxumNotificationJson(pub(super) crate::notification_request::NotificationRequest);
 
 impl<State> axum::extract::FromRequest<State> for AxumNotificationJson
 where
@@ -15,7 +15,7 @@ where
         req: axum::extract::Request,
         state: &State,
     ) -> Result<Self, Self::Rejection> {
-        axum::Json::<super::NotificationRequest>::from_request(req, state)
+        axum::Json::<crate::notification_request::NotificationRequest>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self::from(value))
     }

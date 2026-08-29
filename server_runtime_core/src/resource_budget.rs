@@ -4,25 +4,28 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct ResourceBudget {
-    maximum: ResourceBudgetMaximum,
-    reserved: SharedAtomicUsizeArc,
+    maximum: crate::resource_budget_maximum::ResourceBudgetMaximum,
+    reserved: crate::shared_atomic_usize_arc::SharedAtomicUsizeArc,
 }
 
 impl ResourceBudget {
     #[must_use]
-    pub fn new(maximum: ResourceBudgetMaximum) -> Self {
+    pub fn new(maximum: crate::resource_budget_maximum::ResourceBudgetMaximum) -> Self {
         Self {
             maximum,
-            reserved: SharedAtomicUsizeArc::from(std::sync::Arc::from(
-                std::sync::atomic::AtomicUsize::new(constants_usize::ZERO),
-            )),
+            reserved: crate::shared_atomic_usize_arc::SharedAtomicUsizeArc::from(
+                std::sync::Arc::from(std::sync::atomic::AtomicUsize::new(constants_usize::ZERO)),
+            ),
         }
     }
 
     pub fn reserve(
         &self,
-        amount: ResourceBudgetAmount,
-    ) -> Result<ResourceBudgetReservation, ResourceBudgetReserveError> {
+        amount: crate::resource_budget_amount::ResourceBudgetAmount,
+    ) -> Result<
+        crate::resource_budget_reservation::ResourceBudgetReservation,
+        crate::resource_budget_reserve_error::ResourceBudgetReserveError,
+    > {
         let result = self.reserved.0.try_update(
             std::sync::atomic::Ordering::AcqRel,
             std::sync::atomic::Ordering::Acquire,
@@ -33,28 +36,25 @@ impl ResourceBudget {
             },
         );
         match result {
-            Ok(_previous) => Ok(ResourceBudgetReservation {
-                amount,
-                reserved: self.reserved.clone(),
-            }),
+            Ok(_previous) => Ok(
+                crate::resource_budget_reservation::ResourceBudgetReservation {
+                    amount,
+                    reserved: self.reserved.clone(),
+                },
+            ),
             Err(current) if current.checked_add(amount.0).is_none() => {
-                Err(ResourceBudgetReserveError::Overflow)
+                Err(crate::resource_budget_reserve_error::ResourceBudgetReserveError::Overflow)
             }
-            Err(_current) => Err(ResourceBudgetReserveError::Exhausted),
+            Err(_current) => {
+                Err(crate::resource_budget_reserve_error::ResourceBudgetReserveError::Exhausted)
+            }
         }
     }
 
     #[must_use]
-    pub fn reserved(&self) -> ResourceBudgetAmount {
-        ResourceBudgetAmount::from(self.reserved.0.load(std::sync::atomic::Ordering::Acquire))
+    pub fn reserved(&self) -> crate::resource_budget_amount::ResourceBudgetAmount {
+        crate::resource_budget_amount::ResourceBudgetAmount::from(
+            self.reserved.0.load(std::sync::atomic::Ordering::Acquire),
+        )
     }
 }
-
-pub use super::bulk_item_resource_budget_provider::BulkItemResourceBudgetProvider;
-pub use super::idempotency_response_resource_budget_provider::IdempotencyResponseResourceBudgetProvider;
-pub use super::resource_budget_amount::ResourceBudgetAmount;
-pub use super::resource_budget_config_error::ResourceBudgetConfigError;
-pub use super::resource_budget_maximum::ResourceBudgetMaximum;
-pub use super::resource_budget_reservation::ResourceBudgetReservation;
-pub use super::resource_budget_reserve_error::ResourceBudgetReserveError;
-use super::shared_atomic_usize_arc::SharedAtomicUsizeArc;

@@ -1,9 +1,6 @@
 mod snake_case_string;
 mod to_snake_case_input;
 
-pub(crate) use snake_case_string::SnakeCaseString;
-pub(crate) use to_snake_case_input::ToSnakeCaseInput;
-
 #[proc_macro]
 pub fn generate_derive_token_stream_builder(
     input_token_stream: proc_macro::TokenStream,
@@ -22,7 +19,7 @@ pub fn generate_derive_token_stream_builder(
         .expect("c5d09740 generate_derive_token_stream_builder invariant must hold")
         .into_iter()
         .map(|element| {
-            let input = ToSnakeCaseInput::from(element.as_str());
+            let input = to_snake_case_input::ToSnakeCaseInput::from(element.as_str());
             let (normalized, _) = input.as_ref().chars().fold(
                 (String::with_capacity(input.as_ref().len()), false),
                 |(mut normalized, separator_pending), ch| {
@@ -38,26 +35,21 @@ pub fn generate_derive_token_stream_builder(
                     }
                 },
             );
-            let sc = SnakeCaseString::try_from(
+            let sc = snake_case_string::SnakeCaseString::try_from(
                 naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&normalized),
             )
-            .unwrap_or_else(SnakeCaseString::from);
+            .unwrap_or_else(snake_case_string::SnakeCaseString::from);
             Element {
                 d_trait_name_upper_camel_case: {
-                    let v = naming::domain_types::parameter::DSelfUpperCamelCase::from_display(
-                        &sc.as_ref(),
-                    );
+                    let v = naming::parameter::DSelfUpperCamelCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
                 },
                 d_trait_name_snake_case: {
-                    let v =
-                        naming::domain_types::parameter::DSelfSnakeCase::from_display(&sc.as_ref());
+                    let v = naming::parameter::DSelfSnakeCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
                 },
                 d_trait_name_if_snake_case: {
-                    let v = naming::domain_types::parameter::DSelfIfSnakeCase::from_display(
-                        &sc.as_ref(),
-                    );
+                    let v = naming::parameter::DSelfIfSnakeCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
                 },
                 trait_type: element

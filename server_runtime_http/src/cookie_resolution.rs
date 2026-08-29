@@ -2,5 +2,5 @@
 pub enum CookieResolution<'value_lt> {
     Invalid,
     Missing,
-    Resolved(super::HttpCookieValueRef<'value_lt>),
+    Resolved(crate::http_cookie_value_ref::HttpCookieValueRef<'value_lt>),
 }

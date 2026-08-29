@@ -6,20 +6,20 @@
 pub struct HttpCspDirectiveName(pub(super) String);
 
 impl TryFrom<String> for HttpCspDirectiveName {
-    type Error = super::HttpCspTokenError;
+    type Error = crate::http_csp_token_error::HttpCspTokenError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {
-            return Err(super::HttpCspTokenError::Empty);
+            return Err(crate::http_csp_token_error::HttpCspTokenError::Empty);
         }
         if value.len() > constants_usize::VALUE_64 {
-            return Err(super::HttpCspTokenError::TooLong);
+            return Err(crate::http_csp_token_error::HttpCspTokenError::TooLong);
         }
         if !value
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte == b'-')
         {
-            return Err(super::HttpCspTokenError::InvalidCharacter);
+            return Err(crate::http_csp_token_error::HttpCspTokenError::InvalidCharacter);
         }
         Ok(Self(value))
     }

@@ -1,4 +1,3 @@
-use super::domain_types::artifact::JsonContractSnapshotError;
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -8,9 +7,9 @@ use super::domain_types::artifact::JsonContractSnapshotError;
     newtype::AsRefStr,
     newtype::TryFrom,
 )]
-#[try_from(validator = |value: &str| {
+#[try_from(error = crate::json_contract_snapshot_error::JsonContractSnapshotError, validator = |value: &str| {
     if value.len() > constants_usize::VALUE_1_048_576 {
-        Err(JsonContractSnapshotError::TooLong)
+        Err(crate::json_contract_snapshot_error::JsonContractSnapshotError::TooLong)
     } else {
         Ok(())
     }

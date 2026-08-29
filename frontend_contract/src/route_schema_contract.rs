@@ -1,16 +1,14 @@
-use super::{RouteMetadata, TypedRoute, UtoipaOpenApiRouteSchema};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct RouteSchemaContract {
-    metadata: RouteMetadata,
-    request_schema: Option<UtoipaOpenApiRouteSchema>,
-    response_schema: Option<UtoipaOpenApiRouteSchema>,
+    metadata: crate::route_metadata::RouteMetadata,
+    request_schema: Option<crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema>,
+    response_schema: Option<crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema>,
 }
 impl RouteSchemaContract {
     #[must_use]
     pub fn from_typed_route<Route>() -> Self
     where
-        Route: TypedRoute,
+        Route: crate::typed_route::TypedRoute,
     {
         Self {
             metadata: Route::metadata(),
@@ -19,15 +17,19 @@ impl RouteSchemaContract {
         }
     }
     #[must_use]
-    pub const fn metadata(&self) -> RouteMetadata {
+    pub const fn metadata(&self) -> crate::route_metadata::RouteMetadata {
         self.metadata
     }
     #[must_use]
-    pub const fn request_schema(&self) -> Option<&UtoipaOpenApiRouteSchema> {
+    pub const fn request_schema(
+        &self,
+    ) -> Option<&crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema> {
         self.request_schema.as_ref()
     }
     #[must_use]
-    pub const fn response_schema(&self) -> Option<&UtoipaOpenApiRouteSchema> {
+    pub const fn response_schema(
+        &self,
+    ) -> Option<&crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema> {
         self.response_schema.as_ref()
     }
 }

@@ -1,8 +1,11 @@
-use super::domain_types::{ProcMacro2MacroTokens, ProcMacro2TopLevelCommaParts};
-
-pub fn split_top_level_commas<T>(input: T) -> ProcMacro2TopLevelCommaParts
+pub fn split_top_level_commas<T>(
+    input: T,
+) -> crate::proc_macro2_top_level_comma_parts::ProcMacro2TopLevelCommaParts
 where
-    T: Into<ProcMacro2MacroTokens>,
+    T: Into<crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens>,
 {
-    syn::parse2::<ProcMacro2TopLevelCommaParts>(input.into().into_inner()).unwrap_or_default()
+    syn::parse2::<crate::proc_macro2_top_level_comma_parts::ProcMacro2TopLevelCommaParts>(
+        input.into().into_inner(),
+    )
+    .unwrap_or_default()
 }

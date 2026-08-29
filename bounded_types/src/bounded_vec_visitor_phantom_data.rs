@@ -21,7 +21,7 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
             .size_hint()
             .unwrap_or(MIN)
             .min(MAX)
-            .min(crate::SERDE_PREALLOC_MAX_ITEMS);
+            .min(crate::serde_prealloc_max_items::SERDE_PREALLOC_MAX_ITEMS);
         let mut values = Vec::with_capacity(capacity);
         loop {
             if values.len() == MAX {
@@ -32,11 +32,11 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
                     },
                     |_ignored| {
                         Err(serde::de::Error::custom(
-                            crate::BoundedValueError::AboveMax {
-                                actual: crate::BoundedLen::from(
+                            crate::bounded_value_error::BoundedValueError::AboveMax {
+                                actual: crate::bounded_len::BoundedLen::from(
                                     MAX.saturating_add(constants_usize::ONE),
                                 ),
-                                max: crate::BoundedLen::from(MAX),
+                                max: crate::bounded_len::BoundedLen::from(MAX),
                             },
                         ))
                     },

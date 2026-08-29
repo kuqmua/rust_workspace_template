@@ -15,7 +15,6 @@ generate_constructor = { workspace = true }
 constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
-frontend_contract_macros = { workspace = true }
 constants_str = { workspace = true }
 newtype = { workspace = true }
 percent-encoding = { workspace = true }
@@ -30,6 +29,7 @@ axum = { workspace = true }
 
 [dev-dependencies]
 constants_u8 = { workspace = true }
+frontend_contract_macros = { workspace = true }
 futures = { workspace = true }
 
 [lints]

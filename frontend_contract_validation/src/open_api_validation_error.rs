@@ -1,24 +1,31 @@
-use super::openapi_validation::{
-    OpenApiContractText, OpenApiContractTextTryFromStringError, SerdeJsonOpenApiSerializationError,
-};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay, thiserror::Error,
 )]
 pub enum OpenApiValidationError {
-    DocumentSerialization(SerdeJsonOpenApiSerializationError),
-    MissingOperationId(OpenApiContractText, OpenApiContractText),
-    MissingPaths,
-    MissingSchemaReference(OpenApiContractText),
-    MissingSchemas,
-    OpenApiRouteMissing(OpenApiContractText, OpenApiContractText),
-    OperationIdMismatch(
-        OpenApiContractText,
-        OpenApiContractText,
-        OpenApiContractText,
-        OpenApiContractText,
+    DocumentSerialization(
+        crate::serde_json_open_api_serialization_error::SerdeJsonOpenApiSerializationError,
     ),
-    RuntimeRouteMissing(OpenApiContractText, OpenApiContractText),
-    TextTooLong(OpenApiContractTextTryFromStringError),
-    UnusedSchema(OpenApiContractText),
+    MissingOperationId(
+        crate::open_api_contract_text::OpenApiContractText,
+        crate::open_api_contract_text::OpenApiContractText,
+    ),
+    MissingPaths,
+    MissingSchemaReference(crate::open_api_contract_text::OpenApiContractText),
+    MissingSchemas,
+    OpenApiRouteMissing(
+        crate::open_api_contract_text::OpenApiContractText,
+        crate::open_api_contract_text::OpenApiContractText,
+    ),
+    OperationIdMismatch(
+        crate::open_api_contract_text::OpenApiContractText,
+        crate::open_api_contract_text::OpenApiContractText,
+        crate::open_api_contract_text::OpenApiContractText,
+        crate::open_api_contract_text::OpenApiContractText,
+    ),
+    RuntimeRouteMissing(
+        crate::open_api_contract_text::OpenApiContractText,
+        crate::open_api_contract_text::OpenApiContractText,
+    ),
+    TextTooLong(crate::open_api_contract_text::OpenApiContractTextTryFromStringError),
+    UnusedSchema(crate::open_api_contract_text::OpenApiContractText),
 }

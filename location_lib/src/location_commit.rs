@@ -1,5 +1,3 @@
-use super::domain_types::LOC_COMMIT_MAX_LEN;
-
 #[derive(
     Debug,
     PartialEq,
@@ -13,6 +11,6 @@ use super::domain_types::LOC_COMMIT_MAX_LEN;
     newtype::BoundedString,
     newtype::AsRefStr,
 )]
-#[bounded_string(max = LOC_COMMIT_MAX_LEN )]
+#[bounded_string(max = crate::domain_types::LOC_COMMIT_MAX_LEN )]
 #[serde(try_from = "String")]
 pub struct LocationCommit(String);

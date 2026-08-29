@@ -1,14 +1,23 @@
-use super::{ListOffset, ListRowsPresence, ListTotalSource, WindowTotalPresence};
-
 #[must_use]
 pub const fn resolve_list_total_source(
-    offset: ListOffset,
-    rows: ListRowsPresence,
-    window_total: WindowTotalPresence,
-) -> ListTotalSource {
+    offset: crate::list_offset::ListOffset,
+    rows: crate::list_rows_presence::ListRowsPresence,
+    window_total: crate::window_total_presence::WindowTotalPresence,
+) -> crate::list_total_source::ListTotalSource {
     match (rows, window_total, offset.0) {
-        (ListRowsPresence::Present, WindowTotalPresence::Present, _) => ListTotalSource::Window,
-        (ListRowsPresence::Empty, _, constants_i64::ZERO) => ListTotalSource::Zero,
-        (ListRowsPresence::Empty | ListRowsPresence::Present, _, _) => ListTotalSource::CountQuery,
+        (
+            crate::list_rows_presence::ListRowsPresence::Present,
+            crate::window_total_presence::WindowTotalPresence::Present,
+            _,
+        ) => crate::list_total_source::ListTotalSource::Window,
+        (crate::list_rows_presence::ListRowsPresence::Empty, _, constants_i64::ZERO) => {
+            crate::list_total_source::ListTotalSource::Zero
+        }
+        (
+            crate::list_rows_presence::ListRowsPresence::Empty
+            | crate::list_rows_presence::ListRowsPresence::Present,
+            _,
+            _,
+        ) => crate::list_total_source::ListTotalSource::CountQuery,
     }
 }

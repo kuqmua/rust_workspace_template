@@ -4,7 +4,7 @@
 pub enum AdminCollectionError {
     #[error(
         "{}",
-        constants_str::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT
+        constants_str::catalog::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT
     )]
     TooLong,
 }

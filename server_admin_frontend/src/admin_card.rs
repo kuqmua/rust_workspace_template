@@ -22,7 +22,8 @@ use leptos::prelude::{AddAnyAttr};
 )]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminCard(
-    #[prop(default = super::AdminCardVariant::default())] variant: super::AdminCardVariant,
+    #[prop(default = crate::admin_card_variant::AdminCardVariant::default())]
+    variant: crate::admin_card_variant::AdminCardVariant,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {

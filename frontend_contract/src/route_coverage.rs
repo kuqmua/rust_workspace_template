@@ -1,61 +1,54 @@
-pub use super::missing_required_test_categories::missing_required_test_categories;
-pub use super::required_test_categories::required_test_categories;
-pub use super::route_access::RouteAccess;
-pub use super::route_coverage_descriptor::RouteCoverageDescriptor;
-pub use super::route_coverage_error::RouteCoverageError;
-pub use super::route_coverage_evidence::RouteCoverageEvidence;
-pub use super::route_coverage_obligation::*;
-pub use super::route_database_usage::RouteDatabaseUsage;
-pub use super::route_json_body_usage::RouteJsonBodyUsage;
-pub use super::route_mutation::RouteMutation;
-pub use super::route_response_kind::RouteResponseKind;
-pub use super::route_test_capabilities::RouteTestCapabilities;
-pub use super::route_test_categories::RouteTestCategories;
-pub use super::route_test_category::RouteTestCategory;
-pub use super::validate_route_coverage::validate_route_coverage;
 #[cfg(test)]
 mod tests {
-    fn route_coverage_metadata() -> crate::RouteMetadata {
-        crate::RouteMetadata::new(
-            crate::RouteMethod::Post,
-            constants_str::ROUTE_READ.into(),
-            constants_str::ROUTE.into(),
+    fn route_coverage_metadata() -> crate::route_metadata::RouteMetadata {
+        crate::route_metadata::RouteMetadata::new(
+            crate::route_method::RouteMethod::Post,
+            constants_str::catalog::ROUTE_READ.into(),
+            constants_str::catalog::ROUTE.into(),
         )
     }
 
     #[test]
     fn complete_mutating_authenticated_route_is_covered() {
-        let descriptors = [super::RouteCoverageDescriptor::new(
-            route_coverage_metadata(),
-            super::RouteAccess::Authenticated,
-            super::RouteMutation::Mutating,
-            super::RouteCoverageEvidence::new(&[
-                super::RouteCoverageObligation::IntegrationFixture,
-                super::RouteCoverageObligation::OpenApiOperation,
-                super::RouteCoverageObligation::PayloadValidation,
-                super::RouteCoverageObligation::ReplayValidation,
-                super::RouteCoverageObligation::SecurityValidation,
-            ]),
-        )];
-        assert_eq!(super::validate_route_coverage(&descriptors), Ok(()));
+        let descriptors = [
+            crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
+                route_coverage_metadata(),
+                crate::route_access::RouteAccess::Authenticated,
+                crate::route_mutation::RouteMutation::Mutating,
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(&[
+                    crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+                    crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
+                    crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
+                    crate::route_coverage_obligation::RouteCoverageObligation::ReplayValidation,
+                    crate::route_coverage_obligation::RouteCoverageObligation::SecurityValidation,
+                ]),
+            ),
+        ];
+        assert_eq!(
+            crate::validate_route_coverage::validate_route_coverage(&descriptors),
+            Ok(())
+        );
     }
 
     #[test]
     fn mutating_route_requires_replay_validation() {
-        let descriptors = [super::RouteCoverageDescriptor::new(
-            route_coverage_metadata(),
-            super::RouteAccess::Public,
-            super::RouteMutation::Mutating,
-            super::RouteCoverageEvidence::new(&[
-                super::RouteCoverageObligation::IntegrationFixture,
-                super::RouteCoverageObligation::OpenApiOperation,
-                super::RouteCoverageObligation::PayloadValidation,
-            ]),
-        )];
+        let descriptors = [
+            crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
+                route_coverage_metadata(),
+                crate::route_access::RouteAccess::Public,
+                crate::route_mutation::RouteMutation::Mutating,
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(&[
+                    crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+                    crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
+                    crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
+                ]),
+            ),
+        ];
         assert!(matches!(
-            super::validate_route_coverage(&descriptors),
-            Err(super::RouteCoverageError::Missing {
-                obligation: super::RouteCoverageObligation::ReplayValidation,
+            crate::validate_route_coverage::validate_route_coverage(&descriptors),
+            Err(crate::route_coverage_error::RouteCoverageError::Missing {
+                obligation:
+                    crate::route_coverage_obligation::RouteCoverageObligation::ReplayValidation,
                 ..
             })
         ));
@@ -63,59 +56,63 @@ mod tests {
 
     #[test]
     fn duplicate_route_is_rejected() {
-        let descriptor = super::RouteCoverageDescriptor::new(
+        let descriptor = crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
             route_coverage_metadata(),
-            super::RouteAccess::Public,
-            super::RouteMutation::ReadOnly,
-            super::RouteCoverageEvidence::new(&[
-                super::RouteCoverageObligation::IntegrationFixture,
-                super::RouteCoverageObligation::OpenApiOperation,
-                super::RouteCoverageObligation::PayloadValidation,
+            crate::route_access::RouteAccess::Public,
+            crate::route_mutation::RouteMutation::ReadOnly,
+            crate::route_coverage_evidence::RouteCoverageEvidence::new(&[
+                crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+                crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
+                crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
             ]),
         );
         assert!(matches!(
-            super::validate_route_coverage(&[descriptor, descriptor]),
-            Err(super::RouteCoverageError::DuplicateRoute { .. })
+            crate::validate_route_coverage::validate_route_coverage(&[descriptor, descriptor]),
+            Err(crate::route_coverage_error::RouteCoverageError::DuplicateRoute { .. })
         ));
     }
 
     #[test]
     fn capabilities_require_matching_test_categories() {
-        let capabilities = super::RouteTestCapabilities::new(
-            super::RouteDatabaseUsage::Database,
-            super::RouteJsonBodyUsage::JsonBody,
-            super::RouteResponseKind::Streaming,
+        let capabilities = crate::route_test_capabilities::RouteTestCapabilities::new(
+            crate::route_database_usage::RouteDatabaseUsage::Database,
+            crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody,
+            crate::route_response_kind::RouteResponseKind::Streaming,
         );
         assert_eq!(
-            bounded_types::BoundedVec::from(super::missing_required_test_categories(
-                capabilities,
-                &[
-                    super::RouteTestCategory::FixtureHook,
-                    super::RouteTestCategory::Metadata,
-                ],
-            ))
+            bounded_types::bounded_vec::BoundedVec::from(
+                crate::missing_required_test_categories::missing_required_test_categories(
+                    capabilities,
+                    &[
+                        crate::route_test_category::RouteTestCategory::FixtureHook,
+                        crate::route_test_category::RouteTestCategory::Metadata,
+                    ],
+                )
+            )
             .into_inner(),
             vec![
-                super::RouteTestCategory::DatabaseFixture,
-                super::RouteTestCategory::JsonRoundTrip,
-                super::RouteTestCategory::StreamingResponse,
+                crate::route_test_category::RouteTestCategory::DatabaseFixture,
+                crate::route_test_category::RouteTestCategory::JsonRoundTrip,
+                crate::route_test_category::RouteTestCategory::StreamingResponse,
             ]
         );
     }
 
     #[test]
     fn routes_without_special_capabilities_require_baseline_categories() {
-        let capabilities = super::RouteTestCapabilities::new(
-            super::RouteDatabaseUsage::None,
-            super::RouteJsonBodyUsage::None,
-            super::RouteResponseKind::Buffered,
+        let capabilities = crate::route_test_capabilities::RouteTestCapabilities::new(
+            crate::route_database_usage::RouteDatabaseUsage::None,
+            crate::route_json_body_usage::RouteJsonBodyUsage::None,
+            crate::route_response_kind::RouteResponseKind::Buffered,
         );
         assert_eq!(
-            bounded_types::BoundedVec::from(super::required_test_categories(capabilities))
-                .into_inner(),
+            bounded_types::bounded_vec::BoundedVec::from(
+                crate::required_test_categories::required_test_categories(capabilities)
+            )
+            .into_inner(),
             vec![
-                super::RouteTestCategory::FixtureHook,
-                super::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
             ]
         );
     }

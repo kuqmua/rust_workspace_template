@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct SynField {
-    pub identifier: crate::domain_types::syn_field::SynFieldIdentifier,
-    pub type0: crate::domain_types::syn_field::SynFieldType,
-    pub vis: crate::domain_types::syn_field::SynFieldVis,
+    pub identifier: crate::syn_field_identifier::SynFieldIdentifier,
+    pub type0: crate::syn_field_type::SynFieldType,
+    pub vis: crate::syn_field_vis::SynFieldVis,
 }

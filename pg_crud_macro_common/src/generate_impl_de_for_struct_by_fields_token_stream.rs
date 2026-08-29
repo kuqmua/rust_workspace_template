@@ -2,21 +2,20 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use super::domain_types::*;
 
 pub fn generate_impl_de_for_struct_by_fields_token_stream(
-    identifier: &dyn naming::domain_types::DisplayPlusToTokens,
-    fields: SynFieldRefs<'_>,
-    _len: DeLen,
+    identifier: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens,
+    fields: crate::syn_field_refs::SynFieldRefs<'_>,
+    _len: crate::de_len::DeLen,
     generate_type_token_stream: &dyn Fn(
         &syn::Ident,
         &syn::Type,
-    ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
+    ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_identifier_token_stream = quote::format_ident!("{}Raw", identifier.to_string());
-    let syn_fields: &[macro_helpers::domain_types::syn_field::SynField] = fields.into();
+    let syn_fields: &[macro_helpers::syn_field::SynField] = fields.into();
     let raw_fields_token_stream = syn_fields.iter().map(|field| {
         let ty = field.type0.as_ref();
         let field_identifier = field.identifier.as_ref();

@@ -2,15 +2,15 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct OutboundUrlPolicy {
-    schemes: &'static [super::OutboundUrlScheme],
-    host_policy: super::OutboundHostPolicy,
+    schemes: &'static [crate::outbound_url_scheme::OutboundUrlScheme],
+    host_policy: crate::outbound_host_policy::OutboundHostPolicy,
 }
 
 impl OutboundUrlPolicy {
     #[must_use]
     pub const fn new(
-        schemes: &'static [super::OutboundUrlScheme],
-        host_policy: super::OutboundHostPolicy,
+        schemes: &'static [crate::outbound_url_scheme::OutboundUrlScheme],
+        host_policy: crate::outbound_host_policy::OutboundHostPolicy,
     ) -> Self {
         Self {
             schemes,
@@ -20,64 +20,79 @@ impl OutboundUrlPolicy {
 
     pub fn validate(
         self,
-        value: super::OutboundUrlTextRef<'_>,
-    ) -> Result<super::ReqwestOutboundUrl, super::OutboundUrlError> {
+        value: crate::outbound_url_text_ref::OutboundUrlTextRef<'_>,
+    ) -> Result<
+        crate::reqwest_outbound_url::ReqwestOutboundUrl,
+        crate::outbound_url_error::OutboundUrlError,
+    > {
         if value.0.contains(['\0', '\r', '\n'])
             || value.0.as_bytes().windows(3usize).any(|window| {
-                window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_NUL)
-                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_CR)
-                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_LF)
+                window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_NUL)
+                    || window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_CR)
+                    || window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_LF)
             })
         {
-            return Err(super::OutboundUrlError::ControlCharacter);
+            return Err(crate::outbound_url_error::OutboundUrlError::ControlCharacter);
         }
-        let url =
-            reqwest::Url::parse(value.0).map_err(|_error| super::OutboundUrlError::Invalid)?;
+        let url = reqwest::Url::parse(value.0)
+            .map_err(|_error| crate::outbound_url_error::OutboundUrlError::Invalid)?;
         if !url.username().is_empty() || url.password().is_some() {
-            return Err(super::OutboundUrlError::UserInfo);
+            return Err(crate::outbound_url_error::OutboundUrlError::UserInfo);
         }
         if !self.schemes.iter().any(|scheme| match scheme {
-            super::OutboundUrlScheme::Http => url.scheme() == constants_str::HTTP,
-            super::OutboundUrlScheme::Https => url.scheme() == constants_str::HTTPS,
-            super::OutboundUrlScheme::Rtsp => url.scheme() == constants_str::RTSP,
-            super::OutboundUrlScheme::Rtsps => url.scheme() == constants_str::RTSPS,
+            crate::outbound_url_scheme::OutboundUrlScheme::Http => {
+                url.scheme() == constants_str::catalog::HTTP
+            }
+            crate::outbound_url_scheme::OutboundUrlScheme::Https => {
+                url.scheme() == constants_str::catalog::HTTPS
+            }
+            crate::outbound_url_scheme::OutboundUrlScheme::Rtsp => {
+                url.scheme() == constants_str::test_fixtures::RTSP
+            }
+            crate::outbound_url_scheme::OutboundUrlScheme::Rtsps => {
+                url.scheme() == constants_str::test_fixtures::RTSPS
+            }
         }) {
-            return Err(super::OutboundUrlError::Scheme);
+            return Err(crate::outbound_url_error::OutboundUrlError::Scheme);
         }
-        let host = url.host_str().ok_or(super::OutboundUrlError::MissingHost)?;
-        if self.host_policy == super::OutboundHostPolicy::RejectPrivate
-            && (host.eq_ignore_ascii_case(constants_str::LOCALHOST)
+        let host = url
+            .host_str()
+            .ok_or(crate::outbound_url_error::OutboundUrlError::MissingHost)?;
+        if self.host_policy == crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate
+            && (host.eq_ignore_ascii_case(constants_str::integration_fixtures::LOCALHOST)
                 || host
                     .to_ascii_lowercase()
-                    .ends_with(constants_str::DOT_LOCALHOST))
+                    .ends_with(constants_str::test_fixtures::DOT_LOCALHOST))
         {
-            return Err(super::OutboundUrlError::ForbiddenHost);
+            return Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost);
         }
-        if self.host_policy == super::OutboundHostPolicy::RejectPrivate
+        if self.host_policy == crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate
             && host.parse::<std::net::IpAddr>().is_ok_and(|address| {
-                super::resolve_outbound_address_disposition(super::OutboundIpAddr::from(address))
-                    == super::OutboundAddressDisposition::Forbidden
+                crate::resolve_outbound_address_disposition::resolve_outbound_address_disposition(
+                    crate::outbound_ip_addr::OutboundIpAddr::from(address),
+                ) == crate::outbound_address_disposition::OutboundAddressDisposition::Forbidden
             })
         {
-            return Err(super::OutboundUrlError::ForbiddenHost);
+            return Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost);
         }
-        Ok(super::ReqwestOutboundUrl::from(url))
+        Ok(crate::reqwest_outbound_url::ReqwestOutboundUrl::from(url))
     }
 
     pub fn validate_resolved_addresses(
         self,
-        addresses: &[super::OutboundIpAddr],
-    ) -> Result<(), super::OutboundUrlError> {
+        addresses: &[crate::outbound_ip_addr::OutboundIpAddr],
+    ) -> Result<(), crate::outbound_url_error::OutboundUrlError> {
         if addresses.is_empty() {
-            return Err(super::OutboundUrlError::MissingResolvedAddress);
+            return Err(crate::outbound_url_error::OutboundUrlError::MissingResolvedAddress);
         }
-        if self.host_policy == super::OutboundHostPolicy::RejectPrivate
+        if self.host_policy == crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate
             && addresses.iter().any(|address| {
-                super::resolve_outbound_address_disposition(*address)
-                    == super::OutboundAddressDisposition::Forbidden
+                crate::resolve_outbound_address_disposition::resolve_outbound_address_disposition(
+                    *address,
+                ) == crate::outbound_address_disposition::OutboundAddressDisposition::Forbidden
             })
         {
-            Err(super::OutboundUrlError::ForbiddenHost)
+            Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
         } else {
             Ok(())
         }

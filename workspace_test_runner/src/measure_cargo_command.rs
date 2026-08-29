@@ -1,31 +1,31 @@
 pub(crate) fn measure_cargo_command(
-    measurement_name: crate::domain_types::MeasurementName,
-    args: crate::domain_types::CargoArgs,
+    measurement_name: crate::measurement_name::MeasurementName,
+    args: crate::cargo_args::CargoArgs,
 ) -> Result<(), ()> {
     let measurement_name_value = measurement_name.get();
     let started = std::time::Instant::now();
     let command_output = {
         let measurement_format = format!(
             "{}%M\n{}%R\n{}%F",
-            constants_str::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX,
-            constants_str::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
-            constants_str::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
+            constants_str::catalog::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX,
+            constants_str::catalog::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
+            constants_str::catalog::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
         );
-        macro_helpers::domain_types::tool_command::ToolCommand::new(
-            macro_helpers::domain_types::tool_command::ToolProgramRef::from(
-                constants_str::WORKSPACE_TEST_RUNNER_TIME_PATH,
+        macro_helpers::tool_command::ToolCommand::new(
+            macro_helpers::tool_program_ref::ToolProgramRef::from(
+                constants_str::catalog::WORKSPACE_TEST_RUNNER_TIME_PATH,
             ),
         )
-        .arg(macro_helpers::domain_types::tool_command::ToolArgRef::from(
-            constants_str::F,
+        .arg(macro_helpers::tool_arg_ref::ToolArgRef::from(
+            constants_str::catalog::F,
         ))
-        .arg(macro_helpers::domain_types::tool_command::ToolArgRef::from(
+        .arg(macro_helpers::tool_arg_ref::ToolArgRef::from(
             measurement_format.as_str(),
         ))
-        .arg(macro_helpers::domain_types::tool_command::ToolArgRef::from(
-            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
+        .arg(macro_helpers::tool_arg_ref::ToolArgRef::from(
+            constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
         ))
-        .args(macro_helpers::domain_types::tool_command::ToolArgsRef::from(args.get()))
+        .args(macro_helpers::tool_args_ref::ToolArgsRef::from(args.get()))
         .output()
     };
     let duration = started.elapsed();
@@ -36,23 +36,25 @@ pub(crate) fn measure_cargo_command(
                 .lines()
                 .find_map(|line| {
                     line.trim()
-                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX)
+                        .strip_prefix(constants_str::catalog::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX)
                 })
-                .unwrap_or(constants_str::UNAVAILABLE);
+                .unwrap_or(constants_str::catalog::UNAVAILABLE);
             let minor_page_faults = stderr
                 .lines()
                 .find_map(|line| {
-                    line.trim()
-                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX)
+                    line.trim().strip_prefix(
+                        constants_str::catalog::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
+                    )
                 })
-                .unwrap_or(constants_str::UNAVAILABLE);
+                .unwrap_or(constants_str::catalog::UNAVAILABLE);
             let major_page_faults = stderr
                 .lines()
                 .find_map(|line| {
-                    line.trim()
-                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX)
+                    line.trim().strip_prefix(
+                        constants_str::catalog::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
+                    )
                 })
-                .unwrap_or(constants_str::UNAVAILABLE);
+                .unwrap_or(constants_str::catalog::UNAVAILABLE);
             {
                 let stdout = String::from_utf8_lossy(output.stdout.as_slice());
                 if !stdout.is_empty() {
@@ -60,7 +62,7 @@ pub(crate) fn measure_cargo_command(
                 }
             }
             crate::print_without_measurement_footer::print_without_measurement_footer(
-                crate::domain_types::StderrTextRef::from(stderr.as_ref()),
+                crate::stderr_text_ref::StderrTextRef::from(stderr.as_ref()),
             );
             println!(
                 "measurement={measurement_name_value} wall_ms={} memory_proxy_peak_rss_kb={} memory_proxy_minor_page_faults={} memory_proxy_major_page_faults={} status=ok",
@@ -80,7 +82,7 @@ pub(crate) fn measure_cargo_command(
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             crate::print_without_measurement_footer::print_without_measurement_footer(
-                crate::domain_types::StderrTextRef::from(stderr.as_ref()),
+                crate::stderr_text_ref::StderrTextRef::from(stderr.as_ref()),
             );
             eprintln!(
                 "measurement={measurement_name_value} status=failed exit_status={}",

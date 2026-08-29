@@ -29,20 +29,18 @@ mod tests {
             #[generate_pg_table::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
-                pub primary_key_column: pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
+                pub primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
                 #field_attrs
             }
         }
     }
     #[test]
     fn shared_json_contract_helper_round_trips_table_fixture() {
-        macro_helpers::domain_types::json_contract::ensure_json_contract_round_trip::<
+        macro_helpers::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
             JsonContractValue,
-        >(
-            macro_helpers::domain_types::json_contract::JsonFixtureRef::from(
-                constants_str::OPERATION_RM,
-            ),
-        )
+        >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
+            constants_str::integration_fixtures::OPERATION_RM,
+        ))
         .expect(
             "f9f9af71 shared_json_contract_helper_round_trips_table_fixture invariant must hold",
         );
@@ -51,12 +49,12 @@ mod tests {
     fn duplicate_frontend_order_is_rejected_during_generation() {
         let input = table_input(&quote::quote! {
             #[generate_pg_table_frontend(order = 1)]
-            pub column_0: pg_types_numeric::I16AsNonNullInt2,
+            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
             #[generate_pg_table_frontend(order = 1)]
-            pub column_1: pg_types_numeric::I32AsNonNullInt4,
+            pub column_1: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
         });
-        let generated = generate_pg_table_src::domain_types::source::generate_pg_table(
-            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
         );
         assert!(generated.to_string().contains("35d30bd7"));
     }
@@ -64,10 +62,10 @@ mod tests {
     fn unknown_frontend_option_is_rejected_during_generation() {
         let input = table_input(&quote::quote! {
             #[generate_pg_table_frontend(unknown)]
-            pub column_0: pg_types_numeric::I16AsNonNullInt2,
+            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
         });
-        let generated = generate_pg_table_src::domain_types::source::generate_pg_table(
-            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
         );
         assert!(generated.to_string().contains("bc1d3b08"));
     }
@@ -78,10 +76,10 @@ mod tests {
     )]
     fn generated_metrics_use_bounded_labels() {
         let input = table_input(&quote::quote! {
-            pub column_0: pg_types_numeric::I16AsNonNullInt2,
+            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
         });
-        let generated = generate_pg_table_src::domain_types::source::generate_pg_table(
-            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
         )
         .to_string();
         assert!(generated.contains("pg_table_requests_total"));
@@ -97,9 +95,9 @@ mod tests {
     )]
     fn pg_table_generate_clippy() {
         macro_clippy_check_common::clippy_check(
-            constants_str::GENERATE_PG_TABLE_TEST_CNT,
-            constants_str::PG_CRUD_PG_TABLE,
-            constants_str::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
+            constants_str::catalog::GENERATE_PG_TABLE_TEST_CNT,
+            constants_str::catalog::PG_CRUD_PG_TABLE,
+            constants_str::catalog::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
             &{
                 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
                 enum AddGeneratePgTablePrimaryKey {
@@ -135,8 +133,8 @@ mod tests {
                             enum CommonErrorVariants {
                                 CheckCommit {
                                     #[eo_location]
-                                    check_commit: route_validators::check_commit::CommitError,
-                                    location: location_lib::domain_types::Location,
+                                    check_commit: route_validators::commit_error::CommitError,
+                                    location: location_lib::location::Location,
                                 },
                             }
                         }]
@@ -152,19 +150,19 @@ mod tests {
                         pub struct TableExample {
                             #maybe_generate_pg_table_primary_key_token_stream
                             pub primary_key_column:
-                                pg_types_text_misc::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
-                            pub column_0: pg_types_numeric::I16AsNonNullInt2,
-                            pub column_1: pg_types_numeric::OptionalI16AsNullableInt2,
-                            pub column_2: pg_types_numeric::I32AsNonNullInt4,
+                                pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
+                            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+                            pub column_1: pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
+                            pub column_2: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
                         }
                     }
                 };
                 let generate_pg_table_input_token_stream = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::True);
-                let ts = generate_pg_table_src::domain_types::source::generate_pg_table(
-                    macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
+                let ts = generate_pg_table_src::generate_pg_table::generate_pg_table(
+                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
                 );
-                let repeated_token_stream = generate_pg_table_src::domain_types::source::generate_pg_table(
-                    macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
+                let repeated_token_stream = generate_pg_table_src::generate_pg_table::generate_pg_table(
+                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
                 );
                 assert_eq!(ts.to_string(), repeated_token_stream.to_string());
                 let table_struct_token_stream = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::False);

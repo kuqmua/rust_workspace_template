@@ -1,5 +1,3 @@
-use super::Import;
-
 #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum EqOperatorVariant {
     Eq,
@@ -9,9 +7,10 @@ impl EqOperatorVariant {
     #[must_use]
     pub fn to_tokens_path(
         &self,
-        import: &Import,
-    ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-        let names = crate::domain_types::token_emission::NamesCtx::new();
+        import: &crate::import::Import,
+    ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+    {
+        let names = crate::names_ctx::NamesCtx::new();
         // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(non_snake_case)]
         let (EqOperatorUpperCamelCase,) = (names.get_eq_operator_upper_camel_case(),);
@@ -19,6 +18,6 @@ impl EqOperatorVariant {
             Self::Eq => quote::quote! {Eq},
             Self::IsNull => quote::quote! {IsNull},
         };
-        quote::quote! {#import::#EqOperatorUpperCamelCase::#ts}.into()
+        quote::quote! {#import::eq_operator::#EqOperatorUpperCamelCase::#ts}.into()
     }
 }

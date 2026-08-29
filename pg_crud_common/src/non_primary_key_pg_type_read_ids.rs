@@ -7,15 +7,15 @@
     serde::Deserialize,
     optimal_memory_layout::OptimalMemoryLayout,
 )]
-#[serde(from = "crate::domain_types::V<Option<()>>")]
+#[serde(from = "crate::v::V<Option<()>>")]
 #[derive(newtype::FromInner)]
-pub struct NonPrimaryKeyPgTypeReadIds(crate::domain_types::V<Option<()>>);
+pub struct NonPrimaryKeyPgTypeReadIds(crate::v::V<Option<()>>);
 
 impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::PG_CRUD_V_FIELD,
+                constants_str::catalog::PG_CRUD_V_FIELD,
                 utoipa::openapi::schema::OneOfBuilder::new()
                     .item(
                         utoipa::openapi::ObjectBuilder::new()
@@ -23,7 +23,7 @@ impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
                     )
                     .item(utoipa::openapi::schema::empty()),
             )
-            .required(constants_str::PG_CRUD_V_FIELD)
+            .required(constants_str::catalog::PG_CRUD_V_FIELD)
             .build()
             .into()
     }
@@ -31,7 +31,7 @@ impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
 
 impl utoipa::ToSchema for NonPrimaryKeyPgTypeReadIds {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::NONPRIMARYKEYPGTYPEREADIDS)
+        std::borrow::Cow::Borrowed(constants_str::catalog::NONPRIMARYKEYPGTYPEREADIDS)
     }
 }
 
@@ -53,6 +53,6 @@ impl sqlx::Type<sqlx::Postgres> for NonPrimaryKeyPgTypeReadIds {
 
 impl Default for NonPrimaryKeyPgTypeReadIds {
     fn default() -> Self {
-        Self::from(crate::domain_types::V { v: None })
+        Self::from(crate::v::V { v: None })
     }
 }

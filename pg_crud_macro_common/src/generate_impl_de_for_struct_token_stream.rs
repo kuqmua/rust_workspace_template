@@ -2,17 +2,16 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use super::domain_types::*;
 
 pub fn generate_impl_de_for_struct_token_stream(
-    identifier: &dyn naming::domain_types::DisplayPlusToTokens,
-    vec_identifier_type: SynIdentifierTypeRefs<'_>,
-    _len: DeLen,
+    identifier: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens,
+    vec_identifier_type: crate::syn_identifier_type_refs::SynIdentifierTypeRefs<'_>,
+    _len: crate::de_len::DeLen,
     generate_type_token_stream: &dyn Fn(
         &syn::Ident,
         &syn::Type,
-    ) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
+    ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_identifier_token_stream = quote::format_ident!("{}Raw", identifier.to_string());

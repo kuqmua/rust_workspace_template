@@ -20,18 +20,18 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     }
 
     #[must_use]
-    pub fn len(&self) -> BoundedVecLen {
-        BoundedVecLen::from(self.0.len())
+    pub fn len(&self) -> crate::bounded_vec_len::BoundedVecLen {
+        crate::bounded_vec_len::BoundedVecLen::from(self.0.len())
     }
 }
 
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {
-    type Error = BoundedVecError;
+    type Error = crate::bounded_vec_error::BoundedVecError;
 
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::<T, MIN, MAX>::try_from(value)
+        bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(value)
             .map(|bounded| Self(bounded.into_inner()))
-            .map_err(BoundedVecError::from)
+            .map_err(crate::bounded_vec_error::BoundedVecError::from)
     }
 }
 
@@ -56,7 +56,7 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = <bounded_types::BoundedVec<T, MIN, MAX> as serde::Deserialize>::deserialize(
+        let value = <bounded_types::bounded_vec::BoundedVec<T, MIN, MAX> as serde::Deserialize>::deserialize(
             deserializer,
         )?
         .into_inner();
@@ -69,8 +69,8 @@ impl<T: schemars::JsonSchema, const MIN: usize, const MAX: usize> schemars::Json
 {
     fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
         let mut schema = generator.subschema_for::<Vec<T>>();
-        let _previous_min = schema.insert(constants_str::MINITEMS.to_owned(), MIN.into());
-        let _previous_max = schema.insert(constants_str::MAXITEMS.to_owned(), MAX.into());
+        let _previous_min = schema.insert(constants_str::catalog::MINITEMS.to_owned(), MIN.into());
+        let _previous_max = schema.insert(constants_str::catalog::MAXITEMS.to_owned(), MAX.into());
         schema
     }
 
@@ -100,68 +100,67 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
     for BoundedVec<T, MIN, MAX>
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::BOUNDEDVEC)
+        std::borrow::Cow::Borrowed(constants_str::catalog::BOUNDEDVEC)
     }
 }
-pub use super::bounded_vec_error::BoundedVecError;
-pub use super::bounded_vec_len::BoundedVecLen;
 #[cfg(test)]
 mod tests {
     #[test]
     fn try_from_enforces_inclusive_bounds() {
         assert!(matches!(
-            super::BoundedVec::<u8, 1, 2>::try_from(Vec::new()),
-            Err(super::BoundedVecError::BelowMin { .. })
+            crate::bounded_vec::BoundedVec::<u8, 1, 2>::try_from(Vec::new()),
+            Err(crate::bounded_vec_error::BoundedVecError::BelowMin { .. })
         ));
         assert_eq!(
-            super::BoundedVec::<u8, 1, 2>::try_from(vec![1u8])
+            crate::bounded_vec::BoundedVec::<u8, 1, 2>::try_from(vec![1u8])
                 .expect("0901ec3d try_from_enforces_inclusive_bounds invariant must hold")
                 .as_slice(),
             &[1u8]
         );
         assert_eq!(
-            super::BoundedVec::<u8, 1, 2>::try_from(vec![1u8, 2u8])
+            crate::bounded_vec::BoundedVec::<u8, 1, 2>::try_from(vec![1u8, 2u8])
                 .expect("324b4da9 try_from_enforces_inclusive_bounds invariant must hold")
                 .as_slice(),
             &[1u8, 2u8]
         );
         assert!(matches!(
-            super::BoundedVec::<u8, 1, 2>::try_from(vec![1u8, 2u8, 3u8]),
-            Err(super::BoundedVecError::AboveMax { .. })
+            crate::bounded_vec::BoundedVec::<u8, 1, 2>::try_from(vec![1u8, 2u8, 3u8]),
+            Err(crate::bounded_vec_error::BoundedVecError::AboveMax { .. })
         ));
     }
     #[test]
     fn invalid_bounds_are_rejected() {
         assert!(matches!(
-            super::BoundedVec::<u8, 2, 1>::try_from(vec![1u8]),
-            Err(super::BoundedVecError::InvalidBounds { .. })
+            crate::bounded_vec::BoundedVec::<u8, 2, 1>::try_from(vec![1u8]),
+            Err(crate::bounded_vec_error::BoundedVecError::InvalidBounds { .. })
         ));
     }
     #[test]
     fn serde_round_trip_and_limits_are_stable() {
-        let value = <super::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
+        let value = <crate::bounded_vec::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
                 [1u8, 2u8].into_iter(),
             ),
         )
         .expect("9dcb60bc serde_round_trip_and_limits_are_stable invariant must hold");
         assert_eq!(value.as_slice(), &[1u8, 2u8]);
-        let below_min = <super::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
-            serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
-                std::iter::empty::<u8>(),
-            ),
-        );
-        let _error = below_min.expect_err(constants_str::CBBF6ACF);
-        let error = <super::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
+        let below_min =
+            <crate::bounded_vec::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
+                serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
+                    std::iter::empty::<u8>(),
+                ),
+            );
+        let _error = below_min.expect_err(constants_str::catalog::CBBF6ACF);
+        let error = <crate::bounded_vec::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
                 [1u8, 2u8, 3u8, 4u8].into_iter(),
             ),
         );
-        let _above_max_error = error.expect_err(constants_str::VALUE_91C59B94);
+        let _above_max_error = error.expect_err(constants_str::catalog::VALUE_91C59B94);
     }
     #[test]
     fn schemas_match_runtime_bounds() {
-        let schema = schemars::schema_for!(super::BoundedVec<u8, 1, 2>);
+        let schema = schemars::schema_for!(crate::bounded_vec::BoundedVec<u8, 1, 2>);
         assert_eq!(
             schema
                 .get("minItems")
@@ -174,7 +173,8 @@ mod tests {
                 .and_then(sqlx::types::JsonValue::as_u64),
             Some(2u64)
         );
-        let open_api_schema = <super::BoundedVec<u8, 1, 2> as utoipa::PartialSchema>::schema();
+        let open_api_schema =
+            <crate::bounded_vec::BoundedVec<u8, 1, 2> as utoipa::PartialSchema>::schema();
         let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) =
             open_api_schema
         else {

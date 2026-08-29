@@ -1,5 +1,3 @@
-use super::domain_types::RegexCasePostgreqlSyntax;
-
 #[derive(
     Debug,
     Clone,
@@ -16,17 +14,23 @@ pub enum RegexCase {
     Insensitive,
     Sensitive,
 }
-impl pg_crud_common::domain_types::DefaultSomeOneElement for RegexCase {
+impl pg_crud_common::default_some_one_element::DefaultSomeOneElement for RegexCase {
     fn default_some_one_element() -> Self {
         Self::Sensitive
     }
 }
 impl RegexCase {
     #[must_use]
-    pub fn postgreql_syntax(&self) -> RegexCasePostgreqlSyntax {
+    pub fn postgreql_syntax(&self) -> crate::regex_case_postgreql_syntax::RegexCasePostgreqlSyntax {
         match &self {
-            Self::Insensitive => RegexCasePostgreqlSyntax::from(constants_str::ASTERISK_ALT),
-            Self::Sensitive => RegexCasePostgreqlSyntax::from(constants_str::TEXT_ALT_15),
+            Self::Insensitive => {
+                crate::regex_case_postgreql_syntax::RegexCasePostgreqlSyntax::from(
+                    constants_str::integration_fixtures::ASTERISK_ALT,
+                )
+            }
+            Self::Sensitive => crate::regex_case_postgreql_syntax::RegexCasePostgreqlSyntax::from(
+                constants_str::integration_fixtures::TEXT_ALT_15,
+            ),
         }
     }
 }

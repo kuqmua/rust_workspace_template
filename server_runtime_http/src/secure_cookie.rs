@@ -1,29 +1,25 @@
-pub use super::build_secure_strict_cookie::build_secure_strict_cookie;
-pub use super::http_cookie_access::HttpCookieAccess;
-pub use super::http_cookie_name::HttpCookieName;
-pub use super::http_cookie_secure::HttpCookieSecure;
-pub use super::http_cookie_value::HttpCookieValue;
-pub use super::http_secure_cookie_error::HttpSecureCookieError;
-pub use super::http_set_cookie_header_value::HttpSetCookieHeaderValue;
-pub use super::std_cookie_max_age_seconds::StdCookieMaxAgeSeconds;
 #[cfg(test)]
 mod tests {
     #[test]
     fn builder_sets_security_attributes_and_rejects_injection() {
-        let name = super::HttpCookieName::try_from(String::from(constants_str::TEST_COOKIE_NAME))
-            .expect("977f74f0 builder_sets_security_attributes_and_rejects_injection invariant must hold");
-        let value = super::HttpCookieValue::try_from(String::from(
-            constants_str::TEST_COOKIE_VALUE,
+        let name = crate::http_cookie_name::HttpCookieName::try_from(String::from(
+            constants_str::TEST_COOKIE_NAME,
+        ))
+        .expect(
+            "977f74f0 builder_sets_security_attributes_and_rejects_injection invariant must hold",
+        );
+        let value = crate::http_cookie_value::HttpCookieValue::try_from(String::from(
+            constants_str::test_fixtures::TEST_COOKIE_VALUE,
         ))
         .expect(
             "38fc5531 builder_sets_security_attributes_and_rejects_injection invariant must hold",
         );
-        let header = super::build_secure_strict_cookie(
+        let header = crate::build_secure_strict_cookie::build_secure_strict_cookie(
             &name,
             &value,
             60u64.into(),
-            super::HttpCookieAccess::HttpOnly,
-            super::HttpCookieSecure::Enabled,
+            crate::http_cookie_access::HttpCookieAccess::HttpOnly,
+            crate::http_cookie_secure::HttpCookieSecure::Enabled,
         )
         .expect(
             "0b4600b3 builder_sets_security_attributes_and_rejects_injection invariant must hold",
@@ -32,37 +28,40 @@ mod tests {
         let text = header_value.to_str().expect(
             "3176fb72 builder_sets_security_attributes_and_rejects_injection invariant must hold",
         );
-        assert!(text.contains(constants_str::HTTPONLY));
-        assert!(text.contains(constants_str::SECURE));
+        assert!(text.contains(constants_str::catalog::HTTPONLY));
+        assert!(text.contains(constants_str::catalog::SECURE));
         assert_eq!(
-            super::HttpCookieValue::try_from(String::from(constants_str::TEST_COOKIE_INJECTION)),
-            Err(super::HttpSecureCookieError::InvalidValue),
+            crate::http_cookie_value::HttpCookieValue::try_from(String::from(
+                constants_str::test_fixtures::TEST_COOKIE_INJECTION
+            )),
+            Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue),
         );
         assert_eq!(
-            super::HttpCookieName::try_from(String::from("session/path")),
-            Err(super::HttpSecureCookieError::InvalidName),
+            crate::http_cookie_name::HttpCookieName::try_from(String::from("session/path")),
+            Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName),
         );
         assert_eq!(
-            super::HttpCookieName::try_from(String::from("session=shadow")),
-            Err(super::HttpSecureCookieError::InvalidName),
+            crate::http_cookie_name::HttpCookieName::try_from(String::from("session=shadow")),
+            Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName),
         );
     }
 
     #[test]
     fn builder_preserves_unsigned_maximum_age_range() {
-        let name = super::HttpCookieName::try_from(String::from(constants_str::TEST_COOKIE_NAME))
-            .expect("3dde3ff2 builder_preserves_unsigned_maximum_age_range invariant must hold");
-        let value =
-            super::HttpCookieValue::try_from(String::from(constants_str::TEST_COOKIE_VALUE))
-                .expect(
-                    "7b47e5b5 builder_preserves_unsigned_maximum_age_range invariant must hold",
-                );
-        let header = super::build_secure_strict_cookie(
+        let name = crate::http_cookie_name::HttpCookieName::try_from(String::from(
+            constants_str::TEST_COOKIE_NAME,
+        ))
+        .expect("3dde3ff2 builder_preserves_unsigned_maximum_age_range invariant must hold");
+        let value = crate::http_cookie_value::HttpCookieValue::try_from(String::from(
+            constants_str::test_fixtures::TEST_COOKIE_VALUE,
+        ))
+        .expect("7b47e5b5 builder_preserves_unsigned_maximum_age_range invariant must hold");
+        let header = crate::build_secure_strict_cookie::build_secure_strict_cookie(
             &name,
             &value,
             u64::MAX.into(),
-            super::HttpCookieAccess::ScriptReadable,
-            super::HttpCookieSecure::Disabled,
+            crate::http_cookie_access::HttpCookieAccess::ScriptReadable,
+            crate::http_cookie_secure::HttpCookieSecure::Disabled,
         )
         .expect("0a722d46 builder_preserves_unsigned_maximum_age_range invariant must hold");
         assert!(
@@ -75,27 +74,11 @@ mod tests {
 }
 
 // Root-owned module compatibility wrappers.
-mod build_secure_strict_cookie {
-    pub use super::super::build_secure_strict_cookie::*;
-}
-mod http_cookie_access {
-    pub use super::super::http_cookie_access::*;
-}
-mod http_cookie_name {
-    pub use super::super::http_cookie_name::*;
-}
-mod http_cookie_secure {
-    pub use super::super::http_cookie_secure::*;
-}
-mod http_cookie_value {
-    pub use super::super::http_cookie_value::*;
-}
-mod http_secure_cookie_error {
-    pub use super::super::http_secure_cookie_error::*;
-}
-mod http_set_cookie_header_value {
-    pub use super::super::http_set_cookie_header_value::*;
-}
-mod std_cookie_max_age_seconds {
-    pub use super::super::std_cookie_max_age_seconds::*;
-}
+mod build_secure_strict_cookie {}
+mod http_cookie_access {}
+mod http_cookie_name {}
+mod http_cookie_secure {}
+mod http_cookie_value {}
+mod http_secure_cookie_error {}
+mod http_set_cookie_header_value {}
+mod std_cookie_max_age_seconds {}

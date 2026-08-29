@@ -6,27 +6,31 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct PgScopedForeignKey {
-    pub(super) local_columns: crate::domain_types::PgSqlIdentifiers,
-    pub(super) referenced_columns: crate::domain_types::PgSqlIdentifiers,
-    pub(super) referenced_table: crate::domain_types::SqlQualifiedIdentifier,
-    pub(super) on_delete: crate::domain_types::PgScopedForeignKeyOnDelete,
+    pub(super) local_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,
+    pub(super) referenced_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,
+    pub(super) referenced_table: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
+    pub(super) on_delete: crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete,
 }
 
 impl PgScopedForeignKey {
     pub fn new(
-        local_columns: crate::domain_types::PgSqlIdentifiers,
-        referenced_table: crate::domain_types::SqlQualifiedIdentifier,
-        referenced_columns: crate::domain_types::PgSqlIdentifiers,
-        on_delete: crate::domain_types::PgScopedForeignKeyOnDelete,
-    ) -> Result<Self, crate::domain_types::PgScopedForeignKeyError> {
+        local_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,
+        referenced_table: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
+        referenced_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,
+        on_delete: crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete,
+    ) -> Result<Self, crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError> {
         if local_columns.0.len() != referenced_columns.0.len() {
-            return Err(crate::domain_types::PgScopedForeignKeyError::ColumnCountMismatch);
+            return Err(
+                crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::ColumnCountMismatch,
+            );
         }
         if !(crate::minimum_scoped_foreign_key_columns::MINIMUM_SCOPED_FOREIGN_KEY_COLUMNS
             ..=crate::maximum_scoped_foreign_key_columns::MAXIMUM_SCOPED_FOREIGN_KEY_COLUMNS)
             .contains(&local_columns.0.len())
         {
-            return Err(crate::domain_types::PgScopedForeignKeyError::InvalidColumnCount);
+            return Err(
+                crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::InvalidColumnCount,
+            );
         }
         if crate::contains_duplicate_identifier::contains_duplicate_identifier(
             local_columns.0.as_slice(),
@@ -35,7 +39,9 @@ impl PgScopedForeignKey {
                 referenced_columns.0.as_slice(),
             ) == crate::pg_duplicate_identifier_presence::PgDuplicateIdentifierPresence::Present
         {
-            return Err(crate::domain_types::PgScopedForeignKeyError::DuplicateColumn);
+            return Err(
+                crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::DuplicateColumn,
+            );
         }
         Ok(Self {
             local_columns,

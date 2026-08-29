@@ -1,17 +1,11 @@
-use super::convert_case_kind::ConvertCaseKind;
-use super::display_case_str::display_case_str;
-use super::str_case::str_case;
-use super::to_token_stream_or_panic::to_token_stream_or_panic;
-use super::tokenized_case_str::tokenized_case_str;
-
 naming_common_macros::case_trait_pair!(
     AsRefStrToUpperCamelCaseStr,
     AsRefStrToUpperCamelCaseTokenStream,
     AsRef<str>,
     |self_ref| {
-        str_case(
+        crate::str_case::str_case(
             self_ref.as_ref(),
-            ConvertCaseKind(convert_case::Case::UpperCamel),
+            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperCamel),
         )
         .0
     }
@@ -21,9 +15,9 @@ naming_common_macros::case_trait_pair!(
     AsRefStrToSnakeCaseTokenStream,
     AsRef<str>,
     |self_ref| {
-        str_case(
+        crate::str_case::str_case(
             self_ref.as_ref(),
-            ConvertCaseKind(convert_case::Case::Snake),
+            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::Snake),
         )
         .0
     }
@@ -32,9 +26,9 @@ naming_common_macros::case_trait_pair!(
     AsRefStrToUpperSnakeCaseStr,
     AsRefStrToUpperSnakeCaseTokenStream,
     AsRef<str>,
-    |self_ref| str_case(
+    |self_ref| crate::str_case::str_case(
         self_ref.as_ref(),
-        ConvertCaseKind(convert_case::Case::UpperSnake)
+        crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperSnake)
     )
     .0
 );
@@ -42,37 +36,69 @@ naming_common_macros::case_trait_pair!(
     DisplayToUpperCamelCaseStr,
     DisplayToUpperCamelCaseTokenStream,
     std::fmt::Display,
-    |self_ref| { display_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperCamel)).0 }
+    |self_ref| {
+        crate::display_case_str::display_case_str(
+            self_ref,
+            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperCamel),
+        )
+        .0
+    }
 );
 naming_common_macros::case_trait_pair!(
     DisplayToSnakeCaseStr,
     DisplayToSnakeCaseTokenStream,
     std::fmt::Display,
-    |self_ref| { display_case_str(self_ref, ConvertCaseKind(convert_case::Case::Snake)).0 }
+    |self_ref| {
+        crate::display_case_str::display_case_str(
+            self_ref,
+            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::Snake),
+        )
+        .0
+    }
 );
 naming_common_macros::case_trait_pair!(
     DisplayToUpperSnakeCaseStr,
     DisplayToUpperSnakeCaseTokenStream,
     std::fmt::Display,
-    |self_ref| display_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
+    |self_ref| crate::display_case_str::display_case_str(
+        self_ref,
+        crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperSnake)
+    )
+    .0
 );
 naming_common_macros::case_trait_pair!(
     ToTokensToUpperCamelCaseStr,
     ToTokensToUpperCamelCaseTokenStream,
     quote::ToTokens,
-    |self_ref| { tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperCamel)).0 }
+    |self_ref| {
+        crate::tokenized_case_str::tokenized_case_str(
+            self_ref,
+            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperCamel),
+        )
+        .0
+    }
 );
 naming_common_macros::case_trait_pair!(
     ToTokensToSnakeCaseStr,
     ToTokensToSnakeCaseTokenStream,
     quote::ToTokens,
-    |self_ref| { tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::Snake)).0 }
+    |self_ref| {
+        crate::tokenized_case_str::tokenized_case_str(
+            self_ref,
+            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::Snake),
+        )
+        .0
+    }
 );
 naming_common_macros::case_trait_pair!(
     ToTokensToUpperSnakeCaseStr,
     ToTokensToUpperSnakeCaseTokenStream,
     quote::ToTokens,
-    |self_ref| tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
+    |self_ref| crate::tokenized_case_str::tokenized_case_str(
+        self_ref,
+        crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperSnake)
+    )
+    .0
 );
 #[cfg(test)]
 mod tests {
@@ -87,22 +113,24 @@ mod tests {
     #[test]
     fn as_ref_case_conversions_are_expected() {
         assert_case_triplet(
-            super::AsRefStrToUpperCamelCaseStr::case(&constants_str::HELLO_WORLD_ALT),
-            super::AsRefStrToSnakeCaseStr::case(&constants_str::HELLOWORLD),
-            super::AsRefStrToUpperSnakeCaseStr::case(&constants_str::HELLOWORLD_ALT),
+            super::AsRefStrToUpperCamelCaseStr::case(&constants_str::catalog::HELLO_WORLD_ALT),
+            super::AsRefStrToSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD),
+            super::AsRefStrToUpperSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD_ALT),
         );
     }
     #[test]
     fn ts_case_conversions_are_expected() {
         assert_case_triplet(
             super::AsRefStrToUpperCamelCaseTokenStream::case_or_panic(
-                &constants_str::HELLO_WORLD_ALT,
+                &constants_str::catalog::HELLO_WORLD_ALT,
             )
             .to_string(),
-            super::AsRefStrToSnakeCaseTokenStream::case_or_panic(&constants_str::HELLOWORLD)
-                .to_string(),
+            super::AsRefStrToSnakeCaseTokenStream::case_or_panic(
+                &constants_str::catalog::HELLOWORLD,
+            )
+            .to_string(),
             super::AsRefStrToUpperSnakeCaseTokenStream::case_or_panic(
-                &constants_str::HELLOWORLD_ALT,
+                &constants_str::catalog::HELLOWORLD_ALT,
             )
             .to_string(),
         );
@@ -110,9 +138,9 @@ mod tests {
     #[test]
     fn display_and_tokens_conversion_are_expected() {
         assert_case_triplet(
-            super::DisplayToUpperCamelCaseStr::case(&constants_str::HELLO_WORLD_ALT),
-            super::DisplayToSnakeCaseStr::case(&constants_str::HELLOWORLD),
-            super::DisplayToUpperSnakeCaseStr::case(&constants_str::HELLOWORLD_ALT),
+            super::DisplayToUpperCamelCaseStr::case(&constants_str::catalog::HELLO_WORLD_ALT),
+            super::DisplayToSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD),
+            super::DisplayToUpperSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD_ALT),
         );
         assert_case_triplet(
             super::ToTokensToUpperCamelCaseStr::case(&quote::quote! {hello_world}),
@@ -124,13 +152,15 @@ mod tests {
     fn display_and_tokens_token_stream_conversion_are_expected() {
         assert_case_triplet(
             super::DisplayToUpperCamelCaseTokenStream::case_or_panic(
-                &constants_str::HELLO_WORLD_ALT,
+                &constants_str::catalog::HELLO_WORLD_ALT,
             )
             .to_string(),
-            super::DisplayToSnakeCaseTokenStream::case_or_panic(&constants_str::HELLOWORLD)
-                .to_string(),
+            super::DisplayToSnakeCaseTokenStream::case_or_panic(
+                &constants_str::catalog::HELLOWORLD,
+            )
+            .to_string(),
             super::DisplayToUpperSnakeCaseTokenStream::case_or_panic(
-                &constants_str::HELLOWORLD_ALT,
+                &constants_str::catalog::HELLOWORLD_ALT,
             )
             .to_string(),
         );

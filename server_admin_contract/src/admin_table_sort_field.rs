@@ -33,53 +33,76 @@ impl AdminTableSortField {
         Self::AuditSucceeded,
     ];
     #[must_use]
-    pub fn key(self) -> frontend_contract::ContractStr {
+    pub fn key(self) -> frontend_contract::contract_str::ContractStr {
         self.values().key
     }
     #[must_use]
-    pub fn label(self) -> frontend_contract::ContractStr {
+    pub fn label(self) -> frontend_contract::contract_str::ContractStr {
         self.values().label
     }
     pub fn try_from_key(
         options: &[Self],
-        key: super::AdminTableSortKeyRef<'_>,
-    ) -> Result<Self, super::AdminTableSortFieldTryFromKeyError> {
+        key: crate::admin_table_sort_key_ref::AdminTableSortKeyRef<'_>,
+    ) -> Result<
+        Self,
+        crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError,
+    > {
         options
             .iter()
             .copied()
             .find(|option| option.key().as_ref() == key.0)
-            .ok_or(super::AdminTableSortFieldTryFromKeyError)
+            .ok_or(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError)
     }
-    fn values(self) -> super::AdminTableSortValues {
+    fn values(self) -> crate::admin_table_sort_values::AdminTableSortValues {
         let (key, label) = match self {
-            Self::AuditAction => (constants_str::ACTION, constants_str::SHARED_VALUES_ACTION_2),
-            Self::AuditCreatedAt => (constants_str::CREATED_AT, constants_str::SHARED_VALUES_TIME),
+            Self::AuditAction => (
+                constants_str::catalog::ACTION,
+                constants_str::catalog::SHARED_VALUES_ACTION_2,
+            ),
+            Self::AuditCreatedAt => (
+                constants_str::catalog::CREATED_AT,
+                constants_str::catalog::SHARED_VALUES_TIME,
+            ),
             Self::AuditResource => (
-                constants_str::RESOURCE,
-                constants_str::SHARED_VALUES_RESOURCE_2,
+                constants_str::catalog::RESOURCE,
+                constants_str::catalog::SHARED_VALUES_RESOURCE_2,
             ),
-            Self::AuditSucceeded => (constants_str::SUCCEEDED, constants_str::RESULT),
-            Self::AuditUserId => (constants_str::USER_ID, constants_str::SHARED_VALUES_USER),
-            Self::PermissionId | Self::RoleId | Self::UserId => {
-                (constants_str::SQL_NAMES_ID, constants_str::ID)
-            }
-            Self::PermissionName | Self::RoleName => {
-                (constants_str::NAME, constants_str::SHARED_VALUES_NAME_2)
-            }
-            Self::RoleSystem => (constants_str::SYSTEM, constants_str::SHARED_VALUES_SYSTEM_2),
+            Self::AuditSucceeded => (
+                constants_str::catalog::SUCCEEDED,
+                constants_str::catalog::RESULT,
+            ),
+            Self::AuditUserId => (
+                constants_str::catalog::USER_ID,
+                constants_str::catalog::SHARED_VALUES_USER,
+            ),
+            Self::PermissionId | Self::RoleId | Self::UserId => (
+                constants_str::catalog::SQL_NAMES_ID,
+                constants_str::catalog::ID,
+            ),
+            Self::PermissionName | Self::RoleName => (
+                constants_str::catalog::NAME,
+                constants_str::catalog::SHARED_VALUES_NAME_2,
+            ),
+            Self::RoleSystem => (
+                constants_str::catalog::SYSTEM,
+                constants_str::catalog::SHARED_VALUES_SYSTEM_2,
+            ),
             Self::UserDisplayName => (
-                constants_str::DISPLAY_NAME,
-                constants_str::SHARED_VALUES_DISPLAY_NAME_2,
+                constants_str::catalog::DISPLAY_NAME,
+                constants_str::catalog::SHARED_VALUES_DISPLAY_NAME_2,
             ),
-            Self::UserLogin => (constants_str::LOGIN, constants_str::SHARED_VALUES_LOGIN_2),
+            Self::UserLogin => (
+                constants_str::catalog::LOGIN,
+                constants_str::catalog::SHARED_VALUES_LOGIN_2,
+            ),
             Self::UserStatus => (
-                constants_str::STATUS_ALT,
-                constants_str::SHARED_VALUES_STATUS_2,
+                constants_str::catalog::STATUS_ALT,
+                constants_str::catalog::SHARED_VALUES_STATUS_2,
             ),
         };
-        super::AdminTableSortValues {
-            key: frontend_contract::ContractStr::from(key),
-            label: frontend_contract::ContractStr::from(label),
+        crate::admin_table_sort_values::AdminTableSortValues {
+            key: frontend_contract::contract_str::ContractStr::from(key),
+            label: frontend_contract::contract_str::ContractStr::from(label),
         }
     }
 }

@@ -12,7 +12,7 @@
     newtype::IntoInner,
 )]
 #[bounded_string(
-    max = super::ERROR_TEXT_MAX_LEN,
+    max = crate::error_text_max_len::ERROR_TEXT_MAX_LEN,
     serde,
     description = "error text"
 )]

@@ -24,9 +24,9 @@ mod tests {
     #[test]
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
     fn env_example_matches_generated_descriptor() {
-        let example_path =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(constants_str::ENV_EXAMPLE);
-        if std::env::var_os(constants_str::UPDATE_CONFIG_PROJECTIONS).is_some() {
+        let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(constants_str::catalog::ENV_EXAMPLE);
+        if std::env::var_os(constants_str::test_fixtures::UPDATE_CONFIG_PROJECTIONS).is_some() {
             std::fs::write(
                 example_path.as_path(),
                 notification_service_config::config::Config::env_example(),
@@ -50,17 +50,18 @@ mod tests {
             assert_eq!(value, descriptor.example().as_ref());
             assert_eq!(
                 descriptor.requirement(),
-                config_lib::domain_types::ConfigFieldRequirement::Required
+                config_lib::config_field_requirement::ConfigFieldRequirement::Required
             );
-            if descriptor.sensitivity() == config_lib::domain_types::ConfigFieldSensitivity::Public
+            if descriptor.sensitivity()
+                == config_lib::config_field_sensitivity::ConfigFieldSensitivity::Public
             {
                 assert_eq!(
                     descriptor.validate_example(
-                        config_lib::domain_types::StdEnvVarOk::try_from(value).expect(
+                        config_lib::std_env_var_ok::StdEnvVarOk::try_from(value).expect(
                             "51cc2fcf env_example_matches_generated_descriptor invariant must hold"
                         )
                     ),
-                    config_lib::domain_types::ConfigExampleValidity::Valid
+                    config_lib::config_example_validity::ConfigExampleValidity::Valid
                 );
             }
         });
@@ -68,20 +69,22 @@ mod tests {
 
     #[test]
     fn compose_environment_keys_match_generated_descriptor() {
-        let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
+        let compose_source = repository_file(std::path::Path::new(
+            constants_str::test_fixtures::VALUE_E45E45BA,
+        ));
         let service = compose_source
-            .split_once(constants_str::VALUE_3D732A3D)
+            .split_once(constants_str::test_fixtures::VALUE_3D732A3D)
             .map(|(_before, service)| service)
             .and_then(|service| {
                 service
-                    .split_once(constants_str::VALUE_A71DB4E8)
+                    .split_once(constants_str::test_fixtures::VALUE_A71DB4E8)
                     .map(|(env, _after)| env)
             })
             .expect(
                 "f30296b7 compose_environment_keys_match_generated_descriptor invariant must hold",
             );
         let environment = service
-            .split_once(constants_str::VALUE_22746334)
+            .split_once(constants_str::test_fixtures::VALUE_22746334)
             .map(|(_before, environment)| environment)
             .expect(
                 "0a7b014c compose_environment_keys_match_generated_descriptor invariant must hold",
@@ -106,7 +109,7 @@ mod tests {
     fn deployment_ports_match_generated_descriptor() {
         let mut socket_addresses = descriptor_examples()
             .into_iter()
-            .filter(|(name, _value)| name.ends_with(constants_str::VALUE_E0071B88))
+            .filter(|(name, _value)| name.ends_with(constants_str::test_fixtures::VALUE_E0071B88))
             .map(|(_name, value)| value);
         let socket_address = socket_addresses
             .next()
@@ -116,7 +119,9 @@ mod tests {
             .parse::<std::net::SocketAddr>()
             .expect("323370cc deployment port descriptor must contain a socket address")
             .port();
-        let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
+        let compose_source = repository_file(std::path::Path::new(
+            constants_str::test_fixtures::VALUE_E45E45BA,
+        ));
         [
             format!("NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:{port}\""),
             format!("http://127.0.0.1:{port}/health/ready"),
@@ -125,8 +130,9 @@ mod tests {
         .into_iter()
         .for_each(|expected| assert!(compose_source.contains(expected.as_str()), "0eea7688"));
 
-        let deployment_source =
-            repository_file(std::path::Path::new(constants_str::VALUE_09101A6F));
+        let deployment_source = repository_file(std::path::Path::new(
+            constants_str::test_fixtures::VALUE_09101A6F,
+        ));
         assert_eq!(
             deployment_source
                 .matches(format!("containerPort: {port}").as_str())
@@ -143,8 +149,9 @@ mod tests {
             "79fb8442"
         );
 
-        let network_policy_source =
-            repository_file(std::path::Path::new(constants_str::VALUE_7C89676C));
+        let network_policy_source = repository_file(std::path::Path::new(
+            constants_str::test_fixtures::VALUE_7C89676C,
+        ));
         assert_eq!(
             network_policy_source
                 .lines()
@@ -160,12 +167,12 @@ mod tests {
         let service_name = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .file_name()
             .and_then(std::ffi::OsStr::to_str)
-            .and_then(|name| name.strip_suffix(constants_str::VALUE_C48F2769))
+            .and_then(|name| name.strip_suffix(constants_str::test_fixtures::VALUE_C48F2769))
             .map(str::to_owned)
             .expect("f53ffbf0 service name invariant must hold")
             .into_boxed_str();
-        let dockerfile =
-            std::path::PathBuf::from(service_name.as_ref()).join(constants_str::VALUE_DD2C0EB6);
+        let dockerfile = std::path::PathBuf::from(service_name.as_ref())
+            .join(constants_str::test_fixtures::VALUE_DD2C0EB6);
         assert!(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
@@ -177,19 +184,23 @@ mod tests {
         let dockerfile_text = dockerfile.to_str().expect(
             "abc73cd7 service_image_references_follow_the_config_crate_name invariant must hold",
         );
-        let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
+        let compose_source = repository_file(std::path::Path::new(
+            constants_str::test_fixtures::VALUE_E45E45BA,
+        ));
         assert!(
             compose_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),
             "639c8124"
         );
         let ci_source = repository_file(std::path::Path::new(
-            constants_str::CODE_STYLE_CI_WORKFLOW_PATH,
+            constants_str::catalog::CODE_STYLE_CI_WORKFLOW_PATH,
         ));
         assert!(
             ci_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),
             "22e74268"
         );
-        let release_source = repository_file(std::path::Path::new(constants_str::VALUE_87DB21A9));
+        let release_source = repository_file(std::path::Path::new(
+            constants_str::test_fixtures::VALUE_87DB21A9,
+        ));
         assert!(
             release_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),
             "f4cd7ec6"

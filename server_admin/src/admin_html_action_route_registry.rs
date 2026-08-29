@@ -1,6 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::endpoint_registry(
-    state = crate::SharedAdminAuthSvcStateArc;
-    (server_admin_contract::domain_types::AdminFrontendPath::Root, crate::root),
+#[frontend_contract_macros::endpoint_registry(
+    state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc;
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::Root, crate::root::root),
 )]
 pub(crate) struct AdminHtmlActionRouteRegistry;

@@ -10,4 +10,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct DbKeySpecs(Vec<super::DbKeySpec>);
+pub struct DbKeySpecs(Vec<crate::db_key_spec::DbKeySpec>);

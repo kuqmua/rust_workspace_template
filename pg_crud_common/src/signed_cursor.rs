@@ -8,11 +8,11 @@ impl SignedCursor {
 }
 
 impl TryFrom<String> for SignedCursor {
-    type Error = crate::domain_types::SignedCursorError;
+    type Error = crate::signed_cursor_error::SignedCursorError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > Self::MAXIMUM_LENGTH {
-            Err(crate::domain_types::SignedCursorError)
+            Err(crate::signed_cursor_error::SignedCursorError)
         } else {
             Ok(Self(value))
         }

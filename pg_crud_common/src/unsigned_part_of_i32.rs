@@ -30,24 +30,24 @@ impl From<std::num::NonZeroI32> for UnsignedPartOfI32 {
 }
 
 impl TryFrom<i32> for UnsignedPartOfI32 {
-    type Error = crate::domain_types::UnsignedPartOfI32TryFromI32Error;
+    type Error = crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error;
 
     fn try_from(v: i32) -> Result<Self, Self::Error> {
         if v >= 0 {
             Ok(Self(v))
         } else {
             Err(Self::Error::LessThanZero {
-                v: crate::domain_types::UnsignedPartOfI32Raw::from(v),
+                v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(v),
                 location: location_macros::location!(),
             })
         }
     }
 }
 
-impl to_err_string::domain_types::ToErrString for UnsignedPartOfI32 {
-    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-        to_err_string::domain_types::ErrorText::try_from(self.0.to_string())
-            .unwrap_or_else(to_err_string::domain_types::ErrorText::from)
+impl to_err_string::to_err_string::ToErrString for UnsignedPartOfI32 {
+    fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
+        to_err_string::error_text::ErrorText::try_from(self.0.to_string())
+            .unwrap_or_else(to_err_string::error_text::ErrorText::from)
     }
 }
 
@@ -77,7 +77,7 @@ impl UnsignedPartOfI32 {
     }
 }
 
-impl crate::domain_types::DefaultSomeOneElement for UnsignedPartOfI32 {
+impl crate::default_some_one_element::DefaultSomeOneElement for UnsignedPartOfI32 {
     fn default_some_one_element() -> Self {
         Self::from(constants_u16::ZERO)
     }
@@ -88,14 +88,14 @@ mod tests {
     #[test]
     fn unsigned_database_value_rejects_negative_input() {
         assert!(matches!(
-            super::UnsignedPartOfI32::try_from(-1i32),
-            Err(crate::domain_types::UnsignedPartOfI32TryFromI32Error::LessThanZero { .. })
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(-1i32),
+            Err(crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error::LessThanZero { .. })
         ));
         assert_eq!(
-            super::UnsignedPartOfI32::try_from(7i32).expect(
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(7i32).expect(
                 "ea8c2d71 unsigned_database_value_rejects_negative_input invariant must hold"
             ),
-            super::UnsignedPartOfI32::from(7u16)
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
         );
     }
 }

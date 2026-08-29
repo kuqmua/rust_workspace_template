@@ -3,5 +3,7 @@ pub enum AuthSessionKeepAliveDecision {
     RefreshNow,
     SkipAlreadyRunning,
     SkipMissing,
-    SkipNotDue { next: super::AuthSessionInstant },
+    SkipNotDue {
+        next: crate::auth_session_instant::AuthSessionInstant,
+    },
 }

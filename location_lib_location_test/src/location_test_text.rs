@@ -14,6 +14,6 @@
     newtype::BoundedString,
     newtype::ToErrStringAsRefStr,
 )]
-#[bounded_string(max = crate::LOC_TEST_TEXT_MAX_LEN)]
+#[bounded_string(max = crate::loc_test_text_max_len::LOC_TEST_TEXT_MAX_LEN)]
 #[serde(try_from = "String")]
 pub struct LocationTestText(pub(super) String);

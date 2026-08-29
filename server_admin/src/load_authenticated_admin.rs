@@ -1,10 +1,15 @@
 pub(crate) async fn load_authenticated_admin(
-    state: &crate::AdminAuthSvcState,
-    user_id: crate::AdminUserId,
-    session_id: crate::AdminSessionId,
-) -> Result<crate::AuthenticatedAdmin, crate::AdminError> {
-    let mut db = crate::AdminDbRef::Pool(crate::repository::SqlxAdminRepositoryPoolRef::from(
-        state.pool.as_ref(),
-    ));
-    crate::load_authenticated_admin_from_db(&mut db, user_id, session_id).await
+    state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    user_id: server_admin_core::admin_user_id::AdminUserId,
+    session_id: crate::admin_session_id::AdminSessionId,
+) -> Result<crate::authenticated_admin::AuthenticatedAdmin, crate::admin_error::AdminError> {
+    let mut db = crate::admin_db_ref::AdminDbRef::Pool(
+        crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
+            state.pool.as_ref(),
+        ),
+    );
+    crate::load_authenticated_admin_from_db::load_authenticated_admin_from_db(
+        &mut db, user_id, session_id,
+    )
+    .await
 }

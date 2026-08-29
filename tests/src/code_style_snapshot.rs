@@ -1,19 +1,19 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct RsSourceFile {
-    ast: super::types::SynFile,
-    content: super::types::SourceText,
-    path: super::types::OwnedPathBuf,
+    ast: crate::types::SynFile,
+    content: crate::types::SourceText,
+    path: crate::types::OwnedPathBuf,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ProjectSourceFile {
-    content: super::types::SourceText,
-    path: super::types::OwnedPathBuf,
+    content: crate::types::SourceText,
+    path: crate::types::OwnedPathBuf,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CargoTomlSourceFile {
-    content: super::types::SourceText,
-    parsed: super::types::TomlTable,
-    path: super::types::OwnedPathBuf,
+    content: crate::types::SourceText,
+    parsed: crate::types::TomlTable,
+    path: crate::types::OwnedPathBuf,
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct CodebaseSnapshot {
@@ -23,36 +23,36 @@ pub(super) struct CodebaseSnapshot {
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CodebaseSourceSnapshot {
     cargo_toml_by_path:
-        std::collections::BTreeMap<super::types::OwnedPathBuf, super::types::CargoTomlFileIdx>,
+        std::collections::BTreeMap<crate::types::OwnedPathBuf, crate::types::CargoTomlFileIdx>,
     cargo_toml_files: Vec<CargoTomlSourceFile>,
     project_source_files: Vec<ProjectSourceFile>,
-    workspace_crate_names: super::types::SourceTextBTreeSet,
-    workspace_metadata: super::types::CargoMetadata,
+    workspace_crate_names: crate::types::SourceTextBTreeSet,
+    workspace_metadata: crate::types::CargoMetadata,
 }
 impl ProjectSourceFile {
-    pub(super) fn content(&self) -> &super::types::SourceText {
+    pub(super) fn content(&self) -> &crate::types::SourceText {
         &self.content
     }
-    pub(super) fn path(&self) -> &super::types::OwnedPathBuf {
+    pub(super) fn path(&self) -> &crate::types::OwnedPathBuf {
         &self.path
     }
 }
 impl RsSourceFile {
-    pub(super) fn ast(&self) -> &super::types::SynFile {
+    pub(super) fn ast(&self) -> &crate::types::SynFile {
         &self.ast
     }
-    pub(super) fn content(&self) -> &super::types::SourceText {
+    pub(super) fn content(&self) -> &crate::types::SourceText {
         &self.content
     }
-    pub(super) fn path(&self) -> &super::types::OwnedPathBuf {
+    pub(super) fn path(&self) -> &crate::types::OwnedPathBuf {
         &self.path
     }
 }
 impl CodebaseSnapshot {
     pub(super) fn cargo_toml_content(
         &self,
-        path: super::types::PathRef<'_>,
-    ) -> Option<super::types::SourceText> {
+        path: crate::types::PathRef<'_>,
+    ) -> Option<crate::types::SourceText> {
         self.source
             .cargo_toml_file(path)
             .map(|cargo_toml| cargo_toml.content.clone())
@@ -68,8 +68,8 @@ impl CodebaseSnapshot {
     }
     pub(super) fn read_toml_table(
         &self,
-        path: super::types::PathRef<'_>,
-    ) -> Option<super::types::TomlTable> {
+        path: crate::types::PathRef<'_>,
+    ) -> Option<crate::types::TomlTable> {
         self.source
             .cargo_toml_file(path)
             .map(|cargo_toml| cargo_toml.parsed.clone())
@@ -88,7 +88,7 @@ impl CodebaseSnapshot {
                                 path.as_ref().display()
                             )
                         },
-                        super::types::TomlTable::from,
+                        crate::types::TomlTable::from,
                     )
                 })
             })
@@ -99,15 +99,15 @@ impl CodebaseSnapshot {
     // The snapshot exposes this derived workspace-name set through one policy consumer.
 
     #[allow(clippy::single_call_fn)] // policy consumers share this snapshot accessor directly and through the root facade
-    pub(super) fn workspace_crate_names(&self) -> super::types::SourceTextBTreeSet {
+    pub(super) fn workspace_crate_names(&self) -> crate::types::SourceTextBTreeSet {
         self.source.workspace_crate_names.clone()
     }
-    pub(super) fn workspace_metadata(&self) -> super::types::CargoMetadataRef<'_> {
-        super::types::CargoMetadataRef::from(self.source.workspace_metadata.as_ref())
+    pub(super) fn workspace_metadata(&self) -> crate::types::CargoMetadataRef<'_> {
+        crate::types::CargoMetadataRef::from(self.source.workspace_metadata.as_ref())
     }
 }
 impl CodebaseSourceSnapshot {
-    fn cargo_toml_file(&self, path: super::types::PathRef<'_>) -> Option<&CargoTomlSourceFile> {
+    fn cargo_toml_file(&self, path: crate::types::PathRef<'_>) -> Option<&CargoTomlSourceFile> {
         self.cargo_toml_by_path
             .get(path.as_ref())
             .and_then(|idx| self.cargo_toml_files.get(idx.get()))
@@ -123,13 +123,15 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                 std::sync::OnceLock::new();
             let source_snapshot = std::sync::Arc::clone(SOURCE_SNAPSHOT.get_or_init(|| {
                 std::sync::Arc::new({
-                    let metadata = super::types::CargoMetadata::from(
+                    let metadata = crate::types::CargoMetadata::from(
                         cargo_metadata::MetadataCommand::new()
-                            .manifest_path(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+                            .manifest_path(
+                                constants_str::catalog::CODE_STYLE_WORKSPACE_MANIFEST_PATH,
+                            )
                             .exec()
                             .expect("c84e9d1f workspace metadata invariant must hold"),
                     );
-                    let workspace_members = super::types::CargoPackageIdRefHashSet::from(
+                    let workspace_members = crate::types::CargoPackageIdRefHashSet::from(
                         metadata
                             .as_ref()
                             .workspace_members
@@ -157,10 +159,10 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                                 panic!("96f2c78a failed to parse {}: {error}", path.display())
                             });
                             CargoTomlSourceFile {
-                                content: super::types::SourceText::try_from(content)
+                                content: crate::types::SourceText::try_from(content)
                                     .expect("84f6a0d2 build invariant must hold"),
-                                parsed: super::types::TomlTable::from(parsed),
-                                path: super::types::OwnedPathBuf::from(path),
+                                parsed: crate::types::TomlTable::from(parsed),
+                                path: crate::types::OwnedPathBuf::from(path),
                             }
                         })
                         .collect();
@@ -170,32 +172,33 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                         .map(|(idx, cargo_toml)| {
                             (
                                 cargo_toml.path.clone(),
-                                super::types::CargoTomlFileIdx::from(idx),
+                                crate::types::CargoTomlFileIdx::from(idx),
                             )
                         })
                         .collect::<std::collections::BTreeMap<
-                            super::types::OwnedPathBuf,
-                            super::types::CargoTomlFileIdx,
+                            crate::types::OwnedPathBuf,
+                            crate::types::CargoTomlFileIdx,
                         >>();
-                    let project_source_files = super::types::WalkdirWalkDir::from(
-                        walkdir::WalkDir::new(constants_str::TEXT_ALT_9),
+                    let project_source_files = crate::types::WalkdirWalkDir::from(
+                        walkdir::WalkDir::new(constants_str::catalog::TEXT_ALT_9),
                     )
                     .into_iter()
                     .filter_entry(|element| {
-                        element.file_name() != constants_str::TARGET
-                            && element.file_name() != constants_str::GIT
-                            && element.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
+                        element.file_name() != constants_str::catalog::TARGET
+                            && element.file_name() != constants_str::catalog::GIT
+                            && element.file_name()
+                                != constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NODE_MODULES
                             && (element.file_type().is_dir()
                                 || matches!(
                                     element.path().extension().and_then(std::ffi::OsStr::to_str),
                                     Some(
-                                        constants_str::RS
-                                            | constants_str::MD
-                                            | constants_str::TOML
-                                            | constants_str::TXT
-                                            | constants_str::YML
-                                            | constants_str::YAML
-                                            | constants_str::JSON
+                                        constants_str::catalog::RS
+                                            | constants_str::integration_fixtures::MD
+                                            | constants_str::integration_fixtures::TOML
+                                            | constants_str::catalog::TXT
+                                            | constants_str::integration_fixtures::YML
+                                            | constants_str::integration_fixtures::YAML
+                                            | constants_str::integration_fixtures::JSON
                                     )
                                 ))
                     })
@@ -208,7 +211,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                         cargo_toml_files,
                         project_source_files,
                         workspace_metadata: metadata,
-                        workspace_crate_names: super::types::SourceTextBTreeSet::from(
+                        workspace_crate_names: crate::types::SourceTextBTreeSet::from(
                             workspace_crate_names,
                         ),
                     }
@@ -223,7 +226,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                         .as_ref()
                         .extension()
                         .and_then(std::ffi::OsStr::to_str)
-                        == Some(constants_str::RS)
+                        == Some(constants_str::catalog::RS)
                 })
                 .map(|source_file| {
                     let ast =
@@ -231,7 +234,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                             panic!("5e7a83eb {}: {error}", source_file.path.as_ref().display())
                         });
                     RsSourceFile {
-                        ast: super::types::SynFile::from(ast),
+                        ast: crate::types::SynFile::from(ast),
                         content: source_file.content.clone(),
                         path: source_file.path.clone(),
                     }
@@ -254,16 +257,16 @@ fn project_source_file(path: std::path::PathBuf) -> ProjectSourceFile {
     let content = project_source_content(path.as_path(), raw_content);
     ProjectSourceFile {
         content,
-        path: super::types::OwnedPathBuf::from(path),
+        path: crate::types::OwnedPathBuf::from(path),
     }
 }
-fn project_source_content(path: &std::path::Path, raw_content: String) -> super::types::SourceText {
-    super::types::SourceText::try_from(raw_content)
+fn project_source_content(path: &std::path::Path, raw_content: String) -> crate::types::SourceText {
+    crate::types::SourceText::try_from(raw_content)
         .unwrap_or_else(|error| panic!("e27f9e15 invalid source {}: {error}", path.display()))
 }
 #[test]
 fn invalid_project_source_content_fails_snapshot_loading() {
-    let oversized = constants_str::X.repeat(16_777_217usize);
+    let oversized = constants_str::catalog::X.repeat(16_777_217usize);
     assert!(
         std::panic::catch_unwind(|| {
             project_source_content(std::path::Path::new("oversized.rs"), oversized)
@@ -274,7 +277,7 @@ fn invalid_project_source_content_fails_snapshot_loading() {
 }
 #[test]
 fn missing_project_source_file_fails_snapshot_loading() {
-    let missing = std::path::PathBuf::from(constants_str::VALUE_5E88EEB9);
+    let missing = std::path::PathBuf::from(constants_str::test_fixtures::VALUE_5E88EEB9);
     assert!(
         std::panic::catch_unwind(|| project_source_file(missing)).is_err(),
         "46045b88"

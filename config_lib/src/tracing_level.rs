@@ -1,5 +1,3 @@
-use super::TracingLevelName;
-
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -25,13 +23,13 @@ pub enum TracingLevel {
     Error,
 }
 impl TracingLevel {
-    fn as_str(self) -> TracingLevelName {
-        TracingLevelName::from(match self {
-            Self::Trace => constants_str::CONFIG_TRACING_TRACE,
-            Self::Debug => constants_str::CONFIG_TRACING_DEBUG,
-            Self::Info => constants_str::CONFIG_TRACING_INFO,
-            Self::Warn => constants_str::CONFIG_TRACING_WARN,
-            Self::Error => constants_str::CONFIG_TRACING_ERROR,
+    fn as_str(self) -> crate::tracing_level_name::TracingLevelName {
+        crate::tracing_level_name::TracingLevelName::from(match self {
+            Self::Trace => constants_str::catalog::CONFIG_TRACING_TRACE,
+            Self::Debug => constants_str::catalog::CONFIG_TRACING_DEBUG,
+            Self::Info => constants_str::catalog::CONFIG_TRACING_INFO,
+            Self::Warn => constants_str::catalog::CONFIG_TRACING_WARN,
+            Self::Error => constants_str::catalog::CONFIG_TRACING_ERROR,
         })
     }
 }

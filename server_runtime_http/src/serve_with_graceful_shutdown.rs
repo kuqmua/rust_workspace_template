@@ -1,11 +1,11 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::integer_division_remainder_used)]
 pub async fn serve_with_graceful_shutdown<Shutdown>(
-    listener: super::TokioTcpListener,
-    router: crate::AxumRouter,
+    listener: crate::tokio_tcp_listener::TokioTcpListener,
+    router: crate::axum_router::AxumRouter,
     shutdown: Shutdown,
-    shutdown_timeout: crate::RequestTimeoutDuration,
-) -> Result<(), super::ServeWithGracefulShutdownError>
+    shutdown_timeout: crate::request_timeout_duration::RequestTimeoutDuration,
+) -> Result<(), crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError>
 where
     Shutdown: Future<Output = ()> + Send + 'static,
 {
@@ -23,12 +23,12 @@ where
     );
     tokio::pin!(server);
     tokio::select! {
-        result = &mut server => result.map_err(|error| super::ServeWithGracefulShutdownError::Serve(super::ServeIoError(error))),
+        result = &mut server => result.map_err(|error| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::Serve(crate::serve_io_error::ServeIoError(error))),
         _shutdown_result = shutdown_started_rx => {
             tokio::time::timeout(shutdown_timeout.get(), &mut server)
                 .await
-                .map_err(|_elapsed| super::ServeWithGracefulShutdownError::ShutdownTimeout)?
-                .map_err(|error| super::ServeWithGracefulShutdownError::Serve(super::ServeIoError(error)))
+                .map_err(|_elapsed| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::ShutdownTimeout)?
+                .map_err(|error| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::Serve(crate::serve_io_error::ServeIoError(error)))
         }
     }
 }

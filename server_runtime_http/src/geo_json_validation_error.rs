@@ -5,7 +5,7 @@ pub enum GeoJsonValidationError {
     #[error("GeoJSON document shape is invalid")]
     Document,
     #[error("GeoJSON text is invalid")]
-    SerdeJson(#[source] super::SerdeJsonGeoJsonError),
+    SerdeJson(#[source] crate::serde_json_geo_json_error::SerdeJsonGeoJsonError),
     #[error("GeoJSON document exceeds its maximum size")]
     TooLarge,
     #[error("GeoJSON geometry type is unsupported")]

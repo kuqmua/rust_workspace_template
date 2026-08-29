@@ -11,30 +11,30 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
 
 pub(super) fn crud_render_shell(
-    page: server_admin_contract::domain_types::AdminPage,
+    page: server_admin_contract::admin_page::AdminPage,
     content: impl leptos::prelude::IntoAny,
-    admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
-    branding: &server_admin_contract::domain_types::AdminBrandingView,
-) -> super::AdminSsrHtml {
+    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+) -> crate::admin_ssr_html::AdminSsrHtml {
     let active_table = match page {
-        server_admin_contract::domain_types::AdminPage::Users => {
-            Some(server_admin_contract::domain_types::AdminDataTable::Users)
+        server_admin_contract::admin_page::AdminPage::Users => {
+            Some(server_admin_contract::admin_data_table::AdminDataTable::Users)
         }
-        server_admin_contract::domain_types::AdminPage::Roles => {
-            Some(server_admin_contract::domain_types::AdminDataTable::Roles)
+        server_admin_contract::admin_page::AdminPage::Roles => {
+            Some(server_admin_contract::admin_data_table::AdminDataTable::Roles)
         }
-        server_admin_contract::domain_types::AdminPage::Metrics
-        | server_admin_contract::domain_types::AdminPage::OpenApi
-        | server_admin_contract::domain_types::AdminPage::Permissions
-        | server_admin_contract::domain_types::AdminPage::Profile
-        | server_admin_contract::domain_types::AdminPage::Sessions
-        | server_admin_contract::domain_types::AdminPage::Settings
-        | server_admin_contract::domain_types::AdminPage::Tables
-        | server_admin_contract::domain_types::AdminPage::Version => None,
+        server_admin_contract::admin_page::AdminPage::Metrics
+        | server_admin_contract::admin_page::AdminPage::OpenApi
+        | server_admin_contract::admin_page::AdminPage::Permissions
+        | server_admin_contract::admin_page::AdminPage::Profile
+        | server_admin_contract::admin_page::AdminPage::Sessions
+        | server_admin_contract::admin_page::AdminPage::Settings
+        | server_admin_contract::admin_page::AdminPage::Tables
+        | server_admin_contract::admin_page::AdminPage::Version => None,
     };
-    super::render_admin_page_with_table_access(
+    crate::render_admin_page_with_table_access::render_admin_page_with_table_access(
         page,
-        super::render_view(content),
+        crate::render_view::render_view(content),
         Some(admin),
         Some(branding),
         active_table,

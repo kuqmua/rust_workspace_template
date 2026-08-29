@@ -1,5 +1,3 @@
-use super::domain_types::DatabaseUrlError;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -9,11 +7,11 @@ use super::domain_types::DatabaseUrlError;
     newtype::AsRefStr,
     newtype::TryFrom,
 )]
-#[try_from(validator = |value: &str| {
+#[try_from(error = crate::database_url_error::DatabaseUrlError, validator = |value: &str| {
     if value.trim().is_empty() {
-        Err(DatabaseUrlError::Empty)
+        Err(crate::database_url_error::DatabaseUrlError::Empty)
     } else if value.len() > constants_usize::VALUE_8_192 {
-        Err(DatabaseUrlError::TooLong)
+        Err(crate::database_url_error::DatabaseUrlError::TooLong)
     } else { Ok(()) }
 })]
 pub struct DatabaseUrl(String);

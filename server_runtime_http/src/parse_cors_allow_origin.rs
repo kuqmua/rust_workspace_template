@@ -1,33 +1,42 @@
 pub fn parse_cors_allow_origin(
-    value: super::HttpCorsAllowOriginTextRef<'_>,
-) -> Result<super::HttpCorsAllowOriginHeaderValues, super::HttpCorsAllowOriginHeaderValuesError> {
-    if value.0.len() > super::CORS_ALLOW_ORIGIN_MAX_BYTES {
-        return Err(super::HttpCorsAllowOriginHeaderValuesError::TooLong);
+    value: crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef<'_>,
+) -> Result<
+    crate::http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues,
+    crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError,
+> {
+    if value.0.len() > crate::cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES {
+        return Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooLong);
     }
     let capacity = value
         .0
         .chars()
-        .filter(|character| *character == super::CORS_ALLOW_ORIGIN_SPLIT_CH)
+        .filter(|character| {
+            *character == crate::cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH
+        })
         .count()
         .saturating_add(constants_usize::ONE);
-    if capacity > super::CORS_ALLOW_ORIGIN_MAX_ITEMS {
-        return Err(super::HttpCorsAllowOriginHeaderValuesError::TooManyItems);
+    if capacity > crate::cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS {
+        return Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooManyItems);
     }
     if value.0.trim().is_empty() {
-        return Ok(super::HttpCorsAllowOriginHeaderValues::from(Vec::new()));
+        return Ok(
+            crate::http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues::from(
+                Vec::new(),
+            ),
+        );
     }
     let parsed = value
         .0
-        .split(super::CORS_ALLOW_ORIGIN_SPLIT_CH)
+        .split(crate::cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH)
         .map(str::trim)
         .map(|origin| {
             drop(
-                crate::AllowedOrigin::try_from(origin.to_owned())
-                    .map_err(super::HttpCorsAllowOriginHeaderValuesError::from)?,
+                crate::allowed_origin::AllowedOrigin::try_from(origin.to_owned())
+                    .map_err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::from)?,
             );
             http::HeaderValue::try_from(origin)
-                .map_err(super::HttpCorsAllowOriginHeaderValuesError::from)
+                .map_err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::from)
         })
-        .collect::<Result<Vec<http::HeaderValue>, super::HttpCorsAllowOriginHeaderValuesError>>()?;
-    Ok(super::HttpCorsAllowOriginHeaderValues::from(parsed))
+        .collect::<Result<Vec<http::HeaderValue>, crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError>>()?;
+    Ok(crate::http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues::from(parsed))
 }

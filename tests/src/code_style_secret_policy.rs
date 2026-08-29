@@ -1,13 +1,13 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SecretBoxStringVisitor {
-    argument_identifiers: super::types::SourceTextBTreeSet,
-    found_count: super::types::AnalyzerCount,
+    argument_identifiers: crate::types::SourceTextBTreeSet,
+    found_count: crate::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for SecretBoxStringVisitor {
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         let tokens = i.tokens.to_string();
-        if tokens.contains(constants_str::VALUE_27E33079)
-            || tokens.contains(constants_str::VALUE_B7FC9172)
+        if tokens.contains(constants_str::test_fixtures::VALUE_27E33079)
+            || tokens.contains(constants_str::test_fixtures::VALUE_B7FC9172)
         {
             self.found_count.saturating_inc();
         }
@@ -48,18 +48,18 @@ fn type_secret_box_argument_identifier(ty: &syn::Type) -> Option<&syn::Ident> {
 }
 #[test]
 fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
-    super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr::from(constants_str::VALUE_3B1BC5FE),
-        super::types::SourceTextRef::from(constants_str::VALUE_820D50A4),
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_3B1BC5FE),
+        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_820D50A4),
         |path, ast, errors| {
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(ast),
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
                 SecretBoxStringVisitor::default(),
             );
-            super::push_repeated_file_error(
-                super::types::DiagnosticMsgsMutRef::from(errors),
-                super::types::PathRef::from(path),
-                super::types::SourceTextRef::from(constants_str::VALUE_05D8F7AC),
+            crate::code_style::push_repeated_file_error(
+                crate::types::DiagnosticMsgsMutRef::from(errors),
+                crate::types::PathRef::from(path),
+                crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_05D8F7AC),
                 visitor.found_count,
             );
         },
@@ -67,21 +67,21 @@ fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
 }
 #[test]
 fn repository_secret_box_policy_rejects_raw_string_generic_argument() {
-    let raw = syn::parse_str::<syn::Type>(constants_str::VALUE_02D2E24C).expect("35a98aea repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
+    let raw = syn::parse_str::<syn::Type>(constants_str::test_fixtures::VALUE_02D2E24C).expect("35a98aea repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
     let qualified =
-        syn::parse_str::<syn::Type>(constants_str::VALUE_171D86A4).expect("28cd22e6 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
+        syn::parse_str::<syn::Type>(constants_str::test_fixtures::VALUE_171D86A4).expect("28cd22e6 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
     let bounded =
-        syn::parse_str::<syn::Type>(constants_str::VALUE_5BF4FAD8).expect("f7fc1398 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
+        syn::parse_str::<syn::Type>(constants_str::test_fixtures::VALUE_5BF4FAD8).expect("f7fc1398 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
     assert!(type_is_secret_box_string(&raw));
     assert!(type_is_secret_box_string(&qualified));
     assert!(!type_is_secret_box_string(&bounded));
 }
 #[test]
 fn repository_secret_box_policy_checks_generated_tokens() {
-    let ast = syn::parse_file(constants_str::VALUE_53E9A56F)
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_53E9A56F)
         .expect("47bf1cf6 generated invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         SecretBoxStringVisitor::default(),
     );
     assert_eq!(visitor.found_count.get(), constants_usize::ONE);
@@ -101,9 +101,9 @@ fn repository_secret_boxes_use_bounded_string_types() {
                     .attrs
                     .iter()
                     .any(|attribute| {
-                        super::derive_attr_has_terminal(
-                            super::types::SynAttributeRef::from(attribute),
-                            super::types::SourceTextRef::from(stringify!(BoundedString)),
+                        crate::code_style::derive_attr_has_terminal(
+                            crate::types::SynAttributeRef::from(attribute),
+                            crate::types::SourceTextRef::from(stringify!(BoundedString)),
                         )
                         .get()
                     })
@@ -114,8 +114,8 @@ fn repository_secret_boxes_use_bounded_string_types() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     SecretBoxStringVisitor::default(),
                 )
                 .argument_identifiers

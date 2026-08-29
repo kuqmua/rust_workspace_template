@@ -1,5 +1,3 @@
-use super::{AdminBoundedVec, AdminCollectionError, AdminEmptyCollection, AdminOpenApiVec};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,17 +8,19 @@ use super::{AdminBoundedVec, AdminCollectionError, AdminEmptyCollection, AdminOp
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-#[serde(from = "AdminBoundedVec<crate::domain_types::AdminRoleId>")]
-#[schema(value_type = AdminOpenApiVec<crate::domain_types::AdminRoleId, 10_000>)]
-pub struct AdminRoleIds(AdminBoundedVec<crate::domain_types::AdminRoleId>);
-impl TryFrom<Vec<crate::domain_types::AdminRoleId>> for AdminRoleIds {
-    type Error = AdminCollectionError;
-    fn try_from(value: Vec<crate::domain_types::AdminRoleId>) -> Result<Self, Self::Error> {
-        AdminBoundedVec::try_from(value).map(Self)
+#[serde(from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_role_id::AdminRoleId>")]
+#[schema(value_type = crate::admin_open_api_vec::AdminOpenApiVec<crate::admin_role_id::AdminRoleId, 10_000>)]
+pub struct AdminRoleIds(
+    crate::admin_bounded_vec::AdminBoundedVec<crate::admin_role_id::AdminRoleId>,
+);
+impl TryFrom<Vec<crate::admin_role_id::AdminRoleId>> for AdminRoleIds {
+    type Error = crate::admin_collection_error::AdminCollectionError;
+    fn try_from(value: Vec<crate::admin_role_id::AdminRoleId>) -> Result<Self, Self::Error> {
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
     }
 }
 impl AdminRoleIds {
-    pub(crate) const fn as_slice(&self) -> &[crate::domain_types::AdminRoleId] {
+    pub(crate) const fn as_slice(&self) -> &[crate::admin_role_id::AdminRoleId] {
         self.0.as_slice()
     }
 }
@@ -30,11 +30,11 @@ impl AdminRoleIds {
 )]
 impl Default for AdminRoleIds {
     fn default() -> Self {
-        Self::from(AdminEmptyCollection)
+        Self::from(crate::admin_empty_collection::AdminEmptyCollection)
     }
 }
-impl From<AdminEmptyCollection> for AdminRoleIds {
-    fn from(_value: AdminEmptyCollection) -> Self {
-        Self(AdminBoundedVec::from([]))
+impl From<crate::admin_empty_collection::AdminEmptyCollection> for AdminRoleIds {
+    fn from(_value: crate::admin_empty_collection::AdminEmptyCollection) -> Self {
+        Self(crate::admin_bounded_vec::AdminBoundedVec::from([]))
     }
 }

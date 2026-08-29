@@ -1,6 +1,7 @@
-use super::RouteRegistryBinding;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::AsRefOwned)]
 pub(crate) struct SynRouteRegistryBindings(
-    syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>,
+    syn::punctuated::Punctuated<
+        crate::route_registry_binding::RouteRegistryBinding,
+        syn::Token![,],
+    >,
 );

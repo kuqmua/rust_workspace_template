@@ -2,5 +2,5 @@
 pub enum BearerAuthorizationResolution<'value_lt> {
     Invalid,
     Missing,
-    Resolved(super::HttpBearerTokenRef<'value_lt>),
+    Resolved(crate::http_bearer_token_ref::HttpBearerTokenRef<'value_lt>),
 }

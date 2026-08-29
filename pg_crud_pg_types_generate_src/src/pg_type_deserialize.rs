@@ -1,40 +1,38 @@
-use super::*;
-
 #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum PgTypeDeserialize {
     Derive,
-    ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe),
+    ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe),
 }
-impl From<&PgType> for PgTypeDeserialize {
-    fn from(v: &PgType) -> Self {
+impl From<&crate::pg_type::PgType> for PgTypeDeserialize {
+    fn from(v: &crate::pg_type::PgType) -> Self {
         match v {
-                PgType::I16AsInt2
-                | PgType::I32AsInt4
-                | PgType::I64AsInt8
-                | PgType::F32AsFloat4
-                | PgType::I16AsSmallSerialInitializationByPg
-                | PgType::I32AsSerialInitializationByPg
-                | PgType::I64AsBigSerialInitializationByPg
-                | PgType::SqlxPgTypesPgMoneyAsMoney
-                | PgType::BoolAsBool
-                | PgType::StdVecVecU8AsBytea
-                | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
-                | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
-                | PgType::SqlxTypesIpnetworkIpNetworkAsInet
-                | PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-                | PgType::F64AsFloat8 => Self::Derive,
-                PgType::StringAsText => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::StringAsText)),
-                PgType::SqlxTypesChronoNaiveTimeAsTime => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::SqlxTypesChronoNaiveTimeAsTime)),
-                PgType::SqlxTypesTimeTimeAsTime => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::SqlxTypesTimeTimeAsTime)),
-                PgType::SqlxTypesChronoNaiveDateAsDate => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::SqlxTypesChronoNaiveDateAsDate)),
-                PgType::SqlxPgTypesPgRangeI32AsInt4Range => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI32AsInt4Range)),
-                PgType::SqlxPgTypesPgRangeI64AsInt8Range => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI64AsInt8Range)),
-                PgType::SqlxPgTypesPgIntervalAsInterval |
-                PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::NewForDeserialize),
+                crate::pg_type::PgType::I16AsInt2
+                | crate::pg_type::PgType::I32AsInt4
+                | crate::pg_type::PgType::I64AsInt8
+                | crate::pg_type::PgType::F32AsFloat4
+                | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
+                | crate::pg_type::PgType::I32AsSerialInitializationByPg
+                | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
+                | crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
+                | crate::pg_type::PgType::BoolAsBool
+                | crate::pg_type::PgType::StdVecVecU8AsBytea
+                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
+                | crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet
+                | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr
+                | crate::pg_type::PgType::F64AsFloat8 => Self::Derive,
+                crate::pg_type::PgType::StringAsText => Self::ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::StringAsText)),
+                crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Self::ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesChronoNaiveTimeAsTime)),
+                crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => Self::ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesTimeTimeAsTime)),
+                crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => Self::ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesChronoNaiveDateAsDate)),
+                crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => Self::ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI32AsInt4Range)),
+                crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => Self::ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI64AsInt8Range)),
+                crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
+                crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Self::ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe::NewForDeserialize),
             }
     }
 }

@@ -1,15 +1,15 @@
-use super::*;
-
 pub fn validate_postgres_catalog(
-    expected: DbCatalogSnapshot,
-    observed: DbCatalogSnapshot,
-) -> Result<(), DbSchemaConformanceError> {
-    validate_snapshot(
+    expected: crate::db_catalog_snapshot::DbCatalogSnapshot,
+    observed: crate::db_catalog_snapshot::DbCatalogSnapshot,
+) -> Result<(), crate::db_schema_conformance_error::DbSchemaConformanceError> {
+    crate::validate_snapshot::validate_snapshot(
         expected,
         observed,
-        |expected_snapshot, observed_snapshot| DbSchemaConformanceError::CatalogMismatch {
-            expected: expected_snapshot,
-            observed: observed_snapshot,
+        |expected_snapshot, observed_snapshot| {
+            crate::db_schema_conformance_error::DbSchemaConformanceError::CatalogMismatch {
+                expected: expected_snapshot,
+                observed: observed_snapshot,
+            }
         },
     )
 }

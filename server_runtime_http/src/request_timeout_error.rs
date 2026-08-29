@@ -9,8 +9,10 @@ impl axum::response::IntoResponse for RequestTimeoutError {
         match self {
             Self::TimedOut => axum::response::IntoResponse::into_response((
                 http::StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(super::RequestTimeoutBody {
-                    error: super::StdRequestTimeoutMessage::from(constants_str::REQUEST_TIMEOUT),
+                axum::Json(crate::request_timeout_body::RequestTimeoutBody {
+                    error: crate::std_request_timeout_message::StdRequestTimeoutMessage::from(
+                        constants_str::catalog::REQUEST_TIMEOUT,
+                    ),
                 }),
             )),
         }

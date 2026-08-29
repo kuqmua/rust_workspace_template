@@ -4,9 +4,9 @@ impl MetricsExporterPrometheusRenderer {
     pub(crate) fn render(
         &self,
     ) -> Result<
-        server_runtime_http::domain_types::MetricsResponseBody,
-        server_runtime_http::domain_types::MetricsResponseBodyError,
+        server_runtime_http::metrics_response_body::MetricsResponseBody,
+        server_runtime_http::metrics_response_body_error::MetricsResponseBodyError,
     > {
-        server_runtime_http::domain_types::MetricsResponseBody::try_from(self.0.render())
+        server_runtime_http::metrics_response_body::MetricsResponseBody::try_from(self.0.render())
     }
 }

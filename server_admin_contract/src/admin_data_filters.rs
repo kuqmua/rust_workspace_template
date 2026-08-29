@@ -1,5 +1,3 @@
-use super::AdminDataFilter;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -9,18 +7,24 @@ use super::AdminDataFilter;
     utoipa::ToSchema,
     newtype::FromInner,
 )]
-#[serde(from = "crate::domain_types::collections::AdminBoundedVec<AdminDataFilter>")]
-#[schema(value_type = crate::domain_types::collections::AdminOpenApiVec<AdminDataFilter, 100>)]
-pub struct AdminDataFilters(crate::domain_types::collections::AdminBoundedVec<AdminDataFilter>);
-impl TryFrom<Vec<AdminDataFilter>> for AdminDataFilters {
-    type Error = crate::domain_types::AdminCollectionError;
-    fn try_from(value: Vec<AdminDataFilter>) -> Result<Self, Self::Error> {
-        crate::domain_types::collections::AdminBoundedVec::try_from(value).map(Self)
+#[serde(
+    from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_data_filter::AdminDataFilter>"
+)]
+#[schema(value_type = crate::admin_open_api_vec::AdminOpenApiVec<crate::admin_data_filter::AdminDataFilter, 100>)]
+pub struct AdminDataFilters(
+    crate::admin_bounded_vec::AdminBoundedVec<crate::admin_data_filter::AdminDataFilter>,
+);
+impl TryFrom<Vec<crate::admin_data_filter::AdminDataFilter>> for AdminDataFilters {
+    type Error = crate::admin_collection_error::AdminCollectionError;
+    fn try_from(
+        value: Vec<crate::admin_data_filter::AdminDataFilter>,
+    ) -> Result<Self, Self::Error> {
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
     }
 }
 impl AdminDataFilters {
     #[must_use]
-    pub const fn as_slice(&self) -> &[AdminDataFilter] {
+    pub const fn as_slice(&self) -> &[crate::admin_data_filter::AdminDataFilter] {
         self.0.as_slice()
     }
 }

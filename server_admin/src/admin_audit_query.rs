@@ -1,36 +1,36 @@
-use super::AdminAuditQueryParts;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, utoipa::IntoParams,
 )]
 #[into_params(parameter_in = Query)]
 pub struct AdminAuditQuery {
-    created_after: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    created_before: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    cursor_created_at: Option<server_admin_contract::domain_types::AdminAuditTimestamp>,
-    cursor_id: Option<server_admin_contract::domain_types::AdminAuditLogId>,
-    resource_id: Option<server_admin_contract::domain_types::AdminText>,
+    created_after: Option<server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp>,
+    created_before: Option<server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp>,
+    cursor_created_at: Option<server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp>,
+    cursor_id: Option<server_admin_contract::admin_audit_log_id::AdminAuditLogId>,
+    resource_id: Option<server_admin_contract::admin_text::AdminText>,
     #[param(inline)]
-    user_id: Option<crate::AdminUserId>,
-    user_login: Option<server_admin_contract::domain_types::AdminLogin>,
+    user_id: Option<server_admin_core::admin_user_id::AdminUserId>,
+    user_login: Option<server_admin_contract::admin_login::AdminLogin>,
     #[serde(default)]
     #[param(value_type = u32)]
-    offset: server_admin_contract::domain_types::AdminPageOffset,
+    offset: server_admin_contract::admin_page_offset::AdminPageOffset,
     #[serde(default)]
     #[param(value_type = u16, minimum = 1, maximum = 100)]
-    limit: server_admin_contract::domain_types::AdminPageLimit,
+    limit: server_admin_contract::admin_page_limit::AdminPageLimit,
     #[param(inline)]
-    resource: Option<crate::AdminAuditResource>,
-    succeeded: Option<server_admin_contract::domain_types::AdminBool>,
+    resource: Option<crate::admin_audit_resource::AdminAuditResource>,
+    succeeded: Option<server_admin_contract::admin_bool::AdminBool>,
     #[param(inline)]
-    action: Option<crate::AdminAuditAction>,
+    action: Option<crate::admin_audit_action::AdminAuditAction>,
 }
 impl AdminAuditQuery {
-    pub(crate) fn cursor_is_complete(&self) -> crate::StdAdminBool {
-        crate::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
+    pub(crate) fn cursor_is_complete(&self) -> server_admin_core::std_admin_bool::StdAdminBool {
+        server_admin_core::std_admin_bool::StdAdminBool::from(
+            self.cursor_created_at.is_some() == self.cursor_id.is_some(),
+        )
     }
-    pub(crate) fn into_parts(self) -> AdminAuditQueryParts {
-        AdminAuditQueryParts {
+    pub(crate) fn into_parts(self) -> crate::admin_audit_query_parts::AdminAuditQueryParts {
+        crate::admin_audit_query_parts::AdminAuditQueryParts {
             action: self.action,
             created_after: self.created_after,
             created_before: self.created_before,

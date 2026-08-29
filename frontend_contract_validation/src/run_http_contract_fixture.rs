@@ -1,37 +1,37 @@
 pub async fn run_http_contract_fixture<Send, SendFuture>(
-    expectation: crate::route_contract_validation::HttpContractExpectation,
+    expectation: crate::http_contract_expectation::HttpContractExpectation,
     send: Send,
-) -> Result<(), crate::route_contract_validation::HttpContractMismatch>
+) -> Result<(), crate::http_contract_mismatch::HttpContractMismatch>
 where
-    Send: FnOnce(frontend_contract::RouteMetadata) -> SendFuture,
-    SendFuture: Future<Output = crate::route_contract_validation::HttpContractObservation>,
+    Send: FnOnce(frontend_contract::route_metadata::RouteMetadata) -> SendFuture,
+    SendFuture: Future<Output = crate::http_contract_observation::HttpContractObservation>,
 {
     let observation = send(expectation.metadata).await;
-    crate::route_contract_validation::validate_route_contract_metadata(
+    crate::validate_route_contract_metadata::validate_route_contract_metadata(
         expectation.metadata,
         observation.metadata,
     )
-    .map_err(crate::route_contract_validation::HttpContractMismatch::Metadata)?;
+    .map_err(crate::http_contract_mismatch::HttpContractMismatch::Metadata)?;
     if expectation.status != observation.status {
         return Err(
-            crate::route_contract_validation::HttpContractMismatch::Status {
+            crate::http_contract_mismatch::HttpContractMismatch::Status {
                 expected: expectation.status,
                 observed: observation.status,
             },
         );
     }
     match expectation.body_kind {
-        crate::route_contract_validation::HttpContractBodyKind::Empty
+        crate::http_contract_body_kind::HttpContractBodyKind::Empty
             if !observation.body.0.is_empty() =>
         {
-            Err(crate::route_contract_validation::HttpContractMismatch::BodyExpectedEmpty)
+            Err(crate::http_contract_mismatch::HttpContractMismatch::BodyExpectedEmpty)
         }
-        crate::route_contract_validation::HttpContractBodyKind::Json
+        crate::http_contract_body_kind::HttpContractBodyKind::Json
             if serde_json::from_slice::<serde_json::Value>(&observation.body.0).is_err() =>
         {
-            Err(crate::route_contract_validation::HttpContractMismatch::BodyExpectedJson)
+            Err(crate::http_contract_mismatch::HttpContractMismatch::BodyExpectedJson)
         }
-        crate::route_contract_validation::HttpContractBodyKind::Empty
-        | crate::route_contract_validation::HttpContractBodyKind::Json => Ok(()),
+        crate::http_contract_body_kind::HttpContractBodyKind::Empty
+        | crate::http_contract_body_kind::HttpContractBodyKind::Json => Ok(()),
     }
 }

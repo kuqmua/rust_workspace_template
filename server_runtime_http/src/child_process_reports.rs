@@ -6,5 +6,9 @@
     newtype::FromInner,
 )]
 pub struct ChildProcessReports(
-    bounded_types::BoundedVec<super::ChildProcessReport, 0, { usize::MAX }>,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::child_process_report::ChildProcessReport,
+        0,
+        { usize::MAX },
+    >,
 );

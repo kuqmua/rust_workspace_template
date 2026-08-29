@@ -1,10 +1,8 @@
-use super::AdminAuditExportCsv;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -13,5 +11,5 @@ use super::AdminAuditExportCsv;
 pub struct AdminAuditExport {
     #[schema(value_type = String, max_length = 262_144)]
     #[contract_struct_api(borrow)]
-    csv: AdminAuditExportCsv,
+    csv: crate::admin_audit_export_csv::AdminAuditExportCsv,
 }

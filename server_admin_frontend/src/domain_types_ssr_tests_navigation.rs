@@ -1,16 +1,14 @@
-#[cfg(test)]
-use super::AdminSsrViewExt;
-
 #[test]
 fn pagination_preserves_server_side_navigation() {
-    let html = crate::table_pagination(
-        server_admin_contract::domain_types::AdminPage::Users,
-        &server_admin_contract::domain_types::AdminTableQuery::default(),
-        server_admin_contract::domain_types::AdminPageTotal::from(101u64),
-        None,
-        None,
-    )
-    .render_admin_ssr();
+    let html = crate::admin_ssr_view_ext::AdminSsrViewExt::render_admin_ssr(
+        crate::table_pagination::table_pagination(
+            server_admin_contract::admin_page::AdminPage::Users,
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+            server_admin_contract::admin_page_total::AdminPageTotal::from(101u64),
+            None,
+            None,
+        ),
+    );
     assert!(html.as_ref().contains("class=\"table-page-size\""));
     assert!(html.as_ref().contains("<span>Rows</span><input"));
     assert!(html.as_ref().contains("name=\"limit\""));
@@ -20,30 +18,32 @@ fn pagination_preserves_server_side_navigation() {
     assert!(html.as_ref().contains(">Previous</button>"));
     assert!(!html.as_ref().contains("<script"));
 
-    let table_filter = server_admin_contract::domain_types::AdminDataTableFilterQuery::new(
-        Some(
-            server_admin_contract::domain_types::AdminFilterField::try_from(String::from(
-                constants_str::LOGIN,
-            ))
-            .expect("7eb9a214 pagination_preserves_server_side_navigation invariant must hold"),
+    let table_filter =
+        server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
+            Some(
+                server_admin_contract::admin_filter_field::AdminFilterField::try_from(
+                    String::from(constants_str::catalog::LOGIN),
+                )
+                .expect("7eb9a214 pagination_preserves_server_side_navigation invariant must hold"),
+            ),
+            Some(frontend_contract::filter_operation::FilterOperation::Eq),
+            Some(
+                server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
+                    String::from(constants_str::test_fixtures::VALUE_2BD806C9),
+                )
+                .expect("2629c095 pagination_preserves_server_side_navigation invariant must hold"),
+            ),
+            None,
+        );
+    let filtered_html = crate::admin_ssr_view_ext::AdminSsrViewExt::render_admin_ssr(
+        crate::table_pagination::table_pagination(
+            server_admin_contract::admin_page::AdminPage::Tables,
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+            server_admin_contract::admin_page_total::AdminPageTotal::from(101u64),
+            Some(server_admin_contract::admin_data_table::AdminDataTable::RolePermissions),
+            Some(&table_filter),
         ),
-        Some(frontend_contract::FilterOperation::Eq),
-        Some(
-            server_admin_contract::domain_types::AdminFilterValue::try_from(String::from(
-                constants_str::VALUE_2BD806C9,
-            ))
-            .expect("2629c095 pagination_preserves_server_side_navigation invariant must hold"),
-        ),
-        None,
     );
-    let filtered_html = crate::table_pagination(
-        server_admin_contract::domain_types::AdminPage::Tables,
-        &server_admin_contract::domain_types::AdminTableQuery::default(),
-        server_admin_contract::domain_types::AdminPageTotal::from(101u64),
-        Some(server_admin_contract::domain_types::AdminDataTable::RolePermissions),
-        Some(&table_filter),
-    )
-    .render_admin_ssr();
     assert_eq!(
         filtered_html
             .as_ref()
@@ -78,102 +78,103 @@ fn pagination_preserves_server_side_navigation() {
 
 #[test]
 fn navigation_only_contains_accessible_pages() {
-    let admin = server_admin_contract::domain_types::AuthenticatedAdmin::new(
-        server_admin_contract::domain_types::AdminDisplayName::try_from(
-            constants_str::ADMIN.to_owned(),
+    let admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
+        server_admin_contract::admin_display_name::AdminDisplayName::try_from(
+            constants_str::catalog::ADMIN.to_owned(),
         )
         .expect("cdae3e58 navigation_only_contains_accessible_pages invariant must hold"),
-        server_admin_contract::domain_types::AdminUserId::try_from(constants_i64::ONE)
+        server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
             .expect("4ff30835 navigation_only_contains_accessible_pages invariant must hold"),
-        server_admin_contract::domain_types::AdminLogin::try_from(constants_str::ROOT.to_owned())
-            .expect("9ae5b850 navigation_only_contains_accessible_pages invariant must hold"),
-        server_admin_contract::domain_types::AdminPermissionValues::try_from(vec![
-            server_admin_contract::domain_types::AdminPermissionValue::try_from(
-                server_admin_contract::domain_types::AdminPermission::UsersRead
+        server_admin_contract::admin_login::AdminLogin::try_from(
+            constants_str::catalog::ROOT.to_owned(),
+        )
+        .expect("9ae5b850 navigation_only_contains_accessible_pages invariant must hold"),
+        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(vec![
+            server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
+                server_admin_contract::admin_permission::AdminPermission::UsersRead
                     .as_str()
                     .get()
                     .to_owned(),
             )
-            .expect(constants_str::VALUE_0C631CF4),
-            server_admin_contract::domain_types::AdminPermissionValue::try_from(
-                server_admin_contract::domain_types::AdminPermission::TablesRead
+            .expect(constants_str::test_fixtures::VALUE_0C631CF4),
+            server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
+                server_admin_contract::admin_permission::AdminPermission::TablesRead
                     .as_str()
                     .get()
                     .to_owned(),
             )
-            .expect(constants_str::VALUE_AAC52120),
-            server_admin_contract::domain_types::AdminPermissionValue::try_from(
-                server_admin_contract::domain_types::AdminPermission::AccessSessionsRead
+            .expect(constants_str::test_fixtures::VALUE_AAC52120),
+            server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
+                server_admin_contract::admin_permission::AdminPermission::AccessSessionsRead
                     .as_str()
                     .get()
                     .to_owned(),
             )
-            .expect(constants_str::VALUE_9CC34A06),
+            .expect(constants_str::test_fixtures::VALUE_9CC34A06),
         ])
         .expect("e05ce0b9 navigation_only_contains_accessible_pages invariant must hold"),
-        server_admin_contract::domain_types::AdminRoleNames::try_from(Vec::new())
+        server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
             .expect("f1ec0093 navigation_only_contains_accessible_pages invariant must hold"),
     );
-    let html = crate::render_admin_page_with_access(
-        server_admin_contract::domain_types::AdminPage::Users,
-        crate::AdminSsrHtml::try_from(String::new())
+    let html = crate::render_admin_page_with_access::render_admin_page_with_access(
+        server_admin_contract::admin_page::AdminPage::Users,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
             .expect("aa3fa21e navigation_only_contains_accessible_pages invariant must hold"),
         Some(&admin),
         None,
     );
     assert!(
         html.as_ref()
-            .contains(server_admin_contract::domain_types::AdminFrontendPath::Users.get())
+            .contains(server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get())
     );
     assert!(
         !html
             .as_ref()
-            .contains(server_admin_contract::domain_types::AdminFrontendPath::Roles.get())
+            .contains(server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles.get())
     );
+    assert!(!html.as_ref().contains(
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::Permissions.get()
+    ));
     assert!(
-        !html
-            .as_ref()
-            .contains(server_admin_contract::domain_types::AdminFrontendPath::Permissions.get())
-    );
-    assert!(
-        !html
-            .as_ref()
-            .contains(server_admin_contract::domain_types::AdminFrontendPath::Settings.get())
-    );
-    assert!(
-        html.as_ref()
-            .contains(server_admin_contract::domain_types::AdminFrontendPath::Sessions.get())
-    );
-    assert!(
-        html.as_ref()
-            .contains(server_admin_contract::domain_types::AdminFrontendPath::Profile.get())
+        !html.as_ref().contains(
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings.get()
+        )
     );
     assert!(
         html.as_ref().contains(
-            server_admin_contract::domain_types::AdminDataTable::AccessSessions
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions.get()
+        )
+    );
+    assert!(
+        html.as_ref()
+            .contains(server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get())
+    );
+    assert!(
+        html.as_ref().contains(
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
                 .frontend_path()
                 .as_ref()
         )
     );
     let users_table = html
         .as_ref()
-        .find(constants_str::VALUE_A6A17075)
+        .find(constants_str::test_fixtures::VALUE_A6A17075)
         .expect("7017fe5d navigation_only_contains_accessible_pages invariant must hold");
     let sessions_table = html
         .as_ref()
-        .find(constants_str::VALUE_B04C3167)
+        .find(constants_str::test_fixtures::VALUE_B04C3167)
         .expect("9510971f navigation_only_contains_accessible_pages invariant must hold");
     let profile_page = html
         .as_ref()
-        .find(constants_str::VALUE_94661A00)
+        .find(constants_str::test_fixtures::VALUE_94661A00)
         .expect("21570a0c navigation_only_contains_accessible_pages invariant must hold");
     let sessions_page = html
         .as_ref()
-        .find(constants_str::VALUE_21207624)
+        .find(constants_str::test_fixtures::VALUE_21207624)
         .expect("ba431a21 navigation_only_contains_accessible_pages invariant must hold");
     let sign_out = html
         .as_ref()
-        .find(server_admin_contract::domain_types::AdminHtmlAction::SignOut.get())
+        .find(server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get())
         .expect("46d23e89 navigation_only_contains_accessible_pages invariant must hold");
     assert!(users_table < sessions_table);
     assert!(sessions_table < profile_page);
@@ -181,7 +182,7 @@ fn navigation_only_contains_accessible_pages() {
     assert!(sessions_page < sign_out);
     assert!(
         html.as_ref().contains(
-            server_admin_contract::domain_types::AdminDataTable::Users
+            server_admin_contract::admin_data_table::AdminDataTable::Users
                 .frontend_path()
                 .as_ref()
         )
@@ -191,9 +192,9 @@ fn navigation_only_contains_accessible_pages() {
 
 #[test]
 fn sign_in_uses_server_side_color_without_logo() {
-    let settings = server_admin_contract::domain_types::AdminSettingsView::new(
-        server_admin_contract::domain_types::AdminDefaultRoute::try_from(
-            server_admin_contract::domain_types::AdminFrontendPath::Users
+    let settings = server_admin_contract::admin_settings_view::AdminSettingsView::new(
+        server_admin_contract::admin_default_route::AdminDefaultRoute::try_from(
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Users
                 .get()
                 .to_owned(),
         )
@@ -202,20 +203,21 @@ fn sign_in_uses_server_side_color_without_logo() {
         None,
         None,
         Some(
-            server_admin_contract::domain_types::AdminPrimaryColor::try_from(String::from(
-                constants_str::VALUE_55F98A52,
+            server_admin_contract::admin_primary_color::AdminPrimaryColor::try_from(String::from(
+                constants_str::test_fixtures::VALUE_55F98A52,
             ))
             .expect("9c08c954 sign_in_uses_server_side_color_without_logo invariant must hold"),
         ),
-        server_admin_contract::domain_types::AdminSiteName::try_from(String::from(
-            constants_str::VALUE_EB57AFDB,
+        server_admin_contract::admin_site_name::AdminSiteName::try_from(String::from(
+            constants_str::test_fixtures::VALUE_EB57AFDB,
         ))
         .expect("0a28fdd7 sign_in_uses_server_side_color_without_logo invariant must hold"),
         None,
         None,
     );
-    let branding = server_admin_contract::domain_types::AdminBrandingView::from_settings(&settings);
-    let html = crate::render_sign_in(None, Some(&branding));
+    let branding =
+        server_admin_contract::admin_branding_view::AdminBrandingView::from_settings(&settings);
+    let html = crate::render_sign_in::render_sign_in(None, Some(&branding));
     assert!(!html.as_ref().contains("Custom Admin"));
     assert!(!html.as_ref().contains("auth-brand"));
     assert!(!html.as_ref().contains("brand-mark"));

@@ -9,4 +9,4 @@
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
-pub struct AdminPassword(pub(crate) crate::SecrecyAdminString);
+pub struct AdminPassword(pub(crate) server_admin_core::secrecy_admin_string::SecrecyAdminString);

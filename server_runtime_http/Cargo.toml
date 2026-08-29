@@ -20,7 +20,6 @@ constants_u64 = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 server_observability = { workspace = true }
-server_runtime_core = { workspace = true }
 constants_str = { workspace = true }
 text_policy = { workspace = true }
 axum = { workspace = true }
@@ -44,6 +43,7 @@ tracing = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 uuid = { workspace = true }
 [dev-dependencies]
+server_runtime_core = { workspace = true }
 constants_u16 = { workspace = true }
 opentelemetry_sdk = { workspace = true, features = ["testing"] }
 tokio = { workspace = true, features = ["test-util"] }

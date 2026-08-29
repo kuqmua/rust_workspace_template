@@ -1,7 +1,5 @@
-use super::{AdminGeneratedTable, UtoipaAdminOpenApi};
-
 #[must_use]
-pub fn generated_open_api() -> UtoipaAdminOpenApi {
+pub fn generated_open_api() -> crate::utoipa_admin_open_api::UtoipaAdminOpenApi {
     fn collect_schema_refs(
         value: &serde_json::Value,
         refs: &mut std::collections::BTreeSet<String>,
@@ -11,9 +9,9 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
                 .iter()
                 .for_each(|child| collect_schema_refs(child, refs)),
             serde_json::Value::Object(values) => values.iter().for_each(|(key, child)| {
-                if key == constants_str::DOLLAR_REF
+                if key == constants_str::catalog::DOLLAR_REF
                     && let Some(name) = child.as_str().and_then(|reference| {
-                        reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS)
+                        reference.strip_prefix(constants_str::catalog::COMPONENTS_SCHEMAS)
                     })
                 {
                     let _inserted = refs.insert(name.to_owned());
@@ -26,11 +24,13 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
             | serde_json::Value::String(_) => {}
         }
     }
-    let mut document = utoipa::openapi::OpenApi::from(AdminGeneratedTable::ALL[0].open_api());
+    let mut document = utoipa::openapi::OpenApi::from(
+        crate::admin_generated_table::AdminGeneratedTable::ALL[0].open_api(),
+    );
     document.merge(utoipa::openapi::OpenApi::from(
-        crate::domain_types::auth::admin_api_open_api(),
+        crate::admin_api_open_api::admin_api_open_api(),
     ));
-    AdminGeneratedTable::ALL[1..]
+    crate::admin_generated_table::AdminGeneratedTable::ALL[1..]
         .iter()
         .copied()
         .for_each(|table| {
@@ -50,5 +50,5 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
             }
         });
     }
-    UtoipaAdminOpenApi::from(document)
+    crate::utoipa_admin_open_api::UtoipaAdminOpenApi::from(document)
 }

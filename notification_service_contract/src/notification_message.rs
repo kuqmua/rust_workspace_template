@@ -13,12 +13,13 @@
 pub struct NotificationMessage(String);
 
 impl TryFrom<String> for NotificationMessage {
-    type Error = crate::domain_types::NotificationMessageTryFromStringError;
+    type Error =
+        crate::notification_message_try_from_string_error::NotificationMessageTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {
             return Err(Self::Error::Empty);
         }
-        if value.len() > crate::domain_types::NOTIFICATION_MESSAGE_MAX_LEN {
+        if value.len() > crate::notification_message_max_len::NOTIFICATION_MESSAGE_MAX_LEN {
             return Err(Self::Error::TooLong);
         }
         Ok(Self(value))

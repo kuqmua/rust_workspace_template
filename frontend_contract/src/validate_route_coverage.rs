@@ -1,11 +1,6 @@
-use super::{
-    RouteAccess, RouteCoverageDescriptor, RouteCoverageError, RouteCoverageObligation,
-    RouteMutation,
-};
-
 pub fn validate_route_coverage(
-    descriptors: &[RouteCoverageDescriptor],
-) -> Result<(), RouteCoverageError> {
+    descriptors: &[crate::route_coverage_descriptor::RouteCoverageDescriptor],
+) -> Result<(), crate::route_coverage_error::RouteCoverageError> {
     descriptors
         .iter()
         .enumerate()
@@ -15,61 +10,58 @@ pub fn validate_route_coverage(
                 .take(index)
                 .any(|previous| previous.metadata == descriptor.metadata)
             {
-                return Err(RouteCoverageError::DuplicateRoute {
+                return Err(crate::route_coverage_error::RouteCoverageError::DuplicateRoute {
                     metadata: descriptor.metadata,
                 });
             }
             let required = [
                 (
-                    RouteCoverageObligation::IntegrationFixture,
-                    descriptor
-                        .evidence
-                        .obligations
-                        .contains(&RouteCoverageObligation::IntegrationFixture),
+                    crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+                    descriptor.evidence.obligations.contains(
+                        &crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+                    ),
                 ),
                 (
-                    RouteCoverageObligation::OpenApiOperation,
-                    descriptor
-                        .evidence
-                        .obligations
-                        .contains(&RouteCoverageObligation::OpenApiOperation),
+                    crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
+                    descriptor.evidence.obligations.contains(
+                        &crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
+                    ),
                 ),
                 (
-                    RouteCoverageObligation::PayloadValidation,
-                    descriptor
-                        .evidence
-                        .obligations
-                        .contains(&RouteCoverageObligation::PayloadValidation),
+                    crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
+                    descriptor.evidence.obligations.contains(
+                        &crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
+                    ),
                 ),
             ];
             if let Some((obligation, _present)) =
                 required.into_iter().find(|(_kind, present)| !present)
             {
-                return Err(RouteCoverageError::Missing {
+                return Err(crate::route_coverage_error::RouteCoverageError::Missing {
                     metadata: descriptor.metadata,
                     obligation,
                 });
             }
-            if descriptor.access == RouteAccess::Authenticated
+            if descriptor.access == crate::route_access::RouteAccess::Authenticated
                 && !descriptor
                     .evidence
                     .obligations
-                    .contains(&RouteCoverageObligation::SecurityValidation)
+                    .contains(&crate::route_coverage_obligation::RouteCoverageObligation::SecurityValidation)
             {
-                return Err(RouteCoverageError::Missing {
+                return Err(crate::route_coverage_error::RouteCoverageError::Missing {
                     metadata: descriptor.metadata,
-                    obligation: RouteCoverageObligation::SecurityValidation,
+                    obligation: crate::route_coverage_obligation::RouteCoverageObligation::SecurityValidation,
                 });
             }
-            if descriptor.mutation == RouteMutation::Mutating
+            if descriptor.mutation == crate::route_mutation::RouteMutation::Mutating
                 && !descriptor
                     .evidence
                     .obligations
-                    .contains(&RouteCoverageObligation::ReplayValidation)
+                    .contains(&crate::route_coverage_obligation::RouteCoverageObligation::ReplayValidation)
             {
-                return Err(RouteCoverageError::Missing {
+                return Err(crate::route_coverage_error::RouteCoverageError::Missing {
                     metadata: descriptor.metadata,
-                    obligation: RouteCoverageObligation::ReplayValidation,
+                    obligation: crate::route_coverage_obligation::RouteCoverageObligation::ReplayValidation,
                 });
             }
             Ok(())

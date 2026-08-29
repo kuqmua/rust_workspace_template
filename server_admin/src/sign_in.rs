@@ -1,9 +1,11 @@
-#[frontend_contract::route_error(AdminHtmlSignInError)]
+#[frontend_contract_macros::route_error(AdminHtmlSignInError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn sign_in(
-    auth: crate::AdminAuthReq,
-    peer: crate::AdminPeerAddr,
-    crate::AxumAdminForm(form): crate::AxumAdminForm<crate::SignInForm>,
+    auth: crate::admin_auth_req::AdminAuthReq,
+    peer: crate::admin_peer_addr::AdminPeerAddr,
+    crate::axum_admin_form::AxumAdminForm(form): crate::axum_admin_form::AxumAdminForm<
+        crate::sign_in_form::SignInForm,
+    >,
 ) -> axum::response::Response {
     let branding = crate::settings_branding_view_ref::settings_branding_view_ref(&auth)
         .await
@@ -11,10 +13,12 @@ pub(crate) async fn sign_in(
     match crate::authn_sign_in::authn_sign_in(
         auth,
         peer,
-        crate::AdminSignInJson(server_admin_contract::domain_types::AdminSignInReq::new(
-            form.login,
-            form.password,
-        )),
+        crate::admin_sign_in_json::AdminSignInJson(
+            server_admin_contract::admin_sign_in_req::AdminSignInReq::new(
+                form.login,
+                form.password,
+            ),
+        ),
     )
     .await
     {
@@ -22,7 +26,7 @@ pub(crate) async fn sign_in(
             let source = response.0;
             let mut target =
                 axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-                    server_admin_contract::domain_types::AdminFrontendPath::Users.get(),
+                    server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
                 ));
             source
                 .headers()
@@ -36,14 +40,14 @@ pub(crate) async fn sign_in(
         }
         Err(_error) => {
             let message_result =
-                server_admin_frontend::domain_types::ssr::AdminSsrErrorMessage::try_from(
-                    String::from(constants_str::SIGN_IN_FAILED),
+                server_admin_frontend::admin_ssr_error_message::AdminSsrErrorMessage::try_from(
+                    String::from(constants_str::test_fixtures::SIGN_IN_FAILED),
                 );
             match message_result {
                 Ok(error_message) => axum::response::IntoResponse::into_response((
                     http::StatusCode::UNAUTHORIZED,
                     axum::response::Html(String::from(
-                        server_admin_frontend::domain_types::ssr::render_sign_in(
+                        server_admin_frontend::render_sign_in::render_sign_in(
                             Some(error_message),
                             branding.as_ref(),
                         ),

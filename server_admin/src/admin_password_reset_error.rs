@@ -7,9 +7,9 @@ pub enum AdminPasswordResetError {
     #[error("administrator password reset password does not satisfy policy")]
     InvalidPassword,
     #[error("administrator password reset password hashing failed: {0}")]
-    PasswordHash(crate::AdminPasswordHashError),
+    PasswordHash(crate::admin_password_hash_error::AdminPasswordHashError),
     #[error("administrator password reset database operation failed: {0:?}")]
-    Pg(crate::SqlxAdminError),
+    Pg(crate::sqlx_admin_error::SqlxAdminError),
     #[error("administrator password reset target does not exist")]
     UnknownLogin,
 }

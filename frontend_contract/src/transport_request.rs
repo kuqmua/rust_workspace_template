@@ -1,18 +1,18 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct TransportRequest {
-    body: super::TransportBody,
-    path: super::TransportPath,
-    route: crate::RouteContract,
-    idempotency_key: Option<super::TransportIdempotencyKey>,
-    if_match: Option<super::TransportIfMatch>,
+    body: crate::transport_body::TransportBody,
+    path: crate::transport_path::TransportPath,
+    route: crate::route_contract::RouteContract,
+    idempotency_key: Option<crate::transport_idempotency_key::TransportIdempotencyKey>,
+    if_match: Option<crate::transport_if_match::TransportIfMatch>,
 }
 
 impl TransportRequest {
     #[must_use]
     pub const fn new(
-        body: super::TransportBody,
-        path: super::TransportPath,
-        route: crate::RouteContract,
+        body: crate::transport_body::TransportBody,
+        path: crate::transport_path::TransportPath,
+        route: crate::route_contract::RouteContract,
     ) -> Self {
         Self {
             body,
@@ -23,32 +23,37 @@ impl TransportRequest {
         }
     }
     #[must_use]
-    pub const fn body(&self) -> &super::TransportBody {
+    pub const fn body(&self) -> &crate::transport_body::TransportBody {
         &self.body
     }
     #[must_use]
-    pub const fn path(&self) -> &super::TransportPath {
+    pub const fn path(&self) -> &crate::transport_path::TransportPath {
         &self.path
     }
     #[must_use]
-    pub const fn route(&self) -> crate::RouteContract {
+    pub const fn route(&self) -> crate::route_contract::RouteContract {
         self.route
     }
     #[must_use]
-    pub const fn idempotency_key(&self) -> Option<&super::TransportIdempotencyKey> {
+    pub const fn idempotency_key(
+        &self,
+    ) -> Option<&crate::transport_idempotency_key::TransportIdempotencyKey> {
         self.idempotency_key.as_ref()
     }
     #[must_use]
-    pub const fn if_match(&self) -> Option<&super::TransportIfMatch> {
+    pub const fn if_match(&self) -> Option<&crate::transport_if_match::TransportIfMatch> {
         self.if_match.as_ref()
     }
     #[must_use]
-    pub fn with_idempotency_key(mut self, value: super::TransportIdempotencyKey) -> Self {
+    pub fn with_idempotency_key(
+        mut self,
+        value: crate::transport_idempotency_key::TransportIdempotencyKey,
+    ) -> Self {
         self.idempotency_key = Some(value);
         self
     }
     #[must_use]
-    pub fn with_if_match(mut self, value: super::TransportIfMatch) -> Self {
+    pub fn with_if_match(mut self, value: crate::transport_if_match::TransportIfMatch) -> Self {
         self.if_match = Some(value);
         self
     }

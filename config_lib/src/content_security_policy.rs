@@ -4,7 +4,7 @@
 pub struct ContentSecurityPolicy(String);
 
 impl TryFrom<String> for ContentSecurityPolicy {
-    type Error = super::ContentSecurityPolicyError;
+    type Error = crate::content_security_policy_error::ContentSecurityPolicyError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let trimmed = value.trim();
@@ -18,10 +18,10 @@ impl TryFrom<String> for ContentSecurityPolicy {
     }
 }
 
-impl crate::TryFromStdEnvVarOk for ContentSecurityPolicy {
-    type Error = super::ContentSecurityPolicyError;
+impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for ContentSecurityPolicy {
+    type Error = crate::content_security_policy_error::ContentSecurityPolicyError;
 
-    fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
+    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         Self::try_from(v.0)
     }
 }

@@ -5,10 +5,10 @@ pub enum AdminPageClientMode {
     Ssr,
 }
 impl AdminPageClientMode {
-    pub(super) fn supports_csr(self) -> crate::domain_types::AdminBool {
-        crate::domain_types::AdminBool::from(matches!(self, Self::Csr | Self::CsrTableQuery))
+    pub(super) fn supports_csr(self) -> crate::admin_bool::AdminBool {
+        crate::admin_bool::AdminBool::from(matches!(self, Self::Csr | Self::CsrTableQuery))
     }
-    pub(super) fn uses_table_query(self) -> crate::domain_types::AdminBool {
-        crate::domain_types::AdminBool::from(matches!(self, Self::CsrTableQuery))
+    pub(super) fn uses_table_query(self) -> crate::admin_bool::AdminBool {
+        crate::admin_bool::AdminBool::from(matches!(self, Self::CsrTableQuery))
     }
 }

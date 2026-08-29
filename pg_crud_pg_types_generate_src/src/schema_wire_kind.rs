@@ -1,5 +1,5 @@
 pub(super) fn schema_wire_kind<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind>(
-    spec: crate::domain_types::pg_type_spec::PgTypeSpec<
+    spec: crate::pg_type_spec::PgTypeSpec<
         CanBeNullable,
         CanBePrimaryKey,
         FilterKind,

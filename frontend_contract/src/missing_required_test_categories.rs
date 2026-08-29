@@ -1,15 +1,15 @@
-use super::{
-    RouteTestCapabilities, RouteTestCategories, RouteTestCategory, required_test_categories,
-};
-
 #[must_use]
 pub fn missing_required_test_categories(
-    capabilities: RouteTestCapabilities,
-    available_categories: &[RouteTestCategory],
-) -> RouteTestCategories {
-    RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(
-        bounded_types::BoundedVec::from(required_test_categories(capabilities))
+    capabilities: crate::route_test_capabilities::RouteTestCapabilities,
+    available_categories: &[crate::route_test_category::RouteTestCategory],
+) -> crate::route_test_categories::RouteTestCategories {
+    crate::route_test_categories::RouteTestCategories::from(
+        bounded_types::bounded_vec::BoundedVec::from_max_iter(
+            bounded_types::bounded_vec::BoundedVec::from(
+                crate::required_test_categories::required_test_categories(capabilities),
+            )
             .into_iter()
             .filter(|category| !available_categories.contains(category)),
-    ))
+        ),
+    )
 }

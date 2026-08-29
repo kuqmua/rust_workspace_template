@@ -1,5 +1,7 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq)]
-pub(crate) enum AdminAlertVariant {
+#[derive(
+    Debug, optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq,
+)]
+pub enum AdminAlertVariant {
     #[default]
     Error,
     #[cfg(not(target_arch = "wasm32"))]
@@ -9,17 +11,17 @@ pub(crate) enum AdminAlertVariant {
 impl AdminAlertVariant {
     pub(super) const fn class(self) -> &'static str {
         match self {
-            Self::Error => constants_str::VALUE_6EFBABDA,
+            Self::Error => constants_str::test_fixtures::VALUE_6EFBABDA,
             #[cfg(not(target_arch = "wasm32"))]
-            Self::Success => constants_str::VALUE_A443C355,
+            Self::Success => constants_str::test_fixtures::VALUE_A443C355,
         }
     }
 
     pub(super) const fn role(self) -> &'static str {
         match self {
-            Self::Error => constants_str::HTML_ALERT_ROLE,
+            Self::Error => constants_str::test_fixtures::HTML_ALERT_ROLE,
             #[cfg(not(target_arch = "wasm32"))]
-            Self::Success => constants_str::HTML_STATUS_ROLE,
+            Self::Success => constants_str::test_fixtures::HTML_STATUS_ROLE,
         }
     }
 }

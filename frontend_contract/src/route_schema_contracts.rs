@@ -1,5 +1,3 @@
-use super::RouteSchemaContract;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -9,19 +7,29 @@ use super::RouteSchemaContract;
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct RouteSchemaContracts(bounded_types::BoundedVec<RouteSchemaContract, 0, { usize::MAX }>);
-impl TryFrom<Vec<RouteSchemaContract>> for RouteSchemaContracts {
-    type Error = bounded_types::BoundedValueError;
-    fn try_from(value: Vec<RouteSchemaContract>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from_collection_vec(value).map(Self::from)
+pub struct RouteSchemaContracts(
+    bounded_types::bounded_vec::BoundedVec<
+        crate::route_schema_contract::RouteSchemaContract,
+        0,
+        { usize::MAX },
+    >,
+);
+impl TryFrom<Vec<crate::route_schema_contract::RouteSchemaContract>> for RouteSchemaContracts {
+    type Error = bounded_types::bounded_value_error::BoundedValueError;
+    fn try_from(
+        value: Vec<crate::route_schema_contract::RouteSchemaContract>,
+    ) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
     }
 }
 impl RouteSchemaContracts {
     #[must_use]
     pub fn from_max_iter<Values>(values: Values) -> Self
     where
-        Values: IntoIterator<Item = RouteSchemaContract>,
+        Values: IntoIterator<Item = crate::route_schema_contract::RouteSchemaContract>,
     {
-        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::bounded_vec::BoundedVec::from_max_iter(
+            values,
+        ))
     }
 }

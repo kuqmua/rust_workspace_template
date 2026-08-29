@@ -1,6 +1,3 @@
-pub use super::classify_http_error_status::classify_http_error_status;
-pub use super::http_error_class::HttpErrorClass;
-pub use super::http_error_status::HttpErrorStatus;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -9,65 +6,68 @@ mod tests {
         [
             (
                 http::StatusCode::OK,
-                super::HttpErrorClass::UnexpectedSuccess,
+                crate::http_error_class::HttpErrorClass::UnexpectedSuccess,
             ),
             (
                 http::StatusCode::UNAUTHORIZED,
-                super::HttpErrorClass::Authentication,
+                crate::http_error_class::HttpErrorClass::Authentication,
             ),
             (
                 http::StatusCode::FORBIDDEN,
-                super::HttpErrorClass::Forbidden,
+                crate::http_error_class::HttpErrorClass::Forbidden,
             ),
-            (http::StatusCode::NOT_FOUND, super::HttpErrorClass::NotFound),
+            (
+                http::StatusCode::NOT_FOUND,
+                crate::http_error_class::HttpErrorClass::NotFound,
+            ),
             (
                 http::StatusCode::REQUEST_TIMEOUT,
-                super::HttpErrorClass::Timeout,
+                crate::http_error_class::HttpErrorClass::Timeout,
             ),
             (
                 http::StatusCode::GATEWAY_TIMEOUT,
-                super::HttpErrorClass::Timeout,
+                crate::http_error_class::HttpErrorClass::Timeout,
             ),
-            (http::StatusCode::CONFLICT, super::HttpErrorClass::Conflict),
+            (
+                http::StatusCode::CONFLICT,
+                crate::http_error_class::HttpErrorClass::Conflict,
+            ),
             (
                 http::StatusCode::PAYLOAD_TOO_LARGE,
-                super::HttpErrorClass::PayloadTooLarge,
+                crate::http_error_class::HttpErrorClass::PayloadTooLarge,
             ),
             (
                 http::StatusCode::UNPROCESSABLE_ENTITY,
-                super::HttpErrorClass::Validation,
+                crate::http_error_class::HttpErrorClass::Validation,
             ),
             (
                 http::StatusCode::TOO_MANY_REQUESTS,
-                super::HttpErrorClass::RateLimited,
+                crate::http_error_class::HttpErrorClass::RateLimited,
             ),
             (
                 http::StatusCode::BAD_GATEWAY,
-                super::HttpErrorClass::ServiceUnavailable,
+                crate::http_error_class::HttpErrorClass::ServiceUnavailable,
             ),
             (
                 http::StatusCode::SERVICE_UNAVAILABLE,
-                super::HttpErrorClass::ServiceUnavailable,
+                crate::http_error_class::HttpErrorClass::ServiceUnavailable,
             ),
             (
                 http::StatusCode::BAD_REQUEST,
-                super::HttpErrorClass::Internal,
+                crate::http_error_class::HttpErrorClass::Internal,
             ),
         ]
         .into_iter()
         .for_each(|(status, expected)| {
-            assert_eq!(super::classify_http_error_status(status.into()), expected);
+            assert_eq!(
+                crate::classify_http_error_status::classify_http_error_status(status.into()),
+                expected
+            );
         });
     }
 }
 
 // Root-owned module compatibility wrappers.
-mod classify_http_error_status {
-    pub use super::super::classify_http_error_status::*;
-}
-mod http_error_class {
-    pub use super::super::http_error_class::*;
-}
-mod http_error_status {
-    pub use super::super::http_error_status::*;
-}
+mod classify_http_error_status {}
+mod http_error_class {}
+mod http_error_status {}

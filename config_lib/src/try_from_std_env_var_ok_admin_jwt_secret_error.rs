@@ -8,12 +8,12 @@ pub enum TryFromStdEnvVarOkAdminJwtSecretError {
     EmptyEntry,
     #[error(
         "administrator JWT secret list must contain at most {} entries",
-        super::ADMIN_JWT_SECRET_MAX_COUNT
+        crate::admin_jwt_secret_max_count::ADMIN_JWT_SECRET_MAX_COUNT
     )]
     TooMany,
     #[error(
         "administrator JWT secret must contain at least {} bytes",
-        super::ADMIN_JWT_SECRET_MIN_LEN
+        crate::admin_jwt_secret_min_len::ADMIN_JWT_SECRET_MIN_LEN
     )]
     TooShort,
     #[error("administrator JWT secret is too long")]

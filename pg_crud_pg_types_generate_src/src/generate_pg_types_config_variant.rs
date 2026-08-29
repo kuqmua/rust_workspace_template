@@ -1,8 +1,6 @@
-use super::*;
-
 #[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum GeneratePgTypesConfigVariant {
     All,
-    Concrete(GeneratePgTypeRecords),
-    Subset(GeneratePgTypes),
+    Concrete(crate::generate_pg_type_records::GeneratePgTypeRecords),
+    Subset(crate::generate_pg_types::GeneratePgTypes),
 }

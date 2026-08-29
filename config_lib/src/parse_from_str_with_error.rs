@@ -1,7 +1,5 @@
-use super::StdEnvVarOkRef;
-
 pub(super) fn parse_from_str_with_error<T, ParseError, Error>(
-    v: StdEnvVarOkRef<'_>,
+    v: crate::std_env_var_ok_ref::StdEnvVarOkRef<'_>,
     mk_error: impl FnOnce(ParseError) -> Error,
 ) -> Result<T, Error>
 where

@@ -7,4 +7,4 @@
     newtype::IntoInnerFrom,
     newtype::FromInner,
 )]
-pub struct ReadQueryPlan(crate::domain_types::QueryPartFragment);
+pub struct ReadQueryPlan(crate::query_part_fragment::QueryPartFragment);

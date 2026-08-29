@@ -1,5 +1,3 @@
-use super::LeaseId;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,4 +8,6 @@ use super::LeaseId;
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct LeaseIds(bounded_types::BoundedVec<LeaseId, 0, { usize::MAX }>);
+pub struct LeaseIds(
+    bounded_types::bounded_vec::BoundedVec<crate::lease_id::LeaseId, 0, { usize::MAX }>,
+);

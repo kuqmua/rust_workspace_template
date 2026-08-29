@@ -1,11 +1,3 @@
-pub use super::display_plus_to_tokens::DisplayPlusToTokens;
-pub use super::hash_map::HashMap;
-pub use super::hash_map_snake_case::HashMapSnakeCase;
-pub use super::hash_map_upper_camel_case::HashMapUpperCamelCase;
-pub use super::parameter;
-pub use super::swagger_url_path_prefix::SwaggerUrlPathPrefix;
-pub use super::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr;
-pub use super::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream;
 naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["primary", "key"],
     ["serde"],
@@ -487,28 +479,40 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
 mod tests {
     #[test]
     fn generated_static_names_preserve_both_cases_and_tokens() {
-        assert_eq!(super::PrimaryKeyUpperCamelCase.to_string(), "PrimaryKey");
-        assert_eq!(super::PrimaryKeySnakeCase.to_string(), "primary_key");
-        let upper_camel = super::PrimaryKeyUpperCamelCase;
-        let snake = super::PrimaryKeySnakeCase;
+        assert_eq!(
+            crate::domain_types::PrimaryKeyUpperCamelCase.to_string(),
+            "PrimaryKey"
+        );
+        assert_eq!(
+            crate::domain_types::PrimaryKeySnakeCase.to_string(),
+            "primary_key"
+        );
+        let upper_camel = crate::domain_types::PrimaryKeyUpperCamelCase;
+        let snake = crate::domain_types::PrimaryKeySnakeCase;
         assert_eq!(quote::quote!(#upper_camel).to_string(), "PrimaryKey");
         assert_eq!(quote::quote!(#snake).to_string(), "primary_key");
-        assert_eq!(super::HashMapUpperCamelCase.to_string(), "HashMap");
-        assert_eq!(super::HashMapSnakeCase.to_string(), "hashmap");
+        assert_eq!(
+            crate::hash_map_upper_camel_case::HashMapUpperCamelCase.to_string(),
+            "HashMap"
+        );
+        assert_eq!(
+            crate::hash_map_snake_case::HashMapSnakeCase.to_string(),
+            "hashmap"
+        );
     }
 
     #[test]
     fn parameterized_names_preserve_display_token_and_type_path_context() {
-        let display = super::parameter::SelfPayloadUpperCamelCase::from_display(
-            &constants_str::VALUE_BCB2F337,
+        let display = crate::parameter::SelfPayloadUpperCamelCase::from_display(
+            &constants_str::test_fixtures::VALUE_BCB2F337,
         );
         assert_eq!(display.to_string(), "TableExamplePayload");
         let tokens =
-            super::parameter::SelfPayloadSnakeCase::from_tokens(&quote::quote!(TableExample));
+            crate::parameter::SelfPayloadSnakeCase::from_tokens(&quote::quote!(TableExample));
         assert_eq!(tokens.to_string(), "table_example_payload");
         let qualified_type: syn::Type = syn::parse_quote!(crate::model::TableExample);
         let qualified_name =
-            super::parameter::SelfPayloadUpperCamelCase::from_type_last_segment(&qualified_type);
+            crate::parameter::SelfPayloadUpperCamelCase::from_type_last_segment(&qualified_type);
         assert_eq!(
             qualified_name.to_string(),
             "crate::model::TableExamplePayload"
@@ -517,16 +521,16 @@ mod tests {
 
     #[test]
     fn swagger_path_helpers_quote_snake_case_paths() {
-        let name = String::from(constants_str::VALUE_DECD817E);
-        let path = super::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
+        let name = String::from(constants_str::test_fixtures::VALUE_DECD817E);
+        let path = crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
             &name,
-            super::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
+            crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::catalog::SERVICE),
         );
         assert_eq!(path.as_ref(), "\"/service/table_example\"");
         let tokens =
-            super::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
+            crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
                 &name,
-                super::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
+                crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::catalog::SERVICE),
             );
         assert_eq!(
             quote::quote!(#tokens).to_string(),

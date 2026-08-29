@@ -13,7 +13,7 @@
 )]
 #[serde(try_from = "crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw")]
 #[derive(newtype::FromInner)]
-pub struct PaginationStartsWithOne(pg_crud_common::domain_types::PaginationBase);
+pub struct PaginationStartsWithOne(pg_crud_common::pagination_base::PaginationBase);
 
 impl PaginationStartsWithOne {
     #[must_use]
@@ -59,7 +59,7 @@ impl PaginationStartsWithOne {
             }
         } else if offset_value.get().checked_add(limit_value.get()).is_some() {
             Ok(Self::from(
-                pg_crud_common::domain_types::PaginationBase::new_unchecked(
+                pg_crud_common::pagination_base::PaginationBase::new_unchecked(
                     limit_value.get(),
                     offset_value.get(),
                 ),
@@ -88,49 +88,52 @@ impl TryFrom<crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw>
     }
 }
 
-impl<'lt> pg_crud_common::domain_types::PgTypeWhereFilter<'lt> for PaginationStartsWithOne {
+impl<'lt> pg_crud_common::pg_type_where_filter::PgTypeWhereFilter<'lt> for PaginationStartsWithOne {
     fn query_bind(
         self,
-        query: pg_crud_common::domain_types::SqlxPostgresQuery<'lt>,
+        query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
     ) -> Result<
-        pg_crud_common::domain_types::SqlxPostgresQuery<'lt>,
-        pg_crud_common::domain_types::SqlxPostgresQueryBindError,
+        pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
+        pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
         self.0.query_bind(query)
     }
     fn query_part(
         &self,
-        increment: &mut dyn pg_crud_common::domain_types::QueryPartIncrementMut,
-        column: pg_crud_common::domain_types::SqlColumnRef<'_>,
-        add_operator: pg_crud_common::domain_types::AddOperator,
+        increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut,
+        column: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
+        add_operator: pg_crud_common::add_operator::AddOperator,
     ) -> Result<
-        pg_crud_common::domain_types::QueryPartFragment,
-        pg_crud_common::domain_types::QueryPartError,
+        pg_crud_common::query_part_fragment::QueryPartFragment,
+        pg_crud_common::query_part_error::QueryPartError,
     > {
         self.0.query_part(increment, column, add_operator)
     }
 }
 
-impl pg_crud_common::domain_types::DefaultSomeOneElement for PaginationStartsWithOne {
+impl pg_crud_common::default_some_one_element::DefaultSomeOneElement for PaginationStartsWithOne {
     #[inline]
     fn default_some_one_element() -> Self {
-        Self::from(pg_crud_common::domain_types::PaginationBase::new_unchecked(
-            pg_crud_common::domain_types::PaginationPolicy::standard()
-                .default_limit()
-                .get(),
-            1,
-        ))
+        Self::from(
+            pg_crud_common::pagination_base::PaginationBase::new_unchecked(
+                pg_crud_common::pagination_policy::PaginationPolicy::standard()
+                    .default_limit()
+                    .get(),
+                1,
+            ),
+        )
     }
 }
 
-impl pg_crud_common::domain_types::DefaultSomeOneElementMaxPageSize for PaginationStartsWithOne {
+impl pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneElementMaxPageSize
+    for PaginationStartsWithOne
+{
     #[inline]
     fn default_some_one_element_max_page_size() -> Self {
         let one: i32 = 1;
-        Self::from(pg_crud_common::domain_types::PaginationBase::new_unchecked(
-            i32::MAX - one,
-            one,
-        ))
+        Self::from(
+            pg_crud_common::pagination_base::PaginationBase::new_unchecked(i32::MAX - one, one),
+        )
     }
 }
 
@@ -164,17 +167,17 @@ mod tests {
     #[test]
     fn pagination_defaults_start_at_one_and_use_the_expected_limits() {
         let standard =
-            <super::PaginationStartsWithOne as pg_crud_common::domain_types::DefaultSomeOneElement>::default_some_one_element();
+            <super::PaginationStartsWithOne as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element();
         assert_eq!(standard.start().get(), constants_i64::ONE);
         assert_eq!(
             standard.end().get(),
-            pg_crud_common::domain_types::PaginationPolicy::standard()
+            pg_crud_common::pagination_policy::PaginationPolicy::standard()
                 .default_limit()
                 .get()
                 + constants_i64::ONE
         );
         let maximum =
-            <super::PaginationStartsWithOne as pg_crud_common::domain_types::DefaultSomeOneElementMaxPageSize>::default_some_one_element_max_page_size();
+            <super::PaginationStartsWithOne as pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneElementMaxPageSize>::default_some_one_element_max_page_size();
         assert_eq!(maximum.start().get(), constants_i64::ONE);
         assert_eq!(maximum.end().get(), i64::from(i32::MAX));
     }

@@ -9,6 +9,6 @@
     utoipa::ToSchema,
 )]
 pub struct ApiProblemViolation {
-    detail: super::ApiProblemDetail,
-    field: super::ApiProblemField,
+    detail: crate::api_problem_detail::ApiProblemDetail,
+    field: crate::api_problem_field::ApiProblemField,
 }

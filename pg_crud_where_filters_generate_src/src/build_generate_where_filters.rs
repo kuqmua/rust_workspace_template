@@ -1,19 +1,19 @@
 pub fn build_generate_where_filters(
-    parsed: crate::source::ParsedGenerateWhereFiltersConfig,
+    parsed: crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
 ) -> Result<
-    crate::source::BuiltGenerateWhereFiltersModel,
-    crate::source::GenerateWhereFiltersPipelineError,
+    crate::built_generate_where_filters_model::BuiltGenerateWhereFiltersModel,
+    crate::generate_where_filters_pipeline_error::GenerateWhereFiltersPipelineError,
 > {
     let valid = [
-        crate::spec::FilterSpec::adjacent(),
-        crate::spec::FilterSpec::before(),
-        crate::spec::FilterSpec::contains(),
-        crate::spec::FilterSpec::equality(),
-        crate::spec::FilterSpec::left_of(),
-        crate::spec::FilterSpec::overlaps(),
-        crate::spec::FilterSpec::right_of(),
-        crate::spec::FilterSpec::text_search(),
-        crate::spec::FilterSpec::within(),
+        crate::filter_spec::FilterSpec::adjacent(),
+        crate::filter_spec::FilterSpec::before(),
+        crate::filter_spec::FilterSpec::contains(),
+        crate::filter_spec::FilterSpec::equality(),
+        crate::filter_spec::FilterSpec::left_of(),
+        crate::filter_spec::FilterSpec::overlaps(),
+        crate::filter_spec::FilterSpec::right_of(),
+        crate::filter_spec::FilterSpec::text_search(),
+        crate::filter_spec::FilterSpec::within(),
     ]
     .into_iter()
     .all(|spec| {
@@ -32,8 +32,10 @@ pub fn build_generate_where_filters(
                 .as_ref()
                 .is_empty()
     });
-    Ok(crate::source::BuiltGenerateWhereFiltersModel {
-        config: parsed,
-        contract_valid: crate::spec::FilterSpecValid::from(valid),
-    })
+    Ok(
+        crate::built_generate_where_filters_model::BuiltGenerateWhereFiltersModel {
+            config: parsed,
+            contract_valid: crate::filter_spec_valid::FilterSpecValid::from(valid),
+        },
+    )
 }

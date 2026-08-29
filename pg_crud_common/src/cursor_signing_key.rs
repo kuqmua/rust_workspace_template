@@ -4,7 +4,7 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
 pub struct CursorSigningKey(
-    pub(super)  bounded_types::BoundedVec<
+    pub(super)  bounded_types::bounded_vec::BoundedVec<
         u8,
         { constants_usize::ONE },
         { super::cursor_signing_key_maximum_length::CURSOR_SIGNING_KEY_MAXIMUM_LENGTH },
@@ -19,12 +19,12 @@ impl std::fmt::Debug for CursorSigningKey {
 }
 
 impl TryFrom<Vec<u8>> for CursorSigningKey {
-    type Error = crate::domain_types::CursorSigningKeyError;
+    type Error = crate::cursor_signing_key_error::CursorSigningKeyError;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from(value)
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)
-            .map_err(|_error| crate::domain_types::CursorSigningKeyError)
+            .map_err(|_error| crate::cursor_signing_key_error::CursorSigningKeyError)
     }
 }
 
@@ -33,17 +33,17 @@ mod tests {
     #[test]
     fn signing_key_rejects_empty_and_oversized_values() {
         assert_eq!(
-            super::CursorSigningKey::try_from(Vec::new()).map(drop),
-            Err(crate::domain_types::CursorSigningKeyError)
+            crate::cursor_signing_key::CursorSigningKey::try_from(Vec::new()).map(drop),
+            Err(crate::cursor_signing_key_error::CursorSigningKeyError)
         );
         assert_eq!(
-            super::CursorSigningKey::try_from(vec![
+            crate::cursor_signing_key::CursorSigningKey::try_from(vec![
                 constants_u8::ZERO;
                 super::super::cursor_signing_key_maximum_length::CURSOR_SIGNING_KEY_MAXIMUM_LENGTH
                     + constants_usize::ONE
             ])
             .map(drop),
-            Err(crate::domain_types::CursorSigningKeyError)
+            Err(crate::cursor_signing_key_error::CursorSigningKeyError)
         );
     }
 }

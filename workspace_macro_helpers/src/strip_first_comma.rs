@@ -1,10 +1,8 @@
-use super::domain_types::FirstCommaStripped;
-
-pub fn strip_first_comma<I>(input: &mut I) -> FirstCommaStripped
+pub fn strip_first_comma<I>(input: &mut I) -> crate::first_comma_stripped::FirstCommaStripped
 where
     I: Iterator<Item = proc_macro2::TokenTree>,
 {
-    FirstCommaStripped::from(
+    crate::first_comma_stripped::FirstCommaStripped::from(
         matches!(input.next(), Some(proc_macro2::TokenTree::Punct(punct)) if punct.as_char() == ','),
     )
 }

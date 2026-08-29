@@ -8,7 +8,7 @@ pub struct UtoipaOpenApiComponentsRefMut<'value_lt>(
 );
 impl std::fmt::Debug for UtoipaOpenApiComponentsRefMut<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::UTOIPAOPENAPICOMPONENTSREFMUT)
+        f.debug_struct(constants_str::catalog::UTOIPAOPENAPICOMPONENTSREFMUT)
             .finish_non_exhaustive()
     }
 }

@@ -1,5 +1,3 @@
-use super::AdminPageOffsetVisitor;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -20,7 +18,8 @@ impl<'de> serde::Deserialize<'de> for AdminPageOffset {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = deserializer.deserialize_any(AdminPageOffsetVisitor)?;
+        let value = deserializer
+            .deserialize_any(crate::admin_page_offset_visitor::AdminPageOffsetVisitor)?;
         Ok(Self::from(u32::from(value)))
     }
 }

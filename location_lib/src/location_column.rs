@@ -1,5 +1,3 @@
-use super::domain_types::LocationCoordinateTryFromU32Error;
-
 #[derive(
     Debug,
     PartialEq,
@@ -23,12 +21,12 @@ impl From<std::num::NonZeroU32> for LocationColumn {
     }
 }
 impl TryFrom<u32> for LocationColumn {
-    type Error = LocationCoordinateTryFromU32Error;
+    type Error = crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         std::num::NonZeroU32::new(value)
             .map(Self::from)
-            .ok_or(LocationCoordinateTryFromU32Error)
+            .ok_or(crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error)
     }
 }
 impl LocationColumn {

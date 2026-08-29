@@ -1,11 +1,12 @@
 pub(crate) fn password_from_bytes(
-    bytes: server_runtime_http::domain_types::BoundedBytes,
+    bytes: server_runtime_http::bounded_bytes::BoundedBytes,
 ) -> Result<
-    server_admin_contract::domain_types::AdminNewPassword,
-    crate::AdministratorAccountCommandError,
+    server_admin_contract::admin_new_password::AdminNewPassword,
+    crate::administrator_account_command_error::AdministratorAccountCommandError,
 > {
-    let text = server_runtime_http::domain_types::BoundedText::try_from(bytes)
-        .map_err(crate::AdministratorAccountCommandError::PasswordFile)?;
+    let text = server_runtime_http::bounded_text::BoundedText::try_from(bytes).map_err(
+        crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFile,
+    )?;
     let mut password = text.into_inner();
     if password.ends_with('\n') {
         let _newline = password.pop();
@@ -13,8 +14,10 @@ pub(crate) fn password_from_bytes(
             let _carriage_return = password.pop();
         }
     }
-    server_admin_contract::domain_types::AdminNewPassword::try_from(password).map_err(|error| {
-        let _error_text = format!("{error:?}");
-        crate::AdministratorAccountCommandError::PasswordFileValue
-    })
+    server_admin_contract::admin_new_password::AdminNewPassword::try_from(password).map_err(
+        |error| {
+            let _error_text = format!("{error:?}");
+            crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFileValue
+        },
+    )
 }

@@ -12,20 +12,23 @@
 pub struct ApiUrl(String);
 
 impl ApiUrl {
-    pub fn push_path_segment(&mut self, segment: super::ApiUrlPathSegmentRef<'_>) {
+    pub fn push_path_segment(
+        &mut self,
+        segment: crate::api_url_path_segment_ref::ApiUrlPathSegmentRef<'_>,
+    ) {
         if !self.0.ends_with('/') {
             self.0.push('/');
         }
         self.0.extend(percent_encoding::utf8_percent_encode(
             segment.0,
-            super::API_URL_COMPONENT_ENCODE_SET,
+            crate::api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET,
         ));
     }
 
     pub fn push_query_pair(
         &mut self,
-        name: super::ApiUrlQueryComponentRef<'_>,
-        value: super::ApiUrlQueryComponentRef<'_>,
+        name: crate::api_url_query_component_ref::ApiUrlQueryComponentRef<'_>,
+        value: crate::api_url_query_component_ref::ApiUrlQueryComponentRef<'_>,
     ) {
         self.0.push(if self.0.contains('?') { '&' } else { '?' });
         [&name.0, &value.0]
@@ -37,7 +40,7 @@ impl ApiUrl {
                 }
                 self.0.extend(percent_encoding::utf8_percent_encode(
                     component,
-                    super::API_URL_COMPONENT_ENCODE_SET,
+                    crate::api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET,
                 ));
             });
     }

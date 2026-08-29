@@ -1,7 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminMetricsError {
     #[error(transparent)]
-    Render(server_runtime_http::domain_types::MetricsResponseBodyError),
+    Render(server_runtime_http::metrics_response_body_error::MetricsResponseBodyError),
 }
 impl axum::response::IntoResponse for AdminMetricsError {
     fn into_response(self) -> axum::response::Response {

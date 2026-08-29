@@ -3,13 +3,13 @@
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[must_use]
-pub fn location_syn_field() -> SynLocationField {
-    SynLocationField::from(syn::Field {
+pub fn location_syn_field() -> crate::syn_location_field::SynLocationField {
+    crate::syn_location_field::SynLocationField::from(syn::Field {
         attrs: Vec::new(),
         vis: syn::Visibility::Inherited,
         modifiers: syn::FieldModifiers::default(),
         ident: Some(syn::Ident::new(
-            constants_str::LOCATION_ALT,
+            constants_str::catalog::LOCATION_ALT,
             proc_macro2::Span::call_site(),
         )),
         colon_token: Some(syn::token::Colon {
@@ -21,15 +21,13 @@ pub fn location_syn_field() -> SynLocationField {
             qself: None,
             path: syn::Path {
                 leading_colon: None,
-                segments:
-                    crate::domain_types::generate_simple_syn_punct::generate_simple_syn_punct([
-                        constants_str::LOCATION_LIB,
-                        constants_str::DOMAIN_TYPES,
-                        constants_str::LOCATION,
-                    ])
-                    .into(),
+                segments: crate::generate_simple_syn_punct::generate_simple_syn_punct([
+                    constants_str::catalog::LOCATION_LIB,
+                    constants_str::catalog::LOCATION_ALT,
+                    constants_str::catalog::LOCATION,
+                ])
+                .into(),
             },
         }),
     })
 }
-pub use super::syn_location_field::SynLocationField;

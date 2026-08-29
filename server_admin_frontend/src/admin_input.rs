@@ -21,8 +21,9 @@ use leptos::prelude::{AddAnyAttr};
 )]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminInput(
-    #[prop(into)] name: super::AdminInputName,
-    #[prop(default = super::AdminInputKind::default())] kind: super::AdminInputKind,
+    #[prop(into)] name: crate::admin_input_name::AdminInputName,
+    #[prop(default = crate::admin_input_kind::AdminInputKind::default())]
+    kind: crate::admin_input_kind::AdminInputKind,
     #[prop(optional)] autocomplete: Option<&'static str>,
     #[prop(optional)] required: bool,
     #[prop(optional)] disabled: bool,
@@ -31,7 +32,9 @@ pub(crate) fn AdminInput(
     #[prop(optional)] min: Option<u16>,
     #[prop(optional)] max: Option<u16>,
     #[prop(optional)] initial_value: Option<String>,
-    #[prop(optional, into)] bind_value: Option<super::LeptosAdminInputSignal>,
+    #[prop(optional, into)] bind_value: Option<
+        crate::leptos_admin_input_signal::LeptosAdminInputSignal,
+    >,
 ) -> impl leptos::prelude::IntoView {
     let input_type = kind.value();
     match bind_value {

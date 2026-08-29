@@ -8,9 +8,9 @@
 )]
 pub struct PgPoolIdleTimeoutSeconds(std::num::NonZeroU64);
 
-impl crate::domain_types::TryFromStdEnvVarOk for PgPoolIdleTimeoutSeconds {
-    type Error = super::PgPoolConfigParseError;
-    fn try_from_std_env_var_ok(v: crate::domain_types::StdEnvVarOk) -> Result<Self, Self::Error> {
-        super::parse_pg_pool_non_zero_seconds(&v).map(Self)
+impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for PgPoolIdleTimeoutSeconds {
+    type Error = crate::pg_pool_config_parse_error::PgPoolConfigParseError;
+    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
+        crate::parse_pg_pool_non_zero_seconds::parse_pg_pool_non_zero_seconds(&v).map(Self)
     }
 }

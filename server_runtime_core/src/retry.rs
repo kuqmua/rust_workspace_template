@@ -1,19 +1,14 @@
-pub use super::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize;
-pub use super::retry_delay_duration::RetryDelayDuration;
-pub use super::retry_outcome::RetryOutcome;
-pub use super::retry_policy::RetryPolicy;
-pub use super::run_with_retries::run_with_retries;
-pub use super::std_retry_attempts_error::StdRetryAttemptsError;
 #[cfg(test)]
 mod tests {
     #[tokio::test]
     async fn retryable_failure_is_retried_until_success() {
         let mut calls = constants_usize::ZERO;
-        let outcome = super::run_with_retries(
-            super::RetryPolicy::new(
-                super::RetryAttemptsNonZeroUsize::try_from(3usize).expect(
-                    "e7bc9a41 retryable_failure_is_retried_until_success invariant must hold",
-                ),
+        let outcome = crate::run_with_retries::run_with_retries(
+            crate::retry_policy::RetryPolicy::new(
+                crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(3usize)
+                    .expect(
+                        "e7bc9a41 retryable_failure_is_retried_until_success invariant must hold",
+                    ),
                 None,
             ),
             || {
@@ -30,9 +25,9 @@ mod tests {
     #[tokio::test]
     async fn terminal_failure_is_not_retried() {
         let mut calls = constants_usize::ZERO;
-        let outcome = super::run_with_retries(
-            super::RetryPolicy::new(
-                super::RetryAttemptsNonZeroUsize::try_from(3usize)
+        let outcome = crate::run_with_retries::run_with_retries(
+            crate::retry_policy::RetryPolicy::new(
+                crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(3usize)
                     .expect("61b6aed5 terminal_failure_is_not_retried invariant must hold"),
                 None,
             ),

@@ -13,18 +13,20 @@ pub enum RouteErrorStatus {
 
 impl RouteErrorStatus {
     #[must_use]
-    pub fn transport_status(self) -> crate::TransportStatus {
+    pub fn transport_status(self) -> crate::transport_status::TransportStatus {
         let status = match self {
-            Self::Authentication => crate::KnownHttpStatus::Unauthorized,
-            Self::Authorization => crate::KnownHttpStatus::Forbidden,
-            Self::Conflict => crate::KnownHttpStatus::Conflict,
-            Self::Internal => crate::KnownHttpStatus::InternalServerError,
-            Self::MethodNotAllowed => crate::KnownHttpStatus::MethodNotAllowed,
-            Self::PayloadTooLarge => crate::KnownHttpStatus::PayloadTooLarge,
-            Self::RateLimited => crate::KnownHttpStatus::TooManyRequests,
-            Self::ServiceUnavailable => crate::KnownHttpStatus::ServiceUnavailable,
-            Self::Validation => crate::KnownHttpStatus::UnprocessableEntity,
+            Self::Authentication => crate::known_http_status::KnownHttpStatus::Unauthorized,
+            Self::Authorization => crate::known_http_status::KnownHttpStatus::Forbidden,
+            Self::Conflict => crate::known_http_status::KnownHttpStatus::Conflict,
+            Self::Internal => crate::known_http_status::KnownHttpStatus::InternalServerError,
+            Self::MethodNotAllowed => crate::known_http_status::KnownHttpStatus::MethodNotAllowed,
+            Self::PayloadTooLarge => crate::known_http_status::KnownHttpStatus::PayloadTooLarge,
+            Self::RateLimited => crate::known_http_status::KnownHttpStatus::TooManyRequests,
+            Self::ServiceUnavailable => {
+                crate::known_http_status::KnownHttpStatus::ServiceUnavailable
+            }
+            Self::Validation => crate::known_http_status::KnownHttpStatus::UnprocessableEntity,
         };
-        crate::TransportStatus::from(status)
+        crate::transport_status::TransportStatus::from(status)
     }
 }

@@ -4,5 +4,10 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(super) struct TokioChildDiagnosticTask(
-    pub(super) tokio::task::JoinHandle<Result<super::ChildDiagnostic, super::ChildProcessError>>,
+    pub(super)  tokio::task::JoinHandle<
+        Result<
+            crate::child_diagnostic::ChildDiagnostic,
+            crate::child_process_error::ChildProcessError,
+        >,
+    >,
 );

@@ -10,8 +10,8 @@
 )]
 pub struct IsPrimaryKey(bool);
 
-impl From<pg_crud_common::domain_types::IsPrimaryKey> for IsPrimaryKey {
-    fn from(value: pg_crud_common::domain_types::IsPrimaryKey) -> Self {
+impl From<pg_crud_common::is_primary_key::IsPrimaryKey> for IsPrimaryKey {
+    fn from(value: pg_crud_common::is_primary_key::IsPrimaryKey) -> Self {
         Self::from(bool::from(value))
     }
 }

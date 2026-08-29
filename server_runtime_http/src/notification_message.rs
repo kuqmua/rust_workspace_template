@@ -12,7 +12,7 @@
 pub struct NotificationMessage(String);
 
 impl TryFrom<String> for NotificationMessage {
-    type Error = super::NotificationMessageError;
+    type Error = crate::notification_message_error::NotificationMessageError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {

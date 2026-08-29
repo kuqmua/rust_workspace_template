@@ -10,4 +10,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct DbColumnSpecs(Vec<super::DbColumnSpec>);
+pub struct DbColumnSpecs(Vec<crate::db_column_spec::DbColumnSpec>);

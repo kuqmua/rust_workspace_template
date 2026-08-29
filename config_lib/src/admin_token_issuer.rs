@@ -14,10 +14,10 @@
 #[serde(try_from = "String")]
 pub struct AdminTokenIssuer(String);
 
-impl crate::TryFromStdEnvVarOk for AdminTokenIssuer {
-    type Error = super::TryFromStdEnvVarOkAdminTokenTextError;
+impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminTokenIssuer {
+    type Error = crate::try_from_std_env_var_ok_admin_token_text_error::TryFromStdEnvVarOkAdminTokenTextError;
 
-    fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
+    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         super::parse_admin_token_text::parse_admin_token_text(v, Self::try_from)
     }
 }

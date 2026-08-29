@@ -4,12 +4,12 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub struct SynBuiltGeneratePgTableInput(
-    pub(super) crate::domain_types::table::GeneratePgTableModel,
+    pub(super) crate::generate_pg_table_model::GeneratePgTableModel,
 );
 
 impl SynBuiltGeneratePgTableInput {
     #[must_use]
-    pub const fn model(&self) -> &crate::domain_types::table::GeneratePgTableModel {
+    pub const fn model(&self) -> &crate::generate_pg_table_model::GeneratePgTableModel {
         &self.0
     }
 }

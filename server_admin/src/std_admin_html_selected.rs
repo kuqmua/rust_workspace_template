@@ -1,8 +1,3 @@
-use super::{
-    ADMIN_HTML_FORM_SELECTED_MAX_ITEMS, AdminHtmlFormKey, AdminHtmlFormText,
-    StdAdminHtmlSelectedError,
-};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -12,24 +7,32 @@ use super::{
     serde::Deserialize,
 )]
 #[serde(
-    from = "bounded_types::BoundedBTreeMap<AdminHtmlFormKey, AdminHtmlFormText, ADMIN_HTML_FORM_SELECTED_MAX_ITEMS>"
+    from = "bounded_types::bounded_b_tree_map::BoundedBTreeMap<crate::admin_html_form_key::AdminHtmlFormKey, crate::admin_html_form_text::AdminHtmlFormText, { crate::admin_html_form_selected_max_items::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS }>"
 )]
 pub(crate) struct StdAdminHtmlSelected(
-    bounded_types::BoundedBTreeMap<
-        AdminHtmlFormKey,
-        AdminHtmlFormText,
-        { ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
+    bounded_types::bounded_b_tree_map::BoundedBTreeMap<
+        crate::admin_html_form_key::AdminHtmlFormKey,
+        crate::admin_html_form_text::AdminHtmlFormText,
+        { crate::admin_html_form_selected_max_items::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
     >,
 );
-impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
-    for StdAdminHtmlSelected
+impl
+    TryFrom<
+        std::collections::BTreeMap<
+            crate::admin_html_form_key::AdminHtmlFormKey,
+            crate::admin_html_form_text::AdminHtmlFormText,
+        >,
+    > for StdAdminHtmlSelected
 {
-    type Error = StdAdminHtmlSelectedError;
+    type Error = crate::std_admin_html_selected_error::StdAdminHtmlSelectedError;
     fn try_from(
-        value: std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>,
+        value: std::collections::BTreeMap<
+            crate::admin_html_form_key::AdminHtmlFormKey,
+            crate::admin_html_form_text::AdminHtmlFormText,
+        >,
     ) -> Result<Self, Self::Error> {
-        bounded_types::BoundedBTreeMap::try_from(value)
+        bounded_types::bounded_b_tree_map::BoundedBTreeMap::try_from(value)
             .map(Self)
-            .map_err(StdAdminHtmlSelectedError::from)
+            .map_err(crate::std_admin_html_selected_error::StdAdminHtmlSelectedError::from)
     }
 }

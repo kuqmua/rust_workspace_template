@@ -10,12 +10,14 @@ use leptos::prelude::{
 
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_data_table_grid(
-    view: &server_admin_contract::domain_types::AdminDataTableView,
-    active_field: Option<&server_admin_contract::domain_types::AdminFilterField>,
-    active_operation: Option<&server_admin_contract::domain_types::AdminFilterOperationKey>,
-    active_value: Option<&server_admin_contract::domain_types::AdminFilterValue>,
-    active_end: Option<&server_admin_contract::domain_types::AdminFilterValue>,
-    limit: server_admin_contract::domain_types::AdminPageLimit,
+    view: &server_admin_contract::admin_data_table_view::AdminDataTableView,
+    active_field: Option<&server_admin_contract::admin_filter_field::AdminFilterField>,
+    active_operation: Option<
+        &server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey,
+    >,
+    active_value: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
+    active_end: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
+    limit: server_admin_contract::admin_page_limit::AdminPageLimit,
 ) -> impl leptos::prelude::IntoView + use<> {
     let columns = view
         .columns()
@@ -48,7 +50,7 @@ let filter = {
                 let filter_label = format!("Filter {flt_label}");
                 let filter_title = format!("Filter by {flt_label}");
                 let selected_operation =
-                    super::LeptosAdminFilterOperationSignal::from(leptos::prelude::RwSignal::new(
+                    crate::leptos_admin_filter_operation_signal::LeptosAdminFilterOperationSignal::from(leptos::prelude::RwSignal::new(
                         is_active_field
                             .then(|| active_operation.clone())
                             .flatten()
@@ -57,7 +59,7 @@ let filter = {
                                     .filters()
                                     .first()
                                     .map(|filter| {
-                                        server_admin_contract::domain_types::AdminFilterOperationKey::from(
+                                        server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(
                                             filter.operation(),
                                         )
                                         .to_string()
@@ -71,9 +73,9 @@ let filter = {
                 let trigger_filter_id = filter_id.clone();
                 let trigger_filter_label = filter_label.clone();
                 {
-                    supports_filter.then(|| leptos::prelude::IntoAny::into_any(crate::domain_types::with_owner::with_owner(move || leptos::view! {
+                    supports_filter.then(|| leptos::prelude::IntoAny::into_any(crate::with_owner::with_owner(move || leptos::view! {
                                 <singlestage::Popover attr:data-name="Popover" class="table-column-filter">
-                                    <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary kind=crate::domain_types::with_owner::button::AdminButtonKind::Button popover_target=trigger_filter_id aria_label=trigger_filter_label style=trigger_style>"Filter"</crate::domain_types::with_owner::button::AdminButton>
+                                    <crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=trigger_filter_id aria_label=trigger_filter_label style=trigger_style>"Filter"</crate::admin_button::AdminButton>
                                     <div data-name="PopoverContent" id=filter_id class="table-filter-operations relative z-50 my-[1ch] min-h-[150px] w-[250px] overflow-visible rounded-md border bg-card p-4 shadow-md" style=popover_style popover="auto" role="dialog" aria-label=filter_label>
                                         <div class="table-filter-header"><h2>{filter_title}</h2></div>
                                         <form class="table-filter-form" method="get" action=action.clone()>
@@ -82,14 +84,14 @@ let filter = {
                                             <input type="hidden" name="offset" value="0" />
                                             <singlestage::RadioGroup attr:data-name="RadioButtonGroup" class="table-filter-options flex flex-col gap-3" name="filter_operation" value=selected_operation.0>
                                                 {filters.into_iter().map(|filter| {
-                                                    let operation_key = server_admin_contract::domain_types::AdminFilterOperationKey::from(filter.operation()).to_string();
+                                                    let operation_key = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(filter.operation()).to_string();
                                                     let is_active = is_active_field && active_operation.as_deref() == Some(operation_key.as_str());
                 {
                                                         let active_value = is_active.then_some(active_value.as_ref()).flatten();
                                                         let active_end = is_active.then_some(active_end.as_ref()).flatten();
                                                         let operation = filter.operation();
                                                         let radio_key =
-                                                            server_admin_contract::domain_types::AdminFilterOperationKey::from(operation).to_string();
+                                                            server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(operation).to_string();
                                                         let checked = leptos::prelude::Get::get(&selected_operation.0) == radio_key;
                                                         leptos::view! {
                                                             <div class="table-filter-option">
@@ -104,9 +106,9 @@ let filter = {
                                                                 {{
                                                                     let needs_end = bool::from(filter.requires_end());
                                                                     let value = active_value.map(ToString::to_string).unwrap_or_default();
-                                                                    let op_key = server_admin_contract::domain_types::AdminFilterOperationKey::from(filter.operation()).to_string();
+                                                                    let op_key = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(filter.operation()).to_string();
                                                                     bool::from(filter.requires_value()).then(|| {
-                                                                        let value_label = if needs_end { constants_str::VALUE_E4BB9F1E } else { constants_str::CODE_STYLE_VALUE };
+                                                                        let value_label = if needs_end { constants_str::test_fixtures::VALUE_E4BB9F1E } else { constants_str::catalog::CODE_STYLE_VALUE };
                                                                         let value_placeholder = needs_end.then_some(value_label);
                                                                         leptos::prelude::IntoAny::into_any(leptos::view! {
                                                                             <singlestage::Label attr:data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">
@@ -127,7 +129,7 @@ let filter = {
                                                                 }}
                                                                 {{
                                                                     let end = active_end.map(ToString::to_string).unwrap_or_default();
-                                                                    let op_key = server_admin_contract::domain_types::AdminFilterOperationKey::from(filter.operation()).to_string();
+                                                                    let op_key = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(filter.operation()).to_string();
                                                                     bool::from(filter.requires_end()).then(|| {
                                                                         leptos::prelude::IntoAny::into_any(leptos::view! {
                                                                             <singlestage::Label attr:data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">
@@ -152,8 +154,8 @@ let filter = {
                                                 }).collect::<Vec<_>>()}
                                             </singlestage::RadioGroup>
                                             <div class="table-filter-actions [&>*]:w-full">
-                                                <crate::domain_types::with_owner::button::AdminButton>"Apply"</crate::domain_types::with_owner::button::AdminButton>
-                                                <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary kind=crate::domain_types::with_owner::button::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">"Close"</crate::domain_types::with_owner::button::AdminButton>
+                                                <crate::admin_button::AdminButton>"Apply"</crate::admin_button::AdminButton>
+                                                <crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">"Close"</crate::admin_button::AdminButton>
                                             </div>
                                         </form>
                                         {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
@@ -163,12 +165,12 @@ let filter = {
                 }
             };
             leptos::view! {
-                <crate::domain_types::with_owner::tables::table_head::TableHead data_field=field data_filter_count=filter_count>
+                <crate::table_head::TableHead data_field=field data_filter_count=filter_count>
                     <div class="table-column-heading">
                         <span>{label}</span>
                         {filter}
                     </div>
-                </crate::domain_types::with_owner::tables::table_head::TableHead>
+                </crate::table_head::TableHead>
             }
         })
         .collect::<Vec<_>>();
@@ -187,21 +189,21 @@ let filter = {
                     let field =
                         column.map_or_else(String::new, |column| column.name().to_string());
                     let numeric = column.is_some_and(|column| {
-                        matches!(column.input_kind(), frontend_contract::InputKind::Number)
+                        matches!(column.input_kind(), frontend_contract::input_kind::InputKind::Number)
                     });
                     let value_text = value.to_string();
-                    leptos::view! { <crate::domain_types::with_owner::tables::table_cell::TableCell data_label=label data_field=field class=if numeric { "numeric-cell" } else { "" }>{value_text}</crate::domain_types::with_owner::tables::table_cell::TableCell> }
+                    leptos::view! { <crate::table_cell::TableCell data_label=label data_field=field class=if numeric { "numeric-cell" } else { "" }>{value_text}</crate::table_cell::TableCell> }
                 })
                 .collect::<Vec<_>>();
             leptos::view! {
-                <crate::domain_types::with_owner::tables::table_row::TableRow>{cells}</crate::domain_types::with_owner::tables::table_row::TableRow>
+                <crate::table_row::TableRow>{cells}</crate::table_row::TableRow>
             }
         })
         .collect::<Vec<_>>();
     leptos::view! {
-        <crate::domain_types::with_owner::tables::table_wrapper::TableWrapper><crate::domain_types::with_owner::tables::table::Table>
-            <crate::domain_types::with_owner::tables::table_header::TableHeader><crate::domain_types::with_owner::tables::table_row::TableRow>{columns}</crate::domain_types::with_owner::tables::table_row::TableRow></crate::domain_types::with_owner::tables::table_header::TableHeader>
-            <crate::domain_types::with_owner::tables::table_body::TableBody>{rows}</crate::domain_types::with_owner::tables::table_body::TableBody>
-        </crate::domain_types::with_owner::tables::table::Table></crate::domain_types::with_owner::tables::table_wrapper::TableWrapper>
+        <crate::table_wrapper::TableWrapper><crate::table::Table>
+            <crate::table_header::TableHeader><crate::table_row::TableRow>{columns}</crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_body::TableBody>{rows}</crate::table_body::TableBody>
+        </crate::table::Table></crate::table_wrapper::TableWrapper>
     }
 }

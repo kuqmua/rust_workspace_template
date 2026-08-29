@@ -10,4 +10,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct DbStaticSchemaTexts(Vec<super::DbStaticSchemaText>);
+pub struct DbStaticSchemaTexts(Vec<crate::db_static_schema_text::DbStaticSchemaText>);

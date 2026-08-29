@@ -1,19 +1,25 @@
-use super::domain_types::{FIRST_IDENT_MAX_LEN, FirstIdentifierifierTryFromStringError};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FirstIdentifier(String);
-impl From<FirstIdentifierifierTryFromStringError> for FirstIdentifier {
-    fn from(value: FirstIdentifierifierTryFromStringError) -> Self {
+impl
+    From<crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError>
+    for FirstIdentifier
+{
+    fn from(
+        value: crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError,
+    ) -> Self {
         Self(value.to_string())
     }
 }
 impl TryFrom<String> for FirstIdentifier {
-    type Error = FirstIdentifierifierTryFromStringError;
+    type Error =
+        crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > FIRST_IDENT_MAX_LEN {
-            return Err(FirstIdentifierifierTryFromStringError(value.len()));
+        if value.len() > crate::first_ident_max_len::FIRST_IDENT_MAX_LEN {
+            return Err(crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError(
+                value.len(),
+            ));
         }
         Ok(Self(value))
     }

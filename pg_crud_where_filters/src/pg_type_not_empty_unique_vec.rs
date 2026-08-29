@@ -29,23 +29,29 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeNotEmptyUn
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeNotEmptyUniqueVec<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(
+            constants_str::catalog::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+        )
     }
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUniqueVec<T> {
-    type Error = pg_crud_common::domain_types::NotEmptyUniqueVecTryNewError<T>;
+    type Error =
+        pg_crud_common::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>;
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
-        pg_crud_common::domain_types::NotEmptyUniqueVec::try_new(v.into())
-            .map(pg_crud_common::domain_types::NotEmptyUniqueVec::into_vec)
+        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new(v.into())
+            .map(pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::into_vec)
             .map(Self)
     }
 }
 impl<T: Eq + std::hash::Hash> PgTypeNotEmptyUniqueVec<T> {
     pub fn try_from_by_hash(
-        v: pg_crud_common::domain_types::DuplicateCandidates<T>,
-    ) -> Result<Self, pg_crud_common::domain_types::NotEmptyUniqueVecTryNewError<T>> {
-        pg_crud_common::domain_types::NotEmptyUniqueVec::try_new_by_hash(v)
-            .map(pg_crud_common::domain_types::NotEmptyUniqueVec::into_vec)
+        v: pg_crud_common::duplicate_candidates::DuplicateCandidates<T>,
+    ) -> Result<
+        Self,
+        pg_crud_common::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>,
+    > {
+        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new_by_hash(v)
+            .map(pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::into_vec)
             .map(Self)
     }
 }
@@ -87,7 +93,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
+                        constants_str::catalog::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
                 #[inline]
@@ -110,7 +116,7 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ZERO,
-                            &constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
+                            &constants_str::catalog::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
                     match PgTypeNotEmptyUniqueVec::try_from(f0) {
@@ -121,7 +127,7 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+                constants_str::catalog::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
                     lt: _serde::__private229::PhantomData,
@@ -130,12 +136,12 @@ const _: () = {
         }
     }
 };
-impl<T: pg_crud_common::domain_types::DefaultSomeOneElement>
-    pg_crud_common::domain_types::DefaultSomeOneElement for PgTypeNotEmptyUniqueVec<T>
+impl<T: pg_crud_common::default_some_one_element::DefaultSomeOneElement>
+    pg_crud_common::default_some_one_element::DefaultSomeOneElement for PgTypeNotEmptyUniqueVec<T>
 {
     fn default_some_one_element() -> Self {
         Self::from([
-            pg_crud_common::domain_types::DefaultSomeOneElement::default_some_one_element(),
+            pg_crud_common::default_some_one_element::DefaultSomeOneElement::default_some_one_element(),
         ])
     }
 }

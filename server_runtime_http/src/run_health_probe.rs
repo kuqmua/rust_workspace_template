@@ -1,11 +1,11 @@
 pub async fn run_health_probe<Probe>(
-    timeout: super::HealthProbeTimeoutDuration,
+    timeout: crate::health_probe_timeout_duration::HealthProbeTimeoutDuration,
     probe: Probe,
-) -> super::HealthProbeSucceeded
+) -> crate::health_probe_succeeded::HealthProbeSucceeded
 where
     Probe: Future<Output = bool>,
 {
-    super::HealthProbeSucceeded::from(matches!(
+    crate::health_probe_succeeded::HealthProbeSucceeded::from(matches!(
         tokio::time::timeout(timeout.0, probe).await,
         Ok(true)
     ))

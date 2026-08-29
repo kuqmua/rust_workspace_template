@@ -1,9 +1,10 @@
-use super::{TestExpId, expect_ok};
-
 #[track_caller]
-pub(crate) fn assert_ok_eq<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>, expected: &T)
-where
+pub(crate) fn assert_ok_eq<T, E>(
+    v: Result<T, E>,
+    exp_id: impl Into<crate::test_exp_id::TestExpId>,
+    expected: &T,
+) where
     T: PartialEq + std::fmt::Debug,
 {
-    assert_eq!(&expect_ok(v, exp_id), expected);
+    assert_eq!(&crate::expect_ok::expect_ok(v, exp_id), expected);
 }

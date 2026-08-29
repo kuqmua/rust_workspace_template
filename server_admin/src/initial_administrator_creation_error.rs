@@ -11,7 +11,7 @@ pub enum InitialAdministratorCreationError {
     #[error("initial administrator creation has already been completed")]
     AlreadyInitialized,
     #[error("initial administrator creation password hashing failed: {0}")]
-    PasswordHash(crate::AdminPasswordHashError),
+    PasswordHash(crate::admin_password_hash_error::AdminPasswordHashError),
     #[error("initial administrator creation database operation failed: {0:?}")]
-    Pg(crate::SqlxAdminError),
+    Pg(crate::sqlx_admin_error::SqlxAdminError),
 }

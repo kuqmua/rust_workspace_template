@@ -1,7 +1,9 @@
-use super::admin_permission_requirement;
-
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract_macros::TypedRoute,
 )]
-#[typed_route(error_policy = frontend_contract::RouteErrorPolicy::Delete, authentication = admin_permission_requirement(crate::domain_types::AdminPermission::RolesDelete), method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "delete_role", path = "/roles/{role_id}", path_parameter = crate::domain_types::AdminRoleId, request = crate::domain_types::AdminNoBody, response = crate::domain_types::AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_policy = frontend_contract::route_error_policy::RouteErrorPolicy::Delete, authentication = crate::admin_permission_requirement::admin_permission_requirement(crate::admin_permission::AdminPermission::RolesDelete), method = frontend_contract::route_method::RouteMethod::Delete, mutation = frontend_contract::route_mutation::RouteMutation::Mutating, obligations = frontend_contract::route_coverage_obligation::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "delete_role", path = "/roles/{role_id}", path_parameter = crate::admin_role_id::AdminRoleId, request = crate::admin_no_body::AdminNoBody, response = crate::admin_no_body::AdminNoBody, success_status = frontend_contract::success_status::SuccessStatus::Code204, transport = frontend_contract::authenticated_transport::AuthenticatedTransport)]
 pub struct AdminDeleteRoleRoute;

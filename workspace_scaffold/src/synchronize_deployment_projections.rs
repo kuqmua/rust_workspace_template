@@ -1,153 +1,189 @@
-use super::{
-    ScaffoldError, ScaffoldPathRef, ScaffoldTextRef, ServiceCatalogEntriesRef, ShouldWrite,
-    service_catalog_render_release_entries, synchronize_generated_file,
-};
-
 pub(crate) fn synchronize_deployment_projections(
-    root: ScaffoldPathRef<'_>,
-    write_changes: ShouldWrite,
-) -> Result<(), ScaffoldError> {
-    let catalog_path = root.0.join(constants_str::VALUE_C1590960);
+    root: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
+    write_changes: crate::should_write::ShouldWrite,
+) -> Result<(), crate::scaffold_error::ScaffoldError> {
+    let catalog_path = root.0.join(constants_str::test_fixtures::VALUE_C1590960);
     let catalog = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
-        ScaffoldPathRef::from(catalog_path.as_path()),
+        crate::scaffold_path_ref::ScaffoldPathRef::from(catalog_path.as_path()),
     )?;
     let entries = {
-        let source = ScaffoldTextRef::from(catalog.as_ref());
+        let source = crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_ref());
         let mut entries = Vec::new();
         let mut current = None;
         source.0.lines().try_for_each(|raw_line| {
             let trimmed_line = raw_line.trim();
-            if trimmed_line == constants_str::VALUE_484ADD83 {
+            if trimmed_line == constants_str::test_fixtures::VALUE_484ADD83 {
                 if let Some(draft) = current.take() {
-                    entries.push(super::ServiceCatalogDraft::finish(draft)?);
+                    entries.push(crate::service_catalog_draft::ServiceCatalogDraft::finish(
+                        draft,
+                    )?);
                 }
-                current = Some(super::ServiceCatalogDraft::default());
+                current = Some(crate::service_catalog_draft::ServiceCatalogDraft::default());
                 return Ok(());
             }
             let Some(draft) = current.as_mut() else {
                 return Ok(());
             };
-            if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-                ScaffoldTextRef::from(trimmed_line),
-                ScaffoldTextRef::from(constants_str::CRATE),
+            if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::catalog::CRATE),
             )? {
                 draft.crate_name = Some(
-                    super::ServiceCrate::try_from(value.as_ref().to_owned())
-                        .map_err(|_error| ScaffoldError::Catalog)?,
+                    crate::service_crate::ServiceCrate::try_from(value.as_ref().to_owned())
+                        .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
                 );
                 return Ok(());
             }
-            if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-                ScaffoldTextRef::from(trimmed_line),
-                ScaffoldTextRef::from(constants_str::VALUE_DB669AF6),
+            if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(
+                    constants_str::test_fixtures::VALUE_DB669AF6,
+                ),
             )? {
                 draft.compose_name = Some(
-                    super::ServiceComposeName::try_from(value.as_ref().to_owned())
-                        .map_err(|_error| ScaffoldError::Catalog)?,
+                    crate::service_compose_name::ServiceComposeName::try_from(
+                        value.as_ref().to_owned(),
+                    )
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
                 );
                 return Ok(());
             }
-            if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-                ScaffoldTextRef::from(trimmed_line),
-                ScaffoldTextRef::from(constants_str::VALUE_739ED940),
+            if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(
+                    constants_str::test_fixtures::VALUE_739ED940,
+                ),
             )? {
                 draft.compose_file = Some(
-                    super::ServiceComposeFile::try_from(value.as_ref().to_owned())
-                        .map_err(|_error| ScaffoldError::Catalog)?,
+                    crate::service_compose_file::ServiceComposeFile::try_from(
+                        value.as_ref().to_owned(),
+                    )
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
                 );
                 return Ok(());
             }
-            if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-                ScaffoldTextRef::from(trimmed_line),
-                ScaffoldTextRef::from(constants_str::VALUE_254DB0FB),
+            if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(
+                    constants_str::test_fixtures::VALUE_254DB0FB,
+                ),
             )? {
                 draft.dockerfile = Some(
-                    super::ServiceDockerfile::try_from(value.as_ref().to_owned())
-                        .map_err(|_error| ScaffoldError::Catalog)?,
+                    crate::service_dockerfile::ServiceDockerfile::try_from(
+                        value.as_ref().to_owned(),
+                    )
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
                 );
                 return Ok(());
             }
-            if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-                ScaffoldTextRef::from(trimmed_line),
-                ScaffoldTextRef::from(constants_str::VALUE_6105D6CC),
+            if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(
+                    constants_str::test_fixtures::VALUE_6105D6CC,
+                ),
             )? {
                 draft.image = Some(
-                    super::ServiceImage::try_from(value.as_ref().to_owned())
-                        .map_err(|_error| ScaffoldError::Catalog)?,
+                    crate::service_image::ServiceImage::try_from(value.as_ref().to_owned())
+                        .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
                 );
                 return Ok(());
             }
-            if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-                ScaffoldTextRef::from(trimmed_line),
-                ScaffoldTextRef::from(constants_str::VALUE_94ABCB2D),
+            if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(
+                    constants_str::test_fixtures::VALUE_94ABCB2D,
+                ),
             )? {
                 draft.kubernetes_manifest = Some(
-                    super::ServiceKubernetesManifest::try_from(value.as_ref().to_owned())
-                        .map_err(|_error| ScaffoldError::Catalog)?,
+                    crate::service_kubernetes_manifest::ServiceKubernetesManifest::try_from(
+                        value.as_ref().to_owned(),
+                    )
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
                 );
                 return Ok(());
             }
             if let Some(port) = trimmed_line
-                .strip_prefix(constants_str::VALUE_F8D397A3)
+                .strip_prefix(constants_str::test_fixtures::VALUE_F8D397A3)
                 .and_then(|port_text| port_text.trim().strip_prefix('='))
                 .map(str::trim)
                 .and_then(|port_text| port_text.parse::<u16>().ok())
             {
-                draft.port = Some(super::ServicePort::from(port));
+                draft.port = Some(crate::service_port::ServicePort::from(port));
                 return Ok(());
             }
-            if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-                ScaffoldTextRef::from(trimmed_line),
-                ScaffoldTextRef::from(constants_str::VALUE_20E49707),
+            if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(
+                    constants_str::test_fixtures::VALUE_20E49707,
+                ),
             )? {
                 draft.socket_env = Some(
-                    super::ServiceSocketEnv::try_from(value.as_ref().to_owned())
-                        .map_err(|_error| ScaffoldError::Catalog)?,
+                    crate::service_socket_env::ServiceSocketEnv::try_from(
+                        value.as_ref().to_owned(),
+                    )
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
                 );
                 return Ok(());
             }
-            if let Some(release) =
-                trimmed_line
-                    .strip_prefix(constants_str::RELEASE)
-                    .and_then(|release_text| {
-                        release_text
-                            .trim()
-                            .strip_prefix('=')
-                            .map(str::trim)
-                            .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
-                    })
+            if let Some(release) = trimmed_line
+                .strip_prefix(constants_str::catalog::RELEASE)
+                .and_then(|release_text| {
+                    release_text
+                        .trim()
+                        .strip_prefix('=')
+                        .map(str::trim)
+                        .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
+                })
             {
-                draft.release = Some(super::ShouldRelease::from(release));
+                draft.release = Some(crate::should_release::ShouldRelease::from(release));
             }
-            Ok::<(), ScaffoldError>(())
+            Ok::<(), crate::scaffold_error::ScaffoldError>(())
         })?;
         if let Some(draft) = current {
-            entries.push(super::ServiceCatalogDraft::finish(draft)?);
+            entries.push(crate::service_catalog_draft::ServiceCatalogDraft::finish(
+                draft,
+            )?);
         }
         if entries.is_empty() {
-            return Err(ScaffoldError::Catalog);
+            return Err(crate::scaffold_error::ScaffoldError::Catalog);
         }
-        super::ServiceCatalogEntries::from(bounded_types::BoundedVec::from_max_iter(entries))
+        crate::service_catalog_entries::ServiceCatalogEntries::from(
+            bounded_types::bounded_vec::BoundedVec::from_max_iter(entries),
+        )
     };
-    let entries_ref = ServiceCatalogEntriesRef::from(entries.0.as_slice());
-    let ci =
-        service_catalog_render_release_entries::service_catalog_render_release_entries(entries_ref);
+    let entries_ref =
+        crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(entries.0.as_slice());
+    let ci = crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
+        entries_ref,
+    );
     let release =
-        service_catalog_render_release_entries::service_catalog_render_release_entries(entries_ref);
-    let ci_path = root.0.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
-    synchronize_generated_file(
-        ScaffoldPathRef::from(ci_path.as_path()),
-        ScaffoldTextRef::from(constants_str::VALUE_48916059),
-        ScaffoldTextRef::from(constants_str::VALUE_37E65562),
-        ScaffoldTextRef::from(ci.as_ref()),
+        crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
+            entries_ref,
+        );
+    let ci_path = root
+        .0
+        .join(constants_str::catalog::CODE_STYLE_CI_WORKFLOW_PATH);
+    crate::synchronize_generated_file::synchronize_generated_file(
+        crate::scaffold_path_ref::ScaffoldPathRef::from(ci_path.as_path()),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(
+            constants_str::test_fixtures::VALUE_48916059,
+        ),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(
+            constants_str::test_fixtures::VALUE_37E65562,
+        ),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(ci.as_ref()),
         write_changes,
     )?;
-    let release_path = root.0.join(constants_str::VALUE_87DB21A9);
-    synchronize_generated_file(
-        ScaffoldPathRef::from(release_path.as_path()),
-        ScaffoldTextRef::from(constants_str::VALUE_BF61857A),
-        ScaffoldTextRef::from(constants_str::VALUE_1BC591D5),
-        ScaffoldTextRef::from(release.as_ref()),
+    let release_path = root.0.join(constants_str::test_fixtures::VALUE_87DB21A9);
+    crate::synchronize_generated_file::synchronize_generated_file(
+        crate::scaffold_path_ref::ScaffoldPathRef::from(release_path.as_path()),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(
+            constants_str::test_fixtures::VALUE_BF61857A,
+        ),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(
+            constants_str::test_fixtures::VALUE_1BC591D5,
+        ),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(release.as_ref()),
         write_changes,
     )?;
     entries_ref.0.iter().try_for_each(|entry| {
@@ -165,11 +201,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.compose_name.as_ref(),
             entry.dockerfile.as_ref()
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(compose_path.as_path()),
-            ScaffoldTextRef::from(compose_identity_begin.as_str()),
-            ScaffoldTextRef::from(compose_identity_end.as_str()),
-            ScaffoldTextRef::from(compose_identity.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_identity_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_identity_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_identity.as_str()),
             write_changes,
         )?;
         let compose_socket_begin = format!(
@@ -185,15 +221,15 @@ pub(crate) fn synchronize_deployment_projections(
             entry.socket_env.as_ref(),
             entry.port.0
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(compose_path.as_path()),
-            ScaffoldTextRef::from(compose_socket_begin.as_str()),
-            ScaffoldTextRef::from(compose_socket_end.as_str()),
-            ScaffoldTextRef::from(compose_socket.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_socket_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_socket_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_socket.as_str()),
             write_changes,
         )?;
         let ready_path =
-            <common_routes::HealthReadyRoute as frontend_contract::TypedRoute>::metadata(
+            <common_routes::health_ready_route::HealthReadyRoute as frontend_contract::typed_route::TypedRoute>::metadata(
             )
             .path();
         let compose_health_begin = format!(
@@ -209,11 +245,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.port.0,
             ready_path.as_ref()
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(compose_path.as_path()),
-            ScaffoldTextRef::from(compose_health_begin.as_str()),
-            ScaffoldTextRef::from(compose_health_end.as_str()),
-            ScaffoldTextRef::from(compose_health.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_health_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_health_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_health.as_str()),
             write_changes,
         )?;
         let compose_port_begin = format!(
@@ -225,11 +261,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.compose_name.as_ref()
         );
         let compose_port = format!("    ports:\n      - \"127.0.0.1:{0}:{0}\"\n", entry.port.0);
-        synchronize_generated_file(
-            ScaffoldPathRef::from(compose_path.as_path()),
-            ScaffoldTextRef::from(compose_port_begin.as_str()),
-            ScaffoldTextRef::from(compose_port_end.as_str()),
-            ScaffoldTextRef::from(compose_port.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_port_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_port_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(compose_port.as_str()),
             write_changes,
         )?;
 
@@ -246,11 +282,11 @@ pub(crate) fn synchronize_deployment_projections(
             "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n",
             entry.image.as_ref()
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(kubernetes_path.as_path()),
-            ScaffoldTextRef::from(kubernetes_metadata_begin.as_str()),
-            ScaffoldTextRef::from(kubernetes_metadata_end.as_str()),
-            ScaffoldTextRef::from(kubernetes_metadata.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_metadata_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_metadata_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_metadata.as_str()),
             write_changes,
         )?;
         let kubernetes_workload_identity_begin = format!(
@@ -265,11 +301,11 @@ pub(crate) fn synchronize_deployment_projections(
             "  selector:\n    matchLabels:\n      app.kubernetes.io/name: {0}\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: {0}\n    spec:\n",
             entry.image.as_ref()
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(kubernetes_path.as_path()),
-            ScaffoldTextRef::from(kubernetes_workload_identity_begin.as_str()),
-            ScaffoldTextRef::from(kubernetes_workload_identity_end.as_str()),
-            ScaffoldTextRef::from(kubernetes_workload_identity.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_workload_identity_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_workload_identity_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_workload_identity.as_str()),
             write_changes,
         )?;
         let kubernetes_container_begin = format!(
@@ -285,15 +321,15 @@ pub(crate) fn synchronize_deployment_projections(
             entry.image.as_ref(),
             entry.port.0
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(kubernetes_path.as_path()),
-            ScaffoldTextRef::from(kubernetes_container_begin.as_str()),
-            ScaffoldTextRef::from(kubernetes_container_end.as_str()),
-            ScaffoldTextRef::from(kubernetes_container.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_container_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_container_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_container.as_str()),
             write_changes,
         )?;
         let live_path =
-            <common_routes::HealthLiveRoute as frontend_contract::TypedRoute>::metadata()
+            <common_routes::health_live_route::HealthLiveRoute as frontend_contract::typed_route::TypedRoute>::metadata()
                 .path();
         let kubernetes_probe_begin = format!(
             "          # BEGIN GENERATED KUBERNETES PROBES {}\n",
@@ -308,11 +344,11 @@ pub(crate) fn synchronize_deployment_projections(
             ready = ready_path.as_ref(),
             live = live_path.as_ref()
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(kubernetes_path.as_path()),
-            ScaffoldTextRef::from(kubernetes_probe_begin.as_str()),
-            ScaffoldTextRef::from(kubernetes_probe_end.as_str()),
-            ScaffoldTextRef::from(kubernetes_probe.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_probe_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_probe_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_probe.as_str()),
             write_changes,
         )?;
         let kubernetes_service_identity_begin = format!(
@@ -327,11 +363,11 @@ pub(crate) fn synchronize_deployment_projections(
             "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n  labels:\n    app.kubernetes.io/name: {0}\nspec:\n  selector:\n    app.kubernetes.io/name: {0}\n",
             entry.image.as_ref()
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(kubernetes_path.as_path()),
-            ScaffoldTextRef::from(kubernetes_service_identity_begin.as_str()),
-            ScaffoldTextRef::from(kubernetes_service_identity_end.as_str()),
-            ScaffoldTextRef::from(kubernetes_service_identity.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_identity_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_identity_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_identity.as_str()),
             write_changes,
         )?;
         let kubernetes_service_port_begin = format!(
@@ -346,11 +382,11 @@ pub(crate) fn synchronize_deployment_projections(
             "  ports:\n    - name: http\n      port: {}\n      targetPort: http\n",
             entry.port.0
         );
-        synchronize_generated_file(
-            ScaffoldPathRef::from(kubernetes_path.as_path()),
-            ScaffoldTextRef::from(kubernetes_service_port_begin.as_str()),
-            ScaffoldTextRef::from(kubernetes_service_port_end.as_str()),
-            ScaffoldTextRef::from(kubernetes_service_port.as_str()),
+        crate::synchronize_generated_file::synchronize_generated_file(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_port_begin.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_port_end.as_str()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_port.as_str()),
             write_changes,
         )
     })?;
@@ -369,20 +405,20 @@ pub(crate) fn synchronize_deployment_projections(
                     .components()
                     .all(|component| matches!(component, std::path::Component::Normal(_)))
         }) {
-            return Err(ScaffoldError::Catalog);
+            return Err(crate::scaffold_error::ScaffoldError::Catalog);
         }
         if !root
             .0
             .join(entry.crate_name.as_ref())
-            .join(constants_str::CARGO_TOML)
+            .join(constants_str::catalog::CARGO_TOML)
             .is_file()
             || !root.0.join(entry.dockerfile.as_ref()).is_file()
         {
-            return Err(ScaffoldError::GeneratedDeployment);
+            return Err(crate::scaffold_error::ScaffoldError::GeneratedDeployment);
         }
         let compose_path = root.0.join(entry.compose_file.as_ref());
         let compose = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
-            ScaffoldPathRef::from(compose_path.as_path()),
+            crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
         )?;
         let port = entry.port.0;
         if !compose
@@ -395,11 +431,11 @@ pub(crate) fn synchronize_deployment_projections(
                 .as_ref()
                 .contains(format!("127.0.0.1:{port}:{port}").as_str())
         {
-            return Err(ScaffoldError::GeneratedDeployment);
+            return Err(crate::scaffold_error::ScaffoldError::GeneratedDeployment);
         }
         let kubernetes_path = root.0.join(entry.kubernetes_manifest.as_ref());
         let kubernetes = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
-            ScaffoldPathRef::from(kubernetes_path.as_path()),
+            crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
         )?;
         if !kubernetes
             .as_ref()
@@ -411,7 +447,7 @@ pub(crate) fn synchronize_deployment_projections(
                 .as_ref()
                 .contains(format!("port: {port}").as_str())
         {
-            return Err(ScaffoldError::GeneratedDeployment);
+            return Err(crate::scaffold_error::ScaffoldError::GeneratedDeployment);
         }
         Ok(())
     })

@@ -13,5 +13,7 @@ pub enum MultipartValueError {
     #[error("multipart file name must not contain path components")]
     PathComponent,
     #[error("multipart value length {actual} exceeds its maximum")]
-    TooLong { actual: super::MultipartValueLength },
+    TooLong {
+        actual: crate::multipart_value_length::MultipartValueLength,
+    },
 }

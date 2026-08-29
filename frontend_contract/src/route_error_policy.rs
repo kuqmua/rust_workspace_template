@@ -10,36 +10,40 @@ impl RouteErrorPolicy {
     #[must_use]
     pub const fn statuses(
         self,
-        authentication: super::AuthenticationRequirement,
-        mutation: crate::RouteMutation,
-    ) -> &'static [super::RouteErrorStatus] {
+        authentication: crate::authentication_requirement::AuthenticationRequirement,
+        mutation: crate::route_mutation::RouteMutation,
+    ) -> &'static [crate::route_error_status::RouteErrorStatus] {
         match self {
-            Self::Authentication => super::PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
-            Self::Delete => super::AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES,
-            Self::ValidatedRead => super::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES,
+            Self::Authentication => crate::route_contract::PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
+            Self::Delete => crate::route_contract::AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES,
+            Self::ValidatedRead => {
+                crate::route_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES
+            }
             Self::Default => match (authentication, mutation) {
-                (super::AuthenticationRequirement::Public, crate::RouteMutation::ReadOnly) => {
-                    super::PUBLIC_READ_ROUTE_ERROR_STATUSES
-                }
-                (super::AuthenticationRequirement::Public, crate::RouteMutation::Mutating) => {
-                    super::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES
-                }
                 (
-                    super::AuthenticationRequirement::Authenticated,
-                    crate::RouteMutation::ReadOnly,
-                ) => super::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES,
+                    crate::authentication_requirement::AuthenticationRequirement::Public,
+                    crate::route_mutation::RouteMutation::ReadOnly,
+                ) => crate::route_contract::PUBLIC_READ_ROUTE_ERROR_STATUSES,
                 (
-                    super::AuthenticationRequirement::Authenticated,
-                    crate::RouteMutation::Mutating,
-                ) => super::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES,
+                    crate::authentication_requirement::AuthenticationRequirement::Public,
+                    crate::route_mutation::RouteMutation::Mutating,
+                ) => crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
                 (
-                    super::AuthenticationRequirement::Permission(_),
-                    crate::RouteMutation::ReadOnly,
-                ) => super::AUTHORIZED_READ_ROUTE_ERROR_STATUSES,
+                    crate::authentication_requirement::AuthenticationRequirement::Authenticated,
+                    crate::route_mutation::RouteMutation::ReadOnly,
+                ) => crate::route_contract::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES,
                 (
-                    super::AuthenticationRequirement::Permission(_),
-                    crate::RouteMutation::Mutating,
-                ) => super::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES,
+                    crate::authentication_requirement::AuthenticationRequirement::Authenticated,
+                    crate::route_mutation::RouteMutation::Mutating,
+                ) => crate::route_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES,
+                (
+                    crate::authentication_requirement::AuthenticationRequirement::Permission(_),
+                    crate::route_mutation::RouteMutation::ReadOnly,
+                ) => crate::route_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES,
+                (
+                    crate::authentication_requirement::AuthenticationRequirement::Permission(_),
+                    crate::route_mutation::RouteMutation::Mutating,
+                ) => crate::route_contract::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES,
             },
         }
     }

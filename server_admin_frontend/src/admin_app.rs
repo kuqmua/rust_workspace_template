@@ -30,9 +30,9 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             let current_state = leptos::prelude::Get::get(&state);
             let admin = current_state.admin().cloned();
             let content = match current_state {
-                super::state::admin_load_state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::with_owner::admin_empty::AdminEmpty>"Choose a table."</crate::domain_types::with_owner::admin_empty::AdminEmpty> }),
-                super::state::admin_load_state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::with_owner::alert::AdminAlert>{error.to_string()}</crate::domain_types::with_owner::alert::AdminAlert> }),
-                super::state::admin_load_state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::domain_types::with_owner::admin_spinner::AdminSpinner /> }),
+                super::state::admin_load_state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_empty::AdminEmpty>"Choose a table."</crate::admin_empty::AdminEmpty> }),
+                super::state::admin_load_state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_alert::AdminAlert>{error.to_string()}</crate::admin_alert::AdminAlert> }),
+                super::state::admin_load_state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_spinner::AdminSpinner /> }),
                 super::state::admin_load_state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permissions_view::AdminPermissionsView page=page query=query_result.clone().unwrap_or_default() /> }),
                 super::state::admin_load_state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_profile_view::AdminProfileView admin=admin /> }),
                 super::state::admin_load_state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_roles_view::AdminRolesView admin=admin page=page query=query_result.clone().unwrap_or_default() /> }),

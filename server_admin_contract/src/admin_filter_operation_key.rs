@@ -11,8 +11,8 @@
 )]
 #[bounded_string(max = 63usize)]
 pub struct AdminFilterOperationKey(String);
-impl From<frontend_contract::FilterOperation> for AdminFilterOperationKey {
-    fn from(value: frontend_contract::FilterOperation) -> Self {
+impl From<frontend_contract::filter_operation::FilterOperation> for AdminFilterOperationKey {
+    fn from(value: frontend_contract::filter_operation::FilterOperation) -> Self {
         let formatted = format!("{value:?}");
         let mut key = String::with_capacity(formatted.len().saturating_mul(2usize));
         formatted

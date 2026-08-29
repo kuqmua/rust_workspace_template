@@ -12,11 +12,11 @@
 )]
 pub enum NotZeroUnsignedPartOfI32TryFromI32Error {
     IsZero {
-        location: location_lib::domain_types::Location,
+        location: location_lib::location::Location,
     },
     UnsignedPartOfI32TryFromI32Error {
         #[eo_location]
-        v: crate::domain_types::UnsignedPartOfI32TryFromI32Error,
-        location: location_lib::domain_types::Location,
+        v: crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error,
+        location: location_lib::location::Location,
     },
 }

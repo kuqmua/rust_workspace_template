@@ -1,14 +1,4 @@
-use admin_migrator::ADMIN_MIGRATOR;
-pub(crate) use migrator::migrator;
-pub(crate) use sqlx_admin_migrator_ref::SqlxAdminMigratorRef;
-
 // Root-owned module compatibility wrappers.
-mod admin_migrator {
-    pub use super::super::admin_migrator::*;
-}
-mod migrator {
-    pub use super::super::migrator::*;
-}
-mod sqlx_admin_migrator_ref {
-    pub use super::super::sqlx_admin_migrator_ref::*;
-}
+mod admin_migrator {}
+mod migrator {}
+mod sqlx_admin_migrator_ref {}

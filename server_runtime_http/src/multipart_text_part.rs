@@ -7,18 +7,18 @@
     generate_constructor::New,
 )]
 pub struct MultipartTextPart {
-    name: super::MultipartFieldName,
-    value: super::MultipartTextValue,
+    name: crate::multipart_field_name::MultipartFieldName,
+    value: crate::multipart_text_value::MultipartTextValue,
 }
 
 impl MultipartTextPart {
     #[must_use]
-    pub const fn name(&self) -> &super::MultipartFieldName {
+    pub const fn name(&self) -> &crate::multipart_field_name::MultipartFieldName {
         &self.name
     }
 
     #[must_use]
-    pub const fn value(&self) -> &super::MultipartTextValue {
+    pub const fn value(&self) -> &crate::multipart_text_value::MultipartTextValue {
         &self.value
     }
 }

@@ -12,4 +12,6 @@
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub(super) struct MultipartBytesParts(pub(super) Vec<super::MultipartBytesPart>);
+pub(super) struct MultipartBytesParts(
+    pub(super) Vec<crate::multipart_bytes_part::MultipartBytesPart>,
+);

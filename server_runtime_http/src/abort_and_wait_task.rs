@@ -1,6 +1,8 @@
 pub async fn abort_and_wait_task(
-    task: super::TokioAbortTask,
-) -> Result<(), super::TokioTaskJoinError> {
+    task: crate::tokio_abort_task::TokioAbortTask,
+) -> Result<(), crate::tokio_task_join_error::TokioTaskJoinError> {
     task.0.abort();
-    task.0.await.map_err(super::TokioTaskJoinError::from)
+    task.0
+        .await
+        .map_err(crate::tokio_task_join_error::TokioTaskJoinError::from)
 }

@@ -1,7 +1,8 @@
 pub(crate) fn page_total(
-    value: crate::repository::AdminPageTotalCount,
-) -> Result<server_admin_contract::domain_types::AdminPageTotal, crate::AdminError> {
+    value: crate::admin_page_total_count::AdminPageTotalCount,
+) -> Result<server_admin_contract::admin_page_total::AdminPageTotal, crate::admin_error::AdminError>
+{
     u64::try_from(value.get())
-        .map(server_admin_contract::domain_types::AdminPageTotal::from)
-        .map_err(|_error| crate::AdminError::Validation)
+        .map(server_admin_contract::admin_page_total::AdminPageTotal::from)
+        .map_err(|_error| crate::admin_error::AdminError::Validation)
 }

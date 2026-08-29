@@ -1,7 +1,5 @@
-use super::SynExpr;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) enum SynTypedRouteErrors {
-    Policy(SynExpr),
-    Statuses(SynExpr),
+    Policy(crate::syn_expr::SynExpr),
+    Statuses(crate::syn_expr::SynExpr),
 }

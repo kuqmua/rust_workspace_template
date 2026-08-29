@@ -1,12 +1,12 @@
 pub(super) fn quote_token_stream<Dsp>(
-    style: crate::domain_types::QuoteStyle,
+    style: crate::quote_style::QuoteStyle,
     value: &Dsp,
-) -> crate::domain_types::ProcMacro2QuotedLiteralTokenStream
+) -> crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    crate::domain_types::ProcMacro2QuotedLiteralTokenStream::from(
-        crate::domain_types::quote_literal(style.prefix, style.quote_ch, value)
+    crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream::from(
+        crate::quote_literal::quote_literal(style.prefix, style.quote_ch, value)
             .0
             .parse::<proc_macro2::TokenStream>()
             .unwrap_or_else(|error| {

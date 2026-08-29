@@ -1,5 +1,3 @@
-use super::{SynExpr, SynIdent};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     generate_accessor::Getters,
@@ -7,8 +5,8 @@ use super::{SynExpr, SynIdent};
 )]
 #[getters(get_mut)]
 pub(crate) struct RouteCatalogArgs {
-    body_limit: SynExpr,
-    family: SynIdent,
+    body_limit: crate::syn_expr::SynExpr,
+    family: crate::syn_ident::SynIdent,
 }
 
 impl syn::parse::Parse for RouteCatalogArgs {
@@ -18,14 +16,16 @@ impl syn::parse::Parse for RouteCatalogArgs {
         while !input.is_empty() {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
-            if name == constants_str::ROUTE_CATALOG_FAMILY {
-                family = Some(SynIdent::from(input.parse::<syn::Ident>()?));
-            } else if name == constants_str::ROUTE_CATALOG_BODY_LIMIT {
-                body_limit = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+            if name == constants_str::test_fixtures::ROUTE_CATALOG_FAMILY {
+                family = Some(crate::syn_ident::SynIdent::from(
+                    input.parse::<syn::Ident>()?,
+                ));
+            } else if name == constants_str::test_fixtures::ROUTE_CATALOG_BODY_LIMIT {
+                body_limit = Some(crate::syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,
-                    constants_str::UNSUPPORTED_TYPED_ROUTE_FIELD,
+                    constants_str::test_fixtures::UNSUPPORTED_TYPED_ROUTE_FIELD,
                 ));
             }
             if !input.is_empty() {
@@ -33,10 +33,12 @@ impl syn::parse::Parse for RouteCatalogArgs {
             }
         }
         Ok(Self {
-            body_limit: body_limit
-                .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_BODY_LIMIT))?,
-            family: family
-                .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_FAMILY))?,
+            body_limit: body_limit.ok_or_else(|| {
+                input.error(constants_str::test_fixtures::ROUTE_CATALOG_REQUIRES_BODY_LIMIT)
+            })?,
+            family: family.ok_or_else(|| {
+                input.error(constants_str::test_fixtures::ROUTE_CATALOG_REQUIRES_FAMILY)
+            })?,
         })
     }
 }

@@ -1,5 +1,3 @@
-use super::{SynEndpointRegistryBindings, SynEndpointRegistryState};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     generate_accessor::Getters,
@@ -7,6 +5,6 @@ use super::{SynEndpointRegistryBindings, SynEndpointRegistryState};
 )]
 #[getters(get_mut)]
 pub(crate) struct EndpointRegistryArgs {
-    bindings: SynEndpointRegistryBindings,
-    state: SynEndpointRegistryState,
+    bindings: crate::syn_endpoint_registry_bindings::SynEndpointRegistryBindings,
+    state: crate::syn_endpoint_registry_state::SynEndpointRegistryState,
 }

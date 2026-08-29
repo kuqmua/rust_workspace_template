@@ -1,43 +1,46 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn audit_export_log(
-    auth: crate::AdminAuthReq,
-    query: crate::AxumAdminQuery<crate::AdminAuditQuery>,
-) -> Result<crate::AxumAdminResponse, crate::AdminError> {
+    auth: crate::admin_auth_req::AdminAuthReq,
+    query: crate::axum_admin_query::AxumAdminQuery<crate::admin_audit_query::AdminAuditQuery>,
+) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     if !query.0.cursor_is_complete().get() {
-        return Err(crate::AdminError::Validation);
+        return Err(crate::admin_error::AdminError::Validation);
     }
     let actor = crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
         auth.state.as_ref(),
-        crate::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
-        crate::AdminPermission::AuditLogExport.as_str(),
-        crate::StdAdminBool::from(false),
+        server_admin_contract::admin_permission::AdminPermission::AuditLogExport.as_str(),
+        server_admin_core::std_admin_bool::StdAdminBool::from(false),
     )
     .await?;
-    let rate_subject = crate::StdAdminString::try_from(actor.id.get().to_string())
-        .map_err(|_error| crate::AdminError::Validation)?;
-    crate::rate_limit::enforce_rate_limit(
+    let rate_subject =
+        server_admin_core::std_admin_string::StdAdminString::try_from(actor.id.get().to_string())
+            .map_err(|_error| crate::admin_error::AdminError::Validation)?;
+    crate::enforce_rate_limit::enforce_rate_limit(
         auth.state.as_ref(),
-        crate::rate_limit::AdminRateLimitScope::AuditExport,
+        crate::admin_rate_limit_scope::AdminRateLimitScope::AuditExport,
         &rate_subject,
         auth.state.as_ref().policy.audit_export_limit,
         auth.state.as_ref().policy.audit_export_window,
     )
     .await?;
-    let page = crate::repository::query_audit_log::query_audit_log(
-        crate::repository::SqlxAdminRepositoryPoolRef::from(auth.state.as_ref().pool.as_ref()),
+    let page = crate::query_audit_log::query_audit_log(
+        crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
         query.0,
     )
     .await
     .map_err(|error| match error {
-        crate::repository::AdminRepositoryError::InvalidStoredValue => {
-            crate::AdminError::Validation
+        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue => {
+            crate::admin_error::AdminError::Validation
         }
-        crate::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
-            crate::AdminError::postgresql(sqlx_error)
+        crate::admin_repository_error::AdminRepositoryError::Sqlx(sqlx_error) => {
+            crate::admin_error::AdminError::postgresql(sqlx_error)
         }
     })?;
-    let mut csv = String::from(constants_str::AUDIT_CSV_HEADER);
+    let mut csv = String::from(constants_str::catalog::AUDIT_CSV_HEADER);
     page.items().iter().for_each(|value| {
         let fields = [
             value.id().to_string(),
@@ -59,16 +62,16 @@ pub(crate) async fn audit_export_log(
         csv.push_str(
             fields
                 .map(|field| format!("\"{}\"", field.replace('"', "\"\"")))
-                .join(constants_str::TEXT_ALT_7)
+                .join(constants_str::catalog::TEXT_ALT_7)
                 .as_str(),
         );
         csv.push('\n');
     });
-    let export = server_admin_contract::domain_types::AdminAuditExport::new(
-        server_admin_contract::domain_types::AdminAuditExportCsv::try_from(csv)
-            .map_err(|_error| crate::AdminError::Validation)?,
+    let export = server_admin_contract::admin_audit_export::AdminAuditExport::new(
+        server_admin_contract::admin_audit_export_csv::AdminAuditExportCsv::try_from(csv)
+            .map_err(|_error| crate::admin_error::AdminError::Validation)?,
     );
-    Ok(crate::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(export)),
     ))
 }

@@ -1,10 +1,8 @@
-use super::StdBool;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default, generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct ContractStructApiArgs {
-    into_parts: StdBool,
-    new: StdBool,
+    into_parts: crate::std_bool::StdBool,
+    new: crate::std_bool::StdBool,
 }
 #[allow(
     dead_code,

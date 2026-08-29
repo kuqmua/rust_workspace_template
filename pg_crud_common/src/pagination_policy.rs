@@ -20,7 +20,9 @@ mod policy_tests {
     #[test]
     fn default_limit_is_owned_by_typed_policy() {
         assert_eq!(
-            super::PaginationPolicy::standard().default_limit().get(),
+            crate::pagination_policy::PaginationPolicy::standard()
+                .default_limit()
+                .get(),
             5i64
         );
     }

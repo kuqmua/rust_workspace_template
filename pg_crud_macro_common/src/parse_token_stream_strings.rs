@@ -1,13 +1,12 @@
-use super::{ParseErrorIdRef, ProcMacro2GeneratedRustTokenStreamVec};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner)]
 pub struct ParseTokenStreamStrings(Vec<String>);
 impl ParseTokenStreamStrings {
     #[must_use]
     pub fn into_generated_vec(
         self,
-        uuid: ParseErrorIdRef<'_>,
-    ) -> ProcMacro2GeneratedRustTokenStreamVec {
+        uuid: crate::parse_error_id_ref::ParseErrorIdRef<'_>,
+    ) -> crate::proc_macro2_generated_rust_token_stream_vec::ProcMacro2GeneratedRustTokenStreamVec
+    {
         self.0
             .into_iter()
             .map(
@@ -19,6 +18,6 @@ impl ParseTokenStreamStrings {
                     }
                 },
             )
-            .collect::<ProcMacro2GeneratedRustTokenStreamVec>()
+            .collect::<crate::proc_macro2_generated_rust_token_stream_vec::ProcMacro2GeneratedRustTokenStreamVec>()
     }
 }

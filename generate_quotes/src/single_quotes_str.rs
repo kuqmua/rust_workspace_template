@@ -1,7 +1,7 @@
 #[must_use]
-pub fn single_quotes_str<Dsp>(v: &Dsp) -> crate::domain_types::QuotedLiteral
+pub fn single_quotes_str<Dsp>(v: &Dsp) -> crate::quoted_literal::QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    crate::domain_types::quote_str(crate::domain_types::single_quote_style(), v)
+    crate::quote_str::quote_str(crate::single_quote_style::single_quote_style(), v)
 }

@@ -12,4 +12,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct DbKeyContractSnapshots(Vec<super::DbKeyContractSnapshot>);
+pub struct DbKeyContractSnapshots(Vec<crate::db_key_contract_snapshot::DbKeyContractSnapshot>);

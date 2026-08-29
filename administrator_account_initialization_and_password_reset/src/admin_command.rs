@@ -1,5 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(crate) enum AdminCommand {
-    CreateInitialAdministrator(crate::InitialAdministratorCreationArgs),
-    PasswordReset(crate::PasswordResetArgs),
+    CreateInitialAdministrator(
+        crate::initial_administrator_creation_args::InitialAdministratorCreationArgs,
+    ),
+    PasswordReset(crate::password_reset_args::PasswordResetArgs),
 }

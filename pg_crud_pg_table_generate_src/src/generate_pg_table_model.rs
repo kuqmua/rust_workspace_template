@@ -25,7 +25,7 @@ impl GeneratePgTableModel {
         if *self.field_count == constants_usize::ZERO {
             Err(syn::Error::new_spanned(
                 &self.input.ident,
-                constants_str::GENERATE_PG_TABLE_REQUIRES_FIELD,
+                constants_str::test_fixtures::GENERATE_PG_TABLE_REQUIRES_FIELD,
             )
             .into())
         } else {
@@ -43,7 +43,7 @@ mod tests {
                 value: u8,
             }
         );
-        let model = super::GeneratePgTableModel {
+        let model = crate::generate_pg_table_model::GeneratePgTableModel {
             field_count:
                 super::super::generate_pg_table_field_count::GeneratePgTableFieldCount::from(
                     constants_usize::ONE,

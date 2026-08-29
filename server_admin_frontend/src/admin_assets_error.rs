@@ -1,7 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(super) enum AdminAssetsError {
     #[error("administrator asset read failed: {0}")]
-    Read(to_err_string::domain_types::ErrorText),
+    Read(to_err_string::error_text::ErrorText),
 }
 
 impl axum::response::IntoResponse for AdminAssetsError {

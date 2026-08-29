@@ -1,10 +1,17 @@
 #[test]
 fn common_routes_tests() {
-    assert!(super::health_report_response(crate::HealthReport::liveness()).is_some());
     assert!(
-        super::health_report_response(crate::HealthReport::readiness(
-            crate::HealthDatabaseAvailable::from(false),
-        ))
+        crate::health_report_response::health_report_response(
+            crate::health_report::HealthReport::liveness()
+        )
+        .is_some()
+    );
+    assert!(
+        crate::health_report_response::health_report_response(
+            crate::health_report::HealthReport::readiness(
+                crate::health_database_available::HealthDatabaseAvailable::from(false),
+            )
+        )
         .is_none()
     );
 }

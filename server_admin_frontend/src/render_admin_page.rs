@@ -1,8 +1,8 @@
 #[must_use]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn render_admin_page(
-    page: server_admin_contract::domain_types::AdminPage,
-    content: crate::AdminSsrHtml,
-) -> crate::AdminSsrHtml {
+    page: server_admin_contract::admin_page::AdminPage,
+    content: crate::admin_ssr_html::AdminSsrHtml,
+) -> crate::admin_ssr_html::AdminSsrHtml {
     super::page_render_with_access::page_render_with_access(page, content, None, None)
 }

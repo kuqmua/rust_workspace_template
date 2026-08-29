@@ -5,4 +5,4 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
 )]
-pub struct AdminTokenHash(pub(crate) crate::SecrecyAdminString);
+pub struct AdminTokenHash(pub(crate) server_admin_core::secrecy_admin_string::SecrecyAdminString);

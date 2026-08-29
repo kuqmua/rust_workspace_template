@@ -16,16 +16,16 @@
 pub struct PgTableRevision(pub(super) i64);
 
 impl TryFrom<String> for PgTableRevision {
-    type Error = super::PgTableRevisionTryFromStringError;
+    type Error = crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let parsed = value.parse::<i64>().map_err(|error| {
-            super::PgTableRevisionTryFromStringError::Invalid(super::PgTableRevisionParseIntError(
+            crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Invalid(crate::pg_table_revision_parse_int_error::PgTableRevisionParseIntError(
                 error,
             ))
         })?;
         if parsed < constants_i64::ZERO {
-            Err(super::PgTableRevisionTryFromStringError::Negative)
+            Err(crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Negative)
         } else {
             Ok(Self(parsed))
         }

@@ -1,7 +1,7 @@
 pub fn generate_impl_sqlx_type_for_identifier_token_stream(
     identifier_token_stream: &dyn quote::ToTokens,
     type_token_stream: &dyn quote::ToTokens,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         impl sqlx::Type<sqlx::Postgres> for #identifier_token_stream {
             fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {

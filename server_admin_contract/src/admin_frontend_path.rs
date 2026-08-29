@@ -1,5 +1,3 @@
-use super::AdminPage;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -49,20 +47,24 @@ pub enum AdminFrontendPath {
 }
 impl AdminFrontendPath {
     pub fn all_pages() -> impl Iterator<Item = Self> {
-        [Self::Root, Self::SignIn]
-            .into_iter()
-            .chain(AdminPage::specs().iter().map(|spec| spec.frontend_path()))
+        [Self::Root, Self::SignIn].into_iter().chain(
+            crate::admin_page::AdminPage::specs()
+                .iter()
+                .map(|spec| spec.frontend_path()),
+        )
     }
     #[must_use]
     pub fn get(self) -> &'static str {
         <&'static str>::from(self)
     }
 }
-impl frontend_contract::RouteRegistrationContract for AdminFrontendPath {
-    fn method(self) -> frontend_contract::RouteMethod {
-        frontend_contract::RouteMethod::Get
+impl frontend_contract::route_registration_contract::RouteRegistrationContract
+    for AdminFrontendPath
+{
+    fn method(self) -> frontend_contract::route_method::RouteMethod {
+        frontend_contract::route_method::RouteMethod::Get
     }
-    fn path(self) -> frontend_contract::RegisteredRoutePath {
-        frontend_contract::RegisteredRoutePath::from(self.get())
+    fn path(self) -> frontend_contract::registered_route_path::RegisteredRoutePath {
+        frontend_contract::registered_route_path::RegisteredRoutePath::from(self.get())
     }
 }

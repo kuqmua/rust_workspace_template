@@ -1,27 +1,21 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-use super::git_info_response::{__path_git_info_response, git_info_response};
-use super::health::{__path_health, health};
-use super::health_check::{__path_health_check, health_check};
-use super::health_live::{__path_health_live, health_live};
-use super::health_ready::{__path_health_ready, health_ready};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract::route_registry(
-    state = crate::ArcCommonRoutesAppState,
-    family = crate::CommonRouteFamily;
+#[frontend_contract_macros::route_registry(
+    state = crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
+    family = crate::common_route::CommonRouteFamily;
     ("", "");
     schemas(
-        crate::HealthComponent,
-        crate::HealthComponentKind,
-        crate::HealthComponents,
-        crate::HealthStatus
+        crate::health_component::HealthComponent,
+        crate::health_component_kind::HealthComponentKind,
+        crate::health_components::HealthComponents,
+        crate::health_status::HealthStatus
     );
-    (crate::GitInfoRoute, git_info_response),
-    (crate::HealthRoute, health),
-    (crate::HealthCheckRoute, health_check),
-    (crate::HealthLiveRoute, health_live),
-    (crate::HealthReadyRoute, health_ready),
+    (crate::git_info_route::GitInfoRoute, crate::git_info_response::git_info_response),
+    (crate::health_route::HealthRoute, crate::health::health),
+    (crate::health_check_route::HealthCheckRoute, crate::health_check::health_check),
+    (crate::health_live_route::HealthLiveRoute, crate::health_live::health_live),
+    (crate::health_ready_route::HealthReadyRoute, crate::health_ready::health_ready),
 )]
 #[openapi(tags((name = "service", description = "Service operational routes")))]
 pub(super) struct CommonRouteRegistry;

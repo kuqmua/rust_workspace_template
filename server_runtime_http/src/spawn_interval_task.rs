@@ -2,9 +2,9 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::integer_division_remainder_used)]
 pub fn spawn_interval_task<Run, RunFuture>(
-    optional_interval: Option<super::RunIntervalDuration>,
+    optional_interval: Option<crate::run_interval_duration::RunIntervalDuration>,
     mut run: Run,
-) -> Option<super::BackgroundTask>
+) -> Option<crate::background_task::BackgroundTask>
 where
     Run: FnMut() -> RunFuture + Send + 'static,
     RunFuture: Future<Output = ()> + Send + 'static,
@@ -17,14 +17,20 @@ where
         loop {
             tokio::select! {
                 _shutdown_result = &mut shutdown_rx => {
-                    return super::BackgroundTaskOutcome::ShutdownRequested;
+                    return crate::background_task_outcome::BackgroundTaskOutcome::ShutdownRequested;
                 }
                 _tick = timer.tick() => run().await,
             }
         }
     });
-    Some(super::BackgroundTask {
-        task_join: Some(super::TokioBackgroundTaskJoin::from(task_join)),
-        shutdown_tx: Some(super::TokioBackgroundTaskShutdownSender::from(shutdown_tx)),
+    Some(crate::background_task::BackgroundTask {
+        task_join: Some(
+            crate::tokio_background_task_join::TokioBackgroundTaskJoin::from(task_join),
+        ),
+        shutdown_tx: Some(
+            crate::tokio_background_task_shutdown_sender::TokioBackgroundTaskShutdownSender::from(
+                shutdown_tx,
+            ),
+        ),
     })
 }

@@ -1,31 +1,23 @@
-use super::outbound_address_disposition::OutboundAddressDisposition;
-pub use super::outbound_allowed_host::OutboundAllowedHost;
-pub use super::outbound_host_allowlist::OutboundHostAllowlist;
-pub use super::outbound_host_allowlist_error::OutboundHostAllowlistError;
-pub use super::outbound_host_policy::OutboundHostPolicy;
-pub use super::outbound_ip_addr::OutboundIpAddr;
-pub use super::outbound_url_error::OutboundUrlError;
-pub use super::outbound_url_policy::OutboundUrlPolicy;
-pub use super::outbound_url_scheme::OutboundUrlScheme;
-pub use super::outbound_url_text_ref::OutboundUrlTextRef;
-pub use super::reqwest_outbound_url::ReqwestOutboundUrl;
-use super::resolve_outbound_address_disposition::resolve_outbound_address_disposition;
 #[cfg(test)]
 mod tests {
-    const POLICY: super::OutboundUrlPolicy = super::OutboundUrlPolicy::new(
-        &[
-            super::OutboundUrlScheme::Http,
-            super::OutboundUrlScheme::Https,
-        ],
-        super::OutboundHostPolicy::RejectPrivate,
-    );
+    const POLICY: crate::outbound_url_policy::OutboundUrlPolicy =
+        crate::outbound_url_policy::OutboundUrlPolicy::new(
+            &[
+                crate::outbound_url_scheme::OutboundUrlScheme::Http,
+                crate::outbound_url_scheme::OutboundUrlScheme::Https,
+            ],
+            crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate,
+        );
 
     #[test]
     fn public_url_and_address_are_accepted() {
         let url = POLICY
-            .validate(constants_str::TEST_PUBLIC_HTTPS_URL.into())
+            .validate(constants_str::test_fixtures::TEST_PUBLIC_HTTPS_URL.into())
             .expect("a275c7bf public_url_and_address_are_accepted invariant must hold");
-        assert_eq!(url.scheme(), super::OutboundUrlScheme::Https);
+        assert_eq!(
+            url.scheme(),
+            crate::outbound_url_scheme::OutboundUrlScheme::Https
+        );
         assert_eq!(
             POLICY.validate_resolved_addresses(&[std::net::IpAddr::V4(std::net::Ipv4Addr::new(
                 8u8, 8u8, 8u8, 8u8
@@ -38,16 +30,16 @@ mod tests {
     #[test]
     fn local_literal_hostname_and_encoded_control_are_rejected() {
         assert!(matches!(
-            POLICY.validate(constants_str::HTTP_LOCALHOST.into()),
-            Err(super::OutboundUrlError::ForbiddenHost)
+            POLICY.validate(constants_str::catalog::HTTP_LOCALHOST.into()),
+            Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
         ));
         assert!(matches!(
-            POLICY.validate(constants_str::TEST_LOOPBACK_HTTP_URL.into()),
-            Err(super::OutboundUrlError::ForbiddenHost)
+            POLICY.validate(constants_str::test_fixtures::TEST_LOOPBACK_HTTP_URL.into()),
+            Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
         ));
         assert!(matches!(
-            POLICY.validate(constants_str::TEST_URL_WITH_ENCODED_NEWLINE.into()),
-            Err(super::OutboundUrlError::ControlCharacter)
+            POLICY.validate(constants_str::test_fixtures::TEST_URL_WITH_ENCODED_NEWLINE.into()),
+            Err(crate::outbound_url_error::OutboundUrlError::ControlCharacter)
         ));
     }
 
@@ -102,7 +94,7 @@ mod tests {
             .all(|address| {
                 matches!(
                     POLICY.validate_resolved_addresses(&[address.into()]),
-                    Err(super::OutboundUrlError::ForbiddenHost)
+                    Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
                 )
             })
         );
@@ -110,67 +102,46 @@ mod tests {
 
     #[test]
     fn allowlist_requires_exact_host_and_url_rejects_userinfo() {
-        let allowed_host = super::OutboundAllowedHost::try_from(String::from(
-            constants_str::TEST_PUBLIC_HOST,
-        ))
+        let allowed_host = crate::outbound_allowed_host::OutboundAllowedHost::try_from(
+            String::from(constants_str::catalog::TEST_PUBLIC_HOST),
+        )
         .expect(
             "3e5decb1 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold",
         );
-        let allowlist = super::OutboundHostAllowlist::try_from(vec![allowed_host]).expect(
+        let allowlist = crate::outbound_host_allowlist::OutboundHostAllowlist::try_from(vec![
+            allowed_host,
+        ])
+        .expect(
             "920be78f allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold",
         );
         let allowed = POLICY
-            .validate(constants_str::TEST_PUBLIC_HTTPS_URL.into())
+            .validate(constants_str::test_fixtures::TEST_PUBLIC_HTTPS_URL.into())
             .expect("27a67a96 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold");
         assert_eq!(allowlist.validate(&allowed), Ok(()));
         let other = POLICY
-            .validate(constants_str::TEST_OTHER_PUBLIC_HTTPS_URL.into())
+            .validate(constants_str::catalog::TEST_OTHER_PUBLIC_HTTPS_URL.into())
             .expect("b3981504 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold");
         assert_eq!(
             allowlist.validate(&other),
-            Err(super::OutboundHostAllowlistError::HostNotAllowed)
+            Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::HostNotAllowed)
         );
         assert!(matches!(
-            POLICY.validate(constants_str::TEST_PUBLIC_HTTPS_URL_WITH_USERINFO.into()),
-            Err(super::OutboundUrlError::UserInfo)
+            POLICY.validate(constants_str::catalog::TEST_PUBLIC_HTTPS_URL_WITH_USERINFO.into()),
+            Err(crate::outbound_url_error::OutboundUrlError::UserInfo)
         ));
     }
 }
 
 // Root-owned module compatibility wrappers.
-mod outbound_address_disposition {
-    pub use super::super::outbound_address_disposition::*;
-}
-mod outbound_allowed_host {
-    pub use super::super::outbound_allowed_host::*;
-}
-mod outbound_host_allowlist {
-    pub use super::super::outbound_host_allowlist::*;
-}
-mod outbound_host_allowlist_error {
-    pub use super::super::outbound_host_allowlist_error::*;
-}
-mod outbound_host_policy {
-    pub use super::super::outbound_host_policy::*;
-}
-mod outbound_ip_addr {
-    pub use super::super::outbound_ip_addr::*;
-}
-mod outbound_url_error {
-    pub use super::super::outbound_url_error::*;
-}
-mod outbound_url_policy {
-    pub use super::super::outbound_url_policy::*;
-}
-mod outbound_url_scheme {
-    pub use super::super::outbound_url_scheme::*;
-}
-mod outbound_url_text_ref {
-    pub use super::super::outbound_url_text_ref::*;
-}
-mod reqwest_outbound_url {
-    pub use super::super::reqwest_outbound_url::*;
-}
-mod resolve_outbound_address_disposition {
-    pub use super::super::resolve_outbound_address_disposition::*;
-}
+mod outbound_address_disposition {}
+mod outbound_allowed_host {}
+mod outbound_host_allowlist {}
+mod outbound_host_allowlist_error {}
+mod outbound_host_policy {}
+mod outbound_ip_addr {}
+mod outbound_url_error {}
+mod outbound_url_policy {}
+mod outbound_url_scheme {}
+mod outbound_url_text_ref {}
+mod reqwest_outbound_url {}
+mod resolve_outbound_address_disposition {}

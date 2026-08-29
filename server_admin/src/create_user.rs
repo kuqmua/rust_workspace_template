@@ -1,20 +1,25 @@
-#[frontend_contract::route_error(AdminHtmlCreateUserError)]
+#[frontend_contract_macros::route_error(AdminHtmlCreateUserError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn create_user(
-    auth: crate::AdminAuthReq,
-    crate::AxumAdminForm(form): crate::AxumAdminForm<crate::CreateUserForm>,
+    auth: crate::admin_auth_req::AdminAuthReq,
+    crate::axum_admin_form::AxumAdminForm(form): crate::axum_admin_form::AxumAdminForm<
+        crate::create_user_form::CreateUserForm,
+    >,
 ) -> axum::response::Response {
     let Ok(auth) = crate::form_auth_impl::form_auth_impl(auth) else {
-        return axum::response::IntoResponse::into_response(crate::AdminError::Csrf);
+        return axum::response::IntoResponse::into_response(crate::admin_error::AdminError::Csrf);
     };
-    let request = server_admin_contract::domain_types::AdminCreateUserReq::new(
+    let request = server_admin_contract::admin_create_user_req::AdminCreateUserReq::new(
         form.display_name,
         form.login,
         form.password,
     );
     crate::action_result_impl::action_result_impl(
-        crate::user_mutations_create::user_mutations_create(auth, crate::AxumAdminJson(request))
-            .await,
-        server_admin_contract::domain_types::AdminFrontendPath::Users,
+        crate::user_mutations_create::user_mutations_create(
+            auth,
+            crate::axum_admin_json::AxumAdminJson(request),
+        )
+        .await,
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
     )
 }

@@ -7,30 +7,30 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct FilterBindPlan(Vec<crate::domain_types::PgFilterBindValue>);
+pub struct FilterBindPlan(Vec<crate::pg_filter_bind_value::PgFilterBindValue>);
 impl FilterBindPlan {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn push_bool(&mut self, value: crate::domain_types::PgFilterBool) {
+    pub fn push_bool(&mut self, value: crate::pg_filter_bool::PgFilterBool) {
         self.0
-            .push(crate::domain_types::PgFilterBindValue::Bool(value));
+            .push(crate::pg_filter_bind_value::PgFilterBindValue::Bool(value));
     }
 
-    pub fn push_i64(&mut self, value: crate::domain_types::PgFilterI64) {
+    pub fn push_i64(&mut self, value: crate::pg_filter_i64::PgFilterI64) {
         self.0
-            .push(crate::domain_types::PgFilterBindValue::I64(value));
+            .push(crate::pg_filter_bind_value::PgFilterBindValue::I64(value));
     }
 
-    pub fn push_text(&mut self, value: crate::domain_types::PgFilterText) {
+    pub fn push_text(&mut self, value: crate::pg_filter_text::PgFilterText) {
         self.0
-            .push(crate::domain_types::PgFilterBindValue::Text(value));
+            .push(crate::pg_filter_bind_value::PgFilterBindValue::Text(value));
     }
 
     #[must_use]
-    pub const fn values(&self) -> &[crate::domain_types::PgFilterBindValue] {
+    pub const fn values(&self) -> &[crate::pg_filter_bind_value::PgFilterBindValue] {
         self.0.as_slice()
     }
 }
@@ -39,10 +39,10 @@ impl FilterBindPlan {
 mod tests {
     #[test]
     fn bind_plan_preserves_cross_type_order() {
-        let mut plan = super::FilterBindPlan::new();
+        let mut plan = crate::filter_bind_plan::FilterBindPlan::new();
         plan.push_text(
-            crate::domain_types::PgFilterText::try_from(String::from(
-                constants_str::TEST_FILTER_TEXT,
+            crate::pg_filter_text::PgFilterText::try_from(String::from(
+                constants_str::test_fixtures::TEST_FILTER_TEXT,
             ))
             .expect("43d8053d bind_plan_preserves_cross_type_order invariant must hold"),
         );
@@ -51,9 +51,9 @@ mod tests {
         assert!(matches!(
             plan.values(),
             [
-                crate::domain_types::PgFilterBindValue::Text(_),
-                crate::domain_types::PgFilterBindValue::I64(_),
-                crate::domain_types::PgFilterBindValue::Bool(_)
+                crate::pg_filter_bind_value::PgFilterBindValue::Text(_),
+                crate::pg_filter_bind_value::PgFilterBindValue::I64(_),
+                crate::pg_filter_bind_value::PgFilterBindValue::Bool(_)
             ]
         ));
     }

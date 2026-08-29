@@ -28,7 +28,7 @@ where
     ) -> Self {
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
-            || constants_str::HTTP_SPAN_UNAVAILABLE.to_owned(),
+            || constants_str::test_fixtures::HTTP_SPAN_UNAVAILABLE.to_owned(),
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
         Self {
@@ -81,7 +81,9 @@ mod tests {
         let expected_line = line!() + 1u32;
         let observed = super::ObservedError::capture(
             InfrastructureTestError,
-            crate::observed_error_code::ObservedErrorCode::from(constants_str::VALUE_D99F528C),
+            crate::observed_error_code::ObservedErrorCode::from(
+                constants_str::test_fixtures::VALUE_D99F528C,
+            ),
         );
         assert_eq!(
             observed.error_code(),

@@ -1,14 +1,14 @@
 pub fn notification_router<Sender>(
-    state: super::NotificationServiceState<Sender>,
-) -> super::AxumNotificationRouter
+    state: crate::notification_service_state::NotificationServiceState<Sender>,
+) -> crate::axum_notification_router::AxumNotificationRouter
 where
-    Sender: super::NotificationSender,
+    Sender: crate::notification_sender::NotificationSender,
 {
-    super::AxumNotificationRouter::from(
+    crate::axum_notification_router::AxumNotificationRouter::from(
         axum::Router::new()
             .route(
-                constants_str::NOTIFICATIONS_PATH,
-                axum::routing::post(super::send_notification::<Sender>),
+                constants_str::catalog::NOTIFICATIONS_PATH,
+                axum::routing::post(crate::send_notification::send_notification::<Sender>),
             )
             .with_state(state),
     )

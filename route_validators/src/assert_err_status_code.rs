@@ -1,13 +1,16 @@
-use super::{TestExpId, map_err_after_status_check};
-
 #[track_caller]
 pub(crate) fn assert_err_status_code<T, E>(
     v: Result<T, E>,
-    exp_id: impl Into<TestExpId>,
-    expected: crate::AxumHttpStatusCode,
+    exp_id: impl Into<crate::test_exp_id::TestExpId>,
+    expected: crate::axum_http_status_code::AxumHttpStatusCode,
 ) -> E
 where
-    E: crate::AxumHttpStatusCodeProvider,
+    E: crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider,
 {
-    map_err_after_status_check(v, exp_id, expected, |error, _| error)
+    crate::map_err_after_status_check::map_err_after_status_check(
+        v,
+        exp_id,
+        expected,
+        |error, _| error,
+    )
 }

@@ -1,5 +1,3 @@
-use super::ScaffoldIoError;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum ScaffoldError {
     #[error(
@@ -15,13 +13,13 @@ pub(crate) enum ScaffoldError {
     #[error("generated deployment projections are not synchronized")]
     GeneratedDeployment,
     #[error("workspace operation failed: {0}")]
-    Io(#[from] ScaffoldIoError),
+    Io(#[from] crate::scaffold_io_error::ScaffoldIoError),
     #[error("workspace file does not contain the expected template marker")]
     Marker,
     #[error("project or service name must be non-empty lowercase snake_case ASCII")]
     ProjectName,
     #[error("workspace content read failed: {0}")]
-    Read(#[from] server_runtime_http::domain_types::BoundedReadError),
+    Read(#[from] server_runtime_http::bounded_read_error::BoundedReadError),
     #[error("repository URL must use https:// and must not end with /")]
     RepositoryUrl,
     #[error("service destination already exists")]
@@ -31,6 +29,6 @@ pub(crate) enum ScaffoldError {
 }
 impl From<std::io::Error> for ScaffoldError {
     fn from(value: std::io::Error) -> Self {
-        Self::Io(ScaffoldIoError::from(value))
+        Self::Io(crate::scaffold_io_error::ScaffoldIoError::from(value))
     }
 }

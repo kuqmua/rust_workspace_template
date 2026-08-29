@@ -1,9 +1,9 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum GeneratePgTablePipelineError {
     #[error("{0}")]
-    Build(crate::SynGeneratePgTablePipelineError),
+    Build(crate::syn_generate_pg_table_pipeline_error::SynGeneratePgTablePipelineError),
     #[error("{0}")]
-    Parse(crate::SynGeneratePgTablePipelineError),
+    Parse(crate::syn_generate_pg_table_pipeline_error::SynGeneratePgTablePipelineError),
     #[error("{0}")]
-    Validate(crate::SynGeneratePgTablePipelineError),
+    Validate(crate::syn_generate_pg_table_pipeline_error::SynGeneratePgTablePipelineError),
 }

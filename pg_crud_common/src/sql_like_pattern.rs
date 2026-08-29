@@ -12,11 +12,11 @@
 pub struct SqlLikePattern(String);
 
 impl TryFrom<String> for SqlLikePattern {
-    type Error = crate::domain_types::SqlLikePatternError;
+    type Error = crate::sql_like_pattern_error::SqlLikePatternError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            Err(crate::domain_types::SqlLikePatternError)
+        if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+            Err(crate::sql_like_pattern_error::SqlLikePatternError)
         } else {
             Ok(Self(value))
         }
@@ -27,12 +27,14 @@ impl TryFrom<String> for SqlLikePattern {
 mod tests {
     #[test]
     fn deserialization_uses_bounded_try_from() {
-        let _error = <super::SqlLikePattern as serde::Deserialize>::deserialize(
+        let _error = <crate::sql_like_pattern::SqlLikePattern as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                constants_str::X
-                    .repeat(super::super::PG_CRUD_STRING_WRAPPER_MAX_LEN + constants_usize::ONE),
+                constants_str::catalog::X.repeat(
+                    crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
+                        + constants_usize::ONE,
+                ),
             ),
         )
-        .expect_err(constants_str::VALUE_9EED211B);
+        .expect_err(constants_str::test_fixtures::VALUE_9EED211B);
     }
 }

@@ -23,13 +23,13 @@ pub(crate) struct OperationDsc<
 mod tests {
     #[test]
     fn operation_descriptor_keeps_transport_permission_and_capabilities_together() {
-        let spec = super::OperationDsc {
-            http_method: constants_str::PATCH,
+        let spec = crate::operation_dsc::OperationDsc {
+            http_method: constants_str::catalog::PATCH,
             idempotency_capable: true,
-            operation: constants_str::UO,
-            operation_kind: constants_str::UPDATE_ONE,
+            operation: constants_str::catalog::UO,
+            operation_kind: constants_str::catalog::UPDATE_ONE,
             optimistic_concurrency_capable: true,
-            permission_action: constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
+            permission_action: constants_str::catalog::PG_CRUD_UPDATE_PERMISSION_ACTION,
             success_status_code: 200u16,
         };
         assert_eq!(spec.http_method, "PATCH");

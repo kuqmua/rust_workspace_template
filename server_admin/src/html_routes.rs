@@ -1,19 +1,21 @@
 pub(crate) fn html_routes(
-    state: crate::SharedAdminAuthSvcStateArc,
-    swagger_enabled: crate::AdminHtmlSwaggerEnabled,
-) -> crate::AxumAdminAuthRouter {
-    let router = crate::AdminHtmlPageRouteRegistry::router().merge(
-        crate::AdminHtmlActionRouteRegistry::router()
-            .merge(crate::AdminHtmlAuthActionRouteRegistry::router())
-            .merge(crate::AdminHtmlRoleActionRouteRegistry::router())
-            .merge(crate::AdminHtmlSessionActionRouteRegistry::router())
-            .merge(crate::AdminHtmlSettingsActionRouteRegistry::router())
-            .merge(crate::AdminHtmlUserActionRouteRegistry::router()),
+    state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+    swagger_enabled: crate::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled,
+) -> crate::axum_admin_auth_router::AxumAdminAuthRouter {
+    let router = crate::admin_html_page_route_registry::AdminHtmlPageRouteRegistry::router().merge(
+        crate::admin_html_action_route_registry::AdminHtmlActionRouteRegistry::router()
+            .merge(crate::admin_html_auth_action_route_registry::AdminHtmlAuthActionRouteRegistry::router())
+            .merge(crate::admin_html_role_action_route_registry::AdminHtmlRoleActionRouteRegistry::router())
+            .merge(crate::admin_html_session_action_route_registry::AdminHtmlSessionActionRouteRegistry::router())
+            .merge(crate::admin_html_settings_action_route_registry::AdminHtmlSettingsActionRouteRegistry::router())
+            .merge(crate::admin_html_user_action_route_registry::AdminHtmlUserActionRouteRegistry::router()),
     );
     let router = if swagger_enabled.0 {
-        router.merge(crate::AdminHtmlSwaggerRouteRegistry::router())
+        router.merge(
+            crate::admin_html_swagger_route_registry::AdminHtmlSwaggerRouteRegistry::router(),
+        )
     } else {
         router
     };
-    crate::AxumAdminAuthRouter(router.with_state(state))
+    crate::axum_admin_auth_router::AxumAdminAuthRouter(router.with_state(state))
 }

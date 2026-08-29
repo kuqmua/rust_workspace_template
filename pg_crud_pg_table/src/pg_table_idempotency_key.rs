@@ -8,16 +8,18 @@
 pub struct PgTableIdempotencyKey(pub(super) String);
 
 impl TryFrom<String> for PgTableIdempotencyKey {
-    type Error = super::PgTableIdempotencyTextError;
+    type Error = crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {
-            Err(super::PgTableIdempotencyTextError::Empty)
-        } else if value.len() > super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES {
-            Err(super::PgTableIdempotencyTextError::TooLong {
-                actual_bytes: super::PgTableIdempotencyTextBytes::from(value.len()),
-                maximum_bytes: super::PgTableIdempotencyTextBytes::from(
-                    super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES,
+            Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty)
+        } else if value.len()
+            > crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES
+        {
+            Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
+                actual_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(value.len()),
+                maximum_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                    crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES,
                 ),
             })
         } else {

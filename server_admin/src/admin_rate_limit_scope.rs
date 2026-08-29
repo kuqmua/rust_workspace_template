@@ -9,23 +9,23 @@ pub(crate) enum AdminRateLimitScope {
 
 impl AdminRateLimitScope {
     #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
-    pub(crate) fn as_str(self) -> crate::StdAdminStrRef<'static> {
+    pub(crate) fn as_str(self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'static> {
         match self {
-            Self::AuditExport => {
-                crate::StdAdminStrRef::from(constants_str::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT)
-            }
-            Self::Mutation => {
-                crate::StdAdminStrRef::from(constants_str::SERVER_ADMIN_RATE_LIMIT_MUTATION)
-            }
-            Self::RefreshIp => {
-                crate::StdAdminStrRef::from(constants_str::SERVER_ADMIN_RATE_LIMIT_REFRESH_IP)
-            }
-            Self::SignInIp => {
-                crate::StdAdminStrRef::from(constants_str::SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP)
-            }
-            Self::SignInIpLogin => {
-                crate::StdAdminStrRef::from(constants_str::SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP_LOGIN)
-            }
+            Self::AuditExport => server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                constants_str::catalog::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT,
+            ),
+            Self::Mutation => server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                constants_str::catalog::SERVER_ADMIN_RATE_LIMIT_MUTATION,
+            ),
+            Self::RefreshIp => server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                constants_str::catalog::SERVER_ADMIN_RATE_LIMIT_REFRESH_IP,
+            ),
+            Self::SignInIp => server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                constants_str::catalog::SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP,
+            ),
+            Self::SignInIpLogin => server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                constants_str::catalog::SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP_LOGIN,
+            ),
         }
     }
 }

@@ -1,22 +1,22 @@
 #[must_use]
 pub fn resolve_header_text<'header>(
-    headers: super::HttpHeaderMapRef<'header>,
-    name: &crate::domain_types::HttpHeaderName,
-    maximum: crate::domain_types::HttpHeaderTextMaximumBytes,
-) -> crate::domain_types::HttpHeaderTextResolution<'header> {
+    headers: crate::http_header_map_ref::HttpHeaderMapRef<'header>,
+    name: &crate::http_header_name::HttpHeaderName,
+    maximum: crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes,
+) -> crate::http_header_text_resolution::HttpHeaderTextResolution<'header> {
     let Some(value) = headers.0.get(name.as_ref()) else {
-        return crate::domain_types::HttpHeaderTextResolution::Missing;
+        return crate::http_header_text_resolution::HttpHeaderTextResolution::Missing;
     };
     let bytes = value.as_bytes();
     if bytes.len() > usize::from(maximum) {
-        return crate::domain_types::HttpHeaderTextResolution::ExceedsMaximumBytes {
-            actual_bytes: crate::domain_types::HttpHeaderTextBytes::from(bytes.len()),
+        return crate::http_header_text_resolution::HttpHeaderTextResolution::ExceedsMaximumBytes {
+            actual_bytes: crate::http_header_text_bytes::HttpHeaderTextBytes::from(bytes.len()),
         };
     }
     match value.to_str() {
-        Ok(text) => crate::domain_types::HttpHeaderTextResolution::Value(
-            crate::domain_types::HttpHeaderTextRef::from(text.trim()),
+        Ok(text) => crate::http_header_text_resolution::HttpHeaderTextResolution::Value(
+            crate::http_header_text_ref::HttpHeaderTextRef::from(text.trim()),
         ),
-        Err(_error) => crate::domain_types::HttpHeaderTextResolution::InvalidText,
+        Err(_error) => crate::http_header_text_resolution::HttpHeaderTextResolution::InvalidText,
     }
 }

@@ -4,7 +4,7 @@
 pub struct HttpTraceParent(String);
 
 impl TryFrom<String> for HttpTraceParent {
-    type Error = super::HttpTraceParentError;
+    type Error = crate::http_trace_parent_error::HttpTraceParentError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let bytes = value.as_bytes();

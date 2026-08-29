@@ -1,25 +1,20 @@
-use super::{
-    AdminFrontendPath, AdminPage, AdminPageCapability, AdminPageClientMode, AdminPageMetadata,
-    AdminPageNavigation, AdminPagePathRef, AdminPageTitle, AdminRoute, admin_path_route_name,
-};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminPageSpec {
-    route: AdminRoute,
-    capability: AdminPageCapability,
-    metadata: AdminPageMetadata,
-    page: AdminPage,
-    path: AdminFrontendPath,
-    title: AdminPageTitle,
+    route: crate::admin_route::AdminRoute,
+    capability: crate::admin_page_capability::AdminPageCapability,
+    metadata: crate::admin_page_metadata::AdminPageMetadata,
+    page: crate::admin_page::AdminPage,
+    path: crate::admin_frontend_path::AdminFrontendPath,
+    title: crate::admin_page_title::AdminPageTitle,
 }
 impl AdminPageSpec {
     pub(super) const fn new(
-        capability: AdminPageCapability,
-        metadata: AdminPageMetadata,
-        page: AdminPage,
-        path: AdminFrontendPath,
-        route: AdminRoute,
-        title: AdminPageTitle,
+        capability: crate::admin_page_capability::AdminPageCapability,
+        metadata: crate::admin_page_metadata::AdminPageMetadata,
+        page: crate::admin_page::AdminPage,
+        path: crate::admin_frontend_path::AdminFrontendPath,
+        route: crate::admin_route::AdminRoute,
+        title: crate::admin_page_title::AdminPageTitle,
     ) -> Self {
         Self {
             route,
@@ -31,50 +26,58 @@ impl AdminPageSpec {
         }
     }
     #[must_use]
-    pub const fn capability(self) -> AdminPageCapability {
+    pub const fn capability(self) -> crate::admin_page_capability::AdminPageCapability {
         self.capability
     }
     #[must_use]
-    pub const fn client_mode(self) -> AdminPageClientMode {
+    pub const fn client_mode(self) -> crate::admin_page_client_mode::AdminPageClientMode {
         self.metadata.client_mode
     }
     #[must_use]
-    pub const fn navigation(self) -> Option<AdminPageNavigation> {
+    pub const fn navigation(self) -> Option<crate::admin_page_navigation::AdminPageNavigation> {
         self.metadata.navigation
     }
     #[must_use]
-    pub const fn frontend_path(self) -> AdminFrontendPath {
+    pub const fn frontend_path(self) -> crate::admin_frontend_path::AdminFrontendPath {
         self.path
     }
     #[must_use]
-    pub const fn page(self) -> AdminPage {
+    pub const fn page(self) -> crate::admin_page::AdminPage {
         self.page
     }
     #[must_use]
-    pub fn path(self) -> frontend_contract::ContractStr {
-        frontend_contract::ContractStr::from(self.path.get())
+    pub fn path(self) -> frontend_contract::contract_str::ContractStr {
+        frontend_contract::contract_str::ContractStr::from(self.path.get())
     }
     #[must_use]
-    pub fn route_name(self) -> frontend_contract::ContractStr {
-        admin_path_route_name(AdminPagePathRef::from(self.path.get()))
+    pub fn route_name(self) -> frontend_contract::contract_str::ContractStr {
+        crate::admin_path_route_name::admin_path_route_name(
+            crate::admin_page_path_ref::AdminPagePathRef::from(self.path.get()),
+        )
     }
     #[must_use]
-    pub const fn route(self) -> AdminRoute {
+    pub const fn route(self) -> crate::admin_route::AdminRoute {
         self.route
     }
     #[must_use]
-    pub fn title(self) -> frontend_contract::ContractStr {
-        frontend_contract::ContractStr::from(match self.title {
-            AdminPageTitle::Api => constants_str::API_ALT,
-            AdminPageTitle::Metrics => constants_str::METRICS_ALT,
-            AdminPageTitle::Permissions => constants_str::PERMISSIONS,
-            AdminPageTitle::Profile => constants_str::PROFILE,
-            AdminPageTitle::Roles => constants_str::ROLES,
-            AdminPageTitle::Sessions => constants_str::SESSIONS_ALT,
-            AdminPageTitle::Settings => constants_str::SETTINGS,
-            AdminPageTitle::Tables => constants_str::TABLES,
-            AdminPageTitle::Users => constants_str::USERS,
-            AdminPageTitle::Version => constants_str::VERSION_ALT,
+    pub fn title(self) -> frontend_contract::contract_str::ContractStr {
+        frontend_contract::contract_str::ContractStr::from(match self.title {
+            crate::admin_page_title::AdminPageTitle::Api => constants_str::catalog::API_ALT,
+            crate::admin_page_title::AdminPageTitle::Metrics => constants_str::catalog::METRICS_ALT,
+            crate::admin_page_title::AdminPageTitle::Permissions => {
+                constants_str::catalog::PERMISSIONS
+            }
+            crate::admin_page_title::AdminPageTitle::Profile => {
+                constants_str::test_fixtures::PROFILE
+            }
+            crate::admin_page_title::AdminPageTitle::Roles => constants_str::catalog::ROLES,
+            crate::admin_page_title::AdminPageTitle::Sessions => {
+                constants_str::catalog::SESSIONS_ALT
+            }
+            crate::admin_page_title::AdminPageTitle::Settings => constants_str::catalog::SETTINGS,
+            crate::admin_page_title::AdminPageTitle::Tables => constants_str::catalog::TABLES,
+            crate::admin_page_title::AdminPageTitle::Users => constants_str::catalog::USERS,
+            crate::admin_page_title::AdminPageTitle::Version => constants_str::catalog::VERSION_ALT,
         })
     }
 }

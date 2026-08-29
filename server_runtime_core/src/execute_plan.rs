@@ -1,17 +1,19 @@
 pub async fn execute_plan<Plan, Output, Error, Apply, ApplyFuture>(
-    mode: super::ExecutionMode,
+    mode: crate::execution_mode::ExecutionMode,
     plan: Plan,
     apply: Apply,
-) -> Result<super::ExecutionReport<Plan, Output>, Error>
+) -> Result<crate::execution_report::ExecutionReport<Plan, Output>, Error>
 where
     Apply: FnOnce(Plan) -> ApplyFuture,
     ApplyFuture: Future<Output = Result<Output, Error>>,
 {
     match mode {
-        super::ExecutionMode::Apply => {
+        crate::execution_mode::ExecutionMode::Apply => {
             let output = apply(plan).await?;
-            Ok(super::ExecutionReport::Applied { output })
+            Ok(crate::execution_report::ExecutionReport::Applied { output })
         }
-        super::ExecutionMode::DryRun => Ok(super::ExecutionReport::DryRun { plan }),
+        crate::execution_mode::ExecutionMode::DryRun => {
+            Ok(crate::execution_report::ExecutionReport::DryRun { plan })
+        }
     }
 }

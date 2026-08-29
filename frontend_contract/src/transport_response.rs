@@ -1,13 +1,16 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
-    body: super::TransportBody,
-    retry_after: Option<super::TransportRetryAfter>,
-    status: super::TransportStatus,
+    body: crate::transport_body::TransportBody,
+    retry_after: Option<crate::transport_retry_after::TransportRetryAfter>,
+    status: crate::transport_status::TransportStatus,
 }
 
 impl TransportResponse {
     #[must_use]
-    pub const fn new(body: super::TransportBody, status: super::TransportStatus) -> Self {
+    pub const fn new(
+        body: crate::transport_body::TransportBody,
+        status: crate::transport_status::TransportStatus,
+    ) -> Self {
         Self {
             body,
             retry_after: None,
@@ -15,36 +18,41 @@ impl TransportResponse {
         }
     }
     #[must_use]
-    pub fn with_retry_after(mut self, retry_after: Option<super::TransportRetryAfter>) -> Self {
+    pub fn with_retry_after(
+        mut self,
+        retry_after: Option<crate::transport_retry_after::TransportRetryAfter>,
+    ) -> Self {
         self.retry_after = retry_after;
         self
     }
     #[must_use]
-    pub const fn body(&self) -> &super::TransportBody {
+    pub const fn body(&self) -> &crate::transport_body::TransportBody {
         &self.body
     }
     #[must_use]
-    pub const fn status(&self) -> super::TransportStatus {
+    pub const fn status(&self) -> crate::transport_status::TransportStatus {
         self.status
     }
     #[must_use]
-    pub const fn retry_after(&self) -> Option<&super::TransportRetryAfter> {
+    pub const fn retry_after(&self) -> Option<&crate::transport_retry_after::TransportRetryAfter> {
         self.retry_after.as_ref()
     }
     pub fn success_body(
         &self,
-        expected: super::TransportStatus,
-    ) -> Result<&super::TransportBody, super::ClientError> {
+        expected: crate::transport_status::TransportStatus,
+    ) -> Result<&crate::transport_body::TransportBody, crate::client_error::ClientError> {
         if self.status == expected {
             Ok(&self.body)
         } else {
-            Err(super::decode_api_problem(&self.body).map_or(
-                super::ClientError::Status {
-                    actual: self.status,
-                    expected,
-                },
-                super::ClientError::Problem,
-            ))
+            Err(
+                crate::decode_api_problem::decode_api_problem(&self.body).map_or(
+                    crate::client_error::ClientError::Status {
+                        actual: self.status,
+                        expected,
+                    },
+                    crate::client_error::ClientError::Problem,
+                ),
+            )
         }
     }
 }

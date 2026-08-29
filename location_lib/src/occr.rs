@@ -1,5 +1,3 @@
-use super::domain_types::{LocationColumn, LocationFile, LocationLine};
-
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -14,7 +12,7 @@ use super::domain_types::{LocationColumn, LocationFile, LocationLine};
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Occr {
-    pub file: LocationFile,
-    pub line: LocationLine,
-    pub column: LocationColumn,
+    pub file: crate::location_file::LocationFile,
+    pub line: crate::location_line::LocationLine,
+    pub column: crate::location_column::LocationColumn,
 }

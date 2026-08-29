@@ -1,7 +1,11 @@
-use super::{AdminCrudPage, crud_resource_page};
-
-#[frontend_contract::route_error(AdminUsersCreatePageError)]
+#[frontend_contract_macros::route_error(AdminUsersCreatePageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
-pub(crate) async fn users_create_page(auth: crate::AdminAuthReq) -> axum::response::Response {
-    crud_resource_page(auth, AdminCrudPage::UserCreate).await
+pub(crate) async fn users_create_page(
+    auth: crate::admin_auth_req::AdminAuthReq,
+) -> axum::response::Response {
+    crate::crud_resource_page::crud_resource_page(
+        auth,
+        crate::admin_crud_page::AdminCrudPage::UserCreate,
+    )
+    .await
 }

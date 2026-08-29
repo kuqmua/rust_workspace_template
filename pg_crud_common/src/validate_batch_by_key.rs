@@ -12,13 +12,13 @@ pub fn validate_batch_by_key<
     BuildDuplicateInvalidItem,
 >(
     source_items: SourceItems,
-    maximum_invalid_items: super::BatchInvalidItemCount,
-    duplicate_policy: super::BatchDuplicatePolicy,
+    maximum_invalid_items: crate::batch_invalid_item_count::BatchInvalidItemCount,
+    duplicate_policy: crate::batch_duplicate_policy::BatchDuplicatePolicy,
     validate_source_item: ValidateSourceItem,
     select_record_key: SelectRecordKey,
     build_invalid_item: BuildInvalidItem,
     build_duplicate_invalid_item: BuildDuplicateInvalidItem,
-) -> super::BatchValidationReport<Key, Record, InvalidItem>
+) -> crate::batch_validation_report::BatchValidationReport<Key, Record, InvalidItem>
 where
     SourceItems: IntoIterator<Item = SourceItem>,
     Key: Ord,
@@ -46,30 +46,35 @@ where
                     Ok(record) => {
                         let key = select_record_key(&record);
                         match records_by_key.entry(key) {
-                            std::collections::btree_map::Entry::Vacant(entry) => {
-                                let _inserted_record = entry.insert(record);
-                            }
-                            std::collections::btree_map::Entry::Occupied(mut entry) => {
-                                match duplicate_policy {
-                                    super::BatchDuplicatePolicy::Reject => invalid_items.push(
-                                        build_duplicate_invalid_item(item_index, entry.key()),
-                                    ),
-                                    super::BatchDuplicatePolicy::KeepFirst => {}
-                                    super::BatchDuplicatePolicy::KeepLast => {
-                                        drop(entry.insert(record));
-                                    }
+                        std::collections::btree_map::Entry::Vacant(entry) => {
+                            let _inserted_record = entry.insert(record);
+                        }
+                        std::collections::btree_map::Entry::Occupied(mut entry) => {
+                            match duplicate_policy {
+                                crate::batch_duplicate_policy::BatchDuplicatePolicy::Reject => {
+                                    invalid_items.push(build_duplicate_invalid_item(
+                                        item_index,
+                                        entry.key(),
+                                    ));
+                                }
+                                crate::batch_duplicate_policy::BatchDuplicatePolicy::KeepFirst => {}
+                                crate::batch_duplicate_policy::BatchDuplicatePolicy::KeepLast => {
+                                    drop(entry.insert(record));
                                 }
                             }
                         }
+                    }
                     }
                     Err(error) => invalid_items.push(build_invalid_item(item_index, error)),
                 }
                 std::ops::ControlFlow::Continue(())
             });
-    super::BatchValidationReport {
+    crate::batch_validation_report::BatchValidationReport {
         records_by_key: records_by_key.into(),
         invalid_items: invalid_items.into(),
-        processed_item_count: super::BatchProcessedItemCount::from(processed_item_count),
-        stopped_early: super::BatchStoppedEarly::from(stopped_early),
+        processed_item_count: crate::batch_processed_item_count::BatchProcessedItemCount::from(
+            processed_item_count,
+        ),
+        stopped_early: crate::batch_stopped_early::BatchStoppedEarly::from(stopped_early),
     }
 }

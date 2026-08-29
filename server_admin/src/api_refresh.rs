@@ -1,8 +1,9 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract::route_openapi(delegate = crate::authn_refresh::authn_refresh, tag = "admin_auth")]
+#[frontend_contract_macros::route_openapi(delegate = crate::authn_refresh::authn_refresh, tag = "admin_auth")]
 pub(crate) async fn api_refresh(
-    auth: crate::AdminAuthReq,
-    peer: crate::AdminPeerAddr,
-) -> Result<crate::AxumAdminResponse, crate::AdminRefreshError> {
+    auth: crate::admin_auth_req::AdminAuthReq,
+    peer: crate::admin_peer_addr::AdminPeerAddr,
+) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::application_auth::AdminRefreshError>
+{
 }

@@ -7,7 +7,9 @@ pub struct BoundedReadConcurrencyArcSemaphore(pub(super) std::sync::Arc<tokio::s
 
 impl BoundedReadConcurrencyArcSemaphore {
     #[must_use]
-    pub fn new(maximum_concurrent_reads: super::BoundedReadConcurrencyMaximumNonZeroUsize) -> Self {
+    pub fn new(
+        maximum_concurrent_reads: crate::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize,
+    ) -> Self {
         Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
             maximum_concurrent_reads.0.get(),
         )))

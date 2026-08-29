@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::{HealthComponentKind, HealthStatus};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -16,6 +15,6 @@ use super::{HealthComponentKind, HealthStatus};
     utoipa::ToSchema,
 )]
 pub struct HealthComponent {
-    pub(super) kind: HealthComponentKind,
-    pub(super) status: HealthStatus,
+    pub(super) kind: crate::health_component_kind::HealthComponentKind,
+    pub(super) status: crate::health_status::HealthStatus,
 }

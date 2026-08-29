@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::domain_types::{DefaultRegexPattern, RegexError, RegexRegexTryFromStringError};
 
 #[derive(
     Debug,
@@ -27,16 +26,19 @@ impl utoipa::PartialSchema for RegexRegex {
 }
 impl utoipa::ToSchema for RegexRegex {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::catalog::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
     }
 }
 impl TryFrom<String> for RegexRegex {
-    type Error = RegexRegexTryFromStringError;
+    type Error = crate::regex_regex_try_from_string_error::RegexRegexTryFromStringError;
     fn try_from(v: String) -> Result<Self, Self::Error> {
         if v.len() > constants_usize::VALUE_1_048_576 {
-            return Err(RegexRegexTryFromStringError::TooLong);
+            return Err(
+                crate::regex_regex_try_from_string_error::RegexRegexTryFromStringError::TooLong,
+            );
         }
-        let _validated_regex = regex::Regex::new(&v).map_err(RegexError::from)?;
+        let _validated_regex =
+            regex::Regex::new(&v).map_err(crate::regex_error::RegexError::from)?;
         Ok(Self(v))
     }
 }
@@ -53,12 +55,12 @@ const _: () = {
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
+                constants_str::catalog::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
             )
         }
         fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_ID,
+                constants_str::catalog::PG_CRUD_REGEX_REGEX_SCHEMA_ID,
             )
         }
         fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
@@ -69,8 +71,8 @@ const _: () = {
         }
     }
 };
-impl pg_crud_common::domain_types::DefaultSomeOneElement for RegexRegex {
+impl pg_crud_common::default_some_one_element::DefaultSomeOneElement for RegexRegex {
     fn default_some_one_element() -> Self {
-        Self::from(DefaultRegexPattern)
+        Self::from(crate::default_regex_pattern::DefaultRegexPattern)
     }
 }

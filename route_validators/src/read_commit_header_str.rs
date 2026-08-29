@@ -1,17 +1,20 @@
 pub(crate) fn read_commit_header_str(
-    headers: crate::header_value::AxumHeadersRef<'_>,
-) -> Result<crate::header_value::HeaderStrRef<'_>, super::CommitError> {
-    crate::header_value::required_header_str(
+    headers: crate::axum_headers_ref::AxumHeadersRef<'_>,
+) -> Result<crate::header_str_ref::HeaderStrRef<'_>, crate::commit_error::CommitError> {
+    crate::required_header_str::required_header_str(
         headers,
         super::commit_header_name::COMMIT_HEADER_NAME,
-        || super::CommitError::NoCommitHeader {
-            no_commit_header: super::NoCommitHeaderMessage::from(
-                constants_str::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
+        || crate::commit_error::CommitError::NoCommitHeader {
+            no_commit_header: crate::no_commit_header_message::NoCommitHeaderMessage::from(
+                constants_str::catalog::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
             ),
             location: location_macros::location!(),
         },
-        |error| super::CommitError::CommitToStrConversion {
-            commit_to_str_conversion: super::AxumCommitToStrConversionError::from(error),
+        |error| crate::commit_error::CommitError::CommitToStrConversion {
+            commit_to_str_conversion:
+                crate::axum_commit_to_str_conversion_error::AxumCommitToStrConversionError::from(
+                    error,
+                ),
             location: location_macros::location!(),
         },
     )

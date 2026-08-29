@@ -6,12 +6,12 @@
 pub struct RetryAfterSecs(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for RetryAfterSecs {
-    type Error = super::RetryAfterSecsTryFromU64Error;
+    type Error = crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         std::num::NonZeroU64::new(value)
             .map(Self::from)
-            .ok_or(super::RetryAfterSecsTryFromU64Error)
+            .ok_or(crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error)
     }
 }
 

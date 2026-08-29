@@ -2,20 +2,19 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use super::domain_types::*;
 
 pub fn generate_pg_type_where_token_stream<T>(
     attrs_token_stream: &dyn quote::ToTokens,
     variants: &[T],
     prefix: &dyn quote::ToTokens,
-    should_derive_utoipa_to_schema: &ShouldDeriveUtoipaToSchema,
-    should_derive_schemars_json_schema: &ShouldDSchemarsJsonSchema,
-    is_query_bind_mut: &IsQueryBindMut,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
+    should_derive_utoipa_to_schema: &crate::emission_types::ShouldDeriveUtoipaToSchema,
+    should_derive_schemars_json_schema: &crate::emission_types::ShouldDSchemarsJsonSchema,
+    is_query_bind_mut: &crate::emission_types::IsQueryBindMut,
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
 where
-    T: PgFilter,
+    T: crate::pg_filter::PgFilter,
 {
-    let names = NamesCtx::new();
+    let names = crate::names_ctx::NamesCtx::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (
@@ -33,20 +32,22 @@ where
         names.get_query_snake_case(),
         names.get_v_snake_case(),
     );
-    let identifier = naming::domain_types::parameter::SelfWhereUpperCamelCase::from_tokens(&prefix);
+    let identifier = naming::parameter::SelfWhereUpperCamelCase::from_tokens(&prefix);
     let pg_type_tokens_where_token_stream = {
         let vrts_token_stream = variants.iter().map(|element| {
             let element_upper_camel_case = element.ucc();
             let prefix_where_self_upper_camel_case = element.prefix_where_self_upper_camel_case();
-            let optional_type_token_stream: Option<macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream> =
+            let optional_type_token_stream: Option<macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream> =
                 element.maybe_generic();
             let type_token_stream =
                 optional_type_token_stream.map_or_else(proc_macro2::TokenStream::new, |v| quote::quote! {<#v>});
             quote::quote! {#element_upper_camel_case(where_filters::domain_types::#prefix_where_self_upper_camel_case #type_token_stream)}
         });
         let utoipa_schema_token_stream = match should_derive_utoipa_to_schema {
-            ShouldDeriveUtoipaToSchema::False => proc_macro2::TokenStream::new(),
-            ShouldDeriveUtoipaToSchema::True => {
+            crate::emission_types::ShouldDeriveUtoipaToSchema::False => {
+                proc_macro2::TokenStream::new()
+            }
+            crate::emission_types::ShouldDeriveUtoipaToSchema::True => {
                 let schema_items_token_stream = variants.iter().map(|element| {
                     let element_upper_camel_case = element.ucc();
                     let prefix_where_self_upper_camel_case =
@@ -97,18 +98,18 @@ where
         }
     };
     let impl_pg_type_pg_type_where_filter_for_pg_type_tokens_where_token_stream =
-        impl_pg_type_where_filter_for_identifier_token_stream(
+        crate::impl_pg_type_where_filter_for_identifier_token_stream::impl_pg_type_where_filter_for_identifier_token_stream(
             &quote::quote! {<'lt>},
             &identifier,
             &proc_macro2::TokenStream::new(),
-            &IncrementParameterUndrscr::False,
-            &ColumnParameterUndrscr::False,
-            &AddOperatorUndrscr::False,
+            &crate::emission_types::IncrementParameterUndrscr::False,
+            &crate::emission_types::ColumnParameterUndrscr::False,
+            &crate::emission_types::AddOperatorUndrscr::False,
             &{
                 let vrts_token_stream = variants.iter().map(|element| {
                 let element_upper_camel_case = element.ucc();
                 quote::quote! {
-                    Self::#element_upper_camel_case(#VSnakeCase) => pg_crud_common::domain_types::PgTypeWhereFilter::query_part(
+                    Self::#element_upper_camel_case(#VSnakeCase) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                         #VSnakeCase,
                         #IncrementSnakeCase,
                         #ColumnSnakeCase,
@@ -127,7 +128,7 @@ where
                 let vrts_token_stream = variants.iter().map(|element| {
                 let element_upper_camel_case = element.ucc();
                 quote::quote! {
-                    Self::#element_upper_camel_case(#VSnakeCase) => pg_crud_common::domain_types::PgTypeWhereFilter::query_bind(
+                    Self::#element_upper_camel_case(#VSnakeCase) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                         #VSnakeCase,
                         #QuerySnakeCase
                     )
@@ -139,15 +140,15 @@ where
                     }
                 }
             },
-            &Import::PgCrudCommon,
+            &crate::import::Import::PgCrudCommon,
         );
     let impl_location_lib_to_err_string_for_pg_type_tokens_where_token_stream =
-        generate_impl_to_err_string_no_generics_token_stream(
+        crate::generate_impl_to_err_string_no_generics_token_stream::generate_impl_to_err_string_no_generics_token_stream(
             &identifier,
             &quote::quote! {format!("{self:#?}")},
         );
     let impl_all_variants_default_some_one_element_for_pg_type_tokens_where_token_stream =
-        generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream(
+        crate::generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream::generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream(
             &identifier,
             &{
                 let vrts_token_stream = variants.iter().map(|element| {

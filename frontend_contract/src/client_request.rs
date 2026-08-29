@@ -1,9 +1,9 @@
-use super::{RouteRequest, TypedRoute};
-
 #[must_use]
-pub const fn client_request<Route>(body: Route::Request) -> RouteRequest<Route>
+pub const fn client_request<Route>(
+    body: Route::Request,
+) -> crate::route_request::RouteRequest<Route>
 where
-    Route: TypedRoute,
+    Route: crate::typed_route::TypedRoute,
 {
-    RouteRequest::new(body)
+    crate::route_request::RouteRequest::new(body)
 }

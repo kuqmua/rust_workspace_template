@@ -21,7 +21,7 @@ pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let regex = regex::Regex::new(constants_str::NAMING_REGEX_VALUE).expect("20948d87 generate_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
+    let regex = regex::Regex::new(constants_str::catalog::NAMING_REGEX_VALUE).expect("20948d87 generate_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string())
         .expect("90e5793b generate_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold")
         .into_iter()
@@ -83,11 +83,11 @@ pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
                 (
                     generate_token_stream(
                         &phrase_part_upper_camel_case_upper_camel_case_token_stream,
-                        &generate_quotes::domain_types::dq_token_stream(&phrase_part_upper_camel_case_str),
+                        &generate_quotes::dq_token_stream::dq_token_stream(&phrase_part_upper_camel_case_str),
                     ),
                     generate_token_stream(
                         &phrase_part_snake_case_upper_camel_case_token_stream,
-                        &generate_quotes::domain_types::dq_token_stream(&phrase_part_snake_case_str),
+                        &generate_quotes::dq_token_stream::dq_token_stream(&phrase_part_snake_case_str),
                     ),
                 )
             };
@@ -131,34 +131,34 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let regex = regex::Regex::new(constants_str::NAMING_REGEX_VALUE).expect("cba1b5fb generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
+    let regex = regex::Regex::new(constants_str::catalog::NAMING_REGEX_VALUE).expect("cba1b5fb generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string()).expect("9d6a20af generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold").into_iter().map(|element| {
         assert!(element.iter().all(|el0| regex.is_match(el0)), "4a12d90f");
-        let self_match_name = constants_str::SELF_ALT;
+        let self_match_name = constants_str::catalog::SELF_ALT;
         {
             let is_self_exists_and_only_one = element.iter().any(|el0| el0 == self_match_name);
             assert!(is_self_exists_and_only_one, "5680dd63");
         };
         let (els_concat_v_upper_camel_case_double_quoted_token_stream, els_concat_v_snake_case_double_quoted_token_stream, struct_upper_camel_case_upper_camel_case_token_stream, struct_snake_case_token_upper_camel_case_token_stream, trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream) = {
-            let ucc_upper_camel_case_str = constants_str::UPPERCAMELCASE;
-            let sc_upper_camel_case_str = constants_str::SNAKECASE;
+            let ucc_upper_camel_case_str = constants_str::catalog::UPPERCAMELCASE;
+            let sc_upper_camel_case_str = constants_str::catalog::SNAKECASE;
             let parts_len = element.iter().map(String::len).sum::<usize>();
             let els_concat_upper_camel_case_str = element.iter().fold(String::with_capacity(parts_len), |mut accumulator, el0| {
                 accumulator.push_str(&naming_common::domain_types::AsRefStrToUpperCamelCaseStr::case(el0));
                 accumulator
             });
-            let els_concat_v_upper_camel_case_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&element.iter().fold(String::with_capacity(parts_len), |mut accumulator, el0| {
-                if el0 == constants_str::SELF_ALT {
-                    accumulator.push_str(constants_str::V_ALT);
+            let els_concat_v_upper_camel_case_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&element.iter().fold(String::with_capacity(parts_len), |mut accumulator, el0| {
+                if el0 == constants_str::catalog::SELF_ALT {
+                    accumulator.push_str(constants_str::integration_fixtures::V_ALT);
                 } else {
                     accumulator.push_str(&naming_common::domain_types::AsRefStrToUpperCamelCaseStr::case(el0));
                 }
                 accumulator
             }));
-            let els_concat_v_snake_case_double_quoted_token_stream = generate_quotes::domain_types::dq_token_stream(&{
+            let els_concat_v_snake_case_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&{
                 let mut accumulator = element.iter().fold(String::with_capacity(parts_len.saturating_add(element.len())), |mut accumulator, el0| {
                     let symbol = '_';
-                    if el0 == constants_str::SELF_ALT {
+                    if el0 == constants_str::catalog::SELF_ALT {
                         assert!(std::fmt::Write::write_fmt(&mut accumulator, format_args!("{{v}}{symbol}")).is_ok(), "6a02a2ff");
                     } else {
                         assert!(std::fmt::Write::write_fmt(&mut accumulator, format_args!("{}{symbol}", naming_common::domain_types::AsRefStrToSnakeCaseStr::case(el0))).is_ok(), "d915980a");
@@ -171,7 +171,7 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
             let struct_upper_camel_case_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{ucc_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("82f4ac08 generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
             let struct_snake_case_token_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{sc_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("21044eba generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
             let (trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream) = {
-                let trait_upper_camel_case_str = constants_str::TRAIT;
+                let trait_upper_camel_case_str = constants_str::catalog::TRAIT;
                 let trait_upper_camel_case_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{ucc_upper_camel_case_str}{trait_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("1066857a generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
                 let trait_snake_case_token_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{sc_upper_camel_case_str}{trait_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("8db74cfd generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold");
                 (trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream)
@@ -308,7 +308,7 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
                     syn::Fields::Unit => {
                         let element_identifier = &element.ident;
                         let element_identifier_upper_camel_case_double_quoted_token_stream =
-                            generate_quotes::domain_types::dq_token_stream(&naming_common::domain_types::ToTokensToUpperCamelCaseStr::case(&element_identifier));
+                            generate_quotes::dq_token_stream::dq_token_stream(&naming_common::domain_types::ToTokensToUpperCamelCaseStr::case(&element_identifier));
                         quote::quote! {Self::#element_identifier => #string_token_stream::from(#element_identifier_upper_camel_case_double_quoted_token_stream)}
                     }
                     syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
@@ -344,7 +344,7 @@ pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
                     syn::Fields::Unit => {
                         let element_identifier = &element.ident;
                         let element_identifier_snake_case_double_quoted_token_stream =
-                            generate_quotes::domain_types::dq_token_stream(&naming_common::domain_types::ToTokensToSnakeCaseStr::case(&element_identifier));
+                            generate_quotes::dq_token_stream::dq_token_stream(&naming_common::domain_types::ToTokensToSnakeCaseStr::case(&element_identifier));
                         quote::quote! {Self::#element_identifier => #string_token_stream::from(#element_identifier_snake_case_double_quoted_token_stream)}
                     }
                     syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
@@ -381,7 +381,7 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
                     syn::Fields::Unit => {
                         let element_identifier = &element.ident;
                         let element_identifier_snake_case_double_quoted_token_stream =
-                            generate_quotes::domain_types::dq_token_stream(&naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(&element_identifier));
+                            generate_quotes::dq_token_stream::dq_token_stream(&naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(&element_identifier));
                         quote::quote! {Self::#element_identifier => #string_token_stream::from(#element_identifier_snake_case_double_quoted_token_stream)}
                     }
                     syn::Fields::Named(_) | syn::Fields::Unnamed(_) => panic!("b6fedcff"),

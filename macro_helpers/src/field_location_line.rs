@@ -12,12 +12,13 @@ impl From<std::num::NonZeroU32> for FieldLocationLine {
 }
 
 impl TryFrom<u32> for FieldLocationLine {
-    type Error = super::FieldLocationCoordinateTryFromU32Error;
+    type Error =
+        crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         std::num::NonZeroU32::new(value)
             .map(Self::from)
-            .ok_or(super::FieldLocationCoordinateTryFromU32Error)
+            .ok_or(crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error)
     }
 }
 

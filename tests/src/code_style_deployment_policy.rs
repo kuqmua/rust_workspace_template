@@ -11,20 +11,20 @@ fn service_deployment_probes_use_registered_health_routes() {
             "416090ad service_deployment_probes_use_registered_health_routes invariant must hold",
         );
     let catalog_source = std::fs::read_to_string(
-        repository_root.join(constants_str::VALUE_C1590960),
+        repository_root.join(constants_str::test_fixtures::VALUE_C1590960),
     )
     .expect("0c6173a3 service_deployment_probes_use_registered_health_routes invariant must hold");
     let catalog = catalog_source.parse::<toml::Table>().expect(
         "7ce7751f service_deployment_probes_use_registered_health_routes invariant must hold",
     );
     let services = catalog
-        .get(constants_str::SERVICE)
+        .get(constants_str::catalog::SERVICE)
         .and_then(toml::Value::as_array)
         .expect(
             "4d41c98f service_deployment_probes_use_registered_health_routes invariant must hold",
         );
-    let live_path = common_routes::CommonRoute::HealthLive.path();
-    let ready_path = common_routes::CommonRoute::HealthReady.path();
+    let live_path = common_routes::common_route::CommonRoute::HealthLive.path();
+    let ready_path = common_routes::common_route::CommonRoute::HealthReady.path();
     services.iter().for_each(|service_value| {
         let table = service_value.as_table().expect("c04fc517 service_deployment_probes_use_registered_health_routes invariant must hold");
         let get_text = |field| {
@@ -33,9 +33,9 @@ fn service_deployment_probes_use_registered_health_routes() {
                 .and_then(toml::Value::as_str)
                 .expect("9971e2bf service_deployment_probes_use_registered_health_routes invariant must hold")
         };
-        let service_name = get_text(constants_str::VALUE_DB669AF6);
+        let service_name = get_text(constants_str::test_fixtures::VALUE_DB669AF6);
         let compose_source =
-            std::fs::read_to_string(repository_root.join(get_text(constants_str::VALUE_739ED940)))
+            std::fs::read_to_string(repository_root.join(get_text(constants_str::test_fixtures::VALUE_739ED940)))
                 .expect("1928801b service_deployment_probes_use_registered_health_routes invariant must hold");
         let service_marker = format!("  {service_name}:\n");
         let compose_service = compose_source
@@ -44,7 +44,7 @@ fn service_deployment_probes_use_registered_health_routes() {
             .expect("def93cb8 service_deployment_probes_use_registered_health_routes invariant must hold");
         assert!(compose_service.contains(ready_path.as_ref()), "4933eff6");
         let deployment_source =
-            std::fs::read_to_string(repository_root.join(get_text(constants_str::VALUE_94ABCB2D)))
+            std::fs::read_to_string(repository_root.join(get_text(constants_str::test_fixtures::VALUE_94ABCB2D)))
                 .expect("631594d9 service_deployment_probes_use_registered_health_routes invariant must hold");
         assert_eq!(
             deployment_source
@@ -71,7 +71,7 @@ fn service_catalog_matches_build_and_deployment_representations() {
         .parent()
         .expect("518d973f service_catalog_matches_build_and_deployment_representations invariant must hold");
     let catalog_source = std::fs::read_to_string(
-        repository_root.join(constants_str::VALUE_C1590960),
+        repository_root.join(constants_str::test_fixtures::VALUE_C1590960),
     )
     .expect(
         "2683c1a0 service_catalog_matches_build_and_deployment_representations invariant must hold",
@@ -80,17 +80,21 @@ fn service_catalog_matches_build_and_deployment_representations() {
         "8f1bea25 service_catalog_matches_build_and_deployment_representations invariant must hold",
     );
     let services = catalog
-        .get(constants_str::SERVICE)
+        .get(constants_str::catalog::SERVICE)
         .and_then(toml::Value::as_array)
         .expect("c6269736 service_catalog_matches_build_and_deployment_representations invariant must hold");
     let ci = std::fs::read_to_string(
-        repository_root.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH),
+        repository_root.join(constants_str::catalog::CODE_STYLE_CI_WORKFLOW_PATH),
     )
     .expect(
         "f21736f4 service_catalog_matches_build_and_deployment_representations invariant must hold",
     );
-    let release = std::fs::read_to_string(repository_root.join(constants_str::VALUE_87DB21A9))
-        .expect("a2bfc899 service_catalog_matches_build_and_deployment_representations invariant must hold");
+    let release = std::fs::read_to_string(
+        repository_root.join(constants_str::test_fixtures::VALUE_87DB21A9),
+    )
+    .expect(
+        "a2bfc899 service_catalog_matches_build_and_deployment_representations invariant must hold",
+    );
     services.iter().for_each(|service| {
         let table = service.as_table().expect("24c7af1a service_catalog_matches_build_and_deployment_representations invariant must hold");
         let get_text = |field| {
@@ -99,18 +103,18 @@ fn service_catalog_matches_build_and_deployment_representations() {
                 .and_then(toml::Value::as_str)
                 .expect("704fa6dd service_catalog_matches_build_and_deployment_representations invariant must hold")
         };
-        let crate_name = get_text(constants_str::CRATE);
-        let compose_name = get_text(constants_str::VALUE_DB669AF6);
-        let compose_file = get_text(constants_str::VALUE_739ED940);
-        let dockerfile = get_text(constants_str::VALUE_254DB0FB);
-        let image = get_text(constants_str::VALUE_6105D6CC);
-        let kubernetes = get_text(constants_str::VALUE_94ABCB2D);
+        let crate_name = get_text(constants_str::catalog::CRATE);
+        let compose_name = get_text(constants_str::test_fixtures::VALUE_DB669AF6);
+        let compose_file = get_text(constants_str::test_fixtures::VALUE_739ED940);
+        let dockerfile = get_text(constants_str::test_fixtures::VALUE_254DB0FB);
+        let image = get_text(constants_str::test_fixtures::VALUE_6105D6CC);
+        let kubernetes = get_text(constants_str::test_fixtures::VALUE_94ABCB2D);
         let is_released = table
-            .get(constants_str::RELEASE)
+            .get(constants_str::catalog::RELEASE)
             .and_then(toml::Value::as_bool)
             .expect("e69fbcf1 service_catalog_matches_build_and_deployment_representations invariant must hold");
         let port = table
-            .get(constants_str::VALUE_F8D397A3)
+            .get(constants_str::test_fixtures::VALUE_F8D397A3)
             .and_then(toml::Value::as_integer)
             .expect("8cc73f18 service_catalog_matches_build_and_deployment_representations invariant must hold");
         let compose =
@@ -145,17 +149,17 @@ fn continuous_integration_uses_the_pinned_application_database_image() {
         .parent()
         .expect("36869b03 continuous_integration_uses_the_pinned_application_database_image invariant must hold");
     let compose =
-        std::fs::read_to_string(repository_root.join(constants_str::VALUE_E45E45BA)).expect("b9e6dd80 continuous_integration_uses_the_pinned_application_database_image invariant must hold");
+        std::fs::read_to_string(repository_root.join(constants_str::test_fixtures::VALUE_E45E45BA)).expect("b9e6dd80 continuous_integration_uses_the_pinned_application_database_image invariant must hold");
     let database_image = compose
-        .split_once(constants_str::VALUE_BCE0FE4A)
+        .split_once(constants_str::test_fixtures::VALUE_BCE0FE4A)
         .and_then(|(_prefix, database)| {
             database
                 .lines()
-                .find(|line| line.trim().starts_with(constants_str::VALUE_A08A3033))
+                .find(|line| line.trim().starts_with(constants_str::test_fixtures::VALUE_A08A3033))
         })
         .map(str::trim)
         .expect("033beb54 continuous_integration_uses_the_pinned_application_database_image invariant must hold");
-    let ci = std::fs::read_to_string(repository_root.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH))
+    let ci = std::fs::read_to_string(repository_root.join(constants_str::catalog::CODE_STYLE_CI_WORKFLOW_PATH))
         .expect("346c695a continuous_integration_uses_the_pinned_application_database_image invariant must hold");
     assert!(ci.lines().any(|line| line.trim() == database_image));
     assert!(!ci.contains("postgresql_16_with_pg_jsonschema:latest"));
@@ -166,12 +170,18 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("2f1a4b8c service_catalog_covers_every_build_and_runtime_projection invariant must hold");
-    let catalog = std::fs::read_to_string(repository_root.join(constants_str::VALUE_C1590960))
-        .expect("7c3d9e10 service_catalog_covers_every_build_and_runtime_projection invariant must hold")
-        .parse::<toml::Table>()
-        .expect("4a8f2c61 service_catalog_covers_every_build_and_runtime_projection invariant must hold");
+    let catalog = std::fs::read_to_string(
+        repository_root.join(constants_str::test_fixtures::VALUE_C1590960),
+    )
+    .expect(
+        "7c3d9e10 service_catalog_covers_every_build_and_runtime_projection invariant must hold",
+    )
+    .parse::<toml::Table>()
+    .expect(
+        "4a8f2c61 service_catalog_covers_every_build_and_runtime_projection invariant must hold",
+    );
     let services = catalog
-        .get(constants_str::SERVICE)
+        .get(constants_str::catalog::SERVICE)
         .and_then(toml::Value::as_array)
         .expect("9b6e0d42 service_catalog_covers_every_build_and_runtime_projection invariant must hold");
     let field_values = |field: &str| {
@@ -187,42 +197,45 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
             })
             .collect::<std::collections::BTreeSet<_>>()
     };
-    let catalog_compose = field_values(constants_str::VALUE_DB669AF6);
-    let catalog_dockerfiles = field_values(constants_str::VALUE_254DB0FB);
-    let catalog_kubernetes = field_values(constants_str::VALUE_94ABCB2D);
+    let catalog_compose = field_values(constants_str::test_fixtures::VALUE_DB669AF6);
+    let catalog_dockerfiles = field_values(constants_str::test_fixtures::VALUE_254DB0FB);
+    let catalog_kubernetes = field_values(constants_str::test_fixtures::VALUE_94ABCB2D);
     let released_images = services
         .iter()
         .filter(|service| {
             service
                 .as_table()
                 .expect("5b0e7c14 service_catalog_covers_every_build_and_runtime_projection invariant must hold")
-                .get(constants_str::RELEASE)
+                .get(constants_str::catalog::RELEASE)
                 .and_then(toml::Value::as_bool)
                 .expect("8d4a1f63 service_catalog_covers_every_build_and_runtime_projection invariant must hold")
         })
         .map(|service| {
             service
                 .as_table()
-                .and_then(|table| table.get(constants_str::VALUE_6105D6CC))
+                .and_then(|table| table.get(constants_str::test_fixtures::VALUE_6105D6CC))
                 .and_then(toml::Value::as_str)
                 .map(str::to_owned)
                 .expect("3f9c6a20 service_catalog_covers_every_build_and_runtime_projection invariant must hold")
         })
         .collect::<std::collections::BTreeSet<_>>();
 
-    let compose = std::fs::read_to_string(repository_root.join(constants_str::VALUE_E45E45BA)).expect(
+    let compose = std::fs::read_to_string(
+        repository_root.join(constants_str::test_fixtures::VALUE_E45E45BA),
+    )
+    .expect(
         "1d7a3f85 service_catalog_covers_every_build_and_runtime_projection invariant must hold",
     );
     let mut current_service = None;
     let mut compose_build_services = std::collections::BTreeSet::new();
     compose.lines().for_each(|line| {
-        if line.starts_with(constants_str::TWO_SPACES)
-            && !line.starts_with(constants_str::FOUR_SPACES)
+        if line.starts_with(constants_str::catalog::TWO_SPACES)
+            && !line.starts_with(constants_str::catalog::FOUR_SPACES)
             && line.ends_with(':')
         {
             current_service = Some(line.trim().trim_end_matches(':').to_owned());
         }
-        if line.trim() == constants_str::VALUE_3CF4DC5D
+        if line.trim() == constants_str::test_fixtures::VALUE_3CF4DC5D
             && let Some(service) = current_service.as_ref()
         {
             let _inserted = compose_build_services.insert(service.clone());
@@ -236,7 +249,7 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
             !entry
                 .path()
                 .components()
-                .any(|component| component.as_os_str() == constants_str::TARGET)
+                .any(|component| component.as_os_str() == constants_str::catalog::TARGET)
         })
         .map(|entry| entry.expect("7a2d5c91 service_catalog_covers_every_build_and_runtime_projection invariant must hold"))
         .filter(|entry| {
@@ -244,7 +257,7 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
                 && entry
                     .file_name()
                     .to_string_lossy()
-                    .eq_ignore_ascii_case(constants_str::VALUE_DD2C0EB6)
+                    .eq_ignore_ascii_case(constants_str::test_fixtures::VALUE_DD2C0EB6)
         })
         .map(|entry| {
             entry
@@ -257,7 +270,7 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(dockerfiles, catalog_dockerfiles);
 
-    let kubernetes_deployments = walkdir::WalkDir::new(repository_root.join(constants_str::VALUE_BC15D323))
+    let kubernetes_deployments = walkdir::WalkDir::new(repository_root.join(constants_str::test_fixtures::VALUE_BC15D323))
         .into_iter()
         .map(|entry| entry.expect("1c8f4b60 service_catalog_covers_every_build_and_runtime_projection invariant must hold"))
         .filter(|entry| !entry.file_type().is_dir())
@@ -265,7 +278,7 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
             let source = std::fs::read_to_string(entry.path()).expect("9e3a6d27 service_catalog_covers_every_build_and_runtime_projection invariant must hold");
             source
                 .lines()
-                .any(|line| line.trim() == constants_str::VALUE_AB78925C)
+                .any(|line| line.trim() == constants_str::test_fixtures::VALUE_AB78925C)
                 .then(|| {
                     entry
                         .path()
@@ -278,39 +291,43 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(kubernetes_deployments, catalog_kubernetes);
 
-    let release = std::fs::read_to_string(repository_root.join(constants_str::VALUE_87DB21A9))
-        .expect("3e7b1a59 service_catalog_covers_every_build_and_runtime_projection invariant must hold");
+    let release = std::fs::read_to_string(
+        repository_root.join(constants_str::test_fixtures::VALUE_87DB21A9),
+    )
+    .expect(
+        "3e7b1a59 service_catalog_covers_every_build_and_runtime_projection invariant must hold",
+    );
     let release_matrix = release
-        .split_once(constants_str::VALUE_5E783C26)
-        .and_then(|(_prefix, matrix_and_steps)| matrix_and_steps.split_once(constants_str::VALUE_C8999110))
+        .split_once(constants_str::test_fixtures::VALUE_5E783C26)
+        .and_then(|(_prefix, matrix_and_steps)| matrix_and_steps.split_once(constants_str::test_fixtures::VALUE_C8999110))
         .map(|(matrix, _steps)| matrix)
         .expect("4c8e2a70 service_catalog_covers_every_build_and_runtime_projection invariant must hold");
     let release_images = release_matrix
         .lines()
         .filter_map(|line| {
             line.trim()
-                .strip_prefix(constants_str::VALUE_0ACA6317)
+                .strip_prefix(constants_str::test_fixtures::VALUE_0ACA6317)
                 .map(str::to_owned)
         })
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(release_images, released_images);
 
     let ci = std::fs::read_to_string(
-        repository_root.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH),
+        repository_root.join(constants_str::catalog::CODE_STYLE_CI_WORKFLOW_PATH),
     )
     .expect(
         "0d6f2c83 service_catalog_covers_every_build_and_runtime_projection invariant must hold",
     );
     let ci_matrix = ci
-        .split_once(constants_str::VALUE_1EAFB99B)
-        .and_then(|(_prefix, matrix)| matrix.split_once(constants_str::VALUE_849338CC))
+        .split_once(constants_str::test_fixtures::VALUE_1EAFB99B)
+        .and_then(|(_prefix, matrix)| matrix.split_once(constants_str::test_fixtures::VALUE_849338CC))
         .map(|(matrix, _suffix)| matrix)
         .expect("d5ef2be8 service_catalog_covers_every_build_and_runtime_projection invariant must hold");
     let ci_images = ci_matrix
         .lines()
         .filter_map(|line| {
             line.trim()
-                .strip_prefix(constants_str::VALUE_0ACA6317)
+                .strip_prefix(constants_str::test_fixtures::VALUE_0ACA6317)
                 .map(str::to_owned)
         })
         .collect::<std::collections::BTreeSet<_>>();
@@ -318,26 +335,27 @@ fn service_catalog_covers_every_build_and_runtime_projection() {
 }
 
 fn unpinned_dockerfile_base_images(
-    source: super::types::SourceTextRef<'_>,
-) -> super::types::SourceTextList {
+    source: crate::types::SourceTextRef<'_>,
+) -> crate::types::SourceTextList {
     let from_parts = |line: &str| {
         let words = line.split_ascii_whitespace().collect::<Vec<_>>();
-        if !words
-            .first()
-            .is_some_and(|directive| directive.eq_ignore_ascii_case(constants_str::VALUE_F4383C66))
-        {
+        if !words.first().is_some_and(|directive| {
+            directive.eq_ignore_ascii_case(constants_str::test_fixtures::VALUE_F4383C66)
+        }) {
             return None;
         }
         let image_index = words
             .iter()
             .enumerate()
             .skip(constants_usize::ONE)
-            .find(|(_, word)| !word.starts_with(constants_str::SHARED_VALUES_EMPTY))
+            .find(|(_, word)| !word.starts_with(constants_str::catalog::SHARED_VALUES_EMPTY))
             .map(|(index, _)| index)?;
         let image = words.get(image_index)?.to_string();
         let stage = words
             .get(image_index.saturating_add(constants_usize::ONE))
-            .filter(|keyword| keyword.eq_ignore_ascii_case(constants_str::VALUE_DE148153))
+            .filter(|keyword| {
+                keyword.eq_ignore_ascii_case(constants_str::test_fixtures::VALUE_DE148153)
+            })
             .and_then(|_| words.get(image_index.saturating_add(2usize)))
             .map(|stage| (*stage).to_ascii_lowercase());
         Some((image, stage))
@@ -355,9 +373,10 @@ fn unpinned_dockerfile_base_images(
         .map(|(image, _stage)| image)
         .filter(|image| {
             let is_stage = stage_names.contains(&image.to_ascii_lowercase());
-            let is_scratch = image.eq_ignore_ascii_case(constants_str::VALUE_5A9CB6B5);
+            let is_scratch =
+                image.eq_ignore_ascii_case(constants_str::test_fixtures::VALUE_5A9CB6B5);
             let has_valid_digest = image
-                .rsplit_once(constants_str::VALUE_6FBFA0EC)
+                .rsplit_once(constants_str::test_fixtures::VALUE_6FBFA0EC)
                 .is_some_and(|(name, digest)| {
                     !name.is_empty()
                         && digest.len() == 64usize
@@ -376,23 +395,29 @@ fn catalog_dockerfiles_pin_every_external_base_image_by_digest() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .expect("d31c857a catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold");
-    let catalog = std::fs::read_to_string(repository_root.join(constants_str::VALUE_C1590960))
-        .expect("a7641e3b catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold")
-        .parse::<toml::Table>()
-        .expect("2b0c96d4 catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold");
+    let catalog = std::fs::read_to_string(
+        repository_root.join(constants_str::test_fixtures::VALUE_C1590960),
+    )
+    .expect(
+        "a7641e3b catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold",
+    )
+    .parse::<toml::Table>()
+    .expect(
+        "2b0c96d4 catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold",
+    );
     let services = catalog
-        .get(constants_str::SERVICE)
+        .get(constants_str::catalog::SERVICE)
         .and_then(toml::Value::as_array)
         .expect("74f02a1c catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold");
     let mut ers = Vec::new();
     services.iter().for_each(|service| {
         let dockerfile = service
             .as_table()
-            .and_then(|table| table.get(constants_str::VALUE_254DB0FB))
+            .and_then(|table| table.get(constants_str::test_fixtures::VALUE_254DB0FB))
             .and_then(toml::Value::as_str)
             .expect("c1854d7f catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold");
         let source = std::fs::read_to_string(repository_root.join(dockerfile)).expect("3fa21b68 catalog_dockerfiles_pin_every_external_base_image_by_digest invariant must hold");
-        unpinned_dockerfile_base_images(super::types::SourceTextRef::from(source.as_str()))
+        unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(source.as_str()))
             .into_iter()
             .for_each(|image| ers.push(format!("{dockerfile}: unpinned base image `{image}`")));
     });
@@ -401,8 +426,8 @@ fn catalog_dockerfiles_pin_every_external_base_image_by_digest() {
 
 #[test]
 fn dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
-    let violations = unpinned_dockerfile_base_images(super::types::SourceTextRef::from(
-        constants_str::VALUE_43F5436D,
+    let violations = unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(
+        constants_str::test_fixtures::VALUE_43F5436D,
     ));
     assert_eq!(
         violations.as_slice(),
@@ -413,7 +438,7 @@ fn dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
         ]
     );
     assert!(
-        unpinned_dockerfile_base_images(super::types::SourceTextRef::from(
+        unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(
             "FROM rust:1.90@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef AS builder\nFROM BUILDER\n"
         ))
         .is_empty()

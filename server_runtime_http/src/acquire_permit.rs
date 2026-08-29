@@ -1,13 +1,20 @@
 pub async fn acquire_permit(
-    semaphore: super::ArcTokioSemaphore,
-    wait_timeout: super::PermitWaitTimeoutDuration,
-    retry_after: super::RetryAfterSecs,
-) -> Result<super::TokioOwnedSemaphorePermit, super::AcquirePermitError> {
+    semaphore: crate::arc_tokio_semaphore::ArcTokioSemaphore,
+    wait_timeout: crate::permit_wait_timeout_duration::PermitWaitTimeoutDuration,
+    retry_after: crate::retry_after_secs::RetryAfterSecs,
+) -> Result<
+    crate::tokio_owned_semaphore_permit::TokioOwnedSemaphorePermit,
+    crate::acquire_permit_error::AcquirePermitError,
+> {
     match tokio::time::timeout(wait_timeout.0, semaphore.0.acquire_owned()).await {
-        Ok(Ok(permit)) => Ok(super::TokioOwnedSemaphorePermit::from(permit)),
-        Ok(Err(error)) => Err(super::AcquirePermitError::Closed(
-            super::TokioAcquireError::from(error),
+        Ok(Ok(permit)) => {
+            Ok(crate::tokio_owned_semaphore_permit::TokioOwnedSemaphorePermit::from(permit))
+        }
+        Ok(Err(error)) => Err(crate::acquire_permit_error::AcquirePermitError::Closed(
+            crate::tokio_acquire_error::TokioAcquireError::from(error),
         )),
-        Err(_elapsed) => Err(super::AcquirePermitError::Timeout(retry_after)),
+        Err(_elapsed) => Err(crate::acquire_permit_error::AcquirePermitError::Timeout(
+            retry_after,
+        )),
     }
 }

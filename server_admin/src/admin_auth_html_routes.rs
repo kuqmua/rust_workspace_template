@@ -1,6 +1,9 @@
-use super::{AdminHtmlSwaggerEnabled, AxumAdminAuthRouter, SharedAdminAuthSvcStateArc, html};
-
 #[must_use]
-pub fn admin_auth_html_routes(state: SharedAdminAuthSvcStateArc) -> AxumAdminAuthRouter {
-    html::html_routes::html_routes(state, AdminHtmlSwaggerEnabled::from(true))
+pub fn admin_auth_html_routes(
+    state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+) -> crate::axum_admin_auth_router::AxumAdminAuthRouter {
+    crate::html_routes::html_routes(
+        state,
+        crate::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled::from(true),
+    )
 }

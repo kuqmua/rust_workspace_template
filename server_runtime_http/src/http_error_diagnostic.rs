@@ -4,43 +4,51 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpErrorDiagnostic {
-    backtrace: StdHttpErrorBacktrace,
-    error_chain: StdHttpErrorChain,
-    location: super::StdPanicLocation,
-    span_trace: TracingHttpSpanTrace,
-    pub(crate) telemetry: HttpErrorTelemetry,
+    backtrace: crate::std_http_error_backtrace::StdHttpErrorBacktrace,
+    error_chain: crate::std_http_error_chain::StdHttpErrorChain,
+    location: server_observability::std_panic_location::StdPanicLocation,
+    span_trace: crate::tracing_http_span_trace::TracingHttpSpanTrace,
+    pub(crate) telemetry: crate::http_error_telemetry::HttpErrorTelemetry,
 }
 
 impl HttpErrorDiagnostic {
-    pub(crate) const fn backtrace(&self) -> &StdHttpErrorBacktrace {
+    pub(crate) const fn backtrace(
+        &self,
+    ) -> &crate::std_http_error_backtrace::StdHttpErrorBacktrace {
         &self.backtrace
     }
 
     #[track_caller]
     #[must_use]
     pub fn capture(
-        telemetry: HttpErrorTelemetry,
+        telemetry: crate::http_error_telemetry::HttpErrorTelemetry,
         error: &(dyn std::error::Error + 'static),
     ) -> Self {
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
-            || constants_str::HTTP_SPAN_UNAVAILABLE.to_owned(),
+            || constants_str::test_fixtures::HTTP_SPAN_UNAVAILABLE.to_owned(),
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
         Self {
-            backtrace: StdHttpErrorBacktrace::from(
+            backtrace: crate::std_http_error_backtrace::StdHttpErrorBacktrace::from(
                 std::backtrace::Backtrace::force_capture()
                     .to_string()
                     .into_boxed_str(),
             ),
             error_chain: Self::error_chain(error),
-            location: super::StdPanicLocation::from(std::panic::Location::caller()),
-            span_trace: TracingHttpSpanTrace::from(span_trace.into_boxed_str()),
+            location: server_observability::std_panic_location::StdPanicLocation::from(
+                std::panic::Location::caller(),
+            ),
+            span_trace: crate::tracing_http_span_trace::TracingHttpSpanTrace::from(
+                span_trace.into_boxed_str(),
+            ),
             telemetry,
         }
     }
 
-    fn error_chain(error: &(dyn std::error::Error + 'static)) -> StdHttpErrorChain {
+    fn error_chain(
+        error: &(dyn std::error::Error + 'static),
+    ) -> crate::std_http_error_chain::StdHttpErrorChain {
         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
         struct ErrorChain<'error_lt>(&'error_lt (dyn std::error::Error + 'static));
         impl std::fmt::Display for ErrorChain<'_> {
@@ -49,7 +57,7 @@ impl HttpErrorDiagnostic {
                 let mut current = Some(self.0);
                 while let Some(error) = current {
                     if !is_first {
-                        f.write_str(constants_str::HTTP_ERROR_CHAIN_SEPARATOR)?;
+                        f.write_str(constants_str::test_fixtures::HTTP_ERROR_CHAIN_SEPARATOR)?;
                     }
                     std::fmt::Display::fmt(error, f)?;
                     is_first = false;
@@ -58,60 +66,64 @@ impl HttpErrorDiagnostic {
                 Ok(())
             }
         }
-        StdHttpErrorChain::from(ErrorChain(error).to_string().into_boxed_str())
+        crate::std_http_error_chain::StdHttpErrorChain::from(
+            ErrorChain(error).to_string().into_boxed_str(),
+        )
     }
 
-    pub(crate) const fn error_chain_text(&self) -> &StdHttpErrorChain {
+    pub(crate) const fn error_chain_text(&self) -> &crate::std_http_error_chain::StdHttpErrorChain {
         &self.error_chain
     }
 
     #[must_use]
     pub fn from_observed<Source>(
-        error_type: HttpErrorType,
-        error: &super::ObservedError<Source>,
+        error_type: crate::http_error_type::HttpErrorType,
+        error: &server_observability::observed_error::ObservedError<Source>,
     ) -> Self
     where
         Source: std::error::Error + 'static,
     {
         Self {
-            backtrace: StdHttpErrorBacktrace::from(error.backtrace().to_string().into_boxed_str()),
+            backtrace: crate::std_http_error_backtrace::StdHttpErrorBacktrace::from(
+                error.backtrace().to_string().into_boxed_str(),
+            ),
             error_chain: Self::error_chain(error),
             location: error.location(),
-            span_trace: TracingHttpSpanTrace::from(error.span_trace().to_string().into_boxed_str()),
-            telemetry: HttpErrorTelemetry::new(
+            span_trace: crate::tracing_http_span_trace::TracingHttpSpanTrace::from(
+                error.span_trace().to_string().into_boxed_str(),
+            ),
+            telemetry: crate::http_error_telemetry::HttpErrorTelemetry::new(
                 error_type,
-                HttpErrorCode::from(error.error_code().get()),
+                crate::http_error_code::HttpErrorCode::from(error.error_code().get()),
             ),
         }
     }
 
-    pub(crate) const fn location(&self) -> &super::StdPanicLocation {
+    pub(crate) const fn location(
+        &self,
+    ) -> &server_observability::std_panic_location::StdPanicLocation {
         &self.location
     }
 
-    pub(crate) const fn span_trace(&self) -> &TracingHttpSpanTrace {
+    pub(crate) const fn span_trace(&self) -> &crate::tracing_http_span_trace::TracingHttpSpanTrace {
         &self.span_trace
     }
 }
-
-pub use super::http_error_code::HttpErrorCode;
-pub use super::http_error_telemetry::HttpErrorTelemetry;
-pub use super::http_error_type::HttpErrorType;
-use super::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext;
-pub(super) use super::std_http_error_backtrace::StdHttpErrorBacktrace;
-pub(super) use super::std_http_error_chain::StdHttpErrorChain;
-pub(super) use super::tracing_http_span_trace::TracingHttpSpanTrace;
 #[cfg(test)]
 mod tests {
     #[test]
     fn fallback_diagnostic_keeps_telemetry() {
-        let telemetry = super::HttpErrorTelemetry::new(
-            super::HttpErrorType::from(constants_str::VALUE_AF7C24A2),
-            super::HttpErrorCode::from(constants_str::VALUE_CF4DCEBB),
+        let telemetry = crate::http_error_telemetry::HttpErrorTelemetry::new(
+            crate::http_error_type::HttpErrorType::from(
+                constants_str::test_fixtures::VALUE_AF7C24A2,
+            ),
+            crate::http_error_code::HttpErrorCode::from(
+                constants_str::test_fixtures::VALUE_CF4DCEBB,
+            ),
         );
         let diagnostic = super::HttpErrorDiagnostic::capture(
             telemetry,
-            &super::HttpErrorWithoutDiagnosticContext,
+            &crate::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext,
         );
         assert_eq!(
             diagnostic.telemetry.error_code().to_string(),

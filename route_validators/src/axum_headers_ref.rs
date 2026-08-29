@@ -6,10 +6,10 @@
 pub struct AxumHeadersRef<'headers_lt>(pub(super) &'headers_lt axum::http::HeaderMap);
 
 #[cfg(test)]
-impl<'headers_lt> From<&'headers_lt crate::test_helper::AxumTestHeaders>
+impl<'headers_lt> From<&'headers_lt crate::axum_test_headers::AxumTestHeaders>
     for AxumHeadersRef<'headers_lt>
 {
-    fn from(value: &'headers_lt crate::test_helper::AxumTestHeaders) -> Self {
+    fn from(value: &'headers_lt crate::axum_test_headers::AxumTestHeaders) -> Self {
         Self(value.as_ref())
     }
 }

@@ -4,15 +4,15 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ListRows<Item> {
-    pub(super) items: super::ListItems<Item>,
-    pub(super) window_total: Option<super::ListTotal>,
+    pub(super) items: crate::list_items::ListItems<Item>,
+    pub(super) window_total: Option<crate::list_total::ListTotal>,
 }
 
 impl<Item> ListRows<Item> {
     #[must_use]
     pub const fn new(
-        items: super::ListItems<Item>,
-        window_total: Option<super::ListTotal>,
+        items: crate::list_items::ListItems<Item>,
+        window_total: Option<crate::list_total::ListTotal>,
     ) -> Self {
         Self {
             items,

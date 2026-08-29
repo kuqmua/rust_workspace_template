@@ -6,8 +6,8 @@
 )]
 pub(super) async fn read_child_diagnostic<Reader>(
     mut reader: Reader,
-    maximum: super::ChildDiagnosticMaximumNonZeroUsize,
-) -> Result<super::ChildDiagnostic, super::ChildProcessError>
+    maximum: crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize,
+) -> Result<crate::child_diagnostic::ChildDiagnostic, crate::child_process_error::ChildProcessError>
 where
     Reader: tokio::io::AsyncRead + Unpin,
 {
@@ -18,20 +18,20 @@ where
         let read_length = remaining.min(buffer.len());
         let target = buffer
             .get_mut(..read_length)
-            .ok_or(super::ChildProcessError::DiagnosticRange)?;
+            .ok_or(crate::child_process_error::ChildProcessError::DiagnosticRange)?;
         let read = tokio::io::AsyncReadExt::read(&mut reader, target)
             .await
-            .map_err(super::ChildProcessIoError::from)
-            .map_err(super::ChildProcessError::DiagnosticIo)?;
+            .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+            .map_err(crate::child_process_error::ChildProcessError::DiagnosticIo)?;
         if read == constants_usize::ZERO {
             break;
         }
         let read_bytes = buffer
             .get(..read)
-            .ok_or(super::ChildProcessError::DiagnosticRange)?;
+            .ok_or(crate::child_process_error::ChildProcessError::DiagnosticRange)?;
         output.extend_from_slice(read_bytes);
     }
-    Ok(super::ChildDiagnostic::from(
-        bounded_types::BoundedVec::from_max_iter(output),
+    Ok(crate::child_diagnostic::ChildDiagnostic::from(
+        bounded_types::bounded_vec::BoundedVec::from_max_iter(output),
     ))
 }

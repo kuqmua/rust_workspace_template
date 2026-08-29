@@ -6,11 +6,12 @@
 pub struct RunIntervalDuration(pub(super) std::time::Duration);
 
 impl TryFrom<std::time::Duration> for RunIntervalDuration {
-    type Error = super::StdRunIntervalTryFromDurationError;
+    type Error =
+        crate::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError;
 
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
-            Err(super::StdRunIntervalTryFromDurationError)
+            Err(crate::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError)
         } else {
             Ok(Self(value))
         }

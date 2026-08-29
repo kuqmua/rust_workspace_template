@@ -2,13 +2,13 @@
 #[error("failed to bind PostgreSQL query parameter")]
 pub struct SqlxPostgresQueryBindError {
     #[source]
-    source: super::SqlxBoxDynError,
+    source: crate::sqlx_box_dyn_error::SqlxBoxDynError,
 }
 
 impl From<sqlx::error::BoxDynError> for SqlxPostgresQueryBindError {
     fn from(source: sqlx::error::BoxDynError) -> Self {
         Self {
-            source: super::SqlxBoxDynError::from(source),
+            source: crate::sqlx_box_dyn_error::SqlxBoxDynError::from(source),
         }
     }
 }

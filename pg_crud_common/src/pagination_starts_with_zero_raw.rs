@@ -7,6 +7,6 @@
 )]
 #[getters(get_mut)]
 pub(crate) struct PaginationStartsWithZeroRaw {
-    limit: crate::domain_types::PaginationLimit,
-    offset: crate::domain_types::PaginationOffset,
+    limit: crate::pagination_limit::PaginationLimit,
+    offset: crate::pagination_offset::PaginationOffset,
 }

@@ -10,8 +10,10 @@ pub enum HttpCorsAllowOriginHeaderValuesError {
     TooManyItems,
 }
 
-impl From<crate::AllowedOriginError> for HttpCorsAllowOriginHeaderValuesError {
-    fn from(_value: crate::AllowedOriginError) -> Self {
+impl From<crate::allowed_origin_error::AllowedOriginError>
+    for HttpCorsAllowOriginHeaderValuesError
+{
+    fn from(_value: crate::allowed_origin_error::AllowedOriginError) -> Self {
         Self::InvalidOrigin
     }
 }

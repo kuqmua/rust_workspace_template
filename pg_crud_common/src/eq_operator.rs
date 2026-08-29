@@ -6,12 +6,14 @@ pub enum EqOperator {
 
 impl EqOperator {
     #[must_use]
-    pub fn to_query_str(&self) -> crate::domain_types::EqOperatorQueryStr {
+    pub fn to_query_str(&self) -> crate::eq_operator_query_str::EqOperatorQueryStr {
         match &self {
-            Self::Eq => crate::domain_types::EqOperatorQueryStr::from(
-                constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR,
+            Self::Eq => crate::eq_operator_query_str::EqOperatorQueryStr::from(
+                constants_str::catalog::PG_CRUD_EQUALITY_SQL_OPERATOR,
             ),
-            Self::IsNull => crate::domain_types::EqOperatorQueryStr::from(constants_str::IS_NULL),
+            Self::IsNull => crate::eq_operator_query_str::EqOperatorQueryStr::from(
+                constants_str::catalog::IS_NULL,
+            ),
         }
     }
 }

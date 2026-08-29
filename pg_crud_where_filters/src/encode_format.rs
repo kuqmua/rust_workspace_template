@@ -26,7 +26,7 @@ impl std::fmt::Display for EncodeFormat {
         }
     }
 }
-impl pg_crud_common::domain_types::DefaultSomeOneElement for EncodeFormat {
+impl pg_crud_common::default_some_one_element::DefaultSomeOneElement for EncodeFormat {
     fn default_some_one_element() -> Self {
         Self::default()
     }

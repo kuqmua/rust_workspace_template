@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::CASE_STRING_MAX_LEN;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -14,5 +13,5 @@ use super::CASE_STRING_MAX_LEN;
     newtype::AsRefStr,
     newtype::Display,
 )]
-#[bounded_string(max = CASE_STRING_MAX_LEN)]
+#[bounded_string(max = crate::case_string_max_len::CASE_STRING_MAX_LEN)]
 pub(super) struct CaseString(pub(super) String);

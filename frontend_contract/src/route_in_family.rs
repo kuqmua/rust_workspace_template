@@ -1,7 +1,5 @@
-use super::RouteFamily;
-
 pub trait RouteInFamily<Family>
 where
-    Family: RouteFamily,
+    Family: crate::route_family::RouteFamily,
 {
 }

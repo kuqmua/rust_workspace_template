@@ -8,17 +8,17 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct DbObjectSnapshot {
-    pub(super) definition: super::DbSchemaText,
-    pub(super) name: super::DbSchemaText,
-    pub(super) kind: super::DbObjectKind,
+    pub(super) definition: crate::db_schema_text::DbSchemaText,
+    pub(super) name: crate::db_schema_text::DbSchemaText,
+    pub(super) kind: crate::db_object_kind::DbObjectKind,
 }
 
 impl DbObjectSnapshot {
     #[must_use]
     pub const fn new(
-        name: super::DbSchemaText,
-        kind: super::DbObjectKind,
-        definition: super::DbSchemaText,
+        name: crate::db_schema_text::DbSchemaText,
+        kind: crate::db_object_kind::DbObjectKind,
+        definition: crate::db_schema_text::DbSchemaText,
     ) -> Self {
         Self {
             definition,

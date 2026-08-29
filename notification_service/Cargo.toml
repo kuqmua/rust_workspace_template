@@ -21,6 +21,7 @@ axum = { workspace = true }
 common_routes = { workspace = true }
 config_lib = { workspace = true }
 frontend_contract = { workspace = true }
+frontend_contract_macros = { workspace = true }
 generate_accessor = { workspace = true }
 git_info = { workspace = true }
 http = { workspace = true }
@@ -30,6 +31,7 @@ notification_service_config = { workspace = true }
 notification_service_contract = { workspace = true }
 secrecy = { workspace = true }
 server_runtime_http = { workspace = true }
+server_observability = { workspace = true }
 sqlx = { workspace = true, features = ["macros"] }
 constants_str = { workspace = true }
 thiserror = { workspace = true }

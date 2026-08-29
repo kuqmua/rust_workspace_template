@@ -1,10 +1,13 @@
 pub(crate) async fn authorization_authenticate(
-    state: &crate::AdminAuthSvcState,
-    headers: crate::HttpAdminHeaderMapRef<'_>,
-    peer: crate::AdminPeerAddr,
-) -> Result<crate::AuthenticatedAdmin, crate::AdminError> {
-    let token = crate::find_admin_cookie(headers, crate::AdminCookieKind::Access)
-        .ok_or(crate::AdminError::Authentication)?;
+    state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    headers: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
+    peer: crate::admin_peer_addr::AdminPeerAddr,
+) -> Result<crate::authenticated_admin::AuthenticatedAdmin, crate::admin_error::AdminError> {
+    let token = crate::find_admin_cookie::find_admin_cookie(
+        headers,
+        crate::admin_cookie_kind::AdminCookieKind::Access,
+    )
+    .ok_or(crate::admin_error::AdminError::Authentication)?;
     let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
     validation.set_issuer(&[state.issuer.as_ref()]);
     validation.set_audience(&[state.audience.as_ref()]);
@@ -13,7 +16,7 @@ pub(crate) async fn authorization_authenticate(
         .as_ref()
         .iter()
         .find_map(|decoding_key| {
-            jsonwebtoken::decode::<crate::AdminAccessClaims>(
+            jsonwebtoken::decode::<crate::admin_access_claims::AdminAccessClaims>(
                 token.as_ref(),
                 decoding_key,
                 &validation,
@@ -21,24 +24,30 @@ pub(crate) async fn authorization_authenticate(
             .ok()
             .map(|data| data.claims)
         })
-        .ok_or(crate::AdminError::Authentication)?;
+        .ok_or(crate::admin_error::AdminError::Authentication)?;
     let context_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
             headers, peer,
         )
-        .map_err(crate::AdminError::secret_text)?;
-    let active =
-        sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL)
-            .bind(claims.session_id().get().get())
-            .bind(claims.user_id().get())
-            .bind(context_hash.expose().as_ref())
-            .fetch_one(state.pool.as_ref())
-            .await
-            .map_err(crate::domain_types::SqlxAdminError::from)
-            .map(crate::domain_types::StdAdminBool::from)
-            .map_err(crate::AdminError::postgresql)?;
+        .map_err(crate::admin_error::AdminError::secret_text)?;
+    let active = sqlx::query_scalar::<_, bool>(
+        constants_str::integration_fixtures::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL,
+    )
+    .bind(claims.session_id().get().get())
+    .bind(claims.user_id().get())
+    .bind(context_hash.expose().as_ref())
+    .fetch_one(state.pool.as_ref())
+    .await
+    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+    .map(server_admin_core::std_admin_bool::StdAdminBool::from)
+    .map_err(crate::admin_error::AdminError::postgresql)?;
     if !active.get() {
-        return Err(crate::AdminError::Authentication);
+        return Err(crate::admin_error::AdminError::Authentication);
     }
-    crate::persistence::load_authenticated_admin(state, claims.user_id(), claims.session_id()).await
+    crate::load_authenticated_admin::load_authenticated_admin(
+        state,
+        claims.user_id(),
+        claims.session_id(),
+    )
+    .await
 }

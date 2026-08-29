@@ -7,10 +7,10 @@ pub enum PgTypeGreaterThanVariant {
 
 impl PgTypeGreaterThanVariant {
     #[must_use]
-    pub const fn operator(&self) -> crate::domain_types::Operator {
+    pub const fn operator(&self) -> crate::operator::Operator {
         match *self {
-            Self::GreaterThan => crate::domain_types::Operator::Or,
-            Self::NotGreaterThan | Self::EqNotGreaterThan => crate::domain_types::Operator::OrNot,
+            Self::GreaterThan => crate::operator::Operator::Or,
+            Self::NotGreaterThan | Self::EqNotGreaterThan => crate::operator::Operator::OrNot,
         }
     }
 }

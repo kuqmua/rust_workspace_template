@@ -4,8 +4,8 @@ pub(crate) enum AdminTableLoadError {
     Fetch,
     #[error("The server returned status {0} for {1}.")]
     Http(
-        crate::http::url::AdminHttpStatus,
-        crate::http::url::AdminCsrApiUrl,
+        crate::admin_http_status::AdminHttpStatus,
+        crate::admin_csr_api_url::AdminCsrApiUrl,
     ),
     #[error("The table query is invalid.")]
     Query,

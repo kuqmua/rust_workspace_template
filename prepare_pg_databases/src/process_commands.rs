@@ -8,5 +8,9 @@
     newtype::FromInner,
 )]
 pub struct ProcessCommands(
-    bounded_types::BoundedVec<crate::domain_types::ProcessCommand, 0, { usize::MAX }>,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::process_command::ProcessCommand,
+        0,
+        { usize::MAX },
+    >,
 );

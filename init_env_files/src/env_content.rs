@@ -6,12 +6,12 @@
     newtype::AsRefStr,
     newtype::TryFrom,
 )]
-#[try_from(error = crate::InitStringError, validator = |value: &str| {
-    if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) { Err(crate::InitStringError) } else { Ok(()) }
+#[try_from(error = crate::init_string_error::InitStringError, validator = |value: &str| {
+    if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) { Err(crate::init_string_error::InitStringError) } else { Ok(()) }
 })]
 pub(crate) struct EnvContent(String);
-impl From<server_runtime_http::domain_types::BoundedText> for EnvContent {
-    fn from(value: server_runtime_http::domain_types::BoundedText) -> Self {
+impl From<server_runtime_http::bounded_text::BoundedText> for EnvContent {
+    fn from(value: server_runtime_http::bounded_text::BoundedText) -> Self {
         Self(value.into_inner())
     }
 }

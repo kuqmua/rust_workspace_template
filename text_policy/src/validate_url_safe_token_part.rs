@@ -1,16 +1,12 @@
-use super::domain_types::{
-    UrlSafeTokenPartMaximumBytes, UrlSafeTokenPartRef, UrlSafeTokenPartTextError,
-};
-
 pub fn validate_url_safe_token_part(
-    value: UrlSafeTokenPartRef<'_>,
-    maximum_bytes: UrlSafeTokenPartMaximumBytes,
-) -> Result<(), UrlSafeTokenPartTextError> {
+    value: crate::url_safe_token_part_ref::UrlSafeTokenPartRef<'_>,
+    maximum_bytes: crate::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes,
+) -> Result<(), crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError> {
     if value.0.len() > maximum_bytes.0 {
-        return Err(UrlSafeTokenPartTextError::TooLong);
+        return Err(crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError::TooLong);
     }
     if value.0.is_empty() {
-        Err(UrlSafeTokenPartTextError::Empty)
+        Err(crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError::Empty)
     } else if value
         .0
         .bytes()
@@ -18,6 +14,6 @@ pub fn validate_url_safe_token_part(
     {
         Ok(())
     } else {
-        Err(UrlSafeTokenPartTextError::InvalidSymbol)
+        Err(crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError::InvalidSymbol)
     }
 }

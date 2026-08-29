@@ -1,6 +1,6 @@
 #[test]
 fn server_rendered_pages_contain_forms_and_no_scripts() {
-    let sign_in = crate::render_sign_in(None, None);
+    let sign_in = crate::render_sign_in::render_sign_in(None, None);
     assert!(sign_in.as_ref().contains("<form method=\"post\""));
     assert!(!sign_in.as_ref().contains("TOTP"));
     assert!(!sign_in.as_ref().contains("recovery code"));
@@ -12,10 +12,10 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
     assert!(!sign_in.as_ref().contains("<h2"));
     assert!(!sign_in.as_ref().contains("<script"));
     assert!(!sign_in.as_ref().contains(".wasm"));
-    let failed_sign_in = crate::render_sign_in(
+    let failed_sign_in = crate::render_sign_in::render_sign_in(
         Some(
-            crate::AdminSsrErrorMessage::try_from(String::from(
-                constants_str::VALUE_7EC371A9,
+            crate::admin_ssr_error_message::AdminSsrErrorMessage::try_from(String::from(
+                constants_str::test_fixtures::VALUE_7EC371A9,
             ))
             .expect(
                 "31b0d69f server_rendered_pages_contain_forms_and_no_scripts invariant must hold",
@@ -30,11 +30,12 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
     );
     assert!(failed_sign_in.as_ref().contains("role=\"alert\""));
 
-    let page = crate::render_admin_page(
-        server_admin_contract::domain_types::AdminPage::Users,
-        crate::AdminSsrHtml::try_from(String::from(constants_str::VALUE_91B66961)).expect(
-            "c78bd3a1 server_rendered_pages_contain_forms_and_no_scripts invariant must hold",
-        ),
+    let page = crate::render_admin_page::render_admin_page(
+        server_admin_contract::admin_page::AdminPage::Users,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::from(
+            constants_str::test_fixtures::VALUE_91B66961,
+        ))
+        .expect("c78bd3a1 server_rendered_pages_contain_forms_and_no_scripts invariant must hold"),
     );
     assert!(page.as_ref().contains("<p>ready</p>"));
     assert!(!page.as_ref().contains("<h1"));
@@ -48,7 +49,7 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
         page.as_ref().contains(
             format!(
                 "{}</button></form></li></ul></nav>",
-                server_admin_contract::domain_types::AdminHtmlAction::SignOut
+                server_admin_contract::admin_html_action::AdminHtmlAction::SignOut
                     .route_name()
                     .as_ref()
             )
@@ -60,15 +61,15 @@ fn server_rendered_pages_contain_forms_and_no_scripts() {
 
 #[test]
 fn header_table_labels_match_table_names_and_routes() {
-    let page = crate::render_admin_page(
-        server_admin_contract::domain_types::AdminPage::Users,
-        crate::AdminSsrHtml::try_from(String::new()).expect(
+    let page = crate::render_admin_page::render_admin_page(
+        server_admin_contract::admin_page::AdminPage::Users,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new()).expect(
             "5a984c96 header_table_labels_match_table_names_and_routes invariant must hold",
         ),
     );
 
     assert!(
-        server_admin_contract::domain_types::AdminDataTable::PG_ORDER
+        server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
             .into_iter()
             .all(|table| {
                 let table_name = table.to_string();
@@ -91,37 +92,40 @@ fn header_table_labels_match_table_names_and_routes() {
 
 #[test]
 fn header_items_stay_stable_between_static_and_table_pages() {
-    let metrics = crate::render_admin_page(
-        server_admin_contract::domain_types::AdminPage::Metrics,
-        crate::AdminSsrHtml::try_from(String::new()).expect(
+    let metrics = crate::render_admin_page::render_admin_page(
+        server_admin_contract::admin_page::AdminPage::Metrics,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new()).expect(
             "f2d57bb4 header_items_stay_stable_between_static_and_table_pages invariant must hold",
         ),
     );
-    let cleanup_status = crate::render_admin_page_with_table_access(
-        server_admin_contract::domain_types::AdminPage::Tables,
-        crate::AdminSsrHtml::try_from(String::new()).expect(
+    let cleanup_status = crate::render_admin_page_with_table_access::render_admin_page_with_table_access(
+        server_admin_contract::admin_page::AdminPage::Tables,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new()).expect(
             "7f46cfd6 header_items_stay_stable_between_static_and_table_pages invariant must hold",
         ),
         None,
         None,
-        Some(server_admin_contract::domain_types::AdminDataTable::CleanupStatus),
+        Some(server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus),
     );
-    let normalized_header = |html: &crate::AdminSsrHtml| {
+    let normalized_header = |html: &crate::admin_ssr_html::AdminSsrHtml| {
         html.as_ref()
-            .split_once(constants_str::VALUE_75322EEF)
+            .split_once(constants_str::test_fixtures::VALUE_75322EEF)
             .and_then(|(_prefix, header_tail)| {
-                header_tail.split_once(constants_str::VALUE_5034F288)
+                header_tail.split_once(constants_str::test_fixtures::VALUE_5034F288)
             })
             .map_or_else(String::new, |(header, _suffix)| {
                 header
                     .replace(
-                        constants_str::VALUE_C067F6CF,
-                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                        constants_str::test_fixtures::VALUE_C067F6CF,
+                        constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
                     )
-                    .replace(constants_str::VALUE_80E35525, constants_str::VALUE_A5C068D6)
                     .replace(
-                        constants_str::VALUE_319B0378,
-                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                        constants_str::test_fixtures::VALUE_80E35525,
+                        constants_str::test_fixtures::VALUE_A5C068D6,
+                    )
+                    .replace(
+                        constants_str::test_fixtures::VALUE_319B0378,
+                        constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
                     )
             })
     };
@@ -136,23 +140,25 @@ fn header_items_stay_stable_between_static_and_table_pages() {
 
 #[test]
 fn csr_page_contains_only_csr_application_shell() {
-    let admin = server_admin_contract::domain_types::AuthenticatedAdmin::new(
-        server_admin_contract::domain_types::AdminDisplayName::try_from(
-            constants_str::ADMIN.to_owned(),
+    let admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
+        server_admin_contract::admin_display_name::AdminDisplayName::try_from(
+            constants_str::catalog::ADMIN.to_owned(),
         )
         .expect("642357a8 csr_page_contains_only_csr_application_shell invariant must hold"),
-        server_admin_contract::domain_types::AdminUserId::try_from(constants_i64::ONE)
+        server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
             .expect("41856438 csr_page_contains_only_csr_application_shell invariant must hold"),
-        server_admin_contract::domain_types::AdminLogin::try_from(constants_str::ROOT.to_owned())
-            .expect("71a3b6e5 csr_page_contains_only_csr_application_shell invariant must hold"),
-        server_admin_contract::domain_types::AdminPermissionValues::try_from(Vec::new())
+        server_admin_contract::admin_login::AdminLogin::try_from(
+            constants_str::catalog::ROOT.to_owned(),
+        )
+        .expect("71a3b6e5 csr_page_contains_only_csr_application_shell invariant must hold"),
+        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(Vec::new())
             .expect("8e3cf81f csr_page_contains_only_csr_application_shell invariant must hold"),
-        server_admin_contract::domain_types::AdminRoleNames::try_from(Vec::new())
+        server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
             .expect("a5677f33 csr_page_contains_only_csr_application_shell invariant must hold"),
     );
-    let settings = server_admin_contract::domain_types::AdminSettingsView::new(
-        server_admin_contract::domain_types::AdminDefaultRoute::try_from(
-            server_admin_contract::domain_types::AdminFrontendPath::Users
+    let settings = server_admin_contract::admin_settings_view::AdminSettingsView::new(
+        server_admin_contract::admin_default_route::AdminDefaultRoute::try_from(
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Users
                 .get()
                 .to_owned(),
         )
@@ -161,16 +167,17 @@ fn csr_page_contains_only_csr_application_shell() {
         None,
         None,
         None,
-        server_admin_contract::domain_types::AdminSiteName::try_from(String::from(
-            constants_str::ADMIN,
+        server_admin_contract::admin_site_name::AdminSiteName::try_from(String::from(
+            constants_str::catalog::ADMIN,
         ))
         .expect("8ba6b381 csr_page_contains_only_csr_application_shell invariant must hold"),
         None,
         None,
     );
-    let branding = server_admin_contract::domain_types::AdminBrandingView::from_settings(&settings);
-    let html = crate::render_admin_csr(
-        server_admin_contract::domain_types::AdminPage::Users,
+    let branding =
+        server_admin_contract::admin_branding_view::AdminBrandingView::from_settings(&settings);
+    let html = crate::render_admin_csr::render_admin_csr(
+        server_admin_contract::admin_page::AdminPage::Users,
         None,
         &admin,
         &branding,
@@ -187,8 +194,8 @@ fn csr_page_contains_only_csr_application_shell() {
     assert!(!html.as_ref().contains("<table"));
     assert!(!html.as_ref().contains("<form"));
 
-    let table_html = crate::render_data_tables_csr(
-        Some(server_admin_contract::domain_types::AdminDataTable::Users),
+    let table_html = crate::render_data_tables_csr::render_data_tables_csr(
+        Some(server_admin_contract::admin_data_table::AdminDataTable::Users),
         &admin,
         &branding,
     );

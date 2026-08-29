@@ -1,6 +1,6 @@
 pub(super) fn csr_admin_role_row(
-    item: &server_admin_contract::domain_types::AdminRoleSummary,
-    page: &server_admin_contract::domain_types::AdminRolesPage,
+    item: &server_admin_contract::admin_role_summary::AdminRoleSummary,
+    page: &server_admin_contract::admin_roles_page::AdminRolesPage,
 ) -> impl leptos::prelude::IntoView + use<> {
     let id = item.id().to_string();
     let name = item.name().to_string();
@@ -8,11 +8,11 @@ pub(super) fn csr_admin_role_row(
     let permissions =
         crate::domain_types::shared::admin_role_permissions::admin_role_permissions(item, page);
     leptos::view! {
-        <crate::domain_types::with_owner::tables::table_row::TableRow>
-            <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="id">{id}</crate::domain_types::with_owner::tables::table_cell::TableCell>
-            <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="name">{name}</crate::domain_types::with_owner::tables::table_cell::TableCell>
-            <crate::domain_types::with_owner::tables::table_cell::TableCell data_label="system">{system}</crate::domain_types::with_owner::tables::table_cell::TableCell>
+        <crate::table_row::TableRow>
+            <crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell>
+            <crate::table_cell::TableCell data_label="name">{name}</crate::table_cell::TableCell>
+            <crate::table_cell::TableCell data_label="system">{system}</crate::table_cell::TableCell>
             {permissions}
-        </crate::domain_types::with_owner::tables::table_row::TableRow>
+        </crate::table_row::TableRow>
     }
 }

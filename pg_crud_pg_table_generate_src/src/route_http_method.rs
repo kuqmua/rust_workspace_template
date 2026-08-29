@@ -6,7 +6,7 @@ pub(super) const fn route_http_method<
     PermissionAction,
     StatusCode,
 >(
-    dsc: &crate::domain_types::table::operation_dsc::OperationDsc<
+    dsc: &crate::operation_dsc::OperationDsc<
         Capability,
         HttpMethod,
         Operation,

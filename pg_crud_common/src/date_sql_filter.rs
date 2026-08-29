@@ -9,8 +9,8 @@
 )]
 #[constructor(pub(crate))]
 pub struct DateSqlFilter {
-    fragment: crate::domain_types::QueryPartFragment,
-    values: crate::domain_types::ChronoUtcDateTimes,
+    fragment: crate::query_part_fragment::QueryPartFragment,
+    values: crate::chrono_utc_date_times::ChronoUtcDateTimes,
 }
 #[allow(
     dead_code,
@@ -21,8 +21,8 @@ impl DateSqlFilter {
     pub fn into_parts(
         self,
     ) -> (
-        crate::domain_types::QueryPartFragment,
-        crate::domain_types::ChronoUtcDateTimes,
+        crate::query_part_fragment::QueryPartFragment,
+        crate::chrono_utc_date_times::ChronoUtcDateTimes,
     ) {
         (self.fragment, self.values)
     }

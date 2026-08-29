@@ -5,28 +5,29 @@
     reason = "Axum registers this generic route handler indirectly"
 )]
 pub(super) async fn send_notification<Sender>(
-    state: super::AxumNotificationState<Sender>,
-    request: super::AxumNotificationJson,
+    state: crate::axum_notification_state::AxumNotificationState<Sender>,
+    request: crate::axum_notification_json::AxumNotificationJson,
 ) -> http::StatusCode
 where
-    Sender: super::NotificationSender,
+    Sender: crate::notification_sender::NotificationSender,
 {
     let authorization = state
         .headers
         .0
         .get(http::header::AUTHORIZATION)
         .and_then(|value| value.to_str().ok());
-    let authorized = match crate::domain_types::resolve_bearer_authorization(
-        crate::domain_types::HttpAuthorizationHeaderTextRef::from(authorization),
-    ) {
-        crate::domain_types::BearerAuthorizationResolution::Resolved(token) => bool::from(
-            state
-                .state
-                .token
-                .authorizes(super::NotificationApiTokenRef::from(token.as_ref())),
+    let authorized = match crate::resolve_bearer_authorization::resolve_bearer_authorization(
+        crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(
+            authorization,
         ),
-        crate::domain_types::BearerAuthorizationResolution::Invalid
-        | crate::domain_types::BearerAuthorizationResolution::Missing => false,
+    ) {
+        crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(token) => {
+            bool::from(state.state.token.authorizes(
+                crate::notification_api_token_ref::NotificationApiTokenRef::from(token.as_ref()),
+            ))
+        }
+        crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid
+        | crate::bearer_authorization_resolution::BearerAuthorizationResolution::Missing => false,
     };
     if !authorized {
         return http::StatusCode::UNAUTHORIZED;

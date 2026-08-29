@@ -4,7 +4,7 @@
 pub struct MultipartFileName(String);
 
 impl TryFrom<String> for MultipartFileName {
-    type Error = super::MultipartValueError;
+    type Error = crate::multipart_value_error::MultipartValueError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {
@@ -12,7 +12,7 @@ impl TryFrom<String> for MultipartFileName {
         }
         if value.len() > constants_usize::VALUE_1_024 {
             return Err(Self::Error::TooLong {
-                actual: super::MultipartValueLength::from(value.len()),
+                actual: crate::multipart_value_length::MultipartValueLength::from(value.len()),
             });
         }
         if value.chars().any(char::is_control) {

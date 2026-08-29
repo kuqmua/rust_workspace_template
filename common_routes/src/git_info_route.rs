@@ -1,19 +1,21 @@
-use super::{CommonNoBody, GitInfo};
-
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract_macros::TypedRoute,
 )]
 #[typed_route(
-    authentication = frontend_contract::AuthenticationRequirement::Public,
+    authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
     error_statuses = &[],
-    method = frontend_contract::RouteMethod::Get,
-    mutation = frontend_contract::RouteMutation::ReadOnly,
-    obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    method = frontend_contract::route_method::RouteMethod::Get,
+    mutation = frontend_contract::route_mutation::RouteMutation::ReadOnly,
+    obligations = frontend_contract::route_coverage_obligation::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
     openapi_operation_id = "git_info",
     path = "/git_info",
-    request = CommonNoBody,
-    response = GitInfo,
-    success_status = frontend_contract::SuccessStatus::Code200,
-    transport = frontend_contract::PublicTransport
+    request = crate::common_no_body::CommonNoBody,
+    response = crate::git_info::GitInfo,
+    success_status = frontend_contract::success_status::SuccessStatus::Code200,
+    transport = frontend_contract::public_transport::PublicTransport
 )]
 pub struct GitInfoRoute;

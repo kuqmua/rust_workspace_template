@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::execution::TextRef;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::BoundedString, newtype::AsRefStr,
@@ -10,7 +9,7 @@ use super::execution::TextRef;
 #[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub(super) struct SummaryText(pub(super) String);
 impl SummaryText {
-    pub(super) fn push_str(&mut self, value: TextRef<'_>) -> Result<(), ()> {
+    pub(super) fn push_str(&mut self, value: crate::text_ref::TextRef<'_>) -> Result<(), ()> {
         if self
             .0
             .len()

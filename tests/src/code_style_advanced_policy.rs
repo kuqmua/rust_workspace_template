@@ -7,7 +7,7 @@
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct AwaitVisitor {
-    found: super::types::AnalyzerBool,
+    found: crate::types::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
     fn visit_expr_await(&mut self, i: &'ast syn::ExprAwait) {
@@ -18,7 +18,7 @@ impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LockAcrossAwaitVisitor {
-    violations: super::types::DiagnosticMsgs,
+    violations: crate::types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
     fn visit_block(&mut self, i: &'ast syn::Block) {
@@ -59,7 +59,7 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
                         .last()
                         .map(|segment| segment.ident.to_string())
                         .as_deref(),
-                    Some(constants_str::VALUE_D90EE9CC)
+                    Some(constants_str::test_fixtures::VALUE_D90EE9CC)
                 ) {
                     return None;
                 }
@@ -69,7 +69,7 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
                 (argument.path.segments.len() == constants_usize::ONE)
                     .then(|| {
                         argument.path.segments.first().map(|segment| {
-                            super::types::SourceText::try_from(segment.ident.to_string())
+                            crate::types::SourceText::try_from(segment.ident.to_string())
                                 .expect("d4f6bdce dropped identifier invariant must hold")
                         })
                     })
@@ -93,12 +93,12 @@ fn expression_acquires_lock(expression: &syn::Expr) -> bool {
             call.args.is_empty()
                 && matches!(
                     call.method.to_string().as_str(),
-                    constants_str::VALUE_0C030586
-                        | constants_str::VALUE_DB488AC5
-                        | constants_str::PG_CRUD_READ_PERMISSION_ACTION
-                        | constants_str::VALUE_35D47C1A
-                        | constants_str::WRITE_ALT
-                        | constants_str::VALUE_FC58C841
+                    constants_str::test_fixtures::VALUE_0C030586
+                        | constants_str::test_fixtures::VALUE_DB488AC5
+                        | constants_str::catalog::PG_CRUD_READ_PERMISSION_ACTION
+                        | constants_str::test_fixtures::VALUE_35D47C1A
+                        | constants_str::catalog::WRITE_ALT
+                        | constants_str::test_fixtures::VALUE_FC58C841
                 )
         }
         syn::Expr::Paren(paren) => expression_acquires_lock(paren.expr.as_ref()),
@@ -109,7 +109,7 @@ fn expression_acquires_lock(expression: &syn::Expr) -> bool {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LeakApiVisitor {
-    violations: super::types::DiagnosticMsgs,
+    violations: crate::types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
@@ -120,20 +120,20 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
                 .iter()
                 .map(|segment| segment.ident.to_string())
                 .collect::<Vec<String>>()
-                .join(constants_str::PATH_SEPARATOR);
+                .join(constants_str::catalog::PATH_SEPARATOR);
             if [
-                constants_str::VALUE_C26EBF7F,
-                constants_str::VALUE_5188A49C,
-                constants_str::VALUE_9C055078,
-                constants_str::VALUE_FEE41E56,
-                constants_str::VALUE_FA94FFC8,
-                constants_str::VALUE_2E8E6C33,
-                constants_str::VALUE_30F0E257,
-                constants_str::VALUE_86C84494,
-                constants_str::VALUE_58CAC57E,
-                constants_str::VALUE_36F221B5,
-                constants_str::VALUE_AF4FFF7C,
-                constants_str::VALUE_6D10B254,
+                constants_str::test_fixtures::VALUE_C26EBF7F,
+                constants_str::test_fixtures::VALUE_5188A49C,
+                constants_str::test_fixtures::VALUE_9C055078,
+                constants_str::test_fixtures::VALUE_FEE41E56,
+                constants_str::test_fixtures::VALUE_FA94FFC8,
+                constants_str::test_fixtures::VALUE_2E8E6C33,
+                constants_str::test_fixtures::VALUE_30F0E257,
+                constants_str::test_fixtures::VALUE_86C84494,
+                constants_str::test_fixtures::VALUE_58CAC57E,
+                constants_str::test_fixtures::VALUE_36F221B5,
+                constants_str::test_fixtures::VALUE_AF4FFF7C,
+                constants_str::test_fixtures::VALUE_6D10B254,
             ]
             .contains(&path.as_str())
             {
@@ -146,10 +146,10 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
         if i.path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == constants_str::VALUE_6462221C)
+            .is_some_and(|segment| segment.ident == constants_str::test_fixtures::VALUE_6462221C)
         {
             self.violations
-                .push(constants_str::VALUE_6462221C.to_owned());
+                .push(constants_str::test_fixtures::VALUE_6462221C.to_owned());
         }
         syn::visit::visit_type_path(self, i);
     }
@@ -157,7 +157,7 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SpawnConsumptionVisitor {
-    consumed: super::types::SourceTextBTreeSet,
+    consumed: crate::types::SourceTextBTreeSet,
 }
 impl SpawnConsumptionVisitor {
     fn record_path(&mut self, expression: &syn::Expr) {
@@ -184,7 +184,8 @@ impl SpawnConsumptionVisitor {
                 && dot.as_char() == '.'
                 && matches!(
                     operation.to_string().as_str(),
-                    constants_str::VALUE_3A53DB8A | constants_str::VALUE_1AEFE47E
+                    constants_str::test_fixtures::VALUE_3A53DB8A
+                        | constants_str::test_fixtures::VALUE_1AEFE47E
                 )
             {
                 let _inserted = self.consumed.insert(identifier.to_string());
@@ -201,7 +202,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
         let is_drop = matches!(
             i.func.as_ref(),
             syn::Expr::Path(path)
-                if path.path.segments.last().is_some_and(|segment| segment.ident == constants_str::VALUE_D90EE9CC)
+                if path.path.segments.last().is_some_and(|segment| segment.ident == constants_str::test_fixtures::VALUE_D90EE9CC)
         );
         if !is_drop {
             i.args
@@ -211,7 +212,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
         syn::visit::visit_expr_call(self, i);
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == constants_str::VALUE_3A53DB8A {
+        if i.method == constants_str::test_fixtures::VALUE_3A53DB8A {
             self.record_path(i.receiver.as_ref());
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -228,7 +229,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SpawnLifecycleVisitor {
-    violations: super::types::DiagnosticMsgs,
+    violations: crate::types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
     fn visit_block(&mut self, i: &'ast syn::Block) {
@@ -240,10 +241,9 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
                 let _removed = pending.remove(identifier.as_str());
             });
             if let syn::Stmt::Local(local) = statement
-                && local
-                    .init
-                    .as_ref()
-                    .is_some_and(|initializer| super::unowned_spawn_expr(initializer.expr.as_ref()))
+                && local.init.as_ref().is_some_and(|initializer| {
+                    crate::code_style::unowned_spawn_expr(initializer.expr.as_ref())
+                })
                 && let syn::Pat::Ident(identifier) = &local.pat
                 && !identifier.ident.to_string().starts_with('_')
             {
@@ -261,16 +261,18 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct RouteLiteralVisitor {
-    violations: super::types::DiagnosticMsgs,
+    violations: crate::types::DiagnosticMsgs,
 }
 impl RouteLiteralVisitor {
     fn inspect_literal(&mut self, literal: &syn::LitStr) {
         let value = literal.value();
-        if !value.starts_with('/') || value.starts_with(constants_str::VALUE_A2C23396) {
+        if !value.starts_with('/')
+            || value.starts_with(constants_str::test_fixtures::VALUE_A2C23396)
+        {
             return;
         }
-        if value == constants_str::VALUE_702ACF7C
-            || value.starts_with(constants_str::VALUE_4D3A663E)
+        if value == constants_str::test_fixtures::VALUE_702ACF7C
+            || value.starts_with(constants_str::test_fixtures::VALUE_4D3A663E)
         {
             self.violations.push(format!(
                 "route `{value}` must not use the removed `/api` prefix"
@@ -311,7 +313,8 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
         if i.path().segments.last().is_some_and(|segment| {
             matches!(
                 segment.ident.to_string().as_str(),
-                constants_str::VALUE_BDE31E29 | constants_str::VALUE_2466624A
+                constants_str::test_fixtures::VALUE_BDE31E29
+                    | constants_str::test_fixtures::VALUE_2466624A
             )
         }) && let syn::Meta::List(list) = &i.meta
         {
@@ -322,9 +325,9 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
         if matches!(
             i.method.to_string().as_str(),
-            constants_str::VALUE_8A84E406
-                | constants_str::VALUE_75EF2E32
-                | constants_str::VALUE_84BBA14A
+            constants_str::test_fixtures::VALUE_8A84E406
+                | constants_str::test_fixtures::VALUE_75EF2E32
+                | constants_str::test_fixtures::VALUE_84BBA14A
         ) && let Some(syn::Expr::Lit(syn::ExprLit {
             lit: syn::Lit::Str(literal),
             ..
@@ -338,8 +341,8 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SelectMacroVisitor {
-    count: super::types::AnalyzerCount,
-    unsafe_operations: super::types::DiagnosticMsgs,
+    count: crate::types::AnalyzerCount,
+    unsafe_operations: crate::types::DiagnosticMsgs,
 }
 impl SelectMacroVisitor {
     fn inspect_sensitive_tokens(&mut self, tokens: proc_macro2::TokenStream) {
@@ -350,12 +353,12 @@ impl SelectMacroVisitor {
             proc_macro2::TokenTree::Ident(identifier)
                 if matches!(
                     identifier.to_string().as_str(),
-                    constants_str::VALUE_574C97CF
-                        | constants_str::VALUE_EB83DC1A
-                        | constants_str::VALUE_8882BF3F
-                        | constants_str::VALUE_6DF24C37
-                        | constants_str::VALUE_27CE1D1B
-                        | constants_str::VALUE_86F7474B
+                    constants_str::test_fixtures::VALUE_574C97CF
+                        | constants_str::test_fixtures::VALUE_EB83DC1A
+                        | constants_str::test_fixtures::VALUE_8882BF3F
+                        | constants_str::test_fixtures::VALUE_6DF24C37
+                        | constants_str::test_fixtures::VALUE_27CE1D1B
+                        | constants_str::test_fixtures::VALUE_86F7474B
                 ) =>
             {
                 self.unsafe_operations.push(format!(
@@ -374,7 +377,7 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == constants_str::SELECT_ALT_3);
+            .is_some_and(|segment| segment.ident == constants_str::catalog::SELECT_ALT_3);
         if is_select {
             self.count.saturating_inc();
             self.inspect_sensitive_tokens(i.tokens.clone());
@@ -385,12 +388,12 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct ExpressionPathVisitor {
-    paths: super::types::SourceTextList,
+    paths: crate::types::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
     fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
         self.paths.push(
-            super::path_to_string(super::types::SynPathRef::from(&i.path))
+            crate::code_style::path_to_string(crate::types::SynPathRef::from(&i.path))
                 .as_ref()
                 .to_owned(),
         );
@@ -400,18 +403,18 @@ impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct IgnoredMapErrBindingVisitor {
-    entries: super::types::DiagnosticMsgs,
+    entries: crate::types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == constants_str::CODE_STYLE_MAP_ERR
+        if i.method == constants_str::catalog::CODE_STYLE_MAP_ERR
             && let Some(syn::Expr::Closure(closure)) = i.args.first()
         {
             let ignored_inputs = closure
                 .inputs
                 .iter()
                 .filter_map(|input| match input {
-                    syn::Pat::Wild(_) => Some(constants_str::UNDERSCORE.to_owned()),
+                    syn::Pat::Wild(_) => Some(constants_str::catalog::UNDERSCORE.to_owned()),
                     syn::Pat::Ident(identifier)
                         if identifier.ident.to_string().starts_with('_') =>
                     {
@@ -438,18 +441,18 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct RawVecTupleWrapperVisitor {
-    identifiers: super::types::SourceTextList,
+    identifiers: crate::types::SourceTextList,
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct FromVecImplVisitor {
-    targets: super::types::SourceTextList,
+    targets: crate::types::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for FromVecImplVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         if let Some((trait_path, _)) = &i.trait_
             && let Some(trait_segment) = trait_path.segments.last()
-            && trait_segment.ident == constants_str::FROM_ALT_3
+            && trait_segment.ident == constants_str::catalog::FROM_ALT_3
             && let syn::PathArguments::AngleBracketed(arguments) = &trait_segment.arguments
             && let Some(syn::GenericArgument::Type(syn::Type::Path(value_type))) =
                 arguments.args.first()
@@ -457,7 +460,7 @@ impl<'ast> syn::visit::Visit<'ast> for FromVecImplVisitor {
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == constants_str::VEC)
+                .is_some_and(|segment| segment.ident == constants_str::catalog::VEC)
         {
             self.targets.push(format!(
                 "line {}",
@@ -477,7 +480,7 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == constants_str::VEC)
+                .is_some_and(|segment| segment.ident == constants_str::catalog::VEC)
         {
             self.identifiers.push(i.ident.to_string());
         }
@@ -487,17 +490,17 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct UsizeMaxExprVisitor {
-    count: super::types::AnalyzerCount,
+    count: crate::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
         let mut segments = i.path.segments.iter();
         if segments
             .next()
-            .is_some_and(|segment| segment.ident == constants_str::CODE_STYLE_USIZE)
-            && segments
-                .next()
-                .is_some_and(|segment| segment.ident == constants_str::VALUE_2D9C014A)
+            .is_some_and(|segment| segment.ident == constants_str::catalog::CODE_STYLE_USIZE)
+            && segments.next().is_some_and(|segment| {
+                segment.ident == constants_str::test_fixtures::VALUE_2D9C014A
+            })
             && segments.next().is_none()
         {
             self.count.saturating_inc();
@@ -506,7 +509,7 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     }
 
     fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
-        if super::attrs_contain_test_only_cfg(super::types::SynAttributeListRef::from(
+        if crate::code_style::attrs_contain_test_only_cfg(crate::types::SynAttributeListRef::from(
             i.attrs.as_slice(),
         ))
         .get()
@@ -519,16 +522,16 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SharedDispatchVisitor {
-    arc_types: super::types::AnalyzerCount,
-    lock_types: super::types::AnalyzerCount,
-    trait_objects: super::types::AnalyzerCount,
+    arc_types: crate::types::AnalyzerCount,
+    lock_types: crate::types::AnalyzerCount,
+    trait_objects: crate::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
     fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
         if let Some(segment) = i.path.segments.last() {
             match segment.ident.to_string().as_str() {
-                constants_str::ARC => self.arc_types.saturating_inc(),
-                constants_str::MUTEX | constants_str::VALUE_02DF7EC2 => {
+                constants_str::catalog::ARC => self.arc_types.saturating_inc(),
+                constants_str::catalog::MUTEX | constants_str::test_fixtures::VALUE_02DF7EC2 => {
                     self.lock_types.saturating_inc();
                 }
                 _ => {}
@@ -544,31 +547,31 @@ impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct PublicApiVisitor {
-    entries: super::types::SourceTextList,
-    lines: super::types::SourceTextList,
+    entries: crate::types::SourceTextList,
+    lines: crate::types::SourceTextList,
 }
 impl PublicApiVisitor {
-    fn source(&self, span: proc_macro2::Span) -> super::types::SourceText {
+    fn source(&self, span: proc_macro2::Span) -> crate::types::SourceText {
         let start = span.start().line.saturating_sub(constants_usize::ONE);
         let end = span.end().line;
         let normalized = self
             .lines
             .get(start..end)
-            .map(|lines| lines.join(constants_str::NEWLINE))
+            .map(|lines| lines.join(constants_str::catalog::NEWLINE))
             .expect("c9d73e55 source invariant must hold")
             .split_whitespace()
             .collect::<Vec<_>>()
-            .join(constants_str::SPACE);
-        super::types::SourceText::try_from(normalized).expect("31f04bb7 source invariant must hold")
+            .join(constants_str::catalog::SPACE);
+        crate::types::SourceText::try_from(normalized).expect("31f04bb7 source invariant must hold")
     }
-    fn field_type(&self, field: &syn::Field) -> super::types::SourceText {
+    fn field_type(&self, field: &syn::Field) -> crate::types::SourceText {
         let source = self.source(syn::spanned::Spanned::span(field));
         let field_type = source
             .as_ref()
             .split_once(':')
             .map(|(_field, field_type)| field_type.trim().trim_end_matches(',').to_owned())
             .expect("5af91e82 field_type invariant must hold");
-        super::types::SourceText::try_from(field_type)
+        crate::types::SourceText::try_from(field_type)
             .expect("3e2d89ef field_type invariant must hold")
     }
     fn record(&mut self, span: proc_macro2::Span, signature_only: bool) {
@@ -577,7 +580,7 @@ impl PublicApiVisitor {
         let source = self
             .lines
             .get(start..end)
-            .map(|lines| lines.join(constants_str::NEWLINE))
+            .map(|lines| lines.join(constants_str::catalog::NEWLINE))
             .expect("3e180abf record invariant must hold");
         let relevant = if signature_only {
             source
@@ -590,25 +593,28 @@ impl PublicApiVisitor {
             relevant
                 .split_whitespace()
                 .collect::<Vec<&str>>()
-                .join(constants_str::SPACE),
+                .join(constants_str::catalog::SPACE),
         );
     }
     fn record_contract_struct_api(&mut self, item: &syn::ItemStruct) {
-        let Some(attribute) = item
-            .attrs
-            .iter()
-            .find(|attribute| attribute.path().is_ident(constants_str::VALUE_21E85007))
-        else {
+        let Some(attribute) = item.attrs.iter().find(|attribute| {
+            attribute
+                .path()
+                .is_ident(constants_str::test_fixtures::VALUE_21E85007)
+        }) else {
             return;
         };
         let mut constructor = false;
         let mut into_parts = false;
         attribute
             .parse_nested_meta(|metadata| {
-                if metadata.path.is_ident(constants_str::NEW) {
+                if metadata.path.is_ident(constants_str::catalog::NEW) {
                     constructor = true;
                 }
-                if metadata.path.is_ident(constants_str::VALUE_1E3D0F4B) {
+                if metadata
+                    .path
+                    .is_ident(constants_str::test_fixtures::VALUE_1E3D0F4B)
+                {
                     into_parts = true;
                 }
                 Ok(())
@@ -633,7 +639,7 @@ impl PublicApiVisitor {
                 .zip(types.iter())
                 .map(|(identifier, field_type)| format!("{identifier}: {}", field_type.as_ref()))
                 .collect::<Vec<_>>()
-                .join(constants_str::TEXT_ALT_6);
+                .join(constants_str::catalog::TEXT_ALT_6);
             self.entries.push(format!(
                 "#[must_use] pub const fn new({parameters}) -> Self"
             ));
@@ -658,36 +664,36 @@ impl PublicApiVisitor {
                 .attrs
                 .iter()
                 .filter(|field_attribute| {
-                    field_attribute.path().is_ident(constants_str::VALUE_21E85007)
+                    field_attribute.path().is_ident(constants_str::test_fixtures::VALUE_21E85007)
                 })
                 .for_each(|field_attribute| {
                     field_attribute
                         .parse_nested_meta(|metadata| {
-                            let signature = if metadata.path.is_ident(constants_str::VALUE_D106CCB1) {
+                            let signature = if metadata.path.is_ident(constants_str::test_fixtures::VALUE_D106CCB1) {
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> &{field_type}"
                                 )
-                            } else if metadata.path.is_ident(constants_str::VALUE_6F5A6034) {
+                            } else if metadata.path.is_ident(constants_str::test_fixtures::VALUE_6F5A6034) {
                                 format!(
                                     "#[must_use] pub const fn {identifier}(self) -> {field_type}"
                                 )
-                            } else if metadata.path.is_ident(constants_str::VALUE_8972F0EE) {
+                            } else if metadata.path.is_ident(constants_str::test_fixtures::VALUE_8972F0EE) {
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> {field_type}"
                                 )
-                            } else if metadata.path.is_ident(constants_str::VALUE_6B847A0E) {
+                            } else if metadata.path.is_ident(constants_str::test_fixtures::VALUE_6B847A0E) {
                                 format!(
                                     "#[must_use] pub fn into_{identifier}(self) -> {field_type}"
                                 )
-                            } else if metadata.path.is_ident(constants_str::VALUE_ECA7C4E3) {
+                            } else if metadata.path.is_ident(constants_str::test_fixtures::VALUE_ECA7C4E3) {
                                 let inner_type = field_type
-                                    .strip_prefix(constants_str::VALUE_7E0FC0D7)
+                                    .strip_prefix(constants_str::test_fixtures::VALUE_7E0FC0D7)
                                     .and_then(|value| value.strip_suffix('>'))
                                     .expect("9ba9415c into_ invariant must hold");
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> Option<&{inner_type}>"
                                 )
-                            } else if metadata.path.is_ident(constants_str::VALUE_03FDB065) {
+                            } else if metadata.path.is_ident(constants_str::test_fixtures::VALUE_03FDB065) {
                                 let parsed_element_type =
                                     metadata.value()?.parse::<syn::Type>()?;
                                 let wrapped_element_type = self
@@ -726,9 +732,9 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
         if matches!(i.vis, syn::Visibility::Public(_)) {
             self.record(syn::spanned::Spanned::span(i), false);
             if i.attrs.iter().any(|attribute| {
-                super::derive_attr_has_terminal(
-                    super::types::SynAttributeRef::from(attribute),
-                    super::types::SourceTextRef::from(constants_str::VALUE_4529EB51),
+                crate::code_style::derive_attr_has_terminal(
+                    crate::types::SynAttributeRef::from(attribute),
+                    crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_4529EB51),
                 )
                 .get()
             }) {
@@ -737,7 +743,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
                     i.variants.len()
                 ));
                 self.entries
-                    .push(String::from(constants_str::VALUE_5F528A82));
+                    .push(String::from(constants_str::test_fixtures::VALUE_5F528A82));
             }
         }
         syn::visit::visit_item_enum(self, i);
@@ -771,14 +777,14 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct StructErrorVisitor {
-    identifiers: super::types::SourceTextList,
+    identifiers: crate::types::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if i.attrs.iter().any(|attribute| {
-            super::derive_attr_has_terminal(
-                super::types::SynAttributeRef::from(attribute),
-                super::types::SourceTextRef::from(constants_str::ERROR),
+            crate::code_style::derive_attr_has_terminal(
+                crate::types::SynAttributeRef::from(attribute),
+                crate::types::SourceTextRef::from(constants_str::catalog::ERROR),
             )
             .get()
         }) {
@@ -790,11 +796,11 @@ impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LoopAllocationVisitor {
-    depth: super::types::AnalyzerCount,
-    entries: super::types::DiagnosticMsgs,
+    depth: crate::types::AnalyzerCount,
+    entries: crate::types::DiagnosticMsgs,
 }
 impl LoopAllocationVisitor {
-    fn record(&mut self, operation: super::types::SourceTextRef<'_>) {
+    fn record(&mut self, operation: crate::types::SourceTextRef<'_>) {
         if self.depth.get() != constants_usize::ZERO {
             self.entries.push(operation.as_ref().to_owned());
         }
@@ -803,24 +809,25 @@ impl LoopAllocationVisitor {
 impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
         if let syn::Expr::Path(function) = i.func.as_ref() {
-            let path = super::path_to_string(super::types::SynPathRef::from(&function.path));
+            let path =
+                crate::code_style::path_to_string(crate::types::SynPathRef::from(&function.path));
             if [
-                constants_str::VALUE_EDB966EE,
-                constants_str::VALUE_13D4D62E,
-                constants_str::VALUE_6D0C4109,
-                constants_str::VALUE_7879C268,
-                constants_str::VALUE_FA4D593C,
-                constants_str::VALUE_F36B8CD3,
-                constants_str::VALUE_AA9C75B0,
-                constants_str::VALUE_B07BDC6E,
-                constants_str::VALUE_16359A6F,
-                constants_str::VALUE_C0ED6D49,
-                constants_str::VALUE_58AFC68F,
-                constants_str::VALUE_568F63F0,
+                constants_str::test_fixtures::VALUE_EDB966EE,
+                constants_str::test_fixtures::VALUE_13D4D62E,
+                constants_str::test_fixtures::VALUE_6D0C4109,
+                constants_str::test_fixtures::VALUE_7879C268,
+                constants_str::test_fixtures::VALUE_FA4D593C,
+                constants_str::test_fixtures::VALUE_F36B8CD3,
+                constants_str::test_fixtures::VALUE_AA9C75B0,
+                constants_str::test_fixtures::VALUE_B07BDC6E,
+                constants_str::test_fixtures::VALUE_16359A6F,
+                constants_str::test_fixtures::VALUE_C0ED6D49,
+                constants_str::test_fixtures::VALUE_58AFC68F,
+                constants_str::test_fixtures::VALUE_568F63F0,
             ]
             .contains(&path.as_ref())
             {
-                self.record(super::types::SourceTextRef::from(path.as_ref()));
+                self.record(crate::types::SourceTextRef::from(path.as_ref()));
             }
         }
         syn::visit::visit_expr_call(self, i);
@@ -833,12 +840,12 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
         if matches!(
             i.method.to_string().as_str(),
-            constants_str::VALUE_B5D61DC8
-                | constants_str::VALUE_81824C90
-                | constants_str::VALUE_E132B7C0
-                | constants_str::VALUE_C5E9F49A
+            constants_str::test_fixtures::VALUE_B5D61DC8
+                | constants_str::test_fixtures::VALUE_81824C90
+                | constants_str::test_fixtures::VALUE_E132B7C0
+                | constants_str::test_fixtures::VALUE_C5E9F49A
         ) {
-            self.record(super::types::SourceTextRef::from(
+            self.record(crate::types::SourceTextRef::from(
                 i.method.to_string().as_str(),
             ));
         }
@@ -853,11 +860,12 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
         if let Some(segment) = i.path.segments.last()
             && matches!(
                 segment.ident.to_string().as_str(),
-                constants_str::SHARED_VALUES_FORMAT | constants_str::VALUE_38A4FDFC
+                constants_str::catalog::SHARED_VALUES_FORMAT
+                    | constants_str::test_fixtures::VALUE_38A4FDFC
             )
         {
             let operation = segment.ident.to_string();
-            self.record(super::types::SourceTextRef::from(operation.as_str()));
+            self.record(crate::types::SourceTextRef::from(operation.as_str()));
         }
         syn::visit::visit_macro(self, i);
     }
@@ -870,8 +878,8 @@ fn lock_guards_are_not_held_across_await() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     LockAcrossAwaitVisitor::default(),
                 );
                 visitor.violations.into_iter().map(|violation| {
@@ -887,28 +895,46 @@ fn lock_guards_are_not_held_across_await() {
 fn allocations_inside_loops_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            constants_str::VALUE_B7558033,
-            (constants_usize::ONE, constants_str::VALUE_F3EA9A31),
+            constants_str::test_fixtures::VALUE_B7558033,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_F3EA9A31,
+            ),
         ),
         (
-            constants_str::VALUE_BC495D5D,
-            (constants_usize::ONE, constants_str::VALUE_BAC5F80E),
+            constants_str::test_fixtures::VALUE_BC495D5D,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_BAC5F80E,
+            ),
         ),
         (
-            constants_str::VALUE_E841E205,
-            (constants_usize::ONE, constants_str::VALUE_870DAE5B),
+            constants_str::test_fixtures::VALUE_E841E205,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_870DAE5B,
+            ),
         ),
         (
-            constants_str::VALUE_BE04A453,
-            (constants_usize::ONE, constants_str::VALUE_D1CA6996),
+            constants_str::test_fixtures::VALUE_BE04A453,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_D1CA6996,
+            ),
         ),
         (
-            constants_str::VALUE_94FCEDB7,
-            (constants_usize::ONE, constants_str::VALUE_855EA4C0),
+            constants_str::test_fixtures::VALUE_94FCEDB7,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_855EA4C0,
+            ),
         ),
         (
-            constants_str::VALUE_63BD6017,
-            (constants_usize::ONE, constants_str::VALUE_A2531714),
+            constants_str::test_fixtures::VALUE_63BD6017,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_A2531714,
+            ),
         ),
     ]);
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
@@ -916,16 +942,14 @@ fn allocations_inside_loops_match_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
-                    std::path::Path,
-                >::borrow(
-                    source_file.path()
-                )))
+                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                    std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                ))
                 .get()
             })
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     LoopAllocationVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -965,8 +989,8 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     StructErrorVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -977,14 +1001,14 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
             })
             .collect::<Vec<String>>();
         entries.sort();
-        let mut current_snapshot = String::from(constants_str::VALUE_C746CC87);
+        let mut current_snapshot = String::from(constants_str::test_fixtures::VALUE_C746CC87);
         entries.into_iter().for_each(|entry| {
             current_snapshot.push_str(entry.as_str());
             current_snapshot.push('\n');
         });
         let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(constants_str::STRUCT_ERROR_SNAPSHOT_PATH);
-        if std::env::var_os(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS).is_some() {
+            .join(constants_str::test_fixtures::STRUCT_ERROR_SNAPSHOT_PATH);
+        if std::env::var_os(constants_str::test_fixtures::UPDATE_CODE_STYLE_SNAPSHOTS).is_some() {
             std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
                 "65e1d4f0 struct_error_exceptions_match_reviewed_snapshot invariant must hold",
             );
@@ -1001,12 +1025,21 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
 #[test]
 fn contract_public_api_matches_reviewed_snapshot() {
     let reviewed = [
-        (constants_str::VALUE_A766D43E, constants_str::VALUE_FE05288C),
-        (constants_str::VALUE_C34A5FE6, constants_str::VALUE_8733430F),
-        (constants_str::VALUE_0C5CC511, constants_str::VALUE_CF3D8D33),
+        (
+            constants_str::test_fixtures::VALUE_A766D43E,
+            constants_str::test_fixtures::VALUE_FE05288C,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_C34A5FE6,
+            constants_str::test_fixtures::VALUE_8733430F,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_0C5CC511,
+            constants_str::test_fixtures::VALUE_CF3D8D33,
+        ),
     ];
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let mut current_snapshot = String::from(constants_str::VALUE_1F3A1C37);
+        let mut current_snapshot = String::from(constants_str::test_fixtures::VALUE_1F3A1C37);
         reviewed.iter().for_each(|(directory_suffix, reason)| {
             assert!(!reason.is_empty(), "505a0cf7");
             let mut entries = snapshot
@@ -1020,11 +1053,11 @@ fn contract_public_api_matches_reviewed_snapshot() {
                         .contains(directory_suffix)
                 })
                 .flat_map(|source_file| {
-                    let visitor = super::visit_syn_file(
-                        super::types::SynFileRef::from(source_file.ast().as_ref()),
+                    let visitor = crate::code_style::visit_syn_file(
+                        crate::types::SynFileRef::from(source_file.ast().as_ref()),
                         PublicApiVisitor {
-                            entries: super::types::SourceTextList::default(),
-                            lines: super::types::SourceTextList::from(
+                            entries: crate::types::SourceTextList::default(),
+                            lines: crate::types::SourceTextList::from(
                                 source_file
                                     .content()
                                     .as_ref()
@@ -1045,9 +1078,10 @@ fn contract_public_api_matches_reviewed_snapshot() {
             });
         });
         let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(constants_str::CONTRACT_PUBLIC_API_SNAPSHOT_PATH);
-        if std::env::var_os(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS).is_some()
-            || std::env::var_os(constants_str::UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT).is_some()
+            .join(constants_str::test_fixtures::CONTRACT_PUBLIC_API_SNAPSHOT_PATH);
+        if std::env::var_os(constants_str::test_fixtures::UPDATE_CODE_STYLE_SNAPSHOTS).is_some()
+            || std::env::var_os(constants_str::test_fixtures::UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT)
+                .is_some()
         {
             std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
                 "e2c6b190 contract_public_api_matches_reviewed_snapshot invariant must hold",
@@ -1066,89 +1100,89 @@ fn contract_public_api_matches_reviewed_snapshot() {
 fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            constants_str::VALUE_20A65589,
+            constants_str::test_fixtures::VALUE_20A65589,
             (
                 constants_usize::ZERO,
                 constants_usize::ZERO,
                 3usize,
-                constants_str::VALUE_F75AB320,
+                constants_str::test_fixtures::VALUE_F75AB320,
             ),
         ),
         (
-            constants_str::VALUE_823EE954,
-            (0, 0, 4, constants_str::VALUE_E98F8E33),
+            constants_str::test_fixtures::VALUE_823EE954,
+            (0, 0, 4, constants_str::test_fixtures::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_D11679FC,
-            (0, 0, 2, constants_str::VALUE_E98F8E33),
+            constants_str::test_fixtures::VALUE_D11679FC,
+            (0, 0, 2, constants_str::test_fixtures::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_794839A7,
-            (0, 0, 2, constants_str::VALUE_E98F8E33),
+            constants_str::test_fixtures::VALUE_794839A7,
+            (0, 0, 2, constants_str::test_fixtures::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_642AA8AC,
-            (0, 0, 4, constants_str::VALUE_E98F8E33),
+            constants_str::test_fixtures::VALUE_642AA8AC,
+            (0, 0, 4, constants_str::test_fixtures::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_31BDEFD7,
-            (0, 0, 2, constants_str::VALUE_E98F8E33),
+            constants_str::test_fixtures::VALUE_31BDEFD7,
+            (0, 0, 2, constants_str::test_fixtures::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_95F11308,
-            (0, 0, 3, constants_str::VALUE_E98F8E33),
+            constants_str::test_fixtures::VALUE_95F11308,
+            (0, 0, 3, constants_str::test_fixtures::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_BDEB5C57,
-            (0, 0, 1, constants_str::VALUE_40349028),
+            constants_str::test_fixtures::VALUE_BDEB5C57,
+            (0, 0, 1, constants_str::test_fixtures::VALUE_40349028),
         ),
         (
-            constants_str::VALUE_8F0CF86A,
-            (0, 0, 4, constants_str::VALUE_E98F8E33),
+            constants_str::test_fixtures::VALUE_8F0CF86A,
+            (0, 0, 4, constants_str::test_fixtures::VALUE_E98F8E33),
         ),
         (
-            constants_str::VALUE_427B03A1,
-            (0, 0, 5, constants_str::VALUE_D4BDC80F),
+            constants_str::test_fixtures::VALUE_427B03A1,
+            (0, 0, 5, constants_str::test_fixtures::VALUE_D4BDC80F),
         ),
         (
-            constants_str::VALUE_30B1AC8C,
-            (0, 0, 1, constants_str::VALUE_DC7573CC),
+            constants_str::test_fixtures::VALUE_30B1AC8C,
+            (0, 0, 1, constants_str::test_fixtures::VALUE_DC7573CC),
         ),
         (
-            constants_str::VALUE_8CD81F6A,
-            (0, 0, 10, constants_str::VALUE_AC5E426F),
+            constants_str::test_fixtures::VALUE_8CD81F6A,
+            (0, 0, 10, constants_str::test_fixtures::VALUE_AC5E426F),
         ),
         (
-            constants_str::VALUE_9C3011F7,
-            (1, 0, 0, constants_str::VALUE_60EE0A5C),
+            constants_str::test_fixtures::VALUE_9C3011F7,
+            (1, 0, 0, constants_str::test_fixtures::VALUE_60EE0A5C),
         ),
         (
-            constants_str::VALUE_315FCF0A,
-            (1, 0, 0, constants_str::VALUE_60EE0A5C),
+            constants_str::test_fixtures::VALUE_315FCF0A,
+            (1, 0, 0, constants_str::test_fixtures::VALUE_60EE0A5C),
         ),
         (
-            constants_str::VALUE_778833C1,
-            (1, 0, 0, constants_str::VALUE_60EE0A5C),
+            constants_str::test_fixtures::VALUE_778833C1,
+            (1, 0, 0, constants_str::test_fixtures::VALUE_60EE0A5C),
         ),
         (
-            constants_str::VALUE_EAC3A6DC,
-            (0, 0, 2, constants_str::VALUE_0CD339A2),
+            constants_str::test_fixtures::VALUE_EAC3A6DC,
+            (0, 0, 2, constants_str::test_fixtures::VALUE_0CD339A2),
         ),
         (
-            constants_str::VALUE_7FE2AF02,
-            (0, 0, 179, constants_str::VALUE_7FA1ACFA),
+            constants_str::test_fixtures::VALUE_7FE2AF02,
+            (0, 0, 179, constants_str::test_fixtures::VALUE_7FA1ACFA),
         ),
         (
-            constants_str::VALUE_D405F3E1,
-            (0, 0, 177, constants_str::VALUE_FB2CE6C2),
+            constants_str::test_fixtures::VALUE_D405F3E1,
+            (0, 0, 177, constants_str::test_fixtures::VALUE_FB2CE6C2),
         ),
         (
-            constants_str::VALUE_9D0FC67D,
-            (0, 0, 1, constants_str::VALUE_E7909B41),
+            constants_str::test_fixtures::VALUE_9D0FC67D,
+            (0, 0, 1, constants_str::test_fixtures::VALUE_E7909B41),
         ),
         (
-            constants_str::VALUE_206B48D7,
-            (0, 0, 1, constants_str::VALUE_F5E028C2),
+            constants_str::test_fixtures::VALUE_206B48D7,
+            (0, 0, 1, constants_str::test_fixtures::VALUE_F5E028C2),
         ),
     ]);
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
@@ -1158,16 +1192,14 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
-                    std::path::Path,
-                >::borrow(
-                    source_file.path()
-                )))
+                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                    std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                ))
                 .get()
             })
             .for_each(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     SharedDispatchVisitor::default(),
                 );
                 let observed = (
@@ -1189,7 +1221,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
                     .iter()
                     .filter(|(suffix, (_arc, _lock, _traits, reason))| {
                         (path.ends_with(**suffix)
-                            || super::declared_child_matches(path.as_str(), suffix))
+                            || crate::code_style::declared_child_matches(path.as_str(), suffix))
                             && !reason.is_empty()
                     })
                     .max_by_key(|(suffix, _expected)| suffix.len());
@@ -1222,92 +1254,119 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
 fn ignored_map_err_bindings_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            constants_str::VALUE_AC7A6F68,
-            (2usize, constants_str::VALUE_3995FF01),
+            constants_str::test_fixtures::VALUE_AC7A6F68,
+            (2usize, constants_str::test_fixtures::VALUE_3995FF01),
         ),
         (
-            constants_str::VALUE_769125D7,
-            (constants_usize::ONE, constants_str::VALUE_EB67E2C6),
+            constants_str::test_fixtures::VALUE_769125D7,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_EB67E2C6,
+            ),
         ),
         (
-            constants_str::VALUE_46FA1B05,
-            (2usize, constants_str::VALUE_C98C08E2),
+            constants_str::test_fixtures::VALUE_46FA1B05,
+            (2usize, constants_str::test_fixtures::VALUE_C98C08E2),
         ),
         (
-            constants_str::VALUE_96B90C9B,
-            (constants_usize::ONE, constants_str::VALUE_9111728C),
+            constants_str::test_fixtures::VALUE_96B90C9B,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_9111728C,
+            ),
         ),
         (
-            constants_str::VALUE_E5C6D18E,
-            (8usize, constants_str::VALUE_9111728C),
+            constants_str::test_fixtures::VALUE_E5C6D18E,
+            (8usize, constants_str::test_fixtures::VALUE_9111728C),
         ),
         (
-            constants_str::VALUE_11F5A276,
-            (2usize, constants_str::VALUE_C1819A84),
+            constants_str::test_fixtures::VALUE_11F5A276,
+            (2usize, constants_str::test_fixtures::VALUE_C1819A84),
         ),
         (
-            constants_str::VALUE_2CBAA4F4,
-            (constants_usize::ONE, constants_str::VALUE_53588272),
+            constants_str::test_fixtures::VALUE_2CBAA4F4,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_53588272,
+            ),
         ),
         (
-            constants_str::VALUE_D191EE7F,
-            (2usize, constants_str::VALUE_53588272),
+            constants_str::test_fixtures::VALUE_D191EE7F,
+            (2usize, constants_str::test_fixtures::VALUE_53588272),
         ),
         (
-            constants_str::VALUE_B29D07A8,
-            (constants_usize::ONE, constants_str::VALUE_099B4392),
+            constants_str::test_fixtures::VALUE_B29D07A8,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_099B4392,
+            ),
         ),
         (
-            constants_str::VALUE_A1750307,
-            (constants_usize::ONE, constants_str::VALUE_099B4392),
+            constants_str::test_fixtures::VALUE_A1750307,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_099B4392,
+            ),
         ),
         (
-            constants_str::VALUE_3930BC5E,
-            (constants_usize::ONE, constants_str::VALUE_7B6389D8),
+            constants_str::test_fixtures::VALUE_3930BC5E,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_7B6389D8,
+            ),
         ),
         (
-            constants_str::VALUE_E24F0FD4,
-            (constants_usize::ONE, constants_str::VALUE_01371493),
+            constants_str::test_fixtures::VALUE_E24F0FD4,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_01371493,
+            ),
         ),
         (
-            constants_str::VALUE_4C6F4532,
-            (8usize, constants_str::VALUE_80247FE1),
+            constants_str::test_fixtures::VALUE_4C6F4532,
+            (8usize, constants_str::test_fixtures::VALUE_80247FE1),
         ),
         (
-            constants_str::VALUE_DC454021,
-            (4usize, constants_str::VALUE_FD41C49E),
+            constants_str::test_fixtures::VALUE_DC454021,
+            (4usize, constants_str::test_fixtures::VALUE_FD41C49E),
         ),
         (
-            constants_str::VALUE_DC37304F,
-            (constants_usize::ONE, constants_str::VALUE_FD41C49E),
+            constants_str::test_fixtures::VALUE_DC37304F,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_FD41C49E,
+            ),
         ),
         (
-            constants_str::VALUE_939FFBC6,
-            (6usize, constants_str::VALUE_FD41C49E),
+            constants_str::test_fixtures::VALUE_939FFBC6,
+            (6usize, constants_str::test_fixtures::VALUE_FD41C49E),
         ),
         (
-            constants_str::VALUE_F3169686,
-            (5usize, constants_str::VALUE_FAE4D1C8),
+            constants_str::test_fixtures::VALUE_F3169686,
+            (5usize, constants_str::test_fixtures::VALUE_FAE4D1C8),
         ),
         (
-            constants_str::VALUE_27AB06E9,
-            (2usize, constants_str::VALUE_B1E73CDD),
+            constants_str::test_fixtures::VALUE_27AB06E9,
+            (2usize, constants_str::test_fixtures::VALUE_B1E73CDD),
         ),
         (
-            constants_str::VALUE_9E7DB142,
-            (10usize, constants_str::VALUE_0B70A676),
+            constants_str::test_fixtures::VALUE_9E7DB142,
+            (10usize, constants_str::test_fixtures::VALUE_0B70A676),
         ),
         (
-            constants_str::VALUE_BEBEC57E,
-            (constants_usize::ONE, constants_str::VALUE_9CA4EAEB),
+            constants_str::test_fixtures::VALUE_BEBEC57E,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_9CA4EAEB,
+            ),
         ),
     ]);
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed_by_owner = std::collections::BTreeMap::new();
         let mut violations = Vec::new();
         snapshot.rs_files().iter().for_each(|source_file| {
-            let visitor = super::visit_syn_file(
-                super::types::SynFileRef::from(source_file.ast().as_ref()),
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(source_file.ast().as_ref()),
                 IgnoredMapErrBindingVisitor::default(),
             );
             if visitor.entries.is_empty() {
@@ -1318,7 +1377,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
                 .iter()
                 .filter(|(suffix, (_count, reason))| {
                     (path.ends_with(**suffix)
-                        || super::declared_child_matches(path.as_str(), suffix))
+                        || crate::code_style::declared_child_matches(path.as_str(), suffix))
                         && !reason.is_empty()
                 })
                 .max_by_key(|(suffix, _expected)| suffix.len());
@@ -1347,48 +1406,174 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
 #[test]
 fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
-        (constants_str::VALUE_7630EBEC, constants_str::VALUE_C2C65C68),
-        (constants_str::VALUE_86D03626, constants_str::VALUE_E3D9A7E6),
-        (constants_str::VALUE_6C761A40, constants_str::VALUE_BC91BCEF),
-        (constants_str::VALUE_F68E036F, constants_str::VALUE_D17C5423),
-        (constants_str::VALUE_090096ED, constants_str::VALUE_07FFA47C),
-        (constants_str::VALUE_94E2B4FA, constants_str::VALUE_63229E70),
-        (constants_str::VALUE_D9B93146, constants_str::VALUE_FC3332AB),
-        (constants_str::VALUE_6F5D2E20, constants_str::VALUE_0901EA34),
-        (constants_str::VALUE_9DFC7A97, constants_str::VALUE_FDB078C8),
-        (constants_str::VALUE_0525E2BF, constants_str::VALUE_FBBB4FDC),
-        (constants_str::VALUE_CAE88716, constants_str::VALUE_FBBB4FDC),
-        (constants_str::VALUE_D51ADF29, constants_str::VALUE_16D85132),
-        (constants_str::VALUE_975B0C21, constants_str::VALUE_FBBB4FDC),
-        (constants_str::VALUE_AA7EE094, constants_str::VALUE_16D85132),
-        (constants_str::VALUE_5879251A, constants_str::VALUE_FBBB4FDC),
-        (constants_str::VALUE_51CC135E, constants_str::VALUE_16D85132),
-        (constants_str::VALUE_B1A7F284, constants_str::VALUE_16D85132),
-        (constants_str::VALUE_8C2154B5, constants_str::VALUE_55AE895C),
-        (constants_str::VALUE_7314D06D, constants_str::VALUE_EF8D5AF4),
-        (constants_str::VALUE_9AE03CB2, constants_str::VALUE_986BBD24),
-        (constants_str::VALUE_6BF051A2, constants_str::VALUE_A5952628),
-        (constants_str::VALUE_C7F27415, constants_str::VALUE_C3214518),
-        (constants_str::VALUE_A417488B, constants_str::VALUE_D39882F4),
-        (constants_str::VALUE_919ACACB, constants_str::VALUE_1FBF1A7A),
-        (constants_str::VALUE_9DB8F65B, constants_str::VALUE_7C37CACC),
-        (constants_str::VALUE_671231A3, constants_str::VALUE_D82FE516),
-        (constants_str::VALUE_DEB830DD, constants_str::VALUE_DCAEE23B),
-        (constants_str::VALUE_DD337AC0, constants_str::VALUE_C9221A63),
-        (constants_str::VALUE_06C235F4, constants_str::VALUE_211A1405),
-        (constants_str::VALUE_2316F647, constants_str::VALUE_0EFD8ED8),
-        (constants_str::VALUE_5D687FEA, constants_str::VALUE_0C7973A9),
-        (constants_str::VALUE_7E7B2B37, constants_str::VALUE_0F84F758),
-        (constants_str::VALUE_CB780650, constants_str::VALUE_8FEB779E),
-        (constants_str::VALUE_1D2594F2, constants_str::VALUE_5D972838),
-        (constants_str::VALUE_A48AAE67, constants_str::VALUE_2DCAD87D),
-        (constants_str::VALUE_B9937202, constants_str::VALUE_13C920C3),
-        (constants_str::VALUE_2941B657, constants_str::VALUE_13C920C3),
-        (constants_str::VALUE_FAB1545F, constants_str::VALUE_64EA6158),
-        (constants_str::VALUE_9FB992E8, constants_str::VALUE_3F51E18F),
-        (constants_str::VALUE_D200D86F, constants_str::VALUE_352F4313),
-        (constants_str::VALUE_413BDF99, constants_str::VALUE_28A55761),
-        (constants_str::VALUE_EA3B0668, constants_str::VALUE_82F6C375),
+        (
+            constants_str::test_fixtures::VALUE_7630EBEC,
+            constants_str::test_fixtures::VALUE_C2C65C68,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_86D03626,
+            constants_str::test_fixtures::VALUE_E3D9A7E6,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_6C761A40,
+            constants_str::test_fixtures::VALUE_BC91BCEF,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_F68E036F,
+            constants_str::test_fixtures::VALUE_D17C5423,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_090096ED,
+            constants_str::test_fixtures::VALUE_07FFA47C,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_94E2B4FA,
+            constants_str::test_fixtures::VALUE_63229E70,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_D9B93146,
+            constants_str::test_fixtures::VALUE_FC3332AB,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_6F5D2E20,
+            constants_str::test_fixtures::VALUE_0901EA34,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_9DFC7A97,
+            constants_str::test_fixtures::VALUE_FDB078C8,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_0525E2BF,
+            constants_str::test_fixtures::VALUE_FBBB4FDC,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_CAE88716,
+            constants_str::test_fixtures::VALUE_FBBB4FDC,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_D51ADF29,
+            constants_str::test_fixtures::VALUE_16D85132,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_975B0C21,
+            constants_str::test_fixtures::VALUE_FBBB4FDC,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_AA7EE094,
+            constants_str::test_fixtures::VALUE_16D85132,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_5879251A,
+            constants_str::test_fixtures::VALUE_FBBB4FDC,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_51CC135E,
+            constants_str::test_fixtures::VALUE_16D85132,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_B1A7F284,
+            constants_str::test_fixtures::VALUE_16D85132,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_8C2154B5,
+            constants_str::test_fixtures::VALUE_55AE895C,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_7314D06D,
+            constants_str::test_fixtures::VALUE_EF8D5AF4,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_9AE03CB2,
+            constants_str::test_fixtures::VALUE_986BBD24,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_6BF051A2,
+            constants_str::test_fixtures::VALUE_A5952628,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_C7F27415,
+            constants_str::test_fixtures::VALUE_C3214518,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_A417488B,
+            constants_str::test_fixtures::VALUE_D39882F4,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_919ACACB,
+            constants_str::test_fixtures::VALUE_1FBF1A7A,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_9DB8F65B,
+            constants_str::test_fixtures::VALUE_7C37CACC,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_671231A3,
+            constants_str::test_fixtures::VALUE_D82FE516,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_DEB830DD,
+            constants_str::test_fixtures::VALUE_DCAEE23B,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_DD337AC0,
+            constants_str::test_fixtures::VALUE_C9221A63,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_06C235F4,
+            constants_str::test_fixtures::VALUE_211A1405,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_2316F647,
+            constants_str::test_fixtures::VALUE_0EFD8ED8,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_5D687FEA,
+            constants_str::test_fixtures::VALUE_0C7973A9,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_7E7B2B37,
+            constants_str::test_fixtures::VALUE_0F84F758,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_CB780650,
+            constants_str::test_fixtures::VALUE_8FEB779E,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_1D2594F2,
+            constants_str::test_fixtures::VALUE_5D972838,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_A48AAE67,
+            constants_str::test_fixtures::VALUE_2DCAD87D,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_B9937202,
+            constants_str::test_fixtures::VALUE_13C920C3,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_2941B657,
+            constants_str::test_fixtures::VALUE_13C920C3,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_FAB1545F,
+            constants_str::test_fixtures::VALUE_64EA6158,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_9FB992E8,
+            constants_str::test_fixtures::VALUE_3F51E18F,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_D200D86F,
+            constants_str::test_fixtures::VALUE_352F4313,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_413BDF99,
+            constants_str::test_fixtures::VALUE_28A55761,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_EA3B0668,
+            constants_str::test_fixtures::VALUE_82F6C375,
+        ),
     ]);
     reviewed
         .values()
@@ -1398,16 +1583,14 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
-                    std::path::Path,
-                >::borrow(
-                    source_file.path()
-                )))
+                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                    std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                ))
                 .get()
             })
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     RawVecTupleWrapperVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -1435,8 +1618,8 @@ fn from_vec_implementations_are_forbidden() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     FromVecImplVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -1461,8 +1644,8 @@ fn raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
             struct Nested(Vec<u8>);
         }
     };
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&file),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&file),
         RawVecTupleWrapperVisitor::default(),
     );
     assert_eq!(visitor.identifiers.len(), 2usize);
@@ -1472,12 +1655,15 @@ fn raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
 fn usize_max_usage_matches_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            constants_str::VALUE_08DBA674,
-            (constants_usize::ONE, constants_str::VALUE_CEE3C893),
+            constants_str::test_fixtures::VALUE_08DBA674,
+            (
+                constants_usize::ONE,
+                constants_str::test_fixtures::VALUE_CEE3C893,
+            ),
         ),
         (
-            constants_str::VALUE_2483AEA6,
-            (3usize, constants_str::VALUE_245849CA),
+            constants_str::test_fixtures::VALUE_2483AEA6,
+            (3usize, constants_str::test_fixtures::VALUE_245849CA),
         ),
     ]);
     reviewed
@@ -1490,16 +1676,14 @@ fn usize_max_usage_matches_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !super::is_test_source_path(super::types::PathRef::from(std::borrow::Borrow::<
-                    std::path::Path,
-                >::borrow(
-                    source_file.path()
-                )))
+                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                    std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                ))
                 .get()
             })
             .for_each(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     UsizeMaxExprVisitor::default(),
                 );
                 let count = visitor.count.get();
@@ -1511,7 +1695,7 @@ fn usize_max_usage_matches_reviewed_inventory() {
                     .keys()
                     .filter(|suffix| {
                         path.ends_with(**suffix)
-                            || super::declared_child_matches(path.as_str(), suffix)
+                            || crate::code_style::declared_child_matches(path.as_str(), suffix)
                     })
                     .max_by_key(|suffix| suffix.len());
                 if let Some(owner) = reviewed_owner {
@@ -1543,8 +1727,8 @@ fn usize_max_expression_visitor_skips_test_modules() {
             const TEST_MAXIMUM: usize = usize::MAX;
         }
     };
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&file),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&file),
         UsizeMaxExprVisitor::default(),
     );
     assert_eq!(visitor.count.get(), constants_usize::ONE);
@@ -1559,8 +1743,8 @@ fn select_sites_match_reviewed_cancellation_inventory() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     SelectMacroVisitor::default(),
                 );
                 if visitor.count.get() != constants_usize::ZERO {
@@ -1570,7 +1754,10 @@ fn select_sites_match_reviewed_cancellation_inventory() {
                         .map(|(reviewed_path, _count, _reason)| *reviewed_path)
                         .filter(|reviewed_path| {
                             path.ends_with(reviewed_path)
-                                || super::declared_child_matches(path.as_str(), reviewed_path)
+                                || crate::code_style::declared_child_matches(
+                                    path.as_str(),
+                                    reviewed_path,
+                                )
                         })
                         .max_by_key(|reviewed_path| reviewed_path.len());
                     if let Some(owner_suffix) = reviewed_owner {
@@ -1622,10 +1809,10 @@ fn select_sites_match_reviewed_cancellation_inventory() {
 
 #[test]
 fn select_policy_rejects_cancellation_sensitive_operations() {
-    let ast = syn::parse_file(constants_str::VALUE_F6958372)
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_F6958372)
         .expect("714c620f invalid invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         SelectMacroVisitor::default(),
     );
     assert_eq!(visitor.unsafe_operations.len(), 2usize, "c4267f0a");
@@ -1634,11 +1821,26 @@ fn select_policy_rejects_cancellation_sensitive_operations() {
 #[test]
 fn architectural_boundaries_reject_upward_dependencies() {
     let boundaries = [
-        (constants_str::VALUE_9A26B6D6, constants_str::VALUE_D54C0026),
-        (constants_str::VALUE_5906FF0B, constants_str::VALUE_64313A40),
-        (constants_str::VALUE_B29A11B9, constants_str::VALUE_FB301D46),
-        (constants_str::VALUE_E1717E8B, constants_str::VALUE_72104B4E),
-        (constants_str::VALUE_B4F499E2, constants_str::VALUE_2773E6CE),
+        (
+            constants_str::test_fixtures::VALUE_9A26B6D6,
+            constants_str::test_fixtures::VALUE_D54C0026,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_5906FF0B,
+            constants_str::test_fixtures::VALUE_64313A40,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_B29A11B9,
+            constants_str::test_fixtures::VALUE_FB301D46,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_E1717E8B,
+            constants_str::test_fixtures::VALUE_72104B4E,
+        ),
+        (
+            constants_str::test_fixtures::VALUE_B4F499E2,
+            constants_str::test_fixtures::VALUE_2773E6CE,
+        ),
     ];
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
@@ -1661,29 +1863,29 @@ fn architectural_boundaries_reject_upward_dependencies() {
                 .iter()
                 .filter(|dependency| workspace_names.as_ref().contains(dependency.name.as_str()))
                 .filter(|dependency| match *package_name {
-                    constants_str::VALUE_9A26B6D6 => {
-                        dependency.name == constants_str::VALUE_CA3132B2
-                            || dependency.name.starts_with(constants_str::VALUE_AAADEE66)
-                            || dependency.name.starts_with(constants_str::VALUE_D11DB134)
-                            || (dependency.name.starts_with(constants_str::VALUE_B3EACD33)
-                                && dependency.name != constants_str::VALUE_EC36C4C9)
+                    constants_str::test_fixtures::VALUE_9A26B6D6 => {
+                        dependency.name == constants_str::test_fixtures::VALUE_CA3132B2
+                            || dependency.name.starts_with(constants_str::test_fixtures::VALUE_AAADEE66)
+                            || dependency.name.starts_with(constants_str::test_fixtures::VALUE_D11DB134)
+                            || (dependency.name.starts_with(constants_str::test_fixtures::VALUE_B3EACD33)
+                                && dependency.name != constants_str::test_fixtures::VALUE_EC36C4C9)
                     }
-                    constants_str::VALUE_5906FF0B => {
-                        dependency.name == constants_str::VALUE_CA3132B2
-                            || dependency.name == constants_str::VALUE_B3EACD33
-                            || dependency.name == constants_str::VALUE_6D090579
-                            || dependency.name == constants_str::VALUE_D0393EDD
-                            || dependency.name.ends_with(constants_str::VALUE_93CEFD0B)
-                            || dependency.name.starts_with(constants_str::VALUE_AAADEE66)
-                            || dependency.name.starts_with(constants_str::VALUE_D11DB134)
+                    constants_str::test_fixtures::VALUE_5906FF0B => {
+                        dependency.name == constants_str::test_fixtures::VALUE_CA3132B2
+                            || dependency.name == constants_str::test_fixtures::VALUE_B3EACD33
+                            || dependency.name == constants_str::test_fixtures::VALUE_6D090579
+                            || dependency.name == constants_str::test_fixtures::VALUE_D0393EDD
+                            || dependency.name.ends_with(constants_str::test_fixtures::VALUE_93CEFD0B)
+                            || dependency.name.starts_with(constants_str::test_fixtures::VALUE_AAADEE66)
+                            || dependency.name.starts_with(constants_str::test_fixtures::VALUE_D11DB134)
                     }
-                    constants_str::VALUE_B29A11B9 | constants_str::VALUE_E1717E8B | constants_str::VALUE_B4F499E2 => {
-                        dependency.name == constants_str::VALUE_CA3132B2
-                            || dependency.name == constants_str::VALUE_B3EACD33
-                            || dependency.name.starts_with(constants_str::VALUE_6D090579)
-                            || dependency.name.starts_with(constants_str::VALUE_AAADEE66)
-                            || dependency.name.ends_with(constants_str::VALUE_14AD1127)
-                            || dependency.name.starts_with(constants_str::VALUE_D11DB134)
+                    constants_str::test_fixtures::VALUE_B29A11B9 | constants_str::test_fixtures::VALUE_E1717E8B | constants_str::test_fixtures::VALUE_B4F499E2 => {
+                        dependency.name == constants_str::test_fixtures::VALUE_CA3132B2
+                            || dependency.name == constants_str::test_fixtures::VALUE_B3EACD33
+                            || dependency.name.starts_with(constants_str::test_fixtures::VALUE_6D090579)
+                            || dependency.name.starts_with(constants_str::test_fixtures::VALUE_AAADEE66)
+                            || dependency.name.ends_with(constants_str::test_fixtures::VALUE_14AD1127)
+                            || dependency.name.starts_with(constants_str::test_fixtures::VALUE_D11DB134)
                     }
                     _ => true,
                 })
@@ -1701,16 +1903,16 @@ fn architectural_boundaries_reject_upward_dependencies() {
 
 #[test]
 fn lock_across_await_policy_requires_explicit_drop() {
-    let invalid = syn::parse_file(constants_str::VALUE_6F786FC4)
+    let invalid = syn::parse_file(constants_str::test_fixtures::VALUE_6F786FC4)
         .expect("b57df6a3 invalid invariant must hold");
-    let valid =
-        syn::parse_file(constants_str::VALUE_D481790B).expect("a62f1ce9 valid invariant must hold");
-    let invalid_visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&invalid),
+    let valid = syn::parse_file(constants_str::test_fixtures::VALUE_D481790B)
+        .expect("a62f1ce9 valid invariant must hold");
+    let invalid_visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&invalid),
         LockAcrossAwaitVisitor::default(),
     );
-    let valid_visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&valid),
+    let valid_visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&valid),
         LockAcrossAwaitVisitor::default(),
     );
     assert_eq!(
@@ -1731,11 +1933,11 @@ fn production_code_does_not_use_explicit_leak_apis() {
                 !source_file
                     .path()
                     .as_ref()
-                    .starts_with(constants_str::TESTS_ALT)
+                    .starts_with(constants_str::catalog::TESTS_ALT)
             })
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     LeakApiVisitor::default(),
                 );
                 visitor.violations.into_iter().map(|violation| {
@@ -1754,8 +1956,8 @@ fn retained_spawn_tasks_are_supervised() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     SpawnLifecycleVisitor::default(),
                 );
                 visitor.violations.into_iter().map(|violation| {
@@ -1769,10 +1971,10 @@ fn retained_spawn_tasks_are_supervised() {
 
 #[test]
 fn spawn_lifecycle_policy_rejects_unconsumed_tasks() {
-    let ast =
-        syn::parse_file(constants_str::VALUE_9F18A090).expect("834138af tasks invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_9F18A090)
+        .expect("834138af tasks invariant must hold");
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         SpawnLifecycleVisitor::default(),
     );
     assert_eq!(
@@ -1791,8 +1993,8 @@ fn route_path_segments_use_snake_case() {
             .rs_files()
             .iter()
             .flat_map(|source_file| {
-                let visitor = super::visit_syn_file(
-                    super::types::SynFileRef::from(source_file.ast().as_ref()),
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     RouteLiteralVisitor::default(),
                 );
                 visitor.violations.into_iter().map(|violation| {
@@ -1806,10 +2008,10 @@ fn route_path_segments_use_snake_case() {
 
 #[test]
 fn route_path_policy_rejects_kebab_case() {
-    let ast = syn::parse_file(constants_str::VALUE_72E2834F)
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_72E2834F)
         .expect("9aa037dc route_path_policy_rejects_kebab_case invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
     assert_eq!(visitor.violations.len(), constants_usize::ONE, "d15287e9");
@@ -1817,10 +2019,10 @@ fn route_path_policy_rejects_kebab_case() {
 
 #[test]
 fn route_path_policy_rejects_api_prefix() {
-    let ast = syn::parse_file(constants_str::VALUE_D7270E5B)
+    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_D7270E5B)
         .expect("3eaa623d route_path_policy_rejects_api_prefix invariant must hold");
-    let visitor = super::visit_syn_file(
-        super::types::SynFileRef::from(&ast),
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
     assert_eq!(visitor.violations.len(), constants_usize::ONE, "5caaea72");

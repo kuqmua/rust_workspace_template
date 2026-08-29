@@ -14,5 +14,5 @@
     utoipa::ToSchema,
     newtype::FromInner,
 )]
-#[serde(from = "crate::UuidAdminValue")]
-pub struct AdminSessionId(pub(crate) crate::UuidAdminValue);
+#[serde(from = "server_admin_core::uuid_admin_value::UuidAdminValue")]
+pub struct AdminSessionId(pub(crate) server_admin_core::uuid_admin_value::UuidAdminValue);

@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -12,5 +12,5 @@
 #[serde(deny_unknown_fields)]
 pub struct AdminSetUserBanReq {
     #[contract_struct_api(copy)]
-    is_banned: crate::domain_types::AdminBool,
+    is_banned: crate::admin_bool::AdminBool,
 }

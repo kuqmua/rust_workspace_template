@@ -6,7 +6,7 @@ pub(crate) const fn optimistic_concurrency_capable<
     PermissionAction,
     StatusCode,
 >(
-    dsc: &crate::domain_types::table::operation_dsc::OperationDsc<
+    dsc: &crate::operation_dsc::OperationDsc<
         Capability,
         HttpMethod,
         Operation,
@@ -25,7 +25,7 @@ where
 mod tests {
     #[test]
     fn returns_optimistic_concurrency_capability() {
-        let dsc = crate::domain_types::table::operation_dsc::OperationDsc {
+        let dsc = crate::operation_dsc::OperationDsc {
             http_method: (),
             idempotency_capable: false,
             operation: (),
@@ -34,6 +34,6 @@ mod tests {
             permission_action: (),
             success_status_code: (),
         };
-        assert!(super::optimistic_concurrency_capable(&dsc));
+        assert!(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&dsc));
     }
 }

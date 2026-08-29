@@ -1,5 +1,3 @@
-use super::TypedRoute;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,13 +8,13 @@ use super::TypedRoute;
 )]
 pub struct RouteRequest<Route>
 where
-    Route: TypedRoute,
+    Route: crate::typed_route::TypedRoute,
 {
     body: Route::Request,
 }
 impl<Route> RouteRequest<Route>
 where
-    Route: TypedRoute,
+    Route: crate::typed_route::TypedRoute,
 {
     #[must_use]
     pub const fn body(&self) -> &Route::Request {

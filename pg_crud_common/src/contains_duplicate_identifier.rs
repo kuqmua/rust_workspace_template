@@ -1,5 +1,5 @@
 pub(super) fn contains_duplicate_identifier(
-    columns: &[crate::domain_types::SqlIdentifier],
+    columns: &[crate::sql_identifier::SqlIdentifier],
 ) -> crate::pg_duplicate_identifier_presence::PgDuplicateIdentifierPresence {
     if columns
         .iter()

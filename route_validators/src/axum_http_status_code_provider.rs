@@ -1,5 +1,5 @@
 pub trait AxumHttpStatusCodeProvider {
-    fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode;
+    fn axum_http_status_code(&self) -> crate::axum_http_status_code::AxumHttpStatusCode;
 }
 
 #[cfg(test)]
@@ -7,9 +7,9 @@ mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     struct TestError;
 
-    impl super::AxumHttpStatusCodeProvider for TestError {
-        fn axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
-            crate::AxumHttpStatusCode::im_a_teapot()
+    impl crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider for TestError {
+        fn axum_http_status_code(&self) -> crate::axum_http_status_code::AxumHttpStatusCode {
+            crate::axum_http_status_code::AxumHttpStatusCode::im_a_teapot()
         }
     }
 
@@ -17,7 +17,7 @@ mod tests {
     fn axum_http_status_code_default_method_returns_associated_const() {
         let error = TestError;
         assert_eq!(
-            super::AxumHttpStatusCodeProvider::axum_http_status_code(&error).get(),
+            crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider::axum_http_status_code(&error).get(),
             axum::http::StatusCode::IM_A_TEAPOT
         );
     }

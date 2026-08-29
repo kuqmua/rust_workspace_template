@@ -14,8 +14,8 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
         self.0.capacity()
     }
 
-    pub fn validate_bounds() -> Result<(), crate::BoundedValueError> {
-        crate::validate_len::<MIN, MAX>(crate::BoundedLen::from(MIN))
+    pub fn validate_bounds() -> Result<(), crate::bounded_value_error::BoundedValueError> {
+        crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(MIN))
     }
 
     #[must_use]
@@ -29,26 +29,32 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     }
 
     #[must_use]
-    pub fn len(&self) -> crate::BoundedLen {
-        crate::BoundedLen::from(self.0.len())
+    pub fn len(&self) -> crate::bounded_len::BoundedLen {
+        crate::bounded_len::BoundedLen::from(self.0.len())
     }
 
-    pub fn try_push(&mut self, value: T) -> Result<(), crate::BoundedValueError> {
+    pub fn try_push(
+        &mut self,
+        value: T,
+    ) -> Result<(), crate::bounded_value_error::BoundedValueError> {
         let next_len = self
             .0
             .len()
             .checked_add(constants_usize::ONE)
-            .ok_or_else(|| crate::BoundedValueError::AboveMax {
-                actual: crate::BoundedLen::from(usize::MAX),
-                max: crate::BoundedLen::from(MAX),
+            .ok_or_else(|| crate::bounded_value_error::BoundedValueError::AboveMax {
+                actual: crate::bounded_len::BoundedLen::from(usize::MAX),
+                max: crate::bounded_len::BoundedLen::from(MAX),
             })?;
-        crate::validate_len::<0, MAX>(crate::BoundedLen::from(next_len))
+        crate::validate_len::validate_len::<0, MAX>(crate::bounded_len::BoundedLen::from(next_len))
             .map(|()| self.0.push(value))
     }
 }
 impl<T> BoundedVec<T, 0, { usize::MAX }> {
-    pub fn try_from_collection_vec(value: Vec<T>) -> Result<Self, crate::BoundedValueError> {
-        let bounded_value = BoundedVec::<T, 0, { crate::COLLECTION_MAX_LEN }>::try_from(value)?;
+    pub fn try_from_collection_vec(
+        value: Vec<T>,
+    ) -> Result<Self, crate::bounded_value_error::BoundedValueError> {
+        let bounded_value =
+            BoundedVec::<T, 0, { crate::collection_max_len::COLLECTION_MAX_LEN }>::try_from(value)?;
         Self::try_from(bounded_value.into_inner())
     }
 
@@ -61,7 +67,7 @@ impl<T> BoundedVec<T, 0, { usize::MAX }> {
         let capacity = value_iter
             .size_hint()
             .0
-            .min(crate::SERDE_PREALLOC_MAX_ITEMS);
+            .min(crate::serde_prealloc_max_items::SERDE_PREALLOC_MAX_ITEMS);
         let mut bounded = Self::from([]);
         bounded.0.reserve(capacity);
         value_iter.for_each(|value| bounded.push_max_capacity(value));
@@ -83,10 +89,13 @@ impl<T, const MAX: usize> From<[T; 0]> for BoundedVec<T, 0, MAX> {
     }
 }
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {
-    type Error = crate::BoundedValueError;
+    type Error = crate::bounded_value_error::BoundedValueError;
 
     fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        crate::validate_len::<MIN, MAX>(crate::BoundedLen::from(value.len())).map(|()| Self(value))
+        crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(
+            value.len(),
+        ))
+        .map(|()| Self(value))
     }
 }
 impl<T, const MIN: usize, const MAX: usize> AsRef<[T]> for BoundedVec<T, MIN, MAX> {
@@ -143,7 +152,7 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
     fn name() -> std::borrow::Cow<'static, str> {
         let mut name = T::name().into_owned();
         name.push('_');
-        name.push_str(constants_str::BOUNDEDVEC);
+        name.push_str(constants_str::catalog::BOUNDEDVEC);
         name.push('_');
         name.push_str(MIN.to_string().as_str());
         name.push('_');
@@ -160,7 +169,7 @@ mod tests {
         assert!(matches!(value.try_push(1u8), Ok(())));
         assert!(matches!(
             value.try_push(2u8),
-            Err(crate::BoundedValueError::AboveMax { .. })
+            Err(crate::bounded_value_error::BoundedValueError::AboveMax { .. })
         ));
     }
 

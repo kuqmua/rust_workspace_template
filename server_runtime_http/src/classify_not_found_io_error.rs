@@ -1,10 +1,10 @@
 #[must_use]
 pub fn classify_not_found_io_error(
-    error: super::BoundedReadIoError,
-) -> super::IoErrorPresenceDisposition {
+    error: crate::bounded_read_io_error::BoundedReadIoError,
+) -> crate::io_error_presence_disposition::IoErrorPresenceDisposition {
     if error.0.kind() == std::io::ErrorKind::NotFound {
-        super::IoErrorPresenceDisposition::Missing
+        crate::io_error_presence_disposition::IoErrorPresenceDisposition::Missing
     } else {
-        super::IoErrorPresenceDisposition::Other(error)
+        crate::io_error_presence_disposition::IoErrorPresenceDisposition::Other(error)
     }
 }

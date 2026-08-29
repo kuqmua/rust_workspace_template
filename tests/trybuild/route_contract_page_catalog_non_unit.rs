@@ -1,5 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[derive(frontend_contract::PageCatalog)]
+#[derive(frontend_contract_macros::PageCatalog)]
 #[page_catalog(
     spec = BrokenSpec,
     path_ref = BrokenPathRef,
@@ -7,7 +7,7 @@
 )]
 enum BrokenPages {
     #[page_catalog_page(path = "/broken", title = "Broken")]
-    Broken(frontend_contract::ContractStr),
+    Broken(frontend_contract::contract_str::ContractStr),
 }
 
 fn main() {}

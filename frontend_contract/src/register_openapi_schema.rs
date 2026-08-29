@@ -1,17 +1,18 @@
-use super::UtoipaOpenApiComponentsRefMut;
-
 #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
-pub fn register_openapi_schema<Schema>(components: &mut UtoipaOpenApiComponentsRefMut<'_>)
-where
+pub fn register_openapi_schema<Schema>(
+    components: &mut crate::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut<'_>,
+) where
     Schema: utoipa::ToSchema,
 {
     let name = Schema::name();
     let schema = <Schema as utoipa::PartialSchema>::schema();
-    let qualified_name =
-        std::any::type_name::<Schema>().replace(constants_str::DOUBLE_COLON, constants_str::DOT);
+    let qualified_name = std::any::type_name::<Schema>().replace(
+        constants_str::test_fixtures::DOUBLE_COLON,
+        constants_str::catalog::DOT,
+    );
     let _previous_qualified_schema = components.0.schemas.insert(qualified_name, schema.clone());
     if let Some(crate_name) = std::any::type_name::<Schema>()
-        .split(constants_str::DOUBLE_COLON)
+        .split(constants_str::test_fixtures::DOUBLE_COLON)
         .next()
     {
         let _previous_crate_schema = components

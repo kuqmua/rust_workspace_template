@@ -8,67 +8,74 @@ pub struct Config {
     #[config(
         example = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; frame-ancestors 'none'"
     )]
-    pub content_security_policy: config_lib::domain_types::ContentSecurityPolicy,
+    pub content_security_policy: config_lib::content_security_policy::ContentSecurityPolicy,
     #[config(secret)]
     #[config(example = "postgres://postgres:change-me@127.0.0.1:5432/rust_workspace_template")]
     pub database_url: config_lib::domain_types::DatabaseUrl,
     #[config(secret)]
     #[config(example = "change-me-development-secret-000")]
-    pub admin_jwt_secret: config_lib::domain_types::AdminJwtSecret,
+    pub admin_jwt_secret: config_lib::admin_jwt_secret::AdminJwtSecret,
     #[config(example = "rust-workspace-template")]
-    pub admin_token_audience: config_lib::domain_types::AdminTokenAudience,
+    pub admin_token_audience: config_lib::admin_token_audience::AdminTokenAudience,
     #[config(example = "rust-workspace-template")]
-    pub admin_token_issuer: config_lib::domain_types::AdminTokenIssuer,
+    pub admin_token_issuer: config_lib::admin_token_issuer::AdminTokenIssuer,
     #[config(example = "127.0.0.1/32,::1/128")]
     pub trusted_proxy_ranges_text: config_lib::domain_types::TrustedProxyRangesText,
     #[config(example = "900")]
-    pub admin_access_token_ttl_seconds: config_lib::domain_types::AdminAccessTokenTtlSeconds,
+    pub admin_access_token_ttl_seconds:
+        config_lib::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds,
     #[config(example = "2")]
-    pub admin_password_hash_concurrency: config_lib::domain_types::AdminPasswordHashConcurrency,
+    pub admin_password_hash_concurrency:
+        config_lib::admin_password_hash_concurrency::AdminPasswordHashConcurrency,
     #[config(example = "10")]
-    pub admin_login_failure_limit: config_lib::domain_types::AdminLoginFailureLimit,
+    pub admin_login_failure_limit: config_lib::admin_login_failure_limit::AdminLoginFailureLimit,
     #[config(example = "604800")]
-    pub admin_refresh_token_ttl_seconds: config_lib::domain_types::AdminRefreshTokenTtlSeconds,
+    pub admin_refresh_token_ttl_seconds:
+        config_lib::admin_refresh_token_ttl_seconds::AdminRefreshTokenTtlSeconds,
     #[config(example = "8")]
-    pub admin_session_limit: config_lib::domain_types::AdminSessionLimit,
+    pub admin_session_limit: config_lib::admin_session_limit::AdminSessionLimit,
     #[config(example = "10")]
-    pub admin_sign_in_rate_limit: config_lib::domain_types::AdminSignInRateLimit,
+    pub admin_sign_in_rate_limit: config_lib::admin_sign_in_rate_limit::AdminSignInRateLimit,
     #[config(example = "10")]
-    pub pg_pool_acquire_timeout_seconds: config_lib::domain_types::PgPoolAcquireTimeoutSeconds,
+    pub pg_pool_acquire_timeout_seconds:
+        config_lib::pg_pool_acquire_timeout_seconds::PgPoolAcquireTimeoutSeconds,
     #[config(example = "600")]
-    pub pg_pool_idle_timeout_seconds: config_lib::domain_types::PgPoolIdleTimeoutSeconds,
+    pub pg_pool_idle_timeout_seconds:
+        config_lib::pg_pool_idle_timeout_seconds::PgPoolIdleTimeoutSeconds,
     #[config(example = "1800")]
-    pub pg_pool_max_lifetime_seconds: config_lib::domain_types::PgPoolMaxLifetimeSeconds,
+    pub pg_pool_max_lifetime_seconds:
+        config_lib::pg_pool_max_lifetime_seconds::PgPoolMaxLifetimeSeconds,
     #[config(example = "30")]
-    pub request_timeout_seconds: config_lib::domain_types::RequestTimeoutSeconds,
+    pub request_timeout_seconds: config_lib::request_timeout_seconds::RequestTimeoutSeconds,
     #[config(example = "1048576")]
-    pub maximum_size_of_http_body_in_bytes: config_lib::domain_types::MaximumSizeOfHttpBodyInBytes,
+    pub maximum_size_of_http_body_in_bytes:
+        config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes,
     #[config(example = "127.0.0.1:8080")]
     pub service_socket_address: config_lib::domain_types::ServiceSocketAddress,
     #[config(example = "10")]
-    pub pg_pool_max_connections: config_lib::domain_types::PgPoolMaxConnections,
+    pub pg_pool_max_connections: config_lib::pg_pool_max_connections::PgPoolMaxConnections,
     #[config(example = "1")]
-    pub pg_pool_min_connections: config_lib::domain_types::PgPoolMinConnections,
+    pub pg_pool_min_connections: config_lib::pg_pool_min_connections::PgPoolMinConnections,
     #[config(example = "10800")]
-    pub timezone: config_lib::domain_types::ChronoTimezone,
+    pub timezone: config_lib::chrono_timezone::ChronoTimezone,
     #[config(example = "src")]
     pub src_place_type: config_lib::domain_types::SrcPlaceType,
     #[config(example = "info")]
     pub tracing_level: config_lib::domain_types::TracingLevel,
     #[config(example = "text")]
-    pub tracing_format: config_lib::domain_types::types::TracingFormat,
+    pub tracing_format: config_lib::tracing_format::TracingFormat,
     #[config(example = "true")]
     pub enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck,
     #[config(example = "false")]
-    pub admin_cookie_secure: config_lib::domain_types::AdminCookieSecure,
+    pub admin_cookie_secure: config_lib::admin_cookie_secure::AdminCookieSecure,
     #[config(example = "true")]
-    pub admin_swagger_enabled: config_lib::domain_types::AdminSwaggerEnabled,
+    pub admin_swagger_enabled: config_lib::admin_swagger_enabled::AdminSwaggerEnabled,
     #[config(example = "true")]
-    pub http_gzip_enabled: config_lib::domain_types::HttpGzipEnabled,
+    pub http_gzip_enabled: config_lib::http_gzip_enabled::HttpGzipEnabled,
     #[config(example = "false")]
-    pub production_mode: config_lib::domain_types::ProductionMode,
+    pub production_mode: config_lib::production_mode::ProductionMode,
     #[config(example = "serve")]
-    pub svc_mode: config_lib::domain_types::types::SvcMode,
+    pub svc_mode: config_lib::svc_mode::SvcMode,
 }
 impl Config {
     pub fn validate_for_startup(
@@ -101,7 +108,7 @@ impl Config {
             .iter()
             .any(|secret| {
                 secrecy::ExposeSecret::expose_secret(secret.as_ref()).as_ref()
-                    == constants_str::ADMIN_DEVELOPMENT_JWT_SECRET
+                    == constants_str::test_fixtures::ADMIN_DEVELOPMENT_JWT_SECRET
             })
         {
             return Err(
@@ -117,11 +124,15 @@ impl config_lib::domain_types::CorsAllowOriginProvider for Config {
     }
 }
 impl config_lib::domain_types::DatabaseUrlProvider for Config {
-    fn database_url(&self) -> &secrecy::SecretBox<config_lib::domain_types::StdConfigSecretString> {
+    fn database_url(
+        &self,
+    ) -> &secrecy::SecretBox<config_lib::std_config_secret_string::StdConfigSecretString> {
         &self.database_url.0
     }
 }
-impl config_lib::domain_types::MaximumSizeOfHttpBodyInBytesProvider for Config {
+impl config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytesProvider
+    for Config
+{
     fn maximum_size_of_http_body_in_bytes(&self) -> &usize {
         &self.maximum_size_of_http_body_in_bytes
     }
@@ -131,23 +142,23 @@ impl config_lib::domain_types::ServiceSocketAddressProvider for Config {
         &self.service_socket_address.0
     }
 }
-impl config_lib::domain_types::PgPoolMaxConnectionsProvider for Config {
+impl config_lib::pg_pool_max_connections::PgPoolMaxConnectionsProvider for Config {
     fn pg_pool_max_connections(&self) -> &u32 {
         &self.pg_pool_max_connections
     }
 }
-impl config_lib::domain_types::ChronoTimezoneProvider for Config {
+impl config_lib::chrono_timezone::ChronoTimezoneProvider for Config {
     fn chrono_timezone(&self) -> &chrono::FixedOffset {
         &self.timezone
     }
 }
 impl config_lib::domain_types::SrcPlaceTypeProvider for Config {
-    fn src_place_type(&self) -> &config_lib::domain_types::types::SrcPlaceType {
+    fn src_place_type(&self) -> &config_lib::src_place_type::SrcPlaceType {
         &self.src_place_type.0
     }
 }
 impl config_lib::domain_types::TracingLevelProvider for Config {
-    fn tracing_level(&self) -> &config_lib::domain_types::types::TracingLevel {
+    fn tracing_level(&self) -> &config_lib::tracing_level::TracingLevel {
         &self.tracing_level.0
     }
 }
@@ -156,24 +167,28 @@ impl config_lib::domain_types::EnableApiGitCommitCheckProvider for Config {
         &self.enable_api_git_commit_check.0
     }
 }
-impl config_lib::domain_types::AdminCookieSecureProvider for Config {
+impl config_lib::admin_cookie_secure::AdminCookieSecureProvider for Config {
     fn admin_cookie_secure(&self) -> &bool {
         &self.admin_cookie_secure
     }
 }
-impl config_lib::domain_types::AdminJwtSecretProvider for Config {
+impl config_lib::admin_jwt_secret::AdminJwtSecretProvider for Config {
     fn admin_jwt_secret(
         &self,
-    ) -> &bounded_types::BoundedVec<config_lib::domain_types::SecrecySecretBoxString, 1, 8> {
+    ) -> &bounded_types::bounded_vec::BoundedVec<
+        config_lib::secrecy_secret_box_string::SecrecySecretBoxString,
+        1,
+        8,
+    > {
         self.admin_jwt_secret.as_ref()
     }
 }
-impl config_lib::domain_types::AdminTokenAudienceProvider for Config {
+impl config_lib::admin_token_audience::AdminTokenAudienceProvider for Config {
     fn admin_token_audience(&self) -> &String {
         self.admin_token_audience.as_ref()
     }
 }
-impl config_lib::domain_types::AdminTokenIssuerProvider for Config {
+impl config_lib::admin_token_issuer::AdminTokenIssuerProvider for Config {
     fn admin_token_issuer(&self) -> &String {
         self.admin_token_issuer.as_ref()
     }

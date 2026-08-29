@@ -6,25 +6,28 @@ impl ReqwestRuntimeTestResponse {
 
     pub(crate) fn into_health_report(
         self,
-    ) -> Result<common_routes::HealthReport, server_runtime_http::domain_types::ReqwestError> {
+    ) -> Result<
+        common_routes::health_report::HealthReport,
+        server_runtime_http::reqwest_error::ReqwestError,
+    > {
         self.0
-            .json::<common_routes::HealthReport>()
-            .map_err(server_runtime_http::domain_types::ReqwestError::from)
+            .json::<common_routes::health_report::HealthReport>()
+            .map_err(server_runtime_http::reqwest_error::ReqwestError::from)
     }
     // The owner module retains lint-sensitive semantics from the original implementation.
 
     pub(crate) fn into_notification_res(
         self,
     ) -> Result<
-        notification_service_contract::domain_types::CreateNotificationRes,
-        server_runtime_http::domain_types::ReqwestError,
+        notification_service_contract::create_notification_res::CreateNotificationRes,
+        server_runtime_http::reqwest_error::ReqwestError,
     > {
         self.0
-            .json::<notification_service_contract::domain_types::CreateNotificationRes>()
-            .map_err(server_runtime_http::domain_types::ReqwestError::from)
+            .json::<notification_service_contract::create_notification_res::CreateNotificationRes>()
+            .map_err(server_runtime_http::reqwest_error::ReqwestError::from)
     }
     #[must_use]
-    pub(crate) fn status(&self) -> crate::domain_types::HttpRuntimeTestStatus {
-        crate::domain_types::HttpRuntimeTestStatus::from(self.0.status().as_u16())
+    pub(crate) fn status(&self) -> crate::http_runtime_test_status::HttpRuntimeTestStatus {
+        crate::http_runtime_test_status::HttpRuntimeTestStatus::from(self.0.status().as_u16())
     }
 }

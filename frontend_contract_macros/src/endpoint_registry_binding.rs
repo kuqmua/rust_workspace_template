@@ -1,5 +1,3 @@
-use super::{SynEndpointRegistryContract, SynEndpointRegistryEndpoint};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     generate_accessor::Getters,
@@ -7,6 +5,6 @@ use super::{SynEndpointRegistryContract, SynEndpointRegistryEndpoint};
 )]
 #[getters(get_mut)]
 pub(crate) struct EndpointRegistryBinding {
-    contract: SynEndpointRegistryContract,
-    endpoint: SynEndpointRegistryEndpoint,
+    contract: crate::syn_endpoint_registry_contract::SynEndpointRegistryContract,
+    endpoint: crate::syn_endpoint_registry_endpoint::SynEndpointRegistryEndpoint,
 }

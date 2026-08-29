@@ -6,17 +6,17 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct HttpContractExpectation {
-    pub(super) metadata: frontend_contract::RouteMetadata,
-    pub(super) status: crate::route_contract_validation::HttpContractStatus,
-    pub(super) body_kind: crate::route_contract_validation::HttpContractBodyKind,
+    pub(super) metadata: frontend_contract::route_metadata::RouteMetadata,
+    pub(super) status: crate::http_contract_status::HttpContractStatus,
+    pub(super) body_kind: crate::http_contract_body_kind::HttpContractBodyKind,
 }
 
 impl HttpContractExpectation {
     #[must_use]
     pub const fn new(
-        metadata: frontend_contract::RouteMetadata,
-        status: crate::route_contract_validation::HttpContractStatus,
-        body_kind: crate::route_contract_validation::HttpContractBodyKind,
+        metadata: frontend_contract::route_metadata::RouteMetadata,
+        status: crate::http_contract_status::HttpContractStatus,
+        body_kind: crate::http_contract_body_kind::HttpContractBodyKind,
     ) -> Self {
         Self {
             metadata,

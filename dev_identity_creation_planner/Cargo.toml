@@ -15,7 +15,7 @@ generate_constructor = { workspace = true }
 constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
-server_runtime_http = { workspace = true }
+server_runtime_core = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

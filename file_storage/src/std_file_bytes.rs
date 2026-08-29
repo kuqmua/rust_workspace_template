@@ -1,15 +1,15 @@
-use super::domain_types::{FileStoragePathError, MAXIMUM_FILE_BYTES};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
 )]
-pub struct StdFileBytes(bounded_types::BoundedVec<u8, 0, MAXIMUM_FILE_BYTES>);
+pub struct StdFileBytes(
+    bounded_types::bounded_vec::BoundedVec<u8, 0, { crate::domain_types::MAXIMUM_FILE_BYTES }>,
+);
 impl TryFrom<Vec<u8>> for StdFileBytes {
-    type Error = FileStoragePathError;
+    type Error = crate::file_storage_path_error::FileStoragePathError;
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        match bounded_types::BoundedVec::try_from(value) {
+        match bounded_types::bounded_vec::BoundedVec::try_from(value) {
             Ok(bounded) => Ok(Self(bounded)),
-            Err(_error) => Err(FileStoragePathError::FileTooLarge),
+            Err(_error) => Err(crate::file_storage_path_error::FileStoragePathError::FileTooLarge),
         }
     }
 }

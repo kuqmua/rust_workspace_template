@@ -1,5 +1,3 @@
-use super::domain_types::BoundedVecLen;
-
 #[location::errors_with_location]
 #[derive(
     Debug,
@@ -16,8 +14,8 @@ use super::domain_types::BoundedVecLen;
 pub enum BoundedVecTryNewError {
     LenIsNotCorrect {
         #[eo_to_err_string_serde]
-        wrong_len: BoundedVecLen,
+        wrong_len: crate::bounded_vec_len::BoundedVecLen,
         #[eo_to_err_string_serde]
-        expected: BoundedVecLen,
+        expected: crate::bounded_vec_len::BoundedVecLen,
     },
 }

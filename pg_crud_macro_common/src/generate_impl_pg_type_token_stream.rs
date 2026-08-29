@@ -2,23 +2,22 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use super::domain_types::*;
 
 pub fn generate_impl_pg_type_token_stream(
-    import: &Import,
+    import: &crate::import::Import,
     identifier: &dyn quote::ToTokens,
     identifier_table_type_upper_camel_case: &dyn quote::ToTokens,
-    is_primary_key_undrscr: &IsPrimaryKeyUndrscr,
+    is_primary_key_undrscr: &crate::emission_types::IsPrimaryKeyUndrscr,
     create_table_column_query_part_token_stream: &dyn quote::ToTokens,
     identifier_create_upper_camel_case: &dyn quote::ToTokens,
-    create_query_part_v_undrscr: &CreateQueryPartValueUndrscr,
-    create_query_part_increment_undrscr: &CreateQueryPartIncrementUndrscr,
+    create_query_part_v_undrscr: &crate::emission_types::CreateQueryPartValueUndrscr,
+    create_query_part_increment_undrscr: &crate::emission_types::CreateQueryPartIncrementUndrscr,
     create_query_part_token_stream: &dyn quote::ToTokens,
-    create_query_bind_v_undrscr: &CreateQueryBindValueUndrscr,
-    is_create_query_bind_mut: &IsCreateQueryBindMut,
+    create_query_bind_v_undrscr: &crate::emission_types::CreateQueryBindValueUndrscr,
+    is_create_query_bind_mut: &crate::emission_types::IsCreateQueryBindMut,
     create_query_bind_token_stream: &dyn quote::ToTokens,
     identifier_select_upper_camel_case: &dyn quote::ToTokens,
-    select_query_part_v_undrscr: &SelectQueryPartValueUndrscr,
+    select_query_part_v_undrscr: &crate::emission_types::SelectQueryPartValueUndrscr,
     select_query_part_token_stream: &dyn quote::ToTokens,
     identifier_where_upper_camel_case: &dyn quote::ToTokens,
     identifier_read_upper_camel_case: &dyn quote::ToTokens,
@@ -29,18 +28,18 @@ pub fn generate_impl_pg_type_token_stream(
     into_inner_token_stream: &dyn quote::ToTokens,
     identifier_update_upper_camel_case: &dyn quote::ToTokens,
     identifier_update_for_query_upper_camel_case: &dyn quote::ToTokens,
-    update_query_part_v_undrscr: &UpdateQueryPartValueUndrscr,
-    update_query_part_accumulator_undrscr: &UpdateQueryPartAccumulatorUndrscr,
-    update_query_part_target_undrscr: &UpdateQueryPartTargetUndrscr,
-    update_query_part_path_undrscr: &UpdateQueryPartPathUndrscr,
+    update_query_part_v_undrscr: &crate::emission_types::UpdateQueryPartValueUndrscr,
+    update_query_part_accumulator_undrscr: &crate::emission_types::UpdateQueryPartAccumulatorUndrscr,
+    update_query_part_target_undrscr: &crate::emission_types::UpdateQueryPartTargetUndrscr,
+    update_query_part_path_undrscr: &crate::emission_types::UpdateQueryPartPathUndrscr,
     update_query_part_token_stream: &dyn quote::ToTokens,
-    is_update_query_bind_mut: &IsUpdateQueryBindMut,
+    is_update_query_bind_mut: &crate::emission_types::IsUpdateQueryBindMut,
     update_query_bind_token_stream: &dyn quote::ToTokens,
     select_only_updated_ids_query_part_token_stream: &dyn quote::ToTokens,
-    is_select_only_updated_ids_query_bind_mut: &IsSelectOnlyUpdatedIdsQueryBindMut,
+    is_select_only_updated_ids_query_bind_mut: &crate::emission_types::IsSelectOnlyUpdatedIdsQueryBindMut,
     select_only_updated_ids_query_bind_token_stream: &dyn quote::ToTokens,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-    let names = NamesCtx::new();
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
+    let names = crate::names_ctx::NamesCtx::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (
@@ -100,29 +99,29 @@ pub fn generate_impl_pg_type_token_stream(
     );
     quote::quote! {
         #AllowClippyArbitrarySrcItemOrdering
-        impl #import :: #PgTypeUpperCamelCase for #identifier {
+        impl #import::pg_type::#PgTypeUpperCamelCase for #identifier {
             type #TableTypeUpperCamelCase = #identifier_table_type_upper_camel_case;
-            fn #CreateTableColumnQueryPartSnakeCase(#ColumnSnakeCase: #import::SqlColumnRef<'_>, #is_primary_key_undrscr: #import::IsPrimaryKey) -> #import::QueryPartFragment {
+            fn #CreateTableColumnQueryPartSnakeCase(#ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>, #is_primary_key_undrscr: #import::is_primary_key::IsPrimaryKey) -> #import::query_part_fragment::QueryPartFragment {
                 #create_table_column_query_part_token_stream
             }
             type #CreateUpperCamelCase = #identifier_create_upper_camel_case;
             fn #CreateQueryPartSnakeCase(
                 #create_query_part_v_undrscr: &Self::#CreateUpperCamelCase,
-                #create_query_part_increment_undrscr: &mut dyn #import::QueryPartIncrementMut
-            ) -> Result<#import::QueryPartFragment, #import ::#QueryPartErrorUpperCamelCase> {
+                #create_query_part_increment_undrscr: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut
+            ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #create_query_part_token_stream
             }
             fn #CreateQueryBindSnakeCase(
                 #create_query_bind_v_undrscr: Self::#CreateUpperCamelCase,
-                #is_create_query_bind_mut #QuerySnakeCase: #import::SqlxPostgresQuery<'_>
-            ) -> Result<#import::SqlxPostgresQuery<'_>, #import::SqlxPostgresQueryBindError> {
+                #is_create_query_bind_mut #QuerySnakeCase: #import::sqlx_postgres_query::SqlxPostgresQuery<'_>
+            ) -> Result<#import::sqlx_postgres_query::SqlxPostgresQuery<'_>, #import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
                 #create_query_bind_token_stream
             }
             type #SelectUpperCamelCase = #identifier_select_upper_camel_case;
             fn #SelectQueryPartSnakeCase(
                 #select_query_part_v_undrscr: &Self::#SelectUpperCamelCase,
-                #ColumnSnakeCase: #import::SqlColumnRef<'_>,
-            ) -> Result<#import::QueryPartFragment, #import ::#QueryPartErrorUpperCamelCase> {
+                #ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>,
+            ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #select_query_part_token_stream
             }
             type #WhereUpperCamelCase = #identifier_where_upper_camel_case;
@@ -132,8 +131,8 @@ pub fn generate_impl_pg_type_token_stream(
             }
             type #ReadIdsUpperCamelCase = #read_ids_token_stream;
             fn #SelectOnlyIdsQueryPartSnakeCase(
-                #ColumnSnakeCase: #import::SqlColumnRef<'_>
-            ) -> Result<#import::QueryPartFragment, #import ::#QueryPartErrorUpperCamelCase> {
+                #ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>
+            ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #select_only_ids_query_part_token_stream
             }
             type #ReadInnerUpperCamelCase = #identifier_read_inner_upper_camel_case;
@@ -146,30 +145,30 @@ pub fn generate_impl_pg_type_token_stream(
             #[allow(unused_variables)]
             fn #UpdateQueryPartSnakeCase(
                 #update_query_part_v_undrscr: &Self::#UpdateForQueryUpperCamelCase,
-                #update_query_part_accumulator_undrscr: #import::SqlColumnRef<'_>,
-                #update_query_part_target_undrscr: #import::SqlColumnRef<'_>,
-                #update_query_part_path_undrscr: #import::SqlColumnRef<'_>,
-                #IncrementSnakeCase: &mut dyn #import::QueryPartIncrementMut
-            ) -> Result<#import::QueryPartFragment, #import ::#QueryPartErrorUpperCamelCase> {
+                #update_query_part_accumulator_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,
+                #update_query_part_target_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,
+                #update_query_part_path_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,
+                #IncrementSnakeCase: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut
+            ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #update_query_part_token_stream
             }
             fn #UpdateQueryBindSnakeCase(
                 #VSnakeCase: Self::#UpdateForQueryUpperCamelCase,
-                #is_update_query_bind_mut #QuerySnakeCase: #import::SqlxPostgresQuery<'_>
-            ) -> Result<#import::SqlxPostgresQuery<'_>, #import::SqlxPostgresQueryBindError> {
+                #is_update_query_bind_mut #QuerySnakeCase: #import::sqlx_postgres_query::SqlxPostgresQuery<'_>
+            ) -> Result<#import::sqlx_postgres_query::SqlxPostgresQuery<'_>, #import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
                 #update_query_bind_token_stream
             }
             fn #SelectOnlyUpdatedIdsQueryPartSnakeCase(
                 #VSnakeCase: &Self::#UpdateForQueryUpperCamelCase,
-                #ColumnSnakeCase: #import::SqlColumnRef<'_>,
-                #IncrementSnakeCase: &mut dyn #import::QueryPartIncrementMut,
-            ) -> Result<#import::QueryPartFragment, #import ::#QueryPartErrorUpperCamelCase> {
+                #ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>,
+                #IncrementSnakeCase: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut,
+            ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #select_only_updated_ids_query_part_token_stream
             }
             fn #SelectOnlyUpdatedIdsQueryBindSnakeCase<'lt>(
                 #VSnakeCase: &'lt Self::#UpdateForQueryUpperCamelCase,
-                #is_select_only_updated_ids_query_bind_mut #QuerySnakeCase: #import::SqlxPostgresQuery<'lt>
-            ) -> Result<#import::SqlxPostgresQuery<'lt>, #import::SqlxPostgresQueryBindError> {
+                #is_select_only_updated_ids_query_bind_mut #QuerySnakeCase: #import::sqlx_postgres_query::SqlxPostgresQuery<'lt>
+            ) -> Result<#import::sqlx_postgres_query::SqlxPostgresQuery<'lt>, #import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
                 #select_only_updated_ids_query_bind_token_stream
             }
         }

@@ -4,7 +4,7 @@
 pub struct HttpContentLength(String);
 
 impl TryFrom<String> for HttpContentLength {
-    type Error = super::HttpContentLengthError;
+    type Error = crate::http_content_length_error::HttpContentLengthError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > constants_usize::TWENTY {
@@ -24,7 +24,7 @@ impl TryFrom<String> for HttpContentLength {
 }
 
 impl TryFrom<HttpContentLength> for u64 {
-    type Error = super::HttpContentLengthError;
+    type Error = crate::http_content_length_error::HttpContentLengthError;
 
     fn try_from(value: HttpContentLength) -> Result<Self, Self::Error> {
         value

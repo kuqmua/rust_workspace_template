@@ -4,10 +4,10 @@
 )]
 
 pub(crate) fn admin_filter_hidden_inputs(
-    field: Option<&server_admin_contract::domain_types::AdminFilterField>,
-    operation: Option<&server_admin_contract::domain_types::AdminFilterOperationKey>,
-    value: Option<&server_admin_contract::domain_types::AdminFilterValue>,
-    end: Option<&server_admin_contract::domain_types::AdminFilterValue>,
+    field: Option<&server_admin_contract::admin_filter_field::AdminFilterField>,
+    operation: Option<&server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey>,
+    value: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
+    end: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
 ) -> impl leptos::prelude::IntoView + use<> {
     let field = field.map(ToString::to_string);
     let operation = operation.map(ToString::to_string);

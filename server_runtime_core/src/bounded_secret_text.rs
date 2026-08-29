@@ -5,27 +5,29 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::DisplayConst,
 )]
-#[display_const(constants_str::REDACTED_ALT_3)]
+#[display_const(constants_str::catalog::REDACTED_ALT_3)]
 pub struct BoundedSecretText(pub(super) String);
 
 impl TryFrom<String> for BoundedSecretText {
-    type Error = super::BoundedSecretTextError;
+    type Error = crate::bounded_secret_text_error::BoundedSecretTextError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() < super::SECRET_TEXT_MINIMUM_BYTES
+        if value.len() < crate::secret_text_minimum_bytes::SECRET_TEXT_MINIMUM_BYTES
             || value.len() > constants_usize::VALUE_8_192
         {
-            return Err(super::BoundedSecretTextError::InvalidLength);
+            return Err(crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength);
         }
         if value.trim().len() != value.len() {
-            return Err(super::BoundedSecretTextError::SurroundingWhitespace);
+            return Err(
+                crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
+            );
         }
         if value
             .as_bytes()
             .first()
             .is_some_and(|first| value.as_bytes().iter().all(|byte| byte == first))
         {
-            return Err(super::BoundedSecretTextError::RepeatedByte);
+            return Err(crate::bounded_secret_text_error::BoundedSecretTextError::RepeatedByte);
         }
         Ok(Self(value))
     }
@@ -33,6 +35,6 @@ impl TryFrom<String> for BoundedSecretText {
 
 impl std::fmt::Debug for BoundedSecretText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
+        f.write_str(constants_str::catalog::REDACTED_ALT_3)
     }
 }

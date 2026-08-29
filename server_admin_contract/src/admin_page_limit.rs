@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::{AdminDefaultPageLimit, AdminPageLimitError, AdminPageLimitVisitor};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -21,22 +20,23 @@ impl<'de> serde::Deserialize<'de> for AdminPageLimit {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = deserializer.deserialize_any(AdminPageLimitVisitor)?;
+        let value =
+            deserializer.deserialize_any(crate::admin_page_limit_visitor::AdminPageLimitVisitor)?;
         Self::try_from(u16::from(value)).map_err(serde::de::Error::custom)
     }
 }
 impl Default for AdminPageLimit {
     fn default() -> Self {
-        Self::from(AdminDefaultPageLimit)
+        Self::from(crate::admin_default_page_limit::AdminDefaultPageLimit)
     }
 }
 impl TryFrom<u16> for AdminPageLimit {
-    type Error = AdminPageLimitError;
+    type Error = crate::admin_page_limit_error::AdminPageLimitError;
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if (Self::MIN..=Self::MAX).contains(&value) {
             Ok(Self(value))
         } else {
-            Err(AdminPageLimitError)
+            Err(crate::admin_page_limit_error::AdminPageLimitError)
         }
     }
 }

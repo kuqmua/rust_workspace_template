@@ -7,20 +7,24 @@ pub struct ReqwestOutboundUrl(pub(super) reqwest::Url);
 
 impl ReqwestOutboundUrl {
     #[must_use]
-    pub fn scheme(&self) -> super::OutboundUrlScheme {
+    pub fn scheme(&self) -> crate::outbound_url_scheme::OutboundUrlScheme {
         match self.0.scheme() {
-            constants_str::HTTPS => super::OutboundUrlScheme::Https,
-            constants_str::RTSP => super::OutboundUrlScheme::Rtsp,
-            constants_str::RTSPS => super::OutboundUrlScheme::Rtsps,
-            _ => super::OutboundUrlScheme::Http,
+            constants_str::catalog::HTTPS => crate::outbound_url_scheme::OutboundUrlScheme::Https,
+            constants_str::test_fixtures::RTSP => {
+                crate::outbound_url_scheme::OutboundUrlScheme::Rtsp
+            }
+            constants_str::test_fixtures::RTSPS => {
+                crate::outbound_url_scheme::OutboundUrlScheme::Rtsps
+            }
+            _ => crate::outbound_url_scheme::OutboundUrlScheme::Http,
         }
     }
 }
 
 impl std::fmt::Debug for ReqwestOutboundUrl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(constants_str::OUTBOUND_URL)
-            .field(&crate::domain_types::redact_url_userinfo(
+        f.debug_tuple(constants_str::test_fixtures::OUTBOUND_URL)
+            .field(&crate::redact_url_userinfo::redact_url_userinfo(
                 self.0.as_str().into(),
             ))
             .finish()

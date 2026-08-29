@@ -4,8 +4,10 @@
 #[error("{}", std::any::type_name::<Self>())]
 pub struct SynchronizationPayloadTooLarge;
 
-impl From<bounded_types::BoundedValueError> for SynchronizationPayloadTooLarge {
-    fn from(_value: bounded_types::BoundedValueError) -> Self {
+impl From<bounded_types::bounded_value_error::BoundedValueError>
+    for SynchronizationPayloadTooLarge
+{
+    fn from(_value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
         Self
     }
 }

@@ -1,11 +1,13 @@
-pub(crate) fn template_fs_should_skip(path: crate::ScaffoldPathRef<'_>) -> crate::ShouldSkip {
-    crate::ShouldSkip::from(path.get().components().any(|component| {
+pub(crate) fn template_fs_should_skip(
+    path: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
+) -> crate::should_skip::ShouldSkip {
+    crate::should_skip::ShouldSkip::from(path.get().components().any(|component| {
         matches!(
             component.as_os_str().to_str(),
             Some(
-                constants_str::GIT
-                    | constants_str::TARGET
-                    | constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
+                constants_str::catalog::GIT
+                    | constants_str::catalog::TARGET
+                    | constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NODE_MODULES
             )
         )
     }))
@@ -15,11 +17,17 @@ pub(crate) fn template_fs_should_skip(path: crate::ScaffoldPathRef<'_>) -> crate
 mod tests {
     #[test]
     fn ignored_template_directories_are_explicit() {
-        assert!(bool::from(super::template_fs_should_skip(
-            crate::ScaffoldPathRef::from(std::path::Path::new("target/generated"))
-        )));
-        assert!(!bool::from(super::template_fs_should_skip(
-            crate::ScaffoldPathRef::from(std::path::Path::new("server/src"))
-        )));
+        assert!(bool::from(
+            crate::template_fs_should_skip::template_fs_should_skip(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(std::path::Path::new(
+                    "target/generated"
+                ))
+            )
+        ));
+        assert!(!bool::from(
+            crate::template_fs_should_skip::template_fs_should_skip(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(std::path::Path::new("server/src"))
+            )
+        ));
     }
 }

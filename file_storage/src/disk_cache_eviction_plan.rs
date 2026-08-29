@@ -1,5 +1,3 @@
-use super::domain_types::StorageRelativePathBuf;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,5 +9,9 @@ use super::domain_types::StorageRelativePathBuf;
     newtype::FromInner,
 )]
 pub struct DiskCacheEvictionPlan(
-    bounded_types::BoundedVec<StorageRelativePathBuf, 0, { usize::MAX }>,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::storage_relative_path_buf::StorageRelativePathBuf,
+        0,
+        { usize::MAX },
+    >,
 );

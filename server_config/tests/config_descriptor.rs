@@ -7,8 +7,8 @@ mod tests {
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
     fn env_example_matches_generated_config_descriptor_and_parsers() {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(constants_str::SERVER_DOT_ENV_EXAMPLE);
-        if std::env::var_os(constants_str::UPDATE_CONFIG_PROJECTIONS).is_some() {
+            .join(constants_str::test_fixtures::SERVER_DOT_ENV_EXAMPLE);
+        if std::env::var_os(constants_str::test_fixtures::UPDATE_CONFIG_PROJECTIONS).is_some() {
             std::fs::write(example_path.as_path(), server_config::config::Config::env_example())
                 .expect("c4a18f7d env_example_matches_generated_config_descriptor_and_parsers invariant must hold");
         }
@@ -29,14 +29,14 @@ mod tests {
             assert_eq!(value, descriptor.example().as_ref());
             assert_eq!(
                 descriptor.requirement(),
-                config_lib::domain_types::ConfigFieldRequirement::Required
+                config_lib::config_field_requirement::ConfigFieldRequirement::Required
             );
-            if descriptor.sensitivity() == config_lib::domain_types::ConfigFieldSensitivity::Public {
+            if descriptor.sensitivity() == config_lib::config_field_sensitivity::ConfigFieldSensitivity::Public {
                 assert_eq!(
                     descriptor.validate_example(
-                        config_lib::domain_types::StdEnvVarOk::try_from(value).expect("92ae8a38 env_example_matches_generated_config_descriptor_and_parsers invariant must hold")
+                        config_lib::std_env_var_ok::StdEnvVarOk::try_from(value).expect("92ae8a38 env_example_matches_generated_config_descriptor_and_parsers invariant must hold")
                     ),
-                    config_lib::domain_types::ConfigExampleValidity::Valid,
+                    config_lib::config_example_validity::ConfigExampleValidity::Valid,
                     "{} {}",
                     descriptor.env_name().as_ref(),
                     descriptor.rust_type_name().as_ref()

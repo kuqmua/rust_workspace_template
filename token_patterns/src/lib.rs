@@ -1,4 +1,4 @@
-mod proc_macro2_tokens_mut;
+pub mod proc_macro2_tokens_mut;
 
 token_patterns_macros::tp!(SqlxAcquire, sqlx::Acquire);
 token_patterns_macros::tp!(
@@ -14,7 +14,7 @@ token_patterns_macros::tp!(SerdeSerialize, serde::Serialize);
 token_patterns_macros::tp!(SerdeDeserialize, serde::Deserialize);
 token_patterns_macros::tp!(UtoipaToSchema, utoipa::ToSchema);
 token_patterns_macros::tp!(SchemarsJsonSchema, schemars::JsonSchema);
-token_patterns_macros::tp!(LocationLibLocation, location_lib::domain_types::Location);
+token_patterns_macros::tp!(LocationLibLocation, location_lib::location::Location);
 token_patterns_macros::tp!(ThiserrorError, thiserror::Error);
 token_patterns_macros::tp!(Char, char);
 token_patterns_macros::tp!(RefStr, &str);
@@ -33,9 +33,9 @@ token_patterns_macros::tp!(
 token_patterns_macros::tp!(SqlxTypesTypeDatabase, sqlx::types::Type<R::Database>);
 token_patterns_macros::tp!(
     LocationLibLocationLocation,
-    location_lib::domain_types::Location
+    location_lib::location::Location
 );
-token_patterns_macros::tp!(LocationSnakeCaseDoubleDotSpaceLocationLibLocationLocation, location: location_lib::domain_types::Location);
+token_patterns_macros::tp!(LocationSnakeCaseDoubleDotSpaceLocationLibLocationLocation, location: location_lib::location::Location);
 token_patterns_macros::tp!(CoreDefault, ::core::default::Default::default());
 token_patterns_macros::tp!(SqlxTypesTimeTimeMidnight, sqlx::types::time::Time::MIDNIGHT);
 token_patterns_macros::tp!(
@@ -75,7 +75,7 @@ token_patterns_macros::tp_parts!(
 );
 token_patterns_macros::tp_parts!(
     PgCrudCommonDefaultSomeOneElement,
-    pg_crud_common(),
+    quote::quote! {pg_crud_common::default_some_one_element::},
     default_some_one_element_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
@@ -95,7 +95,7 @@ token_patterns_macros::tp_parts!(
 );
 token_patterns_macros::tp_parts!(
     PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElement,
-    pg_crud_common(),
+    quote::quote! {pg_crud_common::all_enum_variants_array_default_some_one_element::},
     all_variants_default_some_one_element_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
@@ -116,7 +116,7 @@ token_patterns_macros::tp_parts!(
 );
 token_patterns_macros::tp_parts!(
     PgCrudCommonDefaultSomeOneElementMaxPageSize,
-    pg_crud_common(),
+    quote::quote! {pg_crud_common::default_some_one_element_max_page_size::},
     default_some_one_element_max_page_size_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
@@ -136,7 +136,7 @@ token_patterns_macros::tp_parts!(
 );
 token_patterns_macros::tp_parts!(
     PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementMaxPageSize,
-    pg_crud_common(),
+    quote::quote! {pg_crud_common::all_enum_variants_array_default_some_one_element_max_page_size::},
     all_variants_default_some_one_element_max_page_size_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
@@ -156,7 +156,7 @@ token_patterns_macros::ts_path_fn!(
     DefaultSomeOneElementMaxPageSize
 );
 token_patterns_macros::ts_path_fn!(crate_path_token_stream, crate::);
-token_patterns_macros::ts_path_fn!(pg_crud_common, pg_crud_common::domain_types::);
+token_patterns_macros::ts_path_fn!(pg_crud_common, pg_crud_common::);
 token_patterns_macros::ts_path_fn!(
     default_some_one_element_upper_camel_case,
     DefaultSomeOneElement
@@ -214,15 +214,12 @@ mod tests {
     }
     #[test]
     fn ts_path_fn_outputs_expected_tokens() {
-        assert_tokens_eq(
-            super::pg_crud_common(),
-            quote::quote! {pg_crud_common::domain_types::},
-        );
+        assert_tokens_eq(crate::pg_crud_common(), quote::quote! {pg_crud_common::});
     }
     #[test]
     fn path_helper_outputs_expected_tokens() {
         assert_tokens_eq(
-            super::path_default_some_one_element_call(),
+            crate::path_default_some_one_element_call(),
             quote::quote! {::default_some_one_element()},
         );
     }

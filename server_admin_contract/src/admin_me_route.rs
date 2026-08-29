@@ -1,17 +1,21 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract_macros::TypedRoute,
 )]
 #[typed_route(
-    authentication = frontend_contract::AuthenticationRequirement::Authenticated,
-    method = frontend_contract::RouteMethod::Get,
-    mutation = frontend_contract::RouteMutation::ReadOnly,
-    obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS,
-    error_policy = frontend_contract::RouteErrorPolicy::Default,
+    authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Authenticated,
+    method = frontend_contract::route_method::RouteMethod::Get,
+    mutation = frontend_contract::route_mutation::RouteMutation::ReadOnly,
+    obligations = frontend_contract::route_coverage_obligation::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    error_policy = frontend_contract::route_error_policy::RouteErrorPolicy::Default,
     openapi_operation_id = "me",
     path = "/auth/me",
-    request = crate::domain_types::AdminNoBody,
-    response = crate::domain_types::AuthenticatedAdmin,
-    success_status = frontend_contract::SuccessStatus::Code200,
-    transport = frontend_contract::AuthenticatedTransport,
+    request = crate::admin_no_body::AdminNoBody,
+    response = crate::authenticated_admin::AuthenticatedAdmin,
+    success_status = frontend_contract::success_status::SuccessStatus::Code200,
+    transport = frontend_contract::authenticated_transport::AuthenticatedTransport,
 )]
 pub struct AdminMeRoute;

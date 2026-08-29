@@ -6,12 +6,12 @@
 pub struct PgRelationCapacityMaximum(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for PgRelationCapacityMaximum {
-    type Error = crate::domain_types::PgRelationCapacityError;
+    type Error = crate::pg_relation_capacity_error::PgRelationCapacityError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         std::num::NonZeroU64::new(value)
             .map(Self::from)
-            .ok_or(crate::domain_types::PgRelationCapacityError::ZeroMaximum)
+            .ok_or(crate::pg_relation_capacity_error::PgRelationCapacityError::ZeroMaximum)
     }
 }
 

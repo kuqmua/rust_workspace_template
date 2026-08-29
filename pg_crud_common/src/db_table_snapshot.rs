@@ -4,15 +4,15 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DbTableSnapshot {
-    pub(super) columns: super::DbColumnSnapshots,
-    pub(super) objects: super::DbObjectSnapshots,
+    pub(super) columns: crate::db_column_snapshots::DbColumnSnapshots,
+    pub(super) objects: crate::db_object_snapshots::DbObjectSnapshots,
 }
 
 impl DbTableSnapshot {
     #[must_use]
     pub fn new(
-        mut columns: super::DbColumnSnapshots,
-        mut objects: super::DbObjectSnapshots,
+        mut columns: crate::db_column_snapshots::DbColumnSnapshots,
+        mut objects: crate::db_object_snapshots::DbObjectSnapshots,
     ) -> Self {
         columns.sort_unstable();
         objects.sort_unstable();

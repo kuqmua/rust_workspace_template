@@ -3,10 +3,12 @@
 )]
 #[error("{self:?}")]
 pub struct AdminAuthPositiveValueError;
-impl From<server_admin_contract::domain_types::AdminIdTryFromI64Error>
+impl From<server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error>
     for AdminAuthPositiveValueError
 {
-    fn from(_value: server_admin_contract::domain_types::AdminIdTryFromI64Error) -> Self {
+    fn from(
+        _value: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
+    ) -> Self {
         Self
     }
 }

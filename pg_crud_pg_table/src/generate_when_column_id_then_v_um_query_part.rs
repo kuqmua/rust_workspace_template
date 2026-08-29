@@ -2,14 +2,13 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
-use super::*;
 
 #[must_use]
 pub fn generate_when_column_id_then_v_um_query_part(
-    column: PgTableSqlFragmentRef<'_>,
-    id: PgTableSqlFragmentRef<'_>,
-    value: PgTableSqlFragmentRef<'_>,
-) -> PgTableQueryPartFragment {
+    column: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
+    id: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
+    value: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
+) -> crate::pg_table_query_part_fragment::PgTableQueryPartFragment {
     let mut query_part = String::with_capacity(
         column
             .as_ref()
@@ -24,8 +23,11 @@ pub fn generate_when_column_id_then_v_um_query_part(
     )
     .is_err()
     {
-        return PgTableQueryPartFragment::try_from(String::default())
-            .unwrap_or_else(PgTableQueryPartFragment::from);
+        return crate::pg_table_query_part_fragment::PgTableQueryPartFragment::try_from(
+            String::default(),
+        )
+        .unwrap_or_else(crate::pg_table_query_part_fragment::PgTableQueryPartFragment::from);
     }
-    PgTableQueryPartFragment::try_from(query_part).unwrap_or_else(PgTableQueryPartFragment::from)
+    crate::pg_table_query_part_fragment::PgTableQueryPartFragment::try_from(query_part)
+        .unwrap_or_else(crate::pg_table_query_part_fragment::PgTableQueryPartFragment::from)
 }

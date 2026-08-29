@@ -1,6 +1,6 @@
 pub(crate) fn action_result_impl(
-    result: Result<crate::AxumAdminResponse, crate::AdminError>,
-    path: server_admin_contract::domain_types::AdminFrontendPath,
+    result: Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError>,
+    path: server_admin_contract::admin_frontend_path::AdminFrontendPath,
 ) -> axum::response::Response {
     match result {
         Ok(_response) => crate::success_redirect_impl::success_redirect_impl(path),

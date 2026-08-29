@@ -11,13 +11,13 @@ use leptos::prelude::{
 
 #[must_use]
 pub fn render_text_page(
-    page: server_admin_contract::domain_types::AdminPage,
-    _title: crate::AdminSsrText,
-    text: crate::AdminSsrText,
-) -> crate::AdminSsrHtml {
+    page: server_admin_contract::admin_page::AdminPage,
+    _title: crate::admin_ssr_text::AdminSsrText,
+    text: crate::admin_ssr_text::AdminSsrText,
+) -> crate::admin_ssr_html::AdminSsrHtml {
     let content_view = leptos::view! {
-        <section><crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::domain_types::with_owner::card::AdminCard></section>
+        <section><crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::admin_card::AdminCard></section>
     };
-    let content = crate::render_view(content_view);
-    crate::render_admin_page(page, content)
+    let content = crate::render_view::render_view(content_view);
+    crate::render_admin_page::render_admin_page(page, content)
 }

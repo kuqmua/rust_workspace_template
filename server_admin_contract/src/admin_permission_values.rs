@@ -1,5 +1,3 @@
-use super::{AdminBoundedVec, AdminCollectionError, AdminOpenApiVec};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,14 +8,18 @@ use super::{AdminBoundedVec, AdminCollectionError, AdminOpenApiVec};
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-#[serde(from = "AdminBoundedVec<crate::domain_types::AdminPermissionValue>")]
-#[schema(value_type = AdminOpenApiVec<crate::domain_types::AdminPermissionValue, 10_000>)]
-pub struct AdminPermissionValues(AdminBoundedVec<crate::domain_types::AdminPermissionValue>);
-impl TryFrom<Vec<crate::domain_types::AdminPermissionValue>> for AdminPermissionValues {
-    type Error = AdminCollectionError;
+#[serde(
+    from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_permission_value::AdminPermissionValue>"
+)]
+#[schema(value_type = crate::admin_open_api_vec::AdminOpenApiVec<crate::admin_permission_value::AdminPermissionValue, 10_000>)]
+pub struct AdminPermissionValues(
+    crate::admin_bounded_vec::AdminBoundedVec<crate::admin_permission_value::AdminPermissionValue>,
+);
+impl TryFrom<Vec<crate::admin_permission_value::AdminPermissionValue>> for AdminPermissionValues {
+    type Error = crate::admin_collection_error::AdminCollectionError;
     fn try_from(
-        value: Vec<crate::domain_types::AdminPermissionValue>,
+        value: Vec<crate::admin_permission_value::AdminPermissionValue>,
     ) -> Result<Self, Self::Error> {
-        AdminBoundedVec::try_from(value).map(Self)
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
     }
 }

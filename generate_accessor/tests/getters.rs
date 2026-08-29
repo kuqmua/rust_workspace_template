@@ -41,6 +41,6 @@ mod tests {
         assert_eq!(*TupleField(21).get_inner(), 21);
     }
 
-    const _: usize = constants_str::DOT.len();
+    const _: usize = constants_str::catalog::DOT.len();
     const _: usize = constants_usize::ZERO;
 }

@@ -1,5 +1,3 @@
-use super::AdminPermissionStrRef;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -11,8 +9,8 @@ use super::AdminPermissionStrRef;
     utoipa::ToSchema,
 )]
 #[wire_enum(
-    ref_type = AdminPermissionStrRef,
-    error_message = constants_str::UNKNOWN_ADMINISTRATOR_PERMISSION,
+    ref_type = crate::admin_permission_str_ref::AdminPermissionStrRef,
+    error_message = constants_str::catalog::UNKNOWN_ADMINISTRATOR_PERMISSION,
 )]
 pub enum AdminPermission {
     #[wire("access_sessions:read")]

@@ -1,5 +1,3 @@
-use super::domain_types::FixedLengthAsciiHexTextError;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,7 +9,7 @@ use super::domain_types::FixedLengthAsciiHexTextError;
 )]
 pub struct FixedLengthAsciiHexText(String);
 impl TryFrom<String> for FixedLengthAsciiHexText {
-    type Error = FixedLengthAsciiHexTextError;
+    type Error = crate::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() != 40usize {
             Err(Self::Error::InvalidLength)

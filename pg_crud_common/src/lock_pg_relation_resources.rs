@@ -1,8 +1,10 @@
 pub async fn lock_pg_relation_resources(
-    mut connection: crate::domain_types::SqlxPgRelationLockConnectionRef<'_>,
-    namespace: &crate::domain_types::PgRelationLockNamespace,
-    resources: &crate::domain_types::PgRelationResourceIds,
-) -> Result<(), crate::domain_types::SqlxPgRelationLockError> {
+    mut connection: crate::sqlx_pg_relation_lock_connection_ref::SqlxPgRelationLockConnectionRef<
+        '_,
+    >,
+    namespace: &crate::pg_relation_lock_namespace::PgRelationLockNamespace,
+    resources: &crate::pg_relation_resource_ids::PgRelationResourceIds,
+) -> Result<(), crate::sqlx_pg_relation_lock_error::SqlxPgRelationLockError> {
     if resources.0.is_empty() {
         return Ok(());
     }
@@ -11,11 +13,11 @@ pub async fn lock_pg_relation_resources(
         .iter()
         .map(|resource| resource.0)
         .collect::<Vec<_>>();
-    let _result = sqlx::query(constants_str::PG_RELATION_RESOURCE_ADVISORY_LOCK_SQL)
+    let _result = sqlx::query(constants_str::catalog::PG_RELATION_RESOURCE_ADVISORY_LOCK_SQL)
         .bind(namespace.0.as_str())
         .bind(resource_values)
         .execute(connection.as_mut())
         .await
-        .map_err(crate::domain_types::SqlxPgRelationLockError::from)?;
+        .map_err(crate::sqlx_pg_relation_lock_error::SqlxPgRelationLockError::from)?;
     Ok(())
 }

@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -11,5 +11,5 @@
 #[serde(deny_unknown_fields)]
 pub struct AdminSetUserPasswordReq {
     #[contract_struct_api(into)]
-    password: crate::domain_types::AdminNewPassword,
+    password: crate::admin_new_password::AdminNewPassword,
 }

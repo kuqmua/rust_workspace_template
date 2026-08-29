@@ -1,18 +1,22 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, frontend_contract::TypedRoute,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    frontend_contract_macros::TypedRoute,
 )]
 #[typed_route(
-    authentication = frontend_contract::AuthenticationRequirement::Public,
-    method = frontend_contract::RouteMethod::Post,
-    mutation = frontend_contract::RouteMutation::Mutating,
-    obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
-    error_policy = frontend_contract::RouteErrorPolicy::Authentication,
+    authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
+    method = frontend_contract::route_method::RouteMethod::Post,
+    mutation = frontend_contract::route_mutation::RouteMutation::Mutating,
+    obligations = frontend_contract::route_coverage_obligation::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    error_policy = frontend_contract::route_error_policy::RouteErrorPolicy::Authentication,
     openapi_operation_id = "sign_in",
     path = "/auth/sign_in",
-    request = crate::domain_types::AdminSignInReq,
-    request_body = frontend_contract::RouteRequestBody::Json,
-    response = crate::domain_types::AdminSignInRes,
-    success_status = frontend_contract::SuccessStatus::Code200,
-    transport = frontend_contract::PublicTransport,
+    request = crate::admin_sign_in_req::AdminSignInReq,
+    request_body = frontend_contract::route_request_body::RouteRequestBody::Json,
+    response = crate::admin_sign_in_res::AdminSignInRes,
+    success_status = frontend_contract::success_status::SuccessStatus::Code200,
+    transport = frontend_contract::public_transport::PublicTransport,
 )]
 pub struct AdminSignInRoute;

@@ -8,11 +8,12 @@ impl RequestTimeoutDuration {
 }
 
 impl TryFrom<std::time::Duration> for RequestTimeoutDuration {
-    type Error = super::StdRequestTimeoutTryFromDurationError;
+    type Error =
+        crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError;
 
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
-            Err(super::StdRequestTimeoutTryFromDurationError)
+            Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError)
         } else {
             Ok(Self(value))
         }

@@ -1,5 +1,3 @@
-use super::domain_types::MigrationsSourceError;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -9,7 +7,7 @@ use super::domain_types::MigrationsSourceError;
     newtype::AsRefStr,
     newtype::TryFrom,
 )]
-#[try_from(validator = |value: &str| {
-    if value.len() > 4_096usize { Err(MigrationsSourceError::TooLong) } else { Ok(()) }
+#[try_from(error = crate::migrations_source_error::MigrationsSourceError, validator = |value: &str| {
+    if value.len() > 4_096usize { Err(crate::migrations_source_error::MigrationsSourceError::TooLong) } else { Ok(()) }
 })]
 pub struct MigrationsSource(String);

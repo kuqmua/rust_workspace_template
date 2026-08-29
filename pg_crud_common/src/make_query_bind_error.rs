@@ -1,22 +1,24 @@
 pub fn make_query_bind_error<Source>(
     source: Source,
-) -> crate::domain_types::SqlxPostgresQueryBindError
+) -> crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError
 where
     Source: std::error::Error + Send + Sync + 'static,
 {
     let boxed: sqlx::error::BoxDynError = Box::new(source);
-    crate::domain_types::SqlxPostgresQueryBindError::from(boxed)
+    crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(boxed)
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn query_bind_error_preserves_its_source() {
-        let error = super::make_query_bind_error(std::io::Error::other(constants_str::ERROR));
+        let error = crate::make_query_bind_error::make_query_bind_error(std::io::Error::other(
+            constants_str::catalog::ERROR,
+        ));
         let source = std::error::Error::source(&error)
             .expect("c9d460e5 query_bind_error_preserves_its_source invariant must hold");
 
-        assert_eq!(source.to_string(), constants_str::ERROR);
+        assert_eq!(source.to_string(), constants_str::catalog::ERROR);
         assert_eq!(
             error.to_string(),
             "failed to bind PostgreSQL query parameter"
@@ -26,7 +28,7 @@ mod tests {
                 .source()
                 .expect("4e5bcc6b query_bind_error_preserves_its_source invariant must hold")
                 .to_string(),
-            constants_str::ERROR
+            constants_str::catalog::ERROR
         );
     }
 }

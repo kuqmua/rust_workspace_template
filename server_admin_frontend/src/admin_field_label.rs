@@ -1,5 +1,5 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct AdminFieldLabel(Box<str>);
+#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout, Clone, PartialEq, Eq)]
+pub struct AdminFieldLabel(Box<str>);
 
 impl AdminFieldLabel {
     pub(super) fn into_inner(self) -> Box<str> {

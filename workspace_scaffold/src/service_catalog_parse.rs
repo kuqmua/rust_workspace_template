@@ -1,122 +1,146 @@
 pub(super) fn service_catalog_parse(
-    source: super::ScaffoldTextRef<'_>,
-) -> Result<super::ServiceCatalogEntries, super::ScaffoldError> {
+    source: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+) -> Result<
+    crate::service_catalog_entries::ServiceCatalogEntries,
+    crate::scaffold_error::ScaffoldError,
+> {
     let mut entries = Vec::new();
     let mut current = None;
     source.0.lines().try_for_each(|raw_line| {
         let trimmed_line = raw_line.trim();
-        if trimmed_line == constants_str::VALUE_484ADD83 {
+        if trimmed_line == constants_str::test_fixtures::VALUE_484ADD83 {
             if let Some(draft) = current.take() {
-                entries.push(super::ServiceCatalogDraft::finish(draft)?);
+                entries.push(crate::service_catalog_draft::ServiceCatalogDraft::finish(
+                    draft,
+                )?);
             }
-            current = Some(super::ServiceCatalogDraft::default());
+            current = Some(crate::service_catalog_draft::ServiceCatalogDraft::default());
             return Ok(());
         }
         let Some(draft) = current.as_mut() else {
             return Ok(());
         };
-        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-            super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from(constants_str::CRATE),
+        if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::catalog::CRATE),
         )? {
             draft.crate_name = Some(
-                super::ServiceCrate::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| super::ScaffoldError::Catalog)?,
+                crate::service_crate::ServiceCrate::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-            super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from(constants_str::VALUE_DB669AF6),
+        if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(
+                constants_str::test_fixtures::VALUE_DB669AF6,
+            ),
         )? {
             draft.compose_name = Some(
-                super::ServiceComposeName::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| super::ScaffoldError::Catalog)?,
+                crate::service_compose_name::ServiceComposeName::try_from(
+                    value.as_ref().to_owned(),
+                )
+                .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-            super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from(constants_str::VALUE_739ED940),
+        if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(
+                constants_str::test_fixtures::VALUE_739ED940,
+            ),
         )? {
             draft.compose_file = Some(
-                super::ServiceComposeFile::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| super::ScaffoldError::Catalog)?,
+                crate::service_compose_file::ServiceComposeFile::try_from(
+                    value.as_ref().to_owned(),
+                )
+                .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-            super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from(constants_str::VALUE_254DB0FB),
+        if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(
+                constants_str::test_fixtures::VALUE_254DB0FB,
+            ),
         )? {
             draft.dockerfile = Some(
-                super::ServiceDockerfile::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| super::ScaffoldError::Catalog)?,
+                crate::service_dockerfile::ServiceDockerfile::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-            super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from(constants_str::VALUE_6105D6CC),
+        if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(
+                constants_str::test_fixtures::VALUE_6105D6CC,
+            ),
         )? {
             draft.image = Some(
-                super::ServiceImage::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| super::ScaffoldError::Catalog)?,
+                crate::service_image::ServiceImage::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-            super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from(constants_str::VALUE_94ABCB2D),
+        if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(
+                constants_str::test_fixtures::VALUE_94ABCB2D,
+            ),
         )? {
             draft.kubernetes_manifest = Some(
-                super::ServiceKubernetesManifest::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| super::ScaffoldError::Catalog)?,
+                crate::service_kubernetes_manifest::ServiceKubernetesManifest::try_from(
+                    value.as_ref().to_owned(),
+                )
+                .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
             return Ok(());
         }
         if let Some(port) = trimmed_line
-            .strip_prefix(constants_str::VALUE_F8D397A3)
+            .strip_prefix(constants_str::test_fixtures::VALUE_F8D397A3)
             .and_then(|port_text| port_text.trim().strip_prefix('='))
             .map(str::trim)
             .and_then(|port_text| port_text.parse::<u16>().ok())
         {
-            draft.port = Some(super::ServicePort::from(port));
+            draft.port = Some(crate::service_port::ServicePort::from(port));
             return Ok(());
         }
-        if let Some(value) = super::service_catalog_string_value::service_catalog_string_value(
-            super::ScaffoldTextRef::from(trimmed_line),
-            super::ScaffoldTextRef::from(constants_str::VALUE_20E49707),
+        if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(
+                constants_str::test_fixtures::VALUE_20E49707,
+            ),
         )? {
             draft.socket_env = Some(
-                super::ServiceSocketEnv::try_from(value.as_ref().to_owned())
-                    .map_err(|_error| super::ScaffoldError::Catalog)?,
+                crate::service_socket_env::ServiceSocketEnv::try_from(value.as_ref().to_owned())
+                    .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
             return Ok(());
         }
-        if let Some(release) =
-            trimmed_line
-                .strip_prefix(constants_str::RELEASE)
-                .and_then(|release_text| {
-                    release_text
-                        .trim()
-                        .strip_prefix('=')
-                        .map(str::trim)
-                        .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
-                })
+        if let Some(release) = trimmed_line
+            .strip_prefix(constants_str::catalog::RELEASE)
+            .and_then(|release_text| {
+                release_text
+                    .trim()
+                    .strip_prefix('=')
+                    .map(str::trim)
+                    .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
+            })
         {
-            draft.release = Some(super::ShouldRelease::from(release));
+            draft.release = Some(crate::should_release::ShouldRelease::from(release));
         }
-        Ok::<(), super::ScaffoldError>(())
+        Ok::<(), crate::scaffold_error::ScaffoldError>(())
     })?;
     if let Some(draft) = current {
-        entries.push(super::ServiceCatalogDraft::finish(draft)?);
+        entries.push(crate::service_catalog_draft::ServiceCatalogDraft::finish(
+            draft,
+        )?);
     }
     if entries.is_empty() {
-        return Err(super::ScaffoldError::Catalog);
+        return Err(crate::scaffold_error::ScaffoldError::Catalog);
     }
-    Ok(super::ServiceCatalogEntries::from(
-        bounded_types::BoundedVec::from_max_iter(entries),
+    Ok(crate::service_catalog_entries::ServiceCatalogEntries::from(
+        bounded_types::bounded_vec::BoundedVec::from_max_iter(entries),
     ))
 }
 
@@ -124,9 +148,11 @@ pub(super) fn service_catalog_parse(
 mod tests {
     #[test]
     fn empty_catalog_is_rejected() {
-        let _error = super::service_catalog_parse(super::super::ScaffoldTextRef::from(
-            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
-        ))
-        .expect_err(constants_str::VALUE_5621BCEA);
+        let _error = crate::service_catalog_parse::service_catalog_parse(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(
+                constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
+            ),
+        )
+        .expect_err(constants_str::test_fixtures::VALUE_5621BCEA);
     }
 }

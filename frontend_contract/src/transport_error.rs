@@ -8,12 +8,12 @@
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct TransportError(to_err_string::domain_types::ErrorText);
+pub struct TransportError(to_err_string::error_text::ErrorText);
 
 impl TryFrom<String> for TransportError {
-    type Error = to_err_string::domain_types::ErrorTextTryFromStringError;
+    type Error = to_err_string::error_text::ErrorTextTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        to_err_string::domain_types::ErrorText::try_from(value).map(Self)
+        to_err_string::error_text::ErrorText::try_from(value).map(Self)
     }
 }

@@ -17,12 +17,13 @@ pub struct BoundedUniqueVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
     for BoundedUniqueVec<T, MIN, MAX>
 {
-    type Error = UniqueVecError;
+    type Error = crate::unique_vec_error::UniqueVecError;
 
     fn try_from(values: Vec<T>) -> Result<Self, Self::Error> {
-        let bounded_values = bounded_types::BoundedVec::<T, MIN, MAX>::try_from(values)
-            .map_err(UniqueVecError::from)?
-            .into_inner();
+        let bounded_values =
+            bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(values)
+                .map_err(crate::unique_vec_error::UniqueVecError::from)?
+                .into_inner();
         if bounded_values.iter().enumerate().any(|(idx, item)| {
             bounded_values
                 .get(..idx)
@@ -48,58 +49,60 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
         )
     }
 }
-pub use super::unique_vec_error::UniqueVecError;
-pub use super::unique_vec_len::UniqueVecLen;
 #[cfg(test)]
 mod tests {
     #[test]
     fn duplicate_is_rejected_before_later_invalid_item() {
-        let result = serde_json::from_str::<super::BoundedUniqueVec<u8, 1, 4>>(
-            constants_str::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,
+        let result = serde_json::from_str::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 1, 4>>(
+            constants_str::test_fixtures::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,
         );
         assert!(
-            matches!(result, Err(error) if error.to_string().contains(constants_str::DUPLICATE))
+            matches!(result, Err(error) if error.to_string().contains(constants_str::catalog::DUPLICATE))
         );
     }
 
     #[test]
     fn shared_bounds_map_to_existing_unique_errors() {
         assert_eq!(
-            super::BoundedUniqueVec::<u8, 1, 2>::try_from(Vec::new()).expect_err("e71d26a6"),
-            super::UniqueVecError::BelowMin {
-                actual: super::UniqueVecLen::from(constants_usize::ZERO),
-                min: super::UniqueVecLen::from(constants_usize::ONE),
+            crate::bounded_unique_vec::BoundedUniqueVec::<u8, 1, 2>::try_from(Vec::new())
+                .expect_err("e71d26a6"),
+            crate::unique_vec_error::UniqueVecError::BelowMin {
+                actual: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ZERO),
+                min: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ONE),
             }
         );
         assert_eq!(
-            super::BoundedUniqueVec::<u8, 0, 1>::try_from(vec![1u8, 2u8]).expect_err("c98b4208"),
-            super::UniqueVecError::AboveMax {
-                max: super::UniqueVecLen::from(constants_usize::ONE),
+            crate::bounded_unique_vec::BoundedUniqueVec::<u8, 0, 1>::try_from(vec![1u8, 2u8])
+                .expect_err("c98b4208"),
+            crate::unique_vec_error::UniqueVecError::AboveMax {
+                max: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ONE),
             }
         );
         assert_eq!(
-            super::BoundedUniqueVec::<u8, 2, 1>::try_from(vec![1u8]).expect_err("6898eb44"),
-            super::UniqueVecError::InvalidBounds {
-                min: super::UniqueVecLen::from(2usize),
-                max: super::UniqueVecLen::from(constants_usize::ONE),
+            crate::bounded_unique_vec::BoundedUniqueVec::<u8, 2, 1>::try_from(vec![1u8])
+                .expect_err("6898eb44"),
+            crate::unique_vec_error::UniqueVecError::InvalidBounds {
+                min: crate::unique_vec_len::UniqueVecLen::from(2usize),
+                max: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ONE),
             }
         );
         assert_eq!(
-            super::BoundedUniqueVec::<u8, 0, 2>::try_from(vec![1u8, 1u8]).expect_err("dc0f5d9f"),
-            super::UniqueVecError::Duplicate
+            crate::bounded_unique_vec::BoundedUniqueVec::<u8, 0, 2>::try_from(vec![1u8, 1u8])
+                .expect_err("dc0f5d9f"),
+            crate::unique_vec_error::UniqueVecError::Duplicate
         );
     }
 
     #[test]
     fn excess_item_is_ignored_without_deserializing_target_type() {
-        let error = serde_json::from_str::<super::BoundedUniqueVec<u8, 0, 1>>(
-            constants_str::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
+        let error = serde_json::from_str::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 0, 1>>(
+            constants_str::test_fixtures::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
         )
-        .expect_err(constants_str::VALUE_A37B95DF);
+        .expect_err(constants_str::test_fixtures::VALUE_A37B95DF);
         assert!(
             error
                 .to_string()
-                .contains(constants_str::BOUNDED_UNIQUE_VEC_ABOVE_MAX)
+                .contains(constants_str::catalog::BOUNDED_UNIQUE_VEC_ABOVE_MAX)
         );
     }
 }

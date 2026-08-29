@@ -1,5 +1,3 @@
-use super::AdminFrontendPath;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,8 +8,15 @@ use super::AdminFrontendPath;
     newtype::Display,
 )]
 pub struct AdminDataTableFrontendPath(Box<str>);
-impl From<crate::domain_types::AdminDataTable> for AdminDataTableFrontendPath {
-    fn from(value: crate::domain_types::AdminDataTable) -> Self {
-        Self(format!("{}/{}", AdminFrontendPath::Root.get(), value).into_boxed_str())
+impl From<crate::admin_data_table::AdminDataTable> for AdminDataTableFrontendPath {
+    fn from(value: crate::admin_data_table::AdminDataTable) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_frontend_path::AdminFrontendPath::Root.get(),
+                value
+            )
+            .into_boxed_str(),
+        )
     }
 }

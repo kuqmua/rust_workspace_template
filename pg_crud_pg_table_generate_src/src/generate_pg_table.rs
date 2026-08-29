@@ -4,24 +4,23 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_variables)]
 pub fn generate_pg_table(
-    input: macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef<'_>,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
-{
-    let validated = match crate::domain_types::pipeline::parse_generate_pg_table(input)
-        .and_then(crate::domain_types::pipeline::build_generate_pg_table)
-        .and_then(crate::domain_types::pipeline::validate_generate_pg_table)
+    input: macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
+    let validated = match crate::parse_generate_pg_table::parse_generate_pg_table(input)
+        .and_then(crate::build_generate_pg_table::build_generate_pg_table)
+        .and_then(crate::validate_generate_pg_table::validate_generate_pg_table)
     {
         Ok(validated) => validated,
         Err(error) => {
-            return macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
+            return macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                 match error {
-                    crate::domain_types::pipeline::GeneratePgTablePipelineError::Build(
+                    crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Build(
                         pipeline_error,
                     )
-                    | crate::domain_types::pipeline::GeneratePgTablePipelineError::Parse(
+                    | crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Parse(
                         pipeline_error,
                     )
-                    | crate::domain_types::pipeline::GeneratePgTablePipelineError::Validate(
+                    | crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Validate(
                         pipeline_error,
                     ) => syn::Error::from(pipeline_error).to_compile_error(),
                 },

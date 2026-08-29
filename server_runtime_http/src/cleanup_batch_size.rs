@@ -6,12 +6,12 @@
 pub struct CleanupBatchSize(pub(super) std::num::NonZeroU64);
 
 impl TryFrom<u64> for CleanupBatchSize {
-    type Error = super::CleanupBatchSizeError;
+    type Error = crate::cleanup_batch_size_error::CleanupBatchSizeError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         std::num::NonZeroU64::new(value)
             .map(Self::from)
-            .ok_or(super::CleanupBatchSizeError)
+            .ok_or(crate::cleanup_batch_size_error::CleanupBatchSizeError)
     }
 }
 

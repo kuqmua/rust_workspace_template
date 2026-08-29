@@ -1,9 +1,9 @@
 pub(super) fn quote_str<Dsp>(
-    style: crate::domain_types::QuoteStyle,
+    style: crate::quote_style::QuoteStyle,
     value: &Dsp,
-) -> crate::domain_types::QuotedLiteral
+) -> crate::quoted_literal::QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    crate::domain_types::quote_literal(style.prefix, style.quote_ch, value)
+    crate::quote_literal::quote_literal(style.prefix, style.quote_ch, value)
 }

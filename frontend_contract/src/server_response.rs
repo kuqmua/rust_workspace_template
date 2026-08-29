@@ -1,9 +1,9 @@
-use super::{RouteResponse, TypedRoute};
-
 #[must_use]
-pub const fn server_response<Route>(body: Route::Response) -> RouteResponse<Route>
+pub const fn server_response<Route>(
+    body: Route::Response,
+) -> crate::route_response::RouteResponse<Route>
 where
-    Route: TypedRoute,
+    Route: crate::typed_route::TypedRoute,
 {
-    RouteResponse { body }
+    crate::route_response::RouteResponse { body }
 }

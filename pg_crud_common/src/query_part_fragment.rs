@@ -14,18 +14,24 @@
     reason = "the private parent module assembles query fragments without widening public API"
 )]
 pub struct QueryPartFragment(String);
-impl From<crate::domain_types::PgCrudStringWrapperTryFromStringError> for QueryPartFragment {
-    fn from(value: crate::domain_types::PgCrudStringWrapperTryFromStringError) -> Self {
+impl
+    From<crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError>
+    for QueryPartFragment
+{
+    fn from(
+        value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
+    ) -> Self {
         Self(value.to_string())
     }
 }
 impl TryFrom<String> for QueryPartFragment {
-    type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;
+    type Error =
+        crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+        if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
             return Err(Self::Error::TooLong {
                 len: value.len(),
-                max: crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN,
+                max: crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN,
             });
         }
         Ok(Self(value))
@@ -33,12 +39,9 @@ impl TryFrom<String> for QueryPartFragment {
 }
 impl std::fmt::Write for QueryPartFragment {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        if self
-            .0
-            .len()
-            .checked_add(s.len())
-            .is_none_or(|length| length > crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN)
-        {
+        if self.0.len().checked_add(s.len()).is_none_or(|length| {
+            length > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
+        }) {
             return Err(std::fmt::Error);
         }
         self.0.push_str(s);
@@ -49,7 +52,7 @@ impl QueryPartFragment {
     pub(crate) fn append_read_bind_index(
         &mut self,
         bind_index: super::read_query_bind_index_non_zero_u32::ReadQueryBindIndexNonZeroU32,
-    ) -> Result<(), crate::domain_types::ReadQueryPlanError> {
+    ) -> Result<(), crate::read_query_plan_error::ReadQueryPlanError> {
         let mut digits = [constants_u8::ZERO; 10usize];
         let mut value = bind_index.get();
         let mut start = digits.len();
@@ -57,7 +60,7 @@ impl QueryPartFragment {
             start = start.saturating_sub(constants_usize::ONE);
             let quotient = value
                 .checked_div(10u32)
-                .ok_or(crate::domain_types::ReadQueryPlanError)?;
+                .ok_or(crate::read_query_plan_error::ReadQueryPlanError)?;
             let digit = match value.saturating_sub(quotient.saturating_mul(10u32)) {
                 constants_u32::ZERO => b'0',
                 1u32 => b'1',
@@ -69,16 +72,16 @@ impl QueryPartFragment {
                 7u32 => b'7',
                 8u32 => b'8',
                 9u32 => b'9',
-                _ => return Err(crate::domain_types::ReadQueryPlanError),
+                _ => return Err(crate::read_query_plan_error::ReadQueryPlanError),
             };
             *digits
                 .get_mut(start)
-                .ok_or(crate::domain_types::ReadQueryPlanError)? = digit;
+                .ok_or(crate::read_query_plan_error::ReadQueryPlanError)? = digit;
             value = quotient;
         }
         digits
             .get(start..)
-            .ok_or(crate::domain_types::ReadQueryPlanError)?
+            .ok_or(crate::read_query_plan_error::ReadQueryPlanError)?
             .iter()
             .for_each(|digit| self.0.push(char::from(*digit)));
         Ok(())
@@ -88,15 +91,16 @@ impl QueryPartFragment {
 mod tests {
     #[test]
     fn write_does_not_grow_fragment_above_limit() {
-        let mut fragment = super::QueryPartFragment::try_from(
-            constants_str::X.repeat(crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN),
+        let mut fragment = crate::query_part_fragment::QueryPartFragment::try_from(
+            constants_str::catalog::X
+                .repeat(crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN),
         )
         .expect("63af01f6 write_does_not_grow_fragment_above_limit invariant must hold");
-        let write_result = std::fmt::Write::write_str(&mut fragment, constants_str::X);
+        let write_result = std::fmt::Write::write_str(&mut fragment, constants_str::catalog::X);
         assert_eq!(write_result, Err(std::fmt::Error));
         assert_eq!(
             fragment.as_ref().len(),
-            crate::domain_types::PG_CRUD_STRING_WRAPPER_MAX_LEN
+            crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
         );
     }
 }

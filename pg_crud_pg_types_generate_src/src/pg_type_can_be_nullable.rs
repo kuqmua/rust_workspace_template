@@ -5,7 +5,7 @@ pub(crate) fn pg_type_can_be_nullable<
     PgName,
     WireKind,
 >(
-    spec: crate::domain_types::pg_type_spec::PgTypeSpec<
+    spec: crate::pg_type_spec::PgTypeSpec<
         CanBeNullable,
         CanBePrimaryKey,
         FilterKind,

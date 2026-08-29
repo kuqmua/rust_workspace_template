@@ -3,11 +3,11 @@ pub struct ChildExitStatus(std::process::ExitStatus);
 
 impl ChildExitStatus {
     #[must_use]
-    pub fn succeeded(self) -> super::ChildProcessSucceeded {
+    pub fn succeeded(self) -> crate::child_process_succeeded::ChildProcessSucceeded {
         if self.0.success() {
-            super::ChildProcessSucceeded::Yes
+            crate::child_process_succeeded::ChildProcessSucceeded::Yes
         } else {
-            super::ChildProcessSucceeded::No
+            crate::child_process_succeeded::ChildProcessSucceeded::No
         }
     }
 }

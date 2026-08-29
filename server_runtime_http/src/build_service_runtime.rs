@@ -1,7 +1,10 @@
-pub fn build_service_runtime() -> Result<super::TokioServiceRuntime, super::ServiceRuntimeIoError> {
+pub fn build_service_runtime() -> Result<
+    crate::tokio_service_runtime::TokioServiceRuntime,
+    crate::service_runtime_io_error::ServiceRuntimeIoError,
+> {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
-        .map(super::TokioServiceRuntime::from)
-        .map_err(super::ServiceRuntimeIoError::from)
+        .map(crate::tokio_service_runtime::TokioServiceRuntime::from)
+        .map_err(crate::service_runtime_io_error::ServiceRuntimeIoError::from)
 }

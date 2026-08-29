@@ -4,6 +4,6 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AdminTableSortValues {
-    pub(super) key: frontend_contract::ContractStr,
-    pub(super) label: frontend_contract::ContractStr,
+    pub(super) key: frontend_contract::contract_str::ContractStr,
+    pub(super) label: frontend_contract::contract_str::ContractStr,
 }

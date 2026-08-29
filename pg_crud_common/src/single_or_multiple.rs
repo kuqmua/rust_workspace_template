@@ -9,7 +9,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
-    Multiple(crate::domain_types::NotEmptyUniqueVec<T>),
+    Multiple(crate::not_empty_unique_vec::NotEmptyUniqueVec<T>),
     Single(T),
 }
 
@@ -24,7 +24,7 @@ where
                     utoipa::openapi::ObjectBuilder::new()
                         .property(
                             stringify!(Multiple),
-                            <crate::domain_types::NotEmptyUniqueVec<T> as utoipa::PartialSchema>::schema(),
+                            <crate::not_empty_unique_vec::NotEmptyUniqueVec<T> as utoipa::PartialSchema>::schema(),
                         )
                         .required(stringify!(Multiple)),
                 )

@@ -4,8 +4,8 @@ pub(crate) struct AdminRecentLoginFailureCount(i64);
 impl AdminRecentLoginFailureCount {
     pub(crate) fn reached(
         self,
-        threshold: crate::domain_types::auth::StdAdminFailureThreshold,
-    ) -> crate::domain_types::StdAdminBool {
-        crate::domain_types::StdAdminBool::from(self.0 >= threshold.get())
+        threshold: crate::std_admin_failure_threshold::StdAdminFailureThreshold,
+    ) -> server_admin_core::std_admin_bool::StdAdminBool {
+        server_admin_core::std_admin_bool::StdAdminBool::from(self.0 >= threshold.get())
     }
 }

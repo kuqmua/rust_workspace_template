@@ -1,21 +1,20 @@
-use super::{
-    RouteDatabaseUsage, RouteJsonBodyUsage, RouteResponseKind, RouteTestCapabilities,
-    RouteTestCategories, RouteTestCategory,
-};
-
 #[must_use]
-pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTestCategories {
+pub fn required_test_categories(
+    capabilities: crate::route_test_capabilities::RouteTestCapabilities,
+) -> crate::route_test_categories::RouteTestCategories {
     let categories = [
-        Some(RouteTestCategory::FixtureHook),
-        Some(RouteTestCategory::Metadata),
-        (capabilities.database == RouteDatabaseUsage::Database)
-            .then_some(RouteTestCategory::DatabaseFixture),
-        (capabilities.json_body == RouteJsonBodyUsage::JsonBody)
-            .then_some(RouteTestCategory::JsonRoundTrip),
-        (capabilities.response == RouteResponseKind::Streaming)
-            .then_some(RouteTestCategory::StreamingResponse),
+        Some(crate::route_test_category::RouteTestCategory::FixtureHook),
+        Some(crate::route_test_category::RouteTestCategory::Metadata),
+        (capabilities.database == crate::route_database_usage::RouteDatabaseUsage::Database)
+            .then_some(crate::route_test_category::RouteTestCategory::DatabaseFixture),
+        (capabilities.json_body == crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody)
+            .then_some(crate::route_test_category::RouteTestCategory::JsonRoundTrip),
+        (capabilities.response == crate::route_response_kind::RouteResponseKind::Streaming)
+            .then_some(crate::route_test_category::RouteTestCategory::StreamingResponse),
     ]
     .into_iter()
     .flatten();
-    RouteTestCategories::from(bounded_types::BoundedVec::from_max_iter(categories))
+    crate::route_test_categories::RouteTestCategories::from(
+        bounded_types::bounded_vec::BoundedVec::from_max_iter(categories),
+    )
 }

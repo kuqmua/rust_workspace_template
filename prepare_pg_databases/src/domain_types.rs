@@ -1,43 +1,38 @@
-pub use super::database_preparation_spec::DatabasePreparationSpec;
-pub use super::database_url::DatabaseUrl;
-pub use super::database_url_error::DatabaseUrlError;
-pub use super::migration_commands::migration_commands;
-pub use super::migrations_source::MigrationsSource;
-pub use super::migrations_source_error::MigrationsSourceError;
-pub use super::process_argument::ProcessArgument;
-pub use super::process_arguments::ProcessArguments;
-pub use super::process_command::ProcessCommand;
-pub use super::process_commands::ProcessCommands;
-pub use super::process_program::ProcessProgram;
-pub use super::process_static_argument::ProcessStaticArgument;
 #[cfg(test)]
 mod tests {
     #[test]
     fn builds_one_migration_command_per_database() {
-        let url = super::DatabaseUrl::try_from(constants_str::TEST_DATABASE_URL.to_owned());
-        let source =
-            super::MigrationsSource::try_from(constants_str::TEST_MIGRATIONS_PATH.to_owned());
+        let url = crate::database_url::DatabaseUrl::try_from(
+            constants_str::test_fixtures::TEST_DATABASE_URL.to_owned(),
+        );
+        let source = crate::migrations_source::MigrationsSource::try_from(
+            constants_str::test_fixtures::TEST_MIGRATIONS_PATH.to_owned(),
+        );
         assert!(url.is_ok());
         assert!(source.is_ok());
-        let commands = super::migration_commands(url.into_iter().zip(source).map(
-            |(valid_url, valid_source)| {
-                super::DatabasePreparationSpec::new(valid_url, valid_source)
-            },
-        ));
+        let commands =
+            crate::migration_commands::migration_commands(url.into_iter().zip(source).map(
+                |(valid_url, valid_source)| {
+                    crate::database_preparation_spec::DatabasePreparationSpec::new(
+                        valid_url,
+                        valid_source,
+                    )
+                },
+            ));
         assert_eq!(commands.as_ref().len(), constants_usize::ONE);
         let command = commands
             .as_ref()
             .first()
             .expect("989c8d37 builds_one_migration_command_per_database invariant must hold");
-        assert_eq!(command.program().as_ref(), constants_str::SQLX);
+        assert_eq!(command.program().as_ref(), constants_str::catalog::SQLX);
         assert_eq!(command.arguments().as_ref().len(), 5usize);
     }
 
     #[test]
     fn rejects_empty_database_url() {
         assert_eq!(
-            super::DatabaseUrl::try_from(String::new()),
-            Err(super::DatabaseUrlError::Empty)
+            crate::database_url::DatabaseUrl::try_from(String::new()),
+            Err(crate::database_url_error::DatabaseUrlError::Empty)
         );
     }
 }

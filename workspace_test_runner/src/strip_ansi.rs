@@ -1,7 +1,5 @@
-use super::execution::{CommandText, TextRef};
-
 #[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
-pub(super) fn strip_ansi(value: TextRef<'_>) -> CommandText {
+pub(super) fn strip_ansi(value: crate::text_ref::TextRef<'_>) -> crate::command_text::CommandText {
     let output = value
         .get()
         .chars()
@@ -17,5 +15,6 @@ pub(super) fn strip_ansi(value: TextRef<'_>) -> CommandText {
             },
         )
         .0;
-    CommandText::try_from(output).unwrap_or_else(CommandText::from)
+    crate::command_text::CommandText::try_from(output)
+        .unwrap_or_else(crate::command_text::CommandText::from)
 }

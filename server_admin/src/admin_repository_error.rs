@@ -3,11 +3,11 @@ pub(crate) enum AdminRepositoryError {
     #[error("stored admin value does not satisfy its contract")]
     InvalidStoredValue,
     #[error("admin repository query failed: {0:?}")]
-    Sqlx(crate::domain_types::SqlxAdminError),
+    Sqlx(crate::sqlx_admin_error::SqlxAdminError),
 }
 
-impl From<crate::domain_types::SqlxAdminError> for AdminRepositoryError {
-    fn from(error: crate::domain_types::SqlxAdminError) -> Self {
+impl From<crate::sqlx_admin_error::SqlxAdminError> for AdminRepositoryError {
+    fn from(error: crate::sqlx_admin_error::SqlxAdminError) -> Self {
         Self::Sqlx(error)
     }
 }

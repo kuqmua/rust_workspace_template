@@ -8,8 +8,8 @@
     newtype::FromInner,
 )]
 pub struct RouteContractMismatches(
-    bounded_types::BoundedVec<
-        crate::route_contract_validation::RouteContractMismatch,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::route_contract_mismatch::RouteContractMismatch,
         0,
         { usize::MAX },
     >,

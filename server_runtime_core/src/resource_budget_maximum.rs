@@ -6,12 +6,12 @@
 pub struct ResourceBudgetMaximum(pub(super) std::num::NonZeroUsize);
 
 impl TryFrom<usize> for ResourceBudgetMaximum {
-    type Error = super::ResourceBudgetConfigError;
+    type Error = crate::resource_budget_config_error::ResourceBudgetConfigError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self::from)
-            .ok_or(super::ResourceBudgetConfigError)
+            .ok_or(crate::resource_budget_config_error::ResourceBudgetConfigError)
     }
 }
 

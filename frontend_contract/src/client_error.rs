@@ -1,13 +1,13 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub enum ClientError {
-    Decode(crate::FormValueError),
-    Encode(crate::FormValueError),
-    Problem(crate::ApiProblem),
+    Decode(crate::form_value_error::FormValueError),
+    Encode(crate::form_value_error::FormValueError),
+    Problem(crate::api_problem::ApiProblem),
     Status {
-        actual: super::TransportStatus,
-        expected: super::TransportStatus,
+        actual: crate::transport_status::TransportStatus,
+        expected: crate::transport_status::TransportStatus,
     },
-    Transport(super::TransportError),
+    Transport(crate::transport_error::TransportError),
     UnexpectedResponse,
 }
 
@@ -22,7 +22,7 @@ impl std::fmt::Display for ClientError {
             }
             Self::Transport(value) => write!(f, "transport failed: {value}"),
             Self::UnexpectedResponse => {
-                f.write_str(constants_str::SERVER_RETURNED_AN_ERROR_RESPONSE)
+                f.write_str(constants_str::catalog::SERVER_RETURNED_AN_ERROR_RESPONSE)
             }
         }
     }

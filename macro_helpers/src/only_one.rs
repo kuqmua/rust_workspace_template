@@ -1,17 +1,18 @@
 pub fn only_one(
-    variant_ref: crate::domain_types::location_data::SynVariantRef<'_>,
-) -> Result<super::StatusCode, super::OnlyOneStatusCodeError> {
+    variant_ref: crate::syn_variant_ref::SynVariantRef<'_>,
+) -> Result<crate::status_code::StatusCode, crate::only_one_status_code_error::OnlyOneStatusCodeError>
+{
     let variant = variant_ref.0;
     let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {
         if attr.path().segments.len() != 1 {
             return None;
         }
         let segment = attr.path().segments.first()?;
-        super::StatusCode::try_from(&segment.ident.to_string()).ok()
+        crate::status_code::StatusCode::try_from(&segment.ident.to_string()).ok()
     });
     let optional_self = supported_attrs.next();
     if supported_attrs.next().is_some() {
-        return Err(super::OnlyOneStatusCodeError::MoreThanOne);
+        return Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MoreThanOne);
     }
-    optional_self.ok_or(super::OnlyOneStatusCodeError::NotFound)
+    optional_self.ok_or(crate::only_one_status_code_error::OnlyOneStatusCodeError::NotFound)
 }

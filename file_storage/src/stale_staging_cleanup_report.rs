@@ -2,14 +2,13 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::domain_types::StdStaleStagingEntryCount;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Default, Eq, PartialEq,
 )]
 pub struct StaleStagingCleanupReport {
-    pub(super) removed: StdStaleStagingEntryCount,
-    pub(super) scanned: StdStaleStagingEntryCount,
+    pub(super) removed: crate::std_stale_staging_entry_count::StdStaleStagingEntryCount,
+    pub(super) scanned: crate::std_stale_staging_entry_count::StdStaleStagingEntryCount,
 }
 impl StaleStagingCleanupReport {
     pub(crate) const fn record_removed(&mut self) {
@@ -21,11 +20,11 @@ impl StaleStagingCleanupReport {
     }
 
     #[must_use]
-    pub const fn removed(self) -> StdStaleStagingEntryCount {
+    pub const fn removed(self) -> crate::std_stale_staging_entry_count::StdStaleStagingEntryCount {
         self.removed
     }
     #[must_use]
-    pub const fn scanned(self) -> StdStaleStagingEntryCount {
+    pub const fn scanned(self) -> crate::std_stale_staging_entry_count::StdStaleStagingEntryCount {
         self.scanned
     }
 }

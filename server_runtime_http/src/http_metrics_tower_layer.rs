@@ -4,14 +4,14 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(super) struct HttpMetricsTowerLayer {
-    pub(super) paths: super::SharedHttpMetricsPathCacheArc,
+    pub(super) paths: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
 }
 
 impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
-    type Service = super::HttpMetricsService<Service>;
+    type Service = crate::http_metrics_service::HttpMetricsService<Service>;
 
     fn layer(&self, inner: Service) -> Self::Service {
-        super::HttpMetricsService {
+        crate::http_metrics_service::HttpMetricsService {
             inner,
             paths: self.paths.clone(),
         }

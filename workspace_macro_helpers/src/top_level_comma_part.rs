@@ -2,12 +2,13 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::domain_types::ProcMacro2MacroTokens;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(super) struct TopLevelCommaPart(pub(super) ProcMacro2MacroTokens);
-impl From<ProcMacro2MacroTokens> for TopLevelCommaPart {
-    fn from(value: ProcMacro2MacroTokens) -> Self {
+pub(super) struct TopLevelCommaPart(
+    pub(super) crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
+);
+impl From<crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens> for TopLevelCommaPart {
+    fn from(value: crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens) -> Self {
         Self(value)
     }
 }
@@ -18,18 +19,22 @@ impl syn::parse::Parse for TopLevelCommaPart {
             && (type_fork.is_empty() || type_fork.peek(syn::Token![,]))
         {
             syn::parse::discouraged::Speculative::advance_to(input, &type_fork);
-            return Ok(Self::from(ProcMacro2MacroTokens::from(
-                quote::ToTokens::to_token_stream(&parsed),
-            )));
+            return Ok(Self::from(
+                crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(
+                    quote::ToTokens::to_token_stream(&parsed),
+                ),
+            ));
         }
         let expr_fork = input.fork();
         if let Ok(parsed) = expr_fork.parse::<syn::Expr>()
             && (expr_fork.is_empty() || expr_fork.peek(syn::Token![,]))
         {
             syn::parse::discouraged::Speculative::advance_to(input, &expr_fork);
-            return Ok(Self::from(ProcMacro2MacroTokens::from(
-                quote::ToTokens::to_token_stream(&parsed),
-            )));
+            return Ok(Self::from(
+                crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(
+                    quote::ToTokens::to_token_stream(&parsed),
+                ),
+            ));
         }
         input.step(|cursor| {
             let mut rest = *cursor;
@@ -42,7 +47,10 @@ impl syn::parse::Parse for TopLevelCommaPart {
                 tokens.extend(std::iter::once(token));
                 rest = next;
             }
-            Ok((Self::from(ProcMacro2MacroTokens::from(tokens)), rest))
+            Ok((
+                Self::from(crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(tokens)),
+                rest,
+            ))
         })
     }
 }

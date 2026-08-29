@@ -1,24 +1,21 @@
-mod development_identity_count;
-mod development_identity_creation_plan;
-mod development_identity_creation_summary;
-mod development_identity_specs;
-mod development_identity_specs_error;
-mod development_identity_specs_max_len;
-pub use development_identity_count::DevelopmentIdentityCount;
-pub use development_identity_creation_plan::DevelopmentIdentityCreationPlan;
-pub use development_identity_creation_summary::DevelopmentIdentityCreationSummary;
-pub use development_identity_specs::DevelopmentIdentitySpecs;
-pub use development_identity_specs_error::DevelopmentIdentitySpecsError;
+pub mod development_identity_count;
+pub mod development_identity_creation_plan;
+pub mod development_identity_creation_summary;
+pub mod development_identity_specs;
+pub mod development_identity_specs_error;
+pub mod development_identity_specs_max_len;
 
 #[must_use]
 pub fn summarize_identity_creation_decisions<Reports>(
     reports: Reports,
-) -> DevelopmentIdentityCreationSummary
+) -> development_identity_creation_summary::DevelopmentIdentityCreationSummary
 where
-    Reports: IntoIterator<Item = server_runtime_http::domain_types::IdentityCreationDecision>,
+    Reports: IntoIterator<
+        Item = server_runtime_core::identity_creation_decision::IdentityCreationDecision,
+    >,
 {
     reports.into_iter().fold(
-        DevelopmentIdentityCreationSummary::default(),
+        development_identity_creation_summary::DevelopmentIdentityCreationSummary::default(),
         |mut summary, decision| {
             summary.record(decision);
             summary
@@ -30,9 +27,9 @@ where
 mod tests {
     #[test]
     fn plan_preserves_typed_identity_specs() {
-        let plan = super::DevelopmentIdentityCreationPlan::new(
-            super::DevelopmentIdentitySpecs::try_from(vec![
-                server_runtime_http::domain_types::IdentitySpec::new(1u8, 2u8, 3u8, 4u8),
+        let plan = crate::development_identity_creation_plan::DevelopmentIdentityCreationPlan::new(
+            crate::development_identity_specs::DevelopmentIdentitySpecs::try_from(vec![
+                server_runtime_core::identity_spec::IdentitySpec::new(1u8, 2u8, 3u8, 4u8),
             ])
             .expect("743c519b plan_preserves_typed_identity_specs invariant must hold"),
         );
@@ -46,7 +43,7 @@ mod tests {
     #[test]
     fn identity_specs_rejects_more_than_supported_entries() {
         let values = std::iter::repeat_with(|| {
-            server_runtime_http::domain_types::IdentitySpec::new(1u8, 2u8, 3u8, 4u8)
+            server_runtime_core::identity_spec::IdentitySpec::new(1u8, 2u8, 3u8, 4u8)
         })
         .take(
             super::development_identity_specs_max_len::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN
@@ -54,25 +51,25 @@ mod tests {
         )
         .collect::<Vec<_>>();
         assert_eq!(
-            super::DevelopmentIdentitySpecs::try_from(values),
-            Err(super::DevelopmentIdentitySpecsError)
+            crate::development_identity_specs::DevelopmentIdentitySpecs::try_from(values),
+            Err(crate::development_identity_specs_error::DevelopmentIdentitySpecsError)
         );
     }
 
     #[test]
     fn summarizes_desired_state_decisions() {
         let reports = [
-            server_runtime_http::domain_types::plan_identity_creation(
-                server_runtime_http::domain_types::IdentityPresence::Missing,
-                server_runtime_http::domain_types::IdentityRolePresence::Present,
+            server_runtime_core::plan_identity_creation::plan_identity_creation(
+                server_runtime_core::identity_presence::IdentityPresence::Missing,
+                server_runtime_core::identity_role_presence::IdentityRolePresence::Present,
             ),
-            server_runtime_http::domain_types::plan_identity_creation(
-                server_runtime_http::domain_types::IdentityPresence::Present,
-                server_runtime_http::domain_types::IdentityRolePresence::Present,
+            server_runtime_core::plan_identity_creation::plan_identity_creation(
+                server_runtime_core::identity_presence::IdentityPresence::Present,
+                server_runtime_core::identity_role_presence::IdentityRolePresence::Present,
             ),
-            server_runtime_http::domain_types::plan_identity_creation(
-                server_runtime_http::domain_types::IdentityPresence::Missing,
-                server_runtime_http::domain_types::IdentityRolePresence::Missing,
+            server_runtime_core::plan_identity_creation::plan_identity_creation(
+                server_runtime_core::identity_presence::IdentityPresence::Missing,
+                server_runtime_core::identity_role_presence::IdentityRolePresence::Missing,
             ),
         ];
         let summary = super::summarize_identity_creation_decisions(reports);

@@ -12,6 +12,6 @@
     generate_constructor::New,
 )]
 pub struct DbDefaultSpec {
-    pub(super) column: super::DbStaticSchemaText,
-    pub(super) expression: super::DbStaticSchemaText,
+    pub(super) column: crate::db_static_schema_text::DbStaticSchemaText,
+    pub(super) expression: crate::db_static_schema_text::DbStaticSchemaText,
 }

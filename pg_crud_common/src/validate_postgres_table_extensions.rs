@@ -1,109 +1,118 @@
-use super::*;
-
 pub async fn validate_postgres_table_extensions<Table>(
-    pool: SqlxPgPoolRef<'_>,
-    schema: DbSchemaNameRef<'_>,
-) -> Result<(), DbSchemaConformanceError>
+    pool: crate::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    schema: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
+) -> Result<(), crate::db_schema_conformance_error::DbSchemaConformanceError>
 where
-    Table: DbExtendedTableSchema,
+    Table: crate::db_extended_table_schema::DbExtendedTableSchema,
 {
     let mut expected_defaults = Table::exact_defaults()
         .iter()
         .map(|spec| {
-            Ok(DbObjectSnapshot::new(
-                schema_text(spec.column.0.to_owned())?,
-                DbObjectKind::Default,
-                schema_text(spec.expression.0.to_owned())?,
+            Ok(crate::db_object_snapshot::DbObjectSnapshot::new(
+                crate::schema_text::schema_text(spec.column.0.to_owned())?,
+                crate::db_object_kind::DbObjectKind::Default,
+                crate::schema_text::schema_text(spec.expression.0.to_owned())?,
             ))
         })
-        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
-    let default_rows = sqlx::query(constants_str::DB_SCHEMA_EXACT_DEFAULT_QUERY)
+        .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
+        )?;
+    let default_rows = sqlx::query(constants_str::test_fixtures::DB_SCHEMA_EXACT_DEFAULT_QUERY)
         .bind(schema.0)
         .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
         .await
         .map_err(|error| {
-            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
+            crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
+                crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(error),
+            )
         })?;
     let mut observed_defaults = default_rows
         .into_iter()
         .map(|row| {
-            Ok(DbObjectSnapshot::new(
-                schema_text(
-                    sqlx::Row::try_get(&row, constants_str::COLUMN_NAME).map_err(|error| {
-                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
+            Ok(crate::db_object_snapshot::DbObjectSnapshot::new(
+                crate::schema_text::schema_text(
+                    sqlx::Row::try_get(&row, constants_str::test_fixtures::COLUMN_NAME).map_err(|error| {
+                        crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                             error,
                         ))
                     })?,
                 )?,
-                DbObjectKind::Default,
-                schema_text(
-                    sqlx::Row::try_get(&row, constants_str::COLUMN_DEFAULT).map_err(|error| {
-                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
+                crate::db_object_kind::DbObjectKind::Default,
+                crate::schema_text::schema_text(
+                    sqlx::Row::try_get(&row, constants_str::test_fixtures::COLUMN_DEFAULT).map_err(|error| {
+                        crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                             error,
                         ))
                     })?,
                 )?,
             ))
         })
-        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+        .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
     expected_defaults.sort_unstable();
     observed_defaults.sort_unstable();
     if expected_defaults != observed_defaults {
-        return Err(DbSchemaConformanceError::DefaultContractMismatch {
-            expected: expected_defaults.into(),
-            observed: observed_defaults.into(),
-        });
+        return Err(
+            crate::db_schema_conformance_error::DbSchemaConformanceError::DefaultContractMismatch {
+                expected: expected_defaults.into(),
+                observed: observed_defaults.into(),
+            },
+        );
     }
-    let public_schema_qualifier = format!("{}.", constants_str::PUBLIC);
+    let public_schema_qualifier = format!("{}.", constants_str::catalog::PUBLIC);
     let observed_schema_qualifier = format!("{}.", schema.0);
     let mut expected_objects = Table::checks_and_indexes()
         .iter()
         .map(|spec| {
-            Ok(DbObjectSnapshot::new(
-                schema_text(spec.name.0.to_owned())?,
+            Ok(crate::db_object_snapshot::DbObjectSnapshot::new(
+                crate::schema_text::schema_text(spec.name.0.to_owned())?,
                 spec.kind,
-                schema_text(spec.definition.0.replace(
+                crate::schema_text::schema_text(spec.definition.0.replace(
                     public_schema_qualifier.as_str(),
                     observed_schema_qualifier.as_str(),
                 ))?,
             ))
         })
-        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
-    let rows = sqlx::query(constants_str::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
-        .bind(schema.0)
-        .bind(Table::schema_table_text().0)
-        .fetch_all(pool.0)
-        .await
-        .map_err(|error| {
-            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
-        })?;
+        .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
+        )?;
+    let rows =
+        sqlx::query(constants_str::test_fixtures::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
+            .bind(schema.0)
+            .bind(Table::schema_table_text().0)
+            .fetch_all(pool.0)
+            .await
+            .map_err(|error| {
+                crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
+                    crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
+                        error,
+                    ),
+                )
+            })?;
     let mut observed_objects = rows
         .into_iter()
         .map(|row| {
-            let kind = match sqlx::Row::try_get::<String, _>(&row, constants_str::OBJECT_KIND)
+            let kind = match sqlx::Row::try_get::<String, _>(&row, constants_str::test_fixtures::OBJECT_KIND)
                 .map_err(|error| {
-                    DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(error))
+                    crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(error))
                 })?
                 .as_str()
             {
-                constants_str::CHECK => DbObjectKind::Check,
-                constants_str::INDEX => DbObjectKind::Index,
-                _ => return Err(DbSchemaConformanceError::UnknownObjectKind),
+                constants_str::test_fixtures::CHECK => crate::db_object_kind::DbObjectKind::Check,
+                constants_str::test_fixtures::INDEX => crate::db_object_kind::DbObjectKind::Index,
+                _ => return Err(crate::db_schema_conformance_error::DbSchemaConformanceError::UnknownObjectKind),
             };
-            Ok(DbObjectSnapshot::new(
-                schema_text(
-                    sqlx::Row::try_get(&row, constants_str::OBJECT_NAME).map_err(|error| {
-                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
+            Ok(crate::db_object_snapshot::DbObjectSnapshot::new(
+                crate::schema_text::schema_text(
+                    sqlx::Row::try_get(&row, constants_str::test_fixtures::OBJECT_NAME).map_err(|error| {
+                        crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                             error,
                         ))
                     })?,
                 )?,
                 kind,
-                schema_text(
-                    sqlx::Row::try_get(&row, constants_str::OBJECT_DEFINITION).map_err(
+                crate::schema_text::schema_text(
+                    sqlx::Row::try_get(&row, constants_str::test_fixtures::OBJECT_DEFINITION).map_err(
                         |error| {
-                            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError::from(
+                            crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                                 error,
                             ))
                         },
@@ -111,13 +120,13 @@ where
                 )?,
             ))
         })
-        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+        .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
     expected_objects.sort_unstable();
     observed_objects.sort_unstable();
     if expected_objects == observed_objects {
         Ok(())
     } else {
-        Err(DbSchemaConformanceError::ExtendedObjectContractMismatch {
+        Err(crate::db_schema_conformance_error::DbSchemaConformanceError::ExtendedObjectContractMismatch {
             expected: expected_objects.into(),
             observed: observed_objects.into(),
         })

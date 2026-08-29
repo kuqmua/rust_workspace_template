@@ -6,503 +6,257 @@
     clippy::tests_outside_test_module,
     clippy::unused_trait_names,
     clippy::wildcard_imports,
-    reason = "root-owned frontend modules retain the component, signal, generated-view, test-leaf, and compatibility lint contracts previously scoped across their nested owner modules"
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    reason = "Leptos component names intentionally mirror their owner modules and generated view functions are consumed by view macros; root-owned frontend modules retain the signal, generated-view, test-leaf, and compatibility lint contracts previously scoped across their nested owner modules"
 )]
 
-mod admin_alert;
-pub(crate) use admin_alert::*;
+pub mod admin_alert;
 #[cfg(any(target_arch = "wasm32", test))]
-mod admin_alert_dialog;
+pub mod admin_alert_dialog;
+pub mod admin_alert_variant;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_api_url;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_api_url_with_suffix;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_app;
+pub mod admin_assets_error;
+pub mod admin_badge;
+pub mod admin_badge_variant;
+pub mod admin_button;
+pub mod admin_button_kind;
+pub mod admin_button_link;
+pub mod admin_button_variant;
+pub mod admin_card;
+pub mod admin_card_description;
+pub mod admin_card_footer;
+pub mod admin_card_header;
+pub mod admin_card_title;
+pub mod admin_card_variant;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_change_password;
+pub mod admin_checkbox;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_csr_api_url;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_csr_api_url_suffix_ref;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_csr_query;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_csrf_token;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_data_grid;
+pub mod admin_data_grid_input_type;
+pub mod admin_data_table_grid;
 #[cfg(any(target_arch = "wasm32", test))]
-pub(crate) use admin_alert_dialog::*;
-mod admin_alert_variant;
-pub(crate) use admin_alert_variant::*;
+pub mod admin_empty;
+pub mod admin_field;
+pub mod admin_field_label;
+pub mod admin_filter_hidden_inputs;
+pub mod admin_frontend_routes;
 #[cfg(target_arch = "wasm32")]
-mod admin_api_url;
+pub mod admin_http_status;
+pub mod admin_input;
+pub mod admin_input_group;
+pub mod admin_input_kind;
+pub mod admin_input_name;
+pub mod admin_joined_text;
+pub mod admin_joined_text_try_from_string_error;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use admin_api_url::*;
+pub mod admin_load_state;
 #[cfg(target_arch = "wasm32")]
-mod admin_api_url_with_suffix;
+pub mod admin_mutation_method;
+pub mod admin_navigation_link;
+pub mod admin_page_nav_disabled;
+pub mod admin_page_range;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use admin_api_url_with_suffix::*;
+pub mod admin_pagination;
 #[cfg(target_arch = "wasm32")]
-mod admin_app;
+pub mod admin_permissions_view;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use admin_app::*;
-mod admin_assets_error;
-pub(crate) use admin_assets_error::*;
-mod admin_badge;
-pub(crate) use admin_badge::*;
-mod admin_badge_variant;
-pub(crate) use admin_badge_variant::*;
-mod admin_button;
-pub(crate) use admin_button::*;
-mod admin_button_kind;
-pub(crate) use admin_button_kind::*;
-mod admin_button_link;
-pub(crate) use admin_button_link::*;
-mod admin_button_variant;
-pub(crate) use admin_button_variant::*;
-mod admin_card;
-pub(crate) use admin_card::*;
-mod admin_card_description;
-pub(crate) use admin_card_description::*;
-mod admin_card_footer;
-pub(crate) use admin_card_footer::*;
-mod admin_card_header;
-pub(crate) use admin_card_header::*;
-mod admin_card_title;
-pub(crate) use admin_card_title::*;
-mod admin_card_variant;
-pub(crate) use admin_card_variant::*;
+pub mod admin_profile_account;
 #[cfg(target_arch = "wasm32")]
-mod admin_change_password;
+pub mod admin_profile_view;
+pub mod admin_role_permissions;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use admin_change_password::*;
-mod admin_checkbox;
-pub(crate) use admin_checkbox::*;
+pub mod admin_roles_view;
 #[cfg(target_arch = "wasm32")]
-mod admin_csr_api_url;
+pub mod admin_route_path_url;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use admin_csr_api_url::*;
+pub mod admin_sessions_view;
+pub mod admin_setting_disabled;
+pub mod admin_setting_input_value;
+pub mod admin_setting_inputs;
+pub mod admin_setting_required;
+pub mod admin_settings_form_signals;
+pub mod admin_settings_form_values;
 #[cfg(target_arch = "wasm32")]
-mod admin_csr_api_url_suffix_ref;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_csr_api_url_suffix_ref::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_csr_query;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_csr_query::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_csrf_token;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_csrf_token::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_data_grid;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_data_grid::*;
-mod admin_data_grid_input_type;
-pub(crate) use admin_data_grid_input_type::*;
-mod admin_data_table_grid;
-pub(crate) use admin_data_table_grid::*;
-#[cfg(any(target_arch = "wasm32", test))]
-mod admin_empty;
-#[cfg(any(target_arch = "wasm32", test))]
-pub(crate) use admin_empty::*;
-mod admin_field;
-pub(crate) use admin_field::*;
-mod admin_field_label;
-pub(crate) use admin_field_label::*;
-mod admin_filter_hidden_inputs;
-pub(crate) use admin_filter_hidden_inputs::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_http_status;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_http_status::*;
-mod admin_input;
-pub(crate) use admin_input::*;
-mod admin_input_group;
-pub(crate) use admin_input_group::*;
-mod admin_input_kind;
-pub(crate) use admin_input_kind::*;
-mod admin_input_name;
-pub(crate) use admin_input_name::*;
-mod admin_joined_text;
-pub(crate) use admin_joined_text::*;
-mod admin_joined_text_try_from_string_error;
-pub(crate) use admin_joined_text_try_from_string_error::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_load_state;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_load_state::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_mutation_method;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_mutation_method::*;
-mod admin_navigation_link;
-pub(crate) use admin_navigation_link::*;
-mod admin_page_nav_disabled;
-pub(crate) use admin_page_nav_disabled::*;
-mod admin_page_range;
-pub(crate) use admin_page_range::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_pagination;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_pagination::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_permissions_view;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_permissions_view::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_profile_account;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_profile_account::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_profile_view;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_profile_view::*;
-mod admin_role_permissions;
-pub(crate) use admin_role_permissions::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_roles_view;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_roles_view::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_route_path_url;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_route_path_url::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_sessions_view;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_sessions_view::*;
-mod admin_setting_disabled;
-pub(crate) use admin_setting_disabled::*;
-mod admin_setting_input_value;
-pub(crate) use admin_setting_input_value::*;
-mod admin_setting_inputs;
-pub(crate) use admin_setting_inputs::*;
-mod admin_setting_required;
-pub(crate) use admin_setting_required::*;
-mod admin_settings_form_signals;
-pub(crate) use admin_settings_form_signals::*;
-mod admin_settings_form_values;
-pub(crate) use admin_settings_form_values::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_settings_view;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_settings_view::*;
-mod admin_sidebar;
-pub(crate) use admin_sidebar::*;
-mod admin_sidebar_item;
-pub(crate) use admin_sidebar_item::*;
-mod admin_spinner;
-pub(crate) use admin_spinner::*;
+pub mod admin_settings_view;
+pub mod admin_sidebar;
+pub mod admin_sidebar_item;
+pub mod admin_spinner;
 #[cfg(not(target_arch = "wasm32"))]
-mod admin_ssr_error_message;
+pub mod admin_ssr_error_message;
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) use admin_ssr_error_message::*;
+pub mod admin_ssr_html;
 #[cfg(not(target_arch = "wasm32"))]
-mod admin_ssr_html;
+pub mod admin_ssr_html_try_from_string_error;
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) use admin_ssr_html::*;
+pub mod admin_ssr_text;
 #[cfg(not(target_arch = "wasm32"))]
-mod admin_ssr_html_try_from_string_error;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use admin_ssr_html_try_from_string_error::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod admin_ssr_text;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use admin_ssr_text::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod admin_ssr_text_try_from_string_error;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use admin_ssr_text_try_from_string_error::*;
+pub mod admin_ssr_text_try_from_string_error;
 #[cfg(test)]
-mod admin_ssr_view_ext;
-#[cfg(test)]
-pub(crate) use admin_ssr_view_ext::*;
+pub mod admin_ssr_view_ext;
 #[cfg(target_arch = "wasm32")]
-mod admin_table_load_error;
+pub mod admin_table_load_error;
+pub mod admin_table_query_direction;
+pub mod admin_table_query_hidden_inputs;
+pub mod admin_textarea;
+pub mod admin_user_roles;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use admin_table_load_error::*;
-mod admin_table_query_direction;
-pub(crate) use admin_table_query_direction::*;
-mod admin_table_query_hidden_inputs;
-pub(crate) use admin_table_query_hidden_inputs::*;
-mod admin_textarea;
-pub(crate) use admin_textarea::*;
-mod admin_user_roles;
-pub(crate) use admin_user_roles::*;
-#[cfg(target_arch = "wasm32")]
-mod admin_users_view;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use admin_users_view::*;
-mod axum_admin_frontend_router;
-pub(crate) use axum_admin_frontend_router::*;
+pub mod admin_users_view;
+pub mod axum_admin_frontend_router;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod crud_render_shell;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-mod crud_tests;
+pub mod crud_tests;
+#[cfg(target_arch = "wasm32")]
+pub mod csr_admin_nav;
+#[cfg(target_arch = "wasm32")]
+pub mod csr_admin_role_row;
+#[cfg(target_arch = "wasm32")]
+pub mod csr_admin_user_row;
+#[cfg(target_arch = "wasm32")]
+pub mod csr_page_from_location;
+#[cfg(target_arch = "wasm32")]
+pub mod csrf_token;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-pub(crate) use crud_tests::*;
+pub mod data_grid_tests;
 #[cfg(not(target_arch = "wasm32"))]
-mod crud_render_role_create;
+pub mod data_table_grid;
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crud_render_role_create::*;
+pub mod data_tables;
+pub mod domain_types;
+pub mod domain_types_shared_settings;
+pub mod domain_types_shared_settings_input;
 #[cfg(not(target_arch = "wasm32"))]
-mod crud_render_role_manage;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crud_render_role_manage::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod crud_render_shell;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crud_render_shell::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod crud_render_user_create;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crud_render_user_create::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod crud_render_user_manage;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use crud_render_user_manage::*;
-#[cfg(target_arch = "wasm32")]
-mod csr_admin_nav;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use csr_admin_nav::*;
-#[cfg(target_arch = "wasm32")]
-mod csr_admin_role_row;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use csr_admin_role_row::*;
-#[cfg(target_arch = "wasm32")]
-mod csr_admin_user_row;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use csr_admin_user_row::*;
-#[cfg(target_arch = "wasm32")]
-mod csr_page_from_location;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use csr_page_from_location::*;
-#[cfg(target_arch = "wasm32")]
-mod csrf_token;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use csrf_token::*;
-#[cfg(all(not(target_arch = "wasm32"), test))]
-mod data_grid_tests;
-#[cfg(all(not(target_arch = "wasm32"), test))]
-pub(crate) use data_grid_tests::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod data_table_grid;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use data_table_grid::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod data_tables;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use data_tables::*;
-mod domain_types_shared_settings;
-pub(crate) use domain_types_shared_settings::*;
-mod domain_types_shared_settings_input;
-pub(crate) use domain_types_shared_settings_input::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod domain_types_ssr_document;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use domain_types_ssr_document::*;
+pub mod domain_types_ssr_document;
 #[cfg(test)]
-mod domain_types_ssr_tests;
+pub mod domain_types_ssr_tests;
 #[cfg(test)]
-pub(crate) use domain_types_ssr_tests::*;
+pub mod domain_types_ssr_tests_document;
 #[cfg(test)]
-mod domain_types_ssr_tests_document;
+pub mod domain_types_ssr_tests_navigation;
 #[cfg(test)]
-pub(crate) use domain_types_ssr_tests_document::*;
+pub mod domain_types_ssr_tests_settings;
+#[cfg(target_arch = "wasm32")]
+pub mod domain_types_start_http_mutation;
+#[cfg(target_arch = "wasm32")]
+pub mod domain_types_start_mutation;
+pub mod domain_types_with_owner_alert;
+pub mod domain_types_with_owner_badge;
+pub mod domain_types_with_owner_button;
+pub mod domain_types_with_owner_card;
+pub mod domain_types_with_owner_field;
+pub mod domain_types_with_owner_input;
+pub mod domain_types_with_owner_navigation;
+pub mod domain_types_with_owner_table;
 #[cfg(test)]
-mod domain_types_ssr_tests_navigation;
-#[cfg(test)]
-pub(crate) use domain_types_ssr_tests_navigation::*;
-#[cfg(test)]
-mod domain_types_ssr_tests_settings;
-#[cfg(test)]
-pub(crate) use domain_types_ssr_tests_settings::*;
+pub mod domain_types_with_owner_tests;
 #[cfg(target_arch = "wasm32")]
-mod domain_types_start_http_mutation;
+pub mod fetch_json;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use domain_types_start_http_mutation::*;
+pub mod fetch_page;
 #[cfg(target_arch = "wasm32")]
-mod domain_types_start_mutation;
+pub mod http;
+pub mod join_text;
+pub mod leptos_admin_filter_operation_signal;
+pub mod leptos_admin_input_signal;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use domain_types_start_mutation::*;
-mod domain_types_with_owner_alert;
-pub(crate) use domain_types_with_owner_alert::*;
-mod domain_types_with_owner_badge;
-pub(crate) use domain_types_with_owner_badge::*;
-mod domain_types_with_owner_button;
-pub(crate) use domain_types_with_owner_button::*;
-mod domain_types_with_owner_card;
-pub(crate) use domain_types_with_owner_card::*;
-mod domain_types_with_owner_field;
-pub(crate) use domain_types_with_owner_field::*;
-mod domain_types_with_owner_input;
-pub(crate) use domain_types_with_owner_input::*;
-mod domain_types_with_owner_navigation;
-pub(crate) use domain_types_with_owner_navigation::*;
-mod domain_types_with_owner_table;
-pub(crate) use domain_types_with_owner_table::*;
-#[cfg(test)]
-mod domain_types_with_owner_tests;
-#[cfg(test)]
-pub(crate) use domain_types_with_owner_tests::*;
+pub mod location;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod page_render_with_access;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod page_render_with_table_access;
+pub mod pagination;
 #[cfg(target_arch = "wasm32")]
-mod fetch_json;
+pub mod reload_after;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_csr;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_page;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_page_with_access;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_page_with_table_access;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_permissions_page;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_profile_page;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_sessions_page;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_admin_settings_page;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_data_tables;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_data_tables_csr;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_document;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_role_create;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_role_manage;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_roles;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_sign_in;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_text_page;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_text_page_with_access;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_user_create;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_user_manage;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_users;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_view;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use fetch_json::*;
+pub mod reset;
 #[cfg(target_arch = "wasm32")]
-mod fetch_page;
+pub mod save;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use fetch_page::*;
+pub mod send_json;
+pub mod shared;
 #[cfg(target_arch = "wasm32")]
-mod http;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use http::*;
-mod join_text;
-pub(crate) use join_text::*;
-mod leptos_admin_filter_operation_signal;
-pub(crate) use leptos_admin_filter_operation_signal::*;
-mod leptos_admin_input_signal;
-pub(crate) use leptos_admin_input_signal::*;
-#[cfg(target_arch = "wasm32")]
-mod location;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use location::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod page_render_with_access;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use page_render_with_access::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod page_render_with_table_access;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use page_render_with_table_access::*;
-mod pagination;
-pub(crate) use pagination::*;
-#[cfg(target_arch = "wasm32")]
-mod reload_after;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use reload_after::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_admin_csr;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_admin_csr::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_admin_page;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_admin_page::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_admin_page_with_access;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_admin_page_with_access::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_admin_page_with_table_access;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_admin_page_with_table_access::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_data_tables;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_data_tables::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_data_tables_csr;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_data_tables_csr::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_document;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_document::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_permissions;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_permissions::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_profile;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_profile::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_roles;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_roles::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_sessions;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_sessions::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_settings;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_settings::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_text_page;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_text_page::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_text_page_with_access;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_text_page_with_access::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_users;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_users::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod render_view;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use render_view::*;
-#[cfg(target_arch = "wasm32")]
-mod reset;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use reset::*;
-mod routes;
-pub(crate) use routes::*;
-#[cfg(target_arch = "wasm32")]
-mod save;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use save::*;
-#[cfg(target_arch = "wasm32")]
-mod send_json;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use send_json::*;
-mod shared;
-pub(crate) use shared::*;
-#[cfg(target_arch = "wasm32")]
-mod show_mutation_error;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use show_mutation_error::*;
+pub mod show_mutation_error;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod ssr;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use ssr::*;
 #[cfg(target_arch = "wasm32")]
-mod start;
+pub mod start;
 #[cfg(target_arch = "wasm32")]
-pub(crate) use start::*;
-#[cfg(target_arch = "wasm32")]
-mod state;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use state::*;
+pub mod state;
 #[cfg(all(not(target_arch = "wasm32"), test))]
-mod static_pages_tests;
-#[cfg(all(not(target_arch = "wasm32"), test))]
-pub(crate) use static_pages_tests::*;
-mod table;
-pub(crate) use table::*;
-mod table_body;
-pub(crate) use table_body::*;
-mod table_caption;
-pub(crate) use table_caption::*;
-mod table_cell;
-pub(crate) use table_cell::*;
-mod table_filters;
-pub(crate) use table_filters::*;
-mod table_footer;
-pub(crate) use table_footer::*;
-mod table_head;
-pub(crate) use table_head::*;
-mod table_header;
-pub(crate) use table_header::*;
+pub mod static_pages_tests;
+pub mod table;
+pub mod table_body;
+pub mod table_caption;
+pub mod table_cell;
+pub mod table_filters;
+pub mod table_footer;
+pub mod table_head;
+pub mod table_header;
 #[cfg(not(target_arch = "wasm32"))]
-mod table_pagination;
+pub mod table_pagination;
+pub mod table_row;
+pub mod table_wrapper;
+pub mod text;
 #[cfg(not(target_arch = "wasm32"))]
-pub(crate) use table_pagination::*;
-mod table_row;
-pub(crate) use table_row::*;
-mod table_wrapper;
-pub(crate) use table_wrapper::*;
-mod text;
-pub(crate) use text::*;
-#[cfg(not(target_arch = "wasm32"))]
-mod text_page;
-#[cfg(not(target_arch = "wasm32"))]
-pub(crate) use text_page::*;
+pub mod text_page;
 #[cfg(target_arch = "wasm32")]
-mod url;
-#[cfg(target_arch = "wasm32")]
-pub(crate) use url::*;
-mod values;
-pub(crate) use values::*;
-mod with_owner;
-pub(crate) use with_owner::*;
-pub mod domain_types;
+pub mod url;
+pub mod values;
+pub mod with_owner;

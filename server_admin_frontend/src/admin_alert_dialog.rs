@@ -25,10 +25,10 @@ pub(crate) fn AdminAlertDialog(
     #[prop(optional)] disabled: bool,
     on_confirm: leptos::prelude::Callback<()>,
 ) -> impl leptos::prelude::IntoView {
-    crate::domain_types::with_owner::with_owner(move || {
+    crate::with_owner::with_owner(move || {
         leptos::view! {
             <singlestage::Dialog alert=true id=id class="w-full max-w-lg rounded-2xl border bg-background p-6 shadow-lg" dialog_trigger=singlestage::DialogTrigger::builder().children(leptos::prelude::ToChildren::to_children(move || leptos::view! {
-                <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Danger kind=crate::domain_types::with_owner::button::AdminButtonKind::Button disabled=disabled>{trigger}</crate::domain_types::with_owner::button::AdminButton>
+                <crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Danger kind=crate::admin_button_kind::AdminButtonKind::Button disabled=disabled>{trigger}</crate::admin_button::AdminButton>
             })).build()>
             <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
                 <div data-name="AlertDialogBody" class="contents">
@@ -37,8 +37,8 @@ pub(crate) fn AdminAlertDialog(
                         <singlestage::DialogDescription attr:data-name="AlertDialogDescription" class="text-sm text-muted-foreground">{description}</singlestage::DialogDescription>
                     </singlestage::DialogHeader>
                     <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                        <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Cancel"</crate::domain_types::with_owner::button::AdminButton>
-                        <crate::domain_types::with_owner::button::AdminButton variant=crate::domain_types::with_owner::button::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| on_confirm.run(()))>{confirm}</crate::domain_types::with_owner::button::AdminButton>
+                        <crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Cancel"</crate::admin_button::AdminButton>
+                        <crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| on_confirm.run(()))>{confirm}</crate::admin_button::AdminButton>
                     </singlestage::DialogFooter>
                 </div>
             </singlestage::DialogContent>

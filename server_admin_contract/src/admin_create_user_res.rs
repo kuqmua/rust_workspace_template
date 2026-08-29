@@ -3,12 +3,12 @@
     Clone,
     Copy,
     Debug,
-    frontend_contract::ContractStructApi,
+    frontend_contract_macros::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
 )]
 #[contract_struct_api(new)]
 pub struct AdminCreateUserRes {
-    id: crate::domain_types::AdminUserId,
+    id: crate::admin_user_id::AdminUserId,
 }

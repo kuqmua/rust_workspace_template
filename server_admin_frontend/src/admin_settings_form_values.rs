@@ -1,10 +1,12 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(crate) struct AdminSettingsFormValues(
     [super::admin_setting_input_value::AdminSettingInputValue;
-        server_admin_contract::domain_types::AdminSetting::COUNT],
+        server_admin_contract::admin_setting::AdminSetting::COUNT],
 );
-impl From<&server_admin_contract::domain_types::AdminSettingsView> for AdminSettingsFormValues {
-    fn from(value: &server_admin_contract::domain_types::AdminSettingsView) -> Self {
+impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
+    for AdminSettingsFormValues
+{
+    fn from(value: &server_admin_contract::admin_settings_view::AdminSettingsView) -> Self {
         fn optional<Value>(
             value: Option<&Value>,
         ) -> super::admin_setting_input_value::AdminSettingInputValue
@@ -19,8 +21,8 @@ impl From<&server_admin_contract::domain_types::AdminSettingsView> for AdminSett
             )
         }
         Self(
-            server_admin_contract::domain_types::AdminSetting::ALL.map(|setting| match setting {
-                server_admin_contract::domain_types::AdminSetting::DefaultRoute => {
+            server_admin_contract::admin_setting::AdminSetting::ALL.map(|setting| match setting {
+                server_admin_contract::admin_setting::AdminSetting::DefaultRoute => {
                     super::admin_setting_input_value::AdminSettingInputValue::from(
                         value
                             .default_admin_route()
@@ -29,27 +31,27 @@ impl From<&server_admin_contract::domain_types::AdminSettingsView> for AdminSett
                             .into_boxed_str(),
                     )
                 }
-                server_admin_contract::domain_types::AdminSetting::MainLogo => {
+                server_admin_contract::admin_setting::AdminSetting::MainLogo => {
                     optional(value.main_logo())
                 }
-                server_admin_contract::domain_types::AdminSetting::OrganizationContacts => {
+                server_admin_contract::admin_setting::AdminSetting::OrganizationContacts => {
                     optional(value.organization_contacts())
                 }
-                server_admin_contract::domain_types::AdminSetting::OrganizationName => {
+                server_admin_contract::admin_setting::AdminSetting::OrganizationName => {
                     optional(value.organization_name())
                 }
-                server_admin_contract::domain_types::AdminSetting::PrimaryColor => {
+                server_admin_contract::admin_setting::AdminSetting::PrimaryColor => {
                     optional(value.primary_color())
                 }
-                server_admin_contract::domain_types::AdminSetting::SiteName => {
+                server_admin_contract::admin_setting::AdminSetting::SiteName => {
                     super::admin_setting_input_value::AdminSettingInputValue::from(
                         value.site_name().as_ref().to_owned().into_boxed_str(),
                     )
                 }
-                server_admin_contract::domain_types::AdminSetting::SupportUrl => {
+                server_admin_contract::admin_setting::AdminSetting::SupportUrl => {
                     optional(value.support_url())
                 }
-                server_admin_contract::domain_types::AdminSetting::TabTitle => {
+                server_admin_contract::admin_setting::AdminSetting::TabTitle => {
                     optional(value.tab_title())
                 }
             }),
@@ -59,7 +61,7 @@ impl From<&server_admin_contract::domain_types::AdminSettingsView> for AdminSett
 impl AdminSettingsFormValues {
     pub(crate) const fn get(
         &self,
-        setting: server_admin_contract::domain_types::AdminSetting,
+        setting: server_admin_contract::admin_setting::AdminSetting,
     ) -> &super::admin_setting_input_value::AdminSettingInputValue {
         #[allow(
             clippy::indexing_slicing,

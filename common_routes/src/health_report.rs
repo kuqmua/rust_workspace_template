@@ -2,9 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::{
-    HealthComponent, HealthComponentKind, HealthComponents, HealthDatabaseAvailable, HealthStatus,
-};
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -17,40 +14,44 @@ use super::{
     utoipa::ToSchema,
 )]
 pub struct HealthReport {
-    pub(super) components: HealthComponents,
-    pub(super) status: HealthStatus,
+    pub(super) components: crate::health_components::HealthComponents,
+    pub(super) status: crate::health_status::HealthStatus,
 }
 impl HealthReport {
     #[must_use]
     pub fn liveness() -> Self {
         Self {
-            components: HealthComponents::from([HealthComponent {
-                kind: HealthComponentKind::ServiceAvailability,
-                status: HealthStatus::Ok,
-            }]),
-            status: HealthStatus::Ok,
+            components: crate::health_components::HealthComponents::from([
+                crate::health_component::HealthComponent {
+                    kind: crate::health_component_kind::HealthComponentKind::ServiceAvailability,
+                    status: crate::health_status::HealthStatus::Ok,
+                },
+            ]),
+            status: crate::health_status::HealthStatus::Ok,
         }
     }
     #[must_use]
-    pub fn readiness(database_available: HealthDatabaseAvailable) -> Self {
+    pub fn readiness(
+        database_available: crate::health_database_available::HealthDatabaseAvailable,
+    ) -> Self {
         let database_status = if database_available.0 {
-            HealthStatus::Ok
+            crate::health_status::HealthStatus::Ok
         } else {
-            HealthStatus::Error
+            crate::health_status::HealthStatus::Error
         };
         let status = if database_available.0 {
-            HealthStatus::Ok
+            crate::health_status::HealthStatus::Ok
         } else {
-            HealthStatus::Degraded
+            crate::health_status::HealthStatus::Degraded
         };
         Self {
-            components: HealthComponents::from([
-                HealthComponent {
-                    kind: HealthComponentKind::ServiceAvailability,
-                    status: HealthStatus::Ok,
+            components: crate::health_components::HealthComponents::from([
+                crate::health_component::HealthComponent {
+                    kind: crate::health_component_kind::HealthComponentKind::ServiceAvailability,
+                    status: crate::health_status::HealthStatus::Ok,
                 },
-                HealthComponent {
-                    kind: HealthComponentKind::DatabaseConnectivity,
+                crate::health_component::HealthComponent {
+                    kind: crate::health_component_kind::HealthComponentKind::DatabaseConnectivity,
                     status: database_status,
                 },
             ]),
@@ -58,7 +59,7 @@ impl HealthReport {
         }
     }
     #[must_use]
-    pub const fn status(&self) -> HealthStatus {
+    pub const fn status(&self) -> crate::health_status::HealthStatus {
         self.status
     }
 }

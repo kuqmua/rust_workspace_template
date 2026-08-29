@@ -4,6 +4,6 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(super) struct ParsedHttpOriginRef<'text> {
-    pub(super) authority: super::HttpOriginTextRef<'text>,
-    pub(super) scheme: super::HttpOriginTextRef<'text>,
+    pub(super) authority: crate::http_origin_text_ref::HttpOriginTextRef<'text>,
+    pub(super) scheme: crate::http_origin_text_ref::HttpOriginTextRef<'text>,
 }

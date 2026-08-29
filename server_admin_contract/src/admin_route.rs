@@ -1,14 +1,3 @@
-use super::{
-    AdminAuditExportRoute, AdminAuditLogRoute, AdminBrandingRoute, AdminChangeOwnPasswordRoute,
-    AdminCreateRoleRoute, AdminCreateUserRoute, AdminDataTableRoute, AdminDataTablesRoute,
-    AdminDeleteRoleRoute, AdminDeleteUserRoute, AdminListPermissionsRoute, AdminListRolesRoute,
-    AdminListUsersRoute, AdminMeRoute, AdminRefreshRoute, AdminRevokeAllSessionsRoute,
-    AdminRevokeSessionRoute, AdminRoutePath, AdminSessionsRoute, AdminSetRolePermissionsRoute,
-    AdminSetUserBanRoute, AdminSetUserPasswordRoute, AdminSetUserRolesRoute, AdminSettingsRoute,
-    AdminSignInRoute, AdminSignOutRoute, AdminUpdateRoleRoute, AdminUpdateSettingsRoute,
-    AdminUpdateUserRoute, admin_api_route_path, admin_permission_requirement,
-};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -16,114 +5,115 @@ use super::{
     Debug,
     PartialEq,
     Eq,
-    frontend_contract::RouteCatalog,
+    frontend_contract_macros::RouteCatalog,
 )]
 #[route_catalog(
     family = AdminAuthenticationRouteFamily,
-    body_limit = crate::domain_types::ADMIN_API_BODY_MAX_BYTES_VALUE,
+    body_limit = crate::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE,
 )]
 pub enum AdminRoute {
-    #[route_catalog_route(AdminAuditLogRoute)]
+    #[route_catalog_route(crate::admin_audit_log_route::AdminAuditLogRoute)]
     Audit,
-    #[route_catalog_route(AdminAuditExportRoute)]
+    #[route_catalog_route(crate::admin_audit_export_route::AdminAuditExportRoute)]
     AuditExport,
-    #[route_catalog_route(AdminBrandingRoute)]
+    #[route_catalog_route(crate::admin_branding_route::AdminBrandingRoute)]
     Branding,
-    #[route_catalog_route(AdminDataTableRoute)]
-    DataTable(crate::domain_types::AdminDataTable),
-    #[route_catalog_route(AdminDataTablesRoute)]
+    #[route_catalog_route(crate::admin_data_table_route::AdminDataTableRoute)]
+    DataTable(crate::admin_data_table::AdminDataTable),
+    #[route_catalog_route(crate::admin_data_tables_route::AdminDataTablesRoute)]
     DataTables,
-    #[route_catalog_route(AdminChangeOwnPasswordRoute)]
+    #[route_catalog_route(crate::admin_change_own_password_route::AdminChangeOwnPasswordRoute)]
     ChangeOwnPassword,
-    #[route_catalog_route(AdminCreateRoleRoute)]
+    #[route_catalog_route(crate::admin_create_role_route::AdminCreateRoleRoute)]
     CreateRole,
-    #[route_catalog_route(AdminCreateUserRoute)]
+    #[route_catalog_route(crate::admin_create_user_route::AdminCreateUserRoute)]
     CreateUser,
-    #[route_catalog_route(AdminDeleteRoleRoute)]
-    DeleteRole(crate::domain_types::AdminRoleId),
-    #[route_catalog_route(AdminDeleteUserRoute)]
-    DeleteUser(crate::domain_types::AdminUserId),
-    #[route_catalog_route(AdminMeRoute)]
+    #[route_catalog_route(crate::admin_delete_role_route::AdminDeleteRoleRoute)]
+    DeleteRole(crate::admin_role_id::AdminRoleId),
+    #[route_catalog_route(crate::admin_delete_user_route::AdminDeleteUserRoute)]
+    DeleteUser(crate::admin_user_id::AdminUserId),
+    #[route_catalog_route(crate::admin_me_route::AdminMeRoute)]
     Me,
     #[route_catalog_route(
-        contract = frontend_contract::RouteContract::new(
-            admin_permission_requirement(crate::domain_types::AdminPermission::MetricsRead),
-            frontend_contract::RouteMethod::Get,
-            frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from(constants_str::METRICS),
-            frontend_contract::SuccessStatus::Code200,
+        contract = frontend_contract::route_contract::RouteContract::new(
+            crate::admin_permission_requirement::admin_permission_requirement(crate::admin_permission::AdminPermission::MetricsRead),
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::mutation_kind::MutationKind::ReadOnly,
+            frontend_contract::contract_str::ContractStr::from(constants_str::catalog::METRICS),
+            frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = constants_str::METRICS,
+        path = constants_str::catalog::METRICS,
         exclude_from_family,
     )]
     Metrics,
     #[route_catalog_route(
-        contract = frontend_contract::RouteContract::new(
-            admin_permission_requirement(crate::domain_types::AdminPermission::OpenApiRead),
-            frontend_contract::RouteMethod::Get,
-            frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from(constants_str::OPENAPI_JSON),
-            frontend_contract::SuccessStatus::Code200,
+        contract = frontend_contract::route_contract::RouteContract::new(
+            crate::admin_permission_requirement::admin_permission_requirement(crate::admin_permission::AdminPermission::OpenApiRead),
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::mutation_kind::MutationKind::ReadOnly,
+            frontend_contract::contract_str::ContractStr::from(constants_str::catalog::OPENAPI_JSON),
+            frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = constants_str::OPENAPI_JSON,
+        path = constants_str::catalog::OPENAPI_JSON,
         exclude_from_family,
     )]
     OpenApi,
-    #[route_catalog_route(AdminListPermissionsRoute)]
+    #[route_catalog_route(crate::admin_list_permissions_route::AdminListPermissionsRoute)]
     Permissions,
-    #[route_catalog_route(AdminRefreshRoute)]
+    #[route_catalog_route(crate::admin_refresh_route::AdminRefreshRoute)]
     Refresh,
-    #[route_catalog_route(AdminRevokeAllSessionsRoute)]
+    #[route_catalog_route(crate::admin_revoke_all_sessions_route::AdminRevokeAllSessionsRoute)]
     RevokeAllSessions,
-    #[route_catalog_route(AdminRevokeSessionRoute)]
+    #[route_catalog_route(crate::admin_revoke_session_route::AdminRevokeSessionRoute)]
     RevokeSession,
-    #[route_catalog_route(AdminListRolesRoute)]
+    #[route_catalog_route(crate::admin_list_roles_route::AdminListRolesRoute)]
     Roles,
-    #[route_catalog_route(AdminSetRolePermissionsRoute)]
-    SetRolePermissions(crate::domain_types::AdminRoleId),
-    #[route_catalog_route(AdminSetUserBanRoute)]
-    SetUserBan(crate::domain_types::AdminUserId),
-    #[route_catalog_route(AdminSetUserPasswordRoute)]
-    SetUserPassword(crate::domain_types::AdminUserId),
-    #[route_catalog_route(AdminSetUserRolesRoute)]
-    SetUserRoles(crate::domain_types::AdminUserId),
-    #[route_catalog_route(AdminSettingsRoute)]
+    #[route_catalog_route(crate::admin_set_role_permissions_route::AdminSetRolePermissionsRoute)]
+    SetRolePermissions(crate::admin_role_id::AdminRoleId),
+    #[route_catalog_route(crate::admin_set_user_ban_route::AdminSetUserBanRoute)]
+    SetUserBan(crate::admin_user_id::AdminUserId),
+    #[route_catalog_route(crate::admin_set_user_password_route::AdminSetUserPasswordRoute)]
+    SetUserPassword(crate::admin_user_id::AdminUserId),
+    #[route_catalog_route(crate::admin_set_user_roles_route::AdminSetUserRolesRoute)]
+    SetUserRoles(crate::admin_user_id::AdminUserId),
+    #[route_catalog_route(crate::admin_settings_route::AdminSettingsRoute)]
     Settings,
-    #[route_catalog_route(AdminSignInRoute)]
+    #[route_catalog_route(crate::admin_sign_in_route::AdminSignInRoute)]
     SignIn,
-    #[route_catalog_route(AdminSignOutRoute)]
+    #[route_catalog_route(crate::admin_sign_out_route::AdminSignOutRoute)]
     SignOut,
-    #[route_catalog_route(AdminSessionsRoute)]
+    #[route_catalog_route(crate::admin_sessions_route::AdminSessionsRoute)]
     Sessions,
-    #[route_catalog_route(AdminUpdateRoleRoute)]
-    UpdateRole(crate::domain_types::AdminRoleId),
-    #[route_catalog_route(AdminUpdateSettingsRoute)]
+    #[route_catalog_route(crate::admin_update_role_route::AdminUpdateRoleRoute)]
+    UpdateRole(crate::admin_role_id::AdminRoleId),
+    #[route_catalog_route(crate::admin_update_settings_route::AdminUpdateSettingsRoute)]
     UpdateSettings,
-    #[route_catalog_route(AdminUpdateUserRoute)]
-    UpdateUser(crate::domain_types::AdminUserId),
-    #[route_catalog_route(AdminListUsersRoute)]
+    #[route_catalog_route(crate::admin_update_user_route::AdminUpdateUserRoute)]
+    UpdateUser(crate::admin_user_id::AdminUserId),
+    #[route_catalog_route(crate::admin_list_users_route::AdminListUsersRoute)]
     Users,
     #[route_catalog_route(
-        contract = frontend_contract::RouteContract::new(
-            frontend_contract::AuthenticationRequirement::Public,
-            frontend_contract::RouteMethod::Get,
-            frontend_contract::MutationKind::ReadOnly,
-            frontend_contract::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO),
-            frontend_contract::SuccessStatus::Code200,
+        contract = frontend_contract::route_contract::RouteContract::new(
+            frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::mutation_kind::MutationKind::ReadOnly,
+            frontend_contract::contract_str::ContractStr::from(constants_str::catalog::COMMON_ROUTES_GIT_INFO),
+            frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = constants_str::COMMON_ROUTES_GIT_INFO,
+        path = constants_str::catalog::COMMON_ROUTES_GIT_INFO,
         exclude_from_family,
     )]
     Version,
 }
 impl AdminRoute {
     #[must_use]
-    pub fn path(self) -> AdminRoutePath {
+    pub fn path(self) -> crate::admin_route_path::AdminRoutePath {
         let suffix = self.catalog_path();
         if matches!(self, Self::Version) {
-            AdminRoutePath::try_from(String::from(suffix)).unwrap_or_default()
+            crate::admin_route_path::AdminRoutePath::try_from(String::from(suffix))
+                .unwrap_or_default()
         } else {
-            admin_api_route_path(suffix)
+            crate::admin_api_route_path::admin_api_route_path(suffix)
         }
     }
 }

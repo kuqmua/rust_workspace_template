@@ -9,8 +9,8 @@ impl NotificationApiToken {
     #[must_use]
     pub fn authorizes(
         &self,
-        candidate: super::NotificationApiTokenRef<'_>,
-    ) -> super::NotificationApiTokenAuthorized {
+        candidate: crate::notification_api_token_ref::NotificationApiTokenRef<'_>,
+    ) -> crate::notification_api_token_authorized::NotificationApiTokenAuthorized {
         let maximum_len = self.0.len().max(candidate.0.len());
         let difference = (constants_usize::ZERO..maximum_len).fold(
             self.0.len() ^ candidate.0.len(),
@@ -30,7 +30,9 @@ impl NotificationApiToken {
                 )
             },
         );
-        super::NotificationApiTokenAuthorized::from(difference == constants_usize::ZERO)
+        crate::notification_api_token_authorized::NotificationApiTokenAuthorized::from(
+            difference == constants_usize::ZERO,
+        )
     }
 }
 
@@ -41,7 +43,7 @@ impl std::fmt::Debug for NotificationApiToken {
 }
 
 impl TryFrom<String> for NotificationApiToken {
-    type Error = super::NotificationApiTokenError;
+    type Error = crate::notification_api_token_error::NotificationApiTokenError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() {

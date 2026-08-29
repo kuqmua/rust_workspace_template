@@ -1,8 +1,6 @@
-use super::TypedRoute;
-
 pub fn apply_openapi_error_contract<Route>(operation: &mut utoipa::openapi::path::Operation)
 where
-    Route: TypedRoute,
+    Route: crate::typed_route::TypedRoute,
 {
     operation
         .responses
@@ -17,15 +15,15 @@ where
             let mut response = utoipa::openapi::response::Response::new(status.clone());
             if let Some(schema) = Route::openapi_error_response_schema(error_status) {
                 let _previous_content = response.content.insert(
-                    constants_str::APPLICATION_JSON.to_owned(),
+                    constants_str::catalog::APPLICATION_JSON.to_owned(),
                     utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
                         utoipa::openapi::Schema,
                     >::from(schema))),
                 );
             }
-            if error_status == crate::RouteErrorStatus::RateLimited {
+            if error_status == crate::route_error_status::RouteErrorStatus::RateLimited {
                 let _previous_header = response.headers.insert(
-                    constants_str::RETRY_AFTER.to_owned(),
+                    constants_str::catalog::RETRY_AFTER.to_owned(),
                     utoipa::openapi::header::Header::default(),
                 );
             }

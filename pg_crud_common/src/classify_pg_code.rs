@@ -1,32 +1,34 @@
 #[must_use]
-pub(crate) fn classify_pg_code(code: &str) -> crate::domain_types::PgErrorKind {
+pub(crate) fn classify_pg_code(code: &str) -> crate::pg_error_kind::PgErrorKind {
     match code {
-        constants_str::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {
-            crate::domain_types::PgErrorKind::StringDataRightTruncation
+        constants_str::test_fixtures::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {
+            crate::pg_error_kind::PgErrorKind::StringDataRightTruncation
         }
-        constants_str::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE => {
-            crate::domain_types::PgErrorKind::NumericValueOutOfRange
+        constants_str::test_fixtures::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE => {
+            crate::pg_error_kind::PgErrorKind::NumericValueOutOfRange
         }
-        constants_str::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION => {
-            crate::domain_types::PgErrorKind::InvalidTextRepresentation
+        constants_str::test_fixtures::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION => {
+            crate::pg_error_kind::PgErrorKind::InvalidTextRepresentation
         }
-        constants_str::PG_SQLSTATE_NOT_NULL_VIOLATION => {
-            crate::domain_types::PgErrorKind::NotNullViolation
+        constants_str::test_fixtures::PG_SQLSTATE_NOT_NULL_VIOLATION => {
+            crate::pg_error_kind::PgErrorKind::NotNullViolation
         }
-        constants_str::PG_SQLSTATE_FOREIGN_KEY_VIOLATION => {
-            crate::domain_types::PgErrorKind::ForeignKeyViolation
+        constants_str::test_fixtures::PG_SQLSTATE_FOREIGN_KEY_VIOLATION => {
+            crate::pg_error_kind::PgErrorKind::ForeignKeyViolation
         }
-        constants_str::PG_SQLSTATE_UNIQUE_VIOLATION => {
-            crate::domain_types::PgErrorKind::UniqueViolation
+        constants_str::test_fixtures::PG_SQLSTATE_UNIQUE_VIOLATION => {
+            crate::pg_error_kind::PgErrorKind::UniqueViolation
         }
-        constants_str::PG_SQLSTATE_CHECK_VIOLATION => {
-            crate::domain_types::PgErrorKind::CheckViolation
+        constants_str::test_fixtures::PG_SQLSTATE_CHECK_VIOLATION => {
+            crate::pg_error_kind::PgErrorKind::CheckViolation
         }
-        constants_str::PG_SQLSTATE_SERIALIZATION_FAILURE => {
-            crate::domain_types::PgErrorKind::SerializationFailure
+        constants_str::test_fixtures::PG_SQLSTATE_SERIALIZATION_FAILURE => {
+            crate::pg_error_kind::PgErrorKind::SerializationFailure
         }
-        constants_str::PG_SQLSTATE_DEADLOCK_DETECTED => crate::domain_types::PgErrorKind::Deadlock,
-        _ => crate::domain_types::PgErrorKind::Unknown,
+        constants_str::test_fixtures::PG_SQLSTATE_DEADLOCK_DETECTED => {
+            crate::pg_error_kind::PgErrorKind::Deadlock
+        }
+        _ => crate::pg_error_kind::PgErrorKind::Unknown,
     }
 }
 
@@ -35,28 +37,38 @@ mod tests {
     #[test]
     fn classifies_known_postgres_codes() {
         assert_eq!(
-            super::classify_pg_code(constants_str::PG_SQLSTATE_UNIQUE_VIOLATION),
-            crate::domain_types::PgErrorKind::UniqueViolation
+            crate::classify_pg_code::classify_pg_code(
+                constants_str::test_fixtures::PG_SQLSTATE_UNIQUE_VIOLATION
+            ),
+            crate::pg_error_kind::PgErrorKind::UniqueViolation
         );
         assert_eq!(
-            super::classify_pg_code(constants_str::PG_SQLSTATE_FOREIGN_KEY_VIOLATION),
-            crate::domain_types::PgErrorKind::ForeignKeyViolation
+            crate::classify_pg_code::classify_pg_code(
+                constants_str::test_fixtures::PG_SQLSTATE_FOREIGN_KEY_VIOLATION
+            ),
+            crate::pg_error_kind::PgErrorKind::ForeignKeyViolation
         );
         assert_eq!(
-            super::classify_pg_code(constants_str::PG_SQLSTATE_SERIALIZATION_FAILURE),
-            crate::domain_types::PgErrorKind::SerializationFailure
+            crate::classify_pg_code::classify_pg_code(
+                constants_str::test_fixtures::PG_SQLSTATE_SERIALIZATION_FAILURE
+            ),
+            crate::pg_error_kind::PgErrorKind::SerializationFailure
         );
         assert_eq!(
-            super::classify_pg_code(constants_str::PG_SQLSTATE_DEADLOCK_DETECTED),
-            crate::domain_types::PgErrorKind::Deadlock
+            crate::classify_pg_code::classify_pg_code(
+                constants_str::test_fixtures::PG_SQLSTATE_DEADLOCK_DETECTED
+            ),
+            crate::pg_error_kind::PgErrorKind::Deadlock
         );
     }
 
     #[test]
     fn classifies_unknown_postgres_code() {
         assert_eq!(
-            super::classify_pg_code(constants_str::TEST_UNKNOWN_PG_SQLSTATE),
-            crate::domain_types::PgErrorKind::Unknown
+            crate::classify_pg_code::classify_pg_code(
+                constants_str::test_fixtures::TEST_UNKNOWN_PG_SQLSTATE
+            ),
+            crate::pg_error_kind::PgErrorKind::Unknown
         );
     }
 }

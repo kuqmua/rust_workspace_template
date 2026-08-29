@@ -1,28 +1,3 @@
-pub use super::de_len::*;
-pub use super::default_some_one_or_default_some_one_with_max_page_size::*;
-pub use super::derive_or_impl::*;
-pub use super::dimension::*;
-pub use super::dimension_index_number::*;
-pub use super::dimension_number::*;
-pub use super::eq_operator_variant::*;
-pub use super::eq_or_eq_using_fields::*;
-pub use super::import::*;
-pub use super::import_path_str::*;
-pub use super::import_snake_case_str::*;
-pub(crate) use super::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN;
-pub use super::is_nullable::*;
-pub use super::is_nullable_prefix_str::*;
-pub use super::is_standard_non_null::*;
-pub use super::non_null_or_nullable_str::*;
-pub use super::panic_uuid_ref::*;
-pub use super::parse_error_id_ref::*;
-pub use super::parse_token_stream_strings::*;
-pub use super::proc_macro2_generated_rust_token_stream_vec::*;
-pub use super::read_or_update::*;
-pub use super::struct_els_len::*;
-pub use super::syn_field_refs::*;
-pub use super::syn_identifier_type_refs::*;
-pub use super::wrap_into_braces::*;
 pg_crud_macro_common_macros::bool_enum_to_tokens!(AddOperatorUndrscr, false => naming::domain_types::AddOperatorSnakeCase, true => quote::quote! {_});
 pg_crud_macro_common_macros::bool_enum_to_tokens!(ColumnParameterUndrscr, false => naming::domain_types::ColumnSnakeCase, true => quote::quote! {_});
 pg_crud_macro_common_macros::bool_enum_to_tokens!(IncrementParameterUndrscr, false => naming::domain_types::IncrementSnakeCase, true => quote::quote! {_});
@@ -52,12 +27,12 @@ mod tests {
     #[test]
     fn import_paths_match_their_owners() {
         assert_eq!(
-            super::Import::Crate.to_path().to_string(),
-            constants_str::CRATE
+            crate::import::Import::Crate.to_path().to_string(),
+            constants_str::catalog::CRATE
         );
         assert_eq!(
-            super::Import::PgCrudCommon.to_path().to_string(),
-            constants_str::PG_CRUD_COMMON_DOMAIN_TYPES
+            crate::import::Import::PgCrudCommon.to_path().to_string(),
+            constants_str::catalog::PG_CRUD_COMMON_DOMAIN_TYPES
         );
     }
 }

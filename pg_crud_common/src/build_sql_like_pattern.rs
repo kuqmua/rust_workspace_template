@@ -1,11 +1,14 @@
 pub fn build_sql_like_pattern(
-    input: crate::domain_types::SqlLikeInputRef<'_>,
-    match_mode: crate::domain_types::SqlLikeMatchMode,
-) -> Result<crate::domain_types::SqlLikePattern, crate::domain_types::SqlLikePatternError> {
+    input: crate::sql_like_input_ref::SqlLikeInputRef<'_>,
+    match_mode: crate::sql_like_match_mode::SqlLikeMatchMode,
+) -> Result<
+    crate::sql_like_pattern::SqlLikePattern,
+    crate::sql_like_pattern_error::SqlLikePatternError,
+> {
     let wildcard_count = match match_mode {
-        crate::domain_types::SqlLikeMatchMode::Contains => 2usize,
-        crate::domain_types::SqlLikeMatchMode::EndsWith
-        | crate::domain_types::SqlLikeMatchMode::StartsWith => constants_usize::ONE,
+        crate::sql_like_match_mode::SqlLikeMatchMode::Contains => 2usize,
+        crate::sql_like_match_mode::SqlLikeMatchMode::EndsWith
+        | crate::sql_like_match_mode::SqlLikeMatchMode::StartsWith => constants_usize::ONE,
     };
     let input_value = input.get();
     let reserved_count = input_value
@@ -20,8 +23,8 @@ pub fn build_sql_like_pattern(
     );
     if matches!(
         match_mode,
-        crate::domain_types::SqlLikeMatchMode::Contains
-            | crate::domain_types::SqlLikeMatchMode::EndsWith
+        crate::sql_like_match_mode::SqlLikeMatchMode::Contains
+            | crate::sql_like_match_mode::SqlLikeMatchMode::EndsWith
     ) {
         output.push('%');
     }
@@ -33,12 +36,12 @@ pub fn build_sql_like_pattern(
     });
     if matches!(
         match_mode,
-        crate::domain_types::SqlLikeMatchMode::Contains
-            | crate::domain_types::SqlLikeMatchMode::StartsWith
+        crate::sql_like_match_mode::SqlLikeMatchMode::Contains
+            | crate::sql_like_match_mode::SqlLikeMatchMode::StartsWith
     ) {
         output.push('%');
     }
-    crate::domain_types::SqlLikePattern::try_from(output)
+    crate::sql_like_pattern::SqlLikePattern::try_from(output)
 }
 
 #[cfg(test)]
@@ -46,36 +49,36 @@ mod tests {
     #[test]
     fn match_modes_place_wildcards_at_the_requested_edges() {
         assert!(matches!(
-            super::build_sql_like_pattern(
-                constants_str::TEST_SQL_LIKE_INPUT.into(),
-                crate::domain_types::SqlLikeMatchMode::Contains,
+            crate::build_sql_like_pattern::build_sql_like_pattern(
+                constants_str::test_fixtures::TEST_SQL_LIKE_INPUT.into(),
+                crate::sql_like_match_mode::SqlLikeMatchMode::Contains,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_CONTAINS_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_CONTAINS_PATTERN
         ));
         assert!(matches!(
-            super::build_sql_like_pattern(
-                constants_str::TEST_SQL_LIKE_INPUT.into(),
-                crate::domain_types::SqlLikeMatchMode::StartsWith,
+            crate::build_sql_like_pattern::build_sql_like_pattern(
+                constants_str::test_fixtures::TEST_SQL_LIKE_INPUT.into(),
+                crate::sql_like_match_mode::SqlLikeMatchMode::StartsWith,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_STARTS_WITH_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_STARTS_WITH_PATTERN
         ));
         assert!(matches!(
-            super::build_sql_like_pattern(
-                constants_str::TEST_SQL_LIKE_INPUT.into(),
-                crate::domain_types::SqlLikeMatchMode::EndsWith,
+            crate::build_sql_like_pattern::build_sql_like_pattern(
+                constants_str::test_fixtures::TEST_SQL_LIKE_INPUT.into(),
+                crate::sql_like_match_mode::SqlLikeMatchMode::EndsWith,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_ENDS_WITH_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_ENDS_WITH_PATTERN
         ));
     }
 
     #[test]
     fn reserved_symbols_are_escaped_as_literals() {
         assert!(matches!(
-            super::build_sql_like_pattern(
-                constants_str::TEST_SQL_LIKE_RESERVED_INPUT.into(),
-                crate::domain_types::SqlLikeMatchMode::Contains,
+            crate::build_sql_like_pattern::build_sql_like_pattern(
+                constants_str::test_fixtures::TEST_SQL_LIKE_RESERVED_INPUT.into(),
+                crate::sql_like_match_mode::SqlLikeMatchMode::Contains,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_RESERVED_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_RESERVED_PATTERN
         ));
     }
 }

@@ -1,9 +1,7 @@
-use super::domain_types::{SynFieldsNamedRef, SynFieldsUnnamedRef};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub enum SynStructShapeRef<'shape_lt> {
-    Named(SynFieldsNamedRef<'shape_lt>),
-    Tuple(SynFieldsUnnamedRef<'shape_lt>),
+    Named(crate::syn_fields_named_ref::SynFieldsNamedRef<'shape_lt>),
+    Tuple(crate::syn_fields_unnamed_ref::SynFieldsUnnamedRef<'shape_lt>),
     Unit,
 }
 impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shape_lt> {
@@ -12,12 +10,16 @@ impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shap
         let syn::Data::Struct(data) = &value.data else {
             return Err(syn::Error::new_spanned(
                 value,
-                constants_str::EXPECTED_A_STRUCT,
+                constants_str::catalog::EXPECTED_A_STRUCT,
             ));
         };
         Ok(match &data.fields {
-            syn::Fields::Named(fields) => Self::Named(SynFieldsNamedRef(fields)),
-            syn::Fields::Unnamed(fields) => Self::Tuple(SynFieldsUnnamedRef(fields)),
+            syn::Fields::Named(fields) => {
+                Self::Named(crate::syn_fields_named_ref::SynFieldsNamedRef(fields))
+            }
+            syn::Fields::Unnamed(fields) => {
+                Self::Tuple(crate::syn_fields_unnamed_ref::SynFieldsUnnamedRef(fields))
+            }
             syn::Fields::Unit => Self::Unit,
         })
     }

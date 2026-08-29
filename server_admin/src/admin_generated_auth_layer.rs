@@ -1,9 +1,11 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthLayer {
-    state: crate::domain_types::auth::SharedAdminAuthSvcStateArc,
+    state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
 }
-impl From<crate::domain_types::auth::SharedAdminAuthSvcStateArc> for AdminGeneratedAuthLayer {
-    fn from(value: crate::domain_types::auth::SharedAdminAuthSvcStateArc) -> Self {
+impl From<crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc>
+    for AdminGeneratedAuthLayer
+{
+    fn from(value: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc) -> Self {
         Self { state: value }
     }
 }

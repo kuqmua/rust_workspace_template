@@ -15,17 +15,23 @@
     newtype::TryFrom,
 )]
 #[try_from(
-    error = super::ResourceUtilizationPercentTryFromU8Error,
+    error = crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error,
     validator = |value: &u8| {
-        if *value <= 100u8 { Ok(()) } else { Err(super::ResourceUtilizationPercentTryFromU8Error) }
+        if *value <= 100u8 { Ok(()) } else { Err(crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error) }
     }
 )]
 pub struct ResourceUtilizationPercent(pub(super) u8);
 
-impl From<super::ResourceUtilizationKnownPercent> for ResourceUtilizationPercent {
-    fn from(value: super::ResourceUtilizationKnownPercent) -> Self {
+impl From<crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent>
+    for ResourceUtilizationPercent
+{
+    fn from(
+        value: crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent,
+    ) -> Self {
         match value {
-            super::ResourceUtilizationKnownPercent::Max => Self(100u8),
+            crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent::Max => {
+                Self(100u8)
+            }
         }
     }
 }

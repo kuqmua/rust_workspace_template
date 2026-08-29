@@ -1,5 +1,3 @@
-use super::domain_types::{CreateNotificationRoute, NOTIFICATION_API_BODY_MAX_BYTES};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -7,13 +5,13 @@ use super::domain_types::{CreateNotificationRoute, NOTIFICATION_API_BODY_MAX_BYT
     Debug,
     Eq,
     PartialEq,
-    frontend_contract::RouteCatalog,
+    frontend_contract_macros::RouteCatalog,
 )]
 #[route_catalog(
     family = NotificationRouteFamily,
-    body_limit = NOTIFICATION_API_BODY_MAX_BYTES,
+    body_limit = crate::notification_api_body_max_bytes::NOTIFICATION_API_BODY_MAX_BYTES,
 )]
 pub enum NotificationRoute {
-    #[route_catalog_route(CreateNotificationRoute)]
+    #[route_catalog_route(crate::create_notification_route::CreateNotificationRoute)]
     Create,
 }

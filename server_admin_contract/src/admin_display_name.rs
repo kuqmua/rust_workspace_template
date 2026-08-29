@@ -9,5 +9,5 @@
     newtype::Display,
     newtype::IntoInner,
 )]
-#[bounded_string(max = super::ADMIN_DISPLAY_NAME_MAX_CHARS, min = super::ADMIN_DISPLAY_NAME_MIN_CHARS, chars, serde, utoipa, validator = super::ADMIN_DISPLAY_NAME_IS_VALID, description = "administrator display name")]
+#[bounded_string(max = crate::identity::ADMIN_DISPLAY_NAME_MAX_CHARS, min = crate::identity::ADMIN_DISPLAY_NAME_MIN_CHARS, chars, serde, utoipa, validator = crate::identity::ADMIN_DISPLAY_NAME_IS_VALID, description = "administrator display name")]
 pub struct AdminDisplayName(String);

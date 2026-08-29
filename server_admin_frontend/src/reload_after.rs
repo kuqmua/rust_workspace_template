@@ -1,6 +1,6 @@
 pub(crate) fn reload_after<RequestBody>(
-    method: crate::domain_types::start::mutation::AdminMutationMethod,
-    path: crate::domain_types::start::http::url::AdminCsrApiUrl,
+    method: crate::admin_mutation_method::AdminMutationMethod,
+    path: crate::admin_csr_api_url::AdminCsrApiUrl,
     request_body: RequestBody,
 ) where
     RequestBody: serde::Serialize + 'static,
@@ -13,7 +13,7 @@ pub(crate) fn reload_after<RequestBody>(
                 Some(window) if window.location().reload().is_ok() => {}
                 Some(_) | None => {
                     crate::domain_types::start::mutation::show_mutation_error::show_mutation_error(
-                        &crate::domain_types::start::state::admin_table_load_error::AdminTableLoadError::Fetch,
+                        &crate::admin_table_load_error::AdminTableLoadError::Fetch,
                     );
                 }
             },

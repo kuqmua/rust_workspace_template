@@ -1,10 +1,10 @@
 static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
 pub(crate) fn test_path(
-    stem: super::TestPathStem<'_>,
-) -> crate::domain_types::rs_file_path::RsFilePathBuf {
+    stem: crate::test_path_stem::TestPathStem<'_>,
+) -> crate::rs_file_path_buf::RsFilePathBuf {
     let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    crate::domain_types::rs_file_path::RsFilePathBuf::from(std::env::temp_dir().join(format!(
+    crate::rs_file_path_buf::RsFilePathBuf::from(std::env::temp_dir().join(format!(
         "{}_{}_{}",
         stem.0,
         std::process::id(),

@@ -1,29 +1,33 @@
 #[must_use]
 pub fn add_health_routes(
-    router: crate::domain_types::AxumRouter,
-    readiness: &super::HealthReadiness,
-) -> crate::domain_types::AxumRouter {
+    router: crate::axum_router::AxumRouter,
+    readiness: &crate::health_readiness::HealthReadiness,
+) -> crate::axum_router::AxumRouter {
     let readiness_for_route = readiness.clone();
-    crate::domain_types::AxumRouter::from(
+    crate::axum_router::AxumRouter::from(
         axum::Router::from(router)
             .route(
-                constants_str::LIVE_PATH,
+                constants_str::catalog::LIVE_PATH,
                 axum::routing::get(async || {
-                    axum::Json(super::ServiceLivenessSnapshot {
-                        service: super::HealthComponentStatus::Ok,
+                    axum::Json(crate::service_liveness_snapshot::ServiceLivenessSnapshot {
+                        service: crate::health_component_status::HealthComponentStatus::Ok,
                     })
                 }),
             )
             .route(
-                constants_str::READY_PATH,
+                constants_str::catalog::READY_PATH,
                 axum::routing::get(move || {
                     let route_readiness = readiness_for_route.clone();
                     async move {
                         let snapshot = route_readiness.snapshot();
-                        if snapshot.database == super::HealthComponentStatus::Ok {
+                        if snapshot.database
+                            == crate::health_component_status::HealthComponentStatus::Ok
+                        {
                             Ok(axum::Json(snapshot))
                         } else {
-                            Err(super::HealthReadyError::Unavailable(snapshot))
+                            Err(crate::health_ready_error::HealthReadyError::Unavailable(
+                                snapshot,
+                            ))
                         }
                     }
                 }),

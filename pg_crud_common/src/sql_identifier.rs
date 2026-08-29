@@ -10,28 +10,28 @@
 )]
 pub struct SqlIdentifier(String);
 impl TryFrom<String> for SqlIdentifier {
-    type Error = crate::domain_types::SqlIdentifierError;
+    type Error = crate::sql_identifier_error::SqlIdentifierError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > 128usize {
-            return Err(crate::domain_types::SqlIdentifierError::Invalid);
+            return Err(crate::sql_identifier_error::SqlIdentifierError::Invalid);
         }
         let mut bytes = value.bytes();
         let first = bytes
             .next()
-            .ok_or(crate::domain_types::SqlIdentifierError::Empty)?;
+            .ok_or(crate::sql_identifier_error::SqlIdentifierError::Empty)?;
         if !(first.is_ascii_alphabetic() || first == b'_')
             || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
         {
-            return Err(crate::domain_types::SqlIdentifierError::Invalid);
+            return Err(crate::sql_identifier_error::SqlIdentifierError::Invalid);
         }
         Ok(Self(value))
     }
 }
 #[cfg(test)]
 mod tests {
-    fn sql_identifier_fixture(value: &str) -> super::SqlIdentifier {
-        super::SqlIdentifier::try_from(value.to_owned())
+    fn sql_identifier_fixture(value: &str) -> crate::sql_identifier::SqlIdentifier {
+        crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
             .expect("940eb924 identifier invariant must hold")
     }
     #[test]
@@ -41,39 +41,40 @@ mod tests {
     )]
     fn sql_identifier_uses_restricted_ascii_grammar() {
         [
-            constants_str::TABLE_ALT,
-            constants_str::TABLE,
-            constants_str::TABLE_2,
+            constants_str::catalog::TABLE_ALT,
+            constants_str::catalog::TABLE,
+            constants_str::catalog::TABLE_2,
         ]
         .into_iter()
         .for_each(|value| {
-            let _identifier = super::SqlIdentifier::try_from(value.to_owned()).expect(
-                "326a4da9 sql_identifier_uses_restricted_ascii_grammar invariant must hold",
-            );
+            let _identifier = crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
+                .expect(
+                    "326a4da9 sql_identifier_uses_restricted_ascii_grammar invariant must hold",
+                );
         });
         [
-            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
-            constants_str::VALUE_2TABLE,
-            constants_str::TABLE_NAME,
-            constants_str::NON_ASCII_U_E9,
-            constants_str::TABLE_NAME_ALT,
+            constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
+            constants_str::catalog::VALUE_2TABLE,
+            constants_str::catalog::TABLE_NAME,
+            constants_str::catalog::NON_ASCII_U_E9,
+            constants_str::catalog::TABLE_NAME_ALT,
         ]
         .into_iter()
         .for_each(|value| {
-            let _error = super::SqlIdentifier::try_from(value.to_owned())
-                .expect_err(constants_str::F698FD6D);
+            let _error = crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
+                .expect_err(constants_str::catalog::F698FD6D);
         });
     }
     #[test]
     fn query_builder_accepts_only_validated_identifiers() {
-        let builder = crate::domain_types::SqlSelectBuilder::new(
-            crate::domain_types::SqlQualifiedIdentifier::new(
-                sql_identifier_fixture(constants_str::PUBLIC),
-                sql_identifier_fixture(constants_str::USERS_ALT),
+        let builder = crate::sql_select_builder::SqlSelectBuilder::new(
+            crate::sql_qualified_identifier::SqlQualifiedIdentifier::new(
+                sql_identifier_fixture(constants_str::catalog::PUBLIC),
+                sql_identifier_fixture(constants_str::catalog::USERS_ALT),
             ),
-            crate::domain_types::SqlIdentifiers::try_from(vec![
-                sql_identifier_fixture(constants_str::SQL_NAMES_ID),
-                sql_identifier_fixture(constants_str::LOGIN),
+            crate::sql_identifiers::SqlIdentifiers::try_from(vec![
+                sql_identifier_fixture(constants_str::catalog::SQL_NAMES_ID),
+                sql_identifier_fixture(constants_str::catalog::LOGIN),
             ])
             .expect(
                 "c4cf723e query_builder_accepts_only_validated_identifiers invariant must hold",

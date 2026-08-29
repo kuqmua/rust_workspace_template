@@ -1,5 +1,3 @@
-use super::domain_types::BetweenTryNewError;
-
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -29,15 +27,15 @@ where
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::PG_CRUD_START_FIELD,
+                constants_str::catalog::PG_CRUD_START_FIELD,
                 <T as utoipa::PartialSchema>::schema(),
             )
             .property(
-                constants_str::PG_CRUD_END_FIELD,
+                constants_str::catalog::PG_CRUD_END_FIELD,
                 <T as utoipa::PartialSchema>::schema(),
             )
-            .required(constants_str::PG_CRUD_START_FIELD)
-            .required(constants_str::PG_CRUD_END_FIELD)
+            .required(constants_str::catalog::PG_CRUD_START_FIELD)
+            .required(constants_str::catalog::PG_CRUD_END_FIELD)
             .build()
             .into()
     }
@@ -49,21 +47,26 @@ where
         + utoipa::ToSchema,
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_BETWEEN_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::catalog::PG_CRUD_BETWEEN_SCHEMA_NAME)
     }
 }
 impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + PartialOrd>
     Between<T>
 {
-    pub fn try_new(start: T, end: T) -> Result<Self, BetweenTryNewError<T>> {
+    pub fn try_new(
+        start: T,
+        end: T,
+    ) -> Result<Self, crate::between_try_new_error::BetweenTryNewError<T>> {
         if start < end {
             Ok(Self { start, end })
         } else {
-            Err(BetweenTryNewError::StartMoreOrEqToEnd {
-                start,
-                end,
-                location: location_macros::location!(),
-            })
+            Err(
+                crate::between_try_new_error::BetweenTryNewError::StartMoreOrEqToEnd {
+                    start,
+                    end,
+                    location: location_macros::location!(),
+                },
+            )
         }
     }
 }
@@ -108,7 +111,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        constants_str::PG_CRUD_FIELD_IDENTIFIER,
+                        constants_str::catalog::PG_CRUD_FIELD_IDENTIFIER,
                     )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
@@ -126,8 +129,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        constants_str::PG_CRUD_START_FIELD => Ok(__Field::f0),
-                        constants_str::PG_CRUD_END_FIELD => Ok(__Field::f1),
+                        constants_str::catalog::PG_CRUD_START_FIELD => Ok(__Field::f0),
+                        constants_str::catalog::PG_CRUD_END_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -177,7 +180,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        constants_str::PG_CRUD_BETWEEN_STRUCT_NAME,
+                        constants_str::catalog::PG_CRUD_BETWEEN_STRUCT_NAME,
                     )
                 }
                 #[inline]
@@ -188,13 +191,13 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ONE,
-                            &constants_str::PG_CRUD_BETWEEN_EXPECTING,
+                            &constants_str::catalog::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             2usize,
-                            &constants_str::PG_CRUD_BETWEEN_EXPECTING,
+                            &constants_str::catalog::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     match Between::try_new(f0, f1) {
@@ -215,7 +218,7 @@ const _: () = {
                                 if Option::is_some(&f0) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            constants_str::PG_CRUD_START_FIELD,
+                                            constants_str::catalog::PG_CRUD_START_FIELD,
                                         ),
                                     );
                                 }
@@ -225,7 +228,7 @@ const _: () = {
                                 if Option::is_some(&f1) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            constants_str::PG_CRUD_END_FIELD,
+                                            constants_str::catalog::PG_CRUD_END_FIELD,
                                         ),
                                     );
                                 }
@@ -242,13 +245,13 @@ const _: () = {
                     let f0_v = match f0 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            constants_str::PG_CRUD_START_FIELD,
+                            constants_str::catalog::PG_CRUD_START_FIELD,
                         )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            constants_str::PG_CRUD_END_FIELD,
+                            constants_str::catalog::PG_CRUD_END_FIELD,
                         )?,
                     };
                     match Between::try_new(f0_v, f1_v) {
@@ -259,7 +262,7 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_struct(
                 __deserializer,
-                constants_str::PG_CRUD_BETWEEN_SCHEMA_NAME,
+                constants_str::catalog::PG_CRUD_BETWEEN_SCHEMA_NAME,
                 constants_str::PG_CRUD_SERDE_BETWEEN_FIELDS,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
@@ -270,47 +273,55 @@ const _: () = {
     }
 };
 impl<
-    T: pg_crud_common::domain_types::DefaultSomeOneElement
+    T: pg_crud_common::default_some_one_element::DefaultSomeOneElement
         + sqlx::Type<sqlx::Postgres>
         + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
-> pg_crud_common::domain_types::DefaultSomeOneElement for Between<T>
+> pg_crud_common::default_some_one_element::DefaultSomeOneElement for Between<T>
 {
     fn default_some_one_element() -> Self {
         Self {
-            start: pg_crud_common::domain_types::DefaultSomeOneElement::default_some_one_element(),
-            end: pg_crud_common::domain_types::DefaultSomeOneElement::default_some_one_element(),
+            start: pg_crud_common::default_some_one_element::DefaultSomeOneElement::default_some_one_element(),
+            end: pg_crud_common::default_some_one_element::DefaultSomeOneElement::default_some_one_element(),
         }
     }
 }
 impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + 'lt>
-    pg_crud_common::domain_types::PgTypeWhereFilter<'lt> for Between<T>
+    pg_crud_common::pg_type_where_filter::PgTypeWhereFilter<'lt> for Between<T>
 {
     fn query_bind(
         self,
-        mut query: pg_crud_common::domain_types::SqlxPostgresQuery<'lt>,
+        mut query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
     ) -> Result<
-        pg_crud_common::domain_types::SqlxPostgresQuery<'lt>,
-        pg_crud_common::domain_types::SqlxPostgresQueryBindError,
+        pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
+        pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
         if let Err(error) = query.as_mut().try_bind(self.start) {
-            return Err(pg_crud_common::domain_types::SqlxPostgresQueryBindError::from(error));
+            return Err(
+                pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(
+                    error,
+                ),
+            );
         }
         if let Err(error) = query.as_mut().try_bind(self.end) {
-            return Err(pg_crud_common::domain_types::SqlxPostgresQueryBindError::from(error));
+            return Err(
+                pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(
+                    error,
+                ),
+            );
         }
         Ok(query)
     }
     fn query_part(
         &self,
-        increment: &mut dyn pg_crud_common::domain_types::QueryPartIncrementMut,
-        _: pg_crud_common::domain_types::SqlColumnRef<'_>,
-        _: pg_crud_common::domain_types::AddOperator,
+        increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut,
+        _: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
+        _: pg_crud_common::add_operator::AddOperator,
     ) -> Result<
-        pg_crud_common::domain_types::QueryPartFragment,
-        pg_crud_common::domain_types::QueryPartError,
+        pg_crud_common::query_part_fragment::QueryPartFragment,
+        pg_crud_common::query_part_error::QueryPartError,
     > {
         let start_increment =
-            match pg_crud_common::domain_types::increment_checked_add_one_returning_increment(
+            match pg_crud_common::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(
                 increment,
             ) {
                 Ok(v) => v,
@@ -319,7 +330,7 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
                 }
             };
         let end_increment =
-            match pg_crud_common::domain_types::increment_checked_add_one_returning_increment(
+            match pg_crud_common::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(
                 increment,
             ) {
                 Ok(v) => v,
@@ -335,13 +346,11 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
         .is_err()
         {
             return Err(
-                pg_crud_common::domain_types::QueryPartError::WriteIntoBuffer {
+                pg_crud_common::query_part_error::QueryPartError::WriteIntoBuffer {
                     location: location_macros::location!(),
                 },
             );
         }
-        Ok(pg_crud_common::domain_types::QueryPartFragment::try_from(
-            query_part,
-        )?)
+        Ok(pg_crud_common::query_part_fragment::QueryPartFragment::try_from(query_part)?)
     }
 }

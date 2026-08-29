@@ -4,5 +4,5 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Serialize)]
 pub(super) struct RequestTimeoutBody {
-    pub(super) error: super::StdRequestTimeoutMessage,
+    pub(super) error: crate::std_request_timeout_message::StdRequestTimeoutMessage,
 }

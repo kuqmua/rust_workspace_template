@@ -1,7 +1,7 @@
-pub(super) fn binary_double_quote_style() -> crate::domain_types::QuoteStyle {
-    crate::domain_types::build_quote_style(
-        crate::domain_types::QuotePanicId::from(constants_str::VALUE_5DC6F142),
-        crate::domain_types::QuotePrefix::from(constants_str::B),
-        crate::domain_types::QuoteChar::from('"'),
+pub(super) fn binary_double_quote_style() -> crate::quote_style::QuoteStyle {
+    crate::build_quote_style::build_quote_style(
+        crate::quote_panic_id::QuotePanicId::from(constants_str::catalog::VALUE_5DC6F142),
+        crate::quote_prefix::QuotePrefix::from(constants_str::catalog::B),
+        crate::quote_char::QuoteChar::from('"'),
     )
 }

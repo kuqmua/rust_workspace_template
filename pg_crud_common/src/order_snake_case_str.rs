@@ -1,18 +1,24 @@
 #[derive(
     Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::Display,
 )]
-pub struct OrderSnakeCaseStr(crate::domain_types::OrderTextString);
+pub struct OrderSnakeCaseStr(crate::order_text_string::OrderTextString);
 
-impl From<crate::domain_types::PgCrudStringWrapperTryFromStringError> for OrderSnakeCaseStr {
-    fn from(value: crate::domain_types::PgCrudStringWrapperTryFromStringError) -> Self {
-        Self(crate::domain_types::OrderTextString::from(value))
+impl
+    From<crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError>
+    for OrderSnakeCaseStr
+{
+    fn from(
+        value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
+    ) -> Self {
+        Self(crate::order_text_string::OrderTextString::from(value))
     }
 }
 
 impl TryFrom<String> for OrderSnakeCaseStr {
-    type Error = crate::domain_types::PgCrudStringWrapperTryFromStringError;
+    type Error =
+        crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        crate::domain_types::OrderTextString::try_from(value).map(Self)
+        crate::order_text_string::OrderTextString::try_from(value).map(Self)
     }
 }

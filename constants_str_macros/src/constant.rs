@@ -4,7 +4,7 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct Constant {
-    pub(super) name: super::SynIdent,
-    pub(super) parts: super::ConstantParts,
-    pub(super) visibility: Option<super::SynVisibility>,
+    pub(super) name: crate::syn_ident::SynIdent,
+    pub(super) parts: crate::constant_parts::ConstantParts,
+    pub(super) visibility: Option<crate::syn_visibility::SynVisibility>,
 }

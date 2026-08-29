@@ -12,33 +12,11 @@ mod snake_identifierifier_len;
 mod snake_identifierifier_try_from_string_error;
 mod syn_derive_input_ref;
 mod syn_expr;
-mod syn_identifier;
 mod syn_identifier_ref;
 mod syn_type;
 mod syn_type_ref;
 mod to_err_string_mode;
 mod wire_enum_attrs;
-
-pub(crate) use bounded_string_attrs::BoundedStringAttrs;
-pub(crate) use bounded_string_option::BoundedStringOption;
-pub(crate) use newtype_attrs::NewtypeAttrs;
-pub(crate) use newtype_bool::NewtypeBool;
-pub(crate) use newtype_option::NewtypeOption;
-pub(crate) use newtype_try_from_attrs::NewtypeTryFromAttrs;
-pub(crate) use proc_macro_input_token_stream::ProcMacroInputTokenStream;
-pub(crate) use proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream;
-pub(crate) use snake_ident_max_len::SNAKE_IDENT_MAX_LEN;
-pub(crate) use snake_identifier::SnakeIdentifier;
-pub(crate) use snake_identifierifier_len::SnakeIdentifierifierLen;
-pub(crate) use snake_identifierifier_try_from_string_error::SnakeIdentifierifierTryFromStringError;
-pub(crate) use syn_derive_input_ref::SynDeriveInputRef;
-pub(crate) use syn_expr::SynExpr;
-pub(crate) use syn_identifier::SynIdentifier;
-pub(crate) use syn_identifier_ref::SynIdentifierRef;
-pub(crate) use syn_type::SynType;
-pub(crate) use syn_type_ref::SynTypeRef;
-pub(crate) use to_err_string_mode::ToErrStringMode;
-pub(crate) use wire_enum_attrs::WireEnumAttrs;
 
 #[cfg(test)]
 // The owner module retains lint-sensitive semantics from the original implementation.
@@ -53,36 +31,45 @@ fn newtype_dependency_markers<Value>(
 }
 
 fn derive_newtype_option(
-    input_token_stream: ProcMacroInputTokenStream,
-    option: NewtypeOption,
-    to_err_string_mode: Option<ToErrStringMode>,
-) -> ProcMacro2GeneratedTokenStream {
+    input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+    option: newtype_option::NewtypeOption,
+    to_err_string_mode: Option<to_err_string_mode::ToErrStringMode>,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     let input = match syn::parse::<syn::DeriveInput>(input_token_stream.into_inner()) {
         Ok(v) => v,
         Err(error) => {
-            return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+            return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+                error.into_compile_error(),
+            );
         }
     };
-    let mut attrs = NewtypeAttrs::default();
+    let mut attrs = newtype_attrs::NewtypeAttrs::default();
     *attrs.get_to_err_string_mode_mut() = to_err_string_mode;
     if let Err(error) = attrs.get_options_mut().try_insert_with(option, || {
         syn::Error::new(
             proc_macro2::Span::call_site(),
-            constants_str::DUPLICATE_NEWTYPE_OPTION,
+            constants_str::catalog::DUPLICATE_NEWTYPE_OPTION,
         )
     }) {
-        return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+        return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+            error.into_compile_error(),
+        );
     }
-    match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
+    match generate_newtype_token_stream_with_attrs(
+        syn_derive_input_ref::SynDeriveInputRef::from(&input),
+        &attrs,
+    ) {
         Ok(v) => v,
-        Err(error) => ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
+        Err(error) => proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+            error.into_compile_error(),
+        ),
     }
 }
 #[proc_macro_derive(AsMut)]
 pub fn as_mut(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsMut,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::AsMut,
         None,
     )
     .into()
@@ -90,8 +77,8 @@ pub fn as_mut(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRef)]
 pub fn as_ref(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRef,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::AsRef,
         None,
     )
     .into()
@@ -99,8 +86,8 @@ pub fn as_ref(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefInner)]
 pub fn as_ref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::AsRefInner,
         None,
     )
     .into()
@@ -108,8 +95,8 @@ pub fn as_ref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefOwned)]
 pub fn as_ref_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefOwned,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::AsRefOwned,
         None,
     )
     .into()
@@ -117,8 +104,8 @@ pub fn as_ref_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefStr)]
 pub fn as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefStr,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::AsRefStr,
         None,
     )
     .into()
@@ -126,8 +113,8 @@ pub fn as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(AsRefTarget)]
 pub fn as_ref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsRefTarget,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::AsRefTarget,
         None,
     )
     .into()
@@ -135,8 +122,8 @@ pub fn as_ref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 #[proc_macro_derive(AsSlice)]
 pub fn as_slice(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::AsSlice,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::AsSlice,
         None,
     )
     .into()
@@ -144,8 +131,8 @@ pub fn as_slice(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowInner)]
 pub fn borrow_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::BorrowInner,
         None,
     )
     .into()
@@ -153,8 +140,8 @@ pub fn borrow_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowOwned)]
 pub fn borrow_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowOwned,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::BorrowOwned,
         None,
     )
     .into()
@@ -162,8 +149,8 @@ pub fn borrow_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowPath)]
 pub fn borrow_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowPath,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::BorrowPath,
         None,
     )
     .into()
@@ -171,8 +158,8 @@ pub fn borrow_path(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(BorrowStr)]
 pub fn borrow_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::BorrowStr,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::BorrowStr,
         None,
     )
     .into()
@@ -180,8 +167,8 @@ pub fn borrow_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(CloneInner)]
 pub fn clone_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::CloneInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::CloneInner,
         None,
     )
     .into()
@@ -195,7 +182,7 @@ pub fn clone_fields(input_token_stream: proc_macro::TokenStream) -> proc_macro::
     let syn::Data::Struct(data) = &input.data else {
         return syn::Error::new_spanned(
             &input.ident,
-            constants_str::CLONE_FIELDS_SUPPORTS_ONLY_STRUCTS,
+            constants_str::test_fixtures::CLONE_FIELDS_SUPPORTS_ONLY_STRUCTS,
         )
         .into_compile_error()
         .into();
@@ -238,8 +225,8 @@ pub fn clone_fields(input_token_stream: proc_macro::TokenStream) -> proc_macro::
 #[proc_macro_derive(DebugRedacted)]
 pub fn debug_redacted(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DebugRedacted,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::DebugRedacted,
         None,
     )
     .into()
@@ -247,8 +234,8 @@ pub fn debug_redacted(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 #[proc_macro_derive(DebugTransparent)]
 pub fn debug_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DebugTransparent,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::DebugTransparent,
         None,
     )
     .into()
@@ -256,8 +243,8 @@ pub fn debug_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStr
 #[proc_macro_derive(DerefInner)]
 pub fn deref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::DerefInner,
         None,
     )
     .into()
@@ -265,8 +252,8 @@ pub fn deref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(DerefMutInner)]
 pub fn deref_mut_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefMutInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::DerefMutInner,
         None,
     )
     .into()
@@ -274,8 +261,8 @@ pub fn deref_mut_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
 #[proc_macro_derive(DerefMutTarget)]
 pub fn deref_mut_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefMutTarget,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::DerefMutTarget,
         None,
     )
     .into()
@@ -283,8 +270,8 @@ pub fn deref_mut_target(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 #[proc_macro_derive(DerefTarget)]
 pub fn deref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DerefTarget,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::DerefTarget,
         None,
     )
     .into()
@@ -292,8 +279,8 @@ pub fn deref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Display)]
 pub fn display(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Display,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::Display,
         None,
     )
     .into()
@@ -301,8 +288,8 @@ pub fn display(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(DefaultInner)]
 pub fn default_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::DefaultInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::DefaultInner,
         None,
     )
     .into()
@@ -339,7 +326,11 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
     let mut values = input
         .attrs
         .iter()
-        .filter(|attribute| attribute.path().is_ident(constants_str::DISPLAY_CONST))
+        .filter(|attribute| {
+            attribute
+                .path()
+                .is_ident(constants_str::test_fixtures::DISPLAY_CONST)
+        })
         .map(syn::Attribute::parse_args::<syn::Expr>);
     let value = match values.next() {
         Some(Ok(value)) => value,
@@ -347,7 +338,7 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
         None => {
             return syn::Error::new_spanned(
                 &input.ident,
-                constants_str::DISPLAY_CONST_REQUIRES_ATTRIBUTE,
+                constants_str::test_fixtures::DISPLAY_CONST_REQUIRES_ATTRIBUTE,
             )
             .into_compile_error()
             .into();
@@ -356,7 +347,7 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
     if values.next().is_some() {
         return syn::Error::new_spanned(
             &input.ident,
-            constants_str::DISPLAY_CONST_REQUIRES_ONE_ATTRIBUTE,
+            constants_str::test_fixtures::DISPLAY_CONST_REQUIRES_ONE_ATTRIBUTE,
         )
         .into_compile_error()
         .into();
@@ -375,8 +366,8 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
 #[proc_macro_derive(FromInner)]
 pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::From,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::From,
         None,
     )
     .into()
@@ -384,8 +375,8 @@ pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(Accessor)]
 pub fn accessor(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Accessor,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::Accessor,
         None,
     )
     .into()
@@ -393,8 +384,8 @@ pub fn accessor(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(GetInner)]
 pub fn get_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::GetInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::GetInner,
         None,
     )
     .into()
@@ -402,8 +393,8 @@ pub fn get_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(IntoInner)]
 pub fn into_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::IntoInner,
         None,
     )
     .into()
@@ -411,8 +402,8 @@ pub fn into_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(IntoInnerFrom)]
 pub fn into_inner_from(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoInnerFrom,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::IntoInnerFrom,
         None,
     )
     .into()
@@ -420,8 +411,8 @@ pub fn into_inner_from(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
 #[proc_macro_derive(IntoIterator)]
 pub fn into_iterator(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoIterator,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::IntoIterator,
         None,
     )
     .into()
@@ -429,8 +420,8 @@ pub fn into_iterator(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 #[proc_macro_derive(IntoVec)]
 pub fn into_vec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::IntoVec,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::IntoVec,
         None,
     )
     .into()
@@ -438,8 +429,8 @@ pub fn into_vec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(NotInner)]
 pub fn not_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::NotInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::NotInner,
         None,
     )
     .into()
@@ -447,8 +438,8 @@ pub fn not_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(PartialEqInner)]
 pub fn partial_eq_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::PartialEqInner,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::PartialEqInner,
         None,
     )
     .into()
@@ -456,8 +447,8 @@ pub fn partial_eq_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 #[proc_macro_derive(ToTokens)]
 pub fn to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::ToTokens,
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::ToTokens,
         None,
     )
     .into()
@@ -465,27 +456,27 @@ pub fn to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(ToErrString)]
 pub fn to_err_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Secret,
-        Some(ToErrStringMode::Display),
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::Secret,
+        Some(to_err_string_mode::ToErrStringMode::Display),
     )
     .into()
 }
 #[proc_macro_derive(ToErrStringAsRefStr)]
 pub fn to_err_string_as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Secret,
-        Some(ToErrStringMode::AsRefStr),
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::Secret,
+        Some(to_err_string_mode::ToErrStringMode::AsRefStr),
     )
     .into()
 }
 #[proc_macro_derive(ToErrStringDebug)]
 pub fn to_err_string_debug(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
-        ProcMacroInputTokenStream::from(input),
-        NewtypeOption::Secret,
-        Some(ToErrStringMode::Debug),
+        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+        newtype_option::NewtypeOption::Secret,
+        Some(to_err_string_mode::ToErrStringMode::Debug),
     )
     .into()
 }
@@ -495,7 +486,9 @@ pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::Toke
         let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
             Ok(value) => value,
             Err(error) => {
-                return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+                return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+                    error.into_compile_error(),
+                );
             }
         };
         let mut error_opt = None;
@@ -503,45 +496,67 @@ pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::Toke
         let parse_result = input
             .attrs
             .iter()
-            .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
+            .filter(|attr| {
+                attr.path()
+                    .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM)
+            })
             .try_for_each(|attr| {
                 attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
+                    if meta
+                        .path
+                        .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_ERROR)
+                    {
                         if error_opt.is_some() {
-                            return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
+                            return Err(meta.error(
+                                constants_str::test_fixtures::NEWTYPE_TRY_FROM_ERROR_DUPLICATE,
+                            ));
                         }
-                        error_opt = Some(SynType::from(meta.value()?.parse::<syn::Type>()?));
+                        error_opt =
+                            Some(syn_type::SynType::from(meta.value()?.parse::<syn::Type>()?));
                         return Ok(());
                     }
                     if meta
                         .path
-                        .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
+                        .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR)
                     {
                         if validator_opt.is_some() {
-                            return Err(
-                                meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
-                            );
+                            return Err(meta.error(
+                                constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE,
+                            ));
                         }
-                        validator_opt = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                        validator_opt =
+                            Some(syn_expr::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
-                    Err(meta.error(constants_str::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
+                    Err(meta.error(constants_str::test_fixtures::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
                 })
             });
         if let Err(error) = parse_result {
-            return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
+            return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+                error.into_compile_error(),
+            );
         }
         let Some(validator) = validator_opt else {
-            return ProcMacro2GeneratedTokenStream::from(
-                syn::Error::new_spanned(&input, constants_str::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
-                    .into_compile_error(),
+            return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+                syn::Error::new_spanned(
+                    &input,
+                    constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED,
+                )
+                .into_compile_error(),
             );
         };
-        let mut attrs = NewtypeAttrs::default();
-        *attrs.get_try_from_mut() = Some(NewtypeTryFromAttrs::new(error_opt, validator));
-        match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
+        let mut attrs = newtype_attrs::NewtypeAttrs::default();
+        *attrs.get_try_from_mut() = Some(newtype_try_from_attrs::NewtypeTryFromAttrs::new(
+            error_opt, validator,
+        ));
+        match generate_newtype_token_stream_with_attrs(
+            syn_derive_input_ref::SynDeriveInputRef::from(&input),
+            &attrs,
+        ) {
             Ok(value) => value,
-            Err(error) => ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
+            Err(error) => proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+                error.into_compile_error(),
+            ),
         }
     })()
     .into()
@@ -560,7 +575,7 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
             syn::Data::Struct(_) | syn::Data::Union(_) => {
                 return Err(syn::Error::new_spanned(
                     input_ref,
-                    constants_str::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
+                    constants_str::catalog::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
                 ));
             }
         };
@@ -571,15 +586,15 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
                 if !matches!(variant.fields, syn::Fields::Unit) {
                     return Err(syn::Error::new_spanned(
                         variant,
-                        constants_str::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
+                        constants_str::catalog::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
                     ));
                 }
                 Ok((
                     &variant.ident,
-                    identifier_to_snake(SynIdentifierRef::from(&variant.ident)),
+                    identifier_to_snake(syn_identifier_ref::SynIdentifierRef::from(&variant.ident)),
                 ))
             })
-            .collect::<syn::Result<Vec<(&syn::Ident, SnakeIdentifier)>>>()?;
+            .collect::<syn::Result<Vec<(&syn::Ident, snake_identifier::SnakeIdentifier)>>>()?;
         let allowed_values_capacity = variants
             .iter()
             .map(|(_identifier, name)| name.as_ref().len())
@@ -588,13 +603,13 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
                 variants
                     .len()
                     .saturating_sub(constants_usize::ONE)
-                    .saturating_mul(constants_str::TEXT_ALT_6.len()),
+                    .saturating_mul(constants_str::catalog::TEXT_ALT_6.len()),
             );
         let allowed_values = variants.iter().enumerate().fold(
             String::with_capacity(allowed_values_capacity),
             |mut values, (index, (_identifier, name))| {
                 if index > constants_usize::ZERO {
-                    values.push_str(constants_str::TEXT_ALT_6);
+                    values.push_str(constants_str::catalog::TEXT_ALT_6);
                 }
                 values.push_str(name.as_ref());
                 values
@@ -606,17 +621,21 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
                 v if v.eq_ignore_ascii_case(#name_ref) => Ok(Self::#variant_identifier),
             }
         });
-        Ok::<_, syn::Error>(ProcMacro2GeneratedTokenStream::from(quote::quote! {
-            impl std::str::FromStr for #identifier {
-                type Err = String;
-                fn from_str(s: &str) -> Result<Self, Self::Err> {
-                    match s {
-                        #(#arms)*
-                        _ => Err(format!("Unknown value: {s}. Allowed values: {allowed_values}", allowed_values = #allowed_values)),
+        Ok::<_, syn::Error>(
+            proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+                quote::quote! {
+                    impl std::str::FromStr for #identifier {
+                        type Err = String;
+                        fn from_str(s: &str) -> Result<Self, Self::Err> {
+                            match s {
+                                #(#arms)*
+                                _ => Err(format!("Unknown value: {s}. Allowed values: {allowed_values}", allowed_values = #allowed_values)),
+                            }
+                        }
                     }
-                }
-            }
-        }))
+                },
+            ),
+        )
     })();
     match generated {
         Ok(v) => v.into(),
@@ -629,23 +648,26 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let Some(attribute) = input
-        .attrs
-        .iter()
-        .find(|attribute| attribute.path().is_ident(constants_str::WIRE_ENUM))
-    else {
-        return syn::Error::new_spanned(input.ident, constants_str::WIRE_ENUM_REQUIRES_ATTRIBUTE)
-            .to_compile_error()
-            .into();
+    let Some(attribute) = input.attrs.iter().find(|attribute| {
+        attribute
+            .path()
+            .is_ident(constants_str::test_fixtures::WIRE_ENUM)
+    }) else {
+        return syn::Error::new_spanned(
+            input.ident,
+            constants_str::test_fixtures::WIRE_ENUM_REQUIRES_ATTRIBUTE,
+        )
+        .to_compile_error()
+        .into();
     };
-    let attrs = match attribute.parse_args::<WireEnumAttrs>() {
+    let attrs = match attribute.parse_args::<wire_enum_attrs::WireEnumAttrs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
     let syn::Data::Enum(data_enum) = &input.data else {
         return syn::Error::new_spanned(
             &input.ident,
-            constants_str::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
+            constants_str::test_fixtures::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
         )
         .to_compile_error()
         .into();
@@ -659,24 +681,28 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
             if !matches!(variant.fields, syn::Fields::Unit) {
                 return Err(syn::Error::new_spanned(
                     &variant.ident,
-                    constants_str::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
+                    constants_str::test_fixtures::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
                 ));
             }
             let wire_attribute = variant
                 .attrs
                 .iter()
-                .find(|candidate| candidate.path().is_ident(constants_str::WIRE_ENUM_WIRE))
+                .find(|candidate| {
+                    candidate
+                        .path()
+                        .is_ident(constants_str::test_fixtures::WIRE_ENUM_WIRE)
+                })
                 .ok_or_else(|| {
                     syn::Error::new_spanned(
                         &variant.ident,
-                        constants_str::WIRE_ENUM_VARIANT_REQUIRES_WIRE,
+                        constants_str::test_fixtures::WIRE_ENUM_VARIANT_REQUIRES_WIRE,
                     )
                 })?;
             let value = wire_attribute.parse_args::<syn::LitStr>()?;
             if !unique_values.insert(value.value()) {
                 return Err(syn::Error::new_spanned(
                     value,
-                    constants_str::WIRE_ENUM_DUPLICATE_VALUE,
+                    constants_str::test_fixtures::WIRE_ENUM_DUPLICATE_VALUE,
                 ));
             }
             parsed.push((&variant.ident, value));
@@ -742,7 +768,9 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match generate_bounded_string_token_stream(SynDeriveInputRef::from(&input)) {
+    match generate_bounded_string_token_stream(syn_derive_input_ref::SynDeriveInputRef::from(
+        &input,
+    )) {
         Ok(v) => v.into(),
         Err(error) => error.into_compile_error().into(),
     }
@@ -752,104 +780,104 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
     reason = "the production proc-macro boundary and three unit tests share the bounded-string generator"
 )]
 fn generate_bounded_string_token_stream(
-    input: SynDeriveInputRef<'_>,
-) -> syn::Result<ProcMacro2GeneratedTokenStream> {
+    input: syn_derive_input_ref::SynDeriveInputRef<'_>,
+) -> syn::Result<proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
     let attrs = input_ref
         .attrs
         .iter()
-        .filter(|attr| attr.path().is_ident(constants_str::BOUNDED_STRING))
+        .filter(|attr| attr.path().is_ident(constants_str::catalog::BOUNDED_STRING))
         .try_fold(
-            BoundedStringAttrs::default(),
+            bounded_string_attrs::BoundedStringAttrs::default(),
             |mut parsed, attr| {
                 attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(constants_str::MAX) {
-                        *parsed.get_max_mut() = Some(SynExpr::from(
+                    if meta.path.is_ident(constants_str::catalog::MAX) {
+                        *parsed.get_max_mut() = Some(syn_expr::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::MIN) {
-                        *parsed.get_min_mut() = Some(SynExpr::from(
+                    if meta.path.is_ident(constants_str::catalog::MIN) {
+                        *parsed.get_min_mut() = Some(syn_expr::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::DESCRIPTION) {
-                        *parsed.get_description_mut() = Some(SynExpr::from(
+                    if meta.path.is_ident(constants_str::catalog::DESCRIPTION) {
+                        *parsed.get_description_mut() = Some(syn_expr::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR) {
+                    if meta.path.is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR) {
                         if parsed.get_validator().is_some() {
                             return Err(
-                                meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
+                                meta.error(constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
                             );
                         }
-                        *parsed.get_validator_mut() = Some(SynExpr::from(
+                        *parsed.get_validator_mut() = Some(syn_expr::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::CHARS) {
+                    if meta.path.is_ident(constants_str::catalog::CHARS) {
                         return parsed.get_options_mut().try_insert_with(
-                            BoundedStringOption::Chars,
-                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            bounded_string_option::BoundedStringOption::Chars,
+                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::NUL_FREE) {
+                    if meta.path.is_ident(constants_str::catalog::NUL_FREE) {
                         return parsed.get_options_mut().try_insert_with(
-                            BoundedStringOption::NulFree,
-                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            bounded_string_option::BoundedStringOption::NulFree,
+                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::SERDE) {
+                    if meta.path.is_ident(constants_str::catalog::SERDE) {
                         return parsed.get_options_mut().try_insert_with(
-                            BoundedStringOption::Serde,
-                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            bounded_string_option::BoundedStringOption::Serde,
+                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::TRIM) {
+                    if meta.path.is_ident(constants_str::catalog::TRIM) {
                         return parsed.get_options_mut().try_insert_with(
-                            BoundedStringOption::Trim,
-                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            bounded_string_option::BoundedStringOption::Trim,
+                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::UTOIPA) {
+                    if meta.path.is_ident(constants_str::catalog::UTOIPA) {
                         return parsed.get_options_mut().try_insert_with(
-                            BoundedStringOption::Utoipa,
-                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            bounded_string_option::BoundedStringOption::Utoipa,
+                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::WRITE_ONLY) {
+                    if meta.path.is_ident(constants_str::catalog::WRITE_ONLY) {
                         return parsed.get_options_mut().try_insert_with(
-                            BoundedStringOption::WriteOnly,
-                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            bounded_string_option::BoundedStringOption::WriteOnly,
+                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
+                    Err(meta.error(constants_str::catalog::UNKNOWN_BOUNDED_STRING_OPTION))
                 })?;
-                Ok::<BoundedStringAttrs, syn::Error>(parsed)
+                Ok::<bounded_string_attrs::BoundedStringAttrs, syn::Error>(parsed)
             },
         )?;
     if attrs.get_max().is_none() {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
+            constants_str::catalog::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         ));
     }
     let inner_ty = tuple_struct_one_field_ty(input)?;
     if !type_path_ends_with_string_identifier(inner_ty).get() {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::BOUNDEDSTRING_SUPPORTS_ONLY_STRING_TUPLE_STRUCTS,
+            constants_str::catalog::BOUNDEDSTRING_SUPPORTS_ONLY_STRING_TUPLE_STRUCTS,
         ));
     }
     if !input_ref.generics.params.is_empty() {
         return Err(syn::Error::new_spanned(
             &input_ref.generics,
-            constants_str::BOUNDEDSTRING_DOES_NOT_SUPPORT_GENERICS,
+            constants_str::catalog::BOUNDEDSTRING_DOES_NOT_SUPPORT_GENERICS,
         ));
     }
     let identifier = &input_ref.ident;
@@ -859,25 +887,35 @@ fn generate_bounded_string_token_stream(
     let max = attrs.get_max().ok_or_else(|| {
         syn::Error::new(
             proc_macro2::Span::call_site(),
-            constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
+            constants_str::catalog::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         )
     })?;
     let min = attrs.get_min();
     let options = attrs.get_options();
     let validator = attrs.get_validator();
-    let chars = options.contains(BoundedStringOption::Chars).get();
-    let nul_free = options.contains(BoundedStringOption::NulFree).get();
-    let serde = options.contains(BoundedStringOption::Serde).get();
-    let trim = options.contains(BoundedStringOption::Trim).get();
-    let utoipa = options.contains(BoundedStringOption::Utoipa).get();
+    let chars = options
+        .contains(bounded_string_option::BoundedStringOption::Chars)
+        .get();
+    let nul_free = options
+        .contains(bounded_string_option::BoundedStringOption::NulFree)
+        .get();
+    let serde = options
+        .contains(bounded_string_option::BoundedStringOption::Serde)
+        .get();
+    let trim = options
+        .contains(bounded_string_option::BoundedStringOption::Trim)
+        .get();
+    let utoipa = options
+        .contains(bounded_string_option::BoundedStringOption::Utoipa)
+        .get();
     let write_only = options
-        .contains(BoundedStringOption::WriteOnly)
+        .contains(bounded_string_option::BoundedStringOption::WriteOnly)
         .get()
         .then(|| quote::quote! {.write_only(Some(true))});
     if utoipa && !chars {
         return Err(syn::Error::new_spanned(
             input_ref,
-            constants_str::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME,
+            constants_str::catalog::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME,
         ));
     }
     let min_token_stream =
@@ -942,78 +980,82 @@ fn generate_bounded_string_token_stream(
     });
     let description_token_stream = description.map_or_else(
         || {
-            let value = identifier_to_snake(SynIdentifierRef::from(identifier))
+            let value = identifier_to_snake(syn_identifier_ref::SynIdentifierRef::from(identifier))
                 .as_ref()
-                .replace('_', constants_str::SPACE);
+                .replace('_', constants_str::catalog::SPACE);
             quote::quote! {#value}
         },
         |value| quote::quote! {#value},
     );
-    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        #vis enum #error_identifier {
-            InvalidBounds { min: usize, max: usize },
-            TooShort { len: usize, min: usize },
-            TooLong { len: usize, max: usize },
-            ContainsNul,
-            InvalidValue,
-        }
-        impl std::fmt::Display for #error_identifier {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                match self {
-                    Self::InvalidBounds { min, max } => {
-                        write!(f, "{} minimum length {min} exceeds maximum {max}", #description_token_stream)
+    Ok(
+        proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+            #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+            #vis enum #error_identifier {
+                InvalidBounds { min: usize, max: usize },
+                TooShort { len: usize, min: usize },
+                TooLong { len: usize, max: usize },
+                ContainsNul,
+                InvalidValue,
+            }
+            impl std::fmt::Display for #error_identifier {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    match self {
+                        Self::InvalidBounds { min, max } => {
+                            write!(f, "{} minimum length {min} exceeds maximum {max}", #description_token_stream)
+                        }
+                        Self::TooShort { len, min } => {
+                            write!(f, "{} length {len} is below minimum {min}", #description_token_stream)
+                        }
+                        Self::TooLong { len, max } => {
+                            write!(f, "{} length {len} exceeds maximum {max}", #description_token_stream)
+                        }
+                        Self::ContainsNul => write!(f, "{} contains a NUL character", #description_token_stream),
+                        Self::InvalidValue => write!(f, "{} has an invalid value", #description_token_stream),
                     }
-                    Self::TooShort { len, min } => {
-                        write!(f, "{} length {len} is below minimum {min}", #description_token_stream)
-                    }
-                    Self::TooLong { len, max } => {
-                        write!(f, "{} length {len} exceeds maximum {max}", #description_token_stream)
-                    }
-                    Self::ContainsNul => write!(f, "{} contains a NUL character", #description_token_stream),
-                    Self::InvalidValue => write!(f, "{} has an invalid value", #description_token_stream),
                 }
             }
-        }
-        impl From<#error_identifier> for #identifier {
-            fn from(value: #error_identifier) -> Self {
-                Self(value.to_string())
+            impl From<#error_identifier> for #identifier {
+                fn from(value: #error_identifier) -> Self {
+                    Self(value.to_string())
+                }
             }
-        }
-        impl TryFrom<String> for #identifier {
-            type Error = #error_identifier;
-            fn try_from(value: String) -> Result<Self, Self::Error> {
-                #normalize_token_stream
-                if #min_token_stream > #max {
-                    return Err(Self::Error::InvalidBounds { min: #min_token_stream, max: #max });
+            impl TryFrom<String> for #identifier {
+                type Error = #error_identifier;
+                fn try_from(value: String) -> Result<Self, Self::Error> {
+                    #normalize_token_stream
+                    if #min_token_stream > #max {
+                        return Err(Self::Error::InvalidBounds { min: #min_token_stream, max: #max });
+                    }
+                    #nul_check_token_stream
+                    let len = #len_token_stream;
+                    if len < #min_token_stream {
+                        return Err(Self::Error::TooShort { len, min: #min_token_stream });
+                    }
+                    if len > #max {
+                        return Err(Self::Error::TooLong {
+                            len,
+                            max: #max,
+                        });
+                    }
+                    #validator_check_token_stream
+                    Ok(Self(value))
                 }
-                #nul_check_token_stream
-                let len = #len_token_stream;
-                if len < #min_token_stream {
-                    return Err(Self::Error::TooShort { len, min: #min_token_stream });
-                }
-                if len > #max {
-                    return Err(Self::Error::TooLong {
-                        len,
-                        max: #max,
-                    });
-                }
-                #validator_check_token_stream
-                Ok(Self(value))
             }
-        }
-        #serde_token_stream
-        #utoipa_token_stream
-    }))
+            #serde_token_stream
+            #utoipa_token_stream
+        }),
+    )
 }
 
 fn generate_newtype_token_stream_with_attrs(
-    input: SynDeriveInputRef<'_>,
-    attrs: &NewtypeAttrs,
-) -> syn::Result<ProcMacro2GeneratedTokenStream> {
+    input: syn_derive_input_ref::SynDeriveInputRef<'_>,
+    attrs: &newtype_attrs::NewtypeAttrs,
+) -> syn::Result<proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
     let inner_ty = tuple_struct_one_field_ty(input)?;
-    if attrs.contains(NewtypeOption::AsRefInner).get()
+    if attrs
+        .contains(newtype_option::NewtypeOption::AsRefInner)
+        .get()
         && !matches!(
             inner_ty.as_ref(),
             syn::Type::Reference(syn::TypeReference {
@@ -1024,30 +1066,32 @@ fn generate_newtype_token_stream_with_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+            constants_str::catalog::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
         ));
     }
-    if attrs.contains(NewtypeOption::AsRefOwned).get()
+    if attrs
+        .contains(newtype_option::NewtypeOption::AsRefOwned)
+        .get()
         && matches!(inner_ty.as_ref(), syn::Type::Reference(_))
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
+            constants_str::catalog::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
         ));
     }
-    if attrs.contains(NewtypeOption::From).get()
+    if attrs.contains(newtype_option::NewtypeOption::From).get()
         && type_path_ends_with_string_identifier(inner_ty).get()
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
+            constants_str::catalog::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
         ));
     }
     let inner_ty_ref = inner_ty.as_ref();
     let identifier = &input_ref.ident;
     let (impl_generics, ty_generics, where_clause) = input_ref.generics.split_for_impl();
     let debug_transparent_token_stream = attrs
-        .contains(NewtypeOption::DebugTransparent).get()
+        .contains(newtype_option::NewtypeOption::DebugTransparent).get()
         .then(|| {
         let mut debug_generics = input_ref.generics.clone();
         debug_generics
@@ -1064,9 +1108,11 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let debug_redacted_token_stream =
-        attrs.contains(NewtypeOption::DebugRedacted).get().then(|| {
-            let redacted = constants_str::REDACTED_ALT_3;
+    let debug_redacted_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::DebugRedacted)
+        .get()
+        .then(|| {
+            let redacted = constants_str::catalog::REDACTED_ALT_3;
             quote::quote! {
                 // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
@@ -1079,18 +1125,21 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let display_token_stream = attrs.contains(NewtypeOption::Display).get().then(|| {
-        quote::quote! {
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics std::fmt::Display for #identifier #ty_generics #where_clause {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    self.0.fmt(f)
+    let display_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::Display)
+        .get()
+        .then(|| {
+            quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::fmt::Display for #identifier #ty_generics #where_clause {
+                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        self.0.fmt(f)
+                    }
                 }
             }
-        }
-    });
-    let clone_inner_token_stream = attrs.contains(NewtypeOption::CloneInner).get().then(|| {
+        });
+    let clone_inner_token_stream = attrs.contains(newtype_option::NewtypeOption::CloneInner).get().then(|| {
         let mut clone_generics = input_ref.generics.clone();
         clone_generics
             .make_where_clause()
@@ -1106,7 +1155,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let default_inner_token_stream = attrs.contains(NewtypeOption::DefaultInner).get().then(|| {
+    let default_inner_token_stream = attrs.contains(newtype_option::NewtypeOption::DefaultInner).get().then(|| {
         let mut default_generics = input_ref.generics.clone();
         default_generics
             .make_where_clause()
@@ -1122,7 +1171,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let not_inner_token_stream = attrs.contains(NewtypeOption::NotInner).get().then(|| {
+    let not_inner_token_stream = attrs.contains(newtype_option::NewtypeOption::NotInner).get().then(|| {
         let mut not_generics = input_ref.generics.clone();
         not_generics
             .make_where_clause()
@@ -1140,7 +1189,7 @@ fn generate_newtype_token_stream_with_attrs(
         }
     });
     let partial_eq_inner_token_stream = attrs
-        .contains(NewtypeOption::PartialEqInner)
+        .contains(newtype_option::NewtypeOption::PartialEqInner)
         .get()
         .then(|| {
             let mut partial_eq_generics = input_ref.generics.clone();
@@ -1158,17 +1207,17 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let as_mut_token_stream = if attrs.contains(NewtypeOption::AsMut).get() {
+    let as_mut_token_stream = if attrs.contains(newtype_option::NewtypeOption::AsMut).get() {
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
+                constants_str::catalog::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
             ));
         };
         if inner_ref_ty.mutability.is_none() {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
+                constants_str::catalog::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
             ));
         }
         let target_ty = &inner_ref_ty.elem;
@@ -1184,32 +1233,41 @@ fn generate_newtype_token_stream_with_attrs(
     } else {
         None
     };
-    let as_ref_str_token_stream = attrs.contains(NewtypeOption::AsRefStr).get().then(|| {
-        quote::quote! {
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics AsRef<str> for #identifier #ty_generics #where_clause {
-                fn as_ref(&self) -> &str {
-                    AsRef::<str>::as_ref(&self.0)
+    let as_ref_str_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::AsRefStr)
+        .get()
+        .then(|| {
+            quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics AsRef<str> for #identifier #ty_generics #where_clause {
+                    fn as_ref(&self) -> &str {
+                        AsRef::<str>::as_ref(&self.0)
+                    }
                 }
             }
-        }
-    });
-    let as_ref_token_stream = attrs.contains(NewtypeOption::AsRef).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub const fn as_ref(&self) -> &#inner_ty_ref {
-                    &self.0
+        });
+    let as_ref_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::AsRef)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub const fn as_ref(&self) -> &#inner_ty_ref {
+                        &self.0
+                    }
                 }
             }
-        }
-    });
-    let as_ref_inner_token_stream = if attrs.contains(NewtypeOption::AsRefInner).get() {
+        });
+    let as_ref_inner_token_stream = if attrs
+        .contains(newtype_option::NewtypeOption::AsRefInner)
+        .get()
+    {
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+                constants_str::catalog::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
             ));
         };
         let target_ty = &inner_ref_ty.elem;
@@ -1225,7 +1283,7 @@ fn generate_newtype_token_stream_with_attrs(
     } else {
         None
     };
-    let as_ref_owned_token_stream = attrs.contains(NewtypeOption::AsRefOwned).get().then(|| {
+    let as_ref_owned_token_stream = attrs.contains(newtype_option::NewtypeOption::AsRefOwned).get().then(|| {
         quote::quote! {
             impl #impl_generics AsRef<#inner_ty_ref> for #identifier #ty_generics #where_clause {
                 fn as_ref(&self) -> &#inner_ty_ref {
@@ -1234,7 +1292,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let as_ref_target_token_stream = attrs.contains(NewtypeOption::AsRefTarget).get().then(|| {
+    let as_ref_target_token_stream = attrs.contains(newtype_option::NewtypeOption::AsRefTarget).get().then(|| {
         quote::quote! {
             impl #impl_generics AsRef<<#inner_ty_ref as std::ops::Deref>::Target> for #identifier #ty_generics #where_clause
             where
@@ -1246,20 +1304,23 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let as_slice_token_stream = attrs.contains(NewtypeOption::AsSlice).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub fn as_slice(&self) -> &<#inner_ty_ref as std::ops::Deref>::Target
-                where
-                    #inner_ty_ref: std::ops::Deref,
-                {
-                    std::ops::Deref::deref(&self.0)
+    let as_slice_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::AsSlice)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub fn as_slice(&self) -> &<#inner_ty_ref as std::ops::Deref>::Target
+                    where
+                        #inner_ty_ref: std::ops::Deref,
+                    {
+                        std::ops::Deref::deref(&self.0)
+                    }
                 }
             }
-        }
-    });
-    let borrow_str_token_stream = attrs.contains(NewtypeOption::BorrowStr).get().then(|| {
+        });
+    let borrow_str_token_stream = attrs.contains(newtype_option::NewtypeOption::BorrowStr).get().then(|| {
         quote::quote! {
             // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
@@ -1270,11 +1331,14 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let borrow_inner_token_stream = if attrs.contains(NewtypeOption::BorrowInner).get() {
+    let borrow_inner_token_stream = if attrs
+        .contains(newtype_option::NewtypeOption::BorrowInner)
+        .get()
+    {
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+                constants_str::catalog::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
             ));
         };
         let target_ty = &inner_ref_ty.elem;
@@ -1290,7 +1354,7 @@ fn generate_newtype_token_stream_with_attrs(
     } else {
         None
     };
-    let borrow_owned_token_stream = attrs.contains(NewtypeOption::BorrowOwned).get().then(|| {
+    let borrow_owned_token_stream = attrs.contains(newtype_option::NewtypeOption::BorrowOwned).get().then(|| {
         quote::quote! {
             // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
@@ -1301,7 +1365,7 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let borrow_path_token_stream = attrs.contains(NewtypeOption::BorrowPath).get().then(|| {
+    let borrow_path_token_stream = attrs.contains(newtype_option::NewtypeOption::BorrowPath).get().then(|| {
         quote::quote! {
             // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(single_use_lifetimes)]
@@ -1315,32 +1379,40 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let deref_inner_token_stream = attrs.contains(NewtypeOption::DerefInner).get().then(|| {
-        quote::quote! {
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
-                type Target = #inner_ty_ref;
-                fn deref(&self) -> &Self::Target {
-                    &self.0
+    let deref_inner_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::DerefInner)
+        .get()
+        .then(|| {
+            quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
+                    type Target = #inner_ty_ref;
+                    fn deref(&self) -> &Self::Target {
+                        &self.0
+                    }
                 }
             }
-        }
-    });
-    let deref_target_token_stream = attrs.contains(NewtypeOption::DerefTarget).get().then(|| {
-        quote::quote! {
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
-                type Target = <#inner_ty_ref as std::ops::Deref>::Target;
-                fn deref(&self) -> &Self::Target {
-                    &self.0
+        });
+    let deref_target_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::DerefTarget)
+        .get()
+        .then(|| {
+            quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
+                    type Target = <#inner_ty_ref as std::ops::Deref>::Target;
+                    fn deref(&self) -> &Self::Target {
+                        &self.0
+                    }
                 }
             }
-        }
-    });
-    let deref_mut_inner_token_stream =
-        attrs.contains(NewtypeOption::DerefMutInner).get().then(|| {
+        });
+    let deref_mut_inner_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::DerefMutInner)
+        .get()
+        .then(|| {
             quote::quote! {
                 // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
@@ -1351,8 +1423,10 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let deref_mut_target_token_stream = attrs.contains(NewtypeOption::DerefMutTarget).get().then(
-        || {
+    let deref_mut_target_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::DerefMutTarget)
+        .get()
+        .then(|| {
             quote::quote! {
                 // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
@@ -1362,17 +1436,19 @@ fn generate_newtype_token_stream_with_attrs(
                     }
                 }
             }
-        },
-    );
-    let from_token_stream = attrs.contains(NewtypeOption::From).get().then(|| {
-        quote::quote! {
-            impl #impl_generics From<#inner_ty_ref> for #identifier #ty_generics #where_clause {
-                fn from(value: #inner_ty_ref) -> Self {
-                    Self(value)
+        });
+    let from_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::From)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics From<#inner_ty_ref> for #identifier #ty_generics #where_clause {
+                    fn from(value: #inner_ty_ref) -> Self {
+                        Self(value)
+                    }
                 }
             }
-        }
-    });
+        });
     let try_from_token_stream = attrs.get_try_from().map(|try_from| {
         let inferred_error = syn::Type::Path(syn::TypePath {
             attrs: Vec::new(),
@@ -1393,48 +1469,60 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
-    let accessor_token_stream = attrs.contains(NewtypeOption::Accessor).get().then(|| {
-        let trait_identifier = quote::format_ident!("{identifier}Provider");
-        let fn_name = identifier_to_snake(SynIdentifierRef::from(identifier));
-        let fn_identifier = quote::format_ident!("{}", fn_name.as_ref());
-        quote::quote! {
-            pub trait #trait_identifier {
-                fn #fn_identifier(&self) -> &#inner_ty_ref;
-            }
-            impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
-                fn #fn_identifier(&self) -> &#inner_ty_ref {
-                    &self.0
+    let accessor_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::Accessor)
+        .get()
+        .then(|| {
+            let trait_identifier = quote::format_ident!("{identifier}Provider");
+            let fn_name =
+                identifier_to_snake(syn_identifier_ref::SynIdentifierRef::from(identifier));
+            let fn_identifier = quote::format_ident!("{}", fn_name.as_ref());
+            quote::quote! {
+                pub trait #trait_identifier {
+                    fn #fn_identifier(&self) -> &#inner_ty_ref;
+                }
+                impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
+                    fn #fn_identifier(&self) -> &#inner_ty_ref {
+                        &self.0
+                    }
+                }
+                impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
+                    fn #fn_identifier(&self) -> &#inner_ty_ref {
+                        &self.0
+                    }
                 }
             }
-            impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
-                fn #fn_identifier(&self) -> &#inner_ty_ref {
-                    &self.0
+        });
+    let get_inner_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::GetInner)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub const fn get(self) -> #inner_ty_ref {
+                        self.0
+                    }
                 }
             }
-        }
-    });
-    let get_inner_token_stream = attrs.contains(NewtypeOption::GetInner).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub const fn get(self) -> #inner_ty_ref {
-                    self.0
+        });
+    let into_inner_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::IntoInner)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub fn into_inner(self) -> #inner_ty_ref {
+                        self.0
+                    }
                 }
             }
-        }
-    });
-    let into_inner_token_stream = attrs.contains(NewtypeOption::IntoInner).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub fn into_inner(self) -> #inner_ty_ref {
-                    self.0
-                }
-            }
-        }
-    });
-    let into_inner_from_token_stream =
-        attrs.contains(NewtypeOption::IntoInnerFrom).get().then(|| {
+        });
+    let into_inner_from_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::IntoInnerFrom)
+        .get()
+        .then(|| {
             quote::quote! {
                 impl #impl_generics From<#identifier #ty_generics> for #inner_ty_ref #where_clause {
                     fn from(value: #identifier #ty_generics) -> Self {
@@ -1443,147 +1531,169 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let into_iterator_token_stream = attrs.contains(NewtypeOption::IntoIterator).get().then(|| {
-        quote::quote! {
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics IntoIterator for #identifier #ty_generics #where_clause {
-                type IntoIter = <#inner_ty_ref as IntoIterator>::IntoIter;
-                type Item = <#inner_ty_ref as IntoIterator>::Item;
-                fn into_iter(self) -> Self::IntoIter {
-                    self.0.into_iter()
+    let into_iterator_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::IntoIterator)
+        .get()
+        .then(|| {
+            quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics IntoIterator for #identifier #ty_generics #where_clause {
+                    type IntoIter = <#inner_ty_ref as IntoIterator>::IntoIter;
+                    type Item = <#inner_ty_ref as IntoIterator>::Item;
+                    fn into_iter(self) -> Self::IntoIter {
+                        self.0.into_iter()
+                    }
                 }
             }
-        }
-    });
-    let into_vec_token_stream = attrs.contains(NewtypeOption::IntoVec).get().then(|| {
-        quote::quote! {
-            impl #impl_generics #identifier #ty_generics #where_clause {
-                #[must_use]
-                pub fn into_vec(self) -> #inner_ty_ref {
-                    self.0
+        });
+    let into_vec_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::IntoVec)
+        .get()
+        .then(|| {
+            quote::quote! {
+                impl #impl_generics #identifier #ty_generics #where_clause {
+                    #[must_use]
+                    pub fn into_vec(self) -> #inner_ty_ref {
+                        self.0
+                    }
                 }
             }
-        }
-    });
-    let to_tokens_token_stream = attrs.contains(NewtypeOption::ToTokens).get().then(|| {
-        quote::quote! {
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[allow(single_use_lifetimes)]
-            impl #impl_generics quote::ToTokens for #identifier #ty_generics #where_clause {
-                fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-                    quote::ToTokens::to_tokens(&self.0, tokens);
+        });
+    let to_tokens_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::ToTokens)
+        .get()
+        .then(|| {
+            quote::quote! {
+                // The owner module retains lint-sensitive semantics from the original implementation.
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics quote::ToTokens for #identifier #ty_generics #where_clause {
+                    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                        quote::ToTokens::to_tokens(&self.0, tokens);
+                    }
                 }
             }
-        }
-    });
+        });
     let to_err_string_token_stream = attrs
         .get_to_err_string_mode()
         .map(|mode| match mode {
-        ToErrStringMode::AsRefStr => {
-            ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::domain_types::ToErrString for #identifier {
-                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-                        to_err_string::domain_types::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
+        to_err_string_mode::ToErrStringMode::AsRefStr => {
+            proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+                impl to_err_string::to_err_string::ToErrString for #identifier {
+                    fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
+                        to_err_string::error_text::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::error_text::ErrorText::from)
                     }
                 }
             })
         }
-        ToErrStringMode::Debug => {
-            ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::domain_types::ToErrString for #identifier {
-                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-                        to_err_string::domain_types::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
+        to_err_string_mode::ToErrStringMode::Debug => {
+            proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+                impl to_err_string::to_err_string::ToErrString for #identifier {
+                    fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
+                        to_err_string::error_text::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::error_text::ErrorText::from)
                     }
                 }
             })
         }
-        ToErrStringMode::Display => {
-            ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::domain_types::ToErrString for #identifier {
-                    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-                        to_err_string::domain_types::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::domain_types::ErrorText::from)
+        to_err_string_mode::ToErrStringMode::Display => {
+            proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+                impl to_err_string::to_err_string::ToErrString for #identifier {
+                    fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
+                        to_err_string::error_text::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::error_text::ErrorText::from)
                     }
                 }
             })
         }
     });
-    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
-        #debug_transparent_token_stream
-        #debug_redacted_token_stream
-        #display_token_stream
-        #clone_inner_token_stream
-        #default_inner_token_stream
-        #not_inner_token_stream
-        #partial_eq_inner_token_stream
-        #as_mut_token_stream
-        #as_ref_str_token_stream
-        #as_ref_token_stream
-        #as_ref_inner_token_stream
-        #as_ref_owned_token_stream
-        #as_ref_target_token_stream
-        #as_slice_token_stream
-        #borrow_str_token_stream
-        #borrow_inner_token_stream
-        #borrow_owned_token_stream
-        #borrow_path_token_stream
-        #deref_inner_token_stream
-        #deref_target_token_stream
-        #deref_mut_inner_token_stream
-        #deref_mut_target_token_stream
-        #from_token_stream
-        #try_from_token_stream
-        #accessor_token_stream
-        #get_inner_token_stream
-        #into_inner_token_stream
-        #into_inner_from_token_stream
-        #into_iterator_token_stream
-        #into_vec_token_stream
-        #to_tokens_token_stream
-        #to_err_string_token_stream
-    }))
+    Ok(
+        proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+            #debug_transparent_token_stream
+            #debug_redacted_token_stream
+            #display_token_stream
+            #clone_inner_token_stream
+            #default_inner_token_stream
+            #not_inner_token_stream
+            #partial_eq_inner_token_stream
+            #as_mut_token_stream
+            #as_ref_str_token_stream
+            #as_ref_token_stream
+            #as_ref_inner_token_stream
+            #as_ref_owned_token_stream
+            #as_ref_target_token_stream
+            #as_slice_token_stream
+            #borrow_str_token_stream
+            #borrow_inner_token_stream
+            #borrow_owned_token_stream
+            #borrow_path_token_stream
+            #deref_inner_token_stream
+            #deref_target_token_stream
+            #deref_mut_inner_token_stream
+            #deref_mut_target_token_stream
+            #from_token_stream
+            #try_from_token_stream
+            #accessor_token_stream
+            #get_inner_token_stream
+            #into_inner_token_stream
+            #into_inner_from_token_stream
+            #into_iterator_token_stream
+            #into_vec_token_stream
+            #to_tokens_token_stream
+            #to_err_string_token_stream
+        }),
+    )
 }
-fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTypeRef<'_>> {
+fn tuple_struct_one_field_ty(
+    input: syn_derive_input_ref::SynDeriveInputRef<'_>,
+) -> syn::Result<syn_type_ref::SynTypeRef<'_>> {
     let input_ref = input.get();
-    let shape = workspace_macro_helpers::domain_types::SynStructShapeRef::try_from(input_ref)
-        .map_err(|_error| {
-            syn::Error::new_spanned(
-                input_ref,
-                constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
-            )
-        })?;
+    let shape =
+        workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::try_from(input_ref)
+            .map_err(|_error| {
+                syn::Error::new_spanned(
+                    input_ref,
+                    constants_str::catalog::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
+                )
+            })?;
     let unnamed = match shape {
-        workspace_macro_helpers::domain_types::SynStructShapeRef::Tuple(v) => &v.get().unnamed,
-        workspace_macro_helpers::domain_types::SynStructShapeRef::Named(_)
-        | workspace_macro_helpers::domain_types::SynStructShapeRef::Unit => {
+        workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Tuple(v) => {
+            &v.get().unnamed
+        }
+        workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Named(_)
+        | workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Unit => {
             return Err(syn::Error::new_spanned(
                 input_ref,
-                constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
+                constants_str::catalog::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
             ));
         }
     };
     if unnamed.len() != 1 {
         return Err(syn::Error::new_spanned(
             input_ref,
-            constants_str::NEWTYPE_SUPPORTS_ONLY_ONE_FIELD_TUPLE_STRUCTS,
+            constants_str::catalog::NEWTYPE_SUPPORTS_ONLY_ONE_FIELD_TUPLE_STRUCTS,
         ));
     }
     unnamed
         .first()
-        .map(|field| SynTypeRef::from(&field.ty))
-        .ok_or_else(|| syn::Error::new_spanned(input_ref, constants_str::NEWTYPE_FIELD_NOT_FOUND))
+        .map(|field| syn_type_ref::SynTypeRef::from(&field.ty))
+        .ok_or_else(|| {
+            syn::Error::new_spanned(input_ref, constants_str::catalog::NEWTYPE_FIELD_NOT_FOUND)
+        })
 }
-fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
-    NewtypeBool::from(match ty.as_ref() {
+fn type_path_ends_with_string_identifier(
+    ty: syn_type_ref::SynTypeRef<'_>,
+) -> newtype_bool::NewtypeBool {
+    newtype_bool::NewtypeBool::from(match ty.as_ref() {
         syn::Type::Path(v) if v.qself.is_none() => v
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == constants_str::STRING),
+            .is_some_and(|segment| segment.ident == constants_str::catalog::STRING),
         syn::Type::Path(_) | _ => false,
     })
 }
-fn identifier_to_snake(identifier: SynIdentifierRef<'_>) -> SnakeIdentifier {
+fn identifier_to_snake(
+    identifier: syn_identifier_ref::SynIdentifierRef<'_>,
+) -> snake_identifier::SnakeIdentifier {
     let (out, _) = identifier.as_ref().to_string().chars().fold(
         (String::new(), false),
         |(mut out, mut prev_lowercase), ch| {
@@ -1600,7 +1710,8 @@ fn identifier_to_snake(identifier: SynIdentifierRef<'_>) -> SnakeIdentifier {
             (out, prev_lowercase)
         },
     );
-    SnakeIdentifier::try_from(out).expect("2e7a9c4f identifier_to_snake invariant must hold")
+    snake_identifier::SnakeIdentifier::try_from(out)
+        .expect("2e7a9c4f identifier_to_snake invariant must hold")
 }
 #[cfg(test)]
 mod tests;

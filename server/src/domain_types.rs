@@ -1,21 +1,10 @@
-pub(crate) use super::admin_metrics_error::*;
-pub(crate) use super::axum_api_routes::*;
-pub(crate) use super::http_body_maximum_bytes::*;
-pub(crate) use super::metrics_exporter_prometheus_build_error::*;
-pub(crate) use super::metrics_exporter_prometheus_renderer::*;
-pub(crate) use super::run_server_error::*;
-pub(crate) use super::server_exit_code::*;
-pub(crate) use super::server_io_error::*;
-pub(crate) use super::shared_server_app_state_arc::*;
-pub(crate) use super::sqlx_server_pg_connect_error::*;
-pub(crate) use super::tokio_server_runtime::*;
 #[cfg(test)]
 mod tests {
     #[tokio::test]
     async fn administrator_asset_route_preserves_static_file_serving() {
         let response = tower::ServiceExt::oneshot(
-            axum::Router::from(server_admin_frontend::domain_types::admin_frontend_routes()),
-            axum::http::Request::get(constants_str::VALUE_688DB289)
+            axum::Router::from(server_admin_frontend::admin_frontend_routes::admin_frontend_routes()),
+            axum::http::Request::get(constants_str::test_fixtures::VALUE_688DB289)
                 .body(axum::body::Body::empty())
                 .expect("d694b6f6 administrator_asset_route_preserves_static_file_serving invariant must hold"),
         )
@@ -26,9 +15,9 @@ mod tests {
 
     #[tokio::test]
     async fn operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
-        let operational_path = common_routes::CommonRoute::HealthLive.path();
+        let operational_path = common_routes::common_route::CommonRoute::HealthLive.path();
         let router = axum::Router::from(crate::mount_service_routes::mount_service_routes(
-            server_runtime_http::domain_types::AxumRouter::from(
+            server_runtime_http::axum_router::AxumRouter::from(
                 axum::Router::new()
                     .route(
                         operational_path.as_ref(),
@@ -36,11 +25,11 @@ mod tests {
                     )
                     .fallback(async || axum::http::StatusCode::IM_A_TEAPOT),
             ),
-            super::AxumApiRoutes::from(axum::Router::new().route(
-                constants_str::VALUE_87D0B7F8,
-                axum::routing::get(async || constants_str::VALUE_14C2529E),
+            crate::axum_api_routes::AxumApiRoutes::from(axum::Router::new().route(
+                constants_str::test_fixtures::VALUE_87D0B7F8,
+                axum::routing::get(async || constants_str::test_fixtures::VALUE_14C2529E),
             )),
-            super::HttpBodyMaximumBytes::from(1_024usize),
+            crate::http_body_maximum_bytes::HttpBodyMaximumBytes::from(1_024usize),
         ))
         .merge(axum::Router::from(
             crate::frontend_fallback_routes::frontend_fallback_routes(),
@@ -80,7 +69,7 @@ mod tests {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(crate::frontend_fallback_routes::frontend_fallback_routes()),
             axum::http::Request::builder()
-                .uri(constants_str::VALUE_10D40EF4)
+                .uri(constants_str::test_fixtures::VALUE_10D40EF4)
                 .body(axum::body::Body::empty())
                 .expect("cfe228d8 missing_page_redirects_to_default_authentication_page invariant must hold"),
         )
@@ -90,12 +79,12 @@ mod tests {
         assert_eq!(
             response.headers().get(axum::http::header::LOCATION),
             Some(&axum::http::HeaderValue::from_static(
-                server_admin_contract::domain_types::AdminFrontendPath::SignIn.get()
+                server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn.get()
             ))
         );
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(constants_str::CONFIG_TRACING_INFO, "info");
+        assert_eq!(constants_str::catalog::CONFIG_TRACING_INFO, "info");
     }
 }

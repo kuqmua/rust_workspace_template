@@ -4,20 +4,27 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminPasswordHasher {
-    pub(crate) semaphore: crate::AdminSharedSemaphoreArc,
+    pub(crate) semaphore: crate::admin_shared_semaphore_arc::AdminSharedSemaphoreArc,
 }
 
 impl AdminPasswordHasher {
     #[must_use]
-    pub fn new(max_concurrent_hashes: crate::AdminPasswordHashConcurrency) -> Self {
+    pub fn new(
+        max_concurrent_hashes: crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency,
+    ) -> Self {
         Self {
-            semaphore: crate::AdminSharedSemaphoreArc::new(max_concurrent_hashes),
+            semaphore: crate::admin_shared_semaphore_arc::AdminSharedSemaphoreArc::new(
+                max_concurrent_hashes,
+            ),
         }
     }
     pub async fn hash(
         &self,
-        password: crate::AdminPassword,
-    ) -> Result<crate::AdminPasswordHash, crate::AdminPasswordHashError> {
+        password: crate::admin_password::AdminPassword,
+    ) -> Result<
+        crate::admin_password_hash::AdminPasswordHash,
+        crate::admin_password_hash_error::AdminPasswordHashError,
+    > {
         let permit = self.acquire().await?;
         tokio::task::spawn_blocking(move || {
             let result = {
@@ -27,13 +34,17 @@ impl AdminPasswordHasher {
                     secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
                 )
                 .map(|hash| {
-                    crate::AdminPasswordHash::new(
-                        pg_types_text_misc::StringAsNonNullTextSecret::from(hash.to_string()),
+                    crate::admin_password_hash::AdminPasswordHash::new(
+                        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
+                            hash.to_string(),
+                        ),
                     )
                 })
                 .map_err(|error| {
-                    crate::AdminPasswordHashError::PasswordHash(
-                        crate::Argon2AdminPasswordHashError::from(error),
+                    crate::admin_password_hash_error::AdminPasswordHashError::PasswordHash(
+                        crate::argon2_admin_password_hash_error::Argon2AdminPasswordHashError::from(
+                            error,
+                        ),
                     )
                 })
             };
@@ -42,14 +53,19 @@ impl AdminPasswordHasher {
         })
         .await
         .map_err(|error| {
-            crate::AdminPasswordHashError::Join(crate::TokioAdminJoinError::from(error))
+            crate::admin_password_hash_error::AdminPasswordHashError::Join(
+                crate::tokio_admin_join_error::TokioAdminJoinError::from(error),
+            )
         })?
     }
     pub async fn verify(
         &self,
-        password: crate::AdminPassword,
-        expected_hash: crate::AdminPasswordHash,
-    ) -> Result<crate::StdAdminBool, crate::AdminPasswordHashError> {
+        password: crate::admin_password::AdminPassword,
+        expected_hash: crate::admin_password_hash::AdminPasswordHash,
+    ) -> Result<
+        server_admin_core::std_admin_bool::StdAdminBool,
+        crate::admin_password_hash_error::AdminPasswordHashError,
+    > {
         let permit = self.acquire().await?;
         tokio::task::spawn_blocking(move || {
             let result = {
@@ -57,8 +73,8 @@ impl AdminPasswordHasher {
                 let expected_hash_text = expected_hash.expose();
                 let parsed_hash =
                     argon2::PasswordHash::new(expected_hash_text.as_ref()).map_err(|error| {
-                        crate::AdminPasswordHashError::PasswordHash(
-                            crate::Argon2AdminPasswordHashError::from(
+                        crate::admin_password_hash_error::AdminPasswordHashError::PasswordHash(
+                            crate::argon2_admin_password_hash_error::Argon2AdminPasswordHashError::from(
                                 argon2::password_hash::Error::from(error),
                             ),
                         )
@@ -71,18 +87,18 @@ impl AdminPasswordHasher {
             };
             drop(permit);
             match result {
-                Ok(()) => Ok(crate::StdAdminBool::from(true)),
+                Ok(()) => Ok(server_admin_core::std_admin_bool::StdAdminBool::from(true)),
                 Err(argon2::password_hash::Error::PasswordInvalid) => {
-                    Ok(crate::StdAdminBool::from(false))
+                    Ok(server_admin_core::std_admin_bool::StdAdminBool::from(false))
                 }
-                Err(error) => Err(crate::AdminPasswordHashError::PasswordHash(
-                    crate::Argon2AdminPasswordHashError::from(error),
+                Err(error) => Err(crate::admin_password_hash_error::AdminPasswordHashError::PasswordHash(
+                    crate::argon2_admin_password_hash_error::Argon2AdminPasswordHashError::from(error),
                 )),
             }
         })
         .await
         .map_err(|error| {
-            crate::AdminPasswordHashError::Join(crate::TokioAdminJoinError::from(error))
+            crate::admin_password_hash_error::AdminPasswordHashError::Join(crate::tokio_admin_join_error::TokioAdminJoinError::from(error))
         })?
     }
 }

@@ -1,9 +1,12 @@
 pub async fn read_bounded_json_file_async(
-    path: super::PathRef<'_>,
-    maximum_bytes: super::BoundedReadMaximumBytes,
-) -> Result<super::BoundedJsonText, super::BoundedJsonReadError> {
-    let bytes = super::read_bounded_file_async(path, maximum_bytes)
+    path: crate::path_ref::PathRef<'_>,
+    maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes,
+) -> Result<
+    crate::bounded_json_text::BoundedJsonText,
+    crate::bounded_json_read_error::BoundedJsonReadError,
+> {
+    let bytes = crate::read_bounded_file_async::read_bounded_file_async(path, maximum_bytes)
         .await
-        .map_err(super::BoundedJsonReadError::Read)?;
-    super::parse_bounded_json_owned(bytes)
+        .map_err(crate::bounded_json_read_error::BoundedJsonReadError::Read)?;
+    crate::parse_bounded_json_owned::parse_bounded_json_owned(bytes)
 }

@@ -1,12 +1,12 @@
 pub(crate) async fn page_context_impl(
-    auth: &crate::AdminAuthReq,
+    auth: &crate::admin_auth_req::AdminAuthReq,
 ) -> Result<
     (
-        server_admin_contract::domain_types::AuthenticatedAdmin,
-        server_admin_contract::domain_types::AdminBrandingView,
-        crate::AdminPasswordChangeRequired,
+        server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+        server_admin_contract::admin_branding_view::AdminBrandingView,
+        crate::admin_password_change_required::AdminPasswordChangeRequired,
     ),
-    crate::AdminError,
+    crate::admin_error::AdminError,
 > {
     let (admin, password_change_required) =
         crate::account_me_context_view_ref::account_me_context_view_ref(auth).await?;

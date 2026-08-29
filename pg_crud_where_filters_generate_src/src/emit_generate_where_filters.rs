@@ -1,9 +1,8 @@
-use super::source::ProcMacro2GenerateWhereFiltersTokenStream;
-use super::source::ValidatedGenerateWhereFiltersConfig;
 #[must_use]
 pub fn emit_generate_where_filters(
-    validated: ValidatedGenerateWhereFiltersConfig,
-) -> ProcMacro2GenerateWhereFiltersTokenStream {
+    validated: crate::validated_generate_where_filters_config::ValidatedGenerateWhereFiltersConfig,
+) -> crate::proc_macro2_generate_where_filters_token_stream::ProcMacro2GenerateWhereFiltersTokenStream
+{
     #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout)]
     enum Generic {
         False,
@@ -26,7 +25,7 @@ pub fn emit_generate_where_filters(
     impl PgTypeKind {
         const fn format_argument(&self) -> &'static str {
             match &self {
-                Self::Standard => constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                Self::Standard => constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
             }
         }
     }
@@ -42,7 +41,7 @@ pub fn emit_generate_where_filters(
     let pg_crud_common_default_some_one_element = token_patterns::PgCrudCommonDefaultSomeOneElement;
     let pg_crud_common_default_some_one_element_call =
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
-    let import = pg_crud_macro_common::domain_types::Import::PgCrudCommon;
+    let import = pg_crud_macro_common::import::Import::PgCrudCommon;
     let t_token_stream = quote::quote! {T};
     let t_ann_generic_token_stream = quote::quote! {<#t_token_stream>};
     let proc_macro2_token_stream_new = proc_macro2::TokenStream::new();
@@ -61,16 +60,16 @@ pub fn emit_generate_where_filters(
                 } else {
                     &pub_snake_case
                 };
-            macro_helpers::domain_types::derive_token_stream_builder::DTokenStreamBuilder::new()
+            macro_helpers::derive_token_stream_builder::DTokenStreamBuilder::new()
                 .make_pub()
                 .d_debug()
                 .d_clone()
                 .d_partial_eq()
                 .d_serde_serialize()
                 .d_serde_deserialize_if(if filter_initialization_with_try_new_result_is_ok {
-                    macro_helpers::domain_types::derive_token_stream_builder::DSerdeDeserialize::False
+                    macro_helpers::derive_token_stream_builder::DSerdeDeserialize::False
                 } else {
-                    macro_helpers::domain_types::derive_token_stream_builder::DSerdeDeserialize::True
+                    macro_helpers::derive_token_stream_builder::DSerdeDeserialize::True
                 })
                 .d_schemars_json_schema()
                 .d_utoipa_to_schema()
@@ -87,14 +86,14 @@ pub fn emit_generate_where_filters(
                         ),
                     },
                     &quote::quote! {{
-                        #maybe_pub_token_stream operator: #import::Operator,
+                        #maybe_pub_token_stream operator: #import::operator::Operator,
                         #struct_extra_fields_token_stream
                     }},
                 )
         };
     let generate_impl_default_some_one_element_token_stream =
         |generic: &Generic, identifier: &dyn quote::ToTokens, ts: &dyn quote::ToTokens| {
-            pg_crud_macro_common::domain_types::generate_impl_default_some_one_element_token_stream(
+            pg_crud_macro_common::generate_impl_default_some_one_element_token_stream::generate_impl_default_some_one_element_token_stream(
                 &match &generic {
                     Generic::False => proc_macro2::TokenStream::new(),
                     Generic::True {
@@ -104,7 +103,7 @@ pub fn emit_generate_where_filters(
                         |v| quote::quote! {<T: #v + #pg_crud_common_default_some_one_element>},
                     ),
                 },
-                &pg_crud_macro_common::domain_types::Import::PgCrudCommon,
+                &pg_crud_macro_common::import::Import::PgCrudCommon,
                 &identifier,
                 match &generic {
                     Generic::False => &proc_macro2_token_stream_new,
@@ -121,12 +120,12 @@ pub fn emit_generate_where_filters(
     let generate_impl_pg_type_where_filter_token_stream =
         |generic: &Generic,
          identifier: &dyn quote::ToTokens,
-         increment_parameter_undrscr: &pg_crud_macro_common::domain_types::IncrementParameterUndrscr,
-         add_operator_undrscr: &pg_crud_macro_common::domain_types::AddOperatorUndrscr,
+         increment_parameter_undrscr: &pg_crud_macro_common::emission_types::IncrementParameterUndrscr,
+         add_operator_undrscr: &pg_crud_macro_common::emission_types::AddOperatorUndrscr,
          query_part_token_stream: &dyn quote::ToTokens,
-         is_query_bind_mut: &pg_crud_macro_common::domain_types::IsQueryBindMut,
+         is_query_bind_mut: &pg_crud_macro_common::emission_types::IsQueryBindMut,
          query_bind_token_stream: &dyn quote::ToTokens| {
-            pg_crud_macro_common::domain_types::impl_pg_type_where_filter_for_identifier_token_stream(
+            pg_crud_macro_common::impl_pg_type_where_filter_for_identifier_token_stream::impl_pg_type_where_filter_for_identifier_token_stream(
                 &{
                     let maybe_t_extra_traits_for_pg_type_where_filter_token_stream: &dyn quote::ToTokens =
                         match &generic {
@@ -148,19 +147,19 @@ pub fn emit_generate_where_filters(
                     Generic::True { .. } => &t_ann_generic_token_stream,
                 },
                 increment_parameter_undrscr,
-                &pg_crud_macro_common::domain_types::ColumnParameterUndrscr::False,
+                &pg_crud_macro_common::emission_types::ColumnParameterUndrscr::False,
                 add_operator_undrscr,
                 &query_part_token_stream,
                 is_query_bind_mut,
                 &query_bind_token_stream,
-                &pg_crud_macro_common::domain_types::Import::PgCrudCommon,
+                &pg_crud_macro_common::import::Import::PgCrudCommon,
             )
         };
     let add_regex_case_and_v_declaration_token_stream = |ts: &dyn quote::ToTokens| {
         quote::quote! {
             #ts
-            pub regex_case: RegexCase,
-            pub #v_snake_case: RegexRegex
+            pub regex_case: crate::regex_case::RegexCase,
+            pub #v_snake_case: crate::regex_regex::RegexRegex
         }
     };
     let add_regex_case_and_v_default_initialization_token_stream = |ts: &dyn quote::ToTokens| {
@@ -173,8 +172,8 @@ pub fn emit_generate_where_filters(
     let generate_match_increment_checked_add_one_initialization_token_stream =
         |ts: &dyn quote::ToTokens| {
             let match_token_stream =
-                pg_crud_macro_common::domain_types::token_stream_helpers::generate_match_ok_or_return_err_token_stream(
-                    &quote::quote! {#import::increment_checked_add_one_returning_increment(#increment_snake_case)},
+                pg_crud_macro_common::generate_match_ok_or_return_err_token_stream::generate_match_ok_or_return_err_token_stream(
+                    &quote::quote! {#import::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(#increment_snake_case)},
                     &quote::quote! {v_25d59e01},
                 );
             quote::quote! {
@@ -189,7 +188,7 @@ pub fn emit_generate_where_filters(
         |v: &dyn std::fmt::Display,
          maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens,
          maybe_extra_parameters_token_stream: &dyn quote::ToTokens| {
-            let format_token_stream = generate_quotes::domain_types::dq_token_stream(&v);
+            let format_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&v);
             quote::quote! {
                 #maybe_dimensions_ies_initialization_token_stream
                 #v_match_increment_checked_add_one_initialization_token_stream
@@ -207,22 +206,22 @@ pub fn emit_generate_where_filters(
                 )
                 .is_err()
                 {
-                    return Err(#import::QueryPartError::WriteIntoBuffer {
+                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer {
                         location: location_macros::location!(),
                     });
                 }
-                Ok(#import::QueryPartFragment::try_from(query_part_28bc96ee)?)
+                Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_28bc96ee)?)
             }
         };
     let if_let_err_query_try_bind_self_v_to_string_token_stream = quote::quote! {
         if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case.to_string()) {
-            return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
+            return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
         }
         Ok(#query_snake_case)
     };
     let if_let_err_query_try_bind_self_v_token_stream = quote::quote! {
         if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case) {
-            return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
+            return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
         }
     };
     let query_bind_one_v_token_stream = quote::quote! {
@@ -241,9 +240,9 @@ pub fn emit_generate_where_filters(
         }),
     };
     let pub_v_between_t_token_stream =
-        quote::quote! {#[schema(inline)] pub #v_snake_case: Between<T>};
+        quote::quote! {#[schema(inline)] pub #v_snake_case: crate::between::Between<T>};
     let generate_match_query_bind_token_stream = |field_token_stream: &dyn quote::ToTokens| {
-        pg_crud_macro_common::domain_types::token_stream_helpers::generate_match_ok_assign_or_return_err_token_stream(
+        pg_crud_macro_common::generate_match_ok_assign_or_return_err_token_stream::generate_match_ok_assign_or_return_err_token_stream(
             &quote::quote! {#field_token_stream.query_bind(#query_snake_case)},
             &query_snake_case,
             &quote::quote! {v_f6d31bdd},
@@ -263,7 +262,7 @@ pub fn emit_generate_where_filters(
          field_token_stream: &dyn quote::ToTokens,
          fn_token_stream: &dyn quote::ToTokens| {
             let match_token_stream =
-                pg_crud_macro_common::domain_types::token_stream_helpers::generate_match_ok_or_return_err_token_stream(
+                pg_crud_macro_common::generate_match_ok_or_return_err_token_stream::generate_match_ok_or_return_err_token_stream(
                     &quote::quote! {self.#field_token_stream.#fn_token_stream(#increment_snake_case, #column_snake_case, add_operator)},
                     &quote::quote! {v_0a22ee9a},
                 );
@@ -298,8 +297,8 @@ pub fn emit_generate_where_filters(
                 #trailing_token_stream
             }
         };
-    let is_query_bind_mut_true = pg_crud_macro_common::domain_types::IsQueryBindMut::True;
-    let is_query_bind_mut_false = pg_crud_macro_common::domain_types::IsQueryBindMut::False;
+    let is_query_bind_mut_true = pg_crud_macro_common::emission_types::IsQueryBindMut::True;
+    let is_query_bind_mut_false = pg_crud_macro_common::emission_types::IsQueryBindMut::False;
     let generate_query_part_format_with_v_token_stream =
         |maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens,
          format_token_stream: &dyn quote::ToTokens,
@@ -320,11 +319,11 @@ pub fn emit_generate_where_filters(
                 )
                 .is_err()
                 {
-                    return Err(#import::QueryPartError::WriteIntoBuffer {
+                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer {
                         location: location_macros::location!(),
                     });
                 }
-                Ok(#import::QueryPartFragment::try_from(query_part_1c95685d)?)
+                Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_1c95685d)?)
             }
         };
     let generate_pg_type_dimensions_helpers = |pg_type_ptrn: &PgTypePtrn| match pg_type_ptrn {
@@ -339,11 +338,9 @@ pub fn emit_generate_where_filters(
     };
     let pg_type_token_stream = {
         let generate_filters_token_stream =
-            |filter: &pg_crud_macro_common::domain_types::filters::PgTypeFilter| {
+            |filter: &pg_crud_macro_common::pg_type_filter::PgTypeFilter| {
                 let identifier =
-                    naming::domain_types::parameter::PgTypeWhereSelfUpperCamelCase::from_display(
-                        &filter,
-                    );
+                    naming::parameter::PgTypeWhereSelfUpperCamelCase::from_display(&filter);
                 let (
                     generic,
                     struct_extra_fields_token_stream,
@@ -382,10 +379,10 @@ pub fn emit_generate_where_filters(
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
                             generate_query_part_format_with_v_token_stream(
                                 &maybe_dimensions_ies_initialization_token_stream,
-                                &generate_quotes::domain_types::dq_token_stream(&format_value(
+                                &generate_quotes::dq_token_stream::dq_token_stream(&format_value(
                                     &pg_type_kind,
                                 )),
                                 &maybe_extra_parameters_token_stream,
@@ -412,7 +409,7 @@ pub fn emit_generate_where_filters(
                     let generate_greater_than_token_stream = |pg_type_ptrn: &PgTypePtrn| {
                         generate_operator_cmp_filter_token_stream(
                             pg_type_ptrn,
-                            &constants_str::TEXT_ALT_11,
+                            &constants_str::catalog::TEXT_ALT_11,
                         )
                     };
                     let generate_between_token_stream = |pg_type_ptrn: &PgTypePtrn| {
@@ -433,10 +430,10 @@ pub fn emit_generate_where_filters(
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
                             {
                                 let format_token_stream =
-                                    generate_quotes::domain_types::dq_token_stream(&format!(
+                                    generate_quotes::dq_token_stream::dq_token_stream(&format!(
                                         "{{}}({{}}{} {{}})",
                                         pg_type_kind.format_argument()
                                     ));
@@ -456,9 +453,9 @@ pub fn emit_generate_where_filters(
                                     )
                                     .is_err()
                                     {
-                                        return Err(#import::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
                                     }
-                                    Ok(#import::QueryPartFragment::try_from(query_part_8d4535a3)?)
+                                    Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_8d4535a3)?)
                                 }
                             },
                             is_query_bind_mut_true,
@@ -487,22 +484,22 @@ pub fn emit_generate_where_filters(
                             },
                             quote::quote! {
                                 #maybe_dimensions_declaration_token_stream
-                                pub #v_snake_case: PgTypeNotEmptyUniqueVec<T>
+                                pub #v_snake_case: crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec<T>
                             },
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
                             {
                                 let format_token_stream =
-                                    generate_quotes::domain_types::dq_token_stream(&format!(
+                                    generate_quotes::dq_token_stream::dq_token_stream(&format!(
                                         "{{}}({{}}{} in (",
                                         pg_type_kind.format_argument()
                                     ));
                                 let if_write_is_err_token_stream =
-                                macro_helpers::domain_types::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
+                                macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                     &quote::quote! {query_part_bce8c9ae, "${v_daedba9c},"},
-                                    &quote::quote! {return Err(#import::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });},
+                                    &quote::quote! {return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });},
                                 );
                                 quote::quote! {
                                     #maybe_dimensions_ies_initialization_token_stream
@@ -521,16 +518,16 @@ pub fn emit_generate_where_filters(
                                     )
                                     .is_err()
                                     {
-                                        return Err(#import::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
                                     }
                                     values.iter().try_for_each(|_| {
-                                        let v_daedba9c = #import::increment_checked_add_one_returning_increment(#increment_snake_case)?;
+                                        let v_daedba9c = #import::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(#increment_snake_case)?;
                                         #if_write_is_err_token_stream
-                                        Ok::<(), #import::QueryPartError>(())
+                                        Ok::<(), #import::query_part_error::QueryPartError>(())
                                     })?;
                                     let _: Option<char> = query_part_bce8c9ae.pop();
                                     query_part_bce8c9ae.push_str("))");
-                                    Ok(#import::QueryPartFragment::try_from(query_part_bce8c9ae)?)
+                                    Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_bce8c9ae)?)
                                 }
                             },
                             is_query_bind_mut_true,
@@ -538,7 +535,7 @@ pub fn emit_generate_where_filters(
                                 #maybe_dimensions_query_bind_token_stream
                                 for element in Vec::from(#self_snake_case.#v_snake_case) {
                                     if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(element) {
-                                        return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
+                                        return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
                                     }
                                 }
                                 Ok(#query_snake_case)
@@ -562,7 +559,7 @@ pub fn emit_generate_where_filters(
                             add_regex_case_and_v_default_initialization_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
                             generate_regex_query_part_format_token_stream(
                                 &format!("{{}}({{}}{} {{}} ${{}})", pg_type_kind.format_argument()),
                                 &maybe_dimensions_ies_initialization_token_stream,
@@ -589,13 +586,15 @@ pub fn emit_generate_where_filters(
                                 Generic::False,
                                 maybe_dimensions_declaration_token_stream,
                                 maybe_dimensions_default_initialization_token_stream,
-                                pg_crud_macro_common::domain_types::IncrementParameterUndrscr::True,
+                                pg_crud_macro_common::emission_types::IncrementParameterUndrscr::True,
                                 {
                                     let format_token_stream =
-                                        generate_quotes::domain_types::dq_token_stream(&format!(
-                                            "{{}}({{}}{} {pg_syntax})",
-                                            pg_type_kind.format_argument()
-                                        ));
+                                        generate_quotes::dq_token_stream::dq_token_stream(
+                                            &format!(
+                                                "{{}}({{}}{} {pg_syntax})",
+                                                pg_type_kind.format_argument()
+                                            ),
+                                        );
                                     quote::quote! {
                                         #maybe_dimensions_ies_initialization_token_stream
                                         let mut query_part_1a7fed15 = String::with_capacity(32);
@@ -610,9 +609,9 @@ pub fn emit_generate_where_filters(
                                         )
                                         .is_err()
                                         {
-                                            return Err(#import::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                            return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
                                         }
-                                        Ok(#import::QueryPartFragment::try_from(query_part_1a7fed15)?)
+                                        Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_1a7fed15)?)
                                     }
                                 },
                                 is_query_bind_mut_false,
@@ -636,7 +635,7 @@ pub fn emit_generate_where_filters(
                                 Generic::False,
                                 quote::quote! {
                                     #maybe_dimensions_declaration_token_stream
-                                    pub encode_format: EncodeFormat,
+                                    pub encode_format: crate::encode_format::EncodeFormat,
                                     pub encoded_string_representation: String,
                                 },
                                 quote::quote! {
@@ -644,10 +643,10 @@ pub fn emit_generate_where_filters(
                                     encode_format: #pg_crud_common_default_some_one_element_call,
                                     encoded_string_representation: String::default()
                                 },
-                                pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
+                                pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
                                 {
                                     let format_token_stream =
-                                        generate_quotes::domain_types::dq_token_stream(&format!(
+                                        generate_quotes::dq_token_stream::dq_token_stream(&format!(
                                             "{{}}(encode({{}}{}, '{{}}') = ${{}})",
                                             pg_type_kind.format_argument()
                                         ));
@@ -668,16 +667,16 @@ pub fn emit_generate_where_filters(
                                         )
                                         .is_err()
                                         {
-                                            return Err(#import::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                            return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
                                         }
-                                        Ok(#import::QueryPartFragment::try_from(query_part_7a76888d)?)
+                                        Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_7a76888d)?)
                                     }
                                 },
                                 is_query_bind_mut_true,
                                 quote::quote! {
                                     #maybe_dimensions_query_bind_token_stream
                                     if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(self.encoded_string_representation) {
-                                        return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
+                                        return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
                                     }
                                     Ok(#query_snake_case)
                                 },
@@ -708,15 +707,15 @@ pub fn emit_generate_where_filters(
                             Generic::False,
                             quote::quote! {
                                 #maybe_dimensions_declaration_token_stream
-                                pub #v_snake_case: #import::NotZeroUnsignedPartOfI32
+                                pub #v_snake_case: #import::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32
                             },
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
                             generate_query_part_format_with_v_token_stream(
                                 &maybe_dimensions_ies_initialization_token_stream,
-                                &generate_quotes::domain_types::dq_token_stream(&format!(
+                                &generate_quotes::dq_token_stream::dq_token_stream(&format!(
                                     "{{}}(upper({{}}{}) - lower({{}}{}) = ${{}})",
                                     pg_type_kind.format_argument(),
                                     pg_type_kind.format_argument(),
@@ -735,47 +734,47 @@ pub fn emit_generate_where_filters(
                     };
                     let equality_sql_operator =
                         crate::filter_sql_operator_value::filter_sql_operator_value(
-                            crate::spec::FilterSpec::equality(),
+                            crate::filter_spec::FilterSpec::equality(),
                         );
                     let generate_eq_operator_query_part_token_stream =
                         |maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens| {
                             quote::quote! {
                                 #maybe_dimensions_ies_initialization_token_stream
-                                let operator = <T as #import::PgTypeEqOperator>::operator(&#self_snake_case.#v_snake_case);
+                                let operator = <T as #import::pg_type_eq_operator::PgTypeEqOperator>::operator(&#self_snake_case.#v_snake_case);
                                 let mut query_part_6e4b019d = String::with_capacity(48);
                                 let write_result_6e4b019d = match operator {
-                                    #import::EqOperator::Eq => {
+                                    #import::eq_operator::EqOperator::Eq => {
                                         #v_match_increment_checked_add_one_initialization_token_stream
                                         std::fmt::Write::write_fmt(
                                             &mut query_part_6e4b019d,
                                             format_args!("{}({} {} ${v})", #self_operator_to_query_part_token_stream #column_snake_case, #equality_sql_operator),
                                         )
                                     },
-                                    #import::EqOperator::IsNull => std::fmt::Write::write_fmt(
+                                    #import::eq_operator::EqOperator::IsNull => std::fmt::Write::write_fmt(
                                         &mut query_part_6e4b019d,
                                         format_args!("{}({} is null)", #self_operator_to_query_part_token_stream #column_snake_case),
                                     ),
                                 };
                                 if write_result_6e4b019d.is_err() {
-                                    return Err(#import::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
                                 }
-                                Ok(#import::QueryPartFragment::try_from(query_part_6e4b019d)?)
+                                Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_6e4b019d)?)
                             }
                         };
                     let generate_eq_operator_query_bind_token_stream =
                         |ts: &dyn quote::ToTokens| {
                             quote::quote! {
                                 #ts
-                                if matches!(&<T as #import::PgTypeEqOperator>::operator(&#self_snake_case.#v_snake_case), #import::EqOperator::Eq)
+                                if matches!(&<T as #import::pg_type_eq_operator::PgTypeEqOperator>::operator(&#self_snake_case.#v_snake_case), #import::eq_operator::EqOperator::Eq)
                                     && let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case)
                                 {
-                                    return Err(#import::SqlxPostgresQueryBindError::from(#error_snake_case));
+                                    return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
                                 }
                                 Ok(#query_snake_case)
                             }
                         };
                     match &filter {
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::Eq { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::Eq { .. } => {
                         let (
                             maybe_dimensions_declaration_token_stream,
                             maybe_dimensions_default_initialization_token_stream,
@@ -788,99 +787,99 @@ pub fn emit_generate_where_filters(
                             Generic::True {
                                 maybe_extra_traits_token_stream: Some({
                                     let sqlx_type_pg_encode_token_stream = generate_sqlx_type_pg_encode_token_stream();
-                                    quote::quote! {#sqlx_type_pg_encode_token_stream + #import::PgTypeEqOperator}
+                                    quote::quote! {#sqlx_type_pg_encode_token_stream + #import::pg_type_eq_operator::PgTypeEqOperator}
                                 }),
                             },
                             generate_maybe_dimensions_declaration_pub_v_t_token_stream(&maybe_dimensions_declaration_token_stream),
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(&maybe_dimensions_default_initialization_token_stream),
-                            pg_crud_macro_common::domain_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
                             generate_eq_operator_query_part_token_stream(&maybe_dimensions_ies_initialization_token_stream),
                             is_query_bind_mut_true,
                             generate_eq_operator_query_bind_token_stream(&maybe_dimensions_query_bind_token_stream),
                         )
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::GreaterThan { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThan { .. } => {
                         generate_greater_than_token_stream(&pg_type_ptrn_standard)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::Between { .. } => generate_between_token_stream(&pg_type_ptrn_standard),
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::In { .. } => generate_in_token_stream(&pg_type_ptrn_standard),
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::Regex => generate_regex_token_stream(&pg_type_ptrn_standard),
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::Before { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::Between { .. } => generate_between_token_stream(&pg_type_ptrn_standard),
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::In { .. } => generate_in_token_stream(&pg_type_ptrn_standard),
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::Regex => generate_regex_token_stream(&pg_type_ptrn_standard),
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::Before { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::spec::FilterSpec::before().sql_operator(),
+                            &crate::filter_spec::FilterSpec::before().sql_operator(),
                         )
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::CurrentDate => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_DATE)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::CurrentDate => {
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::catalog::CURRENT_DATE)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::GreaterThanCurrentDate => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_DATE_ALT)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanCurrentDate => {
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::catalog::CURRENT_DATE_ALT)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::CurrentTimestamp => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_TIMESTAMP)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::CurrentTimestamp => {
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::catalog::CURRENT_TIMESTAMP)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::GreaterThanCurrentTimestamp => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_TIMESTAMP_ALT)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanCurrentTimestamp => {
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::catalog::CURRENT_TIMESTAMP_ALT)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::CurrentTime => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_TIME)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::CurrentTime => {
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::catalog::CURRENT_TIME)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::GreaterThanCurrentTime => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_TIME_ALT)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanCurrentTime => {
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::catalog::CURRENT_TIME_ALT)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::EqToEncodedStringRepresentation => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::EqToEncodedStringRepresentation => {
                         generate_eq_to_encoded_string_representation_token_stream(&pg_type_ptrn_standard)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::FindRangesWithinGivenRange { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::FindRangesWithinGivenRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::spec::FilterSpec::within().sql_operator(),
+                            &crate::filter_spec::FilterSpec::within().sql_operator(),
                         )
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::FindRangesThatFullyContainTheGivenRange {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::FindRangesThatFullyContainTheGivenRange {
                         ..
                     } => generate_operator_cmp_filter_token_stream(
                         &pg_type_ptrn_standard,
-                        &crate::spec::FilterSpec::contains().sql_operator(),
+                        &crate::filter_spec::FilterSpec::contains().sql_operator(),
                     ),
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::StrictlyToLeftOfRange { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::StrictlyToLeftOfRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::spec::FilterSpec::left_of().sql_operator(),
+                            &crate::filter_spec::FilterSpec::left_of().sql_operator(),
                         )
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::StrictlyToRightOfRange { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::StrictlyToRightOfRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::spec::FilterSpec::right_of().sql_operator(),
+                            &crate::filter_spec::FilterSpec::right_of().sql_operator(),
                         )
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::IncludedLowerBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::LOWER, constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::IncludedLowerBound { .. } => {
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::catalog::LOWER, constants_str::catalog::PG_CRUD_EQUALITY_SQL_OPERATOR)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::ExcludedUpperBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::UPPER, constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::ExcludedUpperBound { .. } => {
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::catalog::UPPER, constants_str::catalog::PG_CRUD_EQUALITY_SQL_OPERATOR)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::GreaterThanIncludedLowerBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::LOWER, constants_str::TEXT_ALT_11)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanIncludedLowerBound { .. } => {
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::catalog::LOWER, constants_str::catalog::TEXT_ALT_11)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::GreaterThanExcludedUpperBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::UPPER, constants_str::TEXT_ALT_11)
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanExcludedUpperBound { .. } => {
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::catalog::UPPER, constants_str::catalog::TEXT_ALT_11)
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::OverlapWithRange { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::OverlapWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::spec::FilterSpec::overlaps().sql_operator(),
+                            &crate::filter_spec::FilterSpec::overlaps().sql_operator(),
                         )
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::AdjacentWithRange { .. } => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::AdjacentWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::spec::FilterSpec::adjacent().sql_operator(),
+                            &crate::filter_spec::FilterSpec::adjacent().sql_operator(),
                         )
                     }
-                    pg_crud_macro_common::domain_types::filters::PgTypeFilter::RangeLen => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::RangeLen => {
                         generate_range_len_token_stream(&pg_type_ptrn_standard)
                     }
                 }
@@ -902,7 +901,7 @@ pub fn emit_generate_where_filters(
                         &generic,
                         &identifier,
                         &increment_parameter_undrscr,
-                        &pg_crud_macro_common::domain_types::AddOperatorUndrscr::False,
+                        &pg_crud_macro_common::emission_types::AddOperatorUndrscr::False,
                         &query_part_token_stream,
                         &is_query_bind_mut,
                         &query_bind_token_stream,
@@ -915,30 +914,25 @@ pub fn emit_generate_where_filters(
                 gend
             };
         let filter_array_token_stream =
-            <pg_crud_macro_common::domain_types::filters::PgTypeFilter as strum::IntoEnumIterator>::iter()
+            <pg_crud_macro_common::pg_type_filter::PgTypeFilter as strum::IntoEnumIterator>::iter()
                 .map(|element| generate_filters_token_stream(&element));
         let gend = quote::quote! {#(#filter_array_token_stream)*};
         if let Err(error) =
-            macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
+            macro_helpers::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
                 generate_where_filters_config.pg_types_write_into_file,
-                constants_str::GENERATE_WHERE_FILTERS_PG_TYPES,
-                macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&gend),
-                &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
+                constants_str::catalog::GENERATE_WHERE_FILTERS_PG_TYPES,
+                macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&gend),
+                &macro_helpers::format_with_cargofmt::FormatWithCargofmt::True,
             )
         {
             let message = format!("failed to write generated where-filter PG types: {error}");
-            return ProcMacro2GenerateWhereFiltersTokenStream::from(
+            return crate::proc_macro2_generate_where_filters_token_stream::ProcMacro2GenerateWhereFiltersTokenStream::from(
                 quote::quote! { compile_error!(#message); },
             );
         }
         gend
     };
-    let imports_token_stream = quote::quote! {
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(clippy::wildcard_imports)]
-        use super::*;
-    };
-    let text_search_spec = crate::spec::FilterSpec::text_search();
+    let text_search_spec = crate::filter_spec::FilterSpec::text_search();
     #[allow(clippy::if_not_else)]
     let text_search_schema_token_stream = if !crate::schema_uses_text_value::schema_uses_text_value(
         text_search_spec,
@@ -1014,7 +1008,7 @@ pub fn emit_generate_where_filters(
             pub struct PgTypeWhereTextSearch {
                 value: String,
                 mode: TextSearchMode,
-                operator: pg_crud_common::domain_types::Operator,
+                operator: pg_crud_common::operator::Operator,
             }
         }
     };
@@ -1028,7 +1022,7 @@ pub fn emit_generate_where_filters(
     } else {
         quote::quote! {
             impl PgTypeWhereTextSearch {
-                pub fn try_new(operator: pg_crud_common::domain_types::Operator, mode: TextSearchMode, value: String) -> Result<Self, TextSearchValueError> {
+                pub fn try_new(operator: pg_crud_common::operator::Operator, mode: TextSearchMode, value: String) -> Result<Self, TextSearchValueError> {
                     let _validated_pattern = build_text_search_pattern(value.as_str(), mode)?;
                     Ok(Self { value, mode, operator })
                 }
@@ -1051,18 +1045,18 @@ pub fn emit_generate_where_filters(
             crate::filter_sql_operator_value::filter_sql_operator_value(text_search_spec);
         let sql_suffix = crate::filter_sql_suffix_value::filter_sql_suffix_value(text_search_spec);
         quote::quote! {
-            impl<'query_lt> pg_crud_common::domain_types::PgTypeWhereFilter<'query_lt> for PgTypeWhereTextSearch {
-                fn query_bind(self, mut query: pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>) -> Result<pg_crud_common::domain_types::SqlxPostgresQuery<'query_lt>, pg_crud_common::domain_types::SqlxPostgresQueryBindError> {
-                    let pattern = self.pattern().map_err(pg_crud_common::domain_types::make_query_bind_error)?;
+            impl<'query_lt> pg_crud_common::pg_type_where_filter::PgTypeWhereFilter<'query_lt> for PgTypeWhereTextSearch {
+                fn query_bind(self, mut query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>) -> Result<pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>, pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
+                    let pattern = self.pattern().map_err(pg_crud_common::make_query_bind_error::make_query_bind_error)?;
                     if let Err(error) = query.as_mut().try_bind(String::from(pattern)) {
-                        return Err(pg_crud_common::domain_types::SqlxPostgresQueryBindError::from(error));
+                        return Err(pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(error));
                     }
                     Ok(query)
                 }
-                fn query_part(&self, increment: &mut dyn pg_crud_common::domain_types::QueryPartIncrementMut, column: pg_crud_common::domain_types::SqlColumnRef<'_>, add_operator: pg_crud_common::domain_types::AddOperator) -> Result<pg_crud_common::domain_types::QueryPartFragment, pg_crud_common::domain_types::QueryPartError> {
-                    let parameter = increment.checked_add_one().ok_or_else(|| pg_crud_common::domain_types::QueryPartError::CheckedAdd { location: location_macros::location!() })?;
+                fn query_part(&self, increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut, column: pg_crud_common::sql_column_ref::SqlColumnRef<'_>, add_operator: pg_crud_common::add_operator::AddOperator) -> Result<pg_crud_common::query_part_fragment::QueryPartFragment, pg_crud_common::query_part_error::QueryPartError> {
+                    let parameter = increment.checked_add_one().ok_or_else(|| pg_crud_common::query_part_error::QueryPartError::CheckedAdd { location: location_macros::location!() })?;
                     let fragment = format!("{}{} {} ${parameter} {}", self.operator.to_query_part(add_operator), column, #sql_operator, #sql_suffix);
-                    pg_crud_common::domain_types::QueryPartFragment::try_from(fragment).map_err(pg_crud_common::domain_types::QueryPartError::from)
+                    pg_crud_common::query_part_fragment::QueryPartFragment::try_from(fragment).map_err(pg_crud_common::query_part_error::QueryPartError::from)
                 }
             }
         }
@@ -1072,35 +1066,22 @@ pub fn emit_generate_where_filters(
         #text_search_client_token_stream
         #text_search_bind_token_stream
     };
-    let generate_where_filters_mod = quote::format_ident!("generate_where_filters_mod");
     let gend = quote::quote! {
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(unused_qualifications)]
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(unused_variables)]
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(clippy::absolute_paths)]
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(clippy::arbitrary_source_item_ordering)]
-        mod #generate_where_filters_mod {
-            #imports_token_stream
-            #text_search_token_stream
-            #pg_type_token_stream
-        }
-        pub use #generate_where_filters_mod::*;
+        #text_search_token_stream
+        #pg_type_token_stream
     };
     if let Err(error) =
-        macro_helpers::domain_types::ts_writer::try_maybe_write_token_stream_into_file(
+        macro_helpers::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
             generate_where_filters_config.whole_write_into_file,
-            constants_str::CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME,
-            macro_helpers::domain_types::ts_writer::ProcMacro2TokenStreamRef::from(&gend),
-            &macro_helpers::domain_types::ts_writer::FormatWithCargofmt::True,
+            constants_str::catalog::CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME,
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&gend),
+            &macro_helpers::format_with_cargofmt::FormatWithCargofmt::True,
         )
     {
         let message = format!("failed to write generated where-filter output: {error}");
-        return ProcMacro2GenerateWhereFiltersTokenStream::from(
+        return crate::proc_macro2_generate_where_filters_token_stream::ProcMacro2GenerateWhereFiltersTokenStream::from(
             quote::quote! { compile_error!(#message); },
         );
     }
-    ProcMacro2GenerateWhereFiltersTokenStream::from(gend)
+    crate::proc_macro2_generate_where_filters_token_stream::ProcMacro2GenerateWhereFiltersTokenStream::from(gend)
 }

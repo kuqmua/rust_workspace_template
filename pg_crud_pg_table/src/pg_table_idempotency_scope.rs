@@ -6,12 +6,11 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::*;
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyScope {
-    pub(super) route: PgTableIdempotencyRoute,
-    pub(super) method: PgTableIdempotencyMethod,
-    pub(super) key: PgTableIdempotencyKey,
-    pub(super) actor: PgTableIdempotencyActor,
+    pub(super) route: crate::pg_table_idempotency_route::PgTableIdempotencyRoute,
+    pub(super) method: crate::pg_table_idempotency_method::PgTableIdempotencyMethod,
+    pub(super) key: crate::pg_table_idempotency_key::PgTableIdempotencyKey,
+    pub(super) actor: crate::pg_table_idempotency_actor::PgTableIdempotencyActor,
 }

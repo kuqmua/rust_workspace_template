@@ -1,6 +1,6 @@
-use super::{AnsiTextRef, CleanAnsiText};
-
-pub(crate) fn strip_ansi_codes(value: AnsiTextRef<'_>) -> CleanAnsiText {
+pub(crate) fn strip_ansi_codes(
+    value: crate::ansi_text_ref::AnsiTextRef<'_>,
+) -> crate::clean_ansi_text::CleanAnsiText {
     let clean = value
         .get()
         .chars()
@@ -16,5 +16,6 @@ pub(crate) fn strip_ansi_codes(value: AnsiTextRef<'_>) -> CleanAnsiText {
             },
         )
         .0;
-    CleanAnsiText::try_from(clean).unwrap_or_else(CleanAnsiText::from)
+    crate::clean_ansi_text::CleanAnsiText::try_from(clean)
+        .unwrap_or_else(crate::clean_ansi_text::CleanAnsiText::from)
 }

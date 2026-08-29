@@ -1,5 +1,3 @@
-use super::TypeContract;
-
 pub trait HasTypeContract {
-    fn type_contract() -> TypeContract;
+    fn type_contract() -> crate::type_contract::TypeContract;
 }

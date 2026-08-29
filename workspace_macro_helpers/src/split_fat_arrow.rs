@@ -1,9 +1,12 @@
-use super::domain_types::ProcMacro2MacroTokens;
-
 #[must_use]
-pub fn split_fat_arrow<T>(input: T) -> Option<(ProcMacro2MacroTokens, ProcMacro2MacroTokens)>
+pub fn split_fat_arrow<T>(
+    input: T,
+) -> Option<(
+    crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
+    crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
+)>
 where
-    T: Into<ProcMacro2MacroTokens>,
+    T: Into<crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens>,
 {
     let mut before = proc_macro2::TokenStream::new();
     let mut after = proc_macro2::TokenStream::new();
@@ -23,8 +26,8 @@ where
             let _: syn::Token![=>] = syn::parse2(arrow).ok()?;
             after.extend(iter);
             return Some((
-                ProcMacro2MacroTokens::from(before),
-                ProcMacro2MacroTokens::from(after),
+                crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(before),
+                crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(after),
             ));
         }
         before.extend([token]);

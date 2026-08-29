@@ -11,9 +11,6 @@ pub enum SourceSelection<'source_lt, LocalSource, RemoteSource> {
     },
     Remote(&'source_lt RemoteSource),
 }
-
-pub use super::select_sources::select_sources;
-pub use super::source_selection_error::SourceSelectionError;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -21,15 +18,15 @@ mod tests {
         let local = 1u8;
         let remote = 2u8;
         assert_eq!(
-            super::select_sources(Some(&local), None::<&u8>),
+            crate::select_sources::select_sources(Some(&local), None::<&u8>),
             Ok(super::SourceSelection::Local(&local))
         );
         assert_eq!(
-            super::select_sources(None::<&u8>, Some(&remote)),
+            crate::select_sources::select_sources(None::<&u8>, Some(&remote)),
             Ok(super::SourceSelection::Remote(&remote))
         );
         assert_eq!(
-            super::select_sources(Some(&local), Some(&remote)),
+            crate::select_sources::select_sources(Some(&local), Some(&remote)),
             Ok(super::SourceSelection::LocalAndRemote {
                 local: &local,
                 remote: &remote,
@@ -40,8 +37,8 @@ mod tests {
     #[test]
     fn selection_rejects_missing_sources() {
         assert_eq!(
-            super::select_sources(None::<&u8>, None::<&u8>),
-            Err(super::SourceSelectionError)
+            crate::select_sources::select_sources(None::<&u8>, None::<&u8>),
+            Err(crate::source_selection_error::SourceSelectionError)
         );
     }
 }

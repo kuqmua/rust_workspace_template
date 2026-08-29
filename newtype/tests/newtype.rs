@@ -1,4 +1,4 @@
-const _: usize = constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
+const _: usize = constants_str::catalog::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
 #[derive(
     generate_accessor::Getters,
     generate_constructor::New,
@@ -10,8 +10,12 @@ struct GeneratedGettersFixture {
 const _: fn(&GeneratedGettersFixture) -> &u8 = GeneratedGettersFixture::get_value;
 #[cfg(test)]
 mod tests {
+    #[allow(
+        clippy::module_inception,
+        reason = "the derive fixture must reproduce the external crate's `to_err_string::to_err_string` path contract"
+    )]
     mod to_err_string {
-        pub(crate) mod domain_types {
+        pub(crate) mod error_text {
             #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
             pub(crate) struct ErrorText(String);
             #[derive(
@@ -23,7 +27,7 @@ mod tests {
             impl std::fmt::Display for ErrorTextTryFromStringError {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     match self {
-                        Self::TooLong => f.write_str(constants_str::TOO_LONG),
+                        Self::TooLong => f.write_str(constants_str::catalog::TOO_LONG),
                     }
                 }
             }
@@ -46,8 +50,10 @@ mod tests {
                     self.0.as_str()
                 }
             }
+        }
+        pub(crate) mod to_err_string {
             pub(crate) trait ToErrString {
-                fn to_err_string(&self) -> ErrorText;
+                fn to_err_string(&self) -> super::error_text::ErrorText;
             }
         }
     }
@@ -341,20 +347,20 @@ mod tests {
     fn dependency_markers(
         _: Option<proc_macro2::TokenStream>,
         _: Option<syn::Path>,
-        _: Option<workspace_macro_helpers::domain_types::FirstIdentifier>,
+        _: Option<workspace_macro_helpers::first_identifier::FirstIdentifier>,
     ) -> proc_macro2::TokenStream {
         quote::quote! {}
     }
     #[test]
     fn string_newtype_impls_are_generated() {
-        let v = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
+        let v = StringValue::try_from(String::from(constants_str::catalog::ABC_ALT_3))
             .expect("9d27b01c string_newtype_impls_are_generated invariant must hold");
         assert_eq!(v.to_string(), "abc");
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");
         assert_eq!(StringValueProvider::string_value(&v), "abc");
         assert_eq!(
-            to_err_string::domain_types::ToErrString::to_err_string(&v).as_ref(),
+            to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
             "abc"
         );
         assert_eq!(
@@ -365,22 +371,24 @@ mod tests {
     #[test]
     fn try_from_validator_generates_checked_conversion() {
         assert_eq!(
-            CheckedText::try_from(constants_str::AB.to_owned()),
-            Ok(CheckedText(constants_str::AB.to_owned()))
+            CheckedText::try_from(constants_str::catalog::AB.to_owned()),
+            Ok(CheckedText(constants_str::catalog::AB.to_owned()))
         );
         assert_eq!(
-            CheckedText::try_from(constants_str::ABC_ALT_3.to_owned()),
+            CheckedText::try_from(constants_str::catalog::ABC_ALT_3.to_owned()),
             Err(CheckedTextError::TooLong)
         );
     }
     #[test]
     fn try_from_validator_supports_explicit_error_type() {
         assert_eq!(
-            ExplicitErrorCheckedText::try_from(constants_str::AB.to_owned()),
-            Ok(ExplicitErrorCheckedText(constants_str::AB.to_owned()))
+            ExplicitErrorCheckedText::try_from(constants_str::catalog::AB.to_owned()),
+            Ok(ExplicitErrorCheckedText(
+                constants_str::catalog::AB.to_owned()
+            ))
         );
         assert_eq!(
-            ExplicitErrorCheckedText::try_from(constants_str::ABC_ALT_3.to_owned()),
+            ExplicitErrorCheckedText::try_from(constants_str::catalog::ABC_ALT_3.to_owned()),
             Err(CheckedTextError::TooLong)
         );
     }
@@ -389,7 +397,7 @@ mod tests {
         let v = UsizeValue::from(42usize);
         assert_eq!(v.to_string(), "42");
         assert_eq!(
-            to_err_string::domain_types::ToErrString::to_err_string(&v).as_ref(),
+            to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
             "42"
         );
     }
@@ -397,7 +405,7 @@ mod tests {
     fn debug_to_err_string_impl_is_generated() {
         let v = DebugValue::from(vec![1, 2]);
         assert_eq!(
-            to_err_string::domain_types::ToErrString::to_err_string(&v).as_ref(),
+            to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
             "[1, 2]"
         );
     }
@@ -409,9 +417,9 @@ mod tests {
     }
     #[test]
     fn direct_inner_accessors_are_generated() {
-        let text = GetInnerValueRef::from(constants_str::ABC_ALT_3).get();
+        let text = GetInnerValueRef::from(constants_str::catalog::ABC_ALT_3).get();
         let flag = GetInnerBool::from(true).get();
-        assert_eq!(text, constants_str::ABC_ALT_3);
+        assert_eq!(text, constants_str::catalog::ABC_ALT_3);
         assert!(std::hint::black_box(flag));
     }
     #[test]
@@ -440,11 +448,11 @@ mod tests {
     }
     #[test]
     fn redacted_debug_does_not_expose_inner_value() {
-        let value = RedactedDebugValue::from(constants_str::SECRET.as_bytes().to_vec());
+        let value = RedactedDebugValue::from(constants_str::catalog::SECRET.as_bytes().to_vec());
         let output = format!("{value:?}");
-        assert!(output.contains(constants_str::REDACTED_ALT_3));
-        assert!(!output.contains(constants_str::SECRET));
-        assert_eq!(value.0, constants_str::SECRET.as_bytes());
+        assert!(output.contains(constants_str::catalog::REDACTED_ALT_3));
+        assert!(!output.contains(constants_str::catalog::SECRET));
+        assert_eq!(value.0, constants_str::catalog::SECRET.as_bytes());
     }
     #[test]
     fn mutable_reference_as_mut_is_generated() {
@@ -455,8 +463,8 @@ mod tests {
     }
     #[test]
     fn bounded_string_description_is_configurable() {
-        let error = DescribedValue::try_from(String::from(constants_str::ABC_ALT_3))
-            .expect_err(constants_str::VALUE_3DFCA278);
+        let error = DescribedValue::try_from(String::from(constants_str::catalog::ABC_ALT_3))
+            .expect_err(constants_str::catalog::VALUE_3DFCA278);
         assert_eq!(
             error.to_string(),
             "described value length 3 exceeds maximum 2"
@@ -484,8 +492,8 @@ mod tests {
             serde_json::from_str::<RichValue>("\"  \\u0430\\u0431  \"").expect("1d3222b1 bounded_string_rich_policies_share_runtime_and_serde_validation invariant must hold"),
             RichValue(String::from("\u{430}\u{431}"))
         );
-        let _error = serde_json::from_str::<RichValue>(constants_str::ABCD)
-            .expect_err(constants_str::C0E03C6D);
+        let _error = serde_json::from_str::<RichValue>(constants_str::catalog::ABCD)
+            .expect_err(constants_str::catalog::C0E03C6D);
     }
     #[test]
     fn bounded_string_openapi_limits_match_runtime_limits() {
@@ -531,11 +539,13 @@ mod tests {
     #[test]
     fn bounded_string_custom_validator_is_applied() {
         assert_eq!(
-            ValidatedValue::try_from(String::from(constants_str::ABC_ALT_3)),
-            Ok(ValidatedValue(String::from(constants_str::ABC_ALT_3)))
+            ValidatedValue::try_from(String::from(constants_str::catalog::ABC_ALT_3)),
+            Ok(ValidatedValue(String::from(
+                constants_str::catalog::ABC_ALT_3
+            )))
         );
         assert!(matches!(
-            ValidatedValue::try_from(String::from(constants_str::GET)),
+            ValidatedValue::try_from(String::from(constants_str::catalog::GET)),
             Err(ValidatedValueTryFromStringError::InvalidValue)
         ));
     }
@@ -549,23 +559,23 @@ mod tests {
     }
     #[test]
     fn reference_inner_impls_are_generated() {
-        let inner = ReferentValue(constants_str::LEFT, constants_str::RIGHT);
+        let inner = ReferentValue(constants_str::catalog::LEFT, constants_str::catalog::RIGHT);
         let v = ReferentValueRef::from(&inner);
         assert_eq!(AsRef::<ReferentValue<'_>>::as_ref(&v), &inner);
     }
     #[test]
     fn borrow_impls_are_generated() {
-        let string = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
+        let string = StringValue::try_from(String::from(constants_str::catalog::ABC_ALT_3))
             .expect("f37f2ed0 borrow_impls_are_generated invariant must hold");
         assert_eq!(std::borrow::Borrow::<str>::borrow(&string), "abc");
         let owned = InnerValue::from(7u16);
         assert_eq!(*std::borrow::Borrow::<u16>::borrow(&owned), 7u16);
-        let path = OwnedPathBuf::from(std::path::PathBuf::from(constants_str::ABC_ALT_3));
+        let path = OwnedPathBuf::from(std::path::PathBuf::from(constants_str::catalog::ABC_ALT_3));
         assert_eq!(
             std::borrow::Borrow::<std::path::Path>::borrow(&path),
-            std::path::Path::new(constants_str::ABC_ALT_3)
+            std::path::Path::new(constants_str::catalog::ABC_ALT_3)
         );
-        let inner = SliceValueRef::from(constants_str::ABC_ALT_3.as_bytes());
+        let inner = SliceValueRef::from(constants_str::catalog::ABC_ALT_3.as_bytes());
         assert_eq!(std::borrow::Borrow::<[u8]>::borrow(&inner), b"abc");
     }
     #[test]
@@ -599,8 +609,8 @@ mod tests {
     }
     #[test]
     fn enum_from_str_error_mentions_allowed_values() {
-        let error = <SampleEnum as std::str::FromStr>::from_str(constants_str::BAD)
-            .expect_err(constants_str::VALUE_42D13F7A);
+        let error = <SampleEnum as std::str::FromStr>::from_str(constants_str::catalog::BAD)
+            .expect_err(constants_str::catalog::VALUE_42D13F7A);
         assert_eq!(
             error,
             "Unknown value: bad. Allowed values: first_value, second"

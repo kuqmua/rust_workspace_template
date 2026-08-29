@@ -13,7 +13,7 @@ pub fn new(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         let syn::Data::Struct(data) = &parsed_input.data else {
             return Err(syn::Error::new_spanned(
                 &parsed_input,
-                constants_str::CONSTRUCTOR_REQUIRES_STRUCT,
+                constants_str::test_fixtures::CONSTRUCTOR_REQUIRES_STRUCT,
             ));
         };
         let fields = match &data.fields {
@@ -21,7 +21,7 @@ pub fn new(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             syn::Fields::Unnamed(_) | syn::Fields::Unit => {
                 return Err(syn::Error::new_spanned(
                     &data.fields,
-                    constants_str::CONSTRUCTOR_REQUIRES_NAMED_FIELDS,
+                    constants_str::test_fixtures::CONSTRUCTOR_REQUIRES_NAMED_FIELDS,
                 ));
             }
         };
@@ -30,7 +30,7 @@ pub fn new(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             |visibility, attribute| {
                 if attribute
                     .path()
-                    .is_ident(constants_str::CONSTRUCTOR_ATTRIBUTE)
+                    .is_ident(constants_str::test_fixtures::CONSTRUCTOR_ATTRIBUTE)
                 {
                     attribute.parse_args::<syn::Visibility>()
                 } else {
@@ -44,7 +44,10 @@ pub fn new(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             .iter()
             .map(|field| {
                 field.ident.as_ref().ok_or_else(|| {
-                    syn::Error::new_spanned(field, constants_str::CONSTRUCTOR_REQUIRES_NAMED_FIELDS)
+                    syn::Error::new_spanned(
+                        field,
+                        constants_str::test_fixtures::CONSTRUCTOR_REQUIRES_NAMED_FIELDS,
+                    )
                 })
             })
             .collect::<syn::Result<Vec<&syn::Ident>>>()?;

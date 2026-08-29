@@ -7,12 +7,12 @@ pub struct HttpCookieValue(pub(super) String);
 
 impl std::fmt::Debug for HttpCookieValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
+        f.write_str(constants_str::catalog::REDACTED_ALT_3)
     }
 }
 
 impl TryFrom<String> for HttpCookieValue {
-    type Error = super::HttpSecureCookieError;
+    type Error = crate::http_secure_cookie_error::HttpSecureCookieError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let valid = value.len() <= constants_usize::VALUE_8_192
@@ -22,7 +22,7 @@ impl TryFrom<String> for HttpCookieValue {
         if valid {
             Ok(Self(value))
         } else {
-            Err(super::HttpSecureCookieError::InvalidValue)
+            Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue)
         }
     }
 }

@@ -1,39 +1,43 @@
-fn state(pool: sqlx::PgPool) -> super::NotificationState {
-    super::NotificationState::new(
-        super::MetricsExporterPrometheusRenderer::from(
+fn state(pool: sqlx::PgPool) -> crate::notification_state::NotificationState {
+    crate::notification_state::NotificationState::new(
+        crate::metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer::from(
             metrics_exporter_prometheus::PrometheusBuilder::new()
                 .build_recorder()
                 .handle(),
         ),
-        app_state::SqlxPgPool::from(pool),
-        git_info::project_git_info_value(),
+        app_state::sqlx_pg_pool::SqlxPgPool::from(pool),
+        git_info::project_git_info_value::project_git_info_value(),
     )
 }
 
 #[tokio::test]
 async fn boundary_adapters_preserve_status_state_and_exit_code() {
     let status_response = axum::response::IntoResponse::into_response(
-        super::HttpNotificationStatusCode::from(http::StatusCode::IM_A_TEAPOT),
+        crate::http_notification_status_code::HttpNotificationStatusCode::from(
+            http::StatusCode::IM_A_TEAPOT,
+        ),
     );
     assert_eq!(status_response.status(), http::StatusCode::IM_A_TEAPOT);
     assert_eq!(
-        std::process::Termination::report(super::NotificationExitCode::from(
-            std::process::ExitCode::SUCCESS,
-        )),
+        std::process::Termination::report(
+            crate::notification_exit_code::NotificationExitCode::from(
+                std::process::ExitCode::SUCCESS,
+            )
+        ),
         std::process::ExitCode::SUCCESS
     );
 
     let state = state(
         sqlx::postgres::PgPoolOptions::new()
             .connect_lazy(
-                constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
+                constants_str::catalog::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
             )
             .expect("75b0f8e4 boundary_adapters_preserve_status_state_and_exit_code invariant must hold"),
     );
     let request = http::Request::new(());
     let (mut parts, _body) = request.into_parts();
-    let extracted = <super::AxumNotificationState as axum::extract::FromRequestParts<
-        super::NotificationState,
+    let extracted = <crate::axum_notification_state::AxumNotificationState as axum::extract::FromRequestParts<
+        crate::notification_state::NotificationState,
     >>::from_request_parts(&mut parts, &state)
     .await
     .expect("c12d49a7 boundary_adapters_preserve_status_state_and_exit_code invariant must hold");
@@ -41,7 +45,7 @@ async fn boundary_adapters_preserve_status_state_and_exit_code() {
         AsRef::<str>::as_ref(extracted.get()),
         AsRef::<str>::as_ref(&state)
     );
-    let _pool = app_state::SqlxPgPoolProvider::sqlx_pg_pool(&state);
+    let _pool = app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider::sqlx_pg_pool(&state);
 }
 
 #[tokio::test]
@@ -51,19 +55,25 @@ async fn boundary_adapters_preserve_status_state_and_exit_code() {
 )]
 async fn default_service_routes_return_success_statuses() {
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
+        .connect_lazy(
+            constants_str::catalog::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
+        )
         .expect("52a25be1 default_service_routes_return_success_statuses invariant must hold");
-    let router = crate::build_notification_router(
+    let router = crate::build_notification_router::build_notification_router(
         state(pool),
-        super::NotificationBodyMaximumBytes::from(
-            notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
+        crate::notification_body_maximum_bytes::NotificationBodyMaximumBytes::from(
+            notification_service_contract::notification_api_body_max_bytes::NOTIFICATION_API_BODY_MAX_BYTES,
         ),
     )
     .into_inner();
     let liveness_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
-            .uri(common_routes::CommonRoute::HealthLive.path().as_ref())
+            .uri(
+                common_routes::common_route::CommonRoute::HealthLive
+                    .path()
+                    .as_ref(),
+            )
             .body(axum::body::Body::empty())
             .expect("ec467ec0 default_service_routes_return_success_statuses invariant must hold"),
     )
@@ -73,7 +83,7 @@ async fn default_service_routes_return_success_statuses() {
     let open_api_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
-            .uri(constants_str::OPENAPI_JSON)
+            .uri(constants_str::catalog::OPENAPI_JSON)
             .body(axum::body::Body::empty())
             .expect("789db8f3 default_service_routes_return_success_statuses invariant must hold"),
     )
@@ -84,8 +94,8 @@ async fn default_service_routes_return_success_statuses() {
         router.clone(),
         http::Request::builder()
             .uri(
-                frontend_contract::RouteRegistrationContract::path(
-                    notification_service_contract::domain_types::NotificationOperationalRoute::Metrics,
+                frontend_contract::route_registration_contract::RouteRegistrationContract::path(
+                    notification_service_contract::notification_operational_route::NotificationOperationalRoute::Metrics,
                 )
                 .get(),
             )
@@ -98,14 +108,17 @@ async fn default_service_routes_return_success_statuses() {
     .expect("81c4e6a2 default_service_routes_return_success_statuses invariant must hold");
     assert_eq!(metrics_response.status(), http::StatusCode::OK);
 
-    let create_metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
+    let create_metadata = <notification_service_contract::create_notification_route::CreateNotificationRoute as frontend_contract::typed_route::TypedRoute>::metadata();
     let invalid_request = tower::ServiceExt::oneshot(
         router,
         http::Request::builder()
             .method(create_metadata.method().as_ref())
             .uri(create_metadata.path().as_ref())
-            .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
-            .body(axum::body::Body::from(constants_str::TEXT_ALT_13))
+            .header(
+                http::header::CONTENT_TYPE,
+                constants_str::catalog::APPLICATION_JSON,
+            )
+            .body(axum::body::Body::from(constants_str::catalog::TEXT_ALT_13))
             .expect("4ac710e9 default_service_routes_return_success_statuses invariant must hold"),
     )
     .await
@@ -117,17 +130,17 @@ async fn default_service_routes_return_success_statuses() {
     assert!(
         invalid_request
             .extensions()
-            .get::<server_runtime_http::domain_types::HttpErrorTelemetry>()
+            .get::<server_runtime_http::http_error_telemetry::HttpErrorTelemetry>()
             .is_some()
     );
 }
 
 #[test]
 fn open_api_has_no_unresolved_schema_references() {
-    frontend_contract_validation::domain_types::openapi_validation::validate_openapi_schema_references(&{
-        let mut document = crate::open_api_document();
+    frontend_contract_validation::validate_openapi_schema_references::validate_openapi_schema_references(&{
+        let mut document = crate::open_api_document::open_api_document();
         document.merge(utoipa::openapi::OpenApi::from(
-            common_routes::CommonRoutesOpenApi::open_api(),
+            common_routes::common_routes_open_api::CommonRoutesOpenApi::open_api(),
         ));
         document
     })
@@ -136,23 +149,23 @@ fn open_api_has_no_unresolved_schema_references() {
 
 #[test]
 fn open_api_operation_and_statuses_come_from_the_typed_route() {
-    let metadata = <notification_service_contract::domain_types::CreateNotificationRoute as frontend_contract::TypedRoute>::metadata();
-    let document = serde_json::to_value(crate::open_api_document()).expect(
+    let metadata = <notification_service_contract::create_notification_route::CreateNotificationRoute as frontend_contract::typed_route::TypedRoute>::metadata();
+    let document = serde_json::to_value(crate::open_api_document::open_api_document()).expect(
         "3d8a056d open_api_operation_and_statuses_come_from_the_typed_route invariant must hold",
     );
     let operation = document
-        .get(constants_str::PATHS)
+        .get(constants_str::catalog::PATHS)
         .and_then(|paths| paths.get(metadata.path().as_ref()))
         .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
         .expect("fb8bb06a open_api_operation_and_statuses_come_from_the_typed_route invariant must hold");
     assert_eq!(
         operation
-            .get(constants_str::OPERATION_ID_JSON)
+            .get(constants_str::test_fixtures::OPERATION_ID_JSON)
             .and_then(serde_json::Value::as_str),
         Some(metadata.openapi_operation_id().as_ref()),
     );
     let observed_statuses = operation
-        .get(constants_str::RESPONSES)
+        .get(constants_str::catalog::RESPONSES)
         .and_then(serde_json::Value::as_object)
         .expect("251c95e8 open_api_operation_and_statuses_come_from_the_typed_route invariant must hold")
         .keys()
@@ -172,15 +185,18 @@ fn open_api_operation_and_statuses_come_from_the_typed_route() {
 
 #[test]
 fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
-    let server_response =
-        axum::response::IntoResponse::into_response(super::CreateNotificationError::Persistence(
-            server_runtime_http::domain_types::ObservedError::capture(
-                super::SqlxNotificationDatabaseError::from(sqlx::Error::RowNotFound),
-                server_runtime_http::domain_types::ObservedErrorCode::from(
-                    super::NotificationErrorCode::Persistence.get(),
+    let server_response = axum::response::IntoResponse::into_response(
+        crate::create_notification_error::CreateNotificationError::Persistence(
+            server_observability::observed_error::ObservedError::capture(
+                crate::sqlx_notification_database_error::SqlxNotificationDatabaseError::from(
+                    sqlx::Error::RowNotFound,
+                ),
+                server_observability::observed_error_code::ObservedErrorCode::from(
+                    crate::notification_error_code::NotificationErrorCode::Persistence.get(),
                 ),
             ),
-        ));
+        ),
+    );
     assert_eq!(
         server_response.status(),
         http::StatusCode::INTERNAL_SERVER_ERROR
@@ -188,11 +204,12 @@ fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
     assert!(
         server_response
             .extensions()
-            .get::<server_runtime_http::domain_types::HttpErrorDiagnostic>()
+            .get::<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>()
             .is_some()
     );
-    let validation_response =
-        axum::response::IntoResponse::into_response(super::CreateNotificationError::Validation);
+    let validation_response = axum::response::IntoResponse::into_response(
+        crate::create_notification_error::CreateNotificationError::Validation,
+    );
     assert_eq!(
         validation_response.status(),
         http::StatusCode::UNPROCESSABLE_ENTITY
@@ -200,24 +217,25 @@ fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
     assert!(
         validation_response
             .extensions()
-            .get::<server_runtime_http::domain_types::HttpErrorDiagnostic>()
+            .get::<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>()
             .is_none()
     );
     assert!(
         validation_response
             .extensions()
-            .get::<server_runtime_http::domain_types::HttpErrorTelemetry>()
+            .get::<server_runtime_http::http_error_telemetry::HttpErrorTelemetry>()
             .is_some()
     );
 
-    let metrics_response = axum::response::IntoResponse::into_response(
-        super::MetricsError::Render(server_runtime_http::domain_types::ObservedError::capture(
-            server_runtime_http::domain_types::MetricsResponseBodyError,
-            server_runtime_http::domain_types::ObservedErrorCode::from(
-                super::NotificationErrorCode::MetricsRender.get(),
+    let metrics_response =
+        axum::response::IntoResponse::into_response(crate::metrics_error::MetricsError::Render(
+            server_observability::observed_error::ObservedError::capture(
+                server_runtime_http::metrics_response_body_error::MetricsResponseBodyError,
+                server_observability::observed_error_code::ObservedErrorCode::from(
+                    crate::notification_error_code::NotificationErrorCode::MetricsRender.get(),
+                ),
             ),
-        )),
-    );
+        ));
     assert_eq!(
         metrics_response.status(),
         http::StatusCode::INTERNAL_SERVER_ERROR
@@ -225,7 +243,7 @@ fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
     assert!(
         metrics_response
             .extensions()
-            .get::<server_runtime_http::domain_types::HttpErrorDiagnostic>()
+            .get::<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>()
             .is_some()
     );
 }
@@ -233,10 +251,10 @@ fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn create_notification_persists_through_http_route() {
-    let database_url = config_lib::domain_types::parse_required_env_var(
-        config_lib::domain_types::EnvVarNameRef::from(constants_str::ENV_NAMES_DATABASE_URL),
+    let database_url = config_lib::parse_required_env_var::parse_required_env_var(
+        config_lib::env_var_name_ref::EnvVarNameRef::from(constants_str::catalog::ENV_NAMES_DATABASE_URL),
         |error, name| format!("{error} {name}"),
-        <config_lib::domain_types::DatabaseUrl as config_lib::domain_types::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
+        <config_lib::domain_types::DatabaseUrl as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
         |error| error.to_string(),
     )
     .expect("b3aacb7e create_notification_persists_through_http_route invariant must hold");
@@ -257,7 +275,7 @@ async fn create_notification_persists_through_http_route() {
         <sqlx::postgres::PgConnectOptions as std::str::FromStr>::from_str(exposed_database_url)
             .expect("2145d54a create_notification_persists_through_http_route invariant must hold")
             .options([(
-                constants_str::SEARCH_PATH,
+                constants_str::catalog::SEARCH_PATH,
                 constants_str::NOTIFICATION_SERVICE_TEST_SCHEMA,
             )]);
     let pool = sqlx::postgres::PgPoolOptions::new()
@@ -269,33 +287,36 @@ async fn create_notification_persists_through_http_route() {
         .run(&pool)
         .await
         .expect("128c46f1 create_notification_persists_through_http_route invariant must hold");
-    let message = notification_service_contract::domain_types::NotificationMessage::try_from(
-        constants_str::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
-    )
-    .expect("f9605432 create_notification_persists_through_http_route invariant must hold");
+    let message =
+        notification_service_contract::notification_message::NotificationMessage::try_from(
+            constants_str::test_fixtures::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
+        )
+        .expect("f9605432 create_notification_persists_through_http_route invariant must hold");
     let body = serde_json::to_vec(
-        &notification_service_contract::domain_types::CreateNotificationReq::new(message),
+        &notification_service_contract::create_notification_req::CreateNotificationReq::new(
+            message,
+        ),
     )
     .expect("3daa1ab0 create_notification_persists_through_http_route invariant must hold");
     let request = http::Request::builder()
         .method(http::Method::POST)
         .uri(
-            frontend_contract::typed_route_path::<
-                notification_service_contract::domain_types::CreateNotificationRoute,
+            frontend_contract::typed_route_path::typed_route_path::<
+                notification_service_contract::create_notification_route::CreateNotificationRoute,
             >()
             .as_ref(),
         )
         .header(
             http::header::CONTENT_TYPE,
-            constants_str::HTTP_APPLICATION_JSON,
+            constants_str::test_fixtures::HTTP_APPLICATION_JSON,
         )
         .body(axum::body::Body::from(body))
         .expect("f8d2ab0b create_notification_persists_through_http_route invariant must hold");
     let response = tower::ServiceExt::oneshot(
-        crate::build_notification_router(
+        crate::build_notification_router::build_notification_router(
             state(pool),
-            super::NotificationBodyMaximumBytes::from(
-                notification_service_contract::domain_types::NOTIFICATION_API_BODY_MAX_BYTES,
+            crate::notification_body_maximum_bytes::NotificationBodyMaximumBytes::from(
+                notification_service_contract::notification_api_body_max_bytes::NOTIFICATION_API_BODY_MAX_BYTES,
             ),
         )
         .into_inner(),
@@ -307,11 +328,13 @@ async fn create_notification_persists_through_http_route() {
     let response_body = axum::body::to_bytes(response.into_body(), 16_384usize)
         .await
         .expect("0aace9dd create_notification_persists_through_http_route invariant must hold");
-    let created: notification_service_contract::domain_types::CreateNotificationRes =
+    let created: notification_service_contract::create_notification_res::CreateNotificationRes =
         serde_json::from_slice(response_body.as_ref())
             .expect("e5352eef create_notification_persists_through_http_route invariant must hold");
     assert_ne!(
         created.id(),
-        notification_service_contract::domain_types::UuidNotificationId::from(uuid::Uuid::nil())
+        notification_service_contract::uuid_notification_id::UuidNotificationId::from(
+            uuid::Uuid::nil()
+        )
     );
 }

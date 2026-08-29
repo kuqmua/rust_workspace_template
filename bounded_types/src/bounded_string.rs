@@ -17,8 +17,8 @@ impl<const MIN: usize, const MAX: usize> BoundedString<MIN, MAX> {
     }
 
     #[must_use]
-    pub fn len(&self) -> super::BoundedLen {
-        super::BoundedLen::from(self.0.len())
+    pub fn len(&self) -> crate::bounded_len::BoundedLen {
+        crate::bounded_len::BoundedLen::from(self.0.len())
     }
 }
 impl<const MIN: usize, const MAX: usize> AsRef<str> for BoundedString<MIN, MAX> {
@@ -32,10 +32,13 @@ impl<const MIN: usize, const MAX: usize> std::fmt::Display for BoundedString<MIN
     }
 }
 impl<const MIN: usize, const MAX: usize> TryFrom<String> for BoundedString<MIN, MAX> {
-    type Error = super::BoundedValueError;
+    type Error = crate::bounded_value_error::BoundedValueError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        super::validate_len::<MIN, MAX>(super::BoundedLen::from(value.len())).map(|()| Self(value))
+        crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(
+            value.len(),
+        ))
+        .map(|()| Self(value))
     }
 }
 impl<const MIN: usize, const MAX: usize> serde::Serialize for BoundedString<MIN, MAX> {
@@ -60,12 +63,17 @@ impl<'de, const MIN: usize, const MAX: usize> serde::Deserialize<'de> for Bounde
 }
 impl<const MIN: usize, const MAX: usize> utoipa::PartialSchema for BoundedString<MIN, MAX> {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        let extensions_builder = utoipa::openapi::extensions::ExtensionsBuilder::new()
-            .add(constants_str::OPENAPI_MIN_BYTES_EXTENSION, MIN);
+        let extensions_builder = utoipa::openapi::extensions::ExtensionsBuilder::new().add(
+            constants_str::test_fixtures::OPENAPI_MIN_BYTES_EXTENSION,
+            MIN,
+        );
         let extensions = if MAX == usize::MAX {
             extensions_builder
         } else {
-            extensions_builder.add(constants_str::OPENAPI_MAX_BYTES_EXTENSION, MAX)
+            extensions_builder.add(
+                constants_str::test_fixtures::OPENAPI_MAX_BYTES_EXTENSION,
+                MAX,
+            )
         };
         utoipa::openapi::ObjectBuilder::new()
             .schema_type(utoipa::openapi::schema::Type::String)
@@ -80,12 +88,14 @@ impl<const MIN: usize, const MAX: usize> utoipa::ToSchema for BoundedString<MIN,
 mod tests {
     #[test]
     fn string_validates_inclusive_bounds() {
-        let value = super::BoundedString::<1, 1>::try_from(String::from(constants_str::A_ALT))
-            .expect("3ca72d81 string_validates_inclusive_bounds invariant must hold");
+        let value = crate::bounded_string::BoundedString::<1, 1>::try_from(String::from(
+            constants_str::catalog::A_ALT,
+        ))
+        .expect("3ca72d81 string_validates_inclusive_bounds invariant must hold");
         assert_eq!(value.as_ref(), "a");
         assert!(matches!(
-            super::BoundedString::<1, 1>::try_from(String::new()),
-            Err(super::super::BoundedValueError::BelowMin { .. })
+            crate::bounded_string::BoundedString::<1, 1>::try_from(String::new()),
+            Err(crate::bounded_value_error::BoundedValueError::BelowMin { .. })
         ));
     }
 }

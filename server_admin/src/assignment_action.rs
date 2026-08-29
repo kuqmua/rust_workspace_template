@@ -1,27 +1,38 @@
 pub(crate) async fn assignment_action<Ids, Parse, Request, BuildRequest, Target, Run, RunFuture>(
-    auth: crate::AdminAuthReq,
-    expected: &crate::AdminHtmlFormText,
-    selected: crate::StdAdminHtmlSelected,
+    auth: crate::admin_auth_req::AdminAuthReq,
+    expected: &crate::admin_html_form_text::AdminHtmlFormText,
+    selected: crate::std_admin_html_selected::StdAdminHtmlSelected,
     parse: Parse,
-    path: server_admin_contract::domain_types::AdminFrontendPath,
+    path: server_admin_contract::admin_frontend_path::AdminFrontendPath,
     build_request: BuildRequest,
     target: Target,
     run: Run,
 ) -> axum::response::Response
 where
-    Parse: Fn(&crate::AdminHtmlFormText) -> Result<Ids, crate::AdminError>,
+    Parse: Fn(
+        &crate::admin_html_form_text::AdminHtmlFormText,
+    ) -> Result<Ids, crate::admin_error::AdminError>,
     BuildRequest: FnOnce(Ids, Ids) -> Request,
-    Run: FnOnce(crate::AdminAuthReq, Target, crate::AxumAdminJson<Request>) -> RunFuture,
-    RunFuture: Future<Output = Result<crate::AxumAdminResponse, crate::AdminError>>,
+    Run: FnOnce(
+        crate::admin_auth_req::AdminAuthReq,
+        Target,
+        crate::axum_admin_json::AxumAdminJson<Request>,
+    ) -> RunFuture,
+    RunFuture: Future<
+        Output = Result<
+            crate::axum_admin_response::AxumAdminResponse,
+            crate::admin_error::AdminError,
+        >,
+    >,
 {
     let (auth, expected, selected) = match (|| {
         let auth = crate::form_auth_impl::form_auth_impl(auth)?;
         let expected = parse(expected)?;
-        let separator = constants_str::COMMA_SPACE.trim();
-        let selected = bounded_types::BoundedBTreeMap::<
-            crate::AdminHtmlFormKey,
-            crate::AdminHtmlFormText,
-            { crate::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
+        let separator = constants_str::test_fixtures::COMMA_SPACE.trim();
+        let selected = bounded_types::bounded_b_tree_map::BoundedBTreeMap::<
+            crate::admin_html_form_key::AdminHtmlFormKey,
+            crate::admin_html_form_text::AdminHtmlFormText,
+            { crate::admin_html_form_selected_max_items::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
         >::from(selected);
         let capacity = selected
             .iter()
@@ -44,10 +55,10 @@ where
                 text
             },
         );
-        let selected_ids = crate::AdminHtmlFormText::try_from(text)
-            .map_err(|_error| crate::AdminError::Validation)
+        let selected_ids = crate::admin_html_form_text::AdminHtmlFormText::try_from(text)
+            .map_err(|_error| crate::admin_error::AdminError::Validation)
             .and_then(|value| parse(&value))?;
-        Ok::<_, crate::AdminError>((auth, expected, selected_ids))
+        Ok::<_, crate::admin_error::AdminError>((auth, expected, selected_ids))
     })() {
         Ok(values) => values,
         Err(error) => return axum::response::IntoResponse::into_response(error),
@@ -56,7 +67,7 @@ where
         run(
             auth,
             target,
-            crate::AxumAdminJson(build_request(expected, selected)),
+            crate::axum_admin_json::AxumAdminJson(build_request(expected, selected)),
         )
         .await,
         path,

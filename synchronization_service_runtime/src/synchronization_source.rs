@@ -3,5 +3,7 @@ pub trait SynchronizationSource {
 
     fn read(
         &mut self,
-    ) -> impl Future<Output = Result<super::SynchronizationPayload, Self::Error>> + Send;
+    ) -> impl Future<
+        Output = Result<crate::synchronization_payload::SynchronizationPayload, Self::Error>,
+    > + Send;
 }

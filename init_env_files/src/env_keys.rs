@@ -10,4 +10,6 @@
     newtype::AsRefOwned,
     newtype::FromInner,
 )]
-pub(crate) struct EnvKeys(pub(super) bounded_types::BoundedVec<crate::EnvKey, 0, { usize::MAX }>);
+pub(crate) struct EnvKeys(
+    pub(super) bounded_types::bounded_vec::BoundedVec<crate::env_key::EnvKey, 0, { usize::MAX }>,
+);

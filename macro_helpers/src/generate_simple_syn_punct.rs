@@ -3,7 +3,7 @@
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[must_use]
-pub fn generate_simple_syn_punct<I, S>(v: I) -> SynPathSegments
+pub fn generate_simple_syn_punct<I, S>(v: I) -> crate::syn_path_segments::SynPathSegments
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
@@ -25,19 +25,16 @@ where
             });
         }
     }
-    SynPathSegments::from(accumulator)
+    crate::syn_path_segments::SynPathSegments::from(accumulator)
 }
-pub use super::string_syn_punct::string_syn_punct;
-pub use super::syn_path_segment::SynPathSegment;
-pub use super::syn_path_segments::SynPathSegments;
 #[cfg(test)]
 mod tests {
     #[test]
     fn generate_simple_syn_punct_builds_three_segment_path() {
-        let punct = super::generate_simple_syn_punct([
-            constants_str::STD,
-            constants_str::STRING_ALT,
-            constants_str::STRING,
+        let punct = crate::generate_simple_syn_punct::generate_simple_syn_punct([
+            constants_str::catalog::STD,
+            constants_str::catalog::STRING_ALT,
+            constants_str::catalog::STRING,
         ]);
         assert_eq!(
             quote::quote! {#punct}.to_string(),
@@ -46,12 +43,15 @@ mod tests {
     }
     #[test]
     fn generate_simple_syn_punct_builds_single_segment_path() {
-        let punct = super::generate_simple_syn_punct([constants_str::ONLY]);
+        let punct = crate::generate_simple_syn_punct::generate_simple_syn_punct([
+            constants_str::catalog::ONLY,
+        ]);
         assert_eq!(quote::quote! {#punct}.to_string(), "Only");
     }
     #[test]
     fn generate_simple_syn_punct_returns_empty_path_on_empty_input() {
-        let punct = super::generate_simple_syn_punct(std::iter::empty::<&str>());
+        let punct =
+            crate::generate_simple_syn_punct::generate_simple_syn_punct(std::iter::empty::<&str>());
         assert!(punct.0.is_empty());
     }
 }

@@ -2,11 +2,10 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
-use super::domain_types::*;
 
 pub fn generate_v_declaration_token_stream(
-    import: &Import,
+    import: &crate::import::Import,
     ts: &dyn quote::ToTokens,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-    quote::quote! {#import::V<#ts>}.into()
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
+    quote::quote! {#import::v::V<#ts>}.into()
 }

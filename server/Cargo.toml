@@ -36,6 +36,9 @@ server_admin_contract = { workspace = true }
 server_admin_frontend = { workspace = true }
 server_config = { workspace = true }
 server_runtime_http = { workspace = true }
+server_runtime_core = { workspace = true }
+server_observability = { workspace = true }
+pg_table = { workspace = true }
 thiserror = { workspace = true }
 [dev-dependencies]
 tokio = { workspace = true }

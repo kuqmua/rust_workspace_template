@@ -1,8 +1,6 @@
-use super::{SingleFlightOwner, SingleFlightWaiter};
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub enum SingleFlightAcquire {
     Full,
-    Owner(SingleFlightOwner),
-    Waiter(SingleFlightWaiter),
+    Owner(crate::single_flight_owner::SingleFlightOwner),
+    Waiter(crate::single_flight_waiter::SingleFlightWaiter),
 }

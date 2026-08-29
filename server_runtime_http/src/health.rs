@@ -1,57 +1,52 @@
-pub use super::add_health_routes::add_health_routes;
-pub use super::health_component_status::HealthComponentStatus;
-pub use super::health_probe_succeeded::HealthProbeSucceeded;
-pub use super::health_probe_timeout_duration::HealthProbeTimeoutDuration;
-pub use super::health_readiness::HealthReadiness;
-use super::health_ready_error::HealthReadyError;
-pub use super::health_snapshot::HealthSnapshot;
-pub use super::run_health_probe::run_health_probe;
-pub use super::service_liveness_snapshot::ServiceLivenessSnapshot;
-use super::shared_health_readiness_arc::SharedHealthReadinessArc;
 #[cfg(test)]
 mod tests {
     #[tokio::test(start_paused = true)]
     async fn probe_distinguishes_success_failure_and_timeout() {
-        let timeout = super::HealthProbeTimeoutDuration::from(std::time::Duration::from_secs(1u64));
+        let timeout = crate::health_probe_timeout_duration::HealthProbeTimeoutDuration::from(
+            std::time::Duration::from_secs(1u64),
+        );
         assert!(bool::from(
-            super::run_health_probe(timeout, async { true }).await
+            crate::run_health_probe::run_health_probe(timeout, async { true }).await
         ));
         assert!(!bool::from(
-            super::run_health_probe(timeout, async { false }).await
+            crate::run_health_probe::run_health_probe(timeout, async { false }).await
         ));
         assert!(!bool::from(
-            super::run_health_probe(timeout, std::future::pending::<bool>()).await
+            crate::run_health_probe::run_health_probe(timeout, std::future::pending::<bool>())
+                .await
         ));
     }
 
     #[test]
     fn readiness_tracks_database_probe_without_affecting_liveness() {
-        let readiness = super::HealthReadiness::default();
+        let readiness = crate::health_readiness::HealthReadiness::default();
         assert_eq!(
             readiness.snapshot().database(),
-            super::HealthComponentStatus::Error
+            crate::health_component_status::HealthComponentStatus::Error
         );
         assert_eq!(
             readiness.snapshot().service(),
-            super::HealthComponentStatus::Ok
+            crate::health_component_status::HealthComponentStatus::Ok
         );
-        readiness.store_database_probe(super::HealthProbeSucceeded::from(true));
+        readiness.store_database_probe(crate::health_probe_succeeded::HealthProbeSucceeded::from(
+            true,
+        ));
         assert_eq!(
             readiness.snapshot().database(),
-            super::HealthComponentStatus::Ok
+            crate::health_component_status::HealthComponentStatus::Ok
         );
     }
 
     #[tokio::test]
     async fn health_routes_distinguish_live_and_ready_statuses() {
-        let readiness = super::HealthReadiness::default();
-        let router = axum::Router::from(super::add_health_routes(
-            crate::domain_types::AxumRouter::from(axum::Router::new()),
+        let readiness = crate::health_readiness::HealthReadiness::default();
+        let router = axum::Router::from(crate::add_health_routes::add_health_routes(
+            crate::axum_router::AxumRouter::from(axum::Router::new()),
             &readiness,
         ));
         let live_response = tower::ServiceExt::oneshot(
             router.clone(),
-            http::Request::get(constants_str::LIVE_PATH)
+            http::Request::get(constants_str::catalog::LIVE_PATH)
                 .body(axum::body::Body::empty())
                 .expect("a943ebaa health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
@@ -60,7 +55,7 @@ mod tests {
         assert_eq!(live_response.status(), http::StatusCode::OK);
         let unavailable_response = tower::ServiceExt::oneshot(
             router.clone(),
-            http::Request::get(constants_str::READY_PATH)
+            http::Request::get(constants_str::catalog::READY_PATH)
                 .body(axum::body::Body::empty())
                 .expect("341e303a health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
@@ -70,10 +65,12 @@ mod tests {
             unavailable_response.status(),
             http::StatusCode::SERVICE_UNAVAILABLE
         );
-        readiness.store_database_probe(super::HealthProbeSucceeded::from(true));
+        readiness.store_database_probe(crate::health_probe_succeeded::HealthProbeSucceeded::from(
+            true,
+        ));
         let ready_response = tower::ServiceExt::oneshot(
             router,
-            http::Request::get(constants_str::READY_PATH)
+            http::Request::get(constants_str::catalog::READY_PATH)
                 .body(axum::body::Body::empty())
                 .expect("67247299 health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
@@ -84,33 +81,13 @@ mod tests {
 }
 
 // Root-owned module compatibility wrappers.
-mod add_health_routes {
-    pub use super::super::add_health_routes::*;
-}
-mod health_component_status {
-    pub use super::super::health_component_status::*;
-}
-mod health_probe_succeeded {
-    pub use super::super::health_probe_succeeded::*;
-}
-mod health_probe_timeout_duration {
-    pub use super::super::health_probe_timeout_duration::*;
-}
-mod health_readiness {
-    pub use super::super::health_readiness::*;
-}
-mod health_ready_error {
-    pub use super::super::health_ready_error::*;
-}
-mod health_snapshot {
-    pub use super::super::health_snapshot::*;
-}
-mod run_health_probe {
-    pub use super::super::run_health_probe::*;
-}
-mod service_liveness_snapshot {
-    pub use super::super::service_liveness_snapshot::*;
-}
-mod shared_health_readiness_arc {
-    pub use super::super::shared_health_readiness_arc::*;
-}
+mod add_health_routes {}
+mod health_component_status {}
+mod health_probe_succeeded {}
+mod health_probe_timeout_duration {}
+mod health_readiness {}
+mod health_ready_error {}
+mod health_snapshot {}
+mod run_health_probe {}
+mod service_liveness_snapshot {}
+mod shared_health_readiness_arc {}

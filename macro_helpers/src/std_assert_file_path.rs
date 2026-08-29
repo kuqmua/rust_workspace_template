@@ -8,7 +8,7 @@ pub(crate) struct StdAssertFilePath<'path_lt>(pub(super) &'path_lt std::path::Pa
 impl<'path_lt> StdAssertFilePath<'path_lt> {
     pub(crate) fn new<T>(v: T) -> Self
     where
-        T: Into<super::AssertFilePathRef<'path_lt>>,
+        T: Into<crate::assert_file_path_ref::AssertFilePathRef<'path_lt>>,
     {
         Self::from(v.into().0)
     }

@@ -1,3 +1,3 @@
 pub trait BulkItemResourceBudgetProvider {
-    fn bulk_item_resource_budget(&self) -> &super::ResourceBudget;
+    fn bulk_item_resource_budget(&self) -> &crate::resource_budget::ResourceBudget;
 }

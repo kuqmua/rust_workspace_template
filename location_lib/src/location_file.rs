@@ -1,5 +1,3 @@
-use super::domain_types::LOC_FILE_MAX_LEN;
-
 #[derive(
     Debug,
     PartialEq,
@@ -14,6 +12,6 @@ use super::domain_types::LOC_FILE_MAX_LEN;
     newtype::AsRefStr,
     newtype::Display,
 )]
-#[bounded_string(max = LOC_FILE_MAX_LEN )]
+#[bounded_string(max = crate::domain_types::LOC_FILE_MAX_LEN )]
 #[serde(try_from = "String")]
 pub struct LocationFile(String);

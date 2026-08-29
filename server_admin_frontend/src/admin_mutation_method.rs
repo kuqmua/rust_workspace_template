@@ -8,9 +8,9 @@ pub(crate) enum AdminMutationMethod {
 impl AdminMutationMethod {
     pub(crate) const fn get(self) -> &'static str {
         match self {
-            Self::Delete => constants_str::DELETE,
-            Self::Patch => constants_str::PATCH,
-            Self::Post => constants_str::POST,
+            Self::Delete => constants_str::integration_fixtures::DELETE,
+            Self::Patch => constants_str::catalog::PATCH,
+            Self::Post => constants_str::catalog::POST,
         }
     }
 }

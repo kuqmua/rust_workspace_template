@@ -8,10 +8,10 @@
 )]
 #[getters(get_mut)]
 pub struct DateFilterBounds<'value_lt> {
-    created_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-    created_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-    updated_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-    updated_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
+    created_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
+    created_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
+    updated_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
+    updated_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
 }
 #[allow(
     dead_code,
@@ -20,10 +20,10 @@ pub struct DateFilterBounds<'value_lt> {
 impl<'value_lt> DateFilterBounds<'value_lt> {
     #[must_use]
     pub const fn new(
-        created_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-        created_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-        updated_at_from: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
-        updated_at_to: Option<crate::domain_types::ChronoUtcDateTimeRef<'value_lt>>,
+        created_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
+        created_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
+        updated_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
+        updated_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
     ) -> Self {
         Self {
             created_at_from,

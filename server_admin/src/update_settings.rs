@@ -1,37 +1,37 @@
-pub(crate) use admin_html_settings_action_route_registry::AdminHtmlSettingsActionRouteRegistry;
-
-#[frontend_contract::route_error(AdminHtmlUpdateSettingsError)]
+#[frontend_contract_macros::route_error(AdminHtmlUpdateSettingsError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn update_settings(
-    auth: crate::AdminAuthReq,
-    crate::AxumAdminForm(form): crate::AxumAdminForm<crate::SettingsForm>,
+    auth: crate::admin_auth_req::AdminAuthReq,
+    crate::axum_admin_form::AxumAdminForm(form): crate::axum_admin_form::AxumAdminForm<
+        crate::settings_form::SettingsForm,
+    >,
 ) -> axum::response::Response {
     let Ok(auth) = crate::form_auth_impl::form_auth_impl(auth) else {
-        return axum::response::IntoResponse::into_response(crate::AdminError::Csrf);
+        return axum::response::IntoResponse::into_response(crate::admin_error::AdminError::Csrf);
     };
     let parsed = (
         crate::optional_setting_impl::optional_setting_impl::<
-            server_admin_contract::domain_types::AdminMainLogo,
+            server_admin_contract::admin_main_logo::AdminMainLogo,
             _,
         >(form.main_logo),
         crate::optional_setting_impl::optional_setting_impl::<
-            server_admin_contract::domain_types::AdminOrganizationContacts,
+            server_admin_contract::admin_organization_contacts::AdminOrganizationContacts,
             _,
         >(form.organization_contacts),
         crate::optional_setting_impl::optional_setting_impl::<
-            server_admin_contract::domain_types::AdminOrganizationName,
+            server_admin_contract::admin_organization_name::AdminOrganizationName,
             _,
         >(form.organization_name),
         crate::optional_setting_impl::optional_setting_impl::<
-            server_admin_contract::domain_types::AdminPrimaryColor,
+            server_admin_contract::admin_primary_color::AdminPrimaryColor,
             _,
         >(form.primary_color),
         crate::optional_setting_impl::optional_setting_impl::<
-            server_admin_contract::domain_types::AdminSupportUrl,
+            server_admin_contract::admin_support_url::AdminSupportUrl,
             _,
         >(form.support_url),
         crate::optional_setting_impl::optional_setting_impl::<
-            server_admin_contract::domain_types::AdminTabTitle,
+            server_admin_contract::admin_tab_title::AdminTabTitle,
             _,
         >(form.tab_title),
     );
@@ -44,43 +44,48 @@ pub(crate) async fn update_settings(
         Ok(tab_title),
     ) = parsed
     else {
-        return axum::response::IntoResponse::into_response(crate::AdminError::Validation);
+        return axum::response::IntoResponse::into_response(
+            crate::admin_error::AdminError::Validation,
+        );
     };
     let mut clear = Vec::new();
     [
         (
             main_logo.is_none(),
-            server_admin_contract::domain_types::AdminOptionalSetting::MainLogo,
+            server_admin_contract::admin_optional_setting::AdminOptionalSetting::MainLogo,
         ),
         (
             organization_contacts.is_none(),
-            server_admin_contract::domain_types::AdminOptionalSetting::OrganizationContacts,
+            server_admin_contract::admin_optional_setting::AdminOptionalSetting::OrganizationContacts,
         ),
         (
             organization_name.is_none(),
-            server_admin_contract::domain_types::AdminOptionalSetting::OrganizationName,
+            server_admin_contract::admin_optional_setting::AdminOptionalSetting::OrganizationName,
         ),
         (
             primary_color.is_none(),
-            server_admin_contract::domain_types::AdminOptionalSetting::PrimaryColor,
+            server_admin_contract::admin_optional_setting::AdminOptionalSetting::PrimaryColor,
         ),
         (
             support_url.is_none(),
-            server_admin_contract::domain_types::AdminOptionalSetting::SupportUrl,
+            server_admin_contract::admin_optional_setting::AdminOptionalSetting::SupportUrl,
         ),
         (
             tab_title.is_none(),
-            server_admin_contract::domain_types::AdminOptionalSetting::TabTitle,
+            server_admin_contract::admin_optional_setting::AdminOptionalSetting::TabTitle,
         ),
     ]
     .into_iter()
     .filter_map(|(is_empty, setting)| is_empty.then_some(setting))
     .for_each(|setting| clear.push(setting));
-    let Ok(clear) = server_admin_contract::domain_types::AdminOptionalSettings::try_from(clear)
+    let Ok(clear) =
+        server_admin_contract::admin_optional_settings::AdminOptionalSettings::try_from(clear)
     else {
-        return axum::response::IntoResponse::into_response(crate::AdminError::Validation);
+        return axum::response::IntoResponse::into_response(
+            crate::admin_error::AdminError::Validation,
+        );
     };
-    let request = server_admin_contract::domain_types::AdminUpdateSettingsReq::new(
+    let request = server_admin_contract::admin_update_settings_req::AdminUpdateSettingsReq::new(
         Some(form.default_admin_route),
         main_logo,
         organization_contacts,
@@ -92,12 +97,14 @@ pub(crate) async fn update_settings(
         clear,
     );
     crate::action_result_impl::action_result_impl(
-        crate::settings_update::settings_update(auth, crate::AxumAdminJson(request)).await,
-        server_admin_contract::domain_types::AdminFrontendPath::Settings,
+        crate::settings_update::settings_update(
+            auth,
+            crate::axum_admin_json::AxumAdminJson(request),
+        )
+        .await,
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings,
     )
 }
 
 // Root-owned module compatibility wrappers.
-mod admin_html_settings_action_route_registry {
-    pub use super::super::admin_html_settings_action_route_registry::*;
-}
+mod admin_html_settings_action_route_registry {}

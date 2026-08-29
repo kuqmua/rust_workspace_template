@@ -1,11 +1,14 @@
 pub fn build_attachment_content_disposition(
-    file_name: super::HttpAttachmentFileNameRef<'_>,
-) -> Result<super::HttpContentDisposition, super::HttpContentDispositionError> {
+    file_name: crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef<'_>,
+) -> Result<
+    crate::http_content_disposition::HttpContentDisposition,
+    crate::http_content_disposition_error::HttpContentDispositionError,
+> {
     if file_name.0.is_empty() {
-        return Err(super::HttpContentDispositionError::Empty);
+        return Err(crate::http_content_disposition_error::HttpContentDispositionError::Empty);
     }
     if file_name.0.len() > constants_usize::VALUE_4_096 {
-        return Err(super::HttpContentDispositionError::TooLong);
+        return Err(crate::http_content_disposition_error::HttpContentDispositionError::TooLong);
     }
     let escaped = file_name
         .0
@@ -27,21 +30,23 @@ pub fn build_attachment_content_disposition(
     );
     let encoded = percent_encoding::utf8_percent_encode(
         escaped.as_str(),
-        super::CONTENT_DISPOSITION_PERCENT_ENCODE_SET,
+        crate::content_disposition_percent_encode_set::CONTENT_DISPOSITION_PERCENT_ENCODE_SET,
     )
     .to_string();
     let mut header = String::with_capacity(
-        constants_str::CONTENT_DISPOSITION_ATTACHMENT_PREFIX
+        constants_str::test_fixtures::CONTENT_DISPOSITION_ATTACHMENT_PREFIX
             .len()
             .saturating_add(fallback.len())
-            .saturating_add(constants_str::CONTENT_DISPOSITION_UTF8_DELIMITER.len())
+            .saturating_add(constants_str::test_fixtures::CONTENT_DISPOSITION_UTF8_DELIMITER.len())
             .saturating_add(encoded.len()),
     );
-    header.push_str(constants_str::CONTENT_DISPOSITION_ATTACHMENT_PREFIX);
+    header.push_str(constants_str::test_fixtures::CONTENT_DISPOSITION_ATTACHMENT_PREFIX);
     header.push_str(fallback.as_str());
-    header.push_str(constants_str::CONTENT_DISPOSITION_UTF8_DELIMITER);
+    header.push_str(constants_str::test_fixtures::CONTENT_DISPOSITION_UTF8_DELIMITER);
     header.push_str(encoded.as_str());
     http::HeaderValue::try_from(header)
-        .map(super::HttpContentDisposition::from)
-        .map_err(|_error| super::HttpContentDispositionError::InvalidHeaderValue)
+        .map(crate::http_content_disposition::HttpContentDisposition::from)
+        .map_err(|_error| {
+            crate::http_content_disposition_error::HttpContentDispositionError::InvalidHeaderValue
+        })
 }

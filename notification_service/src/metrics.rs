@@ -1,16 +1,21 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
 #[allow(clippy::single_call_fn)] // operational route registry owns this endpoint handler
-#[frontend_contract::route_operation]
+#[frontend_contract_macros::route_operation]
 pub(super) async fn metrics(
-    state: crate::AxumNotificationState,
-) -> Result<server_runtime_http::domain_types::MetricsResponseBody, crate::MetricsError> {
+    state: crate::axum_notification_state::AxumNotificationState,
+) -> Result<
+    server_runtime_http::metrics_response_body::MetricsResponseBody,
+    crate::metrics_error::MetricsError,
+> {
     state.get().get_metrics().render().map_err(|error| {
-        crate::MetricsError::Render(server_runtime_http::domain_types::ObservedError::capture(
-            error,
-            server_runtime_http::domain_types::ObservedErrorCode::from(
-                crate::NotificationErrorCode::MetricsRender.get(),
+        crate::metrics_error::MetricsError::Render(
+            server_observability::observed_error::ObservedError::capture(
+                error,
+                server_observability::observed_error_code::ObservedErrorCode::from(
+                    crate::notification_error_code::NotificationErrorCode::MetricsRender.get(),
+                ),
             ),
-        ))
+        )
     })
 }

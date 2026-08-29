@@ -1,95 +1,109 @@
 pub async fn create_initial_administrator(
-    pool: app_state::SqlxPgPoolRef<'_>,
-    login: crate::AdminLogin,
-    display_name: crate::AdminDisplayName,
-    password: server_admin_contract::domain_types::AdminNewPassword,
-    password_hasher: &crate::AdminPasswordHasher,
-) -> Result<crate::AdminUserId, crate::domain_types::InitialAdministratorCreationError> {
+    pool: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    login: server_admin_contract::admin_login::AdminLogin,
+    display_name: server_admin_contract::admin_display_name::AdminDisplayName,
+    password: server_admin_contract::admin_new_password::AdminNewPassword,
+    password_hasher: &crate::admin_password_hasher::AdminPasswordHasher,
+) -> Result<
+    server_admin_core::admin_user_id::AdminUserId,
+    crate::initial_administrator_creation_error::InitialAdministratorCreationError,
+> {
     let password_hash = password_hasher
         .hash(
-            crate::domain_types::AdminPassword::try_from(password.into_inner()).map_err(
+            crate::admin_password::AdminPassword::try_from(password.into_inner()).map_err(
                 |password_error| {
                     let _error_text = format!("{password_error:?}");
-                    crate::domain_types::InitialAdministratorCreationError::InvalidPassword
+                    crate::initial_administrator_creation_error::InitialAdministratorCreationError::InvalidPassword
                 },
             )?,
         )
         .await
-        .map_err(crate::domain_types::InitialAdministratorCreationError::PasswordHash)?;
+        .map_err(crate::initial_administrator_creation_error::InitialAdministratorCreationError::PasswordHash)?;
     let mut tx = pool.as_ref().begin().await.map_err(|error| {
-        crate::domain_types::InitialAdministratorCreationError::Pg(
-            crate::domain_types::SqlxAdminError::from(error),
+        crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+            crate::sqlx_admin_error::SqlxAdminError::from(error),
         )
     })?;
-    let _lock_result = sqlx::query(constants_str::SERVER_ADMIN_LOCK_USERS_SQL)
-        .execute(&mut *tx)
-        .await
-        .map_err(|error| {
-            crate::domain_types::InitialAdministratorCreationError::Pg(
-                crate::domain_types::SqlxAdminError::from(error),
-            )
-        })?;
-    let user_exists = sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_USERS_EXIST_SQL)
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(|error| {
-            crate::domain_types::InitialAdministratorCreationError::Pg(
-                crate::domain_types::SqlxAdminError::from(error),
-            )
-        })?;
+    let _lock_result =
+        sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_LOCK_USERS_SQL)
+            .execute(&mut *tx)
+            .await
+            .map_err(|error| {
+                crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+                    crate::sqlx_admin_error::SqlxAdminError::from(error),
+                )
+            })?;
+    let user_exists = sqlx::query_scalar::<_, bool>(
+        constants_str::integration_fixtures::SERVER_ADMIN_USERS_EXIST_SQL,
+    )
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(|error| {
+        crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+            crate::sqlx_admin_error::SqlxAdminError::from(error),
+        )
+    })?;
     if user_exists {
-        return Err(crate::domain_types::InitialAdministratorCreationError::AlreadyInitialized);
+        return Err(crate::initial_administrator_creation_error::InitialAdministratorCreationError::AlreadyInitialized);
     }
-    let user_id = crate::repository::insert_user::insert_user(
-        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    let user_id = crate::insert_user::insert_user(
+        crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
+            &mut *tx,
+        ),
         &login,
         &display_name,
         &password_hash,
     )
     .await
-    .map_err(crate::domain_types::InitialAdministratorCreationError::Pg)?;
-    let _role_link_result = sqlx::query(constants_str::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
-        .bind(user_id.get())
-        .execute(&mut *tx)
-        .await
-        .map_err(|error| {
-            crate::domain_types::InitialAdministratorCreationError::Pg(
-                crate::domain_types::SqlxAdminError::from(error),
-            )
-        })?;
-    let contract_login =
-        server_admin_contract::domain_types::AdminLogin::try_from(login.as_ref().to_owned())
+    .map_err(crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg)?;
+    let _role_link_result =
+        sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
+            .bind(user_id.get())
+            .execute(&mut *tx)
+            .await
             .map_err(|error| {
-                let _error_text = format!("{error:?}");
-                crate::domain_types::InitialAdministratorCreationError::InvalidLogin
+                crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+                    crate::sqlx_admin_error::SqlxAdminError::from(error),
+                )
             })?;
-    let resource_id =
-        crate::domain_types::StdAdminString::try_from(user_id.to_string()).map_err(|error| {
-            let _error_text = format!("{error:?}");
-            crate::domain_types::InitialAdministratorCreationError::AuditDetails
-        })?;
-    let details = server_admin_contract::domain_types::SerdeJsonAdminAuditDetails::try_from(
+    let contract_login = server_admin_contract::admin_login::AdminLogin::try_from(
+        login.as_ref().to_owned(),
+    )
+    .map_err(|error| {
+        let _error_text = format!("{error:?}");
+        crate::initial_administrator_creation_error::InitialAdministratorCreationError::InvalidLogin
+    })?;
+    let resource_id = server_admin_core::std_admin_string::StdAdminString::try_from(
+        user_id.to_string(),
+    )
+    .map_err(|error| {
+        let _error_text = format!("{error:?}");
+        crate::initial_administrator_creation_error::InitialAdministratorCreationError::AuditDetails
+    })?;
+    let details = server_admin_contract::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails::try_from(
         serde_json::json!({ "operation": "initial_administrator_creation", "target_id": resource_id.as_ref() }),
     )
     .map_err(|error| {
         let _error_text = format!("{error:?}");
-        crate::domain_types::InitialAdministratorCreationError::AuditDetails
+        crate::initial_administrator_creation_error::InitialAdministratorCreationError::AuditDetails
     })?;
-    crate::repository::insert_audit_success::insert_audit_success(
-        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    crate::insert_audit_success::insert_audit_success(
+        crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
+            &mut *tx,
+        ),
         user_id,
         &contract_login,
-        crate::domain_types::AdminAuditAction::Create,
-        crate::domain_types::AdminAuditResource::User,
+        crate::admin_audit_action::AdminAuditAction::Create,
+        crate::admin_audit_resource::AdminAuditResource::User,
         &resource_id,
-        crate::domain_types::UuidAdminValue::from(uuid::Uuid::new_v4()),
+        server_admin_core::uuid_admin_value::UuidAdminValue::from(uuid::Uuid::new_v4()),
         &details,
     )
     .await
-    .map_err(crate::domain_types::InitialAdministratorCreationError::Pg)?;
+    .map_err(crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg)?;
     tx.commit().await.map_err(|error| {
-        crate::domain_types::InitialAdministratorCreationError::Pg(
-            crate::domain_types::SqlxAdminError::from(error),
+        crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+            crate::sqlx_admin_error::SqlxAdminError::from(error),
         )
     })?;
     Ok(user_id)

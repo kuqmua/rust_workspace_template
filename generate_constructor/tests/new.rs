@@ -23,5 +23,5 @@ mod tests {
     }
 
     const _: Fixture<bool> = Fixture::new(true, None);
-    const _: usize = constants_str::DOT.len();
+    const _: usize = constants_str::catalog::DOT.len();
 }

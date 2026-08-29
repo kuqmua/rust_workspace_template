@@ -1,7 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) struct DefineStrConstantsInput {
-    constants: super::Constants,
-    fragments: super::Fragments,
+    constants: crate::constants::Constants,
+    fragments: crate::fragments::Fragments,
 }
 
 impl syn::parse::Parse for DefineStrConstantsInput {
@@ -11,7 +11,7 @@ impl syn::parse::Parse for DefineStrConstantsInput {
         let _ = syn::braced!(fragment_content in input);
         let mut fragments = Vec::new();
         while !fragment_content.is_empty() {
-            fragments.push(super::Fragment {
+            fragments.push(crate::fragment::Fragment {
                 name: fragment_content.parse()?,
                 value: {
                     let _: syn::Token![=] = fragment_content.parse()?;
@@ -39,26 +39,30 @@ impl syn::parse::Parse for DefineStrConstantsInput {
                 .parse_terminated(
                     |part_input| {
                         if part_input.peek(syn::LitStr) {
-                            part_input.parse().map(super::ConstantPart::Literal)
+                            part_input
+                                .parse()
+                                .map(crate::constant_part::ConstantPart::Literal)
                         } else {
-                            part_input.parse().map(super::ConstantPart::Fragment)
+                            part_input
+                                .parse()
+                                .map(crate::constant_part::ConstantPart::Fragment)
                         }
                     },
                     syn::Token![,],
                 )?
                 .into_iter()
-                .collect::<Vec<super::ConstantPart>>();
+                .collect::<Vec<crate::constant_part::ConstantPart>>();
             let _: syn::Token![;] = constant_content.parse()?;
-            constants.push(super::Constant {
+            constants.push(crate::constant::Constant {
                 name,
-                parts: super::ConstantParts::try_from(parts)?,
+                parts: crate::constant_parts::ConstantParts::try_from(parts)?,
                 visibility,
             });
         }
         if input.is_empty() {
             Ok(Self {
-                constants: super::Constants::try_from(constants)?,
-                fragments: super::Fragments::try_from(fragments)?,
+                constants: crate::constants::Constants::try_from(constants)?,
+                fragments: crate::fragments::Fragments::try_from(fragments)?,
             })
         } else {
             Err(input.error(stringify!(
@@ -103,7 +107,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                     let value = constant.parts.0.into_iter().try_fold(
                         String::new(),
                         |mut value, part| match part {
-                            super::ConstantPart::Fragment(identifier) => {
+                            crate::constant_part::ConstantPart::Fragment(identifier) => {
                                 let Some(fragment) = fragments.get(&identifier.0.to_string())
                                 else {
                                     return Err(syn::Error::new(
@@ -114,7 +118,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                 value.push_str(fragment);
                                 Ok(value)
                             }
-                            super::ConstantPart::Literal(literal) => {
+                            crate::constant_part::ConstantPart::Literal(literal) => {
                                 value.push_str(&literal.0.value());
                                 Ok(value)
                             }

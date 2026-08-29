@@ -11,15 +11,20 @@ use leptos::prelude::{
 
 #[must_use]
 pub fn render_text_page_with_access(
-    page: server_admin_contract::domain_types::AdminPage,
-    _title: crate::AdminSsrText,
-    text: crate::AdminSsrText,
-    admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
-    branding: &server_admin_contract::domain_types::AdminBrandingView,
-) -> crate::AdminSsrHtml {
+    page: server_admin_contract::admin_page::AdminPage,
+    _title: crate::admin_ssr_text::AdminSsrText,
+    text: crate::admin_ssr_text::AdminSsrText,
+    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+) -> crate::admin_ssr_html::AdminSsrHtml {
     let content_view = leptos::view! {
-        <section><crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::domain_types::with_owner::card::AdminCard></section>
+        <section><crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::admin_card::AdminCard></section>
     };
-    let content = crate::render_view(content_view);
-    crate::render_admin_page_with_access(page, content, Some(admin), Some(branding))
+    let content = crate::render_view::render_view(content_view);
+    crate::render_admin_page_with_access::render_admin_page_with_access(
+        page,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }

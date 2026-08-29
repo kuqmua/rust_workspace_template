@@ -18,24 +18,24 @@
 }}]
 pub struct AdminSystemSettings {
     #[generate_pg_table_primary_key]
-    pub id: pg_types_numeric::I16AsNonNullSmallSerialInitializationByPg,
+    pub id: pg_types_numeric::generate_pg_types_mod::I16AsNonNullSmallSerialInitializationByPg,
     #[generate_pg_table_db_default]
-    pub site_name: pg_types_text_misc::StringAsNonNullText,
+    pub site_name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub tab_title: pg_types_text_misc::StringAsNonNullText,
+    pub tab_title: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub main_logo: pg_types_text_misc::StringAsNonNullText,
+    pub main_logo: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub primary_color: pg_types_text_misc::StringAsNonNullText,
+    pub primary_color: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub default_admin_route: pg_types_text_misc::StringAsNonNullText,
+    pub default_admin_route: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub organization_name: pg_types_text_misc::StringAsNonNullText,
+    pub organization_name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub organization_contacts: pg_types_text_misc::StringAsNonNullText,
+    pub organization_contacts: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub support_url: pg_types_text_misc::StringAsNonNullText,
+    pub support_url: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
     pub updated_at:
-        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }

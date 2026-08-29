@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::domain_types::QUOTED_LITERAL_MAX_LEN;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -14,5 +13,5 @@ use super::domain_types::QUOTED_LITERAL_MAX_LEN;
     newtype::AsRefStr,
     newtype::Display,
 )]
-#[bounded_string(max = QUOTED_LITERAL_MAX_LEN)]
+#[bounded_string(max = crate::quoted_literal_max_len::QUOTED_LITERAL_MAX_LEN)]
 pub struct QuotedLiteral(pub(super) String);

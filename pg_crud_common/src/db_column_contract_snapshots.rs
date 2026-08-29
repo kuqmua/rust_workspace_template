@@ -12,4 +12,6 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct DbColumnContractSnapshots(Vec<super::DbColumnContractSnapshot>);
+pub struct DbColumnContractSnapshots(
+    Vec<crate::db_column_contract_snapshot::DbColumnContractSnapshot>,
+);

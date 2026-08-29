@@ -1,5 +1,3 @@
-use super::create_form_value_error::create_form_value_error;
-pub use super::typed_client::TypedClient;
 #[cfg(test)]
 mod tests {
     #[derive(
@@ -34,7 +32,9 @@ mod tests {
         where
             Serializer: serde::Serializer,
         {
-            Err(serde::ser::Error::custom(constants_str::VALUE_1216B447))
+            Err(serde::ser::Error::custom(
+                constants_str::test_fixtures::VALUE_1216B447,
+            ))
         }
     }
     #[derive(
@@ -49,78 +49,92 @@ mod tests {
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct Route;
-    impl crate::TypedRoute for Route {
+    impl crate::typed_route::TypedRoute for Route {
         type Request = Request;
         type Response = Response;
-        type Transport = crate::PublicTransport;
-        fn metadata() -> crate::RouteMetadata {
-            crate::RouteMetadata::new_with_policy(
-                crate::AuthenticationRequirement::Public,
-                crate::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
-                crate::RouteMethod::Post,
-                crate::RouteMutation::Mutating,
-                crate::ContractStr::from(constants_str::TEST_ALT_3),
-                crate::ContractStr::from(constants_str::VALUE_AFE0CD3C),
-                crate::SuccessStatus::Code200,
+        type Transport = crate::public_transport::PublicTransport;
+        fn metadata() -> crate::route_metadata::RouteMetadata {
+            crate::route_metadata::RouteMetadata::new_with_policy(
+                crate::authentication_requirement::AuthenticationRequirement::Public,
+                crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+                crate::route_method::RouteMethod::Post,
+                crate::route_mutation::RouteMutation::Mutating,
+                crate::contract_str::ContractStr::from(constants_str::catalog::TEST_ALT_3),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
+                crate::success_status::SuccessStatus::Code200,
             )
         }
-        fn request_body() -> crate::RouteRequestBody {
-            crate::RouteRequestBody::Json
+        fn request_body() -> crate::route_request_body::RouteRequestBody {
+            crate::route_request_body::RouteRequestBody::Json
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct CreatedRoute;
-    impl crate::TypedRoute for CreatedRoute {
+    impl crate::typed_route::TypedRoute for CreatedRoute {
         type Request = Request;
         type Response = Response;
-        type Transport = crate::PublicTransport;
-        fn metadata() -> crate::RouteMetadata {
-            crate::RouteMetadata::new_with_policy(
-                crate::AuthenticationRequirement::Public,
-                crate::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
-                crate::RouteMethod::Post,
-                crate::RouteMutation::Mutating,
-                crate::ContractStr::from(constants_str::VALUE_CC9227E7),
-                crate::ContractStr::from(constants_str::VALUE_AFE0CD3C),
-                crate::SuccessStatus::Code201,
+        type Transport = crate::public_transport::PublicTransport;
+        fn metadata() -> crate::route_metadata::RouteMetadata {
+            crate::route_metadata::RouteMetadata::new_with_policy(
+                crate::authentication_requirement::AuthenticationRequirement::Public,
+                crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+                crate::route_method::RouteMethod::Post,
+                crate::route_mutation::RouteMutation::Mutating,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_CC9227E7,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
+                crate::success_status::SuccessStatus::Code201,
             )
         }
-        fn request_body() -> crate::RouteRequestBody {
-            crate::RouteRequestBody::Json
+        fn request_body() -> crate::route_request_body::RouteRequestBody {
+            crate::route_request_body::RouteRequestBody::Json
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct FailingRequestRoute;
-    impl crate::TypedRoute for FailingRequestRoute {
+    impl crate::typed_route::TypedRoute for FailingRequestRoute {
         type Request = FailingRequest;
         type Response = Response;
-        type Transport = crate::PublicTransport;
-        fn metadata() -> crate::RouteMetadata {
-            crate::RouteMetadata::new(
-                crate::RouteMethod::Post,
-                crate::ContractStr::from(constants_str::VALUE_4B7BC374),
-                crate::ContractStr::from(constants_str::VALUE_AFE0CD3C),
+        type Transport = crate::public_transport::PublicTransport;
+        fn metadata() -> crate::route_metadata::RouteMetadata {
+            crate::route_metadata::RouteMetadata::new(
+                crate::route_method::RouteMethod::Post,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_4B7BC374,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
             )
         }
-        fn request_body() -> crate::RouteRequestBody {
-            crate::RouteRequestBody::Json
+        fn request_body() -> crate::route_request_body::RouteRequestBody {
+            crate::route_request_body::RouteRequestBody::Json
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct LargeRequestRoute;
-    impl crate::TypedRoute for LargeRequestRoute {
+    impl crate::typed_route::TypedRoute for LargeRequestRoute {
         type Request = LargeRequest;
         type Response = Response;
-        type Transport = crate::PublicTransport;
-        fn metadata() -> crate::RouteMetadata {
-            crate::RouteMetadata::new(
-                crate::RouteMethod::Post,
-                crate::ContractStr::from(constants_str::VALUE_D06CF433),
-                crate::ContractStr::from(constants_str::VALUE_AFE0CD3C),
+        type Transport = crate::public_transport::PublicTransport;
+        fn metadata() -> crate::route_metadata::RouteMetadata {
+            crate::route_metadata::RouteMetadata::new(
+                crate::route_method::RouteMethod::Post,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_D06CF433,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
             )
         }
-        fn request_body() -> crate::RouteRequestBody {
-            crate::RouteRequestBody::Json
+        fn request_body() -> crate::route_request_body::RouteRequestBody {
+            crate::route_request_body::RouteRequestBody::Json
         }
     }
     #[derive(
@@ -136,40 +150,52 @@ mod tests {
     struct NoBody;
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct NoContentRoute;
-    impl crate::TypedRoute for NoContentRoute {
+    impl crate::typed_route::TypedRoute for NoContentRoute {
         type Request = NoBody;
         type Response = NoBody;
-        type Transport = crate::PublicTransport;
-        fn metadata() -> crate::RouteMetadata {
-            crate::RouteMetadata::new_with_policy(
-                crate::AuthenticationRequirement::Public,
-                crate::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
-                crate::RouteMethod::Delete,
-                crate::RouteMutation::Mutating,
-                crate::ContractStr::from(constants_str::VALUE_E1B628F9),
-                crate::ContractStr::from(constants_str::VALUE_A3F72BD5),
-                crate::SuccessStatus::Code204,
+        type Transport = crate::public_transport::PublicTransport;
+        fn metadata() -> crate::route_metadata::RouteMetadata {
+            crate::route_metadata::RouteMetadata::new_with_policy(
+                crate::authentication_requirement::AuthenticationRequirement::Public,
+                crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+                crate::route_method::RouteMethod::Delete,
+                crate::route_mutation::RouteMutation::Mutating,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_E1B628F9,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_A3F72BD5,
+                ),
+                crate::success_status::SuccessStatus::Code204,
             )
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct EmptyOkRoute;
-    impl crate::TypedRoute for EmptyOkRoute {
+    impl crate::typed_route::TypedRoute for EmptyOkRoute {
         type Request = NoBody;
         type Response = NoBody;
-        type Transport = crate::PublicTransport;
-        fn metadata() -> crate::RouteMetadata {
-            crate::RouteMetadata::new(
-                crate::RouteMethod::Get,
-                crate::ContractStr::from(constants_str::VALUE_06DE0EB2),
-                crate::ContractStr::from(constants_str::VALUE_B7407642),
+        type Transport = crate::public_transport::PublicTransport;
+        fn metadata() -> crate::route_metadata::RouteMetadata {
+            crate::route_metadata::RouteMetadata::new(
+                crate::route_method::RouteMethod::Get,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_06DE0EB2,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_B7407642,
+                ),
             )
         }
     }
-    impl crate::ParameterizedRoute for NoContentRoute {
+    impl crate::parameterized_route::ParameterizedRoute for NoContentRoute {
         type Parameter = u64;
-        fn path(parameter: &Self::Parameter) -> crate::ParameterizedRoutePath {
-            match crate::ParameterizedRoutePath::try_from(format!("/values/{parameter}")) {
+        fn path(
+            parameter: &Self::Parameter,
+        ) -> crate::parameterized_route_path::ParameterizedRoutePath {
+            match crate::parameterized_route_path::ParameterizedRoutePath::try_from(format!(
+                "/values/{parameter}"
+            )) {
                 Ok(value) => value,
                 Err(error) => panic!("f7bd0a29: {error:?}"),
             }
@@ -178,20 +204,27 @@ mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
     struct TestTransport {
         expected: ExpectedRequest,
-        response: Result<crate::TransportResponse, crate::TransportError>,
+        response: Result<
+            crate::transport_response::TransportResponse,
+            crate::transport_error::TransportError,
+        >,
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
     enum ExpectedRequest {
-        BodyLen(crate::TransportPath, usize),
-        Empty(crate::TransportPath),
-        Json(crate::TransportPath, Request),
+        BodyLen(crate::transport_path::TransportPath, usize),
+        Empty(crate::transport_path::TransportPath),
+        Json(crate::transport_path::TransportPath, Request),
     }
-    impl crate::Transport for TestTransport {
+    impl crate::transport::Transport for TestTransport {
         fn send(
             &self,
-            request: crate::TransportRequest,
-        ) -> impl Future<Output = Result<crate::TransportResponse, crate::TransportError>> + '_
-        {
+            request: crate::transport_request::TransportRequest,
+        ) -> impl Future<
+            Output = Result<
+                crate::transport_response::TransportResponse,
+                crate::transport_error::TransportError,
+            >,
+        > + '_ {
             match &self.expected {
                 ExpectedRequest::BodyLen(path, expected_len) => {
                     assert_eq!(request.path(), path);
@@ -213,18 +246,21 @@ mod tests {
             std::future::ready(self.response.clone())
         }
     }
-    fn transport_path(value: &str) -> crate::TransportPath {
-        match crate::TransportPath::try_from(value.to_owned()) {
+    fn transport_path(value: &str) -> crate::transport_path::TransportPath {
+        match crate::transport_path::TransportPath::try_from(value.to_owned()) {
             Ok(path) => path,
             Err(error) => panic!("e7222790: {error:?}"),
         }
     }
-    fn response(bytes: Vec<u8>, status: crate::TransportStatus) -> crate::TransportResponse {
-        let transport_body = match crate::TransportBody::try_from(bytes) {
+    fn response(
+        bytes: Vec<u8>,
+        status: crate::transport_status::TransportStatus,
+    ) -> crate::transport_response::TransportResponse {
+        let transport_body = match crate::transport_body::TransportBody::try_from(bytes) {
             Ok(value) => value,
             Err(error) => panic!("05780b24: {error}"),
         };
-        crate::TransportResponse::new(transport_body, status)
+        crate::transport_response::TransportResponse::new(transport_body, status)
     }
     fn assert_static_path(prefix: &str, expected_path: &str) {
         let transport = TestTransport {
@@ -234,10 +270,10 @@ mod tests {
                     Ok(value) => value,
                     Err(error) => panic!("f0c69ec8: {error}"),
                 },
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(transport, transport_path(prefix));
+        let client = crate::typed_client::TypedClient::new(transport, transport_path(prefix));
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert_eq!(result, Ok(Response { value: 7u64 }));
     }
@@ -247,53 +283,59 @@ mod tests {
             Ok(value) => value,
             Err(error) => panic!("4f35f9bb: {error}"),
         };
-        let response_body = match crate::TransportBody::try_from(response_bytes) {
+        let response_body = match crate::transport_body::TransportBody::try_from(response_bytes) {
             Ok(value) => value,
             Err(error) => panic!("d8999336: {error}"),
         };
-        let expected_path =
-            match crate::TransportPath::try_from(constants_str::VALUE_5B762F37.to_owned()) {
-                Ok(value) => value,
-                Err(error) => panic!("a805dfe8: {error:?}"),
-            };
+        let expected_path = match crate::transport_path::TransportPath::try_from(
+            constants_str::test_fixtures::VALUE_5B762F37.to_owned(),
+        ) {
+            Ok(value) => value,
+            Err(error) => panic!("a805dfe8: {error:?}"),
+        };
         let transport = TestTransport {
             expected: ExpectedRequest::Json(expected_path, Request { value: 5u64 }),
-            response: Ok(crate::TransportResponse::new(
+            response: Ok(crate::transport_response::TransportResponse::new(
                 response_body,
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let prefix = match crate::TransportPath::try_from(constants_str::V1.to_owned()) {
+        let prefix = match crate::transport_path::TransportPath::try_from(
+            constants_str::catalog::V1.to_owned(),
+        ) {
             Ok(value) => value,
             Err(error) => panic!("b4849039: {error:?}"),
         };
-        let client = super::TypedClient::new(transport, prefix);
+        let client = crate::typed_client::TypedClient::new(transport, prefix);
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert_eq!(result, Ok(Response { value: 7u64 }));
     }
     #[test]
     fn sends_parameterized_route_and_decodes_empty_no_content() {
-        let body = match crate::TransportBody::try_from(Vec::new()) {
+        let body = match crate::transport_body::TransportBody::try_from(Vec::new()) {
             Ok(value) => value,
             Err(error) => panic!("57ef3356: {error}"),
         };
-        let expected_path =
-            match crate::TransportPath::try_from(constants_str::VALUE_F06110E6.to_owned()) {
-                Ok(value) => value,
-                Err(error) => panic!("16a72a46: {error:?}"),
-            };
+        let expected_path = match crate::transport_path::TransportPath::try_from(
+            constants_str::test_fixtures::VALUE_F06110E6.to_owned(),
+        ) {
+            Ok(value) => value,
+            Err(error) => panic!("16a72a46: {error:?}"),
+        };
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(expected_path),
-            response: Ok(crate::TransportResponse::new(
+            response: Ok(crate::transport_response::TransportResponse::new(
                 body,
-                crate::SuccessStatus::Code204.transport_status(),
+                crate::success_status::SuccessStatus::Code204.transport_status(),
             )),
         };
-        let prefix = match crate::TransportPath::try_from(constants_str::V1_SLASH.to_owned()) {
+        let prefix = match crate::transport_path::TransportPath::try_from(
+            constants_str::catalog::V1_SLASH.to_owned(),
+        ) {
             Ok(value) => value,
             Err(error) => panic!("e5c1d120: {error:?}"),
         };
-        let client = super::TypedClient::new(transport, prefix);
+        let client = crate::typed_client::TypedClient::new(transport, prefix);
         let result =
             futures::executor::block_on(client.send_parameterized::<NoContentRoute>(&9u64, NoBody));
         assert_eq!(result, Ok(NoBody));
@@ -301,15 +343,17 @@ mod tests {
     #[test]
     fn static_absent_request_decodes_empty_ok_response() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_B7407642)),
+            expected: ExpectedRequest::Empty(transport_path(
+                constants_str::test_fixtures::VALUE_B7407642,
+            )),
             response: Ok(response(
                 Vec::new(),
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result = futures::executor::block_on(client.send::<EmptyOkRoute>(NoBody));
         assert_eq!(result, Ok(NoBody));
@@ -317,18 +361,27 @@ mod tests {
     #[test]
     fn path_prefix_variations_join_at_one_separator() {
         assert_static_path(
-            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
-            constants_str::VALUE_AFE0CD3C,
+            constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
+            constants_str::test_fixtures::VALUE_AFE0CD3C,
         );
-        assert_static_path(constants_str::SLASH, constants_str::VALUE_AFE0CD3C);
-        assert_static_path(constants_str::V1, constants_str::VALUE_5B762F37);
-        assert_static_path(constants_str::V1_SLASH, constants_str::VALUE_5B762F37);
+        assert_static_path(
+            constants_str::catalog::SLASH,
+            constants_str::test_fixtures::VALUE_AFE0CD3C,
+        );
+        assert_static_path(
+            constants_str::catalog::V1,
+            constants_str::test_fixtures::VALUE_5B762F37,
+        );
+        assert_static_path(
+            constants_str::catalog::V1_SLASH,
+            constants_str::test_fixtures::VALUE_5B762F37,
+        );
     }
     #[test]
     fn created_status_decodes_json_response() {
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
-                transport_path(constants_str::VALUE_AFE0CD3C),
+                transport_path(constants_str::test_fixtures::VALUE_AFE0CD3C),
                 Request { value: 5u64 },
             ),
             response: Ok(response(
@@ -336,12 +389,12 @@ mod tests {
                     Ok(value) => value,
                     Err(error) => panic!("03957e1b: {error}"),
                 },
-                crate::SuccessStatus::Code201.transport_status(),
+                crate::success_status::SuccessStatus::Code201.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result =
             futures::executor::block_on(client.send::<CreatedRoute>(Request { value: 5u64 }));
@@ -350,26 +403,31 @@ mod tests {
     #[test]
     fn request_serialization_failure_is_an_encode_error() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
+            expected: ExpectedRequest::Empty(transport_path(
+                constants_str::test_fixtures::VALUE_4D1D0E01,
+            )),
             response: Ok(response(
                 Vec::new(),
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result =
             futures::executor::block_on(client.send::<FailingRequestRoute>(FailingRequest));
-        assert!(matches!(result, Err(crate::ClientError::Encode(_error))));
+        assert!(matches!(
+            result,
+            Err(crate::client_error::ClientError::Encode(_error))
+        ));
     }
     #[test]
     fn request_body_at_shared_limit_is_accepted() {
-        let value = constants_str::X.repeat(constants_usize::VALUE_16_777_216 - 12usize);
+        let value = constants_str::catalog::X.repeat(constants_usize::VALUE_16_777_216 - 12usize);
         let transport = TestTransport {
             expected: ExpectedRequest::BodyLen(
-                transport_path(constants_str::VALUE_AFE0CD3C),
+                transport_path(constants_str::test_fixtures::VALUE_AFE0CD3C),
                 constants_usize::VALUE_16_777_216,
             ),
             response: Ok(response(
@@ -377,12 +435,12 @@ mod tests {
                     Ok(bytes) => bytes,
                     Err(error) => panic!("91bfb281: {error}"),
                 },
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result =
             futures::executor::block_on(client.send::<LargeRequestRoute>(LargeRequest { value }));
@@ -390,74 +448,89 @@ mod tests {
     }
     #[test]
     fn request_body_above_shared_limit_is_an_encode_error() {
-        let value = constants_str::X.repeat(constants_usize::VALUE_16_777_216 - 11usize);
+        let value = constants_str::catalog::X.repeat(constants_usize::VALUE_16_777_216 - 11usize);
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
+            expected: ExpectedRequest::Empty(transport_path(
+                constants_str::test_fixtures::VALUE_4D1D0E01,
+            )),
             response: Ok(response(
                 Vec::new(),
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result =
             futures::executor::block_on(client.send::<LargeRequestRoute>(LargeRequest { value }));
-        assert!(matches!(result, Err(crate::ClientError::Encode(_error))));
+        assert!(matches!(
+            result,
+            Err(crate::client_error::ClientError::Encode(_error))
+        ));
     }
     #[test]
     fn joined_path_above_transport_limit_is_an_encode_error() {
         let transport = TestTransport {
-            expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
+            expected: ExpectedRequest::Empty(transport_path(
+                constants_str::test_fixtures::VALUE_4D1D0E01,
+            )),
             response: Ok(response(
                 Vec::new(),
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
         let prefix = transport_path(format!("/{}", "x".repeat(8_191usize)).as_str());
-        let client = super::TypedClient::new(transport, prefix);
+        let client = crate::typed_client::TypedClient::new(transport, prefix);
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
-        assert!(matches!(result, Err(crate::ClientError::Encode(_error))));
+        assert!(matches!(
+            result,
+            Err(crate::client_error::ClientError::Encode(_error))
+        ));
     }
     #[test]
     fn malformed_success_body_is_a_decode_error() {
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
-                transport_path(constants_str::VALUE_AFE0CD3C),
+                transport_path(constants_str::test_fixtures::VALUE_AFE0CD3C),
                 Request { value: 5u64 },
             ),
             response: Ok(response(
                 b"{".to_vec(),
-                crate::SuccessStatus::Code200.transport_status(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
-        );
-        let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
-        assert!(matches!(result, Err(crate::ClientError::Decode(_error))));
-    }
-    #[test]
-    fn unexpected_status_without_problem_is_a_status_error() {
-        let actual = crate::TransportStatus::from(crate::KnownHttpStatus::BadRequest);
-        let expected = crate::SuccessStatus::Code200.transport_status();
-        let transport = TestTransport {
-            expected: ExpectedRequest::Json(
-                transport_path(constants_str::VALUE_AFE0CD3C),
-                Request { value: 5u64 },
-            ),
-            response: Ok(response(Vec::new(), actual)),
-        };
-        let client = super::TypedClient::new(
-            transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert!(matches!(
             result,
-            Err(crate::ClientError::Status {
+            Err(crate::client_error::ClientError::Decode(_error))
+        ));
+    }
+    #[test]
+    fn unexpected_status_without_problem_is_a_status_error() {
+        let actual = crate::transport_status::TransportStatus::from(
+            crate::known_http_status::KnownHttpStatus::BadRequest,
+        );
+        let expected = crate::success_status::SuccessStatus::Code200.transport_status();
+        let transport = TestTransport {
+            expected: ExpectedRequest::Json(
+                transport_path(constants_str::test_fixtures::VALUE_AFE0CD3C),
+                Request { value: 5u64 },
+            ),
+            response: Ok(response(Vec::new(), actual)),
+        };
+        let client = crate::typed_client::TypedClient::new(
+            transport,
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+        );
+        let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
+        assert!(matches!(
+            result,
+            Err(crate::client_error::ClientError::Status {
                 actual: actual_status,
                 expected: expected_status,
             }) if actual_status == actual && expected_status == expected
@@ -465,51 +538,59 @@ mod tests {
     }
     #[test]
     fn api_problem_body_is_a_problem_error() {
-        let problem = crate::ApiProblem::from_error(crate::ApiProblemError::Authentication);
+        let problem = crate::api_problem::ApiProblem::from_error(
+            crate::api_problem_error::ApiProblemError::Authentication,
+        );
         let problem_body = match serde_json::to_vec(&problem) {
             Ok(value) => value,
             Err(error) => panic!("0046cd3f: {error}"),
         };
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
-                transport_path(constants_str::VALUE_AFE0CD3C),
+                transport_path(constants_str::test_fixtures::VALUE_AFE0CD3C),
                 Request { value: 5u64 },
             ),
             response: Ok(response(
                 problem_body,
-                crate::TransportStatus::from(crate::KnownHttpStatus::Unauthorized),
+                crate::transport_status::TransportStatus::from(
+                    crate::known_http_status::KnownHttpStatus::Unauthorized,
+                ),
             )),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
         assert!(matches!(
             result,
-            Err(crate::ClientError::Problem(value))
-                if value.kind() == crate::ApiProblemKind::Authentication
+            Err(crate::client_error::ClientError::Problem(value))
+                if value.kind() == crate::api_problem_kind::ApiProblemKind::Authentication
         ));
     }
     #[test]
     fn transport_failure_is_preserved() {
-        let transport_error =
-            match crate::TransportError::try_from(constants_str::VALUE_8E2C7AC5.to_owned()) {
-                Ok(value) => value,
-                Err(error) => panic!("6d9c63f5: {error}"),
-            };
+        let transport_error = match crate::transport_error::TransportError::try_from(
+            constants_str::test_fixtures::VALUE_8E2C7AC5.to_owned(),
+        ) {
+            Ok(value) => value,
+            Err(error) => panic!("6d9c63f5: {error}"),
+        };
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
-                transport_path(constants_str::VALUE_AFE0CD3C),
+                transport_path(constants_str::test_fixtures::VALUE_AFE0CD3C),
                 Request { value: 5u64 },
             ),
             response: Err(transport_error.clone()),
         };
-        let client = super::TypedClient::new(
+        let client = crate::typed_client::TypedClient::new(
             transport,
-            transport_path(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            transport_path(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
         );
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
-        assert_eq!(result, Err(crate::ClientError::Transport(transport_error)));
+        assert_eq!(
+            result,
+            Err(crate::client_error::ClientError::Transport(transport_error))
+        );
     }
 }

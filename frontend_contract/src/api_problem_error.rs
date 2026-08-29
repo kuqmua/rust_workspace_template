@@ -11,7 +11,7 @@ pub enum ApiProblemError {
     #[error("API request is still in progress")]
     InProgress,
     #[error("internal API operation failed")]
-    Internal(super::ApiProblemStatus),
+    Internal(crate::api_problem_status::ApiProblemStatus),
     #[error("API request is invalid")]
     InvalidRequest,
     #[error("API route does not support this HTTP method")]
@@ -27,7 +27,7 @@ pub enum ApiProblemError {
     #[error("API request rate limit was exceeded")]
     RateLimited,
     #[error("API request failed")]
-    RequestFailed(super::ApiProblemStatus),
+    RequestFailed(crate::api_problem_status::ApiProblemStatus),
     #[error("API service is unavailable")]
     ServiceUnavailable,
     #[error("API request validation failed")]
@@ -36,7 +36,7 @@ pub enum ApiProblemError {
 
 impl ApiProblemError {
     #[must_use]
-    pub fn from_status(status: super::ApiProblemStatus) -> Self {
+    pub fn from_status(status: crate::api_problem_status::ApiProblemStatus) -> Self {
         match u16::from(status) {
             400u16 => Self::InvalidRequest,
             401u16 => Self::Authentication,
@@ -57,24 +57,28 @@ impl ApiProblemError {
     }
 
     #[must_use]
-    pub fn status(self) -> super::ApiProblemStatus {
+    pub fn status(self) -> crate::api_problem_status::ApiProblemStatus {
         let status = match self {
-            Self::Authentication => crate::KnownHttpStatus::Unauthorized,
-            Self::Authorization => crate::KnownHttpStatus::Forbidden,
-            Self::Conflict => crate::KnownHttpStatus::Conflict,
-            Self::InProgress => crate::KnownHttpStatus::TooEarly,
+            Self::Authentication => crate::known_http_status::KnownHttpStatus::Unauthorized,
+            Self::Authorization => crate::known_http_status::KnownHttpStatus::Forbidden,
+            Self::Conflict => crate::known_http_status::KnownHttpStatus::Conflict,
+            Self::InProgress => crate::known_http_status::KnownHttpStatus::TooEarly,
             Self::Internal(status) | Self::RequestFailed(status) => return status,
-            Self::InvalidRequest => crate::KnownHttpStatus::BadRequest,
-            Self::MethodNotAllowed => crate::KnownHttpStatus::MethodNotAllowed,
-            Self::NotFound => crate::KnownHttpStatus::NotFound,
-            Self::PayloadTooLarge => crate::KnownHttpStatus::PayloadTooLarge,
-            Self::Precondition => crate::KnownHttpStatus::PreconditionFailed,
-            Self::PreconditionRequired => crate::KnownHttpStatus::PreconditionRequired,
-            Self::RateLimited => crate::KnownHttpStatus::TooManyRequests,
-            Self::ServiceUnavailable => crate::KnownHttpStatus::ServiceUnavailable,
-            Self::Validation => crate::KnownHttpStatus::UnprocessableEntity,
+            Self::InvalidRequest => crate::known_http_status::KnownHttpStatus::BadRequest,
+            Self::MethodNotAllowed => crate::known_http_status::KnownHttpStatus::MethodNotAllowed,
+            Self::NotFound => crate::known_http_status::KnownHttpStatus::NotFound,
+            Self::PayloadTooLarge => crate::known_http_status::KnownHttpStatus::PayloadTooLarge,
+            Self::Precondition => crate::known_http_status::KnownHttpStatus::PreconditionFailed,
+            Self::PreconditionRequired => {
+                crate::known_http_status::KnownHttpStatus::PreconditionRequired
+            }
+            Self::RateLimited => crate::known_http_status::KnownHttpStatus::TooManyRequests,
+            Self::ServiceUnavailable => {
+                crate::known_http_status::KnownHttpStatus::ServiceUnavailable
+            }
+            Self::Validation => crate::known_http_status::KnownHttpStatus::UnprocessableEntity,
         };
-        super::ApiProblemStatus::from(status)
+        crate::api_problem_status::ApiProblemStatus::from(status)
     }
 }
 
@@ -85,16 +89,18 @@ impl axum::response::IntoResponse for ApiProblemError {
         let mut response = axum::response::IntoResponse::into_response((
             axum::http::StatusCode::from_u16(u16::from(status))
                 .unwrap_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
-            axum::Json(super::ApiProblem::from_error(self)),
+            axum::Json(crate::api_problem::ApiProblem::from_error(self)),
         ));
         let _previous_content_type = response.headers_mut().insert(
             axum::http::header::CONTENT_TYPE,
-            axum::http::HeaderValue::from_static(constants_str::APPLICATION_PROBLEM_PLUS_JSON),
+            axum::http::HeaderValue::from_static(
+                constants_str::catalog::APPLICATION_PROBLEM_PLUS_JSON,
+            ),
         );
         if self == Self::RateLimited {
             let _previous_retry_after = response.headers_mut().insert(
                 axum::http::header::RETRY_AFTER,
-                axum::http::HeaderValue::from_static(constants_str::VALUE_60),
+                axum::http::HeaderValue::from_static(constants_str::catalog::VALUE_60),
             );
         }
         response

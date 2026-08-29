@@ -1,14 +1,14 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct BackgroundJob<Report> {
-    history: crate::AsyncRunHistory<Report>,
-    retry_policy: crate::RetryPolicy,
+    history: crate::async_run_history::AsyncRunHistory<Report>,
+    retry_policy: crate::retry_policy::RetryPolicy,
 }
 
 impl<Report: Clone + Send + Sync + 'static> BackgroundJob<Report> {
     #[must_use]
     pub const fn new(
-        history: crate::AsyncRunHistory<Report>,
-        retry_policy: crate::RetryPolicy,
+        history: crate::async_run_history::AsyncRunHistory<Report>,
+        retry_policy: crate::retry_policy::RetryPolicy,
     ) -> Self {
         Self {
             history,
@@ -26,15 +26,18 @@ impl<Report: Clone + Send + Sync + 'static> BackgroundJob<Report> {
         Run: FnMut() -> RunFuture,
         RunFuture: Future<Output = Result<Success, Error>>,
         IsRetryable: Fn(&Error) -> bool,
-        MapReport: FnOnce(crate::RetryOutcome<Success, Error>) -> Report,
+        MapReport: FnOnce(crate::retry_outcome::RetryOutcome<Success, Error>) -> Report,
     {
-        let outcome = crate::run_with_retries(self.retry_policy, run, is_retryable).await;
+        let outcome =
+            crate::run_with_retries::run_with_retries(self.retry_policy, run, is_retryable).await;
         let report = map_report(outcome);
         self.history.push(report.clone()).await;
         report
     }
 
-    pub async fn snapshot(&self) -> crate::AsyncRunHistorySnapshot<Report> {
+    pub async fn snapshot(
+        &self,
+    ) -> crate::async_run_history_snapshot::AsyncRunHistorySnapshot<Report> {
         self.history.snapshot().await
     }
 }
@@ -43,17 +46,18 @@ impl<Report: Clone + Send + Sync + 'static> BackgroundJob<Report> {
 mod tests {
     #[tokio::test]
     async fn run_records_retry_outcome_in_bounded_history() {
-        let history = crate::AsyncRunHistory::new(
-            crate::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE).expect(
+        let history = crate::async_run_history::AsyncRunHistory::new(
+            crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE).expect(
                 "5dc81fa2 run_records_retry_outcome_in_bounded_history invariant must hold",
             ),
         );
         let job = super::BackgroundJob::new(
             history,
-            crate::RetryPolicy::new(
-                crate::RetryAttemptsNonZeroUsize::try_from(2usize).expect(
-                    "4792b3e0 run_records_retry_outcome_in_bounded_history invariant must hold",
-                ),
+            crate::retry_policy::RetryPolicy::new(
+                crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(2usize)
+                    .expect(
+                        "4792b3e0 run_records_retry_outcome_in_bounded_history invariant must hold",
+                    ),
                 None,
             ),
         );

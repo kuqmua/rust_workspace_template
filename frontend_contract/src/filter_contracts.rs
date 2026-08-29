@@ -1,5 +1,3 @@
-use super::FilterOperation;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,4 +8,4 @@ use super::FilterOperation;
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub struct FilterContracts(&'static [FilterOperation]);
+pub struct FilterContracts(&'static [crate::filter_operation::FilterOperation]);

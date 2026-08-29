@@ -8,7 +8,7 @@
 pub struct OutboundAllowedHost(pub(super) String);
 
 impl TryFrom<String> for OutboundAllowedHost {
-    type Error = super::OutboundHostAllowlistError;
+    type Error = crate::outbound_host_allowlist_error::OutboundHostAllowlistError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty()
@@ -17,7 +17,9 @@ impl TryFrom<String> for OutboundAllowedHost {
                 !(byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b':' | b'[' | b']'))
             })
         {
-            return Err(super::OutboundHostAllowlistError::InvalidHost);
+            return Err(
+                crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost,
+            );
         }
         Ok(Self(value.to_ascii_lowercase()))
     }

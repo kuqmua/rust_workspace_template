@@ -1,5 +1,3 @@
-use super::{AdminPagePathRef, admin_path_route_name};
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -8,7 +6,7 @@ use super::{AdminPagePathRef, admin_path_route_name};
     PartialEq,
     Eq,
     strum_macros::IntoStaticStr,
-    frontend_contract::UnitEnumCatalog,
+    frontend_contract_macros::UnitEnumCatalog,
 )]
 pub enum AdminHtmlAction {
     #[strum(serialize = "/admin/actions/profile/password")]
@@ -48,15 +46,17 @@ impl AdminHtmlAction {
         <&'static str>::from(self)
     }
     #[must_use]
-    pub fn route_name(self) -> frontend_contract::ContractStr {
-        admin_path_route_name(AdminPagePathRef::from(self.get()))
+    pub fn route_name(self) -> frontend_contract::contract_str::ContractStr {
+        crate::admin_path_route_name::admin_path_route_name(
+            crate::admin_page_path_ref::AdminPagePathRef::from(self.get()),
+        )
     }
 }
-impl frontend_contract::RouteRegistrationContract for AdminHtmlAction {
-    fn method(self) -> frontend_contract::RouteMethod {
-        frontend_contract::RouteMethod::Post
+impl frontend_contract::route_registration_contract::RouteRegistrationContract for AdminHtmlAction {
+    fn method(self) -> frontend_contract::route_method::RouteMethod {
+        frontend_contract::route_method::RouteMethod::Post
     }
-    fn path(self) -> frontend_contract::RegisteredRoutePath {
-        frontend_contract::RegisteredRoutePath::from(self.get())
+    fn path(self) -> frontend_contract::registered_route_path::RegisteredRoutePath {
+        frontend_contract::registered_route_path::RegisteredRoutePath::from(self.get())
     }
 }

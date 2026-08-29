@@ -6,17 +6,17 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
     reason = "Leptos component visibility is required for composition from the shell module"
 )]
 pub(crate) fn AdminRolesView(
-    admin: server_admin_contract::domain_types::AuthenticatedAdmin,
-    page: server_admin_contract::domain_types::AdminRolesPage,
+    admin: server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    page: server_admin_contract::admin_roles_page::AdminRolesPage,
     query: super::admin_csr_query::AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
     let can_create = bool::from(
-        admin.has_permission(server_admin_contract::domain_types::AdminPermission::RolesCreate),
+        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::RolesCreate),
     );
     let can_manage = bool::from(
-        admin.has_permission(server_admin_contract::domain_types::AdminPermission::RolesUpdate),
+        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::RolesUpdate),
     ) || bool::from(
-        admin.has_permission(server_admin_contract::domain_types::AdminPermission::RolesDelete),
+        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::RolesDelete),
     );
     let total = page.total();
     let rows = page
@@ -27,17 +27,15 @@ pub(crate) fn AdminRolesView(
     leptos::view! {
         <section class="table-page" data-renderer="csr">
             <div class="resource-actions">
-                {can_create.then(|| leptos::view! { <crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::RolesCreate.get()>"Create role"</crate::domain_types::with_owner::button::AdminButtonLink> })}
-                {can_manage.then(|| leptos::view! { <crate::domain_types::with_owner::button::AdminButtonLink href=server_admin_contract::domain_types::AdminFrontendPath::RolesManage.get() variant=crate::domain_types::with_owner::button::AdminButtonVariant::Secondary>"Manage roles"</crate::domain_types::with_owner::button::AdminButtonLink> })}
+                {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>"Create role"</crate::admin_button_link::AdminButtonLink> })}
+                {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesManage.get() variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Manage roles"</crate::admin_button_link::AdminButtonLink> })}
             </div>
-            <crate::domain_types::with_owner::tables::table_wrapper::TableWrapper><crate::domain_types::with_owner::tables::table::Table><crate::domain_types::with_owner::tables::table_header::TableHeader><crate::domain_types::with_owner::tables::table_row::TableRow><crate::domain_types::with_owner::tables::table_head::TableHead>"id"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"name"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"system"</crate::domain_types::with_owner::tables::table_head::TableHead><crate::domain_types::with_owner::tables::table_head::TableHead>"permissions"</crate::domain_types::with_owner::tables::table_head::TableHead></crate::domain_types::with_owner::tables::table_row::TableRow></crate::domain_types::with_owner::tables::table_header::TableHeader>
-            <crate::domain_types::with_owner::tables::table_body::TableBody>{rows}</crate::domain_types::with_owner::tables::table_body::TableBody></crate::domain_types::with_owner::tables::table::Table></crate::domain_types::with_owner::tables::table_wrapper::TableWrapper>
-            <super::admin_pagination::AdminPagination action=server_admin_contract::domain_types::AdminFrontendPath::Roles query=query total=total />
+            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"name"</crate::table_head::TableHead><crate::table_head::TableHead>"system"</crate::table_head::TableHead><crate::table_head::TableHead>"permissions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
+            <super::admin_pagination::AdminPagination action=server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles query=query total=total />
         </section>
     }
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod csr_admin_role_row {
-    pub use super::super::csr_admin_role_row::*;
-}
+pub(crate) mod csr_admin_role_row {}

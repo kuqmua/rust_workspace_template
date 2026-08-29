@@ -4,8 +4,8 @@ pub(super) fn generate_read_inner_into_read_or_update_with_new_or_try_new_unwrap
     path_token_stream: &dyn quote::ToTokens,
     return_type_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macro_helpers::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream{
-    let names = crate::domain_types::token_emission::NamesCtx::new();
+) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
+    let names = crate::names_ctx::NamesCtx::new();
     #[allow(
         non_snake_case,
         reason = "generated Rust identifiers intentionally mirror emitted naming tokens"

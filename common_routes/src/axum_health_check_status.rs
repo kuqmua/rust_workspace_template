@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::HealthCheckSucceeded;
 
 #[derive(
     Debug,
@@ -15,8 +14,10 @@ use super::HealthCheckSucceeded;
 )]
 pub(crate) struct AxumHealthCheckStatus(pub(super) axum::http::StatusCode);
 impl AxumHealthCheckStatus {
-    pub(crate) fn is_ok(self) -> HealthCheckSucceeded {
-        HealthCheckSucceeded::from(self.0 == axum::http::StatusCode::OK)
+    pub(crate) fn is_ok(self) -> crate::health_check_succeeded::HealthCheckSucceeded {
+        crate::health_check_succeeded::HealthCheckSucceeded::from(
+            self.0 == axum::http::StatusCode::OK,
+        )
     }
 }
 impl axum::response::IntoResponse for AxumHealthCheckStatus {

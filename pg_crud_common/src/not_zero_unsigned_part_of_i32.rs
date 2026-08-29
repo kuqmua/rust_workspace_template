@@ -42,15 +42,16 @@ impl utoipa::PartialSchema for NotZeroUnsignedPartOfI32 {
 impl utoipa::ToSchema for NotZeroUnsignedPartOfI32 {}
 
 impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
-    type Error = crate::domain_types::NotZeroUnsignedPartOfI32TryFromI32Error;
+    type Error = crate::not_zero_unsigned_part_of_i32_try_from_i32_error::NotZeroUnsignedPartOfI32TryFromI32Error;
 
     fn try_from(v: i32) -> Result<Self, Self::Error> {
-        let value = crate::domain_types::UnsignedPartOfI32::try_from(v).map_err(|error| {
-            Self::Error::UnsignedPartOfI32TryFromI32Error {
-                v: error,
-                location: location_macros::location!(),
-            }
-        })?;
+        let value =
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(v).map_err(|error| {
+                Self::Error::UnsignedPartOfI32TryFromI32Error {
+                    v: error,
+                    location: location_macros::location!(),
+                }
+            })?;
         std::num::NonZeroI32::new(value.0)
             .map(Self)
             .ok_or_else(|| Self::Error::IsZero {
@@ -59,19 +60,21 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
     }
 }
 
-impl to_err_string::domain_types::ToErrString for NotZeroUnsignedPartOfI32 {
-    fn to_err_string(&self) -> to_err_string::domain_types::ErrorText {
-        crate::domain_types::UnsignedPartOfI32::from(self.0).to_err_string()
+impl to_err_string::to_err_string::ToErrString for NotZeroUnsignedPartOfI32 {
+    fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
+        crate::unsigned_part_of_i32::UnsignedPartOfI32::from(self.0).to_err_string()
     }
 }
 
 impl sqlx::Type<sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
     fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
-        <crate::domain_types::UnsignedPartOfI32 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
+        <crate::unsigned_part_of_i32::UnsignedPartOfI32 as sqlx::Type<sqlx::Postgres>>::compatible(
+            ty,
+        )
     }
 
     fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
-        <crate::domain_types::UnsignedPartOfI32 as sqlx::Type<sqlx::Postgres>>::type_info()
+        <crate::unsigned_part_of_i32::UnsignedPartOfI32 as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
 
@@ -80,8 +83,8 @@ impl sqlx::Encode<'_, sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
         &self,
         buf: &mut sqlx::postgres::PgArgumentBuffer,
     ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
-        <crate::domain_types::UnsignedPartOfI32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(
-            &crate::domain_types::UnsignedPartOfI32::from(self.0),
+        <crate::unsigned_part_of_i32::UnsignedPartOfI32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(
+            &crate::unsigned_part_of_i32::UnsignedPartOfI32::from(self.0),
             buf,
         )
     }
@@ -89,8 +92,8 @@ impl sqlx::Encode<'_, sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
 
 impl NotZeroUnsignedPartOfI32 {
     #[must_use]
-    pub fn get(&self) -> crate::domain_types::UnsignedPartOfI32 {
-        crate::domain_types::UnsignedPartOfI32::from(self.0)
+    pub fn get(&self) -> crate::unsigned_part_of_i32::UnsignedPartOfI32 {
+        crate::unsigned_part_of_i32::UnsignedPartOfI32::from(self.0)
     }
 }
 
@@ -100,7 +103,7 @@ impl Default for NotZeroUnsignedPartOfI32 {
     }
 }
 
-impl crate::domain_types::DefaultSomeOneElement for NotZeroUnsignedPartOfI32 {
+impl crate::default_some_one_element::DefaultSomeOneElement for NotZeroUnsignedPartOfI32 {
     fn default_some_one_element() -> Self {
         Self::from(std::num::NonZeroU16::MIN)
     }
@@ -111,16 +114,16 @@ mod tests {
     #[test]
     fn nonzero_database_value_rejects_zero() {
         assert!(matches!(
-            super::NotZeroUnsignedPartOfI32::try_from(constants_i32::ZERO),
-            Err(crate::domain_types::NotZeroUnsignedPartOfI32TryFromI32Error::IsZero { .. })
+            crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(constants_i32::ZERO),
+            Err(crate::not_zero_unsigned_part_of_i32_try_from_i32_error::NotZeroUnsignedPartOfI32TryFromI32Error::IsZero { .. })
         ));
         assert!(matches!(
-            super::NotZeroUnsignedPartOfI32::try_from(1i32),
+            crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(1i32),
             Ok(_value)
         ));
         assert_eq!(
-            super::NotZeroUnsignedPartOfI32::default().get(),
-            crate::domain_types::UnsignedPartOfI32::from(1u16)
+            crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::default().get(),
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::from(1u16)
         );
     }
 }

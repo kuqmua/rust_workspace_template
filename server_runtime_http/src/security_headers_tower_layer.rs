@@ -4,15 +4,16 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(super) struct SecurityHeadersTowerLayer {
-    pub(super) content_security_policy: Option<super::HttpContentSecurityPolicy>,
-    pub(super) forwarded_proto_trust: super::ForwardedProtoTrust,
+    pub(super) content_security_policy:
+        Option<crate::http_content_security_policy::HttpContentSecurityPolicy>,
+    pub(super) forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust,
 }
 
 impl<Service> tower::Layer<Service> for SecurityHeadersTowerLayer {
-    type Service = super::SecurityHeadersService<Service>;
+    type Service = crate::security_headers_service::SecurityHeadersService<Service>;
 
     fn layer(&self, inner: Service) -> Self::Service {
-        super::SecurityHeadersService {
+        crate::security_headers_service::SecurityHeadersService {
             content_security_policy: self.content_security_policy.clone(),
             forwarded_proto_trust: self.forwarded_proto_trust,
             inner,

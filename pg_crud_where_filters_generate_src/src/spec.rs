@@ -1,24 +1,18 @@
-pub(crate) use super::bind_count::BindCount;
-pub(super) use super::filter_spec::FilterSpec;
-pub(super) use super::filter_spec_valid::FilterSpecValid;
-pub(super) use super::filter_sql_operator::FilterSqlOperator;
-pub(super) use super::filter_sql_suffix::FilterSqlSuffix;
-pub(crate) use super::filter_value_shape::FilterValueShape;
 #[cfg(test)]
 #[allow(clippy::needless_for_each)] // descriptor matrix avoids repository-forbidden for loops
 mod tests {
     #[test]
     fn filter_specs_keep_sql_bind_and_value_shape_in_sync() {
         [
-            super::FilterSpec::adjacent(),
-            super::FilterSpec::before(),
-            super::FilterSpec::contains(),
-            super::FilterSpec::equality(),
-            super::FilterSpec::left_of(),
-            super::FilterSpec::overlaps(),
-            super::FilterSpec::right_of(),
-            super::FilterSpec::text_search(),
-            super::FilterSpec::within(),
+            crate::filter_spec::FilterSpec::adjacent(),
+            crate::filter_spec::FilterSpec::before(),
+            crate::filter_spec::FilterSpec::contains(),
+            crate::filter_spec::FilterSpec::equality(),
+            crate::filter_spec::FilterSpec::left_of(),
+            crate::filter_spec::FilterSpec::overlaps(),
+            crate::filter_spec::FilterSpec::right_of(),
+            crate::filter_spec::FilterSpec::text_search(),
+            crate::filter_spec::FilterSpec::within(),
         ]
         .into_iter()
         .for_each(|spec| {

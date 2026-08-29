@@ -8,50 +8,39 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ResourceUtilization {
-    pub(super) maximum: ResourceAmount,
-    pub(super) used: ResourceAmount,
-    pub(super) percent: ResourceUtilizationPercent,
-    pub(super) status: ResourceUtilizationStatus,
+    pub(super) maximum: crate::resource_amount::ResourceAmount,
+    pub(super) used: crate::resource_amount::ResourceAmount,
+    pub(super) percent: crate::resource_utilization_percent::ResourceUtilizationPercent,
+    pub(super) status: crate::resource_utilization_status::ResourceUtilizationStatus,
 }
 
 impl ResourceUtilization {
     #[must_use]
-    pub const fn maximum(self) -> ResourceAmount {
+    pub const fn maximum(self) -> crate::resource_amount::ResourceAmount {
         self.maximum
     }
 
     #[must_use]
-    pub const fn percent(self) -> ResourceUtilizationPercent {
+    pub const fn percent(self) -> crate::resource_utilization_percent::ResourceUtilizationPercent {
         self.percent
     }
 
     #[must_use]
-    pub const fn status(self) -> ResourceUtilizationStatus {
+    pub const fn status(self) -> crate::resource_utilization_status::ResourceUtilizationStatus {
         self.status
     }
 
     #[must_use]
-    pub const fn used(self) -> ResourceAmount {
+    pub const fn used(self) -> crate::resource_amount::ResourceAmount {
         self.used
     }
 }
-
-pub use super::calculate_resource_utilization::calculate_resource_utilization;
-use super::critical_percent::CRITICAL_PERCENT;
-use super::reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT;
-pub use super::resource_amount::ResourceAmount;
-pub use super::resource_utilization_error::ResourceUtilizationError;
-use super::resource_utilization_known_percent::ResourceUtilizationKnownPercent;
-pub use super::resource_utilization_percent::ResourceUtilizationPercent;
-pub use super::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error;
-pub use super::resource_utilization_status::ResourceUtilizationStatus;
-use super::warning_percent::WARNING_PERCENT;
 #[cfg(test)]
 mod tests {
     fn calculate(used: u64, maximum: u64) -> super::ResourceUtilization {
-        super::calculate_resource_utilization(
-            super::ResourceAmount::from(used),
-            super::ResourceAmount::from(maximum),
+        crate::calculate_resource_utilization::calculate_resource_utilization(
+            crate::resource_amount::ResourceAmount::from(used),
+            crate::resource_amount::ResourceAmount::from(maximum),
         )
         .expect("8c23bc92 calculate invariant must hold")
     }
@@ -60,19 +49,19 @@ mod tests {
     fn classifies_every_threshold_boundary() {
         assert_eq!(
             calculate(69u64, 100u64).status(),
-            super::ResourceUtilizationStatus::Ok
+            crate::resource_utilization_status::ResourceUtilizationStatus::Ok
         );
         assert_eq!(
             calculate(70u64, 100u64).status(),
-            super::ResourceUtilizationStatus::Warning
+            crate::resource_utilization_status::ResourceUtilizationStatus::Warning
         );
         assert_eq!(
             calculate(85u64, 100u64).status(),
-            super::ResourceUtilizationStatus::Critical
+            crate::resource_utilization_status::ResourceUtilizationStatus::Critical
         );
         assert_eq!(
             calculate(95u64, 100u64).status(),
-            super::ResourceUtilizationStatus::RejectNonEssentialWrites
+            crate::resource_utilization_status::ResourceUtilizationStatus::RejectNonEssentialWrites
         );
     }
 
@@ -82,38 +71,51 @@ mod tests {
         assert_eq!(utilization.percent().get(), 100u8);
         assert_eq!(
             utilization.status(),
-            super::ResourceUtilizationStatus::RejectNonEssentialWrites
+            crate::resource_utilization_status::ResourceUtilizationStatus::RejectNonEssentialWrites
         );
-        assert_eq!(utilization.used(), super::ResourceAmount::from(u64::MAX));
-        assert_eq!(utilization.maximum(), super::ResourceAmount::from(1u64));
+        assert_eq!(
+            utilization.used(),
+            crate::resource_amount::ResourceAmount::from(u64::MAX)
+        );
+        assert_eq!(
+            utilization.maximum(),
+            crate::resource_amount::ResourceAmount::from(1u64)
+        );
     }
 
     #[test]
     fn percentage_uses_integer_floor_and_zero_usage_is_ok() {
         let zero = calculate(constants_u64::ZERO, u64::MAX);
         assert_eq!(zero.percent().get(), constants_u8::ZERO);
-        assert_eq!(zero.status(), super::ResourceUtilizationStatus::Ok);
+        assert_eq!(
+            zero.status(),
+            crate::resource_utilization_status::ResourceUtilizationStatus::Ok
+        );
         let rounded_down = calculate(699u64, 1000u64);
         assert_eq!(rounded_down.percent().get(), 69u8);
-        assert_eq!(rounded_down.status(), super::ResourceUtilizationStatus::Ok);
+        assert_eq!(
+            rounded_down.status(),
+            crate::resource_utilization_status::ResourceUtilizationStatus::Ok
+        );
     }
 
     #[test]
     fn rejects_zero_maximum() {
         assert_eq!(
-            super::calculate_resource_utilization(
-                super::ResourceAmount::from(constants_u64::ZERO),
-                super::ResourceAmount::from(constants_u64::ZERO),
+            crate::calculate_resource_utilization::calculate_resource_utilization(
+                crate::resource_amount::ResourceAmount::from(constants_u64::ZERO),
+                crate::resource_amount::ResourceAmount::from(constants_u64::ZERO),
             ),
-            Err(super::ResourceUtilizationError::ZeroMaximum)
+            Err(crate::resource_utilization_error::ResourceUtilizationError::ZeroMaximum)
         );
     }
     #[test]
     fn percentage_rejects_values_above_one_hundred() {
-        let _error = super::ResourceUtilizationPercent::try_from(101u8)
-            .expect_err(constants_str::VALUE_F7C27C6F);
+        let _error =
+            crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(101u8)
+                .expect_err(constants_str::test_fixtures::VALUE_F7C27C6F);
         assert_eq!(
-            super::ResourceUtilizationPercent::try_from(100u8)
+            crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(100u8)
                 .expect("f17abeab percentage_rejects_values_above_one_hundred invariant must hold")
                 .get(),
             100u8

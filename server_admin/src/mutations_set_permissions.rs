@@ -1,36 +1,38 @@
 pub(crate) async fn mutations_set_permissions(
-    auth: crate::AdminAuthReq,
-    path: crate::AxumAdminPath<crate::AdminRoleId>,
-    request: crate::AxumAdminJson<server_admin_contract::domain_types::AdminSetRolePermissionsReq>,
-) -> Result<crate::AxumAdminResponse, crate::AdminError> {
-    let actor = crate::shared::authorize_custom::authorize_custom(
+    auth: crate::admin_auth_req::AdminAuthReq,
+    path: crate::axum_admin_path::AxumAdminPath<server_admin_core::admin_role_id::AdminRoleId>,
+    request: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_set_role_permissions_req::AdminSetRolePermissionsReq,
+    >,
+) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
+    let actor = crate::authorize_custom::authorize_custom(
         &auth,
-        crate::AdminPermission::RolePermissionsUpdate,
+        server_admin_contract::admin_permission::AdminPermission::RolePermissionsUpdate,
     )
     .await?;
     let (expected_permission_ids, contract_permission_ids) = request.0.into_parts();
-    if AsRef::<[server_admin_contract::domain_types::AdminPermissionId]>::as_ref(
+    if AsRef::<[server_admin_contract::admin_permission_id::AdminPermissionId]>::as_ref(
         &expected_permission_ids,
     )
     .iter()
     .collect::<std::collections::HashSet<_>>()
     .len()
-        != AsRef::<[server_admin_contract::domain_types::AdminPermissionId]>::as_ref(
+        != AsRef::<[server_admin_contract::admin_permission_id::AdminPermissionId]>::as_ref(
             &expected_permission_ids,
         )
         .len()
-        || AsRef::<[server_admin_contract::domain_types::AdminPermissionId]>::as_ref(
+        || AsRef::<[server_admin_contract::admin_permission_id::AdminPermissionId]>::as_ref(
             &contract_permission_ids,
         )
         .iter()
         .collect::<std::collections::HashSet<_>>()
         .len()
-            != AsRef::<[server_admin_contract::domain_types::AdminPermissionId]>::as_ref(
+            != AsRef::<[server_admin_contract::admin_permission_id::AdminPermissionId]>::as_ref(
                 &contract_permission_ids,
             )
             .len()
     {
-        return Err(crate::AdminError::Validation);
+        return Err(crate::admin_error::AdminError::Validation);
     }
     let mut tx = auth
         .state
@@ -39,33 +41,33 @@ pub(crate) async fn mutations_set_permissions(
         .as_ref()
         .begin()
         .await
-        .map_err(crate::AdminError::from)?;
+        .map_err(crate::admin_error::AdminError::from)?;
     let outcome = async {
         let inlined_role_permission_role_id = path.0;
         let inlined_expected_permission_ids = expected_permission_ids.as_ref();
         let inlined_permission_ids = contract_permission_ids.as_ref();
         let optional_is_system =
-            sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL)
+            sqlx::query_scalar::<_, bool>(constants_str::integration_fixtures::SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .fetch_optional(&mut *tx)
                 .await
-                .map_err(crate::domain_types::SqlxAdminError::from)?;
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let Some(is_system) = optional_is_system else {
-            return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::repository::ReplaceRolePermissionsOutcome::MissingRole,
+            return Ok::<_, crate::sqlx_admin_error::SqlxAdminError>(
+                crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::MissingRole,
             );
         };
         if is_system {
-            return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::repository::ReplaceRolePermissionsOutcome::SystemRole,
+            return Ok::<_, crate::sqlx_admin_error::SqlxAdminError>(
+                crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::SystemRole,
             );
         }
         let current_permission_ids =
-            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .fetch_all(&mut *tx)
                 .await
-                .map_err(crate::domain_types::SqlxAdminError::from)?;
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let mut expected_raw_ids = inlined_expected_permission_ids
             .iter()
             .copied()
@@ -73,8 +75,8 @@ pub(crate) async fn mutations_set_permissions(
             .collect::<Vec<_>>();
         expected_raw_ids.sort_unstable();
         if current_permission_ids != expected_raw_ids {
-            return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::repository::ReplaceRolePermissionsOutcome::StaleAssignment,
+            return Ok::<_, crate::sqlx_admin_error::SqlxAdminError>(
+                crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::StaleAssignment,
             );
         }
         let raw_ids = inlined_permission_ids
@@ -83,59 +85,63 @@ pub(crate) async fn mutations_set_permissions(
             .map(i64::from)
             .collect::<Vec<_>>();
         let existing_count =
-            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_PERMISSIONS_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_COUNT_PERMISSIONS_SQL)
                 .bind(&raw_ids)
                 .fetch_one(&mut *tx)
                 .await
-                .map_err(crate::domain_types::SqlxAdminError::from)?;
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         if usize::try_from(existing_count).ok() != Some(raw_ids.len()) {
-            return Ok::<_, crate::domain_types::SqlxAdminError>(
-                crate::repository::ReplaceRolePermissionsOutcome::UnknownPermission,
+            return Ok::<_, crate::sqlx_admin_error::SqlxAdminError>(
+                crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::UnknownPermission,
             );
         }
         let _delete_result =
-            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL)
+            sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .execute(&mut *tx)
                 .await
-                .map_err(crate::domain_types::SqlxAdminError::from)?;
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let _insert_result =
-            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+            sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .bind(&raw_ids)
                 .execute(&mut *tx)
                 .await
-                .map_err(crate::domain_types::SqlxAdminError::from)?;
-        Ok::<_, crate::domain_types::SqlxAdminError>(
-            crate::repository::ReplaceRolePermissionsOutcome::Updated,
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+        Ok::<_, crate::sqlx_admin_error::SqlxAdminError>(
+            crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::Updated,
         )
     }
     .await
-    .map_err(crate::AdminError::from)?;
+    .map_err(crate::admin_error::AdminError::from)?;
     match outcome {
-        crate::repository::ReplaceRolePermissionsOutcome::Updated => {}
-        crate::repository::ReplaceRolePermissionsOutcome::UnknownPermission => {
-            return Err(crate::AdminError::Validation);
+        crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::Updated => {}
+        crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::UnknownPermission => {
+            return Err(crate::admin_error::AdminError::Validation);
         }
-        crate::repository::ReplaceRolePermissionsOutcome::MissingRole
-        | crate::repository::ReplaceRolePermissionsOutcome::StaleAssignment
-        | crate::repository::ReplaceRolePermissionsOutcome::SystemRole => {
-            return Err(crate::AdminError::Conflict);
+        crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::MissingRole
+        | crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::StaleAssignment
+        | crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::SystemRole => {
+            return Err(crate::admin_error::AdminError::Conflict);
         }
     }
-    crate::persistence::record_audit_success_in_connection(
-        crate::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-        crate::persistence::AdminAuditSuccessRef {
-            action: crate::AdminAuditAction::Update,
+    crate::record_audit_success_in_connection::record_audit_success_in_connection(
+        crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
+            &mut *tx,
+        ),
+        crate::admin_audit_success_ref::AdminAuditSuccessRef {
+            action: crate::admin_audit_action::AdminAuditAction::Update,
             login: &actor.login,
-            resource: crate::AdminAuditResource::Role,
-            resource_id: crate::persistence::AdminAuditResourceId::Role(path.0),
+            resource: crate::admin_audit_resource::AdminAuditResource::Role,
+            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::Role(path.0),
             user_id: actor.id,
         },
     )
     .await?;
-    tx.commit().await.map_err(crate::AdminError::from)?;
-    Ok(crate::AxumAdminResponse(
+    tx.commit()
+        .await
+        .map_err(crate::admin_error::AdminError::from)?;
+    Ok(crate::axum_admin_response::AxumAdminResponse(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

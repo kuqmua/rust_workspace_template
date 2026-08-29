@@ -1,11 +1,9 @@
-use super::domain_types::{QuoteChar, QuotePanicId, QuotePrefix, QuoteStyle};
-
 pub(crate) const fn build_quote_style(
-    panic_id: QuotePanicId,
-    prefix: QuotePrefix,
-    quote_ch: QuoteChar,
-) -> QuoteStyle {
-    QuoteStyle {
+    panic_id: crate::quote_panic_id::QuotePanicId,
+    prefix: crate::quote_prefix::QuotePrefix,
+    quote_ch: crate::quote_char::QuoteChar,
+) -> crate::quote_style::QuoteStyle {
+    crate::quote_style::QuoteStyle {
         panic_id,
         prefix,
         quote_ch,

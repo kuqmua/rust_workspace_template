@@ -4,20 +4,20 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct NotificationServiceState<Sender> {
-    pub(super) permits: crate::domain_types::ArcTokioSemaphore,
+    pub(super) permits: crate::arc_tokio_semaphore::ArcTokioSemaphore,
     pub(super) sender: Sender,
-    pub(super) token: super::NotificationApiToken,
+    pub(super) token: crate::notification_api_token::NotificationApiToken,
 }
 
 impl<Sender> NotificationServiceState<Sender> {
     #[must_use]
     pub fn new(
-        token: super::NotificationApiToken,
+        token: crate::notification_api_token::NotificationApiToken,
         sender: Sender,
-        maximum_concurrency: crate::domain_types::SemaphorePermitCountNonZeroUsize,
+        maximum_concurrency: crate::semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize,
     ) -> Self {
         Self {
-            permits: crate::domain_types::ArcTokioSemaphore::new(maximum_concurrency),
+            permits: crate::arc_tokio_semaphore::ArcTokioSemaphore::new(maximum_concurrency),
             sender,
             token,
         }

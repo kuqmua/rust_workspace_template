@@ -4,11 +4,11 @@
 pub struct RequestId(String);
 
 impl TryFrom<String> for RequestId {
-    type Error = super::RequestIdTryFromStringError;
+    type Error = crate::request_id_try_from_string_error::RequestIdTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > constants_usize::VALUE_128 || !value.is_ascii() {
-            Err(super::RequestIdTryFromStringError)
+            Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError)
         } else {
             Ok(Self(value))
         }
@@ -16,14 +16,15 @@ impl TryFrom<String> for RequestId {
 }
 
 impl TryFrom<&http::HeaderValue> for RequestId {
-    type Error = super::RequestIdTryFromHttpHeaderValueError;
+    type Error =
+        crate::request_id_try_from_http_header_value_error::RequestIdTryFromHttpHeaderValueError;
 
     fn try_from(value: &http::HeaderValue) -> Result<Self, Self::Error> {
         let value_text = value.to_str().map_err(|error| {
-            super::RequestIdTryFromHttpHeaderValueError::ToStr(super::HttpHeaderToStrError(error))
+            crate::request_id_try_from_http_header_value_error::RequestIdTryFromHttpHeaderValueError::ToStr(crate::http_header_to_str_error::HttpHeaderToStrError(error))
         })?;
         Self::try_from(value_text.to_owned())
-            .map_err(super::RequestIdTryFromHttpHeaderValueError::Invalid)
+            .map_err(crate::request_id_try_from_http_header_value_error::RequestIdTryFromHttpHeaderValueError::Invalid)
     }
 }
 

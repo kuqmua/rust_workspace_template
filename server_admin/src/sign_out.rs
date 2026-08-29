@@ -1,12 +1,14 @@
-#[frontend_contract::route_error(AdminHtmlSignOutError)]
+#[frontend_contract_macros::route_error(AdminHtmlSignOutError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
-pub(crate) async fn sign_out(auth: crate::AdminAuthReq) -> axum::response::Response {
+pub(crate) async fn sign_out(
+    auth: crate::admin_auth_req::AdminAuthReq,
+) -> axum::response::Response {
     match crate::form_auth_impl::form_auth_impl(auth) {
         Ok(auth) => match crate::authn_sign_out::authn_sign_out(auth).await {
             Ok(response) => {
                 let mut target =
                     axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-                        server_admin_contract::domain_types::AdminFrontendPath::SignIn.get(),
+                        server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn.get(),
                     ));
                 response
                     .0

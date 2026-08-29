@@ -1,8 +1,8 @@
 #[must_use]
 pub fn deduplicate_preserving_order_by_key<Value, Key, AccessKey>(
-    mut values: crate::domain_types::OrderPreservingValues<Value>,
+    mut values: crate::order_preserving_values::OrderPreservingValues<Value>,
     access_key: AccessKey,
-) -> crate::domain_types::OrderPreservingValues<Value>
+) -> crate::order_preserving_values::OrderPreservingValues<Value>
 where
     Key: Eq + std::hash::Hash,
     AccessKey: Fn(&Value) -> Key,
@@ -20,10 +20,12 @@ mod tests {
     fn deduplication_keeps_first_value_and_input_order() {
         let values = vec![(1u8, 10u8), (2u8, 20u8), (1u8, 30u8)];
         assert_eq!(
-            Vec::from(super::deduplicate_preserving_order_by_key(
-                values.into(),
-                |value| value.0
-            )),
+            Vec::from(
+                crate::deduplicate_preserving_order_by_key::deduplicate_preserving_order_by_key(
+                    values.into(),
+                    |value| value.0
+                )
+            ),
             vec![(1u8, 10u8), (2u8, 20u8)]
         );
     }

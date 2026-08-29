@@ -3,15 +3,12 @@
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 pub trait RouteRegistrationContract: Copy {
-    fn method(self) -> super::RouteMethod;
-    fn path(self) -> RegisteredRoutePath;
+    fn method(self) -> crate::route_method::RouteMethod;
+    fn path(self) -> crate::registered_route_path::RegisteredRoutePath;
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use super::axum_route_method_router::AxumRouteMethodRouter;
-pub use super::registered_route_path::RegisteredRoutePath;
 #[cfg(not(target_arch = "wasm32"))]
-pub use super::route_method_router::route_method_router;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -22,24 +19,28 @@ mod tests {
         }
 
         [
-            crate::RouteMethod::Connect,
-            crate::RouteMethod::Delete,
-            crate::RouteMethod::Get,
-            crate::RouteMethod::Head,
-            crate::RouteMethod::Options,
-            crate::RouteMethod::Patch,
-            crate::RouteMethod::Post,
-            crate::RouteMethod::Put,
-            crate::RouteMethod::Trace,
+            crate::route_method::RouteMethod::Connect,
+            crate::route_method::RouteMethod::Delete,
+            crate::route_method::RouteMethod::Get,
+            crate::route_method::RouteMethod::Head,
+            crate::route_method::RouteMethod::Options,
+            crate::route_method::RouteMethod::Patch,
+            crate::route_method::RouteMethod::Post,
+            crate::route_method::RouteMethod::Put,
+            crate::route_method::RouteMethod::Trace,
         ]
         .into_iter()
         .for_each(|method| {
-            let _router = super::route_method_router::<(), _, _>(method, endpoint);
+            let _router =
+                crate::route_method_router::route_method_router::<(), _, _>(method, endpoint);
         });
     }
 
     #[test]
     fn registered_route_path_preserves_the_static_path() {
-        assert_eq!(super::RegisteredRoutePath::from("/health").get(), "/health");
+        assert_eq!(
+            crate::registered_route_path::RegisteredRoutePath::from("/health").get(),
+            "/health"
+        );
     }
 }

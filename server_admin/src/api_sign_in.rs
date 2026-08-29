@@ -1,9 +1,10 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract::route_openapi(delegate = crate::authn_sign_in::authn_sign_in, tag = "admin_auth")]
+#[frontend_contract_macros::route_openapi(delegate = crate::authn_sign_in::authn_sign_in, tag = "admin_auth")]
 pub(crate) async fn api_sign_in(
-    auth: crate::AdminAuthReq,
-    peer: crate::AdminPeerAddr,
-    request_json: crate::AdminSignInJson,
-) -> Result<crate::AxumAdminResponse, crate::AdminSignInError> {
+    auth: crate::admin_auth_req::AdminAuthReq,
+    peer: crate::admin_peer_addr::AdminPeerAddr,
+    request_json: crate::admin_sign_in_json::AdminSignInJson,
+) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::application_auth::AdminSignInError>
+{
 }

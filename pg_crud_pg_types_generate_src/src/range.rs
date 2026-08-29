@@ -1,5 +1,3 @@
-use super::*;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -10,37 +8,37 @@ pub(super) enum Range {
     SqlxTypesChronoNaiveDateTimeAsTimestamp,
     SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
 }
-impl TryFrom<&PgType> for Range {
+impl TryFrom<&crate::pg_type::PgType> for Range {
     type Error = ();
-    fn try_from(v: &PgType) -> Result<Self, Self::Error> {
+    fn try_from(v: &crate::pg_type::PgType) -> Result<Self, Self::Error> {
         match &v {
-                PgType::I16AsInt2
-                | PgType::I32AsInt4
-                | PgType::I64AsInt8
-                | PgType::F32AsFloat4
-                | PgType::F64AsFloat8
-                | PgType::I16AsSmallSerialInitializationByPg
-                | PgType::I32AsSerialInitializationByPg
-                | PgType::I64AsBigSerialInitializationByPg
-                | PgType::SqlxPgTypesPgMoneyAsMoney
-                | PgType::BoolAsBool
-                | PgType::StringAsText
-                | PgType::StdVecVecU8AsBytea
-                | PgType::SqlxTypesChronoNaiveTimeAsTime
-                | PgType::SqlxTypesTimeTimeAsTime
-                | PgType::SqlxPgTypesPgIntervalAsInterval
-                | PgType::SqlxTypesChronoNaiveDateAsDate
-                | PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                | PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
-                | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
-                | PgType::SqlxTypesIpnetworkIpNetworkAsInet
-                | PgType::SqlxTypesMacAddressMacAddressAsMacAddr => Err(()),
-                PgType::SqlxPgTypesPgRangeI32AsInt4Range => Ok(Self::I32AsInt4),
-                PgType::SqlxPgTypesPgRangeI64AsInt8Range => Ok(Self::I64AsInt8),
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => Ok(Self::SqlxTypesChronoNaiveDateAsDate),
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Ok(Self::SqlxTypesChronoNaiveDateTimeAsTimestamp),
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Ok(Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz),
+                crate::pg_type::PgType::I16AsInt2
+                | crate::pg_type::PgType::I32AsInt4
+                | crate::pg_type::PgType::I64AsInt8
+                | crate::pg_type::PgType::F32AsFloat4
+                | crate::pg_type::PgType::F64AsFloat8
+                | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
+                | crate::pg_type::PgType::I32AsSerialInitializationByPg
+                | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
+                | crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
+                | crate::pg_type::PgType::BoolAsBool
+                | crate::pg_type::PgType::StringAsText
+                | crate::pg_type::PgType::StdVecVecU8AsBytea
+                | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
+                | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime
+                | crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval
+                | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate
+                | crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
+                | crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
+                | crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet
+                | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => Err(()),
+                crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => Ok(Self::I32AsInt4),
+                crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => Ok(Self::I64AsInt8),
+                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => Ok(Self::SqlxTypesChronoNaiveDateAsDate),
+                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Ok(Self::SqlxTypesChronoNaiveDateTimeAsTimestamp),
+                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Ok(Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz),
             }
     }
 }
@@ -49,8 +47,8 @@ impl std::fmt::Display for Range {
         write!(
             f,
             "{}",
-            naming::domain_types::parameter::SelfNonNullUpperCamelCase::from_display(
-                &PgType::from(self)
+            naming::parameter::SelfNonNullUpperCamelCase::from_display(
+                &crate::pg_type::PgType::from(self)
             )
         )
     }

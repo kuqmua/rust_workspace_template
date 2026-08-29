@@ -1,11 +1,9 @@
-use super::{TestExpId, TestPanicText};
-
 #[track_caller]
 pub(super) fn panic_unexpected_result(
-    error_id: impl Into<TestPanicText>,
-    fn_name: impl Into<TestPanicText>,
-    expected: impl Into<TestPanicText>,
-    exp_id: impl Into<TestExpId>,
+    error_id: impl Into<crate::test_panic_text::TestPanicText>,
+    fn_name: impl Into<crate::test_panic_text::TestPanicText>,
+    expected: impl Into<crate::test_panic_text::TestPanicText>,
+    exp_id: impl Into<crate::test_exp_id::TestExpId>,
 ) -> ! {
     let error_id = error_id.into();
     let fn_name = fn_name.into();

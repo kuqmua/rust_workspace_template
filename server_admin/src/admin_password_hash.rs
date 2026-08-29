@@ -5,4 +5,6 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, newtype::DebugRedacted, newtype::FromInner,
 )]
-pub struct AdminPasswordHash(pub(crate) pg_types_text_misc::StringAsNonNullTextSecret);
+pub struct AdminPasswordHash(
+    pub(crate) pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret,
+);

@@ -7,13 +7,19 @@
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub struct ActionContracts(bounded_types::BoundedVec<super::ActionContract, 0, { usize::MAX }>);
+pub struct ActionContracts(
+    bounded_types::bounded_vec::BoundedVec<
+        crate::action_contract::ActionContract,
+        0,
+        { usize::MAX },
+    >,
+);
 
-impl TryFrom<Vec<super::ActionContract>> for ActionContracts {
-    type Error = bounded_types::BoundedValueError;
+impl TryFrom<Vec<crate::action_contract::ActionContract>> for ActionContracts {
+    type Error = bounded_types::bounded_value_error::BoundedValueError;
 
-    fn try_from(value: Vec<super::ActionContract>) -> Result<Self, Self::Error> {
-        bounded_types::BoundedVec::try_from_collection_vec(value).map(Self::from)
+    fn try_from(value: Vec<crate::action_contract::ActionContract>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
     }
 }
 
@@ -21,8 +27,10 @@ impl ActionContracts {
     #[must_use]
     pub fn from_max_iter<Values>(values: Values) -> Self
     where
-        Values: IntoIterator<Item = super::ActionContract>,
+        Values: IntoIterator<Item = crate::action_contract::ActionContract>,
     {
-        Self::from(bounded_types::BoundedVec::from_max_iter(values))
+        Self::from(bounded_types::bounded_vec::BoundedVec::from_max_iter(
+            values,
+        ))
     }
 }

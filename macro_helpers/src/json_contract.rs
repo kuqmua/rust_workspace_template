@@ -1,7 +1,3 @@
-pub use super::contract_error::ContractError;
-pub use super::ensure_json_contract_round_trip::ensure_json_contract_round_trip;
-pub use super::json_fixture_ref::JsonFixtureRef;
-pub use super::serde_json_error::SerdeJsonError;
 #[cfg(test)]
 mod tests {
     #[derive(
@@ -28,7 +24,7 @@ mod tests {
             Serializer: serde::Serializer,
         {
             Err(serde::ser::Error::custom(
-                constants_str::INTENTIONAL_SERIALIZATION_FAILURE,
+                constants_str::catalog::INTENTIONAL_SERIALIZATION_FAILURE,
             ))
         }
     }
@@ -57,38 +53,44 @@ mod tests {
                 Ok(Self)
             } else {
                 Err(serde::de::Error::custom(
-                    constants_str::ONLY_FIXTURE_VALUE_ONE_IS_ACCEPTED,
+                    constants_str::catalog::ONLY_FIXTURE_VALUE_ONE_IS_ACCEPTED,
                 ))
             }
         }
     }
     #[test]
     fn round_trip_and_fixture_error_phases_are_stable() {
-        super::ensure_json_contract_round_trip::<TestValue>(super::JsonFixtureRef::from(
-            constants_str::VALUE_1_ALT,
-        ))
+        crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<TestValue>(
+            crate::json_fixture_ref::JsonFixtureRef::from(
+                constants_str::integration_fixtures::VALUE_1_ALT,
+            ),
+        )
         .expect("7557a4b4 round_trip_and_fixture_error_phases_are_stable invariant must hold");
         assert!(matches!(
-            super::ensure_json_contract_round_trip::<TestValue>(super::JsonFixtureRef::from("{")),
-            Err(super::ContractError::DeserializeFixture(_))
+            crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<TestValue>(
+                crate::json_fixture_ref::JsonFixtureRef::from("{")
+            ),
+            Err(crate::contract_error::ContractError::DeserializeFixture(_))
         ));
     }
     #[test]
     fn serialization_error_phase_is_stable() {
         assert!(matches!(
-            super::ensure_json_contract_round_trip::<SerializeFails>(super::JsonFixtureRef::from(
-                "null"
-            )),
-            Err(super::ContractError::Serialize(_))
+            crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<SerializeFails>(
+                crate::json_fixture_ref::JsonFixtureRef::from("null")
+            ),
+            Err(crate::contract_error::ContractError::Serialize(_))
         ));
     }
     #[test]
     fn round_trip_deserialization_error_phase_is_stable() {
         assert!(matches!(
-            super::ensure_json_contract_round_trip::<ReparseFails>(super::JsonFixtureRef::from(
-                "1"
-            )),
-            Err(super::ContractError::DeserializeRoundTrip(_))
+            crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<ReparseFails>(
+                crate::json_fixture_ref::JsonFixtureRef::from("1")
+            ),
+            Err(crate::contract_error::ContractError::DeserializeRoundTrip(
+                _
+            ))
         ));
     }
 }

@@ -5,8 +5,8 @@
     Debug,
     PartialEq,
     Eq,
-    frontend_contract::UnitEnumCatalog,
-    frontend_contract::UnitEnumIndex,
+    frontend_contract_macros::UnitEnumCatalog,
+    frontend_contract_macros::UnitEnumIndex,
 )]
 pub enum AdminSetting {
     DefaultRoute,
@@ -21,67 +21,73 @@ pub enum AdminSetting {
 
 impl AdminSetting {
     #[must_use]
-    pub fn spec(self) -> super::AdminSettingSpec {
+    pub fn spec(self) -> crate::admin_setting_spec::AdminSettingSpec {
         let (input_kind, label, name, optionality) = match self {
             Self::DefaultRoute => (
-                super::AdminSettingInputKind::Text,
-                constants_str::VALUE_64B5E1B6,
-                constants_str::VALUE_ACD40F02,
-                super::AdminSettingOptionality::Required,
+                crate::admin_setting_input_kind::AdminSettingInputKind::Text,
+                constants_str::test_fixtures::VALUE_64B5E1B6,
+                constants_str::test_fixtures::VALUE_ACD40F02,
+                crate::admin_setting_optionality::AdminSettingOptionality::Required,
             ),
             Self::SiteName => (
-                super::AdminSettingInputKind::Text,
-                constants_str::VALUE_E98AF105,
-                constants_str::VALUE_7C6A6719,
-                super::AdminSettingOptionality::Required,
+                crate::admin_setting_input_kind::AdminSettingInputKind::Text,
+                constants_str::test_fixtures::VALUE_E98AF105,
+                constants_str::test_fixtures::VALUE_7C6A6719,
+                crate::admin_setting_optionality::AdminSettingOptionality::Required,
             ),
             Self::TabTitle => (
-                super::AdminSettingInputKind::Text,
-                constants_str::VALUE_9A74868F,
-                constants_str::VALUE_FD69A71C,
-                super::AdminSettingOptionality::Clearable(super::AdminOptionalSetting::TabTitle),
+                crate::admin_setting_input_kind::AdminSettingInputKind::Text,
+                constants_str::test_fixtures::VALUE_9A74868F,
+                constants_str::test_fixtures::VALUE_FD69A71C,
+                crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
+                    crate::admin_optional_setting::AdminOptionalSetting::TabTitle,
+                ),
             ),
             Self::OrganizationName => (
-                super::AdminSettingInputKind::Text,
-                constants_str::VALUE_D764D425,
-                constants_str::VALUE_C41F289C,
-                super::AdminSettingOptionality::Clearable(
-                    super::AdminOptionalSetting::OrganizationName,
+                crate::admin_setting_input_kind::AdminSettingInputKind::Text,
+                constants_str::test_fixtures::VALUE_D764D425,
+                constants_str::test_fixtures::VALUE_C41F289C,
+                crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
+                    crate::admin_optional_setting::AdminOptionalSetting::OrganizationName,
                 ),
             ),
             Self::OrganizationContacts => (
-                super::AdminSettingInputKind::TextArea,
-                constants_str::VALUE_34CD6225,
-                constants_str::VALUE_C33009C5,
-                super::AdminSettingOptionality::Clearable(
-                    super::AdminOptionalSetting::OrganizationContacts,
+                crate::admin_setting_input_kind::AdminSettingInputKind::TextArea,
+                constants_str::test_fixtures::VALUE_34CD6225,
+                constants_str::test_fixtures::VALUE_C33009C5,
+                crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
+                    crate::admin_optional_setting::AdminOptionalSetting::OrganizationContacts,
                 ),
             ),
             Self::SupportUrl => (
-                super::AdminSettingInputKind::Url,
-                constants_str::VALUE_6CCA2FBA,
-                constants_str::VALUE_9B284285,
-                super::AdminSettingOptionality::Clearable(super::AdminOptionalSetting::SupportUrl),
+                crate::admin_setting_input_kind::AdminSettingInputKind::Url,
+                constants_str::test_fixtures::VALUE_6CCA2FBA,
+                constants_str::test_fixtures::VALUE_9B284285,
+                crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
+                    crate::admin_optional_setting::AdminOptionalSetting::SupportUrl,
+                ),
             ),
             Self::PrimaryColor => (
-                super::AdminSettingInputKind::Text,
-                constants_str::VALUE_2B03958C,
-                constants_str::VALUE_EAFDE0B2,
-                super::AdminSettingOptionality::Clearable(
-                    super::AdminOptionalSetting::PrimaryColor,
+                crate::admin_setting_input_kind::AdminSettingInputKind::Text,
+                constants_str::test_fixtures::VALUE_2B03958C,
+                constants_str::test_fixtures::VALUE_EAFDE0B2,
+                crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
+                    crate::admin_optional_setting::AdminOptionalSetting::PrimaryColor,
                 ),
             ),
             Self::MainLogo => (
-                super::AdminSettingInputKind::Url,
-                constants_str::VALUE_4AE21E86,
-                constants_str::VALUE_304B098A,
-                super::AdminSettingOptionality::Clearable(super::AdminOptionalSetting::MainLogo),
+                crate::admin_setting_input_kind::AdminSettingInputKind::Url,
+                constants_str::test_fixtures::VALUE_4AE21E86,
+                constants_str::test_fixtures::VALUE_304B098A,
+                crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
+                    crate::admin_optional_setting::AdminOptionalSetting::MainLogo,
+                ),
             ),
         };
-        super::AdminSettingSpec {
+        crate::admin_setting_spec::AdminSettingSpec {
             input_kind,
-            label: super::AdminSettingLabel::from(label),
-            name: super::AdminSettingName::from(name),
+            label: crate::admin_setting_label::AdminSettingLabel::from(label),
+            name: crate::admin_setting_name::AdminSettingName::from(name),
             optionality,
         }
     }

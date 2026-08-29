@@ -6,7 +6,7 @@
 pub struct UtoipaOpenApiRefMut<'value_lt>(pub(super) &'value_lt mut utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaOpenApiRefMut<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::UTOIPAOPENAPIREFMUT)
+        f.debug_struct(constants_str::catalog::UTOIPAOPENAPIREFMUT)
             .finish_non_exhaustive()
     }
 }

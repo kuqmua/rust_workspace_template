@@ -6,15 +6,15 @@
 pub(super) struct HttpOriginAuthorityText(pub(super) String);
 
 impl TryFrom<String> for HttpOriginAuthorityText {
-    type Error = super::AllowedOriginError;
+    type Error = crate::allowed_origin_error::AllowedOriginError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > 512usize || value.contains('@') {
-            return Err(super::AllowedOriginError);
+            return Err(crate::allowed_origin_error::AllowedOriginError);
         }
         let authority = match http::uri::Authority::try_from(value) {
             Ok(authority) => authority,
-            Err(_error) => return Err(super::AllowedOriginError),
+            Err(_error) => return Err(crate::allowed_origin_error::AllowedOriginError),
         };
         let port = if authority.as_str().starts_with('[') {
             authority
@@ -34,7 +34,7 @@ impl TryFrom<String> for HttpOriginAuthorityText {
                 .map(|(_host, port)| port)
         };
         if port.is_some_and(|port_text| port_text.parse::<u16>().is_err()) {
-            return Err(super::AllowedOriginError);
+            return Err(crate::allowed_origin_error::AllowedOriginError);
         }
         Ok(Self(authority.as_str().to_owned()))
     }

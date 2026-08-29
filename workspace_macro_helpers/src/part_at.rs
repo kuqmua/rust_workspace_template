@@ -1,12 +1,13 @@
-use super::domain_types::{PartIndex, ProcMacro2MacroTokens, ProcMacro2TopLevelCommaParts};
-
 #[must_use]
-pub fn part_at<I>(parts: &ProcMacro2TopLevelCommaParts, idx: I) -> Option<ProcMacro2MacroTokens>
+pub fn part_at<I>(
+    parts: &crate::proc_macro2_top_level_comma_parts::ProcMacro2TopLevelCommaParts,
+    idx: I,
+) -> Option<crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens>
 where
-    I: Into<PartIndex>,
+    I: Into<crate::part_index::PartIndex>,
 {
     parts
         .get(idx.into().0)
         .cloned()
-        .map(ProcMacro2MacroTokens::from)
+        .map(crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from)
 }

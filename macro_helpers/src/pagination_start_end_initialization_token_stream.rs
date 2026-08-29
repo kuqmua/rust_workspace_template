@@ -1,7 +1,6 @@
 pub fn pagination_start_end_initialization_token_stream(
     v: &dyn quote::ToTokens,
-) -> crate::domain_types::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
-{
+) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         let start = #v.pagination.start();
         let end = #v.pagination.end();
@@ -14,7 +13,7 @@ mod tests {
     #[test]
     fn generated_pagination_initialization_preserves_receiver() {
         let actual =
-            super::pagination_start_end_initialization_token_stream(&quote::quote!(parameters));
+            crate::pagination_start_end_initialization_token_stream::pagination_start_end_initialization_token_stream(&quote::quote!(parameters));
         let expected = quote::quote! {
             let start = parameters.pagination.start();
             let end = parameters.pagination.end();

@@ -11,28 +11,28 @@
 use leptos::prelude::{ElementChild};
 
 pub(super) fn admin_profile_account(
-    admin: &server_admin_contract::domain_types::AuthenticatedAdmin,
+    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
 ) -> impl leptos::prelude::IntoView + use<> {
     let login = admin.login().to_string();
     let display_name = admin.display_name().to_string();
-    let roles = String::from(crate::domain_types::shared::text::join_text(
+    let roles = String::from(crate::join_text::join_text(
         admin.roles().iter().map(|name| name.as_ref().as_str()),
     ));
-    let permissions = String::from(crate::domain_types::shared::text::join_text(
+    let permissions = String::from(crate::join_text::join_text(
         admin
             .permissions()
             .iter()
             .map(|permission| permission.as_ref().as_str()),
     ));
     leptos::view! {
-        <crate::domain_types::with_owner::card::AdminCard variant=crate::domain_types::with_owner::card::AdminCardVariant::Profile>
-            <crate::domain_types::with_owner::card::AdminCardHeader><crate::domain_types::with_owner::card::AdminCardTitle class="profile-card-title">"Account"</crate::domain_types::with_owner::card::AdminCardTitle></crate::domain_types::with_owner::card::AdminCardHeader>
+        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Profile>
+            <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle class="profile-card-title">"Account"</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
             <dl>
                 <dt>"Login"</dt><dd>{login}</dd>
                 <dt>"Display name"</dt><dd>{display_name}</dd>
                 <dt>"Roles"</dt><dd>{roles}</dd>
                 <dt>"Permissions"</dt><dd>{permissions}</dd>
             </dl>
-        </crate::domain_types::with_owner::card::AdminCard>
+        </crate::admin_card::AdminCard>
     }
 }

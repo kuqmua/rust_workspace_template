@@ -1,9 +1,7 @@
-use super::{RouteMetadata, TypedRoute};
-
 #[must_use]
-pub fn client_route_metadata<Route>() -> RouteMetadata
+pub fn client_route_metadata<Route>() -> crate::route_metadata::RouteMetadata
 where
-    Route: TypedRoute,
+    Route: crate::typed_route::TypedRoute,
 {
     Route::metadata()
 }

@@ -8,6 +8,6 @@
 pub struct UtoipaAdminAuthOpenApi(pub(crate) utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::UTOIPAADMINAUTHOPENAPI)
+        f.write_str(constants_str::catalog::UTOIPAADMINAUTHOPENAPI)
     }
 }

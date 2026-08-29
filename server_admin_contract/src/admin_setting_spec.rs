@@ -4,34 +4,34 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AdminSettingSpec {
-    pub(super) label: super::AdminSettingLabel,
-    pub(super) name: super::AdminSettingName,
-    pub(super) input_kind: super::AdminSettingInputKind,
-    pub(super) optionality: super::AdminSettingOptionality,
+    pub(super) label: crate::admin_setting_label::AdminSettingLabel,
+    pub(super) name: crate::admin_setting_name::AdminSettingName,
+    pub(super) input_kind: crate::admin_setting_input_kind::AdminSettingInputKind,
+    pub(super) optionality: crate::admin_setting_optionality::AdminSettingOptionality,
 }
 
 impl AdminSettingSpec {
     #[must_use]
-    pub const fn input_kind(self) -> super::AdminSettingInputKind {
+    pub const fn input_kind(self) -> crate::admin_setting_input_kind::AdminSettingInputKind {
         self.input_kind
     }
     #[must_use]
-    pub const fn label(self) -> super::AdminSettingLabel {
+    pub const fn label(self) -> crate::admin_setting_label::AdminSettingLabel {
         self.label
     }
     #[must_use]
-    pub const fn name(self) -> super::AdminSettingName {
+    pub const fn name(self) -> crate::admin_setting_name::AdminSettingName {
         self.name
     }
     #[must_use]
-    pub const fn optionality(self) -> super::AdminSettingOptionality {
+    pub const fn optionality(self) -> crate::admin_setting_optionality::AdminSettingOptionality {
         self.optionality
     }
     #[must_use]
-    pub fn required(self) -> crate::AdminBool {
-        crate::AdminBool::from(matches!(
+    pub fn required(self) -> crate::admin_bool::AdminBool {
+        crate::admin_bool::AdminBool::from(matches!(
             self.optionality,
-            super::AdminSettingOptionality::Required
+            crate::admin_setting_optionality::AdminSettingOptionality::Required
         ))
     }
 }

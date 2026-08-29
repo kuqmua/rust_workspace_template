@@ -11,6 +11,6 @@
 #[error("operation count exceeds the deterministic budget")]
 #[constructor(pub(super))]
 pub struct OperationBudgetExceeded {
-    actual: crate::domain_types::OperationCount,
-    budget: crate::domain_types::OperationBudget,
+    actual: crate::operation_count::OperationCount,
+    budget: crate::operation_budget::OperationBudget,
 }

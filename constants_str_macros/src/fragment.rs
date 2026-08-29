@@ -4,6 +4,6 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct Fragment {
-    pub(super) name: super::SynIdent,
-    pub(super) value: super::SynLitStr,
+    pub(super) name: crate::syn_ident::SynIdent,
+    pub(super) value: crate::syn_lit_str::SynLitStr,
 }

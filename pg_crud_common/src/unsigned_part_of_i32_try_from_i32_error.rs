@@ -12,8 +12,8 @@
 )]
 pub enum UnsignedPartOfI32TryFromI32Error {
     LessThanZero {
-        location: location_lib::domain_types::Location,
+        location: location_lib::location::Location,
         #[eo_to_err_string_serde]
-        v: crate::domain_types::UnsignedPartOfI32Raw,
+        v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw,
     },
 }

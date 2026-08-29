@@ -12,4 +12,4 @@
     newtype::AsRefTarget,
     newtype::FromInner,
 )]
-pub(super) struct MultipartTextParts(pub(super) Vec<super::MultipartTextPart>);
+pub(super) struct MultipartTextParts(pub(super) Vec<crate::multipart_text_part::MultipartTextPart>);

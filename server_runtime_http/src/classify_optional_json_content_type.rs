@@ -1,19 +1,18 @@
 #[must_use]
 pub fn classify_optional_json_content_type(
-    value: super::HttpContentTypeTextRef<'_>,
-) -> super::OptionalJsonContentType {
+    value: crate::http_content_type_text_ref::HttpContentTypeTextRef<'_>,
+) -> crate::optional_json_content_type::OptionalJsonContentType {
     let Some(text) = value.0.map(str::trim).filter(|text| !text.is_empty()) else {
-        return super::OptionalJsonContentType::Missing;
+        return crate::optional_json_content_type::OptionalJsonContentType::Missing;
     };
     if text.len() > constants_usize::VALUE_4_096 {
-        return super::OptionalJsonContentType::NonJson;
+        return crate::optional_json_content_type::OptionalJsonContentType::NonJson;
     }
-    if text
-        .parse::<mime::Mime>()
-        .is_ok_and(|media_type| media_type.essence_str() == constants_str::APPLICATION_JSON)
-    {
-        super::OptionalJsonContentType::ApplicationJson
+    if text.parse::<mime::Mime>().is_ok_and(|media_type| {
+        media_type.essence_str() == constants_str::catalog::APPLICATION_JSON
+    }) {
+        crate::optional_json_content_type::OptionalJsonContentType::ApplicationJson
     } else {
-        super::OptionalJsonContentType::NonJson
+        crate::optional_json_content_type::OptionalJsonContentType::NonJson
     }
 }

@@ -10,14 +10,14 @@
 )]
 pub struct AdminPasswordHashConcurrency(std::num::NonZeroUsize);
 
-impl crate::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
-    type Error = super::TryFromStdEnvVarOkAdminPasswordHashConcurrencyError;
+impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
+    type Error = crate::try_from_std_env_var_ok_admin_password_hash_concurrency_error::TryFromStdEnvVarOkAdminPasswordHashConcurrencyError;
 
-    fn try_from_std_env_var_ok(v: crate::StdEnvVarOk) -> Result<Self, Self::Error> {
+    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         let parsed =
             v.0.parse::<usize>()
                 .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
-                    admin_positive_usize_parsing: crate::ParseIntError::from(
+                    admin_positive_usize_parsing: crate::parse_int_error::ParseIntError::from(
                         admin_positive_usize_parsing,
                     ),
                 })?;

@@ -7,11 +7,17 @@ pub enum SuccessStatus {
 
 impl SuccessStatus {
     #[must_use]
-    pub fn transport_status(self) -> crate::TransportStatus {
+    pub fn transport_status(self) -> crate::transport_status::TransportStatus {
         match self {
-            Self::Code200 => crate::TransportStatus::from(crate::KnownHttpStatus::Ok),
-            Self::Code201 => crate::TransportStatus::from(crate::KnownHttpStatus::Created),
-            Self::Code204 => crate::TransportStatus::from(crate::KnownHttpStatus::NoContent),
+            Self::Code200 => crate::transport_status::TransportStatus::from(
+                crate::known_http_status::KnownHttpStatus::Ok,
+            ),
+            Self::Code201 => crate::transport_status::TransportStatus::from(
+                crate::known_http_status::KnownHttpStatus::Created,
+            ),
+            Self::Code204 => crate::transport_status::TransportStatus::from(
+                crate::known_http_status::KnownHttpStatus::NoContent,
+            ),
         }
     }
 }

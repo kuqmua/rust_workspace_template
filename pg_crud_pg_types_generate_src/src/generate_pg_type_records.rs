@@ -2,7 +2,6 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
-use super::*;
 
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
@@ -11,15 +10,15 @@ use super::*;
     newtype::IntoInnerFrom,
     serde::Deserialize,
 )]
-#[serde(try_from = "Vec<PgTypeRecord>")]
-pub(super) struct GeneratePgTypeRecords(pub(super) Vec<PgTypeRecord>);
+#[serde(try_from = "Vec<crate::pg_type_record::PgTypeRecord>")]
+pub(super) struct GeneratePgTypeRecords(pub(super) Vec<crate::pg_type_record::PgTypeRecord>);
 
-impl TryFrom<Vec<PgTypeRecord>> for GeneratePgTypeRecords {
-    type Error = generate_pg_types_length_error::GeneratePgTypesLengthError;
+impl TryFrom<Vec<crate::pg_type_record::PgTypeRecord>> for GeneratePgTypeRecords {
+    type Error = crate::generate_pg_types_length_error::GeneratePgTypesLengthError;
 
-    fn try_from(value: Vec<PgTypeRecord>) -> Result<Self, Self::Error> {
-        if value.len() > GENERATE_PG_TYPES_MAX_LEN {
-            Err(generate_pg_types_length_error::GeneratePgTypesLengthError)
+    fn try_from(value: Vec<crate::pg_type_record::PgTypeRecord>) -> Result<Self, Self::Error> {
+        if value.len() > crate::generate_pg_types_max_len::GENERATE_PG_TYPES_MAX_LEN {
+            Err(crate::generate_pg_types_length_error::GeneratePgTypesLengthError)
         } else {
             Ok(Self(value))
         }

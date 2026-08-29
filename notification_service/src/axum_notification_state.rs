@@ -1,15 +1,17 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub(crate) struct AxumNotificationState(super::NotificationState);
+pub(crate) struct AxumNotificationState(crate::notification_state::NotificationState);
 impl AxumNotificationState {
-    pub(crate) const fn get(&self) -> &super::NotificationState {
+    pub(crate) const fn get(&self) -> &crate::notification_state::NotificationState {
         &self.0
     }
 }
-impl axum::extract::FromRequestParts<super::NotificationState> for AxumNotificationState {
-    type Rejection = super::HttpNotificationStatusCode;
+impl axum::extract::FromRequestParts<crate::notification_state::NotificationState>
+    for AxumNotificationState
+{
+    type Rejection = crate::http_notification_status_code::HttpNotificationStatusCode;
     fn from_request_parts(
         _parts: &mut http::request::Parts,
-        state: &super::NotificationState,
+        state: &crate::notification_state::NotificationState,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(Ok(Self::from(state.clone())))
     }

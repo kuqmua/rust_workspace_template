@@ -1,28 +1,31 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct MultipartBytesPart {
-    bytes: super::MultipartBytes,
-    file_name: Option<super::MultipartFileName>,
-    name: super::MultipartFieldName,
+    bytes: crate::multipart_bytes::MultipartBytes,
+    file_name: Option<crate::multipart_file_name::MultipartFileName>,
+    name: crate::multipart_field_name::MultipartFieldName,
 }
 
 impl MultipartBytesPart {
     #[must_use]
-    pub const fn bytes(&self) -> &super::MultipartBytes {
+    pub const fn bytes(&self) -> &crate::multipart_bytes::MultipartBytes {
         &self.bytes
     }
 
     #[must_use]
-    pub const fn file_name(&self) -> Option<&super::MultipartFileName> {
+    pub const fn file_name(&self) -> Option<&crate::multipart_file_name::MultipartFileName> {
         self.file_name.as_ref()
     }
 
     #[must_use]
-    pub const fn name(&self) -> &super::MultipartFieldName {
+    pub const fn name(&self) -> &crate::multipart_field_name::MultipartFieldName {
         &self.name
     }
 
     #[must_use]
-    pub const fn new(name: super::MultipartFieldName, bytes: super::MultipartBytes) -> Self {
+    pub const fn new(
+        name: crate::multipart_field_name::MultipartFieldName,
+        bytes: crate::multipart_bytes::MultipartBytes,
+    ) -> Self {
         Self {
             bytes,
             file_name: None,
@@ -31,7 +34,10 @@ impl MultipartBytesPart {
     }
 
     #[must_use]
-    pub fn with_file_name(mut self, file_name: super::MultipartFileName) -> Self {
+    pub fn with_file_name(
+        mut self,
+        file_name: crate::multipart_file_name::MultipartFileName,
+    ) -> Self {
         self.file_name = Some(file_name);
         self
     }

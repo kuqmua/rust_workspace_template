@@ -26,6 +26,7 @@ bounded_types = { workspace = true }
 config_lib = { workspace = true }
 futures = { workspace = true }
 frontend_contract = { workspace = true }
+frontend_contract_macros = { workspace = true }
 generate_accessor = { workspace = true }
 generate_pg_table = { workspace = true }
 git_info = { workspace = true }
@@ -50,7 +51,9 @@ serde_json = { workspace = true }
 server_admin_contract = { workspace = true }
 server_admin_core = { workspace = true }
 server_admin_frontend = { workspace = true }
+server_observability = { workspace = true }
 server_runtime_http = { workspace = true }
+server_runtime_core = { workspace = true }
 sha2 = { workspace = true }
 sqlx = { workspace = true, features = ["macros"] }
 constants_str = { workspace = true }

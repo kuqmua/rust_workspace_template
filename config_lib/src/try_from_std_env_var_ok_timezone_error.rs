@@ -1,11 +1,11 @@
-use super::{ChronoFixedOffsetError, I32ParseIntError};
-
 #[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
 pub enum TryFromStdEnvVarOkTimezoneError {
     #[error("{chrono_fixed_offset:?}")]
     ChronoFixedOffset {
-        chrono_fixed_offset: ChronoFixedOffsetError,
+        chrono_fixed_offset: crate::chrono_fixed_offset_error::ChronoFixedOffsetError,
     },
     #[error("{i32_parsing:?}")]
-    I32Parsing { i32_parsing: I32ParseIntError },
+    I32Parsing {
+        i32_parsing: crate::i32_parse_int_error::I32ParseIntError,
+    },
 }

@@ -10,4 +10,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct DbDefaultSpecs(Vec<super::DbDefaultSpec>);
+pub struct DbDefaultSpecs(Vec<crate::db_default_spec::DbDefaultSpec>);

@@ -10,14 +10,14 @@
 pub struct UnitIntervalF64(f64);
 
 impl TryFrom<f64> for UnitIntervalF64 {
-    type Error = crate::domain_types::UnitIntervalF64Error;
+    type Error = crate::unit_interval_f64_error::UnitIntervalF64Error;
 
     fn try_from(value: f64) -> Result<Self, Self::Error> {
         if !value.is_finite() {
-            return Err(crate::domain_types::UnitIntervalF64Error::NotFinite);
+            return Err(crate::unit_interval_f64_error::UnitIntervalF64Error::NotFinite);
         }
         if !(0.0f64..=1.0f64).contains(&value) {
-            return Err(crate::domain_types::UnitIntervalF64Error::OutOfRange);
+            return Err(crate::unit_interval_f64_error::UnitIntervalF64Error::OutOfRange);
         }
         Ok(Self(value))
     }
@@ -27,18 +27,16 @@ impl TryFrom<f64> for UnitIntervalF64 {
 mod tests {
     #[test]
     fn unit_interval_includes_both_boundaries() {
-        assert!(
-            [0.0f64, 0.5f64, 1.0f64].into_iter().all(|value| {
-                super::UnitIntervalF64::try_from(value).map(f64::from) == Ok(value)
-            })
+        assert!([0.0f64, 0.5f64, 1.0f64].into_iter().all(|value| {
+            crate::unit_interval_f64::UnitIntervalF64::try_from(value).map(f64::from) == Ok(value)
+        }));
+        assert_eq!(
+            crate::unit_interval_f64::UnitIntervalF64::try_from(1.1f64),
+            Err(crate::unit_interval_f64_error::UnitIntervalF64Error::OutOfRange)
         );
         assert_eq!(
-            super::UnitIntervalF64::try_from(1.1f64),
-            Err(crate::domain_types::UnitIntervalF64Error::OutOfRange)
-        );
-        assert_eq!(
-            super::UnitIntervalF64::try_from(f64::INFINITY),
-            Err(crate::domain_types::UnitIntervalF64Error::NotFinite)
+            crate::unit_interval_f64::UnitIntervalF64::try_from(f64::INFINITY),
+            Err(crate::unit_interval_f64_error::UnitIntervalF64Error::NotFinite)
         );
     }
 }

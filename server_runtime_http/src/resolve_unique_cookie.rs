@@ -1,20 +1,20 @@
 #[must_use]
 pub fn resolve_unique_cookie<'value_lt>(
-    headers: super::HttpCookieHeadersRef<'value_lt>,
-    name: super::HttpCookieNameRef<'_>,
-) -> super::CookieResolution<'value_lt> {
+    headers: crate::http_cookie_headers_ref::HttpCookieHeadersRef<'value_lt>,
+    name: crate::http_cookie_name_ref::HttpCookieNameRef<'_>,
+) -> crate::cookie_resolution::CookieResolution<'value_lt> {
     let mut header_values = headers.0.get_all(http::header::COOKIE).iter();
     let Some(header) = header_values.next() else {
-        return super::CookieResolution::Missing;
+        return crate::cookie_resolution::CookieResolution::Missing;
     };
     if header_values.next().is_some() {
-        return super::CookieResolution::Invalid;
+        return crate::cookie_resolution::CookieResolution::Invalid;
     }
     let Ok(text) = header.to_str() else {
-        return super::CookieResolution::Invalid;
+        return crate::cookie_resolution::CookieResolution::Invalid;
     };
     if text.len() > constants_usize::VALUE_4_096 {
-        return super::CookieResolution::Invalid;
+        return crate::cookie_resolution::CookieResolution::Invalid;
     }
     match text.split(';').try_fold(
         (constants_usize::ZERO, None),
@@ -44,10 +44,14 @@ pub fn resolve_unique_cookie<'value_lt>(
             }
         },
     ) {
-        std::ops::ControlFlow::Break(()) => super::CookieResolution::Invalid,
+        std::ops::ControlFlow::Break(()) => crate::cookie_resolution::CookieResolution::Invalid,
         std::ops::ControlFlow::Continue((_pair_count, Some(value))) => {
-            super::CookieResolution::Resolved(super::HttpCookieValueRef::from(value))
+            crate::cookie_resolution::CookieResolution::Resolved(
+                crate::http_cookie_value_ref::HttpCookieValueRef::from(value),
+            )
         }
-        std::ops::ControlFlow::Continue((_pair_count, None)) => super::CookieResolution::Missing,
+        std::ops::ControlFlow::Continue((_pair_count, None)) => {
+            crate::cookie_resolution::CookieResolution::Missing
+        }
     }
 }

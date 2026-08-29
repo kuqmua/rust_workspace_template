@@ -2,8 +2,8 @@
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::FromInner,
 )]
 pub struct RuntimeTestReport(
-    bounded_types::BoundedVec<
-        crate::domain_types::RuntimeTestKind,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::runtime_test_kind::RuntimeTestKind,
         { constants_usize::ZERO },
         5usize,
     >,
@@ -11,7 +11,7 @@ pub struct RuntimeTestReport(
 
 impl RuntimeTestReport {
     #[must_use]
-    pub const fn passed(&self) -> &[crate::domain_types::RuntimeTestKind] {
+    pub const fn passed(&self) -> &[crate::runtime_test_kind::RuntimeTestKind] {
         self.0.as_slice()
     }
 }

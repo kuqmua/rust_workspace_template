@@ -9,7 +9,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthService<Service> {
     pub(crate) inner: Service,
-    pub(crate) state: crate::domain_types::auth::SharedAdminAuthSvcStateArc,
+    pub(crate) state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
 }
 impl<Service> tower::Service<axum::extract::Request> for AdminGeneratedAuthService<Service>
 where
@@ -31,80 +31,89 @@ where
         let state = self.state.clone();
         Box::pin(async move {
             let path = req.uri().path();
-            let contract = crate::domain_types::generated_tables::AdminGeneratedTable::ALL
+            let contract = crate::admin_generated_table::AdminGeneratedTable::ALL
                 .iter()
                 .copied()
                 .find_map(|table| {
-                    table.route_contract(crate::domain_types::StdAdminStrRef::from(path))
+                    table.route_contract(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(path))
                 })
                 .map(|contract| (contract.permission(), contract.mutates(), contract.method()))
                 .or_else(|| {
                     path.ends_with(
-                        server_admin_contract::domain_types::AdminFrontendPath::OpenApiDocument
+                        server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApiDocument
                             .get(),
                     )
                     .then_some((
-                        Some(crate::domain_types::StdAdminStrRef::from(
-                            server_admin_contract::domain_types::AdminPermission::OpenApiRead
+                        Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                            server_admin_contract::admin_permission::AdminPermission::OpenApiRead
                                 .as_str()
                                 .get(),
                         )),
-                        crate::domain_types::StdAdminBool::from(false),
-                        frontend_contract::RouteMethod::Get,
+                        server_admin_core::std_admin_bool::StdAdminBool::from(false),
+                        frontend_contract::route_method::RouteMethod::Get,
                     ))
                 })
                 .or_else(|| {
                     path.ends_with(
-                        server_admin_contract::domain_types::AdminFrontendPath::Metrics.get(),
+                        server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get(),
                     )
                     .then_some((
-                        Some(crate::domain_types::StdAdminStrRef::from(
-                            server_admin_contract::domain_types::AdminPermission::MetricsRead
+                        Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                            server_admin_contract::admin_permission::AdminPermission::MetricsRead
                                 .as_str()
                                 .get(),
                         )),
-                        crate::domain_types::StdAdminBool::from(false),
-                        frontend_contract::RouteMethod::Get,
+                        server_admin_core::std_admin_bool::StdAdminBool::from(false),
+                        frontend_contract::route_method::RouteMethod::Get,
                     ))
                 });
             let Some((Some(permission), mutates, method)) = contract else {
                 return Ok(axum::response::IntoResponse::into_response(
-                    crate::domain_types::auth::AdminError::Authorization,
+                    crate::admin_error::AdminError::Authorization,
                 ));
             };
             if !matches!(
                 (req.method(), method),
                 (
                     &http::Method::DELETE,
-                    frontend_contract::RouteMethod::Delete
-                ) | (&http::Method::GET, frontend_contract::RouteMethod::Get)
-                    | (&http::Method::PATCH, frontend_contract::RouteMethod::Patch)
-                    | (&http::Method::POST, frontend_contract::RouteMethod::Post)
-                    | (&http::Method::PUT, frontend_contract::RouteMethod::Put)
+                    frontend_contract::route_method::RouteMethod::Delete
+                ) | (
+                    &http::Method::GET,
+                    frontend_contract::route_method::RouteMethod::Get
+                ) | (
+                    &http::Method::PATCH,
+                    frontend_contract::route_method::RouteMethod::Patch
+                ) | (
+                    &http::Method::POST,
+                    frontend_contract::route_method::RouteMethod::Post
+                ) | (
+                    &http::Method::PUT,
+                    frontend_contract::route_method::RouteMethod::Put
+                )
             ) {
                 return Ok(axum::response::IntoResponse::into_response(
-                    crate::domain_types::auth::AdminError::MethodNotAllowed,
+                    crate::admin_error::AdminError::MethodNotAllowed,
                 ));
             }
             let Some(peer) = req
                 .extensions()
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
                 .map(|peer| {
-                    crate::domain_types::auth::AdminPeerAddr::from(
-                        crate::domain_types::AdminSocketAddr::from(peer.0),
+                    crate::admin_peer_addr::AdminPeerAddr::from(
+                        server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer.0),
                     )
                 })
             else {
                 return Ok(axum::response::IntoResponse::into_response(
-                    crate::domain_types::auth::AdminError::Authentication,
+                    crate::admin_error::AdminError::Authentication,
                 ));
             };
             let authenticated =
-                match crate::domain_types::auth::authorization_authorize_generated_request::authorization_authorize_generated_request(
+                match crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
                     state.as_ref(),
-                    crate::domain_types::HttpAdminHeaderMapRef::from(req.headers()),
+                    crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(req.headers()),
                     peer,
-                    server_admin_contract::domain_types::AdminPermissionStrRef::from(
+                    server_admin_contract::admin_permission_str_ref::AdminPermissionStrRef::from(
                         permission.get(),
                     ),
                     mutates,
@@ -117,7 +126,9 @@ where
                     }
                 };
             let actor =
-                match pg_table::PgTableIdempotencyActor::try_from(authenticated.id().to_string()) {
+                match pg_table::pg_table_idempotency_actor::PgTableIdempotencyActor::try_from(
+                    authenticated.id().to_string(),
+                ) {
                     Ok(value) => value,
                     Err(_error) => {
                         return Ok(axum::response::IntoResponse::into_response(

@@ -6,12 +6,14 @@
 pub struct PgRateLimitWindowSeconds(pub(super) std::num::NonZeroI32);
 
 impl TryFrom<i32> for PgRateLimitWindowSeconds {
-    type Error = super::PgRateLimitValidationError;
+    type Error = crate::pg_rate_limit_validation_error::PgRateLimitValidationError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         std::num::NonZeroI32::new(value)
             .filter(|non_zero_value| non_zero_value.get() > constants_i32::ZERO)
             .map(Self)
-            .ok_or(super::PgRateLimitValidationError::MustBePositive)
+            .ok_or(
+                crate::pg_rate_limit_validation_error::PgRateLimitValidationError::MustBePositive,
+            )
     }
 }

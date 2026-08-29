@@ -1,9 +1,7 @@
-use super::{OutboundAddressDisposition, OutboundIpAddr};
-
 #[must_use]
 pub(crate) fn resolve_outbound_address_disposition(
-    address: OutboundIpAddr,
-) -> OutboundAddressDisposition {
+    address: crate::outbound_ip_addr::OutboundIpAddr,
+) -> crate::outbound_address_disposition::OutboundAddressDisposition {
     let forbidden = match address.0 {
         std::net::IpAddr::V4(ipv4_address) => {
             let octets = ipv4_address.octets();
@@ -34,15 +32,15 @@ pub(crate) fn resolve_outbound_address_disposition(
                     || ipv6_address.segments()[..2usize] == [0x2001u16, 0x0db8u16]
             },
             |mapped| {
-                resolve_outbound_address_disposition(OutboundIpAddr::from(std::net::IpAddr::V4(
-                    mapped,
-                ))) == OutboundAddressDisposition::Forbidden
+                resolve_outbound_address_disposition(crate::outbound_ip_addr::OutboundIpAddr::from(
+                    std::net::IpAddr::V4(mapped),
+                )) == crate::outbound_address_disposition::OutboundAddressDisposition::Forbidden
             },
         ),
     };
     if forbidden {
-        OutboundAddressDisposition::Forbidden
+        crate::outbound_address_disposition::OutboundAddressDisposition::Forbidden
     } else {
-        OutboundAddressDisposition::Allowed
+        crate::outbound_address_disposition::OutboundAddressDisposition::Allowed
     }
 }

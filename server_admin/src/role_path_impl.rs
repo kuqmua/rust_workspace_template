@@ -1,5 +1,5 @@
 pub(crate) fn role_path_impl(
-    value: server_admin_contract::domain_types::AdminRoleId,
-) -> crate::AdminRoleId {
-    crate::AdminRoleId::from(value.value())
+    value: server_admin_contract::admin_role_id::AdminRoleId,
+) -> server_admin_core::admin_role_id::AdminRoleId {
+    server_admin_core::admin_role_id::AdminRoleId::from(value.value())
 }

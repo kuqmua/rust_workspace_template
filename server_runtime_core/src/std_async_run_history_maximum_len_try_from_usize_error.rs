@@ -3,6 +3,6 @@
 )]
 #[error(
     "{}",
-    constants_str::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO
+    constants_str::catalog::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO
 )]
 pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;

@@ -1,7 +1,7 @@
 pub(super) fn naming_capitalized_parts(
-    value: super::ProjectNameRef<'_>,
-    separator: super::ScaffoldTextRef<'_>,
-) -> super::ScaffoldText {
+    value: crate::project_name_ref::ProjectNameRef<'_>,
+    separator: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+) -> crate::scaffold_text::ScaffoldText {
     let output = value
         .0
         .split('_')
@@ -21,5 +21,6 @@ pub(super) fn naming_capitalized_parts(
                 output
             },
         );
-    super::ScaffoldText::try_from(output).unwrap_or_else(super::ScaffoldText::from)
+    crate::scaffold_text::ScaffoldText::try_from(output)
+        .unwrap_or_else(crate::scaffold_text::ScaffoldText::from)
 }

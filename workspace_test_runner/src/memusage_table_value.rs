@@ -1,10 +1,8 @@
-use super::{CleanAnsiText, MemusageColumnIdx, MemusageRowName, MemusageValueRef};
-
 pub(crate) fn memusage_table_value(
-    text: &CleanAnsiText,
-    row_name: MemusageRowName,
-    column_idx: MemusageColumnIdx,
-) -> MemusageValueRef<'_> {
+    text: &crate::clean_ansi_text::CleanAnsiText,
+    row_name: crate::memusage_row_name::MemusageRowName,
+    column_idx: crate::memusage_column_idx::MemusageColumnIdx,
+) -> crate::memusage_value_ref::MemusageValueRef<'_> {
     text.0
         .as_str()
         .lines()
@@ -12,7 +10,11 @@ pub(crate) fn memusage_table_value(
         .and_then(|line| line.split('|').nth(1))
         .and_then(|tail| tail.split_whitespace().nth(column_idx.get()))
         .map_or_else(
-            || MemusageValueRef::from(constants_str::UNAVAILABLE),
-            MemusageValueRef,
+            || {
+                crate::memusage_value_ref::MemusageValueRef::from(
+                    constants_str::catalog::UNAVAILABLE,
+                )
+            },
+            crate::memusage_value_ref::MemusageValueRef,
         )
 }

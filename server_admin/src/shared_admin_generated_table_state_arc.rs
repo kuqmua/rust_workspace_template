@@ -6,5 +6,7 @@
     optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::DebugRedacted, newtype::FromInner,
 )]
 pub struct SharedAdminGeneratedTableStateArc(
-    pub(crate) std::sync::Arc<dyn pg_table::CombinationOfAppStateLogicTraits>,
+    pub(crate)  std::sync::Arc<
+        dyn pg_table::combination_of_app_state_logic_traits::CombinationOfAppStateLogicTraits,
+    >,
 );

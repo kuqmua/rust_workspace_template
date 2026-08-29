@@ -19,9 +19,9 @@
 }}]
 pub struct AdminPermissions {
     #[generate_pg_table_primary_key]
-    pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
-    pub name: pg_types_text_misc::StringAsNonNullText,
+    pub id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+    pub name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
     pub created_at:
-        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
