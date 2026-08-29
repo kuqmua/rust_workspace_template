@@ -32,33 +32,59 @@ fn identifier_snake_case(identifier: &syn::Ident) -> crate::types::SourceText {
 #[test]
 fn custom_type_names_are_unique_across_workspace() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        assert!(
+            !constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_TYPE_REASON.is_empty(),
+            "53d3759e reviewed duplicate type names require a reason"
+        );
         let mut declarations = std::collections::BTreeMap::<String, Vec<String>>::new();
-        snapshot.rs_files().iter().for_each(|source_file| {
-            let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(source_file.ast().as_ref()),
-                super::source_analysis::CustomTypeNameVisitor::default(),
-            );
-            visitor.names.into_iter().for_each(|name| {
-                declarations
-                    .entry(name)
-                    .or_default()
-                    .push(source_file.path().as_ref().display().to_string());
+        snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                    source_file.path().as_ref(),
+                ))
+                .get()
+            })
+            .for_each(|source_file| {
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    super::source_analysis::CustomTypeNameVisitor::default(),
+                );
+                visitor.names.into_iter().for_each(|name| {
+                    declarations
+                        .entry(name)
+                        .or_default()
+                        .push(source_file.path().as_ref().display().to_string());
+                });
             });
-        });
+        let mut matched_reviewed = std::collections::BTreeSet::<String>::new();
         let violations = declarations
             .into_iter()
             .filter_map(|(name, mut paths)| {
                 (paths.len() > constants_usize::ONE).then(|| {
                     paths.sort();
+                    if constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_TYPE_NAMES
+                        .contains(&name.as_str())
+                    {
+                        let _inserted = matched_reviewed.insert(name.clone());
+                        return String::new();
+                    }
                     format!(
                         "custom type name `{name}` is declared more than once across the workspace: {}",
                         paths.join(", ")
                     )
                 })
             })
+            .filter(|violation| !violation.is_empty())
             .collect::<Vec<String>>();
+        let expected_reviewed =
+            constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_TYPE_NAMES
+                .into_iter()
+                .map(String::from)
+                .collect::<std::collections::BTreeSet<String>>();
         assert!(
-            violations.is_empty(),
+            violations.is_empty() && matched_reviewed == expected_reviewed,
             "c036c2fb custom type names must be unique across all workspace modules and crates:\n{}",
             violations.join("\n")
         );

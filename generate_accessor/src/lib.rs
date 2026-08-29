@@ -4,7 +4,7 @@
     dead_code,
     reason = "the marker makes the integration-test-only derive dependency explicit"
 )]
-struct TestDependencyMarker;
+struct GenerateAccessorTestDependencyMarker;
 
 #[proc_macro_derive(Getters, attributes(getters))]
 pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

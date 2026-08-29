@@ -19,9 +19,20 @@ mod tests {
     #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
     struct TupleField(u64);
 
-    impl From<u64> for TupleField {
-        fn from(value: u64) -> Self {
-            Self(value)
+    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    enum TupleFieldError {
+        Zero,
+    }
+
+    impl TryFrom<u64> for TupleField {
+        type Error = TupleFieldError;
+
+        fn try_from(value: u64) -> Result<Self, Self::Error> {
+            if value == 0 {
+                Err(TupleFieldError::Zero)
+            } else {
+                Ok(Self(value))
+            }
         }
     }
 
@@ -44,7 +55,11 @@ mod tests {
             .get_route_type_upper_camel_case(),
             13
         );
-        assert_eq!(*TupleField::from(21).get_inner(), 21);
+        let tuple = match TupleField::try_from(21) {
+            Ok(value) => value,
+            Err(TupleFieldError::Zero) => return,
+        };
+        assert_eq!(*tuple.get_inner(), 21);
     }
 
     const _: usize = constants_str::catalog::DOT.len();

@@ -1,1 +1,1 @@
-//! Domain-owner compatibility marker; concrete types live in their same-named modules.
+//! Common-route domain compatibility marker; concrete types live in same-named modules.

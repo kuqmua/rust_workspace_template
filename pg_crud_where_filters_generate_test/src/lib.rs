@@ -105,7 +105,7 @@ mod tests {
             constants_str::catalog::PG_CRUD_WHERE_FILTERS,
             constants_str::catalog::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE,
             &format!(
-                "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse where_filters::domain_types::*;\n{}",
+                "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse where_filters::domain_types::*;\npub use where_filters::between;\npub use where_filters::encode_format;\npub use where_filters::pg_type_not_empty_unique_vec;\npub use where_filters::regex_case;\npub use where_filters::regex_regex;\n{}",
                 generate_where_filters_src::generate_where_filters_source::generate_where_filters_source(
                     generate_where_filters_src::proc_macro2_generate_where_filters_input::ProcMacro2GenerateWhereFiltersInput::from(
                         &quote::quote! {

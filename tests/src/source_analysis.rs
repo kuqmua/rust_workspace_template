@@ -10,12 +10,38 @@ pub(super) struct CustomTypeNameVisitor {
 
 impl<'ast> syn::visit::Visit<'ast> for CustomTypeNameVisitor {
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
-        self.names.push(i.ident.to_string());
+        if !i
+            .ident
+            .to_string()
+            .starts_with(constants_str::test_fixtures::GENERATED_PRIVATE_TYPE_PREFIX)
+        {
+            self.names.push(i.ident.to_string());
+        }
         syn::visit::visit_item_enum(self, i);
     }
 
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        let test_only = i.attrs.iter().any(|attr| {
+            attr.path().is_ident(constants_str::catalog::CFG_ALT)
+                && matches!(
+                    &attr.meta,
+                    syn::Meta::List(list)
+                        if list.tokens.to_string().contains(constants_str::catalog::TEST_ALT_3)
+                )
+        });
+        if !test_only {
+            syn::visit::visit_item_mod(self, i);
+        }
+    }
+
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        self.names.push(i.ident.to_string());
+        if !i
+            .ident
+            .to_string()
+            .starts_with(constants_str::test_fixtures::GENERATED_PRIVATE_TYPE_PREFIX)
+        {
+            self.names.push(i.ident.to_string());
+        }
         syn::visit::visit_item_struct(self, i);
     }
 

@@ -1,1 +1,1 @@
-//! Domain-owner compatibility marker; concrete types live in their same-named modules.
+//! Notification-service compatibility marker; concrete types live in same-named modules.

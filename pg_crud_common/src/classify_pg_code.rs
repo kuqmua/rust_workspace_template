@@ -1,4 +1,5 @@
 #[must_use]
+#[allow(clippy::single_call_fn)] // isolated SQLSTATE mapping has direct exhaustive unit coverage
 pub(crate) fn classify_pg_code(code: &str) -> crate::pg_error_kind::PgErrorKind {
     match code {
         constants_str::test_fixtures::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {

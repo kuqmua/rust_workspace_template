@@ -32,7 +32,6 @@ pub mod build_stable_read_query_plan;
 pub mod bulk_mutation_outcome;
 pub mod chrono_utc_date_time_ref;
 pub mod chrono_utc_date_times;
-#[cfg(test)]
 pub mod classify_pg_code;
 pub mod classify_pg_error;
 pub mod classify_slice_ordering;

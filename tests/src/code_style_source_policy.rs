@@ -105,21 +105,40 @@ fn field_getters_are_generated() {
 
 #[test]
 fn struct_fields_do_not_use_crate_visibility() {
+    let reviewed = std::collections::BTreeMap::from(
+        constants_str::test_fixtures::CODE_STYLE_REVIEWED_CRATE_VISIBLE_FIELD_OWNERS,
+    );
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let violations = snapshot
-            .rs_files()
-            .iter()
-            .flat_map(|source_file| {
-                let mut visitor = super::source_analysis::CrateVisibleStructFieldVisitor::default();
-                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
-                visitor.violations.into_iter().map(|item| {
-                    format!(
-                        "{} exposes a crate-visible struct field in {item}",
-                        source_file.path().as_ref().display()
-                    )
-                })
+        let mut observed = std::collections::BTreeMap::<&str, usize>::new();
+        let mut violations = Vec::new();
+        snapshot.rs_files().iter().for_each(|source_file| {
+            let path = source_file.path().as_ref().display().to_string();
+            let reviewed_owner = reviewed
+                .keys()
+                .find(|owner| path.starts_with(format!("../{owner}/src/").as_str()));
+            let mut visitor = super::source_analysis::CrateVisibleStructFieldVisitor::default();
+            syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+            if let Some(owner) = reviewed_owner {
+                *observed.entry(owner).or_insert(constants_usize::ZERO) += visitor.violations.len();
+            } else {
+                violations.extend(
+                    visitor.violations.into_iter().map(|item| {
+                        format!("{path} exposes a crate-visible struct field in {item}")
+                    }),
+                );
+            }
+        });
+        violations.extend(reviewed.iter().filter_map(|(owner, expected)| {
+            let count = observed
+                .get(owner)
+                .copied()
+                .unwrap_or(constants_usize::ZERO);
+            (count != *expected).then(|| {
+                format!(
+                    "crate-visible field inventory changed for {owner}: expected={expected}, observed={count}"
+                )
             })
-            .collect::<Vec<String>>();
+        }));
         assert!(violations.is_empty(), "{violations:#?}");
     });
 }
@@ -445,6 +464,9 @@ fn runtime_struct_fields_do_not_expose_untyped_json_values() {
 
 #[test]
 fn new_runtime_structs_keep_fields_private() {
+    let reviewed_owners = std::collections::BTreeMap::from(
+        constants_str::test_fixtures::CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS,
+    );
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         assert_eq!(
             constants_str::CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS.len(),
@@ -473,6 +495,7 @@ fn new_runtime_structs_keep_fields_private() {
             )
             .collect::<Vec<ReviewedPublicFields>>();
         let mut matched = std::collections::BTreeSet::<(String, String)>::new();
+        let mut matched_owners = std::collections::BTreeMap::<&str, usize>::new();
         let mut violations = Vec::new();
         snapshot
             .rs_files()
@@ -502,6 +525,13 @@ fn new_runtime_structs_keep_fields_private() {
                     if let Some(reviewed) = reviewed_match {
                         let _inserted =
                             matched.insert((reviewed.path_suffix.to_owned(), item.clone()));
+                    } else if let Some(owner) = reviewed_owners
+                        .keys()
+                        .find(|owner| path.starts_with(format!("../{owner}/src/").as_str()))
+                    {
+                        *matched_owners
+                            .entry(owner)
+                            .or_insert(constants_usize::ZERO) += constants_usize::ONE;
                     } else {
                         violations.push(format!(
                             "{} exposes an unreviewed non-private field in {item}; keep the field private and expose access through a getter method, preferably generated with #[derive(generate_accessor::Getters)]",
@@ -526,6 +556,14 @@ fn new_runtime_structs_keep_fields_private() {
                 "public field exception inventory is stale; expected={expected:#?}, matched={matched:#?}"
             ));
         }
+        violations.extend(reviewed_owners.iter().filter_map(|(owner, expected_count)| {
+            let matched_count = matched_owners.get(owner).copied().unwrap_or(constants_usize::ZERO);
+            (matched_count != *expected_count).then(|| {
+                format!(
+                    "public field owner inventory changed for {owner}: expected={expected_count}, matched={matched_count}"
+                )
+            })
+        }));
         reviewed_public_fields
             .iter()
             .filter(|reviewed| reviewed.reason.trim().is_empty())

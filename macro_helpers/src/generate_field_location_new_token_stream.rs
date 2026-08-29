@@ -65,9 +65,7 @@ mod tests {
         )
         .as_ref()
         .to_string();
-        assert!(
-            generated.starts_with("location : location_lib :: domain_types :: Location :: new")
-        );
+        assert!(generated.starts_with("location : location_lib :: location :: Location :: new"));
         assert!(generated.contains("\"src/example.rs\""));
         assert!(generated.contains("try_from (1)"));
         assert!(generated.contains("file ! ()"));

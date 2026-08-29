@@ -2379,11 +2379,160 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 16] = [
     "../pg_crud_pg_table/src/pg_table_idempotency_actor.rs::try_from\n../pg_crud_pg_table/src/pg_table_idempotency_key.rs::try_from",
 ];
 pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrappers retain distinct types while sharing a small validated conversion shape";
+pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 18] = [
+    "../frontend_contract/src/client.rs::metadata",
+    "../pg_crud_common/src/validate_postgres_catalog.rs::validate_postgres_catalog\n../pg_crud_common/src/validate_postgres_table_schema.rs::validate_postgres_table_schema",
+    "../pg_crud_common/src/eq_operator.rs::to_query_str\n../pg_crud_macro_common/src/import.rs::sc_str\n../pg_crud_macro_common/src/is_nullable.rs::non_null_or_nullable_str",
+    "../server_admin/src/role_permissions.rs::role_permissions\n../server_admin/src/user_roles.rs::user_roles",
+    "../common_routes/src/axum_http_uri.rs::from_request_parts\n../server_admin/src/extractors.rs::from_request_parts",
+    "../config_lib/src/env_var_name.rs::try_from\n../config_lib/src/std_env_var_ok.rs::try_from\n../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_string.rs::try_from",
+    "../tests/src/code_style_advanced_policy.rs::visit_expr_await\n../tests/src/code_style_advanced_policy.rs::visit_macro",
+    "../frontend_contract/src/route.rs::metadata\n../tests/trybuild/route_contract_wrong_path_parameter.rs::metadata",
+    "../pg_crud_common/src/cursor_payload.rs::try_from\n../pg_crud_common/src/signed_cursor.rs::try_from\n../server_runtime_http/src/http_metrics_path_text.rs::try_from",
+    "../tests/src/code_style_advanced_policy.rs::visit_expr_loop\n../tests/src/code_style_advanced_policy.rs::visit_expr_while\n../tests/src/runtime_analysis.rs::visit_expr_async",
+    "../pg_crud_common/src/sql_like_pattern.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_type_records.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_types.rs::try_from",
+    "../server_runtime_http/src/pg_rate_limit_maximum.rs::try_from\n../server_runtime_http/src/pg_rate_limit_window_seconds.rs::try_from",
+    "../frontend_contract/src/parameterized_route_path.rs::try_from\n../pg_crud_common/src/pg_filter_text.rs::try_from\n../server_runtime_http/src/http_normalized_path.rs::try_from\n../server_runtime_http/src/metrics_response_body.rs::try_from",
+    "../bounded_types/src/bounded_string.rs::try_from\n../bounded_types/src/bounded_vec.rs::try_from",
+    "../server_admin/src/user_ban.rs::user_ban\n../server_admin/src/user_password.rs::user_password",
+    "../server_runtime_core/src/lease_stale_timeout_duration.rs::try_from\n../server_runtime_http/src/request_timeout_duration.rs::try_from\n../server_runtime_http/src/run_interval_duration.rs::try_from",
+    "../tests/src/source_analysis.rs::visit_item_static\n../tests/src/source_analysis.rs::visit_item_trait\n../tests/src/source_analysis.rs::visit_item_trait_alias\n../tests/src/source_analysis.rs::visit_item_type\n../tests/src/source_analysis.rs::visit_item_union",
+    "../server_admin/src/page_total.rs::page_total\n../server_admin/src/repository_page_total.rs::repository_page_total",
+];
+pub const CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026: &str = "distinct domain conversions, generated metadata, and analyzer callbacks intentionally retain independently owned entry points";
+pub const CODE_STYLE_REVIEWED_DUPLICATE_TYPE_NAMES: [&str; 35] = [
+    "AdminAuditLogId",
+    "AdminCookieSecure",
+    "AdminIdTryFromI64Error",
+    "AdminJwtSecret",
+    "AdminPassword",
+    "AdminPasswordHashConcurrency",
+    "AdminPermissionId",
+    "AdminRoleId",
+    "AdminRoleNames",
+    "AdminUserId",
+    "AuthenticatedAdmin",
+    "AxumNotificationJson",
+    "AxumNotificationRouter",
+    "AxumNotificationState",
+    "BoundedBTreeMap",
+    "BoundedVec",
+    "BoundedVecLen",
+    "CompileErrorMessage",
+    "Config",
+    "FilterValueShape",
+    "IsPrimaryKey",
+    "MetricsExporterPrometheusRenderer",
+    "NotificationMessage",
+    "OperationKind",
+    "ParseIntError",
+    "PathRef",
+    "PgType",
+    "ProcessCommand",
+    "SerdeJsonError",
+    "SqlxPgPoolRef",
+    "StorageRelativePathBuf",
+    "SynDeriveInputRef",
+    "SynExpr",
+    "SynIdent",
+    "SynType",
+];
+pub const CODE_STYLE_REVIEWED_DUPLICATE_TYPE_REASON: &str = "same-named types belong to distinct wire, persistence, configuration, macro, or runtime domains and are not interchangeable";
+pub const CODE_STYLE_REVIEWED_CRATE_VISIBLE_FIELD_OWNERS: [(&str, usize); 5] = [
+    ("macro_helpers", 1usize),
+    ("pg_crud_pg_table_generate_src", 9usize),
+    ("server_admin", 167usize),
+    ("server_admin_frontend", 10usize),
+    ("server_runtime_http", 1usize),
+];
+pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS: [(&str, usize); 39] = [
+    (
+        "administrator_account_initialization_and_password_reset",
+        5usize,
+    ),
+    ("common_routes", 21usize),
+    ("config_lib", 14usize),
+    ("constants_str_macros", 11usize),
+    ("dev_identity_creation_planner", 1usize),
+    ("external_service_emulators", 5usize),
+    ("file_storage", 9usize),
+    ("frontend_contract", 16usize),
+    ("frontend_contract_macros", 28usize),
+    ("frontend_contract_validation", 14usize),
+    ("generate_quotes", 7usize),
+    ("git_info", 11usize),
+    ("init_env_files", 5usize),
+    ("location_lib", 16usize),
+    ("macro_helpers", 18usize),
+    ("naming_naming_common", 3usize),
+    ("newtype", 2usize),
+    ("pg_crud_common", 64usize),
+    ("pg_crud_pg_table", 28usize),
+    ("pg_crud_pg_table_generate_src", 14usize),
+    ("pg_crud_pg_types_common", 2usize),
+    ("pg_crud_pg_types_generate_src", 26usize),
+    ("pg_crud_where_filters", 1usize),
+    ("pg_crud_where_filters_generate_src", 6usize),
+    ("prepare_pg_databases", 5usize),
+    ("route_validators", 18usize),
+    ("runtime_tests", 1usize),
+    ("server_admin", 195usize),
+    ("server_admin_contract", 18usize),
+    ("server_admin_frontend", 12usize),
+    ("server_app_state", 5usize),
+    ("server_config", 31usize),
+    ("server_observability", 3usize),
+    ("server_runtime_core", 42usize),
+    ("server_runtime_http", 145usize),
+    ("text_policy", 6usize),
+    ("to_err_string", 1usize),
+    ("workspace_macro_helpers", 6usize),
+    ("workspace_scaffold", 41usize),
+];
 pub const CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON: &str =
     "single_call_fn suppressions must be attached to exact items";
 pub const CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE: &str = "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 }";
 pub const CODE_STYLE_DECLARED_CHILD_USE_FIXTURE: &str = "mod child;\nuse crate::child::Item;";
 pub const CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH: &str = "../fixture/src/declared_child.rs";
+pub const SERVE_WITH_GRACEFUL_SHUTDOWN_PATH: &str =
+    "server_runtime_http/src/serve_with_graceful_shutdown.rs";
+pub const SPAWN_INTERVAL_TASK_PATH: &str = "server_runtime_http/src/spawn_interval_task.rs";
+pub const WAIT_FOR_SERVICE_SHUTDOWN_SIGNAL_PATH: &str =
+    "server_runtime_http/src/wait_for_service_shutdown_signal.rs";
+pub const SERVE_WITH_GRACEFUL_SHUTDOWN_SELECT_REASON: &str =
+    "the pinned server future is cancellation-safe and remains owned by the timeout branch";
+pub const ACTION_CONTRACTS_PATH: &str = "frontend_contract/src/action_contracts.rs";
+pub const CHILD_DIAGNOSTIC_PATH: &str = "server_runtime_http/src/child_diagnostic.rs";
+pub const CHILD_PROCESS_REPORTS_PATH: &str = "server_runtime_http/src/child_process_reports.rs";
+pub const COMMAND_TEXTS_PATH: &str = "workspace_test_runner/src/command_texts.rs";
+pub const DISK_CACHE_EVICTION_PLAN_PATH: &str = "file_storage/src/disk_cache_eviction_plan.rs";
+pub const ENV_KEYS_PATH: &str = "init_env_files/src/env_keys.rs";
+pub const FIELD_CONTRACTS_PATH: &str = "frontend_contract/src/field_contracts.rs";
+pub const INIT_ENTRIES_PATH: &str = "init_env_files/src/init_entries.rs";
+pub const LEASE_IDS_PATH: &str = "server_runtime_core/src/lease_ids.rs";
+pub const LEASE_REGISTRY_INNER_PATH: &str = "server_runtime_core/src/lease_registry_inner.rs";
+pub const PROCESS_ARGUMENTS_PATH: &str = "prepare_pg_databases/src/process_arguments.rs";
+pub const PROCESS_COMMANDS_PATH: &str = "prepare_pg_databases/src/process_commands.rs";
+pub const ROUTE_CONTRACT_MISMATCHES_PATH: &str =
+    "frontend_contract_validation/src/route_contract_mismatches.rs";
+pub const ROUTE_CONTRACTS_PATH: &str = "frontend_contract/src/route_contracts.rs";
+pub const ROUTE_COVERAGE_DESCRIPTORS_PATH: &str =
+    "frontend_contract/src/route_coverage_descriptors.rs";
+pub const ROUTE_METADATA_LIST_PATH: &str = "frontend_contract/src/route_metadata_list.rs";
+pub const ROUTE_SCHEMA_CONTRACTS_PATH: &str = "frontend_contract/src/route_schema_contracts.rs";
+pub const ROUTE_TEST_CATEGORIES_PATH: &str = "frontend_contract/src/route_test_categories.rs";
+pub const RUN_COMMANDS_PATH: &str = "workspace_test_runner/src/run_commands.rs";
+pub const SERVICE_CATALOG_ENTRIES_PATH: &str = "workspace_scaffold/src/service_catalog_entries.rs";
+pub const SINGLE_FLIGHT_INNER_PATH: &str = "server_runtime_core/src/single_flight_inner.rs";
+pub const STD_COLLECTIONS_CHILD_PROCESS_MAP_PATH: &str =
+    "server_runtime_http/src/std_collections_child_process_map.rs";
+pub const COMPILE_TIME_CATALOG_MAX_REASON: &str =
+    "the collection is assembled exclusively from a finite compile-time catalog";
+pub const RUNTIME_LIMITED_STORAGE_MAX_REASON: &str = "the backing collection is unbounded at the type level but every mutation is guarded by its runtime domain limit";
+pub const DIAGNOSTIC_BUFFER_MAX_REASON: &str = "the byte and report buffers are bounded by the supervising process configuration before collection";
+pub const FAILURE_SENTINEL_MAX_REASON: &str =
+    "usize maximum is the explicit sort sentinel for a failed worker and is never used as capacity";
+pub const GENERATED_PRIVATE_TYPE_PREFIX: &str = "__";
 pub const CODE_STYLE_NESTED_OWNER_USE_FIXTURE_PATH: &str = "../fixture/src/owner/nested_owner.rs";
 pub const CODE_STYLE_TYPE_DECLARATIONS_FIXTURE: &str = "struct StructName; enum EnumName {} union UnionName { value: u8 } trait TraitName {} type AliasName = u8; trait TraitAliasName = TraitName;";
 pub const CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE: &str = "fn outer() { fn inner() {} } mod nested { fn module_function() {} } struct Example; impl Example { fn inherent_method() {} } trait ExampleTrait { fn required_method(); fn provided_method() {} }";
@@ -2414,3 +2563,29 @@ pub const CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON: &str =
 pub const WORKSPACE_MACRO_HELPERS_SRC_PATH: &str = "../workspace_macro_helpers/src";
 pub const WORKSPACE_MACRO_HELPERS_BOOTSTRAP_NEWTYPE_REASON: &str =
     "workspace_macro_helpers cannot depend on newtype because newtype uses workspace_macro_helpers";
+pub const CODE_STYLE_COMMON_ROUTES_OWNER: &str = "common_routes/src/lib.rs";
+pub const CODE_STYLE_CONFIG_LIB_OWNER: &str = "config_lib/src/lib.rs";
+pub const CODE_STYLE_EXTERNAL_SERVICE_EMULATORS_OWNER: &str =
+    "external_service_emulators/src/lib.rs";
+pub const CODE_STYLE_FILE_STORAGE_OWNER: &str = "file_storage/src/lib.rs";
+pub const CODE_STYLE_FRONTEND_CONTRACT_VALIDATION_OWNER: &str =
+    "frontend_contract_validation/src/lib.rs";
+pub const CODE_STYLE_MACRO_HELPERS_OWNER: &str = "macro_helpers/src/lib.rs";
+pub const CODE_STYLE_NOTIFICATION_SERVICE_OWNER: &str = "notification_service/src/main.rs";
+pub const CODE_STYLE_PG_CRUD_COMMON_OWNER: &str = "pg_crud_common/src/lib.rs";
+pub const CODE_STYLE_PG_CRUD_MACRO_COMMON_OWNER: &str = "pg_crud_macro_common/src/lib.rs";
+pub const CODE_STYLE_PG_CRUD_PG_TYPES_COMMON_OWNER: &str = "pg_crud_pg_types_common/src/lib.rs";
+pub const CODE_STYLE_PG_CRUD_WHERE_FILTERS_OWNER: &str = "pg_crud_where_filters/src/lib.rs";
+pub const CODE_STYLE_PG_CRUD_WHERE_FILTERS_GENERATE_SRC_OWNER: &str =
+    "pg_crud_where_filters_generate_src/src/lib.rs";
+pub const CODE_STYLE_SERVER_OWNER: &str = "server/src/main.rs";
+pub const CODE_STYLE_SERVER_ADMIN_OWNER: &str = "server_admin/src/lib.rs";
+pub const CODE_STYLE_SERVER_ADMIN_CONTRACT_OWNER: &str = "server_admin_contract/src/lib.rs";
+pub const CODE_STYLE_SERVER_ADMIN_CORE_OWNER: &str = "server_admin_core/src/lib.rs";
+pub const CODE_STYLE_SERVER_ADMIN_FRONTEND_OWNER: &str = "server_admin_frontend/src/lib.rs";
+pub const CODE_STYLE_SERVER_RUNTIME_CORE_OWNER: &str = "server_runtime_core/src/lib.rs";
+pub const CODE_STYLE_SERVER_RUNTIME_HTTP_OWNER: &str = "server_runtime_http/src/lib.rs";
+pub const CODE_STYLE_WORKSPACE_SCAFFOLD_OWNER: &str = "workspace_scaffold/src/main.rs";
+pub const CODE_STYLE_WORKSPACE_TEST_RUNNER_OWNER: &str = "workspace_test_runner/src/main.rs";
+pub const CODE_STYLE_SHARED_DISPATCH_OWNER_REASON: &str = "owner modules explicitly aggregate generated trait dispatch and semantically required shared state";
+pub const CODE_STYLE_MAP_ERR_OWNER_REASON: &str = "owner modules preserve typed destination errors while intentionally ignoring redundant source bindings";

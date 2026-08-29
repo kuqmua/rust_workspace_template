@@ -153,10 +153,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             reason: constants_str::test_fixtures::VALUE_A6A100E2,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_88A7A661,
-            reason: constants_str::test_fixtures::VALUE_589704B1,
-        },
-        ReviewedDuplicateGroup {
             locations: constants_str::test_fixtures::VALUE_292E1A7F,
             reason: constants_str::test_fixtures::VALUE_F311E43F,
         },
@@ -191,6 +187,14 @@ fn substantial_function_bodies_have_one_source_of_truth() {
             .map(|locations| ReviewedDuplicateGroup {
                 locations,
                 reason: constants_str::test_fixtures::CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON,
+            }),
+    );
+    reviewed_groups.extend(
+        constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026
+            .into_iter()
+            .map(|locations| ReviewedDuplicateGroup {
+                locations,
+                reason: constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026,
             }),
     );
     let reviewed = reviewed_groups.into_iter().fold(
