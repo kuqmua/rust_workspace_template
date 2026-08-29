@@ -1665,11 +1665,6 @@ fn append_non_public_use_import_er(
     found_non_public_use_import: crate::types::AnalyzerBool,
     ers: &mut Vec<String>,
 ) {
-    if path.ends_with(constants_str::test_fixtures::INIT_ENV_FILES_ENVIRONMENT_KEYS_PATH)
-        || path.ends_with(constants_str::test_fixtures::INIT_ENV_FILES_MAIN_PATH)
-    {
-        return;
-    }
     if found_non_public_use_import.get() {
         ers.push(format!(
             "{}: found non-public use import; use the explicit path at the usage site",
@@ -1678,24 +1673,11 @@ fn append_non_public_use_import_er(
     }
 }
 
-#[test]
-fn init_env_files_uses_grouped_crate_domain_import() {
-    let source =
-        std::fs::read_to_string(constants_str::test_fixtures::INIT_ENV_FILES_ENVIRONMENT_KEYS_PATH)
-            .expect("dd8b60f4 init_env_files environment_keys source must be readable");
-    assert!(
-        source.contains(constants_str::test_fixtures::INIT_ENV_FILES_DOMAIN_IMPORT),
-        "3bd84227 init_env_files grouped crate domain import changed"
-    );
-}
 fn append_public_use_import_ers(
     path: &std::path::Path,
     public_use_roots: &crate::types::SourceTextList,
     ers: &mut Vec<String>,
 ) {
-    if path.ends_with(constants_str::test_fixtures::INIT_ENV_FILES_MAIN_PATH) {
-        return;
-    }
     ers.extend(public_use_roots.iter().map(|public_use_root| {
         format!(
             "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",

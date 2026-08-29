@@ -2549,10 +2549,6 @@ pub const CODE_STYLE_REEXPORT_ONLY_FIXTURE: &str =
     "pub use crate::first::*; pub(crate) use crate::second::Item;";
 pub const CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE: &str =
     "#[cfg(test)] mod tests { pub use crate::first::*; pub(crate) use crate::second::Item; }";
-pub const INIT_ENV_FILES_ENVIRONMENT_KEYS_PATH: &str = "../init_env_files/src/environment_keys.rs";
-pub const INIT_ENV_FILES_MAIN_PATH: &str = "../init_env_files/src/main.rs";
-pub const INIT_ENV_FILES_DOMAIN_IMPORT: &str =
-    "use crate::{EnvContentRef, EnvKey, EnvKeys, InitStringError};";
 pub const CONSTANTS_STR_MACROS_SYN_IDENT_PATH: &str = "../constants_str_macros/src/syn_ident.rs";
 pub const CONSTANTS_STR_MACROS_SYN_LIT_STR_PATH: &str =
     "../constants_str_macros/src/syn_lit_str.rs";

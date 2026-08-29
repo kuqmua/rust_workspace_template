@@ -745,22 +745,16 @@ fn workspace_modules_reject_local_root_use_imports() {
         "a49c2e71"
     );
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let violations =
-            snapshot
-                .rs_files()
-                .iter()
-                .filter_map(|file| {
-                    if file.path().as_ref().ends_with(
-                        constants_str::test_fixtures::INIT_ENV_FILES_ENVIRONMENT_KEYS_PATH,
-                    ) {
-                        return None;
-                    }
-                    let mut visitor = CrateImportVisitor::default();
-                    syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
-                    (!visitor.lines.is_empty())
-                        .then(|| format!("{}: {:?}", file.path().as_ref().display(), visitor.lines))
-                })
-                .collect::<Vec<_>>();
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter_map(|file| {
+                let mut visitor = CrateImportVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
+                (!visitor.lines.is_empty())
+                    .then(|| format!("{}: {:?}", file.path().as_ref().display(), visitor.lines))
+            })
+            .collect::<Vec<_>>();
         assert!(
             violations.is_empty(),
             "87fc2a91 workspace modules must use explicit owner paths instead of local-root use imports:\n{}",
