@@ -1,15 +1,13 @@
-pub(crate) fn validate_snapshot<Snapshot, Error, Mismatch>(
+pub(crate) fn validate_snapshot<Snapshot>(
     expected: Snapshot,
     observed: Snapshot,
-    mismatch: Mismatch,
-) -> Result<(), Error>
+) -> Result<(), crate::db_schema_conformance_error::DbSchemaConformanceError>
 where
-    Snapshot: PartialEq,
-    Mismatch: FnOnce(Snapshot, Snapshot) -> Error,
+    Snapshot: crate::snapshot_mismatch::SnapshotMismatch,
 {
     if expected == observed {
         Ok(())
     } else {
-        Err(mismatch(expected, observed))
+        Err(Snapshot::mismatch(expected, observed))
     }
 }

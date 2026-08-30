@@ -4,7 +4,9 @@ pub fn validate_project_commit<'commit_lt, CommitIdTy>(
 where
     CommitIdTy: Into<crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>>,
 {
-    if crate::check_is_project_commit::check_is_project_commit(commit_id).0 {
+    if bool::from(crate::check_is_project_commit::check_is_project_commit(
+        commit_id,
+    )) {
         return Ok(());
     }
     Err(

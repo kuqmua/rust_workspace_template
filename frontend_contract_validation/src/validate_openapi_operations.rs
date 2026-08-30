@@ -11,16 +11,19 @@ where
         )
     })?;
     expectations.iter().try_for_each(|expectation| {
-        let method = expectation.metadata.method().as_ref().to_ascii_lowercase();
+        let (content_type, metadata, security, response_status) = expectation.parts();
+        let method = metadata.method().as_ref().to_ascii_lowercase();
         let operation = document_value
             .get(constants_str::catalog::PATHS)
-            .and_then(|paths| paths.get(expectation.metadata.path().as_ref()))
+            .and_then(|paths| paths.get(metadata.path().as_ref()))
             .and_then(|path| path.get(method.as_str()))
             .ok_or(crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingOperation)?;
-        let security_matches = match expectation.security {
+        let security_matches = match security {
             crate::open_api_security_expectation::OpenApiSecurityExpectation::Public => operation
                 .get(constants_str::test_fixtures::SECURITY)
-                .is_none_or(|security| security.as_array().is_some_and(Vec::is_empty)),
+                .is_none_or(|security_value| {
+                    security_value.as_array().is_some_and(Vec::is_empty)
+                }),
             crate::open_api_security_expectation::OpenApiSecurityExpectation::Required(name) => operation
                 .get(constants_str::test_fixtures::SECURITY)
                 .and_then(serde_json::Value::as_array)
@@ -37,7 +40,7 @@ where
                 crate::open_api_operation_validation_error::OpenApiOperationValidationError::SecurityMismatch,
             );
         }
-        let status = expectation.status.0.to_string();
+        let status = response_status.to_string();
         let response = operation
             .get(constants_str::catalog::RESPONSES)
             .and_then(|responses| responses.get(status.as_str()))
@@ -47,7 +50,7 @@ where
         let content = response
             .get(constants_str::test_fixtures::OPENAPI_CONTENT)
             .and_then(serde_json::Value::as_object)
-            .and_then(|content| content.get(expectation.content_type.as_ref()))
+            .and_then(|content| content.get(content_type.as_ref()))
             .ok_or(
                 crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingContentType,
             )?;

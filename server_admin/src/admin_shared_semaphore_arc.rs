@@ -10,7 +10,7 @@ impl AdminSharedSemaphoreArc {
     #[allow(clippy::missing_const_for_fn)] // Tokio semaphore and Arc constructors are not const
     #[allow(clippy::single_call_fn)] // Arc construction stays inside its cross-thread state owner
     pub(crate) fn new(
-        max_concurrent_hashes: crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency,
+        max_concurrent_hashes: crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency,
     ) -> Self {
         Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
             max_concurrent_hashes.get().get(),

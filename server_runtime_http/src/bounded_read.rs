@@ -12,13 +12,13 @@ mod tests {
         std::fs::write(&path, b"abcd")
             .expect("11ddba38 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
         let exact = crate::read_bounded_file::read_bounded_file(
-            crate::path_ref::PathRef::from(path.as_path()),
+            crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
             crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(4usize),
         )
         .expect("28fce6c8 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
         assert_eq!(exact.into_inner(), b"abcd");
         let over = crate::read_bounded_file::read_bounded_file(
-            crate::path_ref::PathRef::from(path.as_path()),
+            crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
             crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(3usize),
         );
         assert!(matches!(
@@ -147,7 +147,7 @@ mod tests {
             .await
             .expect("f68e33f3 asynchronous_file_read_obeys_limit invariant must hold");
         let bytes = crate::read_bounded_file_async::read_bounded_file_async(
-            crate::path_ref::PathRef::from(path.as_path()),
+            crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
             crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(3usize),
         )
         .await
@@ -193,7 +193,7 @@ mod ensure_size_within_limit {}
 mod io_error_presence_disposition {}
 mod parse_bounded_json {}
 mod parse_bounded_json_owned {}
-mod path_ref {}
+mod runtime_path_ref {}
 mod read_bounded_file {}
 mod read_bounded_file_async {}
 mod read_bounded_http_response {}

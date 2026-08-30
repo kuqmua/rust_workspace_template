@@ -2,7 +2,7 @@
 
 pub(crate) async fn read_last_admin_state(
     connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
-    user_id: server_admin_core::admin_user_id::AdminUserId,
+    user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
 ) -> Result<crate::last_admin_state::LastAdminState, crate::sqlx_admin_error::SqlxAdminError> {
     let target_is_admin = sqlx::query_scalar::<_, bool>(
         constants_str::integration_fixtures::SERVER_ADMIN_USER_IS_ADMIN_SQL,

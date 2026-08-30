@@ -13,7 +13,7 @@ pub fn resolve_client_ip(
     }
     let parsed_forwarded_ip = || {
         let values = headers
-            .0
+            .get()
             .get_all(constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;
@@ -50,7 +50,7 @@ pub fn resolve_client_ip(
     };
     let parsed_real_ip = || {
         let values = headers
-            .0
+            .get()
             .get_all(constants_str::catalog::RUNTIME_REAL_IP_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;

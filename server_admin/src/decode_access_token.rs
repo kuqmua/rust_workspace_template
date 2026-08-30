@@ -1,6 +1,6 @@
 pub fn decode_access_token(
     token: &crate::std_admin_access_token::StdAdminAccessToken,
-    secret: &crate::admin_jwt_secret::AdminJwtSecret,
+    secret: &crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret,
     issuer: &config_lib::admin_token_issuer::AdminTokenIssuer,
     audience: &config_lib::admin_token_audience::AdminTokenAudience,
 ) -> Result<

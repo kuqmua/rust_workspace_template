@@ -319,10 +319,12 @@ async fn request_span_limits_url_path_and_records_error_telemetry() {
 #[tokio::test(flavor = "current_thread")]
 async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-    #[error("boundary test operation failed")]
-    struct BoundaryTestError {
-        #[source]
-        source: std::io::Error,
+    enum BoundaryTestError {
+        #[error("boundary test operation failed")]
+        Io {
+            #[source]
+            source: std::io::Error,
+        },
     }
     let error_count =
         std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(constants_usize::ZERO));
@@ -346,7 +348,7 @@ async fn http_boundary_emits_one_complete_error_event_only_for_server_errors() {
                 constants_str::test_fixtures::VALUE_40832A7F,
             ),
         ),
-        &BoundaryTestError {
+        &BoundaryTestError::Io {
             source: std::io::Error::other(constants_str::test_fixtures::VALUE_4332EB14),
         },
     );

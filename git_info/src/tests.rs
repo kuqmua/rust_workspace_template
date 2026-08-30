@@ -54,7 +54,10 @@ fn assert_commit_id_cow_and_fallback_calls(
     let commit_id = crate::git_commit_id_provider::GitCommitIdProvider::git_commit_id_cow(v);
     assert_eq!(commit_id.as_ref(), exp_commit_id);
     assert_eq!(
-        matches!(&commit_id.0, std::borrow::Cow::Borrowed(_)),
+        matches!(
+            std::borrow::Cow::from(commit_id),
+            std::borrow::Cow::Borrowed(_)
+        ),
         exp_is_borrowed,
     );
     assert_fallback_calls(v, exp_fallback_calls);
@@ -66,7 +69,7 @@ fn assert_commit_len_and_fallback_calls(
 ) {
     let commit_len =
         crate::git_commit_id_provider::GitCommitIdProvider::with_git_commit_id(v, |commit_id| {
-            commit_id.0.len()
+            commit_id.as_ref().len()
         });
     assert_eq!(commit_len, exp_commit_len);
     assert_fallback_calls(v, exp_fallback_calls);
@@ -78,10 +81,10 @@ fn assert_with_git_commit_id_ref_or(
 ) {
     let commit_len = crate::with_git_commit_id_ref_or::with_git_commit_id_ref_or(
         v,
-        |commit_id| commit_id.0.len(),
+        |commit_id| commit_id.as_ref().len(),
         |src| {
             crate::git_commit_id_provider::GitCommitIdProvider::git_commit_id(src)
-                .0
+                .as_ref()
                 .len()
         },
     );
@@ -132,15 +135,15 @@ fn git_commit_link_supports_empty_commit() {
 }
 #[test]
 fn git_commit_link_cow_borrows_static_project_link_for_project_commit() {
-    let project_commit = crate::project_git_info_value::project_git_info_value().commit;
+    let project_commit = crate::project_git_info_value::project_git_info_value().commit();
     let actual = crate::build_git_commit_link_cow::build_git_commit_link_cow(project_commit);
     assert!(
-        matches!(actual.0, std::borrow::Cow::Borrowed(v) if std::ptr::eq(v, crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value().0))
+        matches!(std::borrow::Cow::from(actual), std::borrow::Cow::Borrowed(v) if std::ptr::eq(v, <&str>::from(crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value())))
     );
 }
 #[test]
 fn git_commit_link_uses_static_project_link_for_project_commit() {
-    let project_commit = crate::project_git_info_value::project_git_info_value().commit;
+    let project_commit = crate::project_git_info_value::project_git_info_value().commit();
     let actual = crate::build_git_commit_link::build_git_commit_link(project_commit);
     assert_eq!(
         actual,
@@ -153,13 +156,13 @@ fn git_commit_link_cow_owns_link_for_non_project_commit() {
         constants_str::catalog::TEST_VALUES_WRONG_COMMIT,
     );
     assert!(
-        matches!(actual.0, std::borrow::Cow::Owned(v) if v == expected_git_commit_link("deadbeef"))
+        matches!(std::borrow::Cow::from(actual), std::borrow::Cow::Owned(v) if v == expected_git_commit_link("deadbeef"))
     );
 }
 #[test]
 fn is_project_commit_returns_true_for_project_commit() {
     assert!(crate::check_is_project_commit::check_is_project_commit(
-        crate::project_git_info_value::project_git_info_value().commit
+        crate::project_git_info_value::project_git_info_value().commit()
     ));
 }
 #[test]
@@ -172,7 +175,7 @@ fn is_project_commit_returns_false_for_other_commit() {
 fn validate_project_commit_returns_ok_for_project_commit() {
     assert_eq!(
         crate::validate_project_commit::validate_project_commit(
-            crate::project_git_info_value::project_git_info_value().commit
+            crate::project_git_info_value::project_git_info_value().commit()
         ),
         Ok(())
     );
@@ -182,7 +185,7 @@ fn validate_project_commit_returns_project_link_for_non_project_commit() {
     assert_eq!(
         crate::validate_project_commit::validate_project_commit("deadbeef"),
         Err(
-            crate::validate_project_commit_error::ValidateProjectCommitError(
+            crate::validate_project_commit_error::ValidateProjectCommitError::from(
                 crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value()
             )
         )
@@ -196,13 +199,16 @@ fn validate_project_commit_reuses_static_project_link_ref() {
     .expect_err(constants_str::catalog::VALUE_46BC13A9);
     let project_link =
         crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value();
-    assert!(std::ptr::eq(error.0.0, project_link.0));
+    assert!(std::ptr::eq(
+        <&str>::from(crate::project_git_commit_link_ref::ProjectGitCommitLinkRef::from(error)),
+        <&str>::from(project_link)
+    ));
 }
 #[test]
 fn project_git_commit_link_matches_project_commit() {
     assert_eq!(
         crate::project_git_commit_link::project_git_commit_link(),
-        expected_git_commit_link(crate::project_git_info_value::project_git_info_value().commit)
+        expected_git_commit_link(crate::project_git_info_value::project_git_info_value().commit())
     );
 }
 #[test]
@@ -210,15 +216,15 @@ fn project_git_commit_link_ref_is_static_and_stable() {
     let first = crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value();
     let second = crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value();
     assert_eq!(first, second);
-    assert!(std::ptr::eq(first.0, second.0));
+    assert!(std::ptr::eq(<&str>::from(first), <&str>::from(second)));
 }
 #[test]
 fn project_git_info_returns_commit_link() {
-    let git_info = crate::project_git_info::ProjectGitInfo {
-        commit: crate::git_commit_id_ref::GitCommitIdRef::from(
+    let git_info = crate::project_git_info::ProjectGitInfo::from(
+        crate::git_commit_id_ref::GitCommitIdRef::from(
             constants_str::catalog::TEST_VALUES_WRONG_COMMIT,
         ),
-    };
+    );
     let link =
         crate::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link(&git_info);
     assert_expected_git_commit_link(&link, constants_str::catalog::TEST_VALUES_WRONG_COMMIT);
@@ -264,7 +270,7 @@ fn git_commit_id_or_else_prefers_borrowed_ref_without_fallback() {
     );
     assert_eq!(commit, "cafebabe");
     assert_fallback_calls(&test_git_commit, 0);
-    assert!(fallback.0.is_none());
+    assert!(fallback.is_none());
 }
 #[test]
 fn git_commit_id_cow_returns_owned_without_ref() {
@@ -283,14 +289,14 @@ fn git_commit_link_prefers_borrowed_commit_id() {
 }
 #[test]
 fn git_commit_link_cow_borrows_project_link_for_project_commit() {
-    let git_info = crate::project_git_info::ProjectGitInfo {
-        commit: crate::project_git_info_value::project_git_info_value().commit,
-    };
+    let git_info = crate::project_git_info::ProjectGitInfo::from(
+        crate::project_git_info_value::project_git_info_value().commit(),
+    );
     let link = crate::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
         &git_info,
     );
     assert!(
-        matches!(link.0, std::borrow::Cow::Borrowed(v) if std::ptr::eq(v, crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value().0))
+        matches!(std::borrow::Cow::from(link), std::borrow::Cow::Borrowed(v) if std::ptr::eq(v, <&str>::from(crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value())))
     );
 }
 #[test]
@@ -370,11 +376,9 @@ fn git_commit_link_works_for_cow_str() {
 }
 #[test]
 fn project_git_info_as_ref_returns_commit() {
-    let info = crate::project_git_info::ProjectGitInfo {
-        commit: crate::git_commit_id_ref::GitCommitIdRef::from(
-            constants_str::catalog::TEST_VALUES_COMMIT,
-        ),
-    };
+    let info = crate::project_git_info::ProjectGitInfo::from(
+        crate::git_commit_id_ref::GitCommitIdRef::from(constants_str::catalog::TEST_VALUES_COMMIT),
+    );
     assert_eq!(info.as_ref(), "abc123");
 }
 #[test]

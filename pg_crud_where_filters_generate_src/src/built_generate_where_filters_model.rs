@@ -1,10 +1,36 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct BuiltGenerateWhereFiltersModel {
-    pub(super) config:
+    config: crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
+    contract_valid: crate::filter_spec_valid::FilterSpecValid,
+}
+
+impl
+    From<(
         crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
-    pub(super) contract_valid: crate::filter_spec_valid::FilterSpecValid,
+        crate::filter_spec_valid::FilterSpecValid,
+    )> for BuiltGenerateWhereFiltersModel
+{
+    fn from(
+        value: (
+            crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
+            crate::filter_spec_valid::FilterSpecValid,
+        ),
+    ) -> Self {
+        Self {
+            config: value.0,
+            contract_valid: value.1,
+        }
+    }
+}
+
+impl BuiltGenerateWhereFiltersModel {
+    #[must_use]
+    pub(crate) const fn into_parts(
+        self,
+    ) -> (
+        crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
+        crate::filter_spec_valid::FilterSpecValid,
+    ) {
+        (self.config, self.contract_valid)
+    }
 }

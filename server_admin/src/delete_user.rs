@@ -6,22 +6,9 @@ pub(crate) async fn delete_user(
         crate::user_id_form::UserIdForm,
     >,
 ) -> axum::response::Response {
-    if !bool::from(form.confirmation) {
-        return axum::response::IntoResponse::into_response(
-            crate::admin_error::AdminError::Validation,
-        );
-    }
-    crate::authenticated_action_impl::authenticated_action_impl(
+    crate::delete_confirmed_entity::delete_confirmed_entity(
         auth,
-        server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
-        |auth| {
-            crate::user_mutations_delete::user_mutations_delete(
-                auth,
-                crate::axum_admin_path::AxumAdminPath(crate::user_path_impl::user_path_impl(
-                    form.user_id,
-                )),
-            )
-        },
+        crate::confirmed_delete_target::ConfirmedDeleteTarget::User(form),
     )
     .await
 }

@@ -1,6 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_accessor::Getters)]
 pub(crate) struct NotificationState {
-    metrics: crate::metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer,
+    metrics: crate::notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer,
     pool: app_state::sqlx_pg_pool::SqlxPgPool,
     project_git_info: git_info::project_git_info::ProjectGitInfo<'static>,
 }
@@ -11,7 +11,7 @@ pub(crate) struct NotificationState {
 impl NotificationState {
     #[allow(clippy::single_call_fn)] // service startup owns construction while tests reuse it under cfg(test)
     pub(crate) const fn new(
-        metrics: crate::metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer,
+        metrics: crate::notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer,
         pool: app_state::sqlx_pg_pool::SqlxPgPool,
         project_git_info: git_info::project_git_info::ProjectGitInfo<'static>,
     ) -> Self {

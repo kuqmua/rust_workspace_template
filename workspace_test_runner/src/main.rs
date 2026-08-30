@@ -539,7 +539,7 @@ fn main() {
         Some(constants_str::catalog::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
             (|| {
                 let where_filters_values = (constants_i32::ZERO..64i32).collect::<Vec<i32>>();
-                let where_filters_bounded_vec = match where_filters::bounded_vec::BoundedVec::<
+                let where_filters_bounded_vec = match where_filters::pg_filter_vec::PgFilterVec::<
                     i32,
                     64,
                 >::try_from(
@@ -932,7 +932,7 @@ fn main() {
                 .join(constants_str::catalog::GENERATE_PG_TABLE_TESTS_RS);
             let generate_pg_table_tests_stage_output =
                 match server_runtime_http::read_bounded_file::read_bounded_file(
-                    server_runtime_http::path_ref::PathRef::from(
+                    server_runtime_http::runtime_path_ref::RuntimePathRef::from(
                         generate_pg_table_tests_stage_output_path.as_path(),
                     ),
                     server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
@@ -1183,7 +1183,7 @@ fn main() {
             }
             let where_filters_values = (constants_i32::ZERO..64i32).collect::<Vec<i32>>();
             let where_filters_bounded_vec =
-                match where_filters::bounded_vec::BoundedVec::<i32, 64>::try_from(
+                match where_filters::pg_filter_vec::PgFilterVec::<i32, 64>::try_from(
                     where_filters_values,
                 ) {
                     Ok(value) => value,

@@ -5,17 +5,19 @@ pub fn resolve_fallback_response_mode(
     accept: crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef<'_>,
     maximum_accept_bytes: crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes,
 ) -> crate::fallback_response_mode::FallbackResponseMode {
-    let normalized_api_prefix = api_prefix.0.strip_suffix('/').unwrap_or(api_prefix.0);
-    let api_path = request_path.0 == normalized_api_prefix
-        || request_path
-            .0
+    let request_path_text = request_path.get();
+    let api_prefix_text = api_prefix.get();
+    let metrics_path_text = metrics_path.get();
+    let normalized_api_prefix = api_prefix_text.strip_suffix('/').unwrap_or(api_prefix_text);
+    let api_path = request_path_text == normalized_api_prefix
+        || request_path_text
             .strip_prefix(normalized_api_prefix)
             .is_some_and(|suffix| suffix.starts_with('/'));
-    if api_path || request_path.0 == metrics_path.0 {
+    if api_path || request_path_text == metrics_path_text {
         return crate::fallback_response_mode::FallbackResponseMode::MachineReadable;
     }
     let accepts_json = accept
-        .0
+        .get()
         .filter(|value| value.as_bytes().len() <= maximum_accept_bytes.0)
         .and_then(|value| value.to_str().ok())
         .is_some_and(|value| {

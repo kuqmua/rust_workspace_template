@@ -454,7 +454,7 @@ mod flow {
         .await
         .expect("676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         server_admin::validate_catalog_schema::validate_catalog_schema(
-            pg_crud_common::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
+            pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
             pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
                 constants_str::catalog::PUBLIC,
             ),
@@ -510,7 +510,7 @@ mod flow {
         >(constants_str::catalog::CORRECT_PASSWORD)
         .expect("703a8df2 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let hasher = server_admin::admin_password_hasher::AdminPasswordHasher::new(
-            server_admin::admin_password_hash_concurrency::AdminPasswordHashConcurrency::from(
+            server_admin::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
                 std::num::NonZeroUsize::new(1).expect(
                     "271f96d4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
                 ),
@@ -3208,7 +3208,7 @@ mod maintenance {
             .await
             .expect("4b6c3bd6 postgresql_migration_creates_complete_schema invariant must hold");
         server_admin::validate_catalog_schema::validate_catalog_schema(
-            pg_crud_common::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&fresh_pool),
+            pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
             pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
                 constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST,
             ),
@@ -3216,7 +3216,7 @@ mod maintenance {
         .await
         .expect("fac299aa postgresql_migration_creates_complete_schema invariant must hold");
         let catalog_snapshot = pg_crud_common::inspect_postgres_catalog::inspect_postgres_catalog(
-            pg_crud_common::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&fresh_pool),
+            pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
             pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
                 constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST,
             ),
@@ -3229,7 +3229,9 @@ mod maintenance {
                 .into_iter()
                 .map(async |table| {
                     pg_crud_common::inspect_postgres_table::inspect_postgres_table(
-                        pg_crud_common::sqlx_pg_pool_ref::SqlxPgPoolRef::from(fresh_pool_ref),
+                        pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(
+                            fresh_pool_ref,
+                        ),
                         pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
                             constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST,
                         ),
@@ -3631,7 +3633,7 @@ mod schema {
             "9eceddf1 generated_admin_descriptors_match_applied_migrations invariant must hold",
         );
         server_admin::validate_catalog_schema::validate_catalog_schema(
-            pg_crud_common::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
+            pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
             pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
                 constants_str::catalog::PUBLIC,
             ),
@@ -4108,7 +4110,7 @@ async fn admin_html_test_fixture_with_password_change(
     >(constants_str::catalog::CORRECT_PASSWORD)
     .expect("d20a35e4 admin_html_test_fixture_with_password_change invariant must hold");
     let hasher = server_admin::admin_password_hasher::AdminPasswordHasher::new(
-        server_admin::admin_password_hash_concurrency::AdminPasswordHashConcurrency::from(
+        server_admin::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
             std::num::NonZeroUsize::new(constants_usize::ONE).expect(
                 "560498ab admin_html_test_fixture_with_password_change invariant must hold",
             ),

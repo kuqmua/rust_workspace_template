@@ -5,13 +5,13 @@ pub trait GitCommitIdProvider {
             self,
             |commit_id| {
                 crate::git_commit_id_cow::GitCommitIdCow::try_from(std::borrow::Cow::Borrowed(
-                    commit_id.0,
+                    <&str>::from(commit_id),
                 ))
                 .unwrap_or_else(crate::git_commit_id_cow::GitCommitIdCow::from)
             },
             |src| {
                 crate::git_commit_id_cow::GitCommitIdCow::try_from(std::borrow::Cow::Owned(
-                    src.git_commit_id().0,
+                    String::from(src.git_commit_id()),
                 ))
                 .unwrap_or_else(crate::git_commit_id_cow::GitCommitIdCow::from)
             },
@@ -25,12 +25,10 @@ pub trait GitCommitIdProvider {
             self,
             |commit_id| commit_id,
             |src| {
-                fallback
-                    .0
-                    .get_or_insert_with(|| src.git_commit_id())
-                    .0
-                    .as_str()
-                    .into()
+                let fallback_commit = fallback.get_or_insert_with(|| src.git_commit_id());
+                crate::git_commit_id_ref::GitCommitIdRef::from(AsRef::<str>::as_ref(
+                    &*fallback_commit,
+                ))
             },
         )
     }

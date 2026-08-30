@@ -1,12 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
 )]
-pub struct StorageRelativePathBuf(pub(super) std::path::PathBuf);
+pub struct StorageRelativePathBuf(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for StorageRelativePathBuf {
     type Error = crate::file_storage_path_error::FileStoragePathError;
     fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {

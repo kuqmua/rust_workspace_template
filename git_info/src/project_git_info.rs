@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     serde_derive::Serialize,
@@ -14,7 +10,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct ProjectGitInfo<'commit_lt> {
-    pub(super) commit: crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>,
+    commit: crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>,
 }
 impl<'commit_lt> ProjectGitInfo<'commit_lt> {
     #[must_use]
@@ -31,6 +27,6 @@ impl<'commit_lt> From<crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>>
 }
 impl AsRef<str> for ProjectGitInfo<'_> {
     fn as_ref(&self) -> &str {
-        self.commit.0
+        <&str>::from(self.commit)
     }
 }

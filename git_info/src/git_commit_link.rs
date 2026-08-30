@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -20,10 +16,10 @@
         } else { Ok(()) }
     }
 )]
-pub struct GitCommitLink(pub(super) String);
+pub struct GitCommitLink(String);
 impl From<crate::git_commit_link_cow::GitCommitLinkCow> for GitCommitLink {
     fn from(value: crate::git_commit_link_cow::GitCommitLinkCow) -> Self {
-        Self::try_from(value.0.into_owned()).unwrap_or_else(Self::from)
+        Self::try_from(std::borrow::Cow::from(value).into_owned()).unwrap_or_else(Self::from)
     }
 }
 impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError>
@@ -37,6 +33,6 @@ impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStri
 }
 impl PartialEq<crate::project_git_commit_link_ref::ProjectGitCommitLinkRef> for GitCommitLink {
     fn eq(&self, other: &crate::project_git_commit_link_ref::ProjectGitCommitLinkRef) -> bool {
-        self.0 == other.0
+        self.as_ref() == <&str>::from(*other)
     }
 }

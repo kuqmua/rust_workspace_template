@@ -56,14 +56,14 @@ async fn stale_staging_cleanup_is_bounded_and_removes_regular_files() {
         .expect("eb46d89c stale_staging_cleanup_is_bounded_and_removes_regular_files invariant must hold");
     assert_eq!(
         report,
-        crate::stale_staging_cleanup_report::StaleStagingCleanupReport {
-            removed: crate::std_stale_staging_entry_count::StdStaleStagingEntryCount::from(
+        crate::stale_staging_cleanup_report::StaleStagingCleanupReport::from((
+            crate::std_stale_staging_entry_count::StdStaleStagingEntryCount::from(
                 constants_usize::ONE
             ),
-            scanned: crate::std_stale_staging_entry_count::StdStaleStagingEntryCount::from(
+            crate::std_stale_staging_entry_count::StdStaleStagingEntryCount::from(
                 constants_usize::ONE
             ),
-        }
+        ))
     );
     let mut remaining_entries = tokio::fs::read_dir(
         root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY),
@@ -188,7 +188,7 @@ async fn staged_upload_delete_and_rollback_preserve_transaction_boundaries() {
         .commit_upload(&operation_id, &relative_path)
         .await
         .expect("217f53e4 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
-    let _metadata_after_upload = tokio::fs::metadata(root_path.join(&relative_path.0))
+    let _metadata_after_upload = tokio::fs::metadata(root_path.join(relative_path.as_ref()))
         .await
         .expect("a28e410c staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
     storage
@@ -199,7 +199,8 @@ async fn staged_upload_delete_and_rollback_preserve_transaction_boundaries() {
         .rollback_delete(&operation_id, &relative_path)
         .await
         .expect("1cd05291 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
-    let _metadata_after_delete_rollback = tokio::fs::metadata(root_path.join(&relative_path.0))
+    let _metadata_after_delete_rollback =
+        tokio::fs::metadata(root_path.join(relative_path.as_ref()))
         .await
         .expect("3c48b27d staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
     let replacement_operation_id = crate::std_storage_operation_id::StdStorageOperationId::try_from(String::from(
@@ -217,7 +218,7 @@ async fn staged_upload_delete_and_rollback_preserve_transaction_boundaries() {
         .await
         .expect("a1ea86b8 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold");
     assert_eq!(
-        tokio::fs::read(root_path.join(&relative_path.0))
+        tokio::fs::read(root_path.join(relative_path.as_ref()))
             .await
             .expect("571084e8 staged_upload_delete_and_rollback_preserve_transaction_boundaries invariant must hold"),
         vec![4u8, 5u8],

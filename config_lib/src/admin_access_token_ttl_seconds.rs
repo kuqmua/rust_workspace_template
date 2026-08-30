@@ -12,7 +12,7 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct AdminAccessTokenTtlSeconds(pub(super) std::num::NonZeroU64);
+pub struct AdminAccessTokenTtlSeconds(std::num::NonZeroU64);
 
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminAccessTokenTtlSeconds {
     type Error = crate::try_from_std_env_var_ok_admin_positive_u64_error::TryFromStdEnvVarOkAdminPositiveU64Error;

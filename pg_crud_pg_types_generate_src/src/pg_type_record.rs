@@ -18,7 +18,7 @@
 )]
 #[serde(try_from = "crate::pg_type_record_raw::PgTypeRecordRaw")]
 pub(super) struct PgTypeRecord {
-    pub(super) pg_type: crate::pg_type::PgType,
+    pub(super) pg_type: crate::pg_type_catalog_kind::PgTypeCatalogKind,
     pub(super) is_nullable: pg_crud_macro_common::is_nullable::IsNullable,
     pub(super) pg_type_pattern: crate::pg_type_pattern::PgTypePattern,
 }

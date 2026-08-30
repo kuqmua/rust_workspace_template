@@ -11,7 +11,9 @@ pub(crate) fn synchronize_cargo_owned_projection(
         ),
     );
     let _arguments = command
-        .current_dir(macro_helpers::path_ref::PathRef::from(root.get()))
+        .current_dir(macro_helpers::macro_path_ref::MacroPathRef::from(
+            root.get(),
+        ))
         .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
             arguments.get(),
         ));

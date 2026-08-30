@@ -100,12 +100,12 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
         impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for #name {
             type Error = #error_name;
             fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-                if v.0.is_empty() {
+                if v.is_empty() {
                     return Err(Self::Error::IsEmpty {
                         is_empty: constants_str::catalog::CONFIG_ENV_VALUE_IS_EMPTY_MSG,
                     });
                 }
-                crate::std_config_secret_string::StdConfigSecretString::try_from(v.0)
+                crate::std_config_secret_string::StdConfigSecretString::try_from(String::from(v))
                     .map(|bounded| Self(secrecy::SecretBox::new(Box::new(bounded))))
                     .map_err(|_error| Self::Error::TooLong)
             }
@@ -242,7 +242,7 @@ fn impl_try_from_parse_with_error_ty(
                 type Error = #error_name;
                 fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
                     crate::parse_from_str_with_error::parse_from_str_with_error(
-                        crate::std_env_var_ok_ref::StdEnvVarOkRef(v.0.as_str()),
+                        crate::std_env_var_ok_ref::StdEnvVarOkRef::from(v.as_str()),
                         |#error_field| Self::Error::#error_variant { #error_field },
                     )
                     .map(Self)

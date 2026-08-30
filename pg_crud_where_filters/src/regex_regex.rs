@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     Debug,
     Clone,
@@ -16,7 +11,12 @@
     newtype::IntoInnerFrom,
 )]
 #[serde(try_from = "String", into = "String")]
-pub struct RegexRegex(pub(super) String);
+pub struct RegexRegex(String);
+impl From<crate::default_regex_pattern::DefaultRegexPattern> for RegexRegex {
+    fn from(_value: crate::default_regex_pattern::DefaultRegexPattern) -> Self {
+        Self(String::from(constants_str::catalog::A_Z_PLUS))
+    }
+}
 impl utoipa::PartialSchema for RegexRegex {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()

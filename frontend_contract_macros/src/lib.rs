@@ -5,6 +5,9 @@
 mod contract_struct_api_args;
 mod contract_struct_api_field_args;
 
+mod contract_syn_expr;
+mod contract_syn_ident;
+mod contract_syn_type;
 mod endpoint_registry_args;
 mod endpoint_registry_binding;
 mod page_catalog_args;
@@ -20,15 +23,12 @@ mod syn_endpoint_registry_bindings;
 mod syn_endpoint_registry_contract;
 mod syn_endpoint_registry_endpoint;
 mod syn_endpoint_registry_state;
-mod syn_expr;
-mod syn_ident;
 mod syn_route_registry_bindings;
 mod syn_route_registry_endpoint;
 mod syn_route_registry_family;
 mod syn_route_registry_route;
 mod syn_route_registry_schemas;
 mod syn_route_registry_state;
-mod syn_type;
 mod syn_typed_route_errors;
 mod typed_route_args;
 
@@ -82,9 +82,13 @@ impl syn::parse::Parse for route_catalog_route_args::RouteCatalogRouteArgs {
                 } else {
                     let _equals = input.parse::<syn::Token![=]>()?;
                     if name == constants_str::test_fixtures::ROUTE_CATALOG_CONTRACT {
-                        contract = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                        contract = Some(contract_syn_expr::ContractSynExpr::from(
+                            input.parse::<syn::Expr>()?,
+                        ));
                     } else if name == constants_str::test_fixtures::ROUTE_CATALOG_PATH {
-                        path = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                        path = Some(contract_syn_expr::ContractSynExpr::from(
+                            input.parse::<syn::Expr>()?,
+                        ));
                     } else {
                         return Err(syn::Error::new_spanned(
                             name,
@@ -106,7 +110,9 @@ impl syn::parse::Parse for route_catalog_route_args::RouteCatalogRouteArgs {
             Ok(Self::new(
                 None,
                 None,
-                Some(syn_type::SynType::from(input.parse::<syn::Type>()?)),
+                Some(contract_syn_type::ContractSynType::from(
+                    input.parse::<syn::Type>()?,
+                )),
                 std_bool::StdBool::from(false),
             ))
         }
@@ -501,7 +507,7 @@ pub fn derive_contract_struct_api(
                             .path
                             .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_SLICE)
                         {
-                            *field_args.get_slice_mut() = Some(syn_type::SynType::from(
+                            *field_args.get_slice_mut() = Some(contract_syn_type::ContractSynType::from(
                                 metadata.value()?.parse::<syn::Type>()?,
                             ));
                             Ok(())
@@ -678,9 +684,10 @@ impl syn::parse::Parse for route_registry_args::RouteRegistryArgs {
         let security_content;
         let _security_parenthesis = syn::parenthesized!(security_content in input);
         let authenticated_security =
-            syn_expr::SynExpr::from(security_content.parse::<syn::Expr>()?);
+            contract_syn_expr::ContractSynExpr::from(security_content.parse::<syn::Expr>()?);
         let _comma = security_content.parse::<syn::Token![,]>()?;
-        let csrf_security = syn_expr::SynExpr::from(security_content.parse::<syn::Expr>()?);
+        let csrf_security =
+            contract_syn_expr::ContractSynExpr::from(security_content.parse::<syn::Expr>()?);
         let _security_semicolon = input.parse::<syn::Token![;]>()?;
         let schemas_name = input.parse::<syn::Ident>()?;
         if schemas_name != constants_str::catalog::SCHEMAS {
@@ -904,58 +911,87 @@ impl syn::parse::Parse for typed_route_args::TypedRouteArgs {
                 value
                     if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_AUTHENTICATION =>
                 {
-                    authentication = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    authentication = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value
                     if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_ERROR_STATUSES =>
                 {
-                    error_statuses = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    error_statuses = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value
                     if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_ERROR_RESPONSE =>
                 {
-                    error_response = Some(syn_type::SynType::from(input.parse::<syn::Type>()?));
+                    error_response = Some(contract_syn_type::ContractSynType::from(
+                        input.parse::<syn::Type>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_ERROR_POLICY => {
-                    error_policy = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    error_policy = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::METHOD => {
-                    method = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    method = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::OPENAPI_OPERATION_ID => {
-                    openapi_operation_id =
-                        Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    openapi_operation_id = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::MUTATION => {
-                    mutation = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    mutation = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::OBLIGATIONS => {
-                    obligations = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    obligations = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_PATH => {
-                    path = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    path = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value
                     if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_PATH_PARAMETER =>
                 {
-                    path_parameter = Some(syn_type::SynType::from(input.parse::<syn::Type>()?));
+                    path_parameter = Some(contract_syn_type::ContractSynType::from(
+                        input.parse::<syn::Type>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::REQUEST => {
-                    request = Some(syn_type::SynType::from(input.parse::<syn::Type>()?));
+                    request = Some(contract_syn_type::ContractSynType::from(
+                        input.parse::<syn::Type>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_REQUEST_BODY => {
-                    request_body = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    request_body = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::RESPONSE => {
-                    response = Some(syn_type::SynType::from(input.parse::<syn::Type>()?));
+                    response = Some(contract_syn_type::ContractSynType::from(
+                        input.parse::<syn::Type>()?,
+                    ));
                 }
                 value
                     if value == constants_str::test_fixtures::TYPED_ROUTE_FIELD_SUCCESS_STATUS =>
                 {
-                    success_status = Some(syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                    success_status = Some(contract_syn_expr::ContractSynExpr::from(
+                        input.parse::<syn::Expr>()?,
+                    ));
                 }
                 value if value == constants_str::test_fixtures::TRANSPORT => {
-                    transport = Some(syn_type::SynType::from(input.parse::<syn::Type>()?));
+                    transport = Some(contract_syn_type::ContractSynType::from(
+                        input.parse::<syn::Type>()?,
+                    ));
                 }
                 _ => {
                     return Err(syn::Error::new_spanned(
@@ -1790,7 +1826,7 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
     let mut family_routes = Vec::with_capacity(variants_capacity);
     let mut path_arms = Vec::with_capacity(variants_capacity);
     let mut custom_route_functions = Vec::with_capacity(variants_capacity);
-    let snake_case_identifier = |identifier: syn_ident::SynIdent| {
+    let snake_case_identifier = |identifier: contract_syn_ident::ContractSynIdent| {
         let identifier_value = identifier.as_ref().to_string();
         let value = identifier_value.chars().enumerate().fold(
             String::with_capacity(identifier_value.len().saturating_mul(2usize)),
@@ -1890,8 +1926,9 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 };
                 let contract_expression = contract.as_ref();
                 let path_expression = path.as_ref();
-                let (wrapped_identifier, variant_name) =
-                    snake_case_identifier(syn_ident::SynIdent::from(variant_identifier));
+                let (wrapped_identifier, variant_name) = snake_case_identifier(
+                    contract_syn_ident::ContractSynIdent::from(variant_identifier),
+                );
                 let custom_identifier = wrapped_identifier.into_inner();
                 let route_function_identifier =
                     quote::format_ident!("{}_route", variant_name, span = custom_identifier.span());

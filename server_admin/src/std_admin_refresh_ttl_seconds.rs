@@ -19,7 +19,7 @@ impl TryFrom<u64> for StdAdminRefreshTtlSeconds {
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         std::num::NonZeroU64::new(value)
             .map(Self::from)
-            .ok_or(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError)
+            .ok_or(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero)
     }
 }
 impl StdAdminRefreshTtlSeconds {

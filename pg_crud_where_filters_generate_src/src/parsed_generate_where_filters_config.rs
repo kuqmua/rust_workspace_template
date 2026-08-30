@@ -1,11 +1,19 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(Clone, Copy, Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ParsedGenerateWhereFiltersConfig {
-    pub(super) pg_types_write_into_file:
+    pg_types_write_into_file:
         macro_helpers::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile,
-    pub(super) whole_write_into_file:
+    whole_write_into_file:
         macro_helpers::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile,
+}
+
+impl ParsedGenerateWhereFiltersConfig {
+    #[must_use]
+    pub(crate) const fn into_parts(
+        self,
+    ) -> (
+        macro_helpers::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile,
+        macro_helpers::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile,
+    ) {
+        (self.pg_types_write_into_file, self.whole_write_into_file)
+    }
 }

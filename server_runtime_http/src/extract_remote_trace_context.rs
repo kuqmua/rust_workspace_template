@@ -4,7 +4,7 @@ pub fn extract_remote_trace_context(
 ) -> crate::opentelemetry_context::OpentelemetryContext {
     opentelemetry::global::get_text_map_propagator(|propagator| {
         crate::opentelemetry_context::OpentelemetryContext::from(propagator.extract(
-            &crate::http_header_extractor::HttpHeaderExtractor::from(headers.0),
+            &crate::http_header_extractor::HttpHeaderExtractor::from(headers.get()),
         ))
     })
 }

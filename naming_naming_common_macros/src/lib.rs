@@ -88,7 +88,7 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                 crate::to_token_stream_or_panic::to_token_stream_or_panic(
                     &#str_trait_identifier::case(self),
                 )
-                .0
+                .into_inner()
             }
         }
     }

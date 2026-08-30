@@ -35,7 +35,7 @@ impl crate::admin_auth_svc_state::AdminAuthSvcState {
             )
             .map_err(|_error| crate::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError::AllowedOrigin)?,
             audience: audience.clone(),
-            cookie_secure: crate::admin_cookie_secure::AdminCookieSecure::from(**cookie_secure),
+            cookie_secure: crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(**cookie_secure),
             decoding_keys: jwt_secret
                 .verification_secrets()
                 .iter()
@@ -52,7 +52,7 @@ impl crate::admin_auth_svc_state::AdminAuthSvcState {
             ),
             issuer: issuer.clone(),
             password_hasher: crate::admin_password_hasher::AdminPasswordHasher::new(
-                crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency::from(
+                crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
                     std::num::NonZeroUsize::new(password_hash_concurrency.get())
                         .ok_or(crate::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError::PasswordHashConcurrency)?,
                 ),

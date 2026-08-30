@@ -4,17 +4,16 @@ pub async fn reset_admin_password(
     password: server_admin_contract::admin_new_password::AdminNewPassword,
     password_hasher: &crate::admin_password_hasher::AdminPasswordHasher,
 ) -> Result<
-    server_admin_core::admin_user_id::AdminUserId,
+    server_admin_core::admin_user_record_id::AdminUserRecordId,
     crate::admin_password_reset_error::AdminPasswordResetError,
 > {
     let password_hash = password_hasher
         .hash(
-            crate::admin_password::AdminPassword::try_from(password.into_inner()).map_err(
-                |password_error| {
+            crate::runtime_admin_password::RuntimeAdminPassword::try_from(password.into_inner())
+                .map_err(|password_error| {
                     let _error_text = format!("{password_error:?}");
                     crate::admin_password_reset_error::AdminPasswordResetError::InvalidPassword
-                },
-            )?,
+                })?,
         )
         .await
         .map_err(crate::admin_password_reset_error::AdminPasswordResetError::PasswordHash)?;
@@ -49,7 +48,7 @@ pub async fn reset_admin_password(
             crate::sqlx_admin_error::SqlxAdminError::from(error),
         )
     })?;
-    let user_id = server_admin_core::admin_user_id::AdminUserId::try_from(
+    let user_id = server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(
         optional_user_id
             .ok_or(crate::admin_password_reset_error::AdminPasswordResetError::UnknownLogin)?,
     )

@@ -7,14 +7,14 @@ mod tests {
                 std::time::Duration::ZERO
             )
             .err(),
-            Some(crate::std_reqwest_timeout_error::StdReqwestTimeoutError)
+            Some(crate::std_reqwest_timeout_error::StdReqwestTimeoutError::Zero)
         );
         assert_eq!(
             crate::reqwest_request_timeout_duration::ReqwestRequestTimeoutDuration::try_from(
                 std::time::Duration::ZERO
             )
             .err(),
-            Some(crate::std_reqwest_timeout_error::StdReqwestTimeoutError)
+            Some(crate::std_reqwest_timeout_error::StdReqwestTimeoutError::Zero)
         );
     }
 }

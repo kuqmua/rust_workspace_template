@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -12,9 +8,10 @@
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefStr,
     newtype::Display,
+    newtype::IntoInnerFrom,
 )]
 #[serde(try_from = "String")]
-pub struct GitCommitLinkCow(pub(super) std::borrow::Cow<'static, str>);
+pub struct GitCommitLinkCow(std::borrow::Cow<'static, str>);
 impl TryFrom<String> for GitCommitLinkCow {
     type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {

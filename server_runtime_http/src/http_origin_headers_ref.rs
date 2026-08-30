@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpOriginHeadersRef<'header>(pub(super) &'header http::HeaderMap);
+pub struct HttpOriginHeadersRef<'header>(&'header http::HeaderMap);
+
+impl<'header> HttpOriginHeadersRef<'header> {
+    pub(crate) const fn get(self) -> &'header http::HeaderMap {
+        self.0
+    }
+}

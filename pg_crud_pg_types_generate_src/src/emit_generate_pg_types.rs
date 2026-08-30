@@ -105,9 +105,9 @@ pub fn emit_generate_pg_types(
     let update_upper_camel_case = naming::domain_types::UpdateUpperCamelCase;
     let v_snake_case = naming::domain_types::VSnakeCase;
     let (cols_token_stream_vec, mut pg_type_array_vec) = {
-        let generate_variants = |should_include: &dyn Fn(&crate::pg_type::PgType) -> bool| {
+        let generate_variants = |should_include: &dyn Fn(&crate::pg_type_catalog_kind::PgTypeCatalogKind) -> bool| {
             let pg_type_iter =
-                <crate::pg_type::PgType as strum::IntoEnumIterator>::iter().filter(|element| should_include(element));
+                <crate::pg_type_catalog_kind::PgTypeCatalogKind as strum::IntoEnumIterator>::iter().filter(|element| should_include(element));
             let capacity = pg_type_iter.size_hint().1.unwrap_or_default().saturating_mul(2);
             pg_type_iter.fold(Vec::with_capacity(capacity), |mut acc0, element| {
                 match &crate::pg_type_can_be_nullable::pg_type_can_be_nullable(element.spec()) {
@@ -137,7 +137,7 @@ pub fn emit_generate_pg_types(
                 let type_set = types
                     .iter()
                     .copied()
-                    .collect::<std::collections::HashSet<crate::pg_type::PgType>>();
+                    .collect::<std::collections::HashSet<crate::pg_type_catalog_kind::PgTypeCatalogKind>>();
                 generate_variants(&|pg_type| type_set.contains(pg_type))
             }
             crate::generate_pg_types_config_variant::GeneratePgTypesConfigVariant::Concrete(v) => Vec::from(v),
@@ -241,7 +241,7 @@ pub(super) enum IntRangeType {
         let maybe_dot_clone_token_stream: &dyn quote::ToTokens = if matches!(&pg_type_pattern, crate::pg_type_pattern::PgTypePattern::Standard) &&
             matches!(&is_nullable, pg_crud_macro_common::is_nullable::IsNullable::False) && !matches!(
                 pg_type,
-                crate::pg_type::PgType::StdVecVecU8AsBytea | crate::pg_type::PgType::StringAsText
+                crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
             )
         {
             &empty_token_stream
@@ -250,7 +250,7 @@ pub(super) enum IntRangeType {
         };
         let generate_v_initialization_ts0 = |ts: &dyn quote::ToTokens| pg_crud_macro_common::generate_v_initialization_token_stream::generate_v_initialization_token_stream(&import, &ts);
         let generate_identifier_str = |
-            pg_type_parameter: &crate::pg_type::PgType,
+            pg_type_parameter: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
             is_nullable_parameter: &pg_crud_macro_common::is_nullable::IsNullable,
             _pg_type_pattern_parameter: &crate::pg_type_pattern::PgTypePattern
         | {
@@ -261,7 +261,7 @@ pub(super) enum IntRangeType {
             format!("{is_nullable_rust}{rust_type_name}{as_upper_camel_case}{non_null_or_nullable_str}{pg_type_name}")
         };
         let generate_identifier_token_stream = |
-            pg_type_parameter: &crate::pg_type::PgType,
+            pg_type_parameter: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
             is_nullable_parameter: &pg_crud_macro_common::is_nullable::IsNullable,
             pg_type_pattern_parameter: &crate::pg_type_pattern::PgTypePattern
         | {
@@ -274,7 +274,7 @@ pub(super) enum IntRangeType {
             quote::quote! {#identifier}
         };
         let identifier = &generate_identifier_token_stream(pg_type, is_nullable, pg_type_pattern);
-        let generate_identifier_standard_non_null_token_stream = |v: &crate::pg_type::PgType| generate_identifier_token_stream(v, &pg_crud_macro_common::is_nullable::IsNullable::False, &crate::pg_type_pattern::PgTypePattern::Standard);
+        let generate_identifier_standard_non_null_token_stream = |v: &crate::pg_type_catalog_kind::PgTypeCatalogKind| generate_identifier_token_stream(v, &pg_crud_macro_common::is_nullable::IsNullable::False, &crate::pg_type_pattern::PgTypePattern::Standard);
         let identifier_standard_non_null_upper_camel_case = generate_identifier_standard_non_null_token_stream(pg_type);
         let generate_as_trait_token_stream = |ts: &dyn quote::ToTokens, pg_type_or_pg_type_test_cases: &PgTypeOrPgTypeTestCases| {
             let trait_token_stream = match &pg_type_or_pg_type_test_cases {
@@ -291,7 +291,7 @@ pub(super) enum IntRangeType {
         let identifier_standard_non_null_as_pg_type_token_stream = generate_as_pg_type_token_stream(&identifier_standard_non_null_upper_camel_case);
         let self_pg_type_as_pg_type_token_stream = generate_as_pg_type_token_stream(&quote::quote! {Self::#pg_type_upper_camel_case});
         let identifier_standard_non_null_as_pg_type_test_cases_token_stream = generate_as_pg_type_test_cases_token_stream(&identifier_standard_non_null_upper_camel_case);
-        let generate_identifier_standard_non_null_origin_token_stream = |pg_type_parameter: &crate::pg_type::PgType| naming::parameter::SelfOriginUpperCamelCase::from_tokens(
+        let generate_identifier_standard_non_null_origin_token_stream = |pg_type_parameter: &crate::pg_type_catalog_kind::PgTypeCatalogKind| naming::parameter::SelfOriginUpperCamelCase::from_tokens(
             &generate_identifier_standard_non_null_token_stream(pg_type_parameter)
         );
         let identifier_standard_non_null_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(pg_type);
@@ -318,41 +318,41 @@ pub(super) enum IntRangeType {
                 }
             }
         };
-        let sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate);
-        let sqlx_types_chrono_naive_time_as_non_null_time_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime);
-        let sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp);
-        let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz);
-        let generate_identifier_standard_non_null_origin_try_new_error_token_stream = |pg_type_parameter: &crate::pg_type::PgType| naming::parameter::SelfOriginTryNewErrorUpperCamelCase::from_tokens(
+        let sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate);
+        let sqlx_types_chrono_naive_time_as_non_null_time_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime);
+        let sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp);
+        let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case = generate_identifier_standard_non_null_origin_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz);
+        let generate_identifier_standard_non_null_origin_try_new_error_token_stream = |pg_type_parameter: &crate::pg_type_catalog_kind::PgTypeCatalogKind| naming::parameter::SelfOriginTryNewErrorUpperCamelCase::from_tokens(
             &generate_identifier_standard_non_null_token_stream(pg_type_parameter)
         );
-        let sqlx_types_chrono_naive_date_as_non_null_date_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate);
-        let sqlx_types_chrono_naive_time_as_non_null_time_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime);
-        let sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp);
-        let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz);
+        let sqlx_types_chrono_naive_date_as_non_null_date_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate);
+        let sqlx_types_chrono_naive_time_as_non_null_time_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime);
+        let sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp);
+        let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_try_new_error_upper_camel_case = generate_identifier_standard_non_null_origin_try_new_error_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz);
         let inner_type_standard_non_null_token_stream = match &pg_type {
-            crate::pg_type::PgType::F32AsFloat4 => quote::quote! {f32},
-            crate::pg_type::PgType::F64AsFloat8 => quote::quote! {f64},
-            crate::pg_type::PgType::I16AsInt2 | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg => quote::quote! {i16},
-            crate::pg_type::PgType::I32AsInt4 | crate::pg_type::PgType::I32AsSerialInitializationByPg => quote::quote! {i32},
-            crate::pg_type::PgType::I64AsInt8 | crate::pg_type::PgType::I64AsBigSerialInitializationByPg => quote::quote! {i64},
-            crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney => quote::quote! {sqlx::postgres::types::PgMoney},
-            crate::pg_type::PgType::BoolAsBool => quote::quote! {bool},
-            crate::pg_type::PgType::StringAsText => quote::quote! {String},
-            crate::pg_type::PgType::StdVecVecU8AsBytea => quote::quote! {Vec<u8>},
-            crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => quote::quote! {sqlx::types::chrono::NaiveTime},
-            crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => quote::quote! {sqlx::types::time::Time},
-            crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval => quote::quote! {sqlx::postgres::types::PgInterval},
-            crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => quote::quote! {sqlx::types::chrono::NaiveDate},
-            crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => quote::quote! {sqlx::types::chrono::NaiveDateTime},
-            crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => quote::quote! {sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>},
-            crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => quote::quote! {uuid::Uuid},
-            crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet => quote::quote! {sqlx::types::ipnetwork::IpNetwork},
-            crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {sqlx::types::mac_address::MacAddress},
-            crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => quote::quote! {sqlx::postgres::types::PgRange<i32>},
-            crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {sqlx::postgres::types::PgRange<i64>},
-            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDate>},
-            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDateTime>},
-            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>>},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => quote::quote! {f32},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => quote::quote! {f64},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg => quote::quote! {i16},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg => quote::quote! {i32},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg => quote::quote! {i64},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => quote::quote! {sqlx::postgres::types::PgMoney},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool => quote::quote! {bool},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => quote::quote! {String},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea => quote::quote! {Vec<u8>},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => quote::quote! {sqlx::types::chrono::NaiveTime},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => quote::quote! {sqlx::types::time::Time},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval => quote::quote! {sqlx::postgres::types::PgInterval},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => quote::quote! {sqlx::types::chrono::NaiveDate},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => quote::quote! {sqlx::types::chrono::NaiveDateTime},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => quote::quote! {sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient => quote::quote! {uuid::Uuid},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => quote::quote! {sqlx::types::ipnetwork::IpNetwork},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {sqlx::types::mac_address::MacAddress},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => quote::quote! {sqlx::postgres::types::PgRange<i32>},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {sqlx::postgres::types::PgRange<i64>},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDate>},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDateTime>},
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>>},
         };
         let pg_type_dsc = pg_type.spec();
         let pg_name = crate::pg_name::pg_name(pg_type_dsc);
@@ -625,33 +625,33 @@ pub(super) enum IntRangeType {
         let d_partial_ord = match &is_standard_non_null {
             pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::False => macro_helpers::derive_token_stream_builder::DPartialOrd::False,
             pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True => match &pg_type {
-                crate::pg_type::PgType::I16AsInt2
-                | crate::pg_type::PgType::I32AsInt4
-                | crate::pg_type::PgType::I64AsInt8
-                | crate::pg_type::PgType::F32AsFloat4
-                | crate::pg_type::PgType::F64AsFloat8
-                | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
-                | crate::pg_type::PgType::I32AsSerialInitializationByPg
-                | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
-                | crate::pg_type::PgType::BoolAsBool
-                | crate::pg_type::PgType::StringAsText
-                | crate::pg_type::PgType::StdVecVecU8AsBytea
-                | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
-                | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime
-                | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate
-                | crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                | crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => macro_helpers::derive_token_stream_builder::DPartialOrd::True,
-                crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
-                | crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval
-                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
-                | crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet
-                | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-                | crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range
-                | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range
-                | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-                | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macro_helpers::derive_token_stream_builder::DPartialOrd::False,
+                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg => macro_helpers::derive_token_stream_builder::DPartialOrd::True,
+                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macro_helpers::derive_token_stream_builder::DPartialOrd::False,
             },
         };
         let is_non_null_standard_can_be_primary_key = if matches!((&is_nullable, &pg_type_pattern, &pg_type_can_be_primary_key), (pg_crud_macro_common::is_nullable::IsNullable::False, crate::pg_type_pattern::PgTypePattern::Standard, crate::can_be_primary_key::CanBePrimaryKey::True)) {
@@ -790,19 +790,19 @@ pub(super) enum IntRangeType {
                         #serde_ser_ser_struct_end_token_stream
                     };
                     match &pg_type {
-                        crate::pg_type::PgType::I16AsInt2
-                        | crate::pg_type::PgType::I32AsInt4
-                        | crate::pg_type::PgType::I64AsInt8
-                        | crate::pg_type::PgType::F32AsFloat4
-                        | crate::pg_type::PgType::F64AsFloat8
-                        | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
-                        | crate::pg_type::PgType::I32AsSerialInitializationByPg
-                        | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
-                        | crate::pg_type::PgType::BoolAsBool
-                        | crate::pg_type::PgType::StringAsText
-                        | crate::pg_type::PgType::StdVecVecU8AsBytea
-                        | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Derive,
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet => {
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Derive,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => {
                             pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(
                                 macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                                     generate_impl_ser_for_identifier_standard_non_null_origin_tokens(
@@ -813,9 +813,9 @@ pub(super) enum IntRangeType {
                                 ),
                             )
                         },
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.0}),
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.bytes()}),
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.0}),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => generate_impl_ser_wrapping_self_zero_token_stream(&quote::quote! {.bytes()}),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_field_inner_type_standard_non_null_token_stream_as_chrono_timelike_token_stream = |ts: &dyn quote::ToTokens| {
                                 quote::quote! {&(<#inner_type_standard_non_null_token_stream as chrono::Timelike>::#ts)}
                             };
@@ -830,7 +830,7 @@ pub(super) enum IntRangeType {
                             );
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &min_ser_field_token_stream, &sec_ser_field_token_stream, &micro_ser_field_token_stream)
                         }))),
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_ser_field_self_zero_token_stream = |v: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&self.0.#v()});
                             let hour_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&hour_snake_case);
                             let minute_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&minute_snake_case);
@@ -838,7 +838,7 @@ pub(super) enum IntRangeType {
                             let microsecond_ser_field_token_stream = generate_ser_field_self_zero_token_stream(&microsecond_snake_case);
                             generate_four_field_time_ser_token_stream(&hour_ser_field_token_stream, &minute_ser_field_token_stream, &second_ser_field_token_stream, &microsecond_ser_field_token_stream)
                         }))),
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_serialized_field_token_stream = |v: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens| generate_ser_field_token_stream(&v, &quote::quote! {&#self_dot_zero_token_stream.#v});
                             let months_ser_field_token_stream = generate_serialized_field_token_stream(&months_snake_case);
                             let days_ser_field_token_stream = generate_serialized_field_token_stream(&days_snake_case);
@@ -851,7 +851,7 @@ pub(super) enum IntRangeType {
                                 #serde_ser_ser_struct_end_token_stream
                             }
                         }))),
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_ser_field_try_new_unwrap_token_stream = |date_or_time: &DateOrTime| {
                                 let date_or_time_token_stream: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens = match &date_or_time {
                                     DateOrTime::Date => &date_snake_case,
@@ -881,7 +881,7 @@ pub(super) enum IntRangeType {
                                 #serde_ser_ser_struct_end_token_stream
                             }
                         }))),
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_tokens(&{
                             let generate_ser_field_try_new_unwrap_token_stream = |date_naive_or_time: &DateOrTime| {
                                 let date_naive_or_time_token_stream: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens = match &date_naive_or_time {
                                     DateOrTime::Date => &date_naive_snake_case,
@@ -904,15 +904,15 @@ pub(super) enum IntRangeType {
                                 #serde_ser_ser_struct_end_token_stream
                             }
                         }))),
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(impl_ser_for_uuid_uuid_token_stream)),
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(impl_ser_for_non_null_origin_start_end_token_stream)),
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case))),
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case))),
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case))),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(impl_ser_for_uuid_uuid_token_stream)),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(impl_ser_for_non_null_origin_start_end_token_stream)),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case))),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case))),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(generate_impl_ser_for_identifier_standard_non_null_origin_start_end_range_tokens(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case))),
                     }
                 },
                 match &pg_type {
-                    crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet => {
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => {
                         pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(
                             macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                                 quote::quote! {
@@ -940,32 +940,32 @@ pub(super) enum IntRangeType {
                             ),
                         )
                     },
-                    crate::pg_type::PgType::I16AsInt2
-                    | crate::pg_type::PgType::I32AsInt4
-                    | crate::pg_type::PgType::I64AsInt8
-                    | crate::pg_type::PgType::F32AsFloat4
-                    | crate::pg_type::PgType::F64AsFloat8
-                    | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
-                    | crate::pg_type::PgType::I32AsSerialInitializationByPg
-                    | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
-                    | crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
-                    | crate::pg_type::PgType::BoolAsBool
-                    | crate::pg_type::PgType::StringAsText
-                    | crate::pg_type::PgType::StdVecVecU8AsBytea
-                    | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
-                    | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime
-                    | crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval
-                    | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate
-                    | crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                    | crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                    | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
-                    | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
-                    | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
                         pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Derive
                     },
                 }
@@ -1035,33 +1035,33 @@ pub(super) enum IntRangeType {
             }
         };
         let derive_copy = match &pg_type {
-            crate::pg_type::PgType::I16AsInt2 |
-            crate::pg_type::PgType::I32AsInt4 |
-            crate::pg_type::PgType::I64AsInt8 |
-            crate::pg_type::PgType::F32AsFloat4 |
-            crate::pg_type::PgType::F64AsFloat8 |
-            crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-            crate::pg_type::PgType::I32AsSerialInitializationByPg |
-            crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-            crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-            crate::pg_type::PgType::BoolAsBool |
-            crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime |
-            crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-            crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-            crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-            crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-            crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-            crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-            crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-            crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-            crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-            crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-            crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macro_helpers::derive_token_stream_builder::DCopy::True,
-            crate::pg_type::PgType::StringAsText |
-            crate::pg_type::PgType::StdVecVecU8AsBytea => macro_helpers::derive_token_stream_builder::DCopy::False,
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macro_helpers::derive_token_stream_builder::DCopy::True,
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea => macro_helpers::derive_token_stream_builder::DCopy::False,
         };
         let sqlx_types_chrono_naive_time_min_fn_token_stream = quote::quote! {sqlx_types_chrono_naive_time_min};
         let sqlx_types_chrono_naive_time_ten_fn_token_stream = quote::quote! {sqlx_types_chrono_naive_time_ten};
@@ -1114,7 +1114,7 @@ pub(super) enum IsConst {
                 let maybe_min_inner_type_token_stream = {
                     let generate_min_inner_type_token_stream = |is_const: IsConst, ts: &dyn quote::ToTokens| generate_inner_type_token_stream(is_const, &quote::quote! {min_inner_type}, ts);
                     match &pg_type {
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Some(
                             generate_min_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1122,7 +1122,7 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => Some(
                             generate_min_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
@@ -1130,37 +1130,37 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
                     }
                 };
                 let maybe_slightly_more_than_min_inner_type_token_stream = {
                     let generate_slightly_more_than_min_inner_type_token_stream = |is_const: IsConst, ts: &dyn quote::ToTokens| generate_inner_type_token_stream(is_const, &quote::quote! {slightly_more_than_min_inner_type}, ts);
                     match &pg_type {
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Some(
                             generate_slightly_more_than_min_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1168,7 +1168,7 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => Some(
                             generate_slightly_more_than_min_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
@@ -1176,37 +1176,37 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
                     }
                 };
                 let maybe_middle_inner_type_token_stream = {
                     let generate_middle_inner_type_token_stream = |is_const: IsConst, ts: &dyn quote::ToTokens| generate_inner_type_token_stream(is_const, &quote::quote! {middle_inner_type}, ts);
                     match &pg_type {
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Some(
                             generate_middle_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1214,7 +1214,7 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => Some(
                             generate_middle_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
@@ -1222,7 +1222,7 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => Some(
                             generate_middle_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1230,36 +1230,36 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
                     }
                 };
                 let maybe_slightly_more_than_middle_inner_type_token_stream = {
                     let generate_slightly_more_than_middle_inner_type_token_stream = |is_const: IsConst, ts: &dyn quote::ToTokens| generate_inner_type_token_stream(is_const, &quote::quote! {slightly_more_than_middle_inner_type}, ts);
                     match &pg_type {
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Some(
                             generate_slightly_more_than_middle_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1267,7 +1267,7 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => Some(
                             generate_slightly_more_than_middle_inner_type_token_stream(
                                 IsConst::False,
                                 &quote::quote! {
@@ -1275,37 +1275,37 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
                     }
                 };
                 let maybe_max_inner_type_token_stream = {
                     let generate_max_inner_type_token_stream = |is_const: IsConst, ts: &dyn quote::ToTokens| generate_inner_type_token_stream(is_const, &quote::quote! {max_inner_type}, ts);
                     match &pg_type {
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Some(
                             generate_max_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1313,7 +1313,7 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => Some(
                             generate_max_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1321,37 +1321,37 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
                     }
                 };
                 let maybe_slightly_less_than_max_inner_type_token_stream = {
                     let generate_slightly_less_than_max_inner_type_token_stream = |is_const: IsConst, ts: &dyn quote::ToTokens| generate_inner_type_token_stream(is_const, &quote::quote! {slightly_less_than_max_inner_type}, ts);
                     match &pg_type {
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Some(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Some(
                             generate_slightly_less_than_max_inner_type_token_stream(
                                 IsConst::True,
                                 &quote::quote! {
@@ -1359,32 +1359,32 @@ pub(super) enum IsConst {
                                 }
                             )
                         ),
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
                     }
                 };
                 let maybe_read_inner_inits_token_stream = {
@@ -1397,32 +1397,32 @@ pub(super) enum IsConst {
                         }
                     };
                     match &pg_type {
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => Some({
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Some({
                             let generate_fn_identifier_inner_type_token_stream = |name_token_stream: &dyn quote::ToTokens, parameters_token_stream: &dyn quote::ToTokens| quote::quote! {
                                 const fn #name_token_stream() -> #identifier_inner_type_token_stream {
                                     #identifier_inner_type_token_stream::from_hms_micro_opt(#parameters_token_stream).expect("149e01cc deserialize invariant must hold")
@@ -1436,7 +1436,7 @@ pub(super) enum IsConst {
                             ];
                             quote::quote! {#(#ser_de_array_token_stream)*}
                         }),
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => Some({
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => Some({
                             let ser_de_array_token_stream = {
                                 let generate_fn_identifier_inner_type_token_stream: &dyn Fn(
                                     &dyn quote::ToTokens,
@@ -1537,7 +1537,7 @@ pub(super) enum IsConst {
                 #maybe_impl_identifier_token_stream
             }
         };
-        let sqlx_types_chrono_naive_date_as_date_standard_non_null_orig_token_stream = naming::parameter::SelfOriginUpperCamelCase::from_tokens(&generate_identifier_standard_non_null_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate));
+        let sqlx_types_chrono_naive_date_as_date_standard_non_null_orig_token_stream = naming::parameter::SelfOriginUpperCamelCase::from_tokens(&generate_identifier_standard_non_null_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate));
         let identifier_update_upper_camel_case = naming::parameter::SelfUpdateUpperCamelCase::from_tokens(&identifier);
         let sqlx_encode_self_dot_zero_token_stream = quote::quote! {#self_snake_case.0};
         let identifier_origin_token_stream = {
@@ -1645,33 +1645,33 @@ pub(super) enum IsConst {
                             let generate_serde_from_token_stream = |ts: &dyn quote::ToTokens|quote::quote! {#[serde(from = #ts)]};
                             let generate_serde_try_from_token_stream = |ts: &dyn quote::ToTokens|quote::quote! {#[serde(try_from = #ts)]};
                             match &pg_type {
-                            crate::pg_type::PgType::I16AsInt2 |
-                            crate::pg_type::PgType::I32AsInt4 |
-                            crate::pg_type::PgType::I64AsInt8 |
-                            crate::pg_type::PgType::F32AsFloat4 |
-                            crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                            crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                            crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                            crate::pg_type::PgType::BoolAsBool |
-                            crate::pg_type::PgType::StdVecVecU8AsBytea |
-                            crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet => proc_macro2::TokenStream::new(),
-                            crate::pg_type::PgType::F64AsFloat8 => generate_serde_try_from_token_stream(&quote::quote! {"f64"}),
-                            crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney => generate_serde_from_token_stream(&quote::quote! {"i64"}),
-                            crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime |
-                            crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => generate_serde_try_from_token_stream(&generate_quotes::dq_token_stream::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
-                            crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                            crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                            crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_serde_from_token_stream(&generate_quotes::dq_token_stream::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
-                            crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => generate_serde_try_from_token_stream(&quote::quote! {"sqlx::types::chrono::NaiveDate"}),
-                            crate::pg_type::PgType::StringAsText |
-                            crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                            crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => quote::quote! {#[serde(try_from = "String")]},
-                            crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {#[serde(from = "[u8; 6]")]},
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => proc_macro2::TokenStream::new(),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => generate_serde_try_from_token_stream(&quote::quote! {"f64"}),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => generate_serde_from_token_stream(&quote::quote! {"i64"}),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => generate_serde_try_from_token_stream(&generate_quotes::dq_token_stream::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_serde_from_token_stream(&generate_quotes::dq_token_stream::dq_token_stream(&identifier_origin_wire_upper_camel_case)),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => generate_serde_try_from_token_stream(&quote::quote! {"sqlx::types::chrono::NaiveDate"}),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient => quote::quote! {#[serde(try_from = "String")]},
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {#[serde(from = "[u8; 6]")]},
                             }
                         }
                         else {
@@ -1909,33 +1909,33 @@ pub(super) enum IsConst {
                 match &de_derive_or_impl {
                     pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Derive => if matches!(&is_standard_non_null, pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True) {
                         match &pg_type {
-                            crate::pg_type::PgType::I16AsInt2 |
-                            crate::pg_type::PgType::I32AsInt4 |
-                            crate::pg_type::PgType::I64AsInt8 |
-                            crate::pg_type::PgType::F32AsFloat4 |
-                            crate::pg_type::PgType::F64AsFloat8 |
-                            crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                            crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                            crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                            crate::pg_type::PgType::BoolAsBool |
-                            crate::pg_type::PgType::StdVecVecU8AsBytea |
-                            crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                            crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                            crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                            crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange |
-                            crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                            crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval => proc_macro2::TokenStream::new(),
-                            crate::pg_type::PgType::StringAsText => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::StringAsText),
-                            crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesChronoNaiveTimeAsTime),
-                            crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesTimeTimeAsTime),
-                            crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesChronoNaiveDateAsDate),
-                            crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesUuidUuidAsUuidV4InitializationByPg),
-                            crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesUuidUuidAsUuidInitializationByClient),
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI32AsInt4Range),
-                            crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI64AsInt8Range),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval => proc_macro2::TokenStream::new(),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::StringAsText),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesChronoNaiveTimeAsTime),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesTimeTimeAsTime),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesChronoNaiveDateAsDate),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesUuidUuidAsUuidV4InitializationByPg),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxTypesUuidUuidAsUuidInitializationByClient),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI32AsInt4Range),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => generate_error_token_stream(&crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe::SqlxPgTypesPgRangeI64AsInt8Range),
                         }
                     }
                     else {
@@ -1968,7 +1968,7 @@ pub(super) enum IsConst {
                                             |range_try_from| generate_pg_range_conversion_token_stream(
                                                 &v_snake_case,
                                                 &{
-                                                    let range_pg_type_identifier_origin = naming::parameter::SelfOriginUpperCamelCase::from_display(&generate_identifier_str(&crate::pg_type::PgType::from(range_try_from), is_nullable, pg_type_pattern));
+                                                    let range_pg_type_identifier_origin = naming::parameter::SelfOriginUpperCamelCase::from_display(&generate_identifier_str(&crate::pg_type_catalog_kind::PgTypeCatalogKind::from(range_try_from), is_nullable, pg_type_pattern));
                                                     quote::quote! {#range_pg_type_identifier_origin::#new_snake_case(v_af65ccce)}
                                                 }
                                             )
@@ -2256,33 +2256,33 @@ pub(super) enum IsConst {
                             pg_crud_macro_common::is_nullable::IsNullable::False => match &pg_type_deserialize {
                                 crate::pg_type_deserialize::PgTypeDeserialize::Derive => if matches!(&is_standard_non_null, pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True) {
                                     match &pg_type {
-                                        crate::pg_type::PgType::I16AsInt2 |
-                                        crate::pg_type::PgType::I32AsInt4 |
-                                        crate::pg_type::PgType::I64AsInt8 |
-                                        crate::pg_type::PgType::F32AsFloat4 |
-                                        crate::pg_type::PgType::F64AsFloat8 |
-                                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                                        crate::pg_type::PgType::BoolAsBool |
-                                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange |
-                                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime |
-                                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-                                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-                                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                                        crate::pg_type::PgType::StringAsText |
-                                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => proc_macro2::TokenStream::new(),
-                                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => generate_v_pg_range_int_type_token_stream(&IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range),
-                                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => generate_v_pg_range_int_type_token_stream(&IntRangeType::SqlxPgTypesPgRangeI64AsInt8Range),
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg => proc_macro2::TokenStream::new(),
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => generate_v_pg_range_int_type_token_stream(&IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range),
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => generate_v_pg_range_int_type_token_stream(&IntRangeType::SqlxPgTypesPgRangeI64AsInt8Range),
                                     }
                                 }
                                 else {
@@ -2329,36 +2329,36 @@ pub(super) enum IsConst {
             let maybe_impl_is_string_empty_for_identifier_origin_token_stream = if matches!(&is_standard_non_null, pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True) {
                 match &is_nullable {
                     pg_crud_macro_common::is_nullable::IsNullable::False => match &pg_type {
-                        crate::pg_type::PgType::I16AsInt2
-                        | crate::pg_type::PgType::I32AsInt4
-                        | crate::pg_type::PgType::I64AsInt8
-                        | crate::pg_type::PgType::F32AsFloat4
-                        | crate::pg_type::PgType::F64AsFloat8
-                        | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
-                        | crate::pg_type::PgType::I32AsSerialInitializationByPg
-                        | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
-                        | crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
-                        | crate::pg_type::PgType::BoolAsBool
-                        | crate::pg_type::PgType::StdVecVecU8AsBytea
-                        | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
-                        | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime
-                        | crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval
-                        | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate
-                        | crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                        | crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                        | crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet
-                        | crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range
-                        | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range
-                        | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-                        | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                        | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
-                        crate::pg_type::PgType::StringAsText => pg_crud_macro_common::generate_impl_crate_is_string_empty_for_identifier_token_stream::generate_impl_crate_is_string_empty_for_identifier_token_stream(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(proc_macro2::TokenStream::new()),
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => pg_crud_macro_common::generate_impl_crate_is_string_empty_for_identifier_token_stream::generate_impl_crate_is_string_empty_for_identifier_token_stream(
                             &identifier_origin_upper_camel_case,
                             &quote::quote! {self.0.is_empty()},
                         ),
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => pg_crud_macro_common::generate_impl_crate_is_string_empty_for_identifier_token_stream::generate_impl_crate_is_string_empty_for_identifier_token_stream(
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => pg_crud_macro_common::generate_impl_crate_is_string_empty_for_identifier_token_stream::generate_impl_crate_is_string_empty_for_identifier_token_stream(
                             &identifier_origin_upper_camel_case,
                             &quote::quote! {false},
                         ),
@@ -2413,30 +2413,30 @@ pub(super) enum IsConst {
                     ts,
                 ).into();
                 match &pg_type {
-                    crate::pg_type::PgType::I16AsInt2 |
-                    crate::pg_type::PgType::I32AsInt4 |
-                    crate::pg_type::PgType::I64AsInt8 |
-                    crate::pg_type::PgType::F32AsFloat4 |
-                    crate::pg_type::PgType::F64AsFloat8 |
-                    crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                    crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                    crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                    crate::pg_type::PgType::BoolAsBool |
-                    crate::pg_type::PgType::StringAsText |
-                    crate::pg_type::PgType::StdVecVecU8AsBytea |
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime |
-                    crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-                    crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                    crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                    crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => proc_macro2::TokenStream::new(),
-                    crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney => generate_impl_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => proc_macro2::TokenStream::new(),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => generate_impl_from_origin_token_stream(
                         &quote::quote! {i64},
                         &quote::quote! {Self::new(#inner_type_standard_non_null_token_stream(v))}
                     ),
-                    crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval => generate_impl_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval => generate_impl_from_origin_token_stream(
                         &identifier_origin_wire_upper_camel_case,
                         &quote::quote! {
                             Self(sqlx::postgres::types::PgInterval {
@@ -2447,11 +2447,11 @@ pub(super) enum IsConst {
                         }
                     ),
                     //todo reuse naming
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => generate_impl_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => generate_impl_from_origin_token_stream(
                         &identifier_origin_wire_upper_camel_case,
                         &quote::quote! {Self(#inner_type_standard_non_null_token_stream::#new_snake_case(v.date.0, v.time.0))}
                     ),
-                    crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => generate_impl_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => generate_impl_from_origin_token_stream(
                         &identifier_origin_wire_upper_camel_case,
                         &{
                             let ts = generate_sqlx_types_chrono_date_time_sqlx_types_chrono_utc_from_naive_utc_and_offset_token_stream(&generate_sqlx_types_chrono_naive_date_time_new_token_stream(&quote::quote! {
@@ -2461,13 +2461,13 @@ pub(super) enum IsConst {
                             quote::quote! {Self(#ts)}
                         }
                     ),
-                    crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => generate_impl_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => generate_impl_from_origin_token_stream(
                         &quote::quote! {[u8; 6]},
                         &quote::quote! {Self(#inner_type_standard_non_null_token_stream::new(v))}
                     ),
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_impl_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_impl_from_origin_token_stream(
                         &identifier_origin_wire_upper_camel_case,
                         &self_sqlx_pg_types_pg_range_token_stream
                     ),
@@ -2556,30 +2556,30 @@ pub(super) enum IsConst {
                     )
                 );
                 match &pg_type {
-                    crate::pg_type::PgType::I16AsInt2 |
-                    crate::pg_type::PgType::I32AsInt4 |
-                    crate::pg_type::PgType::I64AsInt8 |
-                    crate::pg_type::PgType::F32AsFloat4 |
-                    crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                    crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                    crate::pg_type::PgType::I64AsBigSerialInitializationByPg |
-                    crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                    crate::pg_type::PgType::BoolAsBool |
-                    crate::pg_type::PgType::StdVecVecU8AsBytea |
-                    crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                    crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                    crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                    crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => proc_macro2::TokenStream::new(),
-                    crate::pg_type::PgType::F64AsFloat8 | crate::pg_type::PgType::StringAsText => generate_impl_try_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => proc_macro2::TokenStream::new(),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => generate_impl_try_from_origin_token_stream(
                         &inner_type_standard_non_null_token_stream,
                         &identifier_standard_non_null_origin_try_new_error_upper_camel_case,
                         &quote::quote! {Self::try_new(v)}//todo use try_from instead of try_new ?
                     ),
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => generate_impl_try_from_de_error_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => generate_impl_try_from_de_error_token_stream(
                         &identifier_origin_wire_upper_camel_case,
                         &quote::quote! {
                             match #inner_type_standard_non_null_token_stream::from_hms_micro_opt(
@@ -2607,7 +2607,7 @@ pub(super) enum IsConst {
                             }
                         }
                     ),
-                    crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => generate_impl_try_from_de_error_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => generate_impl_try_from_de_error_token_stream(
                         &identifier_origin_wire_upper_camel_case,
                         &quote::quote! {
                             match #inner_type_standard_non_null_token_stream::from_hms_micro(
@@ -2636,7 +2636,7 @@ pub(super) enum IsConst {
                             }
                         }
                     ),
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => generate_impl_try_from_de_error_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => generate_impl_try_from_de_error_token_stream(
                         &quote::quote! {sqlx::types::chrono::NaiveDate},
                         &generate_self_match_try_new_token_stream(
                             &v_snake_case,
@@ -2653,7 +2653,7 @@ pub(super) enum IsConst {
                             }
                         )
                     ),
-                    crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => generate_impl_try_from_de_error_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg => generate_impl_try_from_de_error_token_stream(
                         &quote::quote! {String},
                         &quote::quote! {
                             match uuid::Uuid::try_parse(&v) {
@@ -2665,10 +2665,10 @@ pub(super) enum IsConst {
                             }
                         }
                     ),
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => generate_impl_try_from_int_range_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => generate_impl_try_from_int_range_token_stream(
                         IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range
                     ),
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => generate_impl_try_from_int_range_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => generate_impl_try_from_int_range_token_stream(
                         IntRangeType::SqlxPgTypesPgRangeI64AsInt8Range
                     ),
                 }
@@ -2702,44 +2702,44 @@ pub(super) enum IsConst {
                             let sqlx_types_chrono_naive_date_as_non_null_date_origin_as_default_some_one_element_call_token_stream = generate_as_default_some_one_element_call_token_stream(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case);
                             let sqlx_types_chrono_naive_time_as_non_null_time_origin_as_default_some_one_element_call_token_stream = generate_as_default_some_one_element_call_token_stream(&sqlx_types_chrono_naive_time_as_non_null_time_origin_upper_camel_case);
                             let initialization_token_stream: &dyn quote::ToTokens = match &pg_type {
-                                crate::pg_type::PgType::I16AsInt2
-                                | crate::pg_type::PgType::I32AsInt4
-                                | crate::pg_type::PgType::I64AsInt8
-                                | crate::pg_type::PgType::F32AsFloat4
-                                | crate::pg_type::PgType::F64AsFloat8
-                                | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
-                                | crate::pg_type::PgType::I32AsSerialInitializationByPg
-                                | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
-                                | crate::pg_type::PgType::BoolAsBool
-                                | crate::pg_type::PgType::StringAsText
-                                | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate
-                                | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
-                                | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-                                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => &quote::quote! {#field_type_tokens::default()},
-                                crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => &quote::quote! {#identifier_inner_type_token_stream::default()},
-                                crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney => &quote::quote! {#inner_type_standard_non_null_token_stream(#core_default)},
-                                crate::pg_type::PgType::StdVecVecU8AsBytea => &quote::quote! {vec![#core_default]},
-                                crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => &generate_sqlx_types_time_time_from_hms_micro_unwrap_token_stream(&quote::quote! {0,0,0,0}),
-                                crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval => &quote::quote! {#inner_type_standard_non_null_token_stream {
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr
+                                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg => &quote::quote! {#field_type_tokens::default()},
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient => &quote::quote! {#identifier_inner_type_token_stream::default()},
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => &quote::quote! {#inner_type_standard_non_null_token_stream(#core_default)},
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea => &quote::quote! {vec![#core_default]},
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => &generate_sqlx_types_time_time_from_hms_micro_unwrap_token_stream(&quote::quote! {0,0,0,0}),
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval => &quote::quote! {#inner_type_standard_non_null_token_stream {
                                     #months_snake_case: #core_default,
                                     #days_snake_case: #core_default,
                                     #microseconds_snake_case: #core_default
                                 }},
-                                crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => &generate_sqlx_types_chrono_naive_date_time_new_token_stream(&quote::quote! {
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => &generate_sqlx_types_chrono_naive_date_time_new_token_stream(&quote::quote! {
                                     #sqlx_types_chrono_naive_date_as_non_null_date_origin_as_default_some_one_element_call_token_stream.0,
                                     #sqlx_types_chrono_naive_time_as_non_null_time_origin_as_default_some_one_element_call_token_stream.0,
                                 }),
-                                crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => &generate_sqlx_types_chrono_date_time_sqlx_types_chrono_utc_from_naive_utc_and_offset_token_stream(&generate_sqlx_types_chrono_naive_date_time_new_token_stream(&quote::quote! {
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => &generate_sqlx_types_chrono_date_time_sqlx_types_chrono_utc_from_naive_utc_and_offset_token_stream(&generate_sqlx_types_chrono_naive_date_time_new_token_stream(&quote::quote! {
                                     #sqlx_types_chrono_naive_date_as_non_null_date_origin_as_default_some_one_element_call_token_stream.0,
                                     #sqlx_types_chrono_naive_time_as_non_null_time_origin_as_default_some_one_element_call_token_stream.0,
                                 })),
-                                crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet => &quote::quote! {
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => &quote::quote! {
                                     sqlx::types::ipnetwork::IpNetwork::V4(sqlx::types::ipnetwork::Ipv4Network::#new_snake_case(core::net::Ipv4Addr::UNSPECIFIED, #core_default).expect("9e9c9b57 deserialize invariant must hold"))
                                 },
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => &pg_range_int_default_initialization_token_stream,
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => &generate_sqlx_pg_types_pg_range_default_some_one_element_token_stream(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case),
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => &generate_sqlx_pg_types_pg_range_default_some_one_element_token_stream(&sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case),
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => &generate_sqlx_pg_types_pg_range_default_some_one_element_token_stream(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case),
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => &pg_range_int_default_initialization_token_stream,
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => &generate_sqlx_pg_types_pg_range_default_some_one_element_token_stream(&sqlx_types_chrono_naive_date_as_non_null_date_origin_upper_camel_case),
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => &generate_sqlx_pg_types_pg_range_default_some_one_element_token_stream(&sqlx_types_chrono_naive_date_time_as_non_null_timestamp_origin_upper_camel_case),
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => &generate_sqlx_pg_types_pg_range_default_some_one_element_token_stream(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_non_null_timestamptz_origin_upper_camel_case),
                             };
                             quote::quote! {#initialization_token_stream}
                         }
@@ -2755,30 +2755,30 @@ pub(super) enum IsConst {
                 match &pg_type_pattern {
                     crate::pg_type_pattern::PgTypePattern::Standard => match &is_nullable {
                         pg_crud_macro_common::is_nullable::IsNullable::False => match &pg_type {
-                            crate::pg_type::PgType::I16AsInt2
-                            | crate::pg_type::PgType::I32AsInt4
-                            | crate::pg_type::PgType::I64AsInt8
-                            | crate::pg_type::PgType::F32AsFloat4
-                            | crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
-                            | crate::pg_type::PgType::I32AsSerialInitializationByPg
-                            | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
-                            | crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
-                            | crate::pg_type::PgType::BoolAsBool
-                            | crate::pg_type::PgType::StringAsText
-                            | crate::pg_type::PgType::StdVecVecU8AsBytea
-                            | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
-                            | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime
-                            | crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval
-                            | crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                            | crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                            | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
-                            | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
-                            | crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet
-                            | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-                            | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-                            | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                            | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => ok_self_scopes_v_token_stream,
-                            crate::pg_type::PgType::F64AsFloat8 | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate | crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => ok_self_scopes_v_token_stream,
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {
                                 match Self::#try_new_snake_case #scopes_v_token_stream {
                                     Ok(v_93eb5329) => Ok(v_93eb5329),
                                     Err(error) => Err(Box::#new_snake_case(error)),
@@ -3286,31 +3286,31 @@ pub(super) enum IsConst {
                 let typical: (&dyn quote::ToTokens, &dyn quote::ToTokens) = { (&typical_query_part_token_stream, &typical_query_bind_token_stream) };
                 let default_initialization_by_pg: (&dyn quote::ToTokens, &dyn quote::ToTokens) = (&ok_string_from_default_token_stream, &ok_query_token_stream);
                 match &pg_type {
-                    crate::pg_type::PgType::I16AsInt2
-                    | crate::pg_type::PgType::I32AsInt4
-                    | crate::pg_type::PgType::I64AsInt8
-                    | crate::pg_type::PgType::F32AsFloat4
-                    | crate::pg_type::PgType::F64AsFloat8
-                    | crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
-                    | crate::pg_type::PgType::BoolAsBool
-                    | crate::pg_type::PgType::StringAsText
-                    | crate::pg_type::PgType::StdVecVecU8AsBytea
-                    | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
-                    | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime
-                    | crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval
-                    | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate
-                    | crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                    | crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                    | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
-                    | crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet
-                    | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                    | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => typical,
-                    crate::pg_type::PgType::I16AsSmallSerialInitializationByPg | crate::pg_type::PgType::I32AsSerialInitializationByPg | crate::pg_type::PgType::I64AsBigSerialInitializationByPg => default_initialization_by_pg,
-                    crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => (&ok_string_from_uuid_generate_v4_token_stream, &ok_query_token_stream),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                    | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => typical,
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg => default_initialization_by_pg,
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg => (&ok_string_from_uuid_generate_v4_token_stream, &ok_query_token_stream),
                 }
             };
             let select_only_ids_and_select_only_updated_ids_query_common_token_stream = {
@@ -3336,31 +3336,31 @@ pub(super) enum IsConst {
                 },
                 &{
                     let pg_query_type = match &pg_type {
-                        crate::pg_type::PgType::I16AsInt2 => constants_str::catalog::PG_CRUD_PG_INT2,
-                        crate::pg_type::PgType::I32AsInt4 => constants_str::catalog::PG_CRUD_PG_INT4,
-                        crate::pg_type::PgType::I64AsInt8 => constants_str::catalog::PG_CRUD_PG_INT8,
-                        crate::pg_type::PgType::F32AsFloat4 => constants_str::catalog::PG_CRUD_PG_FLOAT4,
-                        crate::pg_type::PgType::F64AsFloat8 => constants_str::catalog::PG_CRUD_PG_FLOAT8,
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg => constants_str::catalog::PG_CRUD_PG_SMALLSERIAL,
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg => constants_str::catalog::PG_CRUD_PG_SERIAL,
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg => constants_str::catalog::PG_CRUD_PG_BIGSERIAL,
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney => constants_str::catalog::PG_CRUD_PG_MONEY,
-                        crate::pg_type::PgType::BoolAsBool => constants_str::catalog::PG_CRUD_PG_BOOL,
-                        crate::pg_type::PgType::StringAsText => constants_str::catalog::PG_CRUD_PG_TEXT,
-                        crate::pg_type::PgType::StdVecVecU8AsBytea => constants_str::catalog::PG_CRUD_PG_BYTEA,
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => constants_str::catalog::PG_CRUD_PG_TIME,
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval => constants_str::catalog::PG_CRUD_PG_INTERVAL,
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => constants_str::catalog::PG_CRUD_PG_DATE,
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => constants_str::catalog::PG_CRUD_PG_TIMESTAMP,
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => constants_str::catalog::PG_CRUD_PG_TIMESTAMPTZ,
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => constants_str::catalog::PG_CRUD_PG_UUID,
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet => constants_str::catalog::PG_CRUD_PG_INET,
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => constants_str::catalog::PG_CRUD_PG_MACADDR,
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => constants_str::catalog::PG_CRUD_PG_INT4RANGE,
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => constants_str::catalog::PG_CRUD_PG_INT8RANGE,
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => constants_str::catalog::PG_CRUD_PG_DATERANGE,
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => constants_str::catalog::PG_CRUD_PG_TSRANGE,
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => constants_str::catalog::PG_CRUD_PG_TSTZRANGE,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 => constants_str::catalog::PG_CRUD_PG_INT2,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 => constants_str::catalog::PG_CRUD_PG_INT4,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 => constants_str::catalog::PG_CRUD_PG_INT8,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => constants_str::catalog::PG_CRUD_PG_FLOAT4,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => constants_str::catalog::PG_CRUD_PG_FLOAT8,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg => constants_str::catalog::PG_CRUD_PG_SMALLSERIAL,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg => constants_str::catalog::PG_CRUD_PG_SERIAL,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg => constants_str::catalog::PG_CRUD_PG_BIGSERIAL,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => constants_str::catalog::PG_CRUD_PG_MONEY,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool => constants_str::catalog::PG_CRUD_PG_BOOL,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => constants_str::catalog::PG_CRUD_PG_TEXT,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea => constants_str::catalog::PG_CRUD_PG_BYTEA,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => constants_str::catalog::PG_CRUD_PG_TIME,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval => constants_str::catalog::PG_CRUD_PG_INTERVAL,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => constants_str::catalog::PG_CRUD_PG_DATE,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => constants_str::catalog::PG_CRUD_PG_TIMESTAMP,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => constants_str::catalog::PG_CRUD_PG_TIMESTAMPTZ,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient => constants_str::catalog::PG_CRUD_PG_UUID,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => constants_str::catalog::PG_CRUD_PG_INET,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => constants_str::catalog::PG_CRUD_PG_MACADDR,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => constants_str::catalog::PG_CRUD_PG_INT4RANGE,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => constants_str::catalog::PG_CRUD_PG_INT8RANGE,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => constants_str::catalog::PG_CRUD_PG_DATERANGE,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => constants_str::catalog::PG_CRUD_PG_TSRANGE,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => constants_str::catalog::PG_CRUD_PG_TSTZRANGE,
                     };
                     let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::maybe_primary_key::maybe_primary_key(is_primary_key)};
                     let column_pg_query_type = format!("{{column}} {pg_query_type}");
@@ -3782,7 +3782,7 @@ pub(super) enum Bnd<'lt> {
                     let generate_token_stream = |
                         ts_parameter: &dyn quote::ToTokens
                     |generate_identifier_standard_non_null_fn_token_stream(
-                        &generate_identifier_standard_non_null_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime),
+                        &generate_identifier_standard_non_null_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime),
                         &ts_parameter
                     );
                     (
@@ -3813,7 +3813,7 @@ pub(super) enum Bnd<'lt> {
                     let generate_token_stream = |
                         ts_parameter: &dyn quote::ToTokens
                     |generate_identifier_standard_non_null_fn_token_stream(
-                        &generate_identifier_standard_non_null_token_stream(&crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate),
+                        &generate_identifier_standard_non_null_token_stream(&crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate),
                         &ts_parameter
                     );
                     (
@@ -3894,26 +3894,26 @@ pub(super) enum Bnd<'lt> {
                 };
                 let generate_token_stream = |ts: &dyn quote::ToTokens| generate_identifier_standard_non_null_fn_token_stream(&self_upper_camel_case, &ts);
                 match &pg_type {
-                    crate::pg_type::PgType::I16AsInt2 => generate_typical_test_cases_vec_token_stream(&quote::quote! {i16_test_cases_vec}),
-                    crate::pg_type::PgType::I32AsInt4 => generate_typical_test_cases_vec_token_stream(&quote::quote! {i32_test_cases_vec}),
-                    crate::pg_type::PgType::I64AsInt8 => generate_typical_test_cases_vec_token_stream(&quote::quote! {i64_test_cases_vec}),
-                    crate::pg_type::PgType::F32AsFloat4 => generate_typical_test_cases_vec_token_stream(&quote::quote! {f32_test_cases_vec}),
-                    crate::pg_type::PgType::F64AsFloat8 => generate_typical_test_cases_vec_token_stream(&quote::quote! {f64_test_cases_vec}),
-                    crate::pg_type::PgType::I16AsSmallSerialInitializationByPg | crate::pg_type::PgType::I32AsSerialInitializationByPg | crate::pg_type::PgType::I64AsBigSerialInitializationByPg => empty_vec_token_stream,
-                    crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney => quote::quote! {
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 => generate_typical_test_cases_vec_token_stream(&quote::quote! {i16_test_cases_vec}),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 => generate_typical_test_cases_vec_token_stream(&quote::quote! {i32_test_cases_vec}),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 => generate_typical_test_cases_vec_token_stream(&quote::quote! {i64_test_cases_vec}),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => generate_typical_test_cases_vec_token_stream(&quote::quote! {f32_test_cases_vec}),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => generate_typical_test_cases_vec_token_stream(&quote::quote! {f64_test_cases_vec}),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg => empty_vec_token_stream,
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => quote::quote! {
                         #import::i64_test_cases_vec::i64_test_cases_vec().into_iter().map(
                             #inner_type_standard_non_null_token_stream
                         ).collect::<Vec<#inner_type_standard_non_null_token_stream>>()
                     },
-                    crate::pg_type::PgType::BoolAsBool => generate_typical_test_cases_vec_token_stream(&quote::quote! {bool_test_cases_vec}),
-                    crate::pg_type::PgType::StringAsText => generate_typical_test_cases_vec_token_stream(&quote::quote! {string_test_cases_vec}),
-                    crate::pg_type::PgType::StdVecVecU8AsBytea => quote::quote! {vec![
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool => generate_typical_test_cases_vec_token_stream(&quote::quote! {bool_test_cases_vec}),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => generate_typical_test_cases_vec_token_stream(&quote::quote! {string_test_cases_vec}),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea => quote::quote! {vec![
                         Vec::new(),
                         (0u8..=255).collect(),
                         vec![0; 1024],
                         vec![0; 1024 * 1024 * 2],
                     ]},
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => {
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => {
                         let self_sqlx_types_chrono_naive_time_min_token_stream = generate_token_stream(&sqlx_types_chrono_naive_time_min_fn_token_stream);
                         let self_sqlx_types_chrono_naive_time_ten_token_stream = generate_token_stream(&sqlx_types_chrono_naive_time_ten_fn_token_stream);
                         let self_sqlx_types_chrono_naive_time_twenty_token_stream = generate_token_stream(&sqlx_types_chrono_naive_time_twenty_fn_token_stream);
@@ -3925,7 +3925,7 @@ pub(super) enum Bnd<'lt> {
                             #self_sqlx_types_chrono_naive_time_max_token_stream,
                         ]}
                     },
-                    crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => {
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => {
                         let sqlx_types_time_time_from_hms_micro_min_unwrap_token_stream = generate_sqlx_types_time_time_from_hms_micro_unwrap_token_stream(&quote::quote! {0,0,0,0});
                         let sqlx_types_time_time_from_hms_micro_ten_unwrap_token_stream = generate_sqlx_types_time_time_from_hms_micro_unwrap_token_stream(&quote::quote! {10,10,10,10});
                         let sqlx_types_time_time_from_hms_micro_twenty_unwrap_token_stream = generate_sqlx_types_time_time_from_hms_micro_unwrap_token_stream(&quote::quote! {20,20,20,20});
@@ -3937,7 +3937,7 @@ pub(super) enum Bnd<'lt> {
                             #sqlx_types_time_time_from_hms_micro_max_unwrap_token_stream,
                         ]}
                     }
-                    crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval => {
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval => {
                         let min_token_stream = quote::quote! {MIN};
                         let max_token_stream = quote::quote! {MAX};
                         let i32_min_token_stream = quote::quote! {#i32_token_stream::#min_token_stream};
@@ -3956,7 +3956,7 @@ pub(super) enum Bnd<'lt> {
                             #interval_max_token_stream
                         ]}
                     }
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => {
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => {
                         let sqlx_types_chrono_naive_date_min_token_stream = generate_token_stream(&sqlx_types_chrono_naive_date_min_fn_token_stream);
                         let sqlx_types_chrono_naive_date_negative_less_typical_token_stream = generate_token_stream(&sqlx_types_chrono_naive_date_negative_less_typical_fn_token_stream);
                         let sqlx_types_chrono_naive_date_negative_more_typical_token_stream = generate_token_stream(&sqlx_types_chrono_naive_date_negative_more_typical_fn_token_stream);
@@ -3974,7 +3974,7 @@ pub(super) enum Bnd<'lt> {
                             #sqlx_types_chrono_naive_date_max_token_stream,
                         ]}
                     },
-                    crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => quote::quote! {vec![
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => quote::quote! {vec![
                         #sqlx_types_chrono_naive_date_time_min_token_stream,
                         #sqlx_types_chrono_naive_date_time_negative_less_typical_token_stream,
                         #sqlx_types_chrono_naive_date_time_negative_more_typical_token_stream,
@@ -3983,7 +3983,7 @@ pub(super) enum Bnd<'lt> {
                         #sqlx_types_chrono_naive_date_time_positive_more_typical_token_stream,
                         #sqlx_types_chrono_naive_date_time_max_token_stream,
                     ]},
-                    crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => quote::quote! {vec![
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => quote::quote! {vec![
                         #sqlx_types_chrono_date_time_sqlx_types_chrono_utc_min_token_stream,
                         #sqlx_types_chrono_date_time_sqlx_types_chrono_utc_negative_less_typical_token_stream,
                         #sqlx_types_chrono_date_time_sqlx_types_chrono_utc_negative_more_typical_token_stream,
@@ -3992,11 +3992,11 @@ pub(super) enum Bnd<'lt> {
                         #sqlx_types_chrono_date_time_sqlx_types_chrono_utc_positive_more_typical_token_stream,
                         #sqlx_types_chrono_date_time_sqlx_types_chrono_utc_max_token_stream,
                     ]},
-                    crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg => quote::quote! {Vec::new()},
-                    crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => quote::quote! {vec![
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg => quote::quote! {Vec::new()},
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient => quote::quote! {vec![
                         sqlx::types::Uuid::from_u128(1u128)
                     ]},
-                    crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet => quote::quote! {vec![
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => quote::quote! {vec![
                         <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("192.168.0.0/24").expect("478dbded generate_flts_with invariant must hold"),
                         <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("10.0.0.0/8").expect("8af9e27e generate_flts_with invariant must hold"),
                         <sqlx::types::ipnetwork::IpNetwork as std::str::FromStr>::from_str("172.16.0.0/12").expect("ba86505f generate_flts_with invariant must hold"),
@@ -4009,7 +4009,7 @@ pub(super) enum Bnd<'lt> {
                         sqlx::types::ipnetwork::IpNetwork::V6(sqlx::types::ipnetwork::Ipv6Network::#new_snake_case(std::net::Ipv6Addr::LOCALHOST, 128).expect("b443be46 generate_flts_with invariant must hold")),
                         sqlx::types::ipnetwork::IpNetwork::V6(sqlx::types::ipnetwork::Ipv6Network::#new_snake_case("2001:db8::".parse().expect("d4e6df27 generate_flts_with invariant must hold"), 32).expect("a7486c5e generate_flts_with invariant must hold")),
                     ]},
-                    crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {vec![
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {vec![
                         sqlx::types::mac_address::MacAddress::#new_snake_case([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // All zeros
                         sqlx::types::mac_address::MacAddress::#new_snake_case([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]), // All ones (broadcast address)
                         sqlx::types::mac_address::MacAddress::#new_snake_case([0x02, 0x00, 0x00, 0x00, 0x00, 0x01]), // Locally administered address
@@ -4017,9 +4017,9 @@ pub(super) enum Bnd<'lt> {
                         sqlx::types::mac_address::MacAddress::#new_snake_case([0x01, 0x00, 0x5E, 0x00, 0x00, 0xFB]), // Multicast address
                         sqlx::types::mac_address::MacAddress::#new_snake_case([0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE]), // Random valid MAC
                     ]},
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range => generate_int_pgrange_read_ids_to_2_dimensions_vec_read_inner_token_stream(&IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range),
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range => generate_int_pgrange_read_ids_to_2_dimensions_vec_read_inner_token_stream(&IntRangeType::SqlxPgTypesPgRangeI64AsInt8Range),
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => generate_int_pgrange_read_ids_to_2_dimensions_vec_read_inner_token_stream(&IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => generate_int_pgrange_read_ids_to_2_dimensions_vec_read_inner_token_stream(&IntRangeType::SqlxPgTypesPgRangeI64AsInt8Range),
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream(
                         &identifier_sqlx_types_chrono_naive_date_min_token_stream,
                         &identifier_sqlx_types_chrono_naive_date_negative_less_typical_token_stream,
                         &identifier_sqlx_types_chrono_naive_date_negative_more_typical_token_stream,
@@ -4028,7 +4028,7 @@ pub(super) enum Bnd<'lt> {
                         &identifier_sqlx_types_chrono_naive_date_positive_more_typical_token_stream,
                         &identifier_sqlx_types_chrono_naive_date_max_pred_opt_expect_token_stream
                     ),
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream(
                         &sqlx_types_chrono_naive_date_time_min_token_stream,
                         &sqlx_types_chrono_naive_date_time_negative_less_typical_token_stream,
                         &sqlx_types_chrono_naive_date_time_negative_more_typical_token_stream,
@@ -4037,7 +4037,7 @@ pub(super) enum Bnd<'lt> {
                         &sqlx_types_chrono_naive_date_time_positive_more_typical_token_stream,
                         &sqlx_types_chrono_naive_date_time_max_token_stream,
                     ),
-                    crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream(
                         &sqlx_types_chrono_date_time_sqlx_types_chrono_utc_min_token_stream,
                         &sqlx_types_chrono_date_time_sqlx_types_chrono_utc_negative_less_typical_token_stream,
                         &sqlx_types_chrono_date_time_sqlx_types_chrono_utc_negative_more_typical_token_stream,
@@ -4295,17 +4295,17 @@ pub(super) enum Bnd<'lt> {
                                 #import::not_empty_unique_vec::NotEmptyUniqueVec::try_new(vec![#ts].into()).expect("3ad4b6bf generate_flts_with invariant must hold")
                             )});
                             let sqlx_types_chrono_naive_time_as_time_standard_non_null_token_stream = &generate_identifier_token_stream(
-                                &crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime,
+                                &crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime,
                                 &pg_crud_macro_common::is_nullable::IsNullable::False,
                                 &crate::pg_type_pattern::PgTypePattern::Standard
                             );
                             let sqlx_types_chrono_naive_date_as_date_standard_non_null_token_stream = &generate_identifier_token_stream(
-                                &crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate,
+                                &crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate,
                                 &pg_crud_macro_common::is_nullable::IsNullable::False,
                                 &crate::pg_type_pattern::PgTypePattern::Standard
                             );
                             match &pg_type {
-                                crate::pg_type::PgType::I16AsInt2 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
                                     &quote::quote! {#i16_token_stream::MIN},
                                     &quote::quote! {#i16_token_stream::MIN + 1},
                                     &quote::quote! {0},
@@ -4313,7 +4313,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {#i16_token_stream::MAX},
                                     &quote::quote! {#i16_token_stream::MAX - 1}
                                 )),
-                                crate::pg_type::PgType::I32AsInt4 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
                                     &quote::quote! {#i32_token_stream::MIN},
                                     &quote::quote! {#i32_token_stream::MIN + 1},
                                     &quote::quote! {0},
@@ -4321,7 +4321,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {#i32_token_stream::MAX},
                                     &quote::quote! {#i32_token_stream::MAX - 1}
                                 )),
-                                crate::pg_type::PgType::I64AsInt8 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
                                     &quote::quote! {#i64_token_stream::MIN},
                                     &quote::quote! {#i64_token_stream::MIN + 1},
                                     &quote::quote! {0},
@@ -4329,7 +4329,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {#i64_token_stream::MAX},
                                     &quote::quote! {#i64_token_stream::MAX - 1}
                                 )),
-                                crate::pg_type::PgType::F32AsFloat4 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
                                     &quote::quote! {#f32_token_stream::MIN},
                                     &quote::quote! {#f32_token_stream::MIN.next_up()},
                                     &quote::quote! {0.0},
@@ -4337,7 +4337,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {#f32_token_stream::MAX},
                                     &quote::quote! {#f32_token_stream::MAX.next_down()}
                                 )),
-                                crate::pg_type::PgType::F64AsFloat8 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                 //todo rust f64 != pg float8
                                     &quote::quote! {-2.0},
                                     &quote::quote! {-2.0 + 1.0},
@@ -4346,7 +4346,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {2.0},
                                     &quote::quote! {2.0 - 1.0}
                                 )),
-                                crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                     &quote::quote! {Self::min_inner_type()},
                                     &quote::quote! {Self::slightly_more_than_min_inner_type()},
                                     &quote::quote! {Self::middle_inner_type()},
@@ -4354,7 +4354,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {Self::max_inner_type()},
                                     &quote::quote! {Self::slightly_less_than_max_inner_type()},
                                 )),
-                                crate::pg_type::PgType::SqlxTypesTimeTimeAsTime => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                     &quote::quote! {Self::min_inner_type()},
                                     &quote::quote! {Self::slightly_more_than_min_inner_type()},
                                     &quote::quote! {Self::middle_inner_type()},
@@ -4362,7 +4362,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {sqlx::types::time::Time::from_hms_micro(23, 59, 59, 999_999).expect("f3d895bb generate_flts_with invariant must hold")},
                                     &quote::quote! {sqlx::types::time::Time::from_hms_micro(23, 59, 59, 999_998).expect("1e71f8c6 generate_flts_with invariant must hold")},
                                 )),
-                                crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                     &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(-4712, 12, 30)?},//todo not sure about this values. maybe reuse
                                     &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(-4712, 12, 31)?},
                                     &quote::quote! {Self::middle_inner_type()},
@@ -4370,7 +4370,7 @@ pub(super) enum Bnd<'lt> {
                                     &quote::quote! {Self::max_inner_type()},
                                     &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(262_142, 12, 30)?},
                                 )),
-                                crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                     &quote::quote! {sqlx::types::chrono::NaiveDateTime::new(
                                         sqlx::types::chrono::NaiveDate::from_ymd_opt(-4713, 12, 31)?,
                                         #sqlx_types_chrono_naive_time_as_time_standard_non_null_token_stream::min_inner_type()
@@ -4396,24 +4396,24 @@ pub(super) enum Bnd<'lt> {
                                         #sqlx_types_chrono_naive_time_as_time_standard_non_null_token_stream::slightly_less_than_max_inner_type()
                                     )},
                                 )),
-                                crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |//todo diffrent test logic for autogenerated?
-                                crate::pg_type::PgType::I32AsSerialInitializationByPg |//todo diffrent test logic for autogenerated?
-                                crate::pg_type::PgType::I64AsBigSerialInitializationByPg |//todo diffrent test logic for autogenerated?
-                                crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |
-                                crate::pg_type::PgType::BoolAsBool |
-                                crate::pg_type::PgType::StringAsText |
-                                crate::pg_type::PgType::StdVecVecU8AsBytea |
-                                crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                                crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                                crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                                crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                                crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                                crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                                crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |//todo diffrent test logic for autogenerated?
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |//todo diffrent test logic for autogenerated?
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |//todo diffrent test logic for autogenerated?
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => None,
                             }
                         }
                         pg_crud_macro_common::is_nullable::IsNullable::True => Some(quote::quote! {
@@ -4450,33 +4450,33 @@ pub(super) enum CreateReadIds {
                         ReadIds,
                     }
                     let is_need_to_impl_greater_than_test = match &pg_type {
-                        crate::pg_type::PgType::I16AsInt2 |
-                        crate::pg_type::PgType::I32AsInt4 |
-                        crate::pg_type::PgType::I64AsInt8 |
-                        crate::pg_type::PgType::F32AsFloat4 |
-                        crate::pg_type::PgType::F64AsFloat8 |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime |
-                        crate::pg_type::PgType::SqlxTypesTimeTimeAsTime |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate |
-                        crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => IsNeedToImplPgTypeGreaterThanTest::TrueFromCreate,
-                        crate::pg_type::PgType::I16AsSmallSerialInitializationByPg |
-                        crate::pg_type::PgType::I32AsSerialInitializationByPg |
-                        crate::pg_type::PgType::I64AsBigSerialInitializationByPg => IsNeedToImplPgTypeGreaterThanTest::TrueFromReadIds,
-                        crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney |//todo why no support?
-                        crate::pg_type::PgType::BoolAsBool |
-                        crate::pg_type::PgType::StringAsText |
-                        crate::pg_type::PgType::StdVecVecU8AsBytea |
-                        crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |//todo why no support?
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
-                        crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient |
-                        crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                        crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                        crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => IsNeedToImplPgTypeGreaterThanTest::False,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => IsNeedToImplPgTypeGreaterThanTest::TrueFromCreate,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg => IsNeedToImplPgTypeGreaterThanTest::TrueFromReadIds,
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |//todo why no support?
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |//todo why no support?
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => IsNeedToImplPgTypeGreaterThanTest::False,
                     };
                     let generate_some_token_stream = |create_read_ids_parameter: &CreateReadIds| match &is_nullable {
                         pg_crud_macro_common::is_nullable::IsNullable::False => {
@@ -4595,43 +4595,43 @@ pub(super) enum CreateReadIds {
         };
         let db_nullable = matches!(is_nullable, pg_crud_macro_common::is_nullable::IsNullable::True);
         let db_data_type = match pg_type {
-            crate::pg_type::PgType::I16AsSmallSerialInitializationByPg =>
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg =>
                 crate::pg_sql_name::PgSqlName::from(constants_str::catalog::PG_CRUD_PG_INT2),
-            crate::pg_type::PgType::I32AsSerialInitializationByPg =>
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg =>
                 crate::pg_sql_name::PgSqlName::from(constants_str::catalog::PG_CRUD_PG_INT4),
-            crate::pg_type::PgType::I64AsBigSerialInitializationByPg =>
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg =>
                 crate::pg_sql_name::PgSqlName::from(constants_str::catalog::PG_CRUD_PG_INT8),
-            crate::pg_type::PgType::BoolAsBool
-            | crate::pg_type::PgType::F32AsFloat4
-            | crate::pg_type::PgType::F64AsFloat8
-            | crate::pg_type::PgType::I16AsInt2
-            | crate::pg_type::PgType::I32AsInt4
-            | crate::pg_type::PgType::I64AsInt8
-            | crate::pg_type::PgType::SqlxPgTypesPgIntervalAsInterval
-            | crate::pg_type::PgType::SqlxPgTypesPgMoneyAsMoney
-            | crate::pg_type::PgType::SqlxPgTypesPgRangeI32AsInt4Range
-            | crate::pg_type::PgType::SqlxPgTypesPgRangeI64AsInt8Range
-            | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange
-            | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-            | crate::pg_type::PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-            | crate::pg_type::PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-            | crate::pg_type::PgType::SqlxTypesChronoNaiveDateAsDate
-            | crate::pg_type::PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-            | crate::pg_type::PgType::SqlxTypesChronoNaiveTimeAsTime
-            | crate::pg_type::PgType::SqlxTypesIpnetworkIpNetworkAsInet
-            | crate::pg_type::PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-            | crate::pg_type::PgType::SqlxTypesTimeTimeAsTime
-            | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
-            | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
-            | crate::pg_type::PgType::StdVecVecU8AsBytea
-            | crate::pg_type::PgType::StringAsText => crate::pg_name::pg_name(pg_type_dsc),
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
+            | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => crate::pg_name::pg_name(pg_type_dsc),
         };
         let db_has_server_default = matches!(
             pg_type,
-            crate::pg_type::PgType::I16AsSmallSerialInitializationByPg
-                | crate::pg_type::PgType::I32AsSerialInitializationByPg
-                | crate::pg_type::PgType::I64AsBigSerialInitializationByPg
-                | crate::pg_type::PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
+                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg
         );
         let (frontend_input_kind_token_stream, frontend_value_format_token_stream, frontend_step_token_stream, frontend_example_token_stream) = match crate::rust_type_wire_kind::rust_type_wire_kind(pg_type_dsc) {
             crate::wire_kind::WireKind::Bool => (quote::quote! {frontend_contract::input_kind::InputKind::Checkbox}, quote::quote! {frontend_contract::value_format::ValueFormat::Bool}, quote::quote! {frontend_contract::input_step::InputStep::Any}, quote::quote! {frontend_contract::value_example::ValueExample::Boolean}),

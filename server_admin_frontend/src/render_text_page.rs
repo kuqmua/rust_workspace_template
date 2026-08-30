@@ -16,7 +16,7 @@ pub fn render_text_page(
     text: crate::admin_ssr_text::AdminSsrText,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
     let content_view = leptos::view! {
-        <section><crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{text.0}</pre></singlestage::ScrollArea></crate::admin_card::AdminCard></section>
+        <section><crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{String::from(text)}</pre></singlestage::ScrollArea></crate::admin_card::AdminCard></section>
     };
     let content = crate::render_view::render_view(content_view);
     crate::render_admin_page::render_admin_page(page, content)

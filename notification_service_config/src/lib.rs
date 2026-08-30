@@ -1,1 +1,1 @@
-pub mod config;
+pub mod notification_service_config;

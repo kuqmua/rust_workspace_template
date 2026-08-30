@@ -19,12 +19,12 @@ where
 fn make_structure(
     project_git_info: git_info::project_git_info::ProjectGitInfo<'_>,
 ) -> crate::server_app_state::ServerAppState<'_> {
-    crate::server_app_state::ServerAppState {
-        bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget::new(
+    crate::server_app_state::ServerAppState::new(
+        server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(128usize)
                 .expect("837f89a0 make_structure invariant must hold"),
         ),
-        config: server_config::config::Config {
+        server_config::server_config::ServerConfig {
             svc_mode: config_lib::svc_mode::SvcMode::Serve,
             cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(
                 constants_str::catalog::ASTERISK.to_owned(),
@@ -88,18 +88,18 @@ fn make_structure(
             enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck(true),
             admin_cookie_secure: app_state_test_env(constants_str::catalog::FALSE),
         },
-        pg_pool: app_state::sqlx_pg_pool::SqlxPgPool::from(
-            sqlx::PgPool::connect_lazy(constants_str::catalog::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
-                .expect("4bd3f0a1 make_structure invariant must hold"),
-        ),
-        idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget::new(
+        server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(
                 constants_usize::VALUE_1_048_576,
             )
             .expect("926ce310 make_structure invariant must hold"),
         ),
+        app_state::sqlx_pg_pool::SqlxPgPool::from(
+            sqlx::PgPool::connect_lazy(constants_str::catalog::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
+                .expect("4bd3f0a1 make_structure invariant must hold"),
+        ),
         project_git_info,
-    }
+    )
 }
 #[tokio::test]
 #[cfg_attr(
@@ -141,7 +141,9 @@ async fn sqlx_pg_pool_returns_same_pool_ref() {
     let lhs = std::ptr::from_ref(
         app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider::sqlx_pg_pool(&structure).as_ref(),
     );
-    let rhs = std::ptr::from_ref(structure.pg_pool.as_ref());
+    let rhs = std::ptr::from_ref(
+        app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider::sqlx_pg_pool(&structure).as_ref(),
+    );
     assert_eq!(lhs, rhs);
 }
 #[tokio::test]

@@ -28,7 +28,9 @@ impl ExclusiveRun {
             .map(|_previous| crate::exclusive_run_guard::ExclusiveRunGuard {
                 active: &self.active,
             })
-            .map_err(|_active| crate::exclusive_run_already_active::ExclusiveRunAlreadyActive)
+            .map_err(|_active| {
+                crate::exclusive_run_already_active::ExclusiveRunAlreadyActive::Active
+            })
     }
 }
 impl Default for ExclusiveRun {
@@ -46,7 +48,7 @@ mod tests {
             .expect("9b776c85 guard_prevents_overlap_and_releases_on_drop invariant must hold");
         assert!(matches!(
             run.try_acquire(),
-            Err(crate::exclusive_run_already_active::ExclusiveRunAlreadyActive)
+            Err(crate::exclusive_run_already_active::ExclusiveRunAlreadyActive::Active)
         ));
         drop(guard);
         let _next_guard = run

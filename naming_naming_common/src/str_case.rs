@@ -5,6 +5,6 @@ pub(super) fn str_case<S>(
 where
     S: AsRef<str>,
 {
-    crate::case_string::CaseString::try_from(convert_case::Casing::to_case(&v.as_ref(), case.0))
+    crate::case_string::CaseString::try_from(convert_case::Casing::to_case(&v.as_ref(), case.get()))
         .unwrap_or_else(crate::case_string::CaseString::from)
 }

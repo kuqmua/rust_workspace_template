@@ -3,7 +3,7 @@
 #[allow(clippy::single_call_fn)] // operational route registry owns this endpoint handler
 #[frontend_contract_macros::route_operation]
 pub(super) async fn metrics(
-    state: crate::axum_notification_state::AxumNotificationState,
+    state: crate::notification_axum_state::NotificationAxumState,
 ) -> Result<
     server_runtime_http::metrics_response_body::MetricsResponseBody,
     crate::metrics_error::MetricsError,

@@ -26,7 +26,7 @@ pub(crate) async fn query_audit_log(
         parts
             .get_user_id()
             .copied()
-            .map(server_admin_core::admin_user_id::AdminUserId::get),
+            .map(server_admin_core::admin_user_record_id::AdminUserRecordId::get),
     )
     .bind(action_text.map(|value| value.as_ref().to_owned()))
     .bind(resource_text.map(|value| value.as_ref().to_owned()))
@@ -64,7 +64,7 @@ pub(crate) async fn query_audit_log(
         parts
             .get_user_id()
             .copied()
-            .map(server_admin_core::admin_user_id::AdminUserId::get),
+            .map(server_admin_core::admin_user_record_id::AdminUserRecordId::get),
     )
     .bind(action_text.map(|value| value.as_ref().to_owned()))
     .bind(resource_text.map(|value| value.as_ref().to_owned()))

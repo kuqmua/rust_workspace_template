@@ -48,9 +48,7 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::tracing_forma
     type Error = std::convert::Infallible;
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         Ok(
-            if v.0
-                .eq_ignore_ascii_case(constants_str::integration_fixtures::JSON)
-            {
+            if v.eq_ignore_ascii_case(constants_str::integration_fixtures::JSON) {
                 Self::Json
             } else {
                 Self::Text

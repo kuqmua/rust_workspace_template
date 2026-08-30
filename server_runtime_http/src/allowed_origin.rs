@@ -15,13 +15,13 @@ impl TryFrom<String> for AllowedOrigin {
         let (scheme, authority_start) = {
             let (scheme, remainder) = value
                 .split_once(constants_str::catalog::TEXT_ALT_10)
-                .ok_or(crate::allowed_origin_error::AllowedOriginError)?;
+                .ok_or(crate::allowed_origin_error::AllowedOriginError::Invalid)?;
             if (!scheme.eq_ignore_ascii_case(constants_str::catalog::HTTP)
                 && !scheme.eq_ignore_ascii_case(constants_str::catalog::HTTPS))
                 || remainder.is_empty()
                 || remainder.contains(['/', '?', '#'])
             {
-                return Err(crate::allowed_origin_error::AllowedOriginError);
+                return Err(crate::allowed_origin_error::AllowedOriginError::Invalid);
             }
             (
                 scheme.to_owned(),

@@ -17,5 +17,5 @@ pub struct AdminAuthSvcState {
     pub(crate) pool: app_state::sqlx_pg_pool::SqlxPgPool,
     pub(crate) refresh_ttl: crate::std_admin_refresh_ttl_seconds::StdAdminRefreshTtlSeconds,
     pub(crate) session_limit: crate::std_admin_session_limit::StdAdminSessionLimit,
-    pub(crate) cookie_secure: crate::admin_cookie_secure::AdminCookieSecure,
+    pub(crate) cookie_secure: crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure,
 }

@@ -1,9 +1,12 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgRateLimitScopeRef<'value_lt>(pub(super) &'value_lt str);
+pub struct PgRateLimitScopeRef<'value_lt>(&'value_lt str);
+
+impl<'value_lt> PgRateLimitScopeRef<'value_lt> {
+    #[must_use]
+    pub(crate) const fn get(self) -> &'value_lt str {
+        self.0
+    }
+}
 
 impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitScopeRef<'value_lt> {
     type Error = crate::pg_rate_limit_validation_error::PgRateLimitValidationError;

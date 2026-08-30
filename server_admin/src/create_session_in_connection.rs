@@ -1,6 +1,6 @@
 pub(crate) async fn create_session_in_connection(
     state: &crate::admin_auth_svc_state::AdminAuthSvcState,
-    user_id: server_admin_core::admin_user_id::AdminUserId,
+    user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
     context_hash: &crate::admin_token_hash::AdminTokenHash,
     mut connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
 ) -> Result<

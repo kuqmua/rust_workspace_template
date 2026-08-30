@@ -1,6 +1,6 @@
 fn state(pool: sqlx::PgPool) -> crate::notification_state::NotificationState {
     crate::notification_state::NotificationState::new(
-        crate::metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer::from(
+        crate::notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer::from(
             metrics_exporter_prometheus::PrometheusBuilder::new()
                 .build_recorder()
                 .handle(),
@@ -36,7 +36,7 @@ async fn boundary_adapters_preserve_status_state_and_exit_code() {
     );
     let request = http::Request::new(());
     let (mut parts, _body) = request.into_parts();
-    let extracted = <crate::axum_notification_state::AxumNotificationState as axum::extract::FromRequestParts<
+    let extracted = <crate::notification_axum_state::NotificationAxumState as axum::extract::FromRequestParts<
         crate::notification_state::NotificationState,
     >>::from_request_parts(&mut parts, &state)
     .await
@@ -230,7 +230,7 @@ fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
     let metrics_response =
         axum::response::IntoResponse::into_response(crate::metrics_error::MetricsError::Render(
             server_observability::observed_error::ObservedError::capture(
-                server_runtime_http::metrics_response_body_error::MetricsResponseBodyError,
+                server_runtime_http::metrics_response_body_error::MetricsResponseBodyError::TooLarge,
                 server_observability::observed_error_code::ObservedErrorCode::from(
                     crate::notification_error_code::NotificationErrorCode::MetricsRender.get(),
                 ),

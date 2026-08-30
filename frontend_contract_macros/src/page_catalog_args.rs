@@ -1,8 +1,8 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 pub(crate) struct PageCatalogArgs {
-    pub inventory: crate::syn_ident::SynIdent,
-    pub path_ref: crate::syn_type::SynType,
-    pub spec: crate::syn_type::SynType,
+    pub inventory: crate::contract_syn_ident::ContractSynIdent,
+    pub path_ref: crate::contract_syn_type::ContractSynType,
+    pub spec: crate::contract_syn_type::ContractSynType,
 }
 
 impl syn::parse::Parse for PageCatalogArgs {
@@ -14,13 +14,17 @@ impl syn::parse::Parse for PageCatalogArgs {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == constants_str::test_fixtures::PAGE_CATALOG_INVENTORY {
-                inventory = Some(crate::syn_ident::SynIdent::from(
+                inventory = Some(crate::contract_syn_ident::ContractSynIdent::from(
                     input.parse::<syn::Ident>()?,
                 ));
             } else if name == constants_str::test_fixtures::PAGE_CATALOG_PATH_REF {
-                path_ref = Some(crate::syn_type::SynType::from(input.parse::<syn::Type>()?));
+                path_ref = Some(crate::contract_syn_type::ContractSynType::from(
+                    input.parse::<syn::Type>()?,
+                ));
             } else if name == constants_str::test_fixtures::PAGE_CATALOG_SPEC {
-                spec = Some(crate::syn_type::SynType::from(input.parse::<syn::Type>()?));
+                spec = Some(crate::contract_syn_type::ContractSynType::from(
+                    input.parse::<syn::Type>()?,
+                ));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,

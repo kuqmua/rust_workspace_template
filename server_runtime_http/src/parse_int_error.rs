@@ -1,5 +1,5 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
-)]
-#[error("{0}")]
-pub struct ParseIntError(std::num::ParseIntError);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+pub enum ParseIntError {
+    #[error("{0}")]
+    Parse(#[from] std::num::ParseIntError),
+}

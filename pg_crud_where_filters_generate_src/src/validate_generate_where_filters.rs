@@ -4,9 +4,10 @@ pub fn validate_generate_where_filters(
     crate::validated_generate_where_filters_config::ValidatedGenerateWhereFiltersConfig,
     crate::generate_where_filters_pipeline_error::GenerateWhereFiltersPipelineError,
 > {
-    if built.contract_valid.get() {
+    let (config, contract_valid) = built.into_parts();
+    if contract_valid.get() {
         Ok(crate::validated_generate_where_filters_config::ValidatedGenerateWhereFiltersConfig::from(
-            built.config,
+            config,
         ))
     } else {
         Err(crate::generate_where_filters_pipeline_error::GenerateWhereFiltersPipelineError::InvalidContract)

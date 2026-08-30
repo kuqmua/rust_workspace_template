@@ -11,7 +11,7 @@ pub(crate) struct AdminAuditQueryParts {
         Option<server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp>,
     pub(crate) cursor_id: Option<server_admin_contract::admin_audit_log_id::AdminAuditLogId>,
     pub(crate) resource_id: Option<server_admin_contract::admin_text::AdminText>,
-    pub(crate) user_id: Option<server_admin_core::admin_user_id::AdminUserId>,
+    pub(crate) user_id: Option<server_admin_core::admin_user_record_id::AdminUserRecordId>,
     pub(crate) user_login: Option<server_admin_contract::admin_login::AdminLogin>,
     pub(crate) offset: server_admin_contract::admin_page_offset::AdminPageOffset,
     pub(crate) limit: server_admin_contract::admin_page_limit::AdminPageLimit,

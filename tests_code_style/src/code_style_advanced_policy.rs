@@ -1441,7 +1441,7 @@ fn ignored_map_err_bindings_match_reviewed_inventory() {
         (
             constants_str::test_fixtures::CODE_STYLE_SERVER_ADMIN_CORE_OWNER,
             (
-                4usize,
+                1usize,
                 constants_str::test_fixtures::CODE_STYLE_MAP_ERR_OWNER_REASON,
             ),
         ),

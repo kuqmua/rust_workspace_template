@@ -4,9 +4,9 @@
 )]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractObservation {
-    pub(super) body: crate::http_contract_body::HttpContractBody,
-    pub(super) metadata: frontend_contract::route_metadata::RouteMetadata,
-    pub(super) status: crate::http_contract_status::HttpContractStatus,
+    body: crate::http_contract_body::HttpContractBody,
+    metadata: frontend_contract::route_metadata::RouteMetadata,
+    status: crate::http_contract_status::HttpContractStatus,
 }
 
 impl HttpContractObservation {
@@ -21,5 +21,15 @@ impl HttpContractObservation {
             metadata,
             status,
         }
+    }
+
+    pub(super) const fn parts(
+        &self,
+    ) -> (
+        &crate::http_contract_body::HttpContractBody,
+        frontend_contract::route_metadata::RouteMetadata,
+        crate::http_contract_status::HttpContractStatus,
+    ) {
+        (&self.body, self.metadata, self.status)
     }
 }

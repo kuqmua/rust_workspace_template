@@ -11,7 +11,7 @@ pub(crate) enum RunServerError {
     #[error("failed to build tokio runtime: {0}")]
     BuildRuntime(crate::server_io_error::ServerIoError),
     #[error("failed to read configuration from environment: {0}")]
-    Config(server_config::config::ConfigTryFromEnvError),
+    Config(server_config::server_config::ServerConfigTryFromEnvError),
     #[error("unsafe production configuration: {0}")]
     ConfigProduction(server_config::production_config_error::ProductionConfigError),
     #[error("invalid content security policy: {0}")]

@@ -1,10 +1,40 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(super) struct QuoteStyle {
-    pub(super) panic_id: crate::quote_panic_id::QuotePanicId,
-    pub(super) prefix: crate::quote_prefix::QuotePrefix,
-    pub(super) quote_ch: crate::quote_char::QuoteChar,
+    panic_id: crate::quote_panic_id::QuotePanicId,
+    prefix: crate::quote_prefix::QuotePrefix,
+    quote_ch: crate::quote_char::QuoteChar,
+}
+
+impl QuoteStyle {
+    pub(super) const fn into_parts(
+        self,
+    ) -> (
+        crate::quote_panic_id::QuotePanicId,
+        crate::quote_prefix::QuotePrefix,
+        crate::quote_char::QuoteChar,
+    ) {
+        (self.panic_id, self.prefix, self.quote_ch)
+    }
+}
+
+impl
+    From<(
+        crate::quote_panic_id::QuotePanicId,
+        crate::quote_prefix::QuotePrefix,
+        crate::quote_char::QuoteChar,
+    )> for QuoteStyle
+{
+    fn from(
+        value: (
+            crate::quote_panic_id::QuotePanicId,
+            crate::quote_prefix::QuotePrefix,
+            crate::quote_char::QuoteChar,
+        ),
+    ) -> Self {
+        Self {
+            panic_id: value.0,
+            prefix: value.1,
+            quote_ch: value.2,
+        }
+    }
 }

@@ -19,6 +19,6 @@ impl TryFrom<usize> for ResourceBudgetMaximum {
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self::from)
-            .ok_or(crate::resource_budget_config_error::ResourceBudgetConfigError)
+            .ok_or(crate::resource_budget_config_error::ResourceBudgetConfigError::Zero)
     }
 }

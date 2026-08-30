@@ -2,7 +2,7 @@
 //!
 //! Domain values are owned by typed APIs: administrator routes and frontend paths by
 //! `server_admin_contract` route/path types, permissions by `AdminPermission`, configuration keys
-//! by `server_config::config::Config` fields interpreted by `TryFromEnv`, and table column names by the
+//! by `server_config::server_config::ServerConfig` fields interpreted by `TryFromEnv`, and table column names by the
 //! generated table descriptors. The remaining `ENV_NAMES_*` constants support infrastructure and
 //! conformance tests; `catalog::SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
 //! `pg_crud_common::domain_types::PgSqlIdentifier`, not an application-schema declaration.

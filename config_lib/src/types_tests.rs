@@ -150,7 +150,7 @@ mod tests {
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
                 constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
             ),
-            |v| Ok(v.0.to_owned()),
+            |v| Ok(v.as_ref().to_owned()),
         );
         assert_eq!(parsed, Ok(String::from("src")));
     }

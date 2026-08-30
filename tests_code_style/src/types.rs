@@ -150,19 +150,19 @@ impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMsgsMutRef<'msgs
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::AsRefStr)]
 pub(super) struct SourceText(Box<str>);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, thiserror::Error)]
-#[error(
-    "source text length {} exceeds max {}",
-    .len.get(),
-    SOURCE_TEXT_MAX_LEN
-)]
-pub(super) struct SourceTextTryFromStringError {
-    len: AnalyzerCount,
+pub(super) enum SourceTextTryFromStringError {
+    #[error(
+        "source text length {} exceeds max {}",
+        .len.get(),
+        SOURCE_TEXT_MAX_LEN
+    )]
+    TooLong { len: AnalyzerCount },
 }
 impl TryFrom<String> for SourceText {
     type Error = SourceTextTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > SOURCE_TEXT_MAX_LEN {
-            return Err(SourceTextTryFromStringError {
+            return Err(SourceTextTryFromStringError::TooLong {
                 len: AnalyzerCount::from(value.len()),
             });
         }

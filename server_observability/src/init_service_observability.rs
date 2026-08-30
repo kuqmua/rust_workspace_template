@@ -20,11 +20,11 @@ pub fn init_service_observability(
         .with_batch_exporter(exporter)
         .with_resource(
             opentelemetry_sdk::Resource::builder()
-                .with_service_name(service_name.0)
+                .with_service_name(service_name.get())
                 .build(),
         )
         .build();
-    let tracer = opentelemetry::trace::TracerProvider::tracer(&tracer_provider, service_name.0);
+    let tracer = opentelemetry::trace::TracerProvider::tracer(&tracer_provider, service_name.get());
     opentelemetry::global::set_tracer_provider(tracer_provider.clone());
     let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_error| {
         tracing_subscriber::EnvFilter::new(constants_str::catalog::CONFIG_TRACING_INFO)
@@ -72,11 +72,9 @@ pub fn init_service_observability(
             ),
         );
     }
-    Ok(crate::observability_guard::ObservabilityGuard {
-        tracer_provider: Some(
-            crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider::from(
-                tracer_provider,
-            ),
+    Ok(crate::observability_guard::ObservabilityGuard::from(Some(
+        crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider::from(
+            tracer_provider,
         ),
-    })
+    )))
 }

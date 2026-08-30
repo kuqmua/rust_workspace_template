@@ -6,22 +6,9 @@ pub(crate) async fn user_ban(
         crate::user_ban_form::UserBanForm,
     >,
 ) -> axum::response::Response {
-    crate::authenticated_action_impl::authenticated_action_impl(
+    crate::user_mutation_form_action::user_mutation_form_action(
         auth,
-        server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
-        |auth| {
-            crate::mutations_set_ban::mutations_set_ban(
-                auth,
-                crate::axum_admin_path::AxumAdminPath(crate::user_path_impl::user_path_impl(
-                    form.user_id,
-                )),
-                crate::axum_admin_json::AxumAdminJson(
-                    server_admin_contract::admin_set_user_ban_req::AdminSetUserBanReq::new(
-                        form.is_banned,
-                    ),
-                ),
-            )
-        },
+        crate::user_mutation_form_target::UserMutationFormTarget::Ban(form),
     )
     .await
 }

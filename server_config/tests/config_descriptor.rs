@@ -9,17 +9,20 @@ mod tests {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(constants_str::test_fixtures::SERVER_DOT_ENV_EXAMPLE);
         if std::env::var_os(constants_str::test_fixtures::UPDATE_CONFIG_PROJECTIONS).is_some() {
-            std::fs::write(example_path.as_path(), server_config::config::Config::env_example())
+            std::fs::write(example_path.as_path(), server_config::server_config::ServerConfig::env_example())
                 .expect("c4a18f7d env_example_matches_generated_config_descriptor_and_parsers invariant must hold");
         }
         let example_source = std::fs::read_to_string(example_path).expect("2a8737dd env_example_matches_generated_config_descriptor_and_parsers invariant must hold");
-        assert_eq!(example_source, server_config::config::Config::env_example());
+        assert_eq!(
+            example_source,
+            server_config::server_config::ServerConfig::env_example()
+        );
         let examples = example_source
             .lines()
             .filter_map(|line| line.split_once('='))
             .map(|(name, value)| (name.to_owned(), value.to_owned()))
             .collect::<std::collections::BTreeMap<String, String>>();
-        let descriptors = server_config::config::Config::field_descriptors();
+        let descriptors = server_config::server_config::ServerConfig::field_descriptors();
         assert_eq!(descriptors.len(), examples.len());
         descriptors.into_iter().for_each(|descriptor| {
             let value = examples

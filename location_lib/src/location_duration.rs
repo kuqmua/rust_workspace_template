@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     PartialEq,
@@ -13,9 +9,10 @@
     schemars::JsonSchema,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 #[serde(from = "std::time::Duration")]
-pub struct LocationDuration(pub(super) std::time::Duration);
+pub struct LocationDuration(std::time::Duration);
 impl utoipa::PartialSchema for LocationDuration {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()

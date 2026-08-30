@@ -1,5 +1,5 @@
 pub async fn validate_generated_postgres_table<Table>(
-    pool: crate::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    pool: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
     schema: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
 ) -> Result<(), crate::db_schema_conformance_error::DbSchemaConformanceError>
 where

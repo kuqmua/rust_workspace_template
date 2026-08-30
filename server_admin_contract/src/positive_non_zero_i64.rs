@@ -32,10 +32,12 @@ impl TryFrom<i64> for PositiveNonZeroI64 {
     type Error = crate::admin_id_try_from_i64_error::AdminIdTryFromI64Error;
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        std::num::NonZeroI64::new(value)
-            .filter(|non_zero| non_zero.get().is_positive())
-            .map(Self)
-            .ok_or(crate::admin_id_try_from_i64_error::AdminIdTryFromI64Error)
+        if let Some(non_zero) =
+            std::num::NonZeroI64::new(value).filter(|candidate| candidate.get().is_positive())
+        {
+            return Ok(Self(non_zero));
+        }
+        Err(crate::admin_id_try_from_i64_error::AdminIdTryFromI64Error::Invalid)
     }
 }
 

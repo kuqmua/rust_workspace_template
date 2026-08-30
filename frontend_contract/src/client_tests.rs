@@ -48,23 +48,102 @@ mod tests {
         value: String,
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    enum MutatingRouteMetadataFixture {
+        Ok,
+        Created,
+        NoContent,
+    }
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    enum BasicRouteMetadataFixture {
+        FailingRequest,
+        LargeRequest,
+        EmptyOk,
+    }
+    fn basic_route_metadata(
+        fixture: BasicRouteMetadataFixture,
+    ) -> crate::route_metadata::RouteMetadata {
+        let (method, operation, path) = match fixture {
+            BasicRouteMetadataFixture::FailingRequest => (
+                crate::route_method::RouteMethod::Post,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_4B7BC374,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
+            ),
+            BasicRouteMetadataFixture::LargeRequest => (
+                crate::route_method::RouteMethod::Post,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_D06CF433,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
+            ),
+            BasicRouteMetadataFixture::EmptyOk => (
+                crate::route_method::RouteMethod::Get,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_06DE0EB2,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_B7407642,
+                ),
+            ),
+        };
+        crate::route_metadata::RouteMetadata::new(method, operation, path)
+    }
+    fn mutating_route_metadata(
+        fixture: MutatingRouteMetadataFixture,
+    ) -> crate::route_metadata::RouteMetadata {
+        let (method, operation, path, success_status) = match fixture {
+            MutatingRouteMetadataFixture::Ok => (
+                crate::route_method::RouteMethod::Post,
+                crate::contract_str::ContractStr::from(constants_str::catalog::TEST_ALT_3),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
+                crate::success_status::SuccessStatus::Code200,
+            ),
+            MutatingRouteMetadataFixture::Created => (
+                crate::route_method::RouteMethod::Post,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_CC9227E7,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_AFE0CD3C,
+                ),
+                crate::success_status::SuccessStatus::Code201,
+            ),
+            MutatingRouteMetadataFixture::NoContent => (
+                crate::route_method::RouteMethod::Delete,
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_E1B628F9,
+                ),
+                crate::contract_str::ContractStr::from(
+                    constants_str::test_fixtures::VALUE_A3F72BD5,
+                ),
+                crate::success_status::SuccessStatus::Code204,
+            ),
+        };
+        crate::route_metadata::RouteMetadata::new_with_policy(
+            crate::authentication_requirement::AuthenticationRequirement::Public,
+            crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+            method,
+            crate::route_mutation::RouteMutation::Mutating,
+            operation,
+            path,
+            success_status,
+        )
+    }
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct Route;
     impl crate::typed_route::TypedRoute for Route {
         type Request = Request;
         type Response = Response;
         type Transport = crate::public_transport::PublicTransport;
         fn metadata() -> crate::route_metadata::RouteMetadata {
-            crate::route_metadata::RouteMetadata::new_with_policy(
-                crate::authentication_requirement::AuthenticationRequirement::Public,
-                crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
-                crate::route_method::RouteMethod::Post,
-                crate::route_mutation::RouteMutation::Mutating,
-                crate::contract_str::ContractStr::from(constants_str::catalog::TEST_ALT_3),
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_AFE0CD3C,
-                ),
-                crate::success_status::SuccessStatus::Code200,
-            )
+            mutating_route_metadata(MutatingRouteMetadataFixture::Ok)
         }
         fn request_body() -> crate::route_request_body::RouteRequestBody {
             crate::route_request_body::RouteRequestBody::Json
@@ -77,19 +156,7 @@ mod tests {
         type Response = Response;
         type Transport = crate::public_transport::PublicTransport;
         fn metadata() -> crate::route_metadata::RouteMetadata {
-            crate::route_metadata::RouteMetadata::new_with_policy(
-                crate::authentication_requirement::AuthenticationRequirement::Public,
-                crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
-                crate::route_method::RouteMethod::Post,
-                crate::route_mutation::RouteMutation::Mutating,
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_CC9227E7,
-                ),
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_AFE0CD3C,
-                ),
-                crate::success_status::SuccessStatus::Code201,
-            )
+            mutating_route_metadata(MutatingRouteMetadataFixture::Created)
         }
         fn request_body() -> crate::route_request_body::RouteRequestBody {
             crate::route_request_body::RouteRequestBody::Json
@@ -102,15 +169,7 @@ mod tests {
         type Response = Response;
         type Transport = crate::public_transport::PublicTransport;
         fn metadata() -> crate::route_metadata::RouteMetadata {
-            crate::route_metadata::RouteMetadata::new(
-                crate::route_method::RouteMethod::Post,
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_4B7BC374,
-                ),
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_AFE0CD3C,
-                ),
-            )
+            basic_route_metadata(BasicRouteMetadataFixture::FailingRequest)
         }
         fn request_body() -> crate::route_request_body::RouteRequestBody {
             crate::route_request_body::RouteRequestBody::Json
@@ -123,15 +182,7 @@ mod tests {
         type Response = Response;
         type Transport = crate::public_transport::PublicTransport;
         fn metadata() -> crate::route_metadata::RouteMetadata {
-            crate::route_metadata::RouteMetadata::new(
-                crate::route_method::RouteMethod::Post,
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_D06CF433,
-                ),
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_AFE0CD3C,
-                ),
-            )
+            basic_route_metadata(BasicRouteMetadataFixture::LargeRequest)
         }
         fn request_body() -> crate::route_request_body::RouteRequestBody {
             crate::route_request_body::RouteRequestBody::Json
@@ -155,19 +206,7 @@ mod tests {
         type Response = NoBody;
         type Transport = crate::public_transport::PublicTransport;
         fn metadata() -> crate::route_metadata::RouteMetadata {
-            crate::route_metadata::RouteMetadata::new_with_policy(
-                crate::authentication_requirement::AuthenticationRequirement::Public,
-                crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
-                crate::route_method::RouteMethod::Delete,
-                crate::route_mutation::RouteMutation::Mutating,
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_E1B628F9,
-                ),
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_A3F72BD5,
-                ),
-                crate::success_status::SuccessStatus::Code204,
-            )
+            mutating_route_metadata(MutatingRouteMetadataFixture::NoContent)
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
@@ -177,15 +216,7 @@ mod tests {
         type Response = NoBody;
         type Transport = crate::public_transport::PublicTransport;
         fn metadata() -> crate::route_metadata::RouteMetadata {
-            crate::route_metadata::RouteMetadata::new(
-                crate::route_method::RouteMethod::Get,
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_06DE0EB2,
-                ),
-                crate::contract_str::ContractStr::from(
-                    constants_str::test_fixtures::VALUE_B7407642,
-                ),
-            )
+            basic_route_metadata(BasicRouteMetadataFixture::EmptyOk)
         }
     }
     impl crate::parameterized_route::ParameterizedRoute for NoContentRoute {

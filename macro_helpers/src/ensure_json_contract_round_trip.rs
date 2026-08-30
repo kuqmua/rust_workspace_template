@@ -6,17 +6,17 @@ where
 {
     let fixture_value = serde_json::from_str::<Value>(fixture.0).map_err(|error| {
         crate::contract_error::ContractError::DeserializeFixture(
-            crate::serde_json_error::SerdeJsonError::from(error),
+            crate::macro_serde_json_error::MacroSerdeJsonError::from(error),
         )
     })?;
     let serialized = serde_json::to_string(&fixture_value).map_err(|error| {
         crate::contract_error::ContractError::Serialize(
-            crate::serde_json_error::SerdeJsonError::from(error),
+            crate::macro_serde_json_error::MacroSerdeJsonError::from(error),
         )
     })?;
     let round_trip_value = serde_json::from_str::<Value>(serialized.as_str()).map_err(|error| {
         crate::contract_error::ContractError::DeserializeRoundTrip(
-            crate::serde_json_error::SerdeJsonError::from(error),
+            crate::macro_serde_json_error::MacroSerdeJsonError::from(error),
         )
     })?;
     if fixture_value == round_trip_value {

@@ -9,9 +9,10 @@ impl TryFrom<std::time::Duration> for AuthSessionRefreshIntervalDuration {
     type Error = crate::auth_session_keep_alive_error::AuthSessionKeepAliveError;
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
-            Err(crate::auth_session_keep_alive_error::AuthSessionKeepAliveError::ZeroInterval)
-        } else {
-            Ok(Self(value))
+            return Err(
+                crate::auth_session_keep_alive_error::AuthSessionKeepAliveError::ZeroInterval,
+            );
         }
+        Ok(Self(value))
     }
 }

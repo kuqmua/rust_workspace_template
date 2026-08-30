@@ -1,6 +1,8 @@
 pub(crate) async fn user_mutations_delete(
     auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<server_admin_core::admin_user_id::AdminUserId>,
+    path: crate::axum_admin_path::AxumAdminPath<
+        server_admin_core::admin_user_record_id::AdminUserRecordId,
+    >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
         &auth,

@@ -1,9 +1,9 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub(crate) enum AdminAuditResourceId {
-    Role(server_admin_core::admin_role_id::AdminRoleId),
+    Role(server_admin_core::admin_role_record_id::AdminRoleRecordId),
     Session(crate::admin_session_id::AdminSessionId),
     SystemSettings,
-    User(server_admin_core::admin_user_id::AdminUserId),
+    User(server_admin_core::admin_user_record_id::AdminUserRecordId),
 }
 
 impl AdminAuditResourceId {

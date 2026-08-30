@@ -7,7 +7,7 @@
         if (100u16..1_000u16).contains(value) {
             Ok(())
         } else {
-            Err(frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error)
+            Err(frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange)
         }
     }
 )]

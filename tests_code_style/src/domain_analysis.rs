@@ -235,11 +235,38 @@ impl StringWrapperFromVisitor<'_> {
             found: crate::types::AnalyzerBool::default(),
         };
         syn::visit::Visit::visit_item_impl(&mut len_call_visitor, item.as_ref());
-        if len_call_visitor.found.get() {
+        let mut len_checked_call_visitor = LenCheckedFunctionCallVisitor {
+            found: crate::types::AnalyzerBool::default(),
+            names: self.len_checked_function_names,
+        };
+        syn::visit::Visit::visit_item_impl(&mut len_checked_call_visitor, item.as_ref());
+        if len_call_visitor.found.get() || len_checked_call_visitor.found.get() {
             let _: bool = self
                 .try_from_string_len_checked_names
                 .insert(String::from(identifier));
         }
+    }
+}
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+pub(super) struct LenCheckedFunctionCallVisitor<'names_lt> {
+    pub found: crate::types::AnalyzerBool,
+    pub names: &'names_lt crate::types::SourceTextBTreeSet,
+}
+impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionCallVisitor<'_> {
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if let syn::Expr::Path(path) = i.func.as_ref() {
+            let full_path =
+                crate::code_style::path_to_string(crate::types::SynPathRef::from(&path.path));
+            if self.names.iter().any(|name| {
+                full_path.as_ref() == name
+                    || full_path.as_ref().strip_suffix(name).is_some_and(|prefix| {
+                        prefix.ends_with(constants_str::catalog::PATH_SEPARATOR)
+                    })
+            }) {
+                self.found.set_true();
+            }
+        }
+        syn::visit::visit_expr_call(self, i);
     }
 }
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]

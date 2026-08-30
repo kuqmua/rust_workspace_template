@@ -196,6 +196,45 @@ fn newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
     );
 }
 #[test]
+fn manual_try_from_delegated_validator_satisfies_string_wrapper_policy() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Value(String);
+        fn validate_value(value: &str) -> Result<(), ValueError> {
+            if value.len() > 8usize {
+                Err(ValueError)
+            } else {
+                Ok(())
+            }
+        }
+        impl TryFrom<String> for Value {
+            type Error = ValueError;
+            fn try_from(value: String) -> Result<Self, Self::Error> {
+                validate_value(value.as_str())?;
+                Ok(Self(value))
+            }
+        }
+    };
+    let string_wrapper_names =
+        crate::code_style::string_wrapper_names(crate::types::SynFileRef::from(&ast));
+    let len_checked_function_names =
+        crate::code_style::len_checked_function_names(crate::types::SynFileRef::from(&ast));
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::domain_analysis::StringWrapperFromVisitor {
+            ers: crate::types::DiagnosticMsgs::default(),
+            len_checked_function_names: &len_checked_function_names,
+            string_wrapper_names: &string_wrapper_names,
+            try_from_string_names: crate::types::SourceTextBTreeSet::default(),
+            try_from_string_len_checked_names: crate::types::SourceTextBTreeSet::default(),
+        },
+    );
+    assert!(visitor.try_from_string_names.contains("Value"), "49c5a28f");
+    assert!(
+        visitor.try_from_string_len_checked_names.contains("Value"),
+        "21d03c6b"
+    );
+}
+#[test]
 fn tuple_wrappers_do_not_expose_inner_field() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
         crate::types::StaticStr::from(constants_str::catalog::B7C84E2A),

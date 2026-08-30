@@ -1,8 +1,11 @@
 pub(crate) async fn load_authenticated_admin_from_db(
     db: &mut crate::admin_db_ref::AdminDbRef<'_, '_>,
-    user_id: server_admin_core::admin_user_id::AdminUserId,
+    user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
     session_id: crate::admin_session_id::AdminSessionId,
-) -> Result<crate::authenticated_admin::AuthenticatedAdmin, crate::admin_error::AdminError> {
+) -> Result<
+    crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
+    crate::admin_error::AdminError,
+> {
     let user_query = sqlx::query_as::<_, (String, String, bool)>(
         constants_str::integration_fixtures::SERVER_ADMIN_READ_AUTH_USER_SQL,
     )
@@ -66,13 +69,15 @@ pub(crate) async fn load_authenticated_admin_from_db(
         .map_err(|_error| crate::admin_error::AdminError::Authentication)?
         .try_into()
         .map_err(|_error| crate::admin_error::AdminError::Authentication)?;
-    Ok(crate::authenticated_admin::AuthenticatedAdmin {
-        display_name,
-        id: user_id,
-        login,
-        password_change_required,
-        permissions,
-        roles,
-        session_id,
-    })
+    Ok(
+        crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin {
+            display_name,
+            id: user_id,
+            login,
+            password_change_required,
+            permissions,
+            roles,
+            session_id,
+        },
+    )
 }

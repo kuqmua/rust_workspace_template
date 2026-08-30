@@ -8,10 +8,8 @@ pub struct LeaseStaleTimeoutDuration(pub(super) std::time::Duration);
 impl TryFrom<std::time::Duration> for LeaseStaleTimeoutDuration {
     type Error = crate::std_lease_stale_timeout_error::StdLeaseStaleTimeoutError;
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
-            Err(crate::std_lease_stale_timeout_error::StdLeaseStaleTimeoutError)
-        } else {
-            Ok(Self(value))
-        }
+        (!value.is_zero())
+            .then_some(Self(value))
+            .ok_or(crate::std_lease_stale_timeout_error::StdLeaseStaleTimeoutError::Zero)
     }
 }

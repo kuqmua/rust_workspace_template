@@ -6,7 +6,7 @@ impl TryFrom<String> for HttpCspBuilder {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > constants_usize::VALUE_4_096 {
-            return Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError);
+            return Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError::TooLarge);
         }
         Ok(Self(value))
     }
@@ -31,7 +31,7 @@ impl HttpCspBuilder {
             .saturating_add(name.0.len())
             .saturating_add(values_bytes);
         if self.0.len().saturating_add(added_bytes) > constants_usize::VALUE_4_096 {
-            return Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError);
+            return Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError::TooLarge);
         }
         self.0.reserve(added_bytes);
         if !self.0.is_empty() {

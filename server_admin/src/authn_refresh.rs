@@ -73,7 +73,7 @@ pub(crate) async fn authn_refresh(
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     .and_then(|value| {
         value
-            .map(server_admin_core::admin_user_id::AdminUserId::try_from)
+            .map(server_admin_core::admin_user_record_id::AdminUserRecordId::try_from)
             .transpose()
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     })

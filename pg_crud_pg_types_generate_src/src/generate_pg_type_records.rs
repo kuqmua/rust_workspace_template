@@ -18,7 +18,7 @@ impl TryFrom<Vec<crate::pg_type_record::PgTypeRecord>> for GeneratePgTypeRecords
 
     fn try_from(value: Vec<crate::pg_type_record::PgTypeRecord>) -> Result<Self, Self::Error> {
         if value.len() > crate::generate_pg_types_max_len::GENERATE_PG_TYPES_MAX_LEN {
-            Err(crate::generate_pg_types_length_error::GeneratePgTypesLengthError)
+            Err(crate::generate_pg_types_length_error::GeneratePgTypesLengthError::TooLarge)
         } else {
             Ok(Self(value))
         }

@@ -31,7 +31,7 @@ mod tests {
         let values = vec![item; constants_usize::VALUE_128.saturating_add(constants_usize::ONE)];
         assert_eq!(
             crate::trusted_proxy_ranges::TrustedProxyRanges::try_from(values),
-            Err(crate::trusted_proxy_ranges_error::TrustedProxyRangesError)
+            Err(crate::trusted_proxy_ranges_error::TrustedProxyRangesError::TooMany)
         );
     }
     #[test]

@@ -89,7 +89,7 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
             )
         })()
         .map_err(administrator_account_command_error::AdministratorAccountCommandError::Args)?;
-        let config = server_config::config::Config::try_from_env()
+        let config = server_config::server_config::ServerConfig::try_from_env()
             .map_err(administrator_account_command_error::AdministratorAccountCommandError::Config)?;
         config
             .validate_for_startup()
@@ -113,7 +113,7 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
         let concurrency = std::num::NonZeroUsize::new(config.admin_password_hash_concurrency.get())
             .ok_or(administrator_account_command_error::AdministratorAccountCommandError::PasswordFileValue)?;
         let password_hasher = server_admin::admin_password_hasher::AdminPasswordHasher::new(
-            server_admin::admin_password_hash_concurrency::AdminPasswordHashConcurrency::from(
+            server_admin::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
                 concurrency,
             ),
         );

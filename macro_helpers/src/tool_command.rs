@@ -1,6 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ToolCommand {
-    inner: crate::process_command::ProcessCommand,
+    inner: crate::tool_process_command::ToolProcessCommand,
     program: crate::os_string_value::OsStringValue,
 }
 impl std::fmt::Debug for ToolCommand {
@@ -23,7 +23,7 @@ impl ToolCommand {
         let _command = self.inner.args(*values);
         self
     }
-    pub fn current_dir(&mut self, value: crate::path_ref::PathRef<'_>) -> &mut Self {
+    pub fn current_dir(&mut self, value: crate::macro_path_ref::MacroPathRef<'_>) -> &mut Self {
         let _command = self.inner.current_dir(*value);
         self
     }
@@ -38,9 +38,9 @@ impl ToolCommand {
     #[must_use]
     pub fn new(program: crate::tool_program_ref::ToolProgramRef<'_>) -> Self {
         Self {
-            inner: crate::process_command::ProcessCommand::from(std::process::Command::new(
-                *program,
-            )),
+            inner: crate::tool_process_command::ToolProcessCommand::from(
+                std::process::Command::new(*program),
+            ),
             program: crate::os_string_value::OsStringValue::from(*program),
         }
     }

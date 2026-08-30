@@ -15,11 +15,12 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminPasswordHashCon
 
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         let parsed =
-            v.0.parse::<usize>()
+            v.parse::<usize>()
                 .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
-                    admin_positive_usize_parsing: crate::parse_int_error::ParseIntError::from(
-                        admin_positive_usize_parsing,
-                    ),
+                    admin_positive_usize_parsing:
+                        crate::config_parse_int_error::ConfigParseIntError::from(
+                            admin_positive_usize_parsing,
+                        ),
                 })?;
         std::num::NonZeroUsize::new(parsed)
             .map(Self)

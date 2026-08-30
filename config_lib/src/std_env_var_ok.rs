@@ -3,8 +3,16 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
-pub struct StdEnvVarOk(pub(super) String);
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::DerefInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct StdEnvVarOk(String);
 impl From<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError> for StdEnvVarOk {
     fn from(value: crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError) -> Self {
         Self(value.to_string())

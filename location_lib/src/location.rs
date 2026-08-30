@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -19,12 +14,12 @@
 pub struct Location {
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
-    pub(super) file: crate::location_file::LocationFile,
-    pub(super) commit: crate::location_commit::LocationCommit,
-    pub(super) duration: crate::location_duration::LocationDuration,
-    pub(super) occr: Option<crate::occr::Occr>,
-    pub(super) line: crate::location_line::LocationLine,
-    pub(super) column: crate::location_column::LocationColumn,
+    file: crate::location_file::LocationFile,
+    commit: crate::location_commit::LocationCommit,
+    duration: crate::location_duration::LocationDuration,
+    occr: Option<crate::occr::Occr>,
+    line: crate::location_line::LocationLine,
+    column: crate::location_column::LocationColumn,
 }
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_pass_by_value)]
@@ -35,12 +30,13 @@ impl Location {
         file: crate::location_file_ref::LocationFileRef<'_>,
         line: crate::location_line::LocationLine,
     ) -> std::fmt::Result {
+        let formatter: &mut std::fmt::Formatter<'_> = f.into();
         write!(
-            f.0,
+            formatter,
             "{}/blob/{}/{}#L{}",
             constants_str::catalog::NAMING_GITHUB_URL,
             self.commit.as_ref(),
-            file.0,
+            <&str>::from(file),
             line
         )
     }
@@ -50,18 +46,21 @@ impl Location {
         line: crate::location_line::LocationLine,
         column: crate::location_column::LocationColumn,
     ) -> std::fmt::Result {
-        write!(f.0, "{}:{line}:{column}", file.0)
+        let formatter: &mut std::fmt::Formatter<'_> = f.into();
+        write!(formatter, "{}:{line}:{column}", <&str>::from(file))
     }
     pub(super) fn datetime_with_tz(
         &self,
     ) -> Option<crate::chrono_location_date_time::ChronoLocationDateTime> {
-        let epoch = std::time::UNIX_EPOCH.checked_add(self.duration.0)?;
-        let offset =
-            chrono::FixedOffset::east_opt(crate::domain_types::LOC_DISPLAY_UTC_OFFSET_SECS)
-                .map(crate::chrono_location_display_timezone::ChronoLocationDisplayTimezone)?;
+        let epoch = std::time::UNIX_EPOCH.checked_add(std::time::Duration::from(self.duration))?;
+        let offset = chrono::FixedOffset::east_opt(
+            crate::domain_types::LOC_DISPLAY_UTC_OFFSET_SECS,
+        )
+        .map(crate::chrono_location_display_timezone::ChronoLocationDisplayTimezone::from)?;
         Some(
             crate::chrono_location_date_time::ChronoLocationDateTime::from(
-                chrono::DateTime::<chrono::Utc>::from(epoch).with_timezone(&offset.0),
+                chrono::DateTime::<chrono::Utc>::from(epoch)
+                    .with_timezone(&chrono::FixedOffset::from(offset)),
             ),
         )
     }
@@ -69,11 +68,14 @@ impl Location {
         &self,
         f: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
     ) -> std::fmt::Result {
+        let formatter: &mut std::fmt::Formatter<'_> = f.into();
         match self.datetime_with_tz() {
-            Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
-            None => {
-                f.0.write_str(constants_str::catalog::LOCATION_INCORRECT_DATETIME_MSG)
-            }
+            Some(v) => write!(
+                formatter,
+                "{}",
+                chrono::DateTime::<chrono::FixedOffset>::from(v).format("%Y-%m-%d %H:%M:%S")
+            ),
+            None => formatter.write_str(constants_str::catalog::LOCATION_INCORRECT_DATETIME_MSG),
         }
     }
     pub(super) fn fmt_place(
@@ -81,41 +83,42 @@ impl Location {
         src_place_type: config_lib::src_place_type::SrcPlaceType,
         f: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
     ) -> std::fmt::Result {
+        let formatter: &mut std::fmt::Formatter<'_> = f.into();
         match src_place_type {
             config_lib::src_place_type::SrcPlaceType::Src => {
                 Self::fmt_src_location(
-                    crate::formatter_ref_mut::FormatterRefMut::from(&mut *f.0),
+                    crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                     crate::location_file_ref::LocationFileRef::from(self.file.as_ref()),
                     self.line,
                     self.column,
                 )?;
                 if let Some(v) = self.occr.as_ref() {
-                    f.0.write_str(constants_str::catalog::TEXT)?;
+                    formatter.write_str(constants_str::catalog::TEXT)?;
                     Self::fmt_src_location(
-                        crate::formatter_ref_mut::FormatterRefMut::from(&mut *f.0),
+                        crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                         crate::location_file_ref::LocationFileRef::from(v.file.as_ref()),
                         v.line,
                         v.column,
                     )?;
-                    f.0.write_str(constants_str::catalog::TEXT_ALT_5)
+                    formatter.write_str(constants_str::catalog::TEXT_ALT_5)
                 } else {
                     Ok(())
                 }
             }
             config_lib::src_place_type::SrcPlaceType::Github => {
                 self.fmt_github_location(
-                    crate::formatter_ref_mut::FormatterRefMut::from(&mut *f.0),
+                    crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                     crate::location_file_ref::LocationFileRef::from(self.file.as_ref()),
                     self.line,
                 )?;
                 if let Some(v) = self.occr.as_ref() {
-                    f.0.write_str(constants_str::catalog::TEXT)?;
+                    formatter.write_str(constants_str::catalog::TEXT)?;
                     self.fmt_github_location(
-                        crate::formatter_ref_mut::FormatterRefMut::from(&mut *f.0),
+                        crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                         crate::location_file_ref::LocationFileRef::from(v.file.as_ref()),
                         v.line,
                     )?;
-                    f.0.write_str(constants_str::catalog::TEXT_ALT_5)
+                    formatter.write_str(constants_str::catalog::TEXT_ALT_5)
                 } else {
                     Ok(())
                 }
@@ -150,6 +153,37 @@ impl Location {
                     .unwrap_or_default(),
             ),
             occr,
+        }
+    }
+}
+#[cfg(test)]
+impl
+    From<(
+        crate::location_file::LocationFile,
+        crate::location_commit::LocationCommit,
+        crate::location_duration::LocationDuration,
+        Option<crate::occr::Occr>,
+        crate::location_line::LocationLine,
+        crate::location_column::LocationColumn,
+    )> for Location
+{
+    fn from(
+        value: (
+            crate::location_file::LocationFile,
+            crate::location_commit::LocationCommit,
+            crate::location_duration::LocationDuration,
+            Option<crate::occr::Occr>,
+            crate::location_line::LocationLine,
+            crate::location_column::LocationColumn,
+        ),
+    ) -> Self {
+        Self {
+            file: value.0,
+            commit: value.1,
+            duration: value.2,
+            occr: value.3,
+            line: value.4,
+            column: value.5,
         }
     }
 }

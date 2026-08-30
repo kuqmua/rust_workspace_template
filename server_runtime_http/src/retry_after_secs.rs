@@ -19,7 +19,7 @@ impl TryFrom<u64> for RetryAfterSecs {
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         std::num::NonZeroU64::new(value)
             .map(Self::from)
-            .ok_or(crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error)
+            .ok_or(crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error::Zero)
     }
 }
 

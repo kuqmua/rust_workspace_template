@@ -1,6 +1,6 @@
 pub(crate) async fn revoke_user_sessions(
     connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
-    user_id: server_admin_core::admin_user_id::AdminUserId,
+    user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
 ) -> Result<(), crate::sqlx_admin_error::SqlxAdminError> {
     sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REVOKE_USER_ACCESS_SESSIONS_SQL)
         .bind(user_id.get())

@@ -3,10 +3,7 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // OpenAPI document stays next to its generated schema and operation marker
 #![allow(clippy::wildcard_imports)] // root-owned binary modules share the former domain owner facade vocabulary
 
-pub mod axum_notification_json;
 pub mod axum_notification_response;
-pub mod axum_notification_router;
-pub mod axum_notification_state;
 pub mod build_notification_router;
 pub mod create_notification;
 pub mod create_notification_error;
@@ -15,12 +12,15 @@ pub mod http_notification_status_code;
 pub mod metrics;
 pub mod metrics_error;
 pub mod metrics_exporter_prometheus_notification_build_error;
-pub mod metrics_exporter_prometheus_renderer;
 pub mod notification_api_route_registry;
+pub mod notification_axum_json;
+pub mod notification_axum_router;
+pub mod notification_axum_state;
 pub mod notification_body_maximum_bytes;
 pub mod notification_error_code;
 pub mod notification_exit_code;
 pub mod notification_io_error;
+pub mod notification_metrics_exporter_prometheus_renderer;
 pub mod notification_open_api;
 pub mod notification_route_registry;
 pub mod notification_service_error;
@@ -36,7 +36,7 @@ pub mod tests;
 
 #[tokio::main]
 async fn main() -> notification_exit_code::NotificationExitCode {
-    let config = match notification_service_config::config::Config::try_from_env() {
+    let config = match notification_service_config::notification_service_config::NotificationServiceConfig::try_from_env() {
         Ok(value) => value,
         Err(error) => {
             tracing::error!(
@@ -99,7 +99,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
             (async {
             let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
                 .install_recorder()
-                .map(metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer::from)
+                .map(notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer::from)
                 .map_err(|error| {
                     notification_service_error::NotificationServiceError::Metrics(
                         metrics_exporter_prometheus_notification_build_error::MetricsExporterPrometheusNotificationBuildError::from(error),

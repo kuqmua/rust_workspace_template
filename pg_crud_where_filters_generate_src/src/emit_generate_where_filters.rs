@@ -30,7 +30,12 @@ pub fn emit_generate_where_filters(
         }
     }
     panic_location::panic_location();
-    let generate_where_filters_config = validated.0;
+    let generate_where_filters_config =
+        crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig::from(
+            validated,
+        );
+    let (pg_types_write_into_file, whole_write_into_file) =
+        generate_where_filters_config.into_parts();
     let column_snake_case = naming::domain_types::ColumnSnakeCase;
     let error_snake_case = naming::domain_types::ErrorSnakeCase;
     let increment_snake_case = naming::domain_types::IncrementSnakeCase;
@@ -919,7 +924,7 @@ pub fn emit_generate_where_filters(
         let gend = quote::quote! {#(#filter_array_token_stream)*};
         if let Err(error) =
             macro_helpers::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
-                generate_where_filters_config.pg_types_write_into_file,
+                pg_types_write_into_file,
                 constants_str::catalog::GENERATE_WHERE_FILTERS_PG_TYPES,
                 macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&gend),
                 &macro_helpers::format_with_cargofmt::FormatWithCargofmt::True,
@@ -1081,7 +1086,7 @@ pub fn emit_generate_where_filters(
     };
     if let Err(error) =
         macro_helpers::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
-            generate_where_filters_config.whole_write_into_file,
+            whole_write_into_file,
             constants_str::catalog::CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME,
             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&gend),
             &macro_helpers::format_with_cargofmt::FormatWithCargofmt::True,

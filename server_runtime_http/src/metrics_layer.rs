@@ -42,7 +42,7 @@ mod tests {
     fn cache_configuration_and_path_text_validate_boundaries() {
         assert_eq!(
             crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::try_from(constants_usize::ZERO),
-            Err(crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError)
+            Err(crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError::Zero)
         );
         assert_eq!(
             crate::http_metrics_path_text::HttpMetricsPathText::try_from(String::new()),

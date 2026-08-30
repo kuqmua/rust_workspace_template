@@ -5,7 +5,7 @@ impl StdReqwestTimeoutDurationRef<'_> {
         self,
     ) -> Result<(), super::std_reqwest_timeout_error::StdReqwestTimeoutError> {
         if self.0.is_zero() {
-            Err(super::std_reqwest_timeout_error::StdReqwestTimeoutError)
+            Err(super::std_reqwest_timeout_error::StdReqwestTimeoutError::Zero)
         } else {
             Ok(())
         }

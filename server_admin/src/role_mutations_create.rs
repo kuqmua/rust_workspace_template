@@ -29,7 +29,7 @@ pub(crate) async fn role_mutations_create(
     .await
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     .and_then(|value| {
-        server_admin_core::admin_role_id::AdminRoleId::try_from(value)
+        server_admin_core::admin_role_record_id::AdminRoleRecordId::try_from(value)
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     })
     .map_err(|error| crate::map_unique_violation::map_unique_violation(error.into_inner()))?;

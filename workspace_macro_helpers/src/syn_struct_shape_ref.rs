@@ -15,11 +15,11 @@ impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shap
         };
         Ok(match &data.fields {
             syn::Fields::Named(fields) => {
-                Self::Named(crate::syn_fields_named_ref::SynFieldsNamedRef(fields))
+                Self::Named(crate::syn_fields_named_ref::SynFieldsNamedRef::from(fields))
             }
-            syn::Fields::Unnamed(fields) => {
-                Self::Tuple(crate::syn_fields_unnamed_ref::SynFieldsUnnamedRef(fields))
-            }
+            syn::Fields::Unnamed(fields) => Self::Tuple(
+                crate::syn_fields_unnamed_ref::SynFieldsUnnamedRef::from(fields),
+            ),
             syn::Fields::Unit => Self::Unit,
         })
     }

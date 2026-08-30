@@ -1,11 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
 )]
-pub(crate) struct RuntimeTestUrl(pub(super) String);
+pub(crate) struct RuntimeTestUrl(String);
 
 impl TryFrom<String> for RuntimeTestUrl {
     type Error = crate::service_base_url_error::ServiceBaseUrlError;

@@ -58,7 +58,7 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
         #(impl crate::to_err_string::ToErrString for #types {
             fn to_err_string(&self) -> crate::error_text::ErrorText {
                 crate::static_str_to_owned::static_str_to_owned(
-                    crate::static_str_to_owned_input::StaticStrToOwnedInput(#msgs),
+                    crate::static_str_to_owned_input::StaticStrToOwnedInput::from(#msgs),
                 )
             }
         })*

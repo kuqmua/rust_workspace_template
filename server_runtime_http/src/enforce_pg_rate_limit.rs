@@ -10,8 +10,8 @@ pub async fn enforce_pg_rate_limit(
     crate::pg_rate_limit_error::PgRateLimitError,
 > {
     sqlx::query_scalar::<_, bool>(query.0)
-        .bind(scope.0)
-        .bind(subject.0)
+        .bind(scope.get())
+        .bind(subject.get())
         .bind(maximum.0.get())
         .bind(window_seconds.0.get())
         .fetch_one(pool.0)

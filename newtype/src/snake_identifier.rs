@@ -5,9 +5,11 @@ impl TryFrom<String> for SnakeIdentifier {
         crate::snake_identifierifier_try_from_string_error::SnakeIdentifierifierTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > crate::snake_ident_max_len::SNAKE_IDENT_MAX_LEN {
-            return Err(crate::snake_identifierifier_try_from_string_error::SnakeIdentifierifierTryFromStringError(
-                crate::snake_identifierifier_len::SnakeIdentifierifierLen::from(value.len()),
-            ));
+            return Err(
+                crate::snake_identifierifier_try_from_string_error::SnakeIdentifierifierTryFromStringError::from(
+                    crate::snake_identifierifier_len::SnakeIdentifierifierLen::from(value.len()),
+                ),
+            );
         }
         Ok(Self(value))
     }

@@ -1,12 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
 pub(crate) struct InitializationEntry {
-    pub(super) keys: crate::env_keys::EnvKeys,
-    pub(super) member: crate::workspace_member::WorkspaceMember,
-    pub(super) status: crate::initialization_status::InitializationStatus,
+    keys: crate::env_keys::EnvKeys,
+    member: crate::workspace_member::WorkspaceMember,
+    status: crate::initialization_status::InitializationStatus,
 }
 impl InitializationEntry {
     pub(crate) const fn keys(&self) -> &crate::env_keys::EnvKeys {
@@ -17,5 +13,26 @@ impl InitializationEntry {
     }
     pub(crate) const fn status(&self) -> crate::initialization_status::InitializationStatus {
         self.status
+    }
+}
+impl
+    From<(
+        crate::env_keys::EnvKeys,
+        crate::workspace_member::WorkspaceMember,
+        crate::initialization_status::InitializationStatus,
+    )> for InitializationEntry
+{
+    fn from(
+        (keys, member, status): (
+            crate::env_keys::EnvKeys,
+            crate::workspace_member::WorkspaceMember,
+            crate::initialization_status::InitializationStatus,
+        ),
+    ) -> Self {
+        Self {
+            keys,
+            member,
+            status,
+        }
     }
 }

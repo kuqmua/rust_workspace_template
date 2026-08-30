@@ -20,9 +20,7 @@ impl TryFrom<String> for PgTableRevision {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let parsed = value.parse::<i64>().map_err(|error| {
-            crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Invalid(crate::pg_table_revision_parse_int_error::PgTableRevisionParseIntError(
-                error,
-            ))
+            crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Invalid(crate::pg_table_revision_parse_int_error::PgTableRevisionParseIntError::from(error))
         })?;
         if parsed < constants_i64::ZERO {
             Err(crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Negative)

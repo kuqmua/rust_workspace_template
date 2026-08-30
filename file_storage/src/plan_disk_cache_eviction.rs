@@ -6,29 +6,31 @@ pub fn plan_disk_cache_eviction(
     crate::disk_cache_eviction_plan::DiskCacheEvictionPlan,
     crate::disk_cache_budget_error::DiskCacheBudgetError,
 > {
-    if incoming.0 > maximum.0 {
+    let incoming_size = u64::from(incoming);
+    let maximum_size = u64::from(maximum);
+    if incoming_size > maximum_size {
         return Err(crate::disk_cache_budget_error::DiskCacheBudgetError::IncomingTooLarge);
     }
     let mut current = entries
         .iter()
         .try_fold(constants_u64::ZERO, |total, entry| {
             total
-                .checked_add(entry.size.0)
+                .checked_add(u64::from(entry.parts().2))
                 .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)
         })?;
     let mut ordered = entries.iter().collect::<Vec<_>>();
-    ordered.sort_unstable_by_key(|entry| entry.modified_at.0);
+    ordered.sort_unstable_by_key(|entry| std::time::SystemTime::from(entry.parts().0));
     let projected = current
-        .checked_add(incoming.0)
+        .checked_add(incoming_size)
         .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?;
-    let required = projected.saturating_sub(maximum.0);
+    let required = projected.saturating_sub(maximum_size);
     let remove_capacity = ordered
         .iter()
         .scan(constants_u64::ZERO, |removed, entry| {
             if *removed >= required {
                 None
             } else {
-                *removed = removed.saturating_add(entry.size.0);
+                *removed = removed.saturating_add(u64::from(entry.parts().2));
                 Some(())
             }
         })
@@ -36,15 +38,15 @@ pub fn plan_disk_cache_eviction(
     let mut remove = Vec::with_capacity(remove_capacity);
     let mut candidates = ordered.into_iter();
     while current
-        .checked_add(incoming.0)
+        .checked_add(incoming_size)
         .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?
-        > maximum.0
+        > maximum_size
     {
         let Some(entry) = candidates.next() else {
             break;
         };
-        current = current.saturating_sub(entry.size.0);
-        remove.push(entry.path.clone());
+        current = current.saturating_sub(u64::from(entry.parts().2));
+        remove.push(entry.parts().1.clone());
     }
     Ok(
         crate::disk_cache_eviction_plan::DiskCacheEvictionPlan::from(

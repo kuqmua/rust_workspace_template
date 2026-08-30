@@ -30,7 +30,7 @@ impl AsRef<str> for ProcessArgument {
         match self {
             Self::DatabaseUrl(value) => value.as_ref(),
             Self::MigrationsSource(value) => value.as_ref(),
-            Self::Static(value) => value.0,
+            Self::Static(value) => value.get(),
         }
     }
 }

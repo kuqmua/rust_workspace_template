@@ -6,17 +6,18 @@ pub(super) fn quote_literal<Dsp>(
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    let mut out = String::with_capacity(prefix.0.len().saturating_add(2));
-    out.push_str(prefix.0);
-    out.push(quote_ch.0);
+    let prefix_text: &str = prefix.into();
+    let quote_character = char::from(quote_ch);
+    let mut out = String::with_capacity(prefix_text.len().saturating_add(2));
+    out.push_str(prefix_text);
+    out.push(quote_character);
     if std::fmt::Write::write_fmt(&mut out, format_args!("{v}")).is_err() {
         return crate::quoted_literal::QuotedLiteral::try_from(format!(
-            "{}{}{v}{}",
-            prefix.0, quote_ch.0, quote_ch.0
+            "{prefix_text}{quote_character}{v}{quote_character}"
         ))
         .unwrap_or_else(crate::quoted_literal::QuotedLiteral::from);
     }
-    out.push(quote_ch.0);
+    out.push(quote_character);
     crate::quoted_literal::QuotedLiteral::try_from(out)
         .unwrap_or_else(crate::quoted_literal::QuotedLiteral::from)
 }

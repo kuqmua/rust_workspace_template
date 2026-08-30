@@ -1,11 +1,11 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct PageCatalogPageArgs {
-    pub capability: crate::syn_expr::SynExpr,
-    pub metadata: crate::syn_expr::SynExpr,
-    pub path: crate::syn_expr::SynExpr,
-    pub route: crate::syn_expr::SynExpr,
-    pub title: crate::syn_expr::SynExpr,
+    pub capability: crate::contract_syn_expr::ContractSynExpr,
+    pub metadata: crate::contract_syn_expr::ContractSynExpr,
+    pub path: crate::contract_syn_expr::ContractSynExpr,
+    pub route: crate::contract_syn_expr::ContractSynExpr,
+    pub title: crate::contract_syn_expr::ContractSynExpr,
 }
 
 impl syn::parse::Parse for PageCatalogPageArgs {
@@ -18,7 +18,8 @@ impl syn::parse::Parse for PageCatalogPageArgs {
         while !input.is_empty() {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
-            let value = crate::syn_expr::SynExpr::from(input.parse::<syn::Expr>()?);
+            let value =
+                crate::contract_syn_expr::ContractSynExpr::from(input.parse::<syn::Expr>()?);
             if name == constants_str::test_fixtures::PAGE_CATALOG_CAPABILITY {
                 capability = Some(value);
             } else if name == constants_str::test_fixtures::PAGE_CATALOG_METADATA {

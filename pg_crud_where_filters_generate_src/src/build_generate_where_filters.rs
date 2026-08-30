@@ -33,9 +33,9 @@ pub fn build_generate_where_filters(
                 .is_empty()
     });
     Ok(
-        crate::built_generate_where_filters_model::BuiltGenerateWhereFiltersModel {
-            config: parsed,
-            contract_valid: crate::filter_spec_valid::FilterSpecValid::from(valid),
-        },
+        crate::built_generate_where_filters_model::BuiltGenerateWhereFiltersModel::from((
+            parsed,
+            crate::filter_spec_valid::FilterSpecValid::from(valid),
+        )),
     )
 }

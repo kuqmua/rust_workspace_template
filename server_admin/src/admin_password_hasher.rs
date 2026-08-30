@@ -10,7 +10,7 @@ pub struct AdminPasswordHasher {
 impl AdminPasswordHasher {
     #[must_use]
     pub fn new(
-        max_concurrent_hashes: crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency,
+        max_concurrent_hashes: crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency,
     ) -> Self {
         Self {
             semaphore: crate::admin_shared_semaphore_arc::AdminSharedSemaphoreArc::new(
@@ -20,7 +20,7 @@ impl AdminPasswordHasher {
     }
     pub async fn hash(
         &self,
-        password: crate::admin_password::AdminPassword,
+        password: crate::runtime_admin_password::RuntimeAdminPassword,
     ) -> Result<
         crate::admin_password_hash::AdminPasswordHash,
         crate::admin_password_hash_error::AdminPasswordHashError,
@@ -60,7 +60,7 @@ impl AdminPasswordHasher {
     }
     pub async fn verify(
         &self,
-        password: crate::admin_password::AdminPassword,
+        password: crate::runtime_admin_password::RuntimeAdminPassword,
         expected_hash: crate::admin_password_hash::AdminPasswordHash,
     ) -> Result<
         server_admin_core::std_admin_bool::StdAdminBool,

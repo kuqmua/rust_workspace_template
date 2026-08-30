@@ -22,6 +22,6 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for ContentSecurityPolic
     type Error = crate::content_security_policy_error::ContentSecurityPolicyError;
 
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        Self::try_from(v.0)
+        Self::try_from(String::from(v))
     }
 }

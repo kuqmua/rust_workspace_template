@@ -1,12 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PasswordLengthRange {
-    pub(super) minimum: crate::password_length::PasswordLength,
-    pub(super) maximum: crate::password_length::PasswordLength,
+    minimum: crate::password_length::PasswordLength,
+    maximum: crate::password_length::PasswordLength,
 }
 impl PasswordLengthRange {
     #[must_use]
@@ -15,6 +10,16 @@ impl PasswordLengthRange {
         maximum: crate::password_length::PasswordLength,
     ) -> Self {
         Self { minimum, maximum }
+    }
+
+    #[must_use]
+    pub const fn into_parts(
+        self,
+    ) -> (
+        crate::password_length::PasswordLength,
+        crate::password_length::PasswordLength,
+    ) {
+        (self.minimum, self.maximum)
     }
 }
 impl
@@ -30,7 +35,7 @@ impl
             crate::password_length::PasswordLength,
         ),
     ) -> Result<Self, Self::Error> {
-        if value.1.0 < value.0.0 {
+        if usize::from(value.1) < usize::from(value.0) {
             Err(crate::password_length_range_error::PasswordLengthRangeError::Invalid)
         } else {
             Ok(Self {

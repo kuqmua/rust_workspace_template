@@ -2,12 +2,12 @@
 #[cfg(feature = "test-utils")]
 #[must_use]
 pub fn make_test_server_app_state() -> crate::server_app_state::ServerAppState<'static> {
-    crate::server_app_state::ServerAppState {
-        bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget::new(
+    crate::server_app_state::ServerAppState::new(
+        server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(8usize)
                 .expect("86d3d452 make_test_server_app_state invariant must hold"),
         ),
-        config: server_config::config::Config {
+        server_config::server_config::ServerConfig {
             svc_mode: config_lib::svc_mode::SvcMode::Serve,
             cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(
                 constants_str::catalog::ASTERISK.to_owned(),
@@ -148,14 +148,14 @@ pub fn make_test_server_app_state() -> crate::server_app_state::ServerAppState<'
                     .expect("dbe97ef3 make_test_server_app_state invariant must hold"),
             ),
         },
-        idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget::new(
+        server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(4_096usize)
                 .expect("799dc227 make_test_server_app_state invariant must hold"),
         ),
-        pg_pool: app_state::sqlx_pg_pool::SqlxPgPool::from(
+        app_state::sqlx_pg_pool::SqlxPgPool::from(
             sqlx::PgPool::connect_lazy(constants_str::catalog::TEST_VALUES_UNREACHABLE_DATABASE_URL)
                 .expect("d53d8ff0 make_test_server_app_state invariant must hold"),
         ),
-        project_git_info: git_info::project_git_info_value::project_git_info_value(),
-    }
+        git_info::project_git_info_value::project_git_info_value(),
+    )
 }

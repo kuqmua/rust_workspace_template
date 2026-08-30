@@ -28,8 +28,8 @@ fn admin_secret(value: &str) -> server_admin_core::secrecy_admin_string::Secrecy
     server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(value.to_owned())
         .expect("c2116874 secret invariant must hold")
 }
-fn password(value: &str) -> crate::admin_password::AdminPassword {
-    crate::admin_password::AdminPassword::new(admin_secret(value))
+fn password(value: &str) -> crate::runtime_admin_password::RuntimeAdminPassword {
+    crate::runtime_admin_password::RuntimeAdminPassword::new(admin_secret(value))
 }
 #[test]
 fn permission_round_trip_is_exhaustive() {
@@ -92,7 +92,7 @@ fn permission_seed_contains_the_complete_typed_catalog() {
 #[tokio::test]
 async fn password_hash_verifies_only_matching_password() {
     let hasher = crate::admin_password_hasher::AdminPasswordHasher::new(
-        crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency::from(
+        crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
             std::num::NonZeroUsize::new(1)
                 .expect("70761471 password hash test concurrency invariant must hold"),
         ),
@@ -124,7 +124,8 @@ async fn password_hash_verifies_only_matching_password() {
 fn secrets_are_redacted_in_debug_output() {
     let raw_secret = constants_str::catalog::NEVER_PRINT_THIS_VALUE;
     let password = password(raw_secret);
-    let jwt_secret = crate::admin_jwt_secret::AdminJwtSecret::new(admin_secret(raw_secret));
+    let jwt_secret =
+        crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret::new(admin_secret(raw_secret));
     let access_token =
         crate::std_admin_access_token::StdAdminAccessToken::try_from(raw_secret.to_owned())
             .expect("e295277c secrets_are_redacted_in_debug_output invariant must hold");
@@ -152,13 +153,13 @@ fn cookie_policy_marks_only_secret_tokens_http_only() {
         crate::admin_cookie_kind::AdminCookieKind::Access,
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(constants_str::catalog::ACCESS),
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(60),
-        crate::admin_cookie_secure::AdminCookieSecure::from(true),
+        crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(true),
     );
     let csrf = crate::build_admin_cookie::build_admin_cookie(
         crate::admin_cookie_kind::AdminCookieKind::Csrf,
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(constants_str::catalog::CSRF),
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(60),
-        crate::admin_cookie_secure::AdminCookieSecure::from(true),
+        crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(true),
     );
     assert!(access.as_ref().contains("HttpOnly"));
     assert!(access.as_ref().contains("Secure"));
@@ -202,7 +203,7 @@ fn administrator_login_format_accepts_only_database_compatible_values() {
 #[test]
 fn access_token_round_trip_checks_issuer_and_audience() {
     let claims = crate::admin_access_claims::AdminAccessClaims::new(
-        server_admin_core::admin_user_id::AdminUserId::try_from(7).expect(
+        server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(7).expect(
             "d6d3da8a access_token_round_trip_checks_issuer_and_audience invariant must hold",
         ),
         crate::admin_session_id::AdminSessionId::from(server_admin_core::uuid_admin_value::UuidAdminValue::from(
@@ -221,7 +222,7 @@ fn access_token_round_trip_checks_issuer_and_audience() {
         )
         .expect("6e423e16 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
     );
-    let secret = crate::admin_jwt_secret::AdminJwtSecret::new(admin_secret(
+    let secret = crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret::new(admin_secret(
         constants_str::catalog::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
     ));
     let token = crate::encode_access_token::encode_access_token(&claims, &secret)
@@ -241,7 +242,7 @@ fn access_token_round_trip_checks_issuer_and_audience() {
             );
     assert_eq!(
         decoded.user_id(),
-        server_admin_core::admin_user_id::AdminUserId::try_from(7).expect(
+        server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(7).expect(
             "5b88f22a access_token_round_trip_checks_issuer_and_audience invariant must hold"
         )
     );

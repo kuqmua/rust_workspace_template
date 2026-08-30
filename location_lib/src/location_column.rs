@@ -22,7 +22,7 @@ impl TryFrom<u32> for LocationColumn {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         std::num::NonZeroU32::new(value)
             .map(Self::from)
-            .ok_or(crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error)
+            .ok_or(crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error::OutOfRange)
     }
 }
 impl LocationColumn {

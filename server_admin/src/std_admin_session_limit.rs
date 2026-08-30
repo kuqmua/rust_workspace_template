@@ -19,7 +19,7 @@ impl TryFrom<usize> for StdAdminSessionLimit {
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self::from)
-            .ok_or(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError)
+            .ok_or(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero)
     }
 }
 impl StdAdminSessionLimit {

@@ -40,7 +40,7 @@ impl syn::parse::Parse for ProcMacro2TopLevelCommaParts {
             syn::Token![,],
         >::parse_terminated(input)?
         .into_iter()
-        .map(|part| part.0.into_inner())
+        .map(|part| part.into_inner().into_inner())
         .collect::<Vec<_>>();
         Self::try_from(parts)
     }

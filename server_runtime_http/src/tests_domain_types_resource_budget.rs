@@ -4,7 +4,7 @@ fn maximum_rejects_zero_and_accepts_positive_values() {
         server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(
             constants_usize::ZERO
         ),
-        Err(server_runtime_core::resource_budget_config_error::ResourceBudgetConfigError)
+        Err(server_runtime_core::resource_budget_config_error::ResourceBudgetConfigError::Zero)
     );
     let maximum = std::num::NonZeroUsize::new(constants_usize::ONE)
         .expect("9e83081e maximum_rejects_zero_and_accepts_positive_values invariant must hold");

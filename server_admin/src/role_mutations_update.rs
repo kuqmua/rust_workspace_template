@@ -1,6 +1,8 @@
 pub(crate) async fn role_mutations_update(
     auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<server_admin_core::admin_role_id::AdminRoleId>,
+    path: crate::axum_admin_path::AxumAdminPath<
+        server_admin_core::admin_role_record_id::AdminRoleRecordId,
+    >,
     request: crate::axum_admin_json::AxumAdminJson<
         server_admin_contract::admin_update_role_req::AdminUpdateRoleReq,
     >,

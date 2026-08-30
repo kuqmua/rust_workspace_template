@@ -5,9 +5,9 @@ naming_common_macros::case_trait_pair!(
     |self_ref| {
         crate::str_case::str_case(
             self_ref.as_ref(),
-            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperCamel),
+            crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperCamel),
         )
-        .0
+        .into_inner()
     }
 );
 naming_common_macros::case_trait_pair!(
@@ -17,9 +17,9 @@ naming_common_macros::case_trait_pair!(
     |self_ref| {
         crate::str_case::str_case(
             self_ref.as_ref(),
-            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::Snake),
+            crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::Snake),
         )
-        .0
+        .into_inner()
     }
 );
 naming_common_macros::case_trait_pair!(
@@ -28,9 +28,9 @@ naming_common_macros::case_trait_pair!(
     AsRef<str>,
     |self_ref| crate::str_case::str_case(
         self_ref.as_ref(),
-        crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperSnake)
+        crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperSnake)
     )
-    .0
+    .into_inner()
 );
 naming_common_macros::case_trait_pair!(
     DisplayToUpperCamelCaseStr,
@@ -39,9 +39,9 @@ naming_common_macros::case_trait_pair!(
     |self_ref| {
         crate::display_case_str::display_case_str(
             self_ref,
-            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperCamel),
+            crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperCamel),
         )
-        .0
+        .into_inner()
     }
 );
 naming_common_macros::case_trait_pair!(
@@ -51,9 +51,9 @@ naming_common_macros::case_trait_pair!(
     |self_ref| {
         crate::display_case_str::display_case_str(
             self_ref,
-            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::Snake),
+            crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::Snake),
         )
-        .0
+        .into_inner()
     }
 );
 naming_common_macros::case_trait_pair!(
@@ -62,9 +62,9 @@ naming_common_macros::case_trait_pair!(
     std::fmt::Display,
     |self_ref| crate::display_case_str::display_case_str(
         self_ref,
-        crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperSnake)
+        crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperSnake)
     )
-    .0
+    .into_inner()
 );
 naming_common_macros::case_trait_pair!(
     ToTokensToUpperCamelCaseStr,
@@ -73,9 +73,9 @@ naming_common_macros::case_trait_pair!(
     |self_ref| {
         crate::tokenized_case_str::tokenized_case_str(
             self_ref,
-            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperCamel),
+            crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperCamel),
         )
-        .0
+        .into_inner()
     }
 );
 naming_common_macros::case_trait_pair!(
@@ -85,9 +85,9 @@ naming_common_macros::case_trait_pair!(
     |self_ref| {
         crate::tokenized_case_str::tokenized_case_str(
             self_ref,
-            crate::convert_case_kind::ConvertCaseKind(convert_case::Case::Snake),
+            crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::Snake),
         )
-        .0
+        .into_inner()
     }
 );
 naming_common_macros::case_trait_pair!(
@@ -96,9 +96,9 @@ naming_common_macros::case_trait_pair!(
     quote::ToTokens,
     |self_ref| crate::tokenized_case_str::tokenized_case_str(
         self_ref,
-        crate::convert_case_kind::ConvertCaseKind(convert_case::Case::UpperSnake)
+        crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperSnake)
     )
-    .0
+    .into_inner()
 );
 #[cfg(test)]
 mod tests {

@@ -8,7 +8,7 @@ pub enum TryFromStdEnvVarOkSvcModeError {
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::svc_mode::SvcMode {
     type Error = TryFromStdEnvVarOkSvcModeError;
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        match v.0.as_str() {
+        match v.as_str() {
             constants_str::catalog::SERVICE_MODE_MIGRATE => Ok(Self::Migrate),
             constants_str::catalog::SERVICE_MODE_SERVE => Ok(Self::Serve),
             _unknown => Err(TryFromStdEnvVarOkSvcModeError::Unknown),

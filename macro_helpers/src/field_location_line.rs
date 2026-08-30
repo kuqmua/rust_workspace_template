@@ -12,7 +12,7 @@ impl TryFrom<u32> for FieldLocationLine {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         std::num::NonZeroU32::new(value)
             .map(Self::from)
-            .ok_or(crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error)
+            .ok_or(crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error::OutOfRange)
     }
 }
 

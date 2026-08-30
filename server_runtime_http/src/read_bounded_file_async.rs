@@ -1,5 +1,5 @@
 pub async fn read_bounded_file_async(
-    path: crate::path_ref::PathRef<'_>,
+    path: crate::runtime_path_ref::RuntimePathRef<'_>,
     maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes,
 ) -> Result<crate::bounded_bytes::BoundedBytes, crate::bounded_read_error::BoundedReadError> {
     let file = tokio::fs::File::open(path.0).await.map_err(|source| {

@@ -75,17 +75,18 @@ pub mod location_field_attr;
 pub mod location_syn_field;
 pub mod macro_attr_error;
 pub mod macro_compile_error_tokens;
+pub mod macro_path_ref;
+#[cfg(feature = "test-utils")]
+pub mod macro_serde_json_error;
 pub mod only_one;
 pub mod only_one_status_code_error;
 pub mod os_string_value;
 pub mod pagination_start_end_initialization_token_stream;
-pub mod path_ref;
 pub mod proc_macro2_derive_tokens_ref;
 pub mod proc_macro2_generated_rust_token_stream;
 pub mod proc_macro2_if_write_is_err_token_stream;
 pub mod proc_macro2_macro_attr_meta_list_token_stream_ref;
 pub mod proc_macro2_token_stream_ref;
-pub mod process_command;
 pub mod process_exit_status;
 pub mod process_output;
 pub mod rs_file_path_buf;
@@ -93,8 +94,6 @@ pub mod rs_file_path_buf;
 pub mod rs_file_path_tests;
 #[cfg(feature = "test-utils")]
 pub mod sanitized_database_target;
-#[cfg(feature = "test-utils")]
-pub mod serde_json_error;
 pub mod should_write_string;
 #[cfg(test)]
 pub mod should_write_string_into_file_tests;
@@ -124,6 +123,7 @@ pub mod tool_args_ref;
 pub mod tool_command;
 pub mod tool_env_key_ref;
 pub mod tool_env_value_ref;
+pub mod tool_process_command;
 pub mod tool_program_ref;
 pub mod try_get_macro_attr_meta_list_token_stream;
 pub mod try_get_macro_attribute;

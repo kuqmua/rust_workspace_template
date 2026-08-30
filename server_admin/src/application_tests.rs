@@ -148,7 +148,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
 fn audit_resource_identifier_uses_target_identifier() {
     assert_eq!(
         crate::admin_audit_resource_id::AdminAuditResourceId::User(
-            server_admin_core::admin_user_id::AdminUserId::try_from(42i64).expect(
+            server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(42i64).expect(
                 "423b91b9 audit_resource_identifier_uses_target_identifier invariant must hold"
             ),
         )
@@ -158,7 +158,7 @@ fn audit_resource_identifier_uses_target_identifier() {
     );
     assert_eq!(
         crate::admin_audit_resource_id::AdminAuditResourceId::Role(
-            server_admin_core::admin_role_id::AdminRoleId::try_from(7i64).expect(
+            server_admin_core::admin_role_record_id::AdminRoleRecordId::try_from(7i64).expect(
                 "af8df9d2 audit_resource_identifier_uses_target_identifier invariant must hold"
             ),
         )

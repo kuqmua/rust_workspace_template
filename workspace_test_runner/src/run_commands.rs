@@ -12,7 +12,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
     std::fs::create_dir_all(run_dir.as_path())
         .map_err(crate::execution_io_error::ExecutionIoError::from)
         .map_err(|error| {
-            eprintln!("failed to create test result directory: {}", error.0);
+            eprintln!("failed to create test result directory: {error}");
         })?;
     let mut command_runs = std::thread::scope(|scope| {
         commands
@@ -176,7 +176,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
     )
     .map_err(crate::execution_io_error::ExecutionIoError::from)
     .map_err(|error| {
-        eprintln!("failed to write test result summary: {}", error.0);
+        eprintln!("failed to write test result summary: {error}");
     })?;
     if succeeded { Ok(()) } else { Err(()) }
 }

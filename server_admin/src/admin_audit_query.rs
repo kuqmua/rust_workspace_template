@@ -9,7 +9,7 @@ pub struct AdminAuditQuery {
     cursor_id: Option<server_admin_contract::admin_audit_log_id::AdminAuditLogId>,
     resource_id: Option<server_admin_contract::admin_text::AdminText>,
     #[param(inline)]
-    user_id: Option<server_admin_core::admin_user_id::AdminUserId>,
+    user_id: Option<server_admin_core::admin_user_record_id::AdminUserRecordId>,
     user_login: Option<server_admin_contract::admin_login::AdminLogin>,
     #[serde(default)]
     #[param(value_type = u32)]

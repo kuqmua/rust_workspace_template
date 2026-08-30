@@ -11,4 +11,4 @@
     Eq,
     newtype::FromInner,
 )]
-pub struct ChronoFixedOffsetError(pub(super) &'static str);
+pub struct ChronoFixedOffsetError(&'static str);

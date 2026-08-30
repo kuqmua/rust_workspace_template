@@ -36,7 +36,7 @@ impl synchronization_service_runtime::synchronization_source::SynchronizationSou
             Self::Error,
         >,
     > + Send {
-        self.request_count.0 = self.request_count.0.saturating_add(constants_usize::ONE);
+        self.request_count.increment();
         std::future::ready(Ok(self.payload.clone()))
     }
 }

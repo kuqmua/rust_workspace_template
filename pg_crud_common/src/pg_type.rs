@@ -5,7 +5,7 @@ pub trait PgType {
 
     fn create_table_column_query_part(
         column: crate::sql_column_ref::SqlColumnRef<'_>,
-        is_primary_key: crate::is_primary_key::IsPrimaryKey,
+        is_primary_key: crate::pg_is_primary_key::PgIsPrimaryKey,
     ) -> crate::query_part_fragment::QueryPartFragment;
 
     type Create: crate::domain_types::CreateAlias;

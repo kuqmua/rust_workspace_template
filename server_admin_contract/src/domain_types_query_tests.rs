@@ -8,13 +8,13 @@ fn page_limit_accepts_only_the_contract_range() {
     ));
     assert!(matches!(
         crate::admin_page_limit::AdminPageLimit::try_from(constants_u16::ZERO),
-        Err(crate::admin_page_limit_error::AdminPageLimitError)
+        Err(crate::admin_page_limit_error::AdminPageLimitError::OutOfRange)
     ));
     assert!(matches!(
         crate::admin_page_limit::AdminPageLimit::try_from(
             crate::admin_page_limit::AdminPageLimit::MAX.saturating_add(1u16)
         ),
-        Err(crate::admin_page_limit_error::AdminPageLimitError)
+        Err(crate::admin_page_limit_error::AdminPageLimitError::OutOfRange)
     ));
 }
 

@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpContentTypeTextRef<'value_lt>(pub(super) Option<&'value_lt str>);
+pub struct HttpContentTypeTextRef<'value_lt>(Option<&'value_lt str>);
+
+impl<'value_lt> HttpContentTypeTextRef<'value_lt> {
+    pub(crate) const fn get(self) -> Option<&'value_lt str> {
+        self.0
+    }
+}

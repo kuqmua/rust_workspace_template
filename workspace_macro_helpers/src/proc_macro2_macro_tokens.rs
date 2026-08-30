@@ -1,11 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]
 #[derive(Debug, Clone, Default)]
-pub struct ProcMacro2MacroTokens(pub(super) Vec<proc_macro2::TokenTree>);
+pub struct ProcMacro2MacroTokens(Vec<proc_macro2::TokenTree>);
 impl From<proc_macro2::TokenStream> for ProcMacro2MacroTokens {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value.into_iter().collect())

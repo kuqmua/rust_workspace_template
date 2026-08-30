@@ -10,7 +10,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::DerefInner,
 )]
-pub struct PgPoolMaxConnections(pub(super) u32);
+pub struct PgPoolMaxConnections(u32);
 
 impl TryFrom<u32> for PgPoolMaxConnections {
     type Error =
@@ -28,7 +28,7 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for PgPoolMaxConnections
     type Error = crate::try_from_std_env_var_ok_pg_pool_max_connections_error::TryFromStdEnvVarOkPgPoolMaxConnectionsError;
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         let parsed: u32 = crate::parse_from_str_with_error::parse_from_str_with_error(
-            crate::std_env_var_ok_ref::StdEnvVarOkRef::from(v.0.as_str()),
+            crate::std_env_var_ok_ref::StdEnvVarOkRef::from(v.as_ref()),
             |u32_parsing| Self::Error::U32Parsing {
                 u32_parsing: crate::u32_parse_int_error::U32ParseIntError::from(u32_parsing),
             },

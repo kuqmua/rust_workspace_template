@@ -82,7 +82,7 @@ let filter = {
                                             <input type="hidden" name="filter_field" value=flt_field.clone() />
                                             <input type="hidden" name="limit" value=limit.clone() />
                                             <input type="hidden" name="offset" value="0" />
-                                            <singlestage::RadioGroup attr:data-name="RadioButtonGroup" class="table-filter-options flex flex-col gap-3" name="filter_operation" value=selected_operation.0>
+                                            <singlestage::RadioGroup attr:data-name="RadioButtonGroup" class="table-filter-options flex flex-col gap-3" name="filter_operation" value=leptos::prelude::RwSignal::from(selected_operation)>
                                                 {filters.into_iter().map(|filter| {
                                                     let operation_key = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(filter.operation()).to_string();
                                                     let is_active = is_active_field && active_operation.as_deref() == Some(operation_key.as_str());
@@ -92,7 +92,7 @@ let filter = {
                                                         let operation = filter.operation();
                                                         let radio_key =
                                                             server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(operation).to_string();
-                                                        let checked = leptos::prelude::Get::get(&selected_operation.0) == radio_key;
+                                                        let checked = leptos::prelude::Get::get(&leptos::prelude::RwSignal::from(selected_operation)) == radio_key;
                                                         leptos::view! {
                                                             <div class="table-filter-option">
                                                                 <singlestage::Label attr:data-name="Label" class="table-filter-operation-label flex items-center gap-2 text-sm leading-none font-medium select-none">
@@ -121,7 +121,7 @@ let filter = {
                                                                                     value=value
                                                                                     placeholder=value_placeholder.map(String::from)
                                                                                     required=true
-                                                                                    disabled=leptos::prelude::Signal::derive(move || leptos::prelude::Get::get(&selected_operation.0) != op_key)
+                                                                                    disabled=leptos::prelude::Signal::derive(move || leptos::prelude::Get::get(&leptos::prelude::RwSignal::from(selected_operation)) != op_key)
                                                                                 />
                                                                             </singlestage::Label>
                                                                         })
@@ -142,7 +142,7 @@ let filter = {
                                                                                     value=end
                                                                                     placeholder="End"
                                                                                     required=true
-                                                                                    disabled=leptos::prelude::Signal::derive(move || leptos::prelude::Get::get(&selected_operation.0) != op_key)
+                                                                                    disabled=leptos::prelude::Signal::derive(move || leptos::prelude::Get::get(&leptos::prelude::RwSignal::from(selected_operation)) != op_key)
                                                                                 />
                                                                             </singlestage::Label>
                                                                         })

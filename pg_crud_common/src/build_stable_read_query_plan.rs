@@ -42,13 +42,13 @@ pub fn build_stable_read_query_plan(
     }
     query.push_str(constants_str::test_fixtures::LIMIT_DOLLAR);
     let mut query_fragment = crate::query_part_fragment::QueryPartFragment::try_from(query)
-        .map_err(|_error| crate::read_query_plan_error::ReadQueryPlanError)?;
+        .map_err(|_error| crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?;
     query_fragment.append_read_bind_index(limit_bind)?;
     std::fmt::Write::write_str(
         &mut query_fragment,
         constants_str::test_fixtures::OFFSET_DOLLAR,
     )
-    .map_err(|_error| crate::read_query_plan_error::ReadQueryPlanError)?;
+    .map_err(|_error| crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?;
     query_fragment.append_read_bind_index(offset_bind)?;
     Ok(crate::read_query_plan::ReadQueryPlan::from(query_fragment))
 }

@@ -16,6 +16,6 @@ pub struct AdminAccessClaims {
     pub(crate) exp: crate::admin_unix_token_stream::AdminUnixTokenStream,
     pub(crate) iat: crate::admin_unix_token_stream::AdminUnixTokenStream,
     pub(crate) iss: config_lib::admin_token_issuer::AdminTokenIssuer,
-    pub(crate) sub: server_admin_core::admin_user_id::AdminUserId,
+    pub(crate) sub: server_admin_core::admin_user_record_id::AdminUserRecordId,
     pub(crate) jti: crate::admin_session_id::AdminSessionId,
 }

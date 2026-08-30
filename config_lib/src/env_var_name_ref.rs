@@ -10,4 +10,4 @@
     newtype::AsRefInner,
     newtype::FromInner,
 )]
-pub struct EnvVarNameRef<'name_lt>(pub(super) &'name_lt str);
+pub struct EnvVarNameRef<'name_lt>(&'name_lt str);

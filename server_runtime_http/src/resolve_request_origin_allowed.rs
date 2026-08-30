@@ -2,10 +2,10 @@ pub fn resolve_request_origin_allowed(
     headers: crate::http_origin_headers_ref::HttpOriginHeadersRef<'_>,
     allowed_origins: &crate::allowed_origins::AllowedOrigins,
 ) -> crate::request_origin_allowed::RequestOriginAllowed {
-    let allowed = headers.0.get(http::header::ORIGIN).map_or_else(
+    let header_map = headers.get();
+    let allowed = header_map.get(http::header::ORIGIN).map_or_else(
         || {
-            headers
-                .0
+            header_map
                 .get(http::header::REFERER)
                 .and_then(|value| value.to_str().ok())
                 .is_some_and(|value| {

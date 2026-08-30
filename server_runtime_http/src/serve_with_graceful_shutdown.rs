@@ -23,12 +23,12 @@ where
     );
     tokio::pin!(server);
     tokio::select! {
-        result = &mut server => result.map_err(|error| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::Serve(crate::serve_io_error::ServeIoError(error))),
+        result = &mut server => result.map_err(|error| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::Serve(crate::serve_io_error::ServeIoError::from(error))),
         _shutdown_result = shutdown_started_rx => {
             tokio::time::timeout(shutdown_timeout.get(), &mut server)
                 .await
                 .map_err(|_elapsed| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::ShutdownTimeout)?
-                .map_err(|error| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::Serve(crate::serve_io_error::ServeIoError(error)))
+                .map_err(|error| crate::serve_with_graceful_shutdown_error::ServeWithGracefulShutdownError::Serve(crate::serve_io_error::ServeIoError::from(error)))
         }
     }
 }

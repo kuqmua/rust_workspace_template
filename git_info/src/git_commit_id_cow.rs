@@ -1,11 +1,13 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
-    Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefStr,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::AsRefStr,
+    newtype::IntoInnerFrom,
 )]
-pub struct GitCommitIdCow<'commit_lt>(pub(super) std::borrow::Cow<'commit_lt, str>);
+pub struct GitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
 impl<'commit_lt> TryFrom<std::borrow::Cow<'commit_lt, str>> for GitCommitIdCow<'commit_lt> {
     type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
     fn try_from(value: std::borrow::Cow<'commit_lt, str>) -> Result<Self, Self::Error> {

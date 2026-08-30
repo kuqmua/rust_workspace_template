@@ -14,7 +14,7 @@ mod tests {
     #[test]
     fn generated_accessors_return_expected_refs_and_values() {
         let mut cfg =
-            crate::config::Config {
+            crate::server_config::ServerConfig {
                 cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(constants_str::catalog::ASTERISK.to_owned()),
                 content_security_policy: server_config_test_env(constants_str::test_fixtures::TEST_CONTENT_SECURITY_POLICY),
                 database_url: server_config_test_env(constants_str::catalog::POSTGRES_DB),

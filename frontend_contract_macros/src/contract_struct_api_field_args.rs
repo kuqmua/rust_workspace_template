@@ -6,7 +6,7 @@
 #[derive(generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct ContractStructApiFieldArgs {
-    slice: Option<crate::syn_type::SynType>,
+    slice: Option<crate::contract_syn_type::ContractSynType>,
     borrow: crate::std_bool::StdBool,
     copy: crate::std_bool::StdBool,
     copy_ref: crate::std_bool::StdBool,

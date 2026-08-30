@@ -3,6 +3,7 @@ mod bounded_string_option;
 mod newtype_attrs;
 mod newtype_bool;
 mod newtype_option;
+mod newtype_syn_derive_input_ref;
 mod newtype_try_from_attrs;
 mod proc_macro2_generated_token_stream;
 mod proc_macro_input_token_stream;
@@ -10,7 +11,6 @@ mod snake_ident_max_len;
 mod snake_identifier;
 mod snake_identifierifier_len;
 mod snake_identifierifier_try_from_string_error;
-mod syn_derive_input_ref;
 mod syn_expr;
 mod syn_identifier_ref;
 mod syn_type;
@@ -56,7 +56,7 @@ fn derive_newtype_option(
         );
     }
     match generate_newtype_token_stream_with_attrs(
-        syn_derive_input_ref::SynDeriveInputRef::from(&input),
+        newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),
         &attrs,
     ) {
         Ok(v) => v,
@@ -550,7 +550,7 @@ pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::Toke
             error_opt, validator,
         ));
         match generate_newtype_token_stream_with_attrs(
-            syn_derive_input_ref::SynDeriveInputRef::from(&input),
+            newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),
             &attrs,
         ) {
             Ok(value) => value,
@@ -768,9 +768,9 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
-    match generate_bounded_string_token_stream(syn_derive_input_ref::SynDeriveInputRef::from(
-        &input,
-    )) {
+    match generate_bounded_string_token_stream(
+        newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),
+    ) {
         Ok(v) => v.into(),
         Err(error) => error.into_compile_error().into(),
     }
@@ -780,7 +780,7 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
     reason = "the production proc-macro boundary and three unit tests share the bounded-string generator"
 )]
 fn generate_bounded_string_token_stream(
-    input: syn_derive_input_ref::SynDeriveInputRef<'_>,
+    input: newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef<'_>,
 ) -> syn::Result<proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
     let attrs = input_ref
@@ -1048,7 +1048,7 @@ fn generate_bounded_string_token_stream(
 }
 
 fn generate_newtype_token_stream_with_attrs(
-    input: syn_derive_input_ref::SynDeriveInputRef<'_>,
+    input: newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef<'_>,
     attrs: &newtype_attrs::NewtypeAttrs,
 ) -> syn::Result<proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
@@ -1643,7 +1643,7 @@ fn generate_newtype_token_stream_with_attrs(
     )
 }
 fn tuple_struct_one_field_ty(
-    input: syn_derive_input_ref::SynDeriveInputRef<'_>,
+    input: newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef<'_>,
 ) -> syn::Result<syn_type_ref::SynTypeRef<'_>> {
     let input_ref = input.get();
     let shape =

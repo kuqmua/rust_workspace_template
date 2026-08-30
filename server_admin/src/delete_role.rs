@@ -6,22 +6,9 @@ pub(crate) async fn delete_role(
         crate::role_id_form::RoleIdForm,
     >,
 ) -> axum::response::Response {
-    if !bool::from(form.confirmation) {
-        return axum::response::IntoResponse::into_response(
-            crate::admin_error::AdminError::Validation,
-        );
-    }
-    crate::authenticated_action_impl::authenticated_action_impl(
+    crate::delete_confirmed_entity::delete_confirmed_entity(
         auth,
-        server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
-        |auth| {
-            crate::role_mutations_delete::role_mutations_delete(
-                auth,
-                crate::axum_admin_path::AxumAdminPath(crate::role_path_impl::role_path_impl(
-                    form.role_id,
-                )),
-            )
-        },
+        crate::confirmed_delete_target::ConfirmedDeleteTarget::Role(form),
     )
     .await
 }

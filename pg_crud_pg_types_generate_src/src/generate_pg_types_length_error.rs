@@ -1,5 +1,7 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{self:?}")]
-pub(super) struct GeneratePgTypesLengthError;
+pub(super) enum GeneratePgTypesLengthError {
+    #[error("{self:?}")]
+    TooLarge,
+}

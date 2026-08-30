@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -16,4 +12,10 @@
 )]
 #[bounded_string(max = crate::loc_test_text_max_len::LOC_TEST_TEXT_MAX_LEN)]
 #[serde(try_from = "String")]
-pub struct LocationTestText(pub(super) String);
+pub struct LocationTestText(String);
+
+impl From<&'static str> for LocationTestText {
+    fn from(value: &'static str) -> Self {
+        Self(String::from(value))
+    }
+}

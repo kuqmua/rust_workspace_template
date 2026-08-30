@@ -7,7 +7,7 @@ where
     I: Into<crate::part_index::PartIndex>,
 {
     parts
-        .get(idx.into().0)
+        .get(idx.into().get())
         .cloned()
         .map(crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from)
 }

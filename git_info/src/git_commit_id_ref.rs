@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -15,8 +11,9 @@
     newtype::AsRefInner,
     newtype::Display,
     newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-pub struct GitCommitIdRef<'commit_lt>(pub(super) &'commit_lt str);
+pub struct GitCommitIdRef<'commit_lt>(&'commit_lt str);
 impl PartialEq<&str> for GitCommitIdRef<'_> {
     fn eq(&self, other: &&str) -> bool {
         self.0 == *other

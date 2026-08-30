@@ -2,7 +2,10 @@ pub(crate) async fn authorization_authenticate(
     state: &crate::admin_auth_svc_state::AdminAuthSvcState,
     headers: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
     peer: crate::admin_peer_addr::AdminPeerAddr,
-) -> Result<crate::authenticated_admin::AuthenticatedAdmin, crate::admin_error::AdminError> {
+) -> Result<
+    crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
+    crate::admin_error::AdminError,
+> {
     let token = crate::find_admin_cookie::find_admin_cookie(
         headers,
         crate::admin_cookie_kind::AdminCookieKind::Access,

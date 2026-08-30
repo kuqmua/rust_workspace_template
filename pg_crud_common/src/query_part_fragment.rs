@@ -60,7 +60,7 @@ impl QueryPartFragment {
             start = start.saturating_sub(constants_usize::ONE);
             let quotient = value
                 .checked_div(10u32)
-                .ok_or(crate::read_query_plan_error::ReadQueryPlanError)?;
+                .ok_or(crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?;
             let digit = match value.saturating_sub(quotient.saturating_mul(10u32)) {
                 constants_u32::ZERO => b'0',
                 1u32 => b'1',
@@ -72,16 +72,18 @@ impl QueryPartFragment {
                 7u32 => b'7',
                 8u32 => b'8',
                 9u32 => b'9',
-                _ => return Err(crate::read_query_plan_error::ReadQueryPlanError),
+                _ => {
+                    return Err(crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments);
+                }
             };
             *digits
                 .get_mut(start)
-                .ok_or(crate::read_query_plan_error::ReadQueryPlanError)? = digit;
+                .ok_or(crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)? = digit;
             value = quotient;
         }
         digits
             .get(start..)
-            .ok_or(crate::read_query_plan_error::ReadQueryPlanError)?
+            .ok_or(crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?
             .iter()
             .for_each(|digit| self.0.push(char::from(*digit)));
         Ok(())

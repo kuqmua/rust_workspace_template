@@ -7,7 +7,8 @@ pub fn build_generate_pg_types(
     let entry_count =
         crate::pg_types_model_entry_count::PgTypesModelEntryCount::from(match &parsed.0.variant {
             crate::generate_pg_types_config_variant::GeneratePgTypesConfigVariant::All => {
-                <crate::pg_type::PgType as strum::IntoEnumIterator>::iter().count()
+                <crate::pg_type_catalog_kind::PgTypeCatalogKind as strum::IntoEnumIterator>::iter()
+                    .count()
             }
             crate::generate_pg_types_config_variant::GeneratePgTypesConfigVariant::Concrete(
                 records,

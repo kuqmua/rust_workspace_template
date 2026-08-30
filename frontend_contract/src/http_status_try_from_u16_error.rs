@@ -1,5 +1,7 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
-#[error("{self:?}")]
-pub struct HttpStatusTryFromU16Error;
+pub enum HttpStatusTryFromU16Error {
+    #[error("{self:?}")]
+    OutOfRange,
+}

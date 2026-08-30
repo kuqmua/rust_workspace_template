@@ -31,7 +31,7 @@ impl utoipa::PartialSchema for crate::admin_auth_permissions::AdminAuthPermissio
     }
 }
 impl utoipa::ToSchema for crate::admin_auth_permissions::AdminAuthPermissions {}
-impl utoipa::PartialSchema for crate::admin_role_names::AdminRoleNames {
+impl utoipa::PartialSchema for crate::runtime_admin_role_names::RuntimeAdminRoleNames {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::bounded_vec::BoundedVec<
             server_admin_contract::admin_role_name::AdminRoleName,
@@ -40,7 +40,7 @@ impl utoipa::PartialSchema for crate::admin_role_names::AdminRoleNames {
         > as utoipa::PartialSchema>::schema()
     }
 }
-impl utoipa::ToSchema for crate::admin_role_names::AdminRoleNames {}
+impl utoipa::ToSchema for crate::runtime_admin_role_names::RuntimeAdminRoleNames {}
 impl TryFrom<Vec<server_admin_contract::admin_permission::AdminPermission>>
     for crate::admin_auth_permissions::AdminAuthPermissions
 {
@@ -54,7 +54,7 @@ impl TryFrom<Vec<server_admin_contract::admin_permission::AdminPermission>>
     }
 }
 impl TryFrom<Vec<server_admin_contract::admin_role_name::AdminRoleName>>
-    for crate::admin_role_names::AdminRoleNames
+    for crate::runtime_admin_role_names::RuntimeAdminRoleNames
 {
     type Error = crate::admin_auth_collection_error::AdminAuthCollectionError;
     fn try_from(
@@ -69,7 +69,7 @@ impl From<bounded_types::bounded_value_error::BoundedValueError>
     for crate::admin_auth_collection_error::AdminAuthCollectionError
 {
     fn from(_value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
-        Self
+        Self::TooLarge
     }
 }
 impl crate::sqlx_admin_error::SqlxAdminError {
@@ -77,10 +77,12 @@ impl crate::sqlx_admin_error::SqlxAdminError {
         self.0
     }
 }
-impl From<server_admin_core::admin_id_try_from_i64_error::AdminIdTryFromI64Error>
+impl From<server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error>
     for crate::sqlx_admin_error::SqlxAdminError
 {
-    fn from(value: server_admin_core::admin_id_try_from_i64_error::AdminIdTryFromI64Error) -> Self {
+    fn from(
+        value: server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error,
+    ) -> Self {
         Self::from(sqlx::Error::Decode(Box::new(value)))
     }
 }
@@ -93,7 +95,7 @@ impl From<server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64E
         Self::from(sqlx::Error::Decode(Box::new(value)))
     }
 }
-impl utoipa::PartialSchema for crate::admin_password::AdminPassword {
+impl utoipa::PartialSchema for crate::runtime_admin_password::RuntimeAdminPassword {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .schema_type(utoipa::openapi::schema::Type::String)
@@ -108,12 +110,12 @@ impl utoipa::PartialSchema for crate::admin_password::AdminPassword {
             .into()
     }
 }
-impl utoipa::ToSchema for crate::admin_password::AdminPassword {
+impl utoipa::ToSchema for crate::runtime_admin_password::RuntimeAdminPassword {
     fn name() -> std::borrow::Cow<'static, str> {
         std::borrow::Cow::Borrowed(constants_str::catalog::ADMINPASSWORD)
     }
 }
-impl TryFrom<String> for crate::admin_password::AdminPassword {
+impl TryFrom<String> for crate::runtime_admin_password::RuntimeAdminPassword {
     type Error = crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let len = value.chars().count();
@@ -136,7 +138,7 @@ impl TryFrom<String> for crate::admin_password::AdminPassword {
             })
     }
 }
-impl crate::admin_password::AdminPassword {
+impl crate::runtime_admin_password::RuntimeAdminPassword {
     #[must_use]
     pub fn new(value: server_admin_core::secrecy_admin_string::SecrecyAdminString) -> Self {
         Self::from(value)
@@ -158,7 +160,7 @@ impl crate::admin_password_hash::AdminPasswordHash {
         Self::from(value)
     }
 }
-impl crate::admin_jwt_secret::AdminJwtSecret {
+impl crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret {
     #[must_use]
     pub fn new(value: server_admin_core::secrecy_admin_string::SecrecyAdminString) -> Self {
         Self::from(value)
@@ -240,7 +242,7 @@ impl crate::admin_cookie_kind::AdminCookieKind {
         })
     }
 }
-impl crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency {
+impl crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency {
     pub(crate) const fn get(self) -> std::num::NonZeroUsize {
         self.0
     }
@@ -258,7 +260,7 @@ impl crate::admin_session_id::AdminSessionId {
 impl crate::admin_access_claims::AdminAccessClaims {
     #[must_use]
     pub const fn new(
-        user_id: server_admin_core::admin_user_id::AdminUserId,
+        user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
         session_id: crate::admin_session_id::AdminSessionId,
         issued_at: crate::admin_unix_token_stream::AdminUnixTokenStream,
         expires_at: crate::admin_unix_token_stream::AdminUnixTokenStream,
@@ -275,7 +277,7 @@ impl crate::admin_access_claims::AdminAccessClaims {
         }
     }
     #[must_use]
-    pub const fn user_id(&self) -> server_admin_core::admin_user_id::AdminUserId {
+    pub const fn user_id(&self) -> server_admin_core::admin_user_record_id::AdminUserRecordId {
         self.sub
     }
     #[must_use]

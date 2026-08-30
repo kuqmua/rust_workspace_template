@@ -5,12 +5,12 @@ pub async fn create_initial_administrator(
     password: server_admin_contract::admin_new_password::AdminNewPassword,
     password_hasher: &crate::admin_password_hasher::AdminPasswordHasher,
 ) -> Result<
-    server_admin_core::admin_user_id::AdminUserId,
+    server_admin_core::admin_user_record_id::AdminUserRecordId,
     crate::initial_administrator_creation_error::InitialAdministratorCreationError,
 > {
     let password_hash = password_hasher
         .hash(
-            crate::admin_password::AdminPassword::try_from(password.into_inner()).map_err(
+            crate::runtime_admin_password::RuntimeAdminPassword::try_from(password.into_inner()).map_err(
                 |password_error| {
                     let _error_text = format!("{password_error:?}");
                     crate::initial_administrator_creation_error::InitialAdministratorCreationError::InvalidPassword

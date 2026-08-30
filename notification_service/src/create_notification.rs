@@ -3,8 +3,8 @@
 #[allow(clippy::single_call_fn)] // typed route registry owns this endpoint handler
 #[frontend_contract_macros::route_openapi()]
 pub(super) async fn create_notification(
-    state: crate::axum_notification_state::AxumNotificationState,
-    request: crate::axum_notification_json::AxumNotificationJson,
+    state: crate::notification_axum_state::NotificationAxumState,
+    request: crate::notification_axum_json::NotificationAxumJson,
 ) -> Result<
     crate::axum_notification_response::AxumNotificationResponse,
     crate::create_notification_error::CreateNotificationError,

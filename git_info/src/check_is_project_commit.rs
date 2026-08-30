@@ -7,9 +7,9 @@ where
 {
     let commit_id_ref = commit_id.into();
     crate::is_project_commit::IsProjectCommit::from(
-        commit_id_ref.0
+        commit_id_ref
             == crate::project_git_info_value::project_git_info_value()
-                .commit
-                .0,
+                .commit()
+                .as_ref(),
     )
 }

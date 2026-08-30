@@ -13,10 +13,10 @@ impl TryFrom<String> for MetricsResponseBody {
     type Error = crate::metrics_response_body_error::MetricsResponseBodyError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_388_608 {
-            Err(crate::metrics_response_body_error::MetricsResponseBodyError)
-        } else {
+        if value.len() <= constants_usize::VALUE_8_388_608 {
             Ok(Self(value))
+        } else {
+            Err(crate::metrics_response_body_error::MetricsResponseBodyError::TooLarge)
         }
     }
 }

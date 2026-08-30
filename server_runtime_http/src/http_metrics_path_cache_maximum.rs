@@ -19,6 +19,6 @@ impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self::from)
-            .ok_or(crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError)
+            .ok_or(crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError::Zero)
     }
 }

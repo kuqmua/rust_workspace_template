@@ -31,13 +31,13 @@ impl DevelopmentIdentityCreationSummary {
     ) {
         match decision {
             server_runtime_core::identity_creation_decision::IdentityCreationDecision::AlreadyExists => {
-                self.already_exists.0 = self.already_exists.0.saturating_add(constants_usize::ONE);
+                self.already_exists.increment();
             }
             server_runtime_core::identity_creation_decision::IdentityCreationDecision::Create => {
-                self.create.0 = self.create.0.saturating_add(constants_usize::ONE);
+                self.create.increment();
             }
             server_runtime_core::identity_creation_decision::IdentityCreationDecision::MissingRole => {
-                self.missing_role.0 = self.missing_role.0.saturating_add(constants_usize::ONE);
+                self.missing_role.increment();
             }
         }
     }

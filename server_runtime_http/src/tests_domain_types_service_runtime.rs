@@ -155,7 +155,7 @@ async fn acquire_permit_distinguishes_available_timeout_and_closed() {
 fn concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
     assert_eq!(
         crate::retry_after_secs::RetryAfterSecs::try_from(constants_u64::ZERO),
-        Err(crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error)
+        Err(crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error::Zero)
     );
     let permit_count = std::num::NonZeroUsize::new(constants_usize::ONE).expect("50a95013 concurrency_limit_wrappers_validate_boundaries_and_try_acquire invariant must hold");
     let semaphore = crate::arc_tokio_semaphore::ArcTokioSemaphore::new(
@@ -178,7 +178,7 @@ fn zero_limits_are_rejected() {
     };
     assert_eq!(
         history_error,
-        server_runtime_core::std_async_run_history_maximum_len_try_from_usize_error::StdAsyncRunHistoryMaximumLenTryFromUsizeError
+        server_runtime_core::std_async_run_history_maximum_len_try_from_usize_error::StdAsyncRunHistoryMaximumLenTryFromUsizeError::Zero
     );
     let Err(timeout_error) = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
         std::time::Duration::ZERO,
@@ -187,6 +187,6 @@ fn zero_limits_are_rejected() {
     };
     assert_eq!(
         timeout_error,
-        crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError
+        crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero
     );
 }

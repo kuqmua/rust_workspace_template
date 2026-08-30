@@ -6,18 +6,18 @@
 pub enum BoundedVecError {
     #[error("bounded vector length {actual} exceeds limit {max}")]
     AboveMax {
-        actual: crate::bounded_vec_len::BoundedVecLen,
-        max: crate::bounded_vec_len::BoundedVecLen,
+        actual: crate::pg_bounded_vec_len::PgBoundedVecLen,
+        max: crate::pg_bounded_vec_len::PgBoundedVecLen,
     },
     #[error("bounded vector length {actual} is below minimum {min}")]
     BelowMin {
-        actual: crate::bounded_vec_len::BoundedVecLen,
-        min: crate::bounded_vec_len::BoundedVecLen,
+        actual: crate::pg_bounded_vec_len::PgBoundedVecLen,
+        min: crate::pg_bounded_vec_len::PgBoundedVecLen,
     },
     #[error("bounded vector minimum {min} exceeds maximum {max}")]
     InvalidBounds {
-        min: crate::bounded_vec_len::BoundedVecLen,
-        max: crate::bounded_vec_len::BoundedVecLen,
+        min: crate::pg_bounded_vec_len::PgBoundedVecLen,
+        max: crate::pg_bounded_vec_len::PgBoundedVecLen,
     },
 }
 
@@ -26,20 +26,20 @@ impl From<bounded_types::bounded_value_error::BoundedValueError> for BoundedVecE
         match value {
             bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual, max } => {
                 Self::AboveMax {
-                    actual: crate::bounded_vec_len::BoundedVecLen::from(actual.get()),
-                    max: crate::bounded_vec_len::BoundedVecLen::from(max.get()),
+                    actual: crate::pg_bounded_vec_len::PgBoundedVecLen::from(actual.get()),
+                    max: crate::pg_bounded_vec_len::PgBoundedVecLen::from(max.get()),
                 }
             }
             bounded_types::bounded_value_error::BoundedValueError::BelowMin { actual, min } => {
                 Self::BelowMin {
-                    actual: crate::bounded_vec_len::BoundedVecLen::from(actual.get()),
-                    min: crate::bounded_vec_len::BoundedVecLen::from(min.get()),
+                    actual: crate::pg_bounded_vec_len::PgBoundedVecLen::from(actual.get()),
+                    min: crate::pg_bounded_vec_len::PgBoundedVecLen::from(min.get()),
                 }
             }
             bounded_types::bounded_value_error::BoundedValueError::InvalidBounds { min, max } => {
                 Self::InvalidBounds {
-                    min: crate::bounded_vec_len::BoundedVecLen::from(min.get()),
-                    max: crate::bounded_vec_len::BoundedVecLen::from(max.get()),
+                    min: crate::pg_bounded_vec_len::PgBoundedVecLen::from(min.get()),
+                    max: crate::pg_bounded_vec_len::PgBoundedVecLen::from(max.get()),
                 }
             }
         }

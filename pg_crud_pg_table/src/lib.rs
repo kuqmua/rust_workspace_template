@@ -70,5 +70,6 @@ pub mod tests;
 #[cfg(test)]
 pub mod tests_domain_types_idempotency;
 pub mod update_selector_fmt;
+mod validate_pg_table_idempotency_text;
 
 // The owner module retains lint-sensitive semantics from the original implementation.

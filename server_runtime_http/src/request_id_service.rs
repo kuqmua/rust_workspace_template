@@ -194,7 +194,7 @@ where
                             || {
                                 &*fallback_diagnostic.insert(crate::http_error_diagnostic::HttpErrorDiagnostic::capture(
                                     error_telemetry,
-                                    &crate::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext,
+                                    &crate::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext::Missing,
                                 ))
                             },
                             |diagnostic| diagnostic,

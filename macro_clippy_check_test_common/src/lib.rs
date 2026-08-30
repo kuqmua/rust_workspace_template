@@ -58,7 +58,9 @@ categories = ["category"]
     let path_cargo_toml = crate_path.join(constants_str::catalog::CARGO_TOML);
     let workspace_manifest_path = root.join(constants_str::catalog::CARGO_TOML);
     let workspace_cargo_toml = server_runtime_http::read_bounded_file::read_bounded_file(
-        server_runtime_http::path_ref::PathRef::from(workspace_manifest_path.as_path()),
+        server_runtime_http::runtime_path_ref::RuntimePathRef::from(
+            workspace_manifest_path.as_path(),
+        ),
         server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
             constants_usize::VALUE_1_048_576,
         ),
@@ -184,7 +186,9 @@ categories = ["category"]
                     constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
                 ),
             )
-            .current_dir(macro_helpers::path_ref::PathRef::from(crate_path.as_path()))
+            .current_dir(macro_helpers::macro_path_ref::MacroPathRef::from(
+                crate_path.as_path(),
+            ))
             .args(macro_helpers::tool_args_ref::ToolArgsRef::from(step.args()))
             .status()
             .unwrap_or_else(|error| {

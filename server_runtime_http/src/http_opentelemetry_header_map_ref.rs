@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,4 +6,10 @@
     newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct HttpOpentelemetryHeaderMapRef<'headers_lt>(pub(super) &'headers_lt http::HeaderMap);
+pub struct HttpOpentelemetryHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
+
+impl<'headers_lt> HttpOpentelemetryHeaderMapRef<'headers_lt> {
+    pub(crate) const fn get(self) -> &'headers_lt http::HeaderMap {
+        self.0
+    }
+}

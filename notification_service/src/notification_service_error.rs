@@ -1,7 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum NotificationServiceError {
     #[error("notification service configuration failed: {0}")]
-    Config(notification_service_config::config::ConfigTryFromEnvError),
+    Config(notification_service_config::notification_service_config::NotificationServiceConfigTryFromEnvError),
     #[error("notification database connection failed: {0}")]
     Database(crate::sqlx_notification_database_error::SqlxNotificationDatabaseError),
     #[error("notification metrics recorder initialization failed: {0}")]

@@ -1,6 +1,8 @@
 pub(crate) async fn mutations_set_roles(
     auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<server_admin_core::admin_user_id::AdminUserId>,
+    path: crate::axum_admin_path::AxumAdminPath<
+        server_admin_core::admin_user_record_id::AdminUserRecordId,
+    >,
     request: crate::axum_admin_json::AxumAdminJson<
         server_admin_contract::admin_set_user_roles_req::AdminSetUserRolesReq,
     >,

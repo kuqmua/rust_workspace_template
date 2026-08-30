@@ -12,7 +12,7 @@ impl ReqwestRuntimeTestClient {
         server_runtime_http::reqwest_error::ReqwestError,
     > {
         self.0
-            .get(url.0.as_str())
+            .get(url.as_ref())
             .send()
             .map(crate::reqwest_runtime_test_response::ReqwestRuntimeTestResponse::from)
             .map_err(server_runtime_http::reqwest_error::ReqwestError::from)
@@ -29,7 +29,7 @@ impl ReqwestRuntimeTestClient {
         server_runtime_http::reqwest_error::ReqwestError,
     > {
         self.0
-            .post(url.0.as_str())
+            .post(url.as_ref())
             .json(request)
             .send()
             .map(crate::reqwest_runtime_test_response::ReqwestRuntimeTestResponse::from)

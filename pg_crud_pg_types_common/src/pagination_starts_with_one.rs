@@ -84,7 +84,8 @@ impl TryFrom<crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw>
     fn try_from(
         v: crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw,
     ) -> Result<Self, Self::Error> {
-        Self::try_new(v.limit, v.offset)
+        let (limit, offset) = v.into_parts();
+        Self::try_new(limit, offset)
     }
 }
 

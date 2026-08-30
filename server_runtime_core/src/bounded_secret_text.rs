@@ -12,23 +12,7 @@ impl TryFrom<String> for BoundedSecretText {
     type Error = crate::bounded_secret_text_error::BoundedSecretTextError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() < crate::secret_text_minimum_bytes::SECRET_TEXT_MINIMUM_BYTES
-            || value.len() > constants_usize::VALUE_8_192
-        {
-            return Err(crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength);
-        }
-        if value.trim().len() != value.len() {
-            return Err(
-                crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
-            );
-        }
-        if value
-            .as_bytes()
-            .first()
-            .is_some_and(|first| value.as_bytes().iter().all(|byte| byte == first))
-        {
-            return Err(crate::bounded_secret_text_error::BoundedSecretTextError::RepeatedByte);
-        }
+        let _validated = crate::secret_text_ref::SecretTextRef::try_from(value.as_str())?;
         Ok(Self(value))
     }
 }

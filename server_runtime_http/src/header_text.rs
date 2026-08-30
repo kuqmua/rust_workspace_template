@@ -63,7 +63,7 @@ mod tests {
             crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(
                 constants_usize::ZERO
             ),
-            Err(crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError)
+            Err(crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError::Zero)
         );
     }
 }

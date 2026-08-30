@@ -55,7 +55,7 @@ pub(crate) async fn user_mutations_create(
             login: &actor.login,
             resource: crate::admin_audit_resource::AdminAuditResource::User,
             resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::User(
-                server_admin_core::admin_user_id::AdminUserId::from(user_id.value()),
+                server_admin_core::admin_user_record_id::AdminUserRecordId::from(user_id.value()),
             ),
             user_id: actor.id,
         },

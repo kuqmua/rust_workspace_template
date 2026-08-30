@@ -6,22 +6,9 @@ pub(crate) async fn user_password(
         crate::user_password_form::UserPasswordForm,
     >,
 ) -> axum::response::Response {
-    crate::authenticated_action_impl::authenticated_action_impl(
+    crate::user_mutation_form_action::user_mutation_form_action(
         auth,
-        server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
-        |auth| {
-            crate::mutations_set_password::mutations_set_password(
-                auth,
-                crate::axum_admin_path::AxumAdminPath(crate::user_path_impl::user_path_impl(
-                    form.user_id,
-                )),
-                crate::axum_admin_json::AxumAdminJson(
-                    server_admin_contract::admin_set_user_password_req::AdminSetUserPasswordReq::new(
-                        form.password,
-                    ),
-                ),
-            )
-        },
+        crate::user_mutation_form_target::UserMutationFormTarget::Password(form),
     )
     .await
 }

@@ -3,12 +3,12 @@ pub(super) enum CanBeNullable {
     False,
     True,
 }
-impl quote::ToTokens for crate::pg_type::PgType {
+impl quote::ToTokens for crate::pg_type_catalog_kind::PgTypeCatalogKind {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
     }
 }
-impl From<&crate::range::Range> for crate::pg_type::PgType {
+impl From<&crate::range::Range> for crate::pg_type_catalog_kind::PgTypeCatalogKind {
     fn from(v: &crate::range::Range) -> Self {
         match v {
             crate::range::Range::I32AsInt4 => Self::I32AsInt4,

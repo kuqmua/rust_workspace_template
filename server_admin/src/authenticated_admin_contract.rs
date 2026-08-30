@@ -1,5 +1,5 @@
 pub(crate) fn authenticated_admin_contract(
-    value: &crate::authenticated_admin::AuthenticatedAdmin,
+    value: &crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
 ) -> Result<
     server_admin_contract::authenticated_admin::AuthenticatedAdmin,
     crate::admin_error::AdminError,

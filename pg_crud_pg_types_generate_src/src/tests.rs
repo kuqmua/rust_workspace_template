@@ -34,7 +34,7 @@ fn malformed_config_is_a_typed_parse_error() {
 #[test]
 fn generated_type_list_deserialization_rejects_too_many_entries() {
     let serialized = serde_json::to_string(&vec![
-        crate::pg_type::PgType::I16AsInt2;
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2;
         crate::generate_pg_types_max_len::GENERATE_PG_TYPES_MAX_LEN
             + constants_usize::ONE
     ])

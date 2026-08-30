@@ -16,7 +16,7 @@ pub mod tests_domain_types;
 pub mod tokio_server_runtime;
 
 fn main() -> server_exit_code::ServerExitCode {
-    let config = match server_config::config::Config::try_from_env() {
+    let config = match server_config::server_config::ServerConfig::try_from_env() {
         Ok(config) => config,
         Err(config_error) => {
             let startup_error = run_server_error::RunServerError::Config(config_error);
@@ -115,7 +115,7 @@ fn main() -> server_exit_code::ServerExitCode {
                             },
                         ) else {
                             return Err(run_server_error::RunServerError::RuntimeInterval(
-                                server_runtime_http::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError,
+                                server_runtime_http::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError::Zero,
                             ));
                         };
                         let tcp_listener = tokio::net::TcpListener::bind(
@@ -179,14 +179,14 @@ fn main() -> server_exit_code::ServerExitCode {
                         let http_gzip_enabled = *config.http_gzip_enabled;
                         let request_timeout_seconds = config.request_timeout_seconds.get();
                         let app_state = shared_server_app_state_arc::SharedServerAppStateArc::from_state(
-                            server_app_state::server_app_state::ServerAppState {
-                                bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget::new(
+                            server_app_state::server_app_state::ServerAppState::new(
+                                server_runtime_core::resource_budget::ResourceBudget::new(
                                     server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::from(
                                         std::num::NonZeroUsize::new(4_096usize).unwrap_or(std::num::NonZeroUsize::MIN),
                                     ),
                                 ),
                                 config,
-                                idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget::new(
+                                server_runtime_core::resource_budget::ResourceBudget::new(
                                     server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::from(
                                         std::num::NonZeroUsize::new(
                                             64usize.saturating_mul(constants_usize::VALUE_1_048_576),
@@ -195,8 +195,8 @@ fn main() -> server_exit_code::ServerExitCode {
                                     ),
                                 ),
                                 pg_pool,
-                                project_git_info: git_info::project_git_info_value::project_git_info_value(),
-                            },
+                                git_info::project_git_info_value::project_git_info_value(),
+                            ),
                         );
                         let metrics_renderer = metrics_exporter_prometheus::PrometheusBuilder::new()
                             .install_recorder()
@@ -272,7 +272,7 @@ fn main() -> server_exit_code::ServerExitCode {
                                 server_admin::generated_routes::generated_routes(&generated_table_state),
                             );
                             let open_api_contract = server_admin_contract::admin_route::AdminRoute::OpenApi.contract();
-                            let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
+                            let documented_admin_routes = if swagger_enabled {
                                 generated_table_routes.route(
                                     open_api_contract.path().as_ref(),
                                     axum::routing::on(

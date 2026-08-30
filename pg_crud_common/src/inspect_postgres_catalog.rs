@@ -1,5 +1,5 @@
 pub async fn inspect_postgres_catalog(
-    pool: crate::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    pool: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
     schema: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
 ) -> Result<
     crate::db_catalog_snapshot::DbCatalogSnapshot,

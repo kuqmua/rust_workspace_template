@@ -17,9 +17,7 @@ impl TryFrom<String> for FirstIdentifier {
         crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > crate::first_ident_max_len::FIRST_IDENT_MAX_LEN {
-            return Err(crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError(
-                value.len(),
-            ));
+            return Err(crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError::from(value.len()));
         }
         Ok(Self(value))
     }

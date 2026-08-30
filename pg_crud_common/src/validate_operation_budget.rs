@@ -5,7 +5,7 @@ pub const fn validate_operation_budget(
     if actual.get() <= budget.get() {
         Ok(())
     } else {
-        Err(crate::operation_budget_exceeded::OperationBudgetExceeded::new(actual, budget))
+        Err(crate::operation_budget_exceeded::OperationBudgetExceeded::Exceeded { actual, budget })
     }
 }
 

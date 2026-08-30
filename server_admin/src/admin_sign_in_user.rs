@@ -2,7 +2,7 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub(crate) struct AdminSignInUser {
-    id: server_admin_core::admin_user_id::AdminUserId,
+    id: server_admin_core::admin_user_record_id::AdminUserRecordId,
     password_hash: crate::admin_password_hash::AdminPasswordHash,
     is_banned: server_admin_core::std_admin_bool::StdAdminBool,
 }
@@ -12,7 +12,7 @@ impl TryFrom<(i64, String, bool)> for AdminSignInUser {
 
     fn try_from((id, password_hash, is_banned): (i64, String, bool)) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: server_admin_core::admin_user_id::AdminUserId::try_from(id)?,
+            id: server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(id)?,
             password_hash: crate::admin_password_hash::AdminPasswordHash::new(
                 pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
                     password_hash,
@@ -25,7 +25,7 @@ impl TryFrom<(i64, String, bool)> for AdminSignInUser {
 
 impl From<AdminSignInUser>
     for (
-        server_admin_core::admin_user_id::AdminUserId,
+        server_admin_core::admin_user_record_id::AdminUserRecordId,
         crate::admin_password_hash::AdminPasswordHash,
         server_admin_core::std_admin_bool::StdAdminBool,
     )

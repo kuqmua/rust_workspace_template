@@ -6,7 +6,7 @@ mod tests {
             crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::catalog::VALUE_1)).expect("f39b6c2a positive_values_and_token_text_preserve_validation invariant must hold"),
         )
         .expect("de4810af positive_values_and_token_text_preserve_validation invariant must hold");
-        assert_eq!(ttl.0.get(), 1u64);
+        assert_eq!(ttl.get(), 1u64);
         let zero = <crate::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::catalog::VALUE_0)).expect("a48e903d positive_values_and_token_text_preserve_validation invariant must hold"),
         );

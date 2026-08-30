@@ -31,6 +31,7 @@ pub mod config_field_requirement;
 pub mod config_field_sensitivity;
 pub mod config_lib_string_wrapper_max_len;
 pub mod config_lib_string_wrapper_try_from_string_error;
+pub mod config_parse_int_error;
 pub mod config_rust_type_name;
 pub mod content_security_policy;
 pub mod content_security_policy_error;
@@ -60,7 +61,6 @@ pub mod parse_from_env_var_with_tests;
 #[cfg(test)]
 pub mod parse_from_str_with_ctx_tests;
 pub mod parse_from_str_with_error;
-pub mod parse_int_error;
 pub mod parse_pg_pool_non_zero_seconds;
 pub mod parse_required_env_var;
 pub mod pg_pool_acquire_timeout_seconds;

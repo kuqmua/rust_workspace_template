@@ -30,7 +30,7 @@ mod tests {
         );
         assert_eq!(
             crate::maybe_primary_key::maybe_primary_key(
-                pg_crud_common::is_primary_key::IsPrimaryKey::from(true)
+                pg_crud_common::pg_is_primary_key::PgIsPrimaryKey::from(true)
             )
             .to_string(),
             constants_str::catalog::PRIMARY_KEY

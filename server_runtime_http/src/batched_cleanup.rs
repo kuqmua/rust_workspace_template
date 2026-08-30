@@ -48,7 +48,7 @@ mod tests {
     fn zero_batch_size_is_rejected() {
         assert_eq!(
             crate::cleanup_batch_size::CleanupBatchSize::try_from(constants_u64::ZERO),
-            Err(crate::cleanup_batch_size_error::CleanupBatchSizeError)
+            Err(crate::cleanup_batch_size_error::CleanupBatchSizeError::Zero)
         );
     }
 }

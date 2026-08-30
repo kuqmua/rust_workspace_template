@@ -1,15 +1,13 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(super) struct TopLevelCommaPart(
-    pub(super) crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
-);
+pub(super) struct TopLevelCommaPart(crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens);
 impl From<crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens> for TopLevelCommaPart {
     fn from(value: crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens) -> Self {
         Self(value)
+    }
+}
+impl TopLevelCommaPart {
+    pub(super) fn into_inner(self) -> crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens {
+        self.0
     }
 }
 impl syn::parse::Parse for TopLevelCommaPart {

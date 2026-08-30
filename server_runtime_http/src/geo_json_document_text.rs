@@ -13,7 +13,7 @@ impl TryFrom<String> for GeoJsonDocumentText {
         let json_document =
             serde_json::from_str::<serde_json::Value>(value.as_str()).map_err(|error| {
                 crate::geo_json_validation_error::GeoJsonValidationError::SerdeJson(
-                    crate::serde_json_geo_json_error::SerdeJsonGeoJsonError(error),
+                    crate::serde_json_geo_json_error::SerdeJsonGeoJsonError::from(error),
                 )
             })?;
         crate::supported_geo_json_type_validation::SupportedGeoJsonTypeValidation::validate_supported_geo_json_types(&json_document)?;

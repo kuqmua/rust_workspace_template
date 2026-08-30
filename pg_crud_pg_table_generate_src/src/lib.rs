@@ -4,7 +4,6 @@
 )]
 
 pub mod build_generate_pg_table;
-pub mod compile_error_message;
 pub mod domain_types;
 pub mod emit_generate_pg_table;
 pub mod generate_pg_table;
@@ -15,6 +14,7 @@ pub mod idempotency_capable;
 pub mod operation_dsc;
 pub mod optimistic_concurrency_capable;
 pub mod parse_generate_pg_table;
+pub mod pg_table_compile_error_message;
 pub mod pg_table_compile_error_tokens;
 pub mod route_http_method;
 pub mod route_success_status;

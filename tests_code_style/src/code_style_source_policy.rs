@@ -1588,7 +1588,9 @@ fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
         macro_helpers::tool_program_ref::ToolProgramRef::from(constants_str::GIT_PROGRAM),
     );
     let _command = command
-        .current_dir(macro_helpers::path_ref::PathRef::from(repository_root))
+        .current_dir(macro_helpers::macro_path_ref::MacroPathRef::from(
+            repository_root,
+        ))
         .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
             constants_str::GIT_LS_FILES_ARGS.as_slice(),
         ));

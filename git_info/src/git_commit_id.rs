@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -11,6 +7,7 @@
     Default,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefStr,
+    newtype::IntoInnerFrom,
     newtype::TryFrom,
 )]
 #[try_from(
@@ -21,10 +18,10 @@
         } else { Ok(()) }
     }
 )]
-pub struct GitCommitId(pub(super) String);
+pub struct GitCommitId(String);
 impl From<crate::git_commit_id_ref::GitCommitIdRef<'_>> for GitCommitId {
     fn from(value: crate::git_commit_id_ref::GitCommitIdRef<'_>) -> Self {
-        Self::try_from(value.0.to_owned()).unwrap_or_else(Self::from)
+        Self::try_from(<&str>::from(value).to_owned()).unwrap_or_else(Self::from)
     }
 }
 impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError>

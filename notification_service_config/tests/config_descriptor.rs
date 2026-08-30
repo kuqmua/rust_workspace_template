@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod tests {
     fn descriptor_examples() -> std::collections::BTreeMap<String, String> {
-        notification_service_config::config::Config::env_example()
+        notification_service_config::notification_service_config::NotificationServiceConfig::env_example()
             .lines()
             .filter_map(|line| line.split_once('='))
             .map(|(name, value)| (name.to_owned(), value.to_owned()))
@@ -29,7 +29,7 @@ mod tests {
         if std::env::var_os(constants_str::test_fixtures::UPDATE_CONFIG_PROJECTIONS).is_some() {
             std::fs::write(
                 example_path.as_path(),
-                notification_service_config::config::Config::env_example(),
+                notification_service_config::notification_service_config::NotificationServiceConfig::env_example(),
             )
             .expect("49f0c61e env_example_matches_generated_descriptor invariant must hold");
         }
@@ -37,10 +37,10 @@ mod tests {
             .expect("8db042aa env_example_matches_generated_descriptor invariant must hold");
         assert_eq!(
             example_source,
-            notification_service_config::config::Config::env_example()
+            notification_service_config::notification_service_config::NotificationServiceConfig::env_example()
         );
         let examples = descriptor_examples();
-        let descriptors = notification_service_config::config::Config::field_descriptors();
+        let descriptors = notification_service_config::notification_service_config::NotificationServiceConfig::field_descriptors();
         assert_eq!(descriptors.len(), examples.len());
         descriptors.into_iter().for_each(|descriptor| {
             let value = examples
@@ -97,7 +97,7 @@ mod tests {
                     .map(|(name, _value)| name.to_owned())
             })
             .collect::<std::collections::BTreeSet<_>>();
-        let expected = notification_service_config::config::Config::field_descriptors()
+        let expected = notification_service_config::notification_service_config::NotificationServiceConfig::field_descriptors()
             .into_iter()
             .map(|descriptor| descriptor.env_name().as_ref().to_owned())
             .collect::<std::collections::BTreeSet<_>>();

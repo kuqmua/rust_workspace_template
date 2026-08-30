@@ -4,6 +4,6 @@ pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyError {
     IsZero,
     #[error("{admin_positive_usize_parsing:?}")]
     Parse {
-        admin_positive_usize_parsing: crate::parse_int_error::ParseIntError,
+        admin_positive_usize_parsing: crate::config_parse_int_error::ConfigParseIntError,
     },
 }

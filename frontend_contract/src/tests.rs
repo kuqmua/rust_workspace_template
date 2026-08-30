@@ -4,7 +4,7 @@ fn contract_bodies_reject_values_above_shared_limit() {
         vec![constants_u8::ZERO; constants_usize::VALUE_16_777_216 + constants_usize::ONE];
     assert_eq!(
         crate::transport_body::TransportBody::try_from(oversized),
-        Err(crate::frontend_contract_body_error::FrontendContractBodyError)
+        Err(crate::frontend_contract_body_error::FrontendContractBodyError::TooLarge)
     );
 }
 #[allow(clippy::needless_for_each)] // iterator form follows the workspace ban on explicit for loops

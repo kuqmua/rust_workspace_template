@@ -8,6 +8,6 @@ where
     let commit_id_ref = commit_id.into();
     crate::git_commit_link_capacity::GitCommitLinkCapacity::from(
         crate::base_git_commit_link_len::BASE_GIT_COMMIT_LINK_LEN
-            .saturating_add(commit_id_ref.0.len()),
+            .saturating_add(commit_id_ref.as_ref().len()),
     )
 }

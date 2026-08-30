@@ -1,6 +1,9 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub(super) struct LeptosAdminFilterOperationSignal(pub(super) leptos::prelude::RwSignal<String>);
+pub(super) struct LeptosAdminFilterOperationSignal(leptos::prelude::RwSignal<String>);

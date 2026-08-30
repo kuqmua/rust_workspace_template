@@ -31,10 +31,10 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminJwtSecret {
     type Error = crate::try_from_std_env_var_ok_admin_jwt_secret_error::TryFromStdEnvVarOkAdminJwtSecretError;
 
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        if v.0.split(',').map(str::trim).all(str::is_empty) {
+        if v.split(',').map(str::trim).all(str::is_empty) {
             return Err(Self::Error::Empty);
         }
-        let raw_secrets = v.0.split(',').map(str::trim);
+        let raw_secrets = v.split(',').map(str::trim);
         let raw_secret_count = raw_secrets.clone().count();
         if raw_secret_count > crate::admin_jwt_secret_max_count::ADMIN_JWT_SECRET_MAX_COUNT {
             return Err(Self::Error::TooMany);

@@ -1,5 +1,5 @@
 pub fn read_bounded_file(
-    path: crate::path_ref::PathRef<'_>,
+    path: crate::runtime_path_ref::RuntimePathRef<'_>,
     maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes,
 ) -> Result<crate::bounded_bytes::BoundedBytes, crate::bounded_read_error::BoundedReadError> {
     let file = std::fs::File::open(path.0).map_err(|source| {

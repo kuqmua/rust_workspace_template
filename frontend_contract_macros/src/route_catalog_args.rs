@@ -5,8 +5,8 @@
 )]
 #[getters(get_mut)]
 pub(crate) struct RouteCatalogArgs {
-    body_limit: crate::syn_expr::SynExpr,
-    family: crate::syn_ident::SynIdent,
+    body_limit: crate::contract_syn_expr::ContractSynExpr,
+    family: crate::contract_syn_ident::ContractSynIdent,
 }
 
 impl syn::parse::Parse for RouteCatalogArgs {
@@ -17,11 +17,13 @@ impl syn::parse::Parse for RouteCatalogArgs {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == constants_str::test_fixtures::ROUTE_CATALOG_FAMILY {
-                family = Some(crate::syn_ident::SynIdent::from(
+                family = Some(crate::contract_syn_ident::ContractSynIdent::from(
                     input.parse::<syn::Ident>()?,
                 ));
             } else if name == constants_str::test_fixtures::ROUTE_CATALOG_BODY_LIMIT {
-                body_limit = Some(crate::syn_expr::SynExpr::from(input.parse::<syn::Expr>()?));
+                body_limit = Some(crate::contract_syn_expr::ContractSynExpr::from(
+                    input.parse::<syn::Expr>()?,
+                ));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,

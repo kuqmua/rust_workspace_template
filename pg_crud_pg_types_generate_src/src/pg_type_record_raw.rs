@@ -7,7 +7,7 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct PgTypeRecordRaw {
-    pub(super) pg_type: crate::pg_type::PgType,
+    pub(super) pg_type: crate::pg_type_catalog_kind::PgTypeCatalogKind,
     pub(super) is_nullable: pg_crud_macro_common::is_nullable::IsNullable,
     pub(super) pg_type_pattern: crate::pg_type_pattern::PgTypePattern,
 }

@@ -36,13 +36,15 @@ impl SrcPlaceType {
             let env_var_name = crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
                 constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
             );
-            let raw_v = env_v
-                .0
-                .map_err(|source| crate::env_parse_error::EnvParseError::Read {
-                    name: crate::env_var_name::EnvVarName::try_from(env_var_name.0.to_owned())
-                        .unwrap_or_else(crate::env_var_name::EnvVarName::from),
+            let raw_v = Result::<String, std::env::VarError>::from(env_v).map_err(|source| {
+                crate::env_parse_error::EnvParseError::Read {
+                    name: crate::env_var_name::EnvVarName::try_from(
+                        env_var_name.as_ref().to_owned(),
+                    )
+                    .unwrap_or_else(crate::env_var_name::EnvVarName::from),
                     source: crate::env_var_error::EnvVarError::from(source),
-                })?;
+                }
+            })?;
             raw_v
                 .parse::<Self>()
                 .map_err(|error| crate::env_parse_error::EnvParseError::Parse {

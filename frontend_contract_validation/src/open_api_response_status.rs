@@ -3,7 +3,14 @@
     reason = "the owner-module split exposes representation only to its parent facade"
 )]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::DerefInner,
+    newtype::TryFrom,
 )]
 #[try_from(
     error = frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error,
@@ -11,8 +18,8 @@
         if (100u16..1_000u16).contains(value) {
             Ok(())
         } else {
-            Err(frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error)
+            Err(frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange)
         }
     }
 )]
-pub struct OpenApiResponseStatus(pub(super) u16);
+pub struct OpenApiResponseStatus(u16);

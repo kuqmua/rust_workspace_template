@@ -77,7 +77,7 @@ fn contract_struct_api_attributes_are_explicit() {
                             .path
                             .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_SLICE)
                         {
-                            *field_args.get_slice_mut() = Some(crate::syn_type::SynType::from(
+                            *field_args.get_slice_mut() = Some(crate::contract_syn_type::ContractSynType::from(
                                 metadata.value()?.parse::<syn::Type>()?,
                             ));
                             Ok(())

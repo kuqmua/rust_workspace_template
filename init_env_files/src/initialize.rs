@@ -77,7 +77,6 @@ pub(crate) fn initialize(
                 let current_keys = crate::environment_keys::environment_keys(
                     crate::env_content_ref::EnvContentRef::from(current.as_ref()),
                 )?
-                .0
                 .into_iter()
                 .collect::<std::collections::BTreeSet<crate::env_key::EnvKey>>();
                 let missing = content
@@ -123,13 +122,13 @@ pub(crate) fn initialize(
                 )?;
                 crate::initialization_status::InitializationStatus::Created
             };
-            entries.push(crate::initialization_entry::InitializationEntry {
-                keys: crate::environment_keys::environment_keys(
+            entries.push(crate::initialization_entry::InitializationEntry::from((
+                crate::environment_keys::environment_keys(
                     crate::env_content_ref::EnvContentRef::from(content.as_ref()),
                 )?,
                 member,
                 status,
-            });
+            )));
             Ok(entries)
         })
         .map(bounded_types::bounded_vec::BoundedVec::from_max_iter)

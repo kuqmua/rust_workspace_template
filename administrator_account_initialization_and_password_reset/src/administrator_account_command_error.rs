@@ -3,7 +3,7 @@ pub(crate) enum AdministratorAccountCommandError {
     #[error(transparent)]
     Args(crate::administrator_command_args_error::AdministratorCommandArgsError),
     #[error("failed to read configuration: {0}")]
-    Config(server_config::config::ConfigTryFromEnvError),
+    Config(server_config::server_config::ServerConfigTryFromEnvError),
     #[error("unsafe production configuration: {0}")]
     ConfigProduction(server_config::production_config_error::ProductionConfigError),
     #[error("failed to connect to postgres: {0}")]

@@ -5,5 +5,5 @@ pub(super) fn parse_from_str_with_error<T, ParseError, Error>(
 where
     T: std::str::FromStr<Err = ParseError>,
 {
-    v.0.parse::<T>().map_err(mk_error)
+    v.as_ref().parse::<T>().map_err(mk_error)
 }

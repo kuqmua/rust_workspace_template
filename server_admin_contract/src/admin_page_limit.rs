@@ -36,7 +36,7 @@ impl TryFrom<u16> for AdminPageLimit {
         if (Self::MIN..=Self::MAX).contains(&value) {
             Ok(Self(value))
         } else {
-            Err(crate::admin_page_limit_error::AdminPageLimitError)
+            Err(crate::admin_page_limit_error::AdminPageLimitError::OutOfRange)
         }
     }
 }

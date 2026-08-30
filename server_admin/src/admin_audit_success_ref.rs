@@ -9,5 +9,5 @@ pub(crate) struct AdminAuditSuccessRef<'value_lt> {
     pub(crate) login: &'value_lt server_admin_contract::admin_login::AdminLogin,
     pub(crate) resource: crate::admin_audit_resource::AdminAuditResource,
     pub(crate) resource_id: crate::admin_audit_resource_id::AdminAuditResourceId,
-    pub(crate) user_id: server_admin_core::admin_user_id::AdminUserId,
+    pub(crate) user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
 }

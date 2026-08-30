@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -13,4 +9,4 @@
     newtype::FromInner,
     newtype::PartialEqInner,
 )]
-pub struct GitCommitLinkCapacity(pub(super) usize);
+pub struct GitCommitLinkCapacity(usize);

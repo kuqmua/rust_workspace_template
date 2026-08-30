@@ -152,15 +152,15 @@ mod tests {
             crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::test_fixtures::VALUE_A31BB256)).expect("20b6c6b2 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
             crate::storage_path_segment::StoragePathSegment::try_from(String::new()),
-            Err(crate::storage_path_segment_error::StoragePathSegmentError)
+            Err(crate::storage_path_segment_error::StoragePathSegmentError::Invalid)
         );
         assert_eq!(
             crate::storage_path_segment::StoragePathSegment::try_from(String::from("../escape")),
-            Err(crate::storage_path_segment_error::StoragePathSegmentError)
+            Err(crate::storage_path_segment_error::StoragePathSegmentError::Invalid)
         );
         assert_eq!(
             crate::storage_path_segment::StoragePathSegment::try_from("a".repeat(1025usize)),
-            Err(crate::storage_path_segment_error::StoragePathSegmentError)
+            Err(crate::storage_path_segment_error::StoragePathSegmentError::Invalid)
         );
 
         let identifier =
@@ -253,4 +253,4 @@ mod multipart_value_length {}
 mod staging_directory_name {}
 mod storage_path_segment {}
 mod storage_path_segment_error {}
-mod storage_relative_path_buf {}
+mod runtime_storage_relative_path_buf {}

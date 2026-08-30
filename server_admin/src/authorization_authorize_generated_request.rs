@@ -4,7 +4,10 @@ pub(crate) async fn authorization_authorize_generated_request(
     peer: crate::admin_peer_addr::AdminPeerAddr,
     permission: server_admin_contract::admin_permission_str_ref::AdminPermissionStrRef<'_>,
     mutates: server_admin_core::std_admin_bool::StdAdminBool,
-) -> Result<crate::authenticated_admin::AuthenticatedAdmin, crate::admin_error::AdminError> {
+) -> Result<
+    crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
+    crate::admin_error::AdminError,
+> {
     let authenticated =
         crate::authorization_authenticate::authorization_authenticate(state, headers, peer).await?;
     if *authenticated.password_change_required {

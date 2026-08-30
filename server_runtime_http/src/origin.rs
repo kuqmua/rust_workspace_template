@@ -12,7 +12,7 @@ mod tests {
         let values = vec![String::from(constants_str::catalog::HTTPS_ADMIN_EXAMPLE_COM); 129usize];
         assert_eq!(
             crate::allowed_origins::AllowedOrigins::try_from(values),
-            Err(crate::allowed_origins_error::AllowedOriginsError)
+            Err(crate::allowed_origins_error::AllowedOriginsError::Invalid)
         );
     }
 
@@ -22,13 +22,13 @@ mod tests {
             crate::allowed_origin::AllowedOrigin::try_from(String::from(
                 constants_str::catalog::HTTPS_ADMIN_EXAMPLE_COM_WITH_USERINFO,
             )),
-            Err(crate::allowed_origin_error::AllowedOriginError)
+            Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
         );
         assert_eq!(
             crate::allowed_origin::AllowedOrigin::try_from(String::from(
                 constants_str::catalog::HTTPS_ADMIN_EXAMPLE_COM_WITH_INVALID_PORT,
             )),
-            Err(crate::allowed_origin_error::AllowedOriginError)
+            Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
         );
     }
 

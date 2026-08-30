@@ -123,7 +123,7 @@ mod tests {
         );
         let diagnostic = super::HttpErrorDiagnostic::capture(
             telemetry,
-            &crate::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext,
+            &crate::http_error_without_diagnostic_context::HttpErrorWithoutDiagnosticContext::Missing,
         );
         assert_eq!(
             diagnostic.telemetry.error_code().to_string(),

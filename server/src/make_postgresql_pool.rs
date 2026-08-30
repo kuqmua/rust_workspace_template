@@ -1,5 +1,5 @@
 pub(crate) async fn make_postgresql_pool(
-    config: &server_config::config::Config,
+    config: &server_config::server_config::ServerConfig,
 ) -> Result<app_state::sqlx_pg_pool::SqlxPgPool, crate::run_server_error::RunServerError> {
     if *config.pg_pool_min_connections
         > *config_lib::pg_pool_max_connections::PgPoolMaxConnectionsProvider::pg_pool_max_connections(config)

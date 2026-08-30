@@ -1,7 +1,7 @@
 pub(crate) async fn authorization_validate_csrf(
     state: &crate::admin_auth_svc_state::AdminAuthSvcState,
     headers: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
-    authenticated: &crate::authenticated_admin::AuthenticatedAdmin,
+    authenticated: &crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
 ) -> Result<(), crate::admin_error::AdminError> {
     if !crate::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state, headers,

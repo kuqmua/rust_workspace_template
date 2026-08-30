@@ -25,22 +25,22 @@ fn test_location(
     duration: std::time::Duration,
     occr: Option<crate::occr::Occr>,
 ) -> crate::location::Location {
-    crate::location::Location {
-        file: crate::location_file::LocationFile::try_from(String::from(
+    crate::location::Location::from((
+        crate::location_file::LocationFile::try_from(String::from(
             constants_str::catalog::SRC_LIB_RS,
         ))
         .unwrap_or_else(crate::location_file::LocationFile::from),
-        commit: crate::location_commit::LocationCommit::try_from(String::from(
+        crate::location_commit::LocationCommit::try_from(String::from(
             constants_str::catalog::TEST_VALUES_COMMIT,
         ))
         .unwrap_or_else(crate::location_commit::LocationCommit::from),
-        duration: crate::location_duration::LocationDuration::from(duration),
+        crate::location_duration::LocationDuration::from(duration),
         occr,
-        line: crate::location_line::LocationLine::try_from(10)
+        crate::location_line::LocationLine::try_from(10)
             .expect("fc5a52e8 test_location invariant must hold"),
-        column: crate::location_column::LocationColumn::try_from(20)
+        crate::location_column::LocationColumn::try_from(20)
             .expect("8a180198 test_location invariant must hold"),
-    }
+    ))
 }
 fn test_occr() -> crate::occr::Occr {
     crate::occr::Occr {
@@ -123,7 +123,9 @@ fn datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
     let location = test_location(std::time::Duration::from_secs(0), None);
     let date_time = location.datetime_with_tz().expect("f5c41dd8 datetime_with_tz_returns_expected_epoch_time_for_zero_duration invariant must hold");
     assert_eq!(
-        date_time.0.format("%Y-%m-%d %H:%M:%S").to_string(),
+        chrono::DateTime::<chrono::FixedOffset>::from(date_time)
+            .format("%Y-%m-%d %H:%M:%S")
+            .to_string(),
         "1970-01-01 03:00:00"
     );
 }

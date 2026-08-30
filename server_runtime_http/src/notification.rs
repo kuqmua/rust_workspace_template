@@ -6,7 +6,7 @@ mod tests {
         type Error = std::convert::Infallible;
         fn send(
             &self,
-            _message: crate::notification_message::NotificationMessage,
+            _message: crate::runtime_notification_message::RuntimeNotificationMessage,
         ) -> impl Future<Output = Result<(), Self::Error>> + Send {
             std::future::ready(Ok(()))
         }
@@ -39,9 +39,9 @@ mod tests {
     fn message_deserialization_uses_length_validation() {
         let json =
             serde_json::Value::String(constants_str::catalog::X.repeat(65_537usize)).to_string();
-        let Err(_error) =
-            serde_json::from_str::<crate::notification_message::NotificationMessage>(&json)
-        else {
+        let Err(_error) = serde_json::from_str::<
+            crate::runtime_notification_message::RuntimeNotificationMessage,
+        >(&json) else {
             panic!("ecef8003");
         };
     }

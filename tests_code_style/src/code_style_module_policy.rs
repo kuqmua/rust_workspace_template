@@ -32,10 +32,6 @@ fn identifier_snake_case(identifier: &syn::Ident) -> crate::types::SourceText {
 #[test]
 fn custom_type_names_are_unique_across_workspace() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        assert!(
-            !constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_TYPE_REASON.is_empty(),
-            "53d3759e reviewed duplicate type names require a reason"
-        );
         let mut declarations = std::collections::BTreeMap::<String, Vec<String>>::new();
         snapshot
             .rs_files()
@@ -58,33 +54,20 @@ fn custom_type_names_are_unique_across_workspace() {
                         .push(source_file.path().as_ref().display().to_string());
                 });
             });
-        let mut matched_reviewed = std::collections::BTreeSet::<String>::new();
         let violations = declarations
             .into_iter()
             .filter_map(|(name, mut paths)| {
                 (paths.len() > constants_usize::ONE).then(|| {
                     paths.sort();
-                    if constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_TYPE_NAMES
-                        .contains(&name.as_str())
-                    {
-                        let _inserted = matched_reviewed.insert(name.clone());
-                        return String::new();
-                    }
                     format!(
                         "custom type name `{name}` is declared more than once across the workspace: {}",
                         paths.join(", ")
                     )
                 })
             })
-            .filter(|violation| !violation.is_empty())
             .collect::<Vec<String>>();
-        let expected_reviewed =
-            constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_TYPE_NAMES
-                .into_iter()
-                .map(String::from)
-                .collect::<std::collections::BTreeSet<String>>();
         assert!(
-            violations.is_empty() && matched_reviewed == expected_reviewed,
+            violations.is_empty(),
             "c036c2fb custom type names must be unique across all workspace modules and crates:\n{}",
             violations.join("\n")
         );

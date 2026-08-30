@@ -12,5 +12,5 @@
 )]
 #[serde(deny_unknown_fields)]
 pub struct NotificationRequest {
-    pub(super) message: crate::notification_message::NotificationMessage,
+    pub(super) message: crate::runtime_notification_message::RuntimeNotificationMessage,
 }

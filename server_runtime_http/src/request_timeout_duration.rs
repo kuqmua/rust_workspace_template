@@ -13,7 +13,7 @@ impl TryFrom<std::time::Duration> for RequestTimeoutDuration {
 
     fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
         if value.is_zero() {
-            Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError)
+            Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero)
         } else {
             Ok(Self(value))
         }

@@ -4,6 +4,6 @@ pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
     IsZero,
     #[error("{admin_positive_u64_parsing:?}")]
     Parse {
-        admin_positive_u64_parsing: crate::parse_int_error::ParseIntError,
+        admin_positive_u64_parsing: crate::config_parse_int_error::ConfigParseIntError,
     },
 }

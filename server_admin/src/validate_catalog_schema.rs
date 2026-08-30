@@ -1,5 +1,5 @@
 pub async fn validate_catalog_schema(
-    pool: pg_crud_common::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    pool: pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
     schema: pg_crud_common::db_schema_name_ref::DbSchemaNameRef<'_>,
 ) -> Result<(), pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError> {
     futures::future::try_join_all(
@@ -10,7 +10,7 @@ pub async fn validate_catalog_schema(
                 let table_schema = schema;
                 async move {
                     async fn validate_generated_table<Table>(
-                        pool: pg_crud_common::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+                        pool: pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
                         schema: pg_crud_common::db_schema_name_ref::DbSchemaNameRef<'_>,
                     ) -> Result<(), pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError>
                     where

@@ -26,10 +26,10 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
     )
     .expect("93ce4136 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
-        dry.0
+        dry.as_ref()
             .first()
             .expect("14b080ca dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
-            .status,
+            .status(),
         crate::initialization_status::InitializationStatus::WouldCreate
     );
     assert!(!root.join("service/.env").exists());
@@ -40,10 +40,10 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
     .expect("d58ed6a5 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
         applied
-            .0
+            .as_ref()
             .first()
             .expect("c366cc59 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
-            .status,
+            .status(),
         crate::initialization_status::InitializationStatus::Created
     );
     std::fs::write(
@@ -58,10 +58,10 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
     .expect("546af7b6 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
         updated
-            .0
+            .as_ref()
             .first()
             .expect("195600ec dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
-            .status,
+            .status(),
         crate::initialization_status::InitializationStatus::Updated
     );
     let updated_content = std::fs::read_to_string(root.join(constants_str::catalog::SERVICE_ENV))
@@ -75,10 +75,10 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
     .expect("a452843a dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert_eq!(
         repeated
-            .0
+            .as_ref()
             .first()
             .expect("37a0752c dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold")
-            .status,
+            .status(),
         crate::initialization_status::InitializationStatus::SkippedExisting
     );
     std::fs::remove_dir_all(root)

@@ -1,7 +1,7 @@
 #[must_use]
 pub fn clear_admin_cookie(
     kind: crate::admin_cookie_kind::AdminCookieKind,
-    secure: crate::admin_cookie_secure::AdminCookieSecure,
+    secure: crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure,
 ) -> crate::std_admin_cookie::StdAdminCookie {
     crate::build_admin_cookie::build_admin_cookie(
         kind,

@@ -3,7 +3,7 @@ pub(crate) struct FilterSpec {
     bind_count: crate::bind_count::BindCount,
     sql_operator: crate::filter_sql_operator::FilterSqlOperator,
     sql_suffix: crate::filter_sql_suffix::FilterSqlSuffix,
-    value_shape: crate::filter_value_shape::FilterValueShape,
+    value_shape: crate::pg_filter_value_shape::PgFilterValueShape,
 }
 
 impl FilterSpec {
@@ -21,7 +21,7 @@ impl FilterSpec {
         self,
         value: crate::filter_placeholder_count::FilterPlaceholderCount,
     ) -> crate::filter_spec_valid::FilterSpecValid {
-        crate::filter_spec_valid::FilterSpecValid::from(self.bind_count.0 == value.get())
+        crate::filter_spec_valid::FilterSpecValid::from(usize::from(self.bind_count) == value.get())
     }
     pub(crate) fn contains() -> Self {
         Self::scalar(crate::filter_sql_operator::FilterSqlOperator::from(
@@ -36,7 +36,7 @@ impl FilterSpec {
     pub(crate) fn has_text_value_shape(self) -> crate::filter_spec_valid::FilterSpecValid {
         crate::filter_spec_valid::FilterSpecValid::from(matches!(
             self.value_shape,
-            crate::filter_value_shape::FilterValueShape::Text
+            crate::pg_filter_value_shape::PgFilterValueShape::Text
         ))
     }
     pub(crate) fn left_of() -> Self {
@@ -61,7 +61,7 @@ impl FilterSpec {
             sql_suffix: crate::filter_sql_suffix::FilterSqlSuffix::from(
                 constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
             ),
-            value_shape: crate::filter_value_shape::FilterValueShape::Scalar,
+            value_shape: crate::pg_filter_value_shape::PgFilterValueShape::Scalar,
         }
     }
     pub(crate) const fn sql_operator(self) -> crate::filter_sql_operator::FilterSqlOperator {
@@ -79,7 +79,7 @@ impl FilterSpec {
             sql_suffix: crate::filter_sql_suffix::FilterSqlSuffix::from(
                 constants_str::catalog::PG_CRUD_TEXT_SEARCH_SQL_SUFFIX,
             ),
-            value_shape: crate::filter_value_shape::FilterValueShape::Text,
+            value_shape: crate::pg_filter_value_shape::PgFilterValueShape::Text,
         }
     }
     pub(crate) fn within() -> Self {

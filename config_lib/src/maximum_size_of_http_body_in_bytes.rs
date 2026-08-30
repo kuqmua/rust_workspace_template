@@ -10,7 +10,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::DerefInner,
 )]
-pub struct MaximumSizeOfHttpBodyInBytes(pub(super) usize);
+pub struct MaximumSizeOfHttpBodyInBytes(usize);
 
 impl TryFrom<usize> for MaximumSizeOfHttpBodyInBytes {
     type Error = crate::maximum_size_of_http_body_in_bytes_try_from_usize_error::MaximumSizeOfHttpBodyInBytesTryFromUsizeError;
@@ -29,7 +29,7 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for MaximumSizeOfHttpBod
 
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         let parsed: usize = crate::parse_from_str_with_error::parse_from_str_with_error(
-            crate::std_env_var_ok_ref::StdEnvVarOkRef::from(v.0.as_str()),
+            crate::std_env_var_ok_ref::StdEnvVarOkRef::from(v.as_ref()),
             |usize_parsing| Self::Error::UsizeParsing {
                 usize_parsing: crate::usize_parse_int_error::UsizeParseIntError::from(
                     usize_parsing,

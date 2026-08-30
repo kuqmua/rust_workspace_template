@@ -1,6 +1,8 @@
 pub(crate) async fn role_mutations_delete(
     auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<server_admin_core::admin_role_id::AdminRoleId>,
+    path: crate::axum_admin_path::AxumAdminPath<
+        server_admin_core::admin_role_record_id::AdminRoleRecordId,
+    >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
         &auth,

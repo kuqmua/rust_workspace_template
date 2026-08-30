@@ -9,6 +9,7 @@
     Copy,
     PartialEq,
     Eq,
+    newtype::DerefInner,
     newtype::FromInner,
 )]
-pub(super) struct TimezoneSeconds(pub(super) i32);
+pub(super) struct TimezoneSeconds(i32);

@@ -1,9 +1,9 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct RouteCatalogRouteArgs {
-    contract: Option<crate::syn_expr::SynExpr>,
-    path: Option<crate::syn_expr::SynExpr>,
-    route: Option<crate::syn_type::SynType>,
+    contract: Option<crate::contract_syn_expr::ContractSynExpr>,
+    path: Option<crate::contract_syn_expr::ContractSynExpr>,
+    route: Option<crate::contract_syn_type::ContractSynType>,
     exclude_from_family: crate::std_bool::StdBool,
 }
 #[allow(
@@ -16,9 +16,9 @@ impl RouteCatalogRouteArgs {
         reason = "constructor mirrors the parsed field model"
     )]
     pub(crate) const fn new(
-        contract: Option<crate::syn_expr::SynExpr>,
-        path: Option<crate::syn_expr::SynExpr>,
-        route: Option<crate::syn_type::SynType>,
+        contract: Option<crate::contract_syn_expr::ContractSynExpr>,
+        path: Option<crate::contract_syn_expr::ContractSynExpr>,
+        route: Option<crate::contract_syn_type::ContractSynType>,
         exclude_from_family: crate::std_bool::StdBool,
     ) -> Self {
         Self {

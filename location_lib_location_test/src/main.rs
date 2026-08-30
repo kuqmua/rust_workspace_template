@@ -34,45 +34,45 @@ fn main() {
         },
         eo_vec_display_field: vec![
             display_struct::DisplayStruct {
-                display: location_test_text::LocationTestText(String::from(
+                display: location_test_text::LocationTestText::from(
                     constants_str::integration_fixtures::VALUE_08708789,
-                )),
+                ),
                 something: location_test_flag::LocationTestFlag::from(true),
             },
             display_struct::DisplayStruct {
-                display: location_test_text::LocationTestText(String::from(
+                display: location_test_text::LocationTestText::from(
                     constants_str::integration_fixtures::VALUE_7565757,
-                )),
+                ),
                 something: location_test_flag::LocationTestFlag::from(true),
             },
         ],
         eo_vec_serde: vec![
             serde_struct::SerdeStruct {
-                one: location_test_text::LocationTestText(String::from(
+                one: location_test_text::LocationTestText::from(
                     constants_str::catalog::PG_CRUD_V_FIELD,
-                )),
+                ),
                 two: location_test_flag::LocationTestFlag::from(true),
                 three: location_test_count::LocationTestCount::from(42),
             },
             serde_struct::SerdeStruct {
-                one: location_test_text::LocationTestText(String::from(
+                one: location_test_text::LocationTestText::from(
                     constants_str::integration_fixtures::VALUE_97697697,
-                )),
+                ),
                 two: location_test_flag::LocationTestFlag::from(false),
                 three: location_test_count::LocationTestCount::from(422),
             },
         ],
         eo_vec_location_field: vec![
             error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
-                eo_display_with_serde_field: location_test_text::LocationTestText(String::from(
+                eo_display_with_serde_field: location_test_text::LocationTestText::from(
                     constants_str::catalog::PG_CRUD_V_FIELD,
-                )),
+                ),
                 location: location_macros::location!(),
             }),
             error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
-                eo_display_with_serde_field: location_test_text::LocationTestText(String::from(
+                eo_display_with_serde_field: location_test_text::LocationTestText::from(
                     constants_str::integration_fixtures::VALUE_123,
-                )),
+                ),
                 location: location_macros::location!(),
             }),
         ],

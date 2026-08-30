@@ -12,4 +12,4 @@
     newtype::Display,
     newtype::FromInner,
 )]
-pub(super) struct TracingLevelName(pub(super) &'static str);
+pub(super) struct TracingLevelName(&'static str);

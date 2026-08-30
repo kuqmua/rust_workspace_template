@@ -20,7 +20,7 @@ where
         let contract_name =
             crate::open_api_contract_text::OpenApiContractText::try_from(name.clone())
                 .map_err(crate::open_api_validation_error::OpenApiValidationError::TextTooLong)?;
-        if references.0.contains(&contract_name) {
+        if references.contains(&contract_name) {
             Ok(())
         } else {
             Err(
@@ -82,7 +82,7 @@ where
                 Ok(())
             })
     })?;
-    runtime_routes.0.iter().try_for_each(|route| {
+    runtime_routes.iter().try_for_each(|route| {
         let method = route.method().as_ref().to_ascii_uppercase();
         let path = route.path().as_ref().to_owned();
         let Some(operation_id) = documented.get(&(method.clone(), path.clone())) else {
@@ -125,7 +125,7 @@ where
         }
     })?;
     documented.into_iter().try_for_each(|((method, path), _)| {
-        if runtime_routes.0.iter().any(|route| {
+        if runtime_routes.iter().any(|route| {
             route
                 .method()
                 .as_ref()

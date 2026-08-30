@@ -18,7 +18,7 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
                 Vec<crate::allowed_origin::AllowedOrigin>,
                 crate::allowed_origin_error::AllowedOriginError,
             >>()
-            .map_err(|_error| crate::allowed_origins_error::AllowedOriginsError)?;
+            .map_err(|_error| crate::allowed_origins_error::AllowedOriginsError::Invalid)?;
         bounded_types::bounded_vec::BoundedVec::try_from(parsed)
             .map(Self)
             .map_err(crate::allowed_origins_error::AllowedOriginsError::from)

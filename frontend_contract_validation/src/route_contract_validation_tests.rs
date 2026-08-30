@@ -64,17 +64,22 @@ mod tests {
             constants_str::catalog::ROUTE_READ,
             constants_str::catalog::ROUTE,
         );
+        let expectation = crate::http_contract_expectation::HttpContractExpectation::new(
+            metadata,
+            crate::http_contract_status::HttpContractStatus::try_from(200u16)
+                .expect("a76c9e6b http_fixture_checks_status_and_json_body invariant must hold"),
+            crate::http_contract_body_kind::HttpContractBodyKind::Json,
+        );
+        let (_, _, body_kind) = expectation.parts();
+        assert_eq!(
+            body_kind,
+            crate::http_contract_body_kind::HttpContractBodyKind::Json
+        );
         let result = futures::executor::block_on(
             crate::run_http_contract_fixture::run_http_contract_fixture(
-                crate::http_contract_expectation::HttpContractExpectation::new(
-                    metadata,
-                    crate::http_contract_status::HttpContractStatus::try_from(200u16).expect(
-                        "a76c9e6b http_fixture_checks_status_and_json_body invariant must hold",
-                    ),
-                    crate::http_contract_body_kind::HttpContractBodyKind::Json,
-                ),
+                expectation,
                 async |observed_metadata| {
-                    crate::http_contract_observation::HttpContractObservation::new(
+                    let observation = crate::http_contract_observation::HttpContractObservation::new(
                         observed_metadata,
                         crate::http_contract_status::HttpContractStatus::try_from(200u16).expect(
                             "d0abdccc http_fixture_checks_status_and_json_body invariant must hold",
@@ -85,7 +90,10 @@ mod tests {
                         .expect(
                             "08bddb5e http_fixture_checks_status_and_json_body invariant must hold",
                         ),
-                    )
+                    );
+                    let (body, _, _) = observation.parts();
+                    assert!(!body.is_empty());
+                    observation
                 },
             ),
         );

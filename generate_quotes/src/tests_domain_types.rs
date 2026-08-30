@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     fn assert_quote_str(actual: &crate::quoted_literal::QuotedLiteral, expected: &str) {
-        assert_eq!(actual.0, expected);
+        assert_eq!(actual.as_ref(), expected);
     }
     fn assert_quote_token_stream(
         actual: &crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream,

@@ -101,7 +101,7 @@ pub fn generate_impl_pg_type_token_stream(
         #AllowClippyArbitrarySrcItemOrdering
         impl #import::pg_type::#PgTypeUpperCamelCase for #identifier {
             type #TableTypeUpperCamelCase = #identifier_table_type_upper_camel_case;
-            fn #CreateTableColumnQueryPartSnakeCase(#ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>, #is_primary_key_undrscr: #import::is_primary_key::IsPrimaryKey) -> #import::query_part_fragment::QueryPartFragment {
+            fn #CreateTableColumnQueryPartSnakeCase(#ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>, #is_primary_key_undrscr: #import::pg_is_primary_key::PgIsPrimaryKey) -> #import::query_part_fragment::QueryPartFragment {
                 #create_table_column_query_part_token_stream
             }
             type #CreateUpperCamelCase = #identifier_create_upper_camel_case;

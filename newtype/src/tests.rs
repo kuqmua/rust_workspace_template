@@ -6,7 +6,7 @@ fn bounded_string_missing_max_returns_compile_error() {
         struct Value(String);
     };
     let result = crate::generate_bounded_string_token_stream(
-        crate::syn_derive_input_ref::SynDeriveInputRef::from(&input),
+        crate::newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),
     );
     assert!(result.is_err(), "29f8ddc2");
     if let Err(error) = result {
@@ -24,7 +24,7 @@ fn bounded_string_utoipa_byte_length_returns_compile_error() {
         struct Value(String);
     };
     let result = crate::generate_bounded_string_token_stream(
-        crate::syn_derive_input_ref::SynDeriveInputRef::from(&input),
+        crate::newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),
     );
     assert!(result.is_err(), "da6f2151");
     if let Err(error) = result {
@@ -42,7 +42,7 @@ fn duplicate_options_preserve_attribute_diagnostic() {
         struct BoundedValue(String);
     };
     let bounded_result = crate::generate_bounded_string_token_stream(
-        crate::syn_derive_input_ref::SynDeriveInputRef::from(&bounded_input),
+        crate::newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&bounded_input),
     );
     if let Err(error) = bounded_result {
         assert_eq!(error.to_string(), "duplicate bounded_string option");

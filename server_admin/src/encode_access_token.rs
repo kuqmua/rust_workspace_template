@@ -1,6 +1,6 @@
 pub fn encode_access_token(
     claims: &crate::admin_access_claims::AdminAccessClaims,
-    secret: &crate::admin_jwt_secret::AdminJwtSecret,
+    secret: &crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret,
 ) -> Result<
     crate::std_admin_access_token::StdAdminAccessToken,
     crate::admin_access_token_error::AdminAccessTokenError,

@@ -1,14 +1,16 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-#[error("{source}")]
-pub struct ObservedError<Source>
+pub enum ObservedError<Source>
 where
     Source: std::error::Error + 'static,
 {
-    backtrace: crate::observed_error_backtrace::ObservedErrorBacktrace,
-    error_code: crate::observed_error_code::ObservedErrorCode,
-    location: crate::std_panic_location::StdPanicLocation,
-    source: Source,
-    span_trace: crate::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace,
+    #[error("{source}")]
+    Captured {
+        backtrace: crate::observed_error_backtrace::ObservedErrorBacktrace,
+        error_code: crate::observed_error_code::ObservedErrorCode,
+        location: crate::std_panic_location::StdPanicLocation,
+        source: Source,
+        span_trace: crate::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace,
+    },
 }
 
 impl<Source> ObservedError<Source>
@@ -17,7 +19,9 @@ where
 {
     #[must_use]
     pub const fn backtrace(&self) -> &crate::observed_error_backtrace::ObservedErrorBacktrace {
-        &self.backtrace
+        match self {
+            Self::Captured { backtrace, .. } => backtrace,
+        }
     }
 
     #[track_caller]
@@ -31,7 +35,7 @@ where
             || constants_str::test_fixtures::HTTP_SPAN_UNAVAILABLE.to_owned(),
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
-        Self {
+        Self::Captured {
             backtrace: crate::observed_error_backtrace::ObservedErrorBacktrace::from(
                 std::backtrace::Backtrace::force_capture(),
             ),
@@ -49,38 +53,48 @@ where
 
     #[must_use]
     pub const fn error_code(&self) -> crate::observed_error_code::ObservedErrorCode {
-        self.error_code
+        match self {
+            Self::Captured { error_code, .. } => *error_code,
+        }
     }
 
     #[must_use]
     pub const fn location(&self) -> crate::std_panic_location::StdPanicLocation {
-        self.location
+        match self {
+            Self::Captured { location, .. } => *location,
+        }
     }
 
     #[must_use]
     pub const fn source_ref(&self) -> &Source {
-        &self.source
+        match self {
+            Self::Captured { source, .. } => source,
+        }
     }
 
     #[must_use]
     pub const fn span_trace(
         &self,
     ) -> &crate::tracing_observed_error_span_trace::TracingObservedErrorSpanTrace {
-        &self.span_trace
+        match self {
+            Self::Captured { span_trace, .. } => span_trace,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
-    #[error("infrastructure failed")]
-    struct InfrastructureTestError;
+    enum InfrastructureTestError {
+        #[error("infrastructure failed")]
+        Failed,
+    }
 
     #[test]
     fn capture_preserves_source_code_and_diagnostics_at_call_site() {
         let expected_line = line!() + 1u32;
         let observed = super::ObservedError::capture(
-            InfrastructureTestError,
+            InfrastructureTestError::Failed,
             crate::observed_error_code::ObservedErrorCode::from(
                 constants_str::test_fixtures::VALUE_D99F528C,
             ),

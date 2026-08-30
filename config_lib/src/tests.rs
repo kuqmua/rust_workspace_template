@@ -280,11 +280,9 @@ fn service_socket_address_parsing_returns_error_for_invalid_addr() {
 }
 #[test]
 fn timezone_parsing_returns_timezone_for_valid_offset() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::chrono_timezone::ChronoTimezone,
-        constants_str::catalog::VALUE_0,
-        crate::chrono_timezone::ChronoTimezone(_)
-    );
+    let parsed =
+        parse_env::<crate::chrono_timezone::ChronoTimezone>(constants_str::catalog::VALUE_0);
+    assert!(matches!(parsed, Ok(value) if value.local_minus_utc() == 0i32));
 }
 #[test]
 fn timezone_parsing_returns_i32_error_for_non_number() {
@@ -299,7 +297,7 @@ fn parse_east_fixed_offset_returns_offset_for_valid_seconds() {
     let parsed = crate::parse_east_fixed_offset::parse_east_fixed_offset(
         crate::timezone_seconds::TimezoneSeconds::from(3i32 * 3_600i32),
     );
-    assert!(matches!(parsed, Ok(v) if v.0.local_minus_utc() == 3i32 * 3_600i32));
+    assert!(matches!(parsed, Ok(v) if v.local_minus_utc() == 3i32 * 3_600i32));
 }
 #[test]
 fn parse_east_fixed_offset_returns_error_for_out_of_range_seconds() {
@@ -308,9 +306,11 @@ fn parse_east_fixed_offset_returns_error_for_out_of_range_seconds() {
     );
     assert_eq!(
         parsed,
-        Err(crate::chrono_fixed_offset_error::ChronoFixedOffsetError(
-            constants_str::catalog::CONFIG_TIMEZONE_NOT_EAST_MSG,
-        ))
+        Err(
+            crate::chrono_fixed_offset_error::ChronoFixedOffsetError::from(
+                constants_str::catalog::CONFIG_TIMEZONE_NOT_EAST_MSG,
+            )
+        )
     );
 }
 #[test]
@@ -327,7 +327,7 @@ fn parse_required_env_var_parses_value_when_env_var_exists() {
     let parsed = crate::parse_required_env_var::parse_required_env_var(
         crate::env_var_name_ref::EnvVarNameRef::from(constants_str::catalog::PATH_ALT),
         |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar { env_var_name },
-        |v| Ok::<_, &'static str>(v.0.len()),
+        |v| Ok::<_, &'static str>(v.len()),
         |parse| ParseRequiredEnvVarTestError::Parse { parse },
     );
     assert!(matches!(parsed, Ok(v) if v > 0));

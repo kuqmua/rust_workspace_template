@@ -6,7 +6,9 @@
 )]
 pub(crate) async fn api_set_role_permissions(
     auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<server_admin_core::admin_role_id::AdminRoleId>,
+    path: crate::axum_admin_path::AxumAdminPath<
+        server_admin_core::admin_role_record_id::AdminRoleRecordId,
+    >,
     request: crate::axum_admin_json::AxumAdminJson<
         server_admin_contract::admin_set_role_permissions_req::AdminSetRolePermissionsReq,
     >,

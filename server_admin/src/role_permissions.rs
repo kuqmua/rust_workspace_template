@@ -6,15 +6,9 @@ pub(crate) async fn role_permissions(
         crate::role_permissions_form::RolePermissionsForm,
     >,
 ) -> axum::response::Response {
-    crate::assignment_action::assignment_action(
+    crate::assignment_form_action::assignment_form_action(
         auth,
-        &form.expected_permission_ids,
-        form.selected,
-        crate::permission_ids_impl::permission_ids_impl,
-        server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
-        server_admin_contract::admin_set_role_permissions_req::AdminSetRolePermissionsReq::new,
-        crate::axum_admin_path::AxumAdminPath(crate::role_path_impl::role_path_impl(form.role_id)),
-        crate::mutations_set_permissions::mutations_set_permissions,
+        crate::assignment_form_target::AssignmentFormTarget::RolePermissions(form),
     )
     .await
 }

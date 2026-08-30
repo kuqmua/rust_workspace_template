@@ -24,7 +24,7 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)
-            .map_err(|_error| crate::cursor_signing_key_error::CursorSigningKeyError)
+            .map_err(|_error| crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)
     }
 }
 
@@ -34,7 +34,7 @@ mod tests {
     fn signing_key_rejects_empty_and_oversized_values() {
         assert_eq!(
             crate::cursor_signing_key::CursorSigningKey::try_from(Vec::new()).map(drop),
-            Err(crate::cursor_signing_key_error::CursorSigningKeyError)
+            Err(crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)
         );
         assert_eq!(
             crate::cursor_signing_key::CursorSigningKey::try_from(vec![
@@ -43,7 +43,7 @@ mod tests {
                     + constants_usize::ONE
             ])
             .map(drop),
-            Err(crate::cursor_signing_key_error::CursorSigningKeyError)
+            Err(crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)
         );
     }
 }

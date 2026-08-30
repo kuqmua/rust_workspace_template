@@ -10,7 +10,7 @@ where
 {
     let mut before = proc_macro2::TokenStream::new();
     let mut after = proc_macro2::TokenStream::new();
-    let mut iter = input.into().0.into_iter().peekable();
+    let mut iter = input.into().into_iter().peekable();
     while let Some(token) = iter.next() {
         if let proc_macro2::TokenTree::Punct(punct) = &token
             && punct.as_char() == '='

@@ -10,7 +10,7 @@ impl TryFrom<String> for HttpOriginSchemeText {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > 16usize {
-            Err(crate::allowed_origin_error::AllowedOriginError)
+            Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
         } else {
             Ok(Self(value))
         }

@@ -12,7 +12,7 @@
     newtype::ToTokens,
 )]
 pub(super) struct PgSqlName(pub(super) &'static str);
-impl crate::pg_type::PgType {
+impl crate::pg_type_catalog_kind::PgTypeCatalogKind {
     pub(super) fn pg_type_can_be_nullable(self) -> crate::can_be_nullable::CanBeNullable {
         crate::pg_type_can_be_nullable::pg_type_can_be_nullable(self.spec())
     }

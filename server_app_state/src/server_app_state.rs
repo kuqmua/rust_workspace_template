@@ -1,14 +1,31 @@
 #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
 pub struct ServerAppState<'lt> {
-    pub bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget,
-    pub config: server_config::config::Config,
-    pub idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget,
-    pub pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
-    pub project_git_info: git_info::project_git_info::ProjectGitInfo<'lt>,
+    bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget,
+    config: server_config::server_config::ServerConfig,
+    idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget,
+    pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
+    project_git_info: git_info::project_git_info::ProjectGitInfo<'lt>,
 }
-impl ServerAppState<'_> {
-    const fn cfg_ref(&self) -> &server_config::config::Config {
+impl<'lt> ServerAppState<'lt> {
+    const fn cfg_ref(&self) -> &server_config::server_config::ServerConfig {
         &self.config
+    }
+
+    #[must_use]
+    pub const fn new(
+        bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget,
+        config: server_config::server_config::ServerConfig,
+        idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget,
+        pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
+        project_git_info: git_info::project_git_info::ProjectGitInfo<'lt>,
+    ) -> Self {
+        Self {
+            bulk_item_budget,
+            config,
+            idempotency_response_budget,
+            pg_pool,
+            project_git_info,
+        }
     }
 }
 impl common_routes::common_routes_parameters::CommonRoutesParameters for ServerAppState<'_> {}

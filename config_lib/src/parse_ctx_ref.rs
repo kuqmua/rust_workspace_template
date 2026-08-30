@@ -12,4 +12,4 @@
     newtype::Display,
     newtype::FromInner,
 )]
-pub(super) struct ParseCtxRef(pub(super) &'static str);
+pub(super) struct ParseCtxRef(&'static str);

@@ -94,7 +94,7 @@ pub(crate) async fn authn_sign_in(
         return Err(crate::admin_error::AdminError::Authentication);
     };
     let (admin_user_id, password_hash, is_banned) = <(
-        server_admin_core::admin_user_id::AdminUserId,
+        server_admin_core::admin_user_record_id::AdminUserRecordId,
         crate::admin_password_hash::AdminPasswordHash,
         server_admin_core::std_admin_bool::StdAdminBool,
     )>::from(sign_in_user);

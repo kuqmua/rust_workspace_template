@@ -1,9 +1,5 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-pub(super) struct HttpHeaderExtractor<'headers_lt>(pub(super) &'headers_lt http::HeaderMap);
+pub(super) struct HttpHeaderExtractor<'headers_lt>(&'headers_lt http::HeaderMap);
 
 impl opentelemetry::propagation::Extractor for HttpHeaderExtractor<'_> {
     fn get(&self, key: &str) -> Option<&str> {
