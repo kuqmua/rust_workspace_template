@@ -18,7 +18,7 @@ impl TryFrom<i64> for ListTotal {
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if value < constants_i64::ZERO {
-            Err(crate::list_total_error::ListTotalError)
+            Err(crate::list_total_error::ListTotalError::Negative)
         } else {
             Ok(Self(value))
         }
@@ -46,7 +46,7 @@ mod tests {
     fn list_total_rejects_negative_and_accepts_zero() {
         assert_eq!(
             crate::list_total::ListTotal::try_from(-constants_i64::ONE),
-            Err(crate::list_total_error::ListTotalError)
+            Err(crate::list_total_error::ListTotalError::Negative)
         );
         assert_eq!(
             i64::from(

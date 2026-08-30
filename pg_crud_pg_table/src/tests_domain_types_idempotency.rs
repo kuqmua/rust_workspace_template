@@ -79,6 +79,6 @@ fn persisted_idempotency_body_enforces_inclusive_storage_limit() {
                 + constants_usize::ONE
         ])
         .map(drop),
-        Err(crate::pg_table_idempotency_body_error::PgTableIdempotencyBodyError)
+        Err(crate::pg_table_idempotency_body_error::PgTableIdempotencyBodyError::TooLarge)
     );
 }

@@ -11,7 +11,7 @@ impl TryFrom<String> for HttpTraceState {
             || value.len() > 512usize
             || !value.bytes().all(|byte| (0x20u8..=0x7eu8).contains(&byte))
         {
-            return Err(crate::http_trace_state_error::HttpTraceStateError);
+            return Err(crate::http_trace_state_error::HttpTraceStateError::Invalid);
         }
         Ok(Self(value))
     }

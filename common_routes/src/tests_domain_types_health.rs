@@ -36,7 +36,7 @@ fn components_reject_more_than_supported() {
     };
     assert_eq!(
         crate::health_components::HealthComponents::try_from(vec![component, component, component]),
-        Err(crate::health_components_error::HealthComponentsError)
+        Err(crate::health_components_error::HealthComponentsError::TooMany)
     );
 }
 

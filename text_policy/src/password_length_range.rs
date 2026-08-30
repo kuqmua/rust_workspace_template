@@ -31,7 +31,7 @@ impl
         ),
     ) -> Result<Self, Self::Error> {
         if value.1.0 < value.0.0 {
-            Err(crate::password_length_range_error::PasswordLengthRangeError)
+            Err(crate::password_length_range_error::PasswordLengthRangeError::Invalid)
         } else {
             Ok(Self {
                 minimum: value.0,

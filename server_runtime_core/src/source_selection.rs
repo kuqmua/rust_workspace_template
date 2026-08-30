@@ -38,7 +38,7 @@ mod tests {
     fn selection_rejects_missing_sources() {
         assert_eq!(
             crate::select_sources::select_sources(None::<&u8>, None::<&u8>),
-            Err(crate::source_selection_error::SourceSelectionError)
+            Err(crate::source_selection_error::SourceSelectionError::Missing)
         );
     }
 }

@@ -11,6 +11,6 @@ pub const fn select_sources<'source_lt, LocalSource, RemoteSource>(
         }
         (Some(local), None) => Ok(crate::source_selection::SourceSelection::Local(local)),
         (None, Some(remote)) => Ok(crate::source_selection::SourceSelection::Remote(remote)),
-        (None, None) => Err(crate::source_selection_error::SourceSelectionError),
+        (None, None) => Err(crate::source_selection_error::SourceSelectionError::Missing),
     }
 }

@@ -17,7 +17,7 @@
 #[try_from(
     error = crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error,
     validator = |value: &u8| {
-        if *value <= 100u8 { Ok(()) } else { Err(crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error) }
+        if *value <= 100u8 { Ok(()) } else { Err(crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error::OutOfRange) }
     }
 )]
 pub struct ResourceUtilizationPercent(pub(super) u8);

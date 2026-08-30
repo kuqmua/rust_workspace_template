@@ -38,7 +38,7 @@ impl TryFrom<Vec<crate::health_component::HealthComponent>> for HealthComponents
         >::try_from(value)
         .map(bounded_types::bounded_vec::BoundedVec::into_inner)
         .map(Self)
-        .map_err(|_error| crate::health_components_error::HealthComponentsError)
+        .map_err(|_error| crate::health_components_error::HealthComponentsError::TooMany)
     }
 }
 impl<'de> serde::Deserialize<'de> for HealthComponents {

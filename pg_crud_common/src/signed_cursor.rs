@@ -12,7 +12,7 @@ impl TryFrom<String> for SignedCursor {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > Self::MAXIMUM_LENGTH {
-            Err(crate::signed_cursor_error::SignedCursorError)
+            Err(crate::signed_cursor_error::SignedCursorError::Empty)
         } else {
             Ok(Self(value))
         }

@@ -1,11 +1,7 @@
 # GENERATED REVIEWED SINGLE-CASE AND TRANSPARENT ERROR STRUCTS; DO NOT EDIT
 ../administrator_account_initialization_and_password_reset/src/sqlx_administrator_database_connection_error.rs:SqlxAdministratorDatabaseConnectionError
-../common_routes/src/health_components_error.rs:HealthComponentsError
 ../config_lib/src/env_var_error.rs:EnvVarError
-../dev_identity_creation_planner/src/development_identity_specs_error.rs:DevelopmentIdentitySpecsError
-../external_service_emulators/src/mock_notification_provider_closed.rs:MockNotificationProviderClosed
 ../file_storage/src/file_storage_io_error.rs:FileStorageIoError
-../file_storage/src/stale_staging_cleanup_cfg_error.rs:StaleStagingCleanupCfgError
 ../frontend_contract/src/frontend_contract_body_error.rs:FrontendContractBodyError
 ../frontend_contract/src/http_status_try_from_u16_error.rs:HttpStatusTryFromU16Error
 ../frontend_contract_validation/src/serde_json_open_api_serialization_error.rs:SerdeJsonOpenApiSerializationError
@@ -13,24 +9,17 @@
 ../init_env_files/src/init_string_error.rs:InitStringError
 ../init_env_files/src/toml_init_error.rs:TomlInitError
 ../location_lib/src/location_coordinate_try_from_u32_error.rs:LocationCoordinateTryFromU32Error
-../location_lib/src/std_time_duration_nanos_try_from_u32_error.rs:StdTimeDurationNanosTryFromU32Error
 ../macro_helpers/src/field_location_coordinate_try_from_u32_error.rs:FieldLocationCoordinateTryFromU32Error
 ../macro_helpers/src/serde_json_error.rs:SerdeJsonError
 ../notification_service/src/sqlx_notification_database_error.rs:SqlxNotificationDatabaseError
 ../pg_crud_common/src/bounded_b_tree_map_error.rs:BoundedBTreeMapError
-../pg_crud_common/src/cursor_payload_error.rs:CursorPayloadError
 ../pg_crud_common/src/cursor_signing_key_error.rs:CursorSigningKeyError
-../pg_crud_common/src/list_total_error.rs:ListTotalError
 ../pg_crud_common/src/operation_budget_exceeded.rs:OperationBudgetExceeded
 ../pg_crud_common/src/pg_filter_text_error.rs:PgFilterTextError
 ../pg_crud_common/src/read_query_plan_error.rs:ReadQueryPlanError
-../pg_crud_common/src/signed_cursor_error.rs:SignedCursorError
-../pg_crud_common/src/sql_like_pattern_error.rs:SqlLikePatternError
 ../pg_crud_common/src/sqlx_box_dyn_error.rs:SqlxBoxDynError
 ../pg_crud_common/src/sqlx_pg_relation_lock_error.rs:SqlxPgRelationLockError
 ../pg_crud_common/src/sqlx_postgres_query_bind_error.rs:SqlxPostgresQueryBindError
-../pg_crud_pg_table/src/pg_table_idempotency_body_error.rs:PgTableIdempotencyBodyError
-../pg_crud_pg_table/src/pg_table_idempotency_response_status_try_from_u16_error.rs:PgTableIdempotencyResponseStatusTryFromU16Error
 ../pg_crud_pg_table/src/pg_table_revision_parse_int_error.rs:PgTableRevisionParseIntError
 ../pg_crud_pg_table/src/sqlx_pg_table_idempotency_error.rs:SqlxPgTableIdempotencyError
 ../pg_crud_pg_table_generate_src/src/syn_generate_pg_table_pipeline_error.rs:SynGeneratePgTablePipelineError
@@ -53,7 +42,6 @@
 ../server_admin_contract/src/admin_audit_details_too_large.rs:AdminAuditDetailsTooLarge
 ../server_admin_contract/src/admin_id_try_from_i64_error.rs:AdminIdTryFromI64Error
 ../server_admin_contract/src/admin_page_limit_error.rs:AdminPageLimitError
-../server_admin_contract/src/admin_table_sort_field_try_from_key_error.rs:AdminTableSortFieldTryFromKeyError
 ../server_admin_core/src/admin_id_try_from_i64_error.rs:AdminIdTryFromI64Error
 ../server_admin_frontend/src/admin_ssr_html_try_from_string_error.rs:AdminSsrHtmlTryFromStringError
 ../server_admin_frontend/src/admin_ssr_text_try_from_string_error.rs:AdminSsrTextTryFromStringError
@@ -64,11 +52,8 @@
 ../server_observability/src/tracing_subscriber_init_error.rs:TracingSubscriberInitError
 ../server_runtime_core/src/exclusive_run_already_active.rs:ExclusiveRunAlreadyActive
 ../server_runtime_core/src/resource_budget_config_error.rs:ResourceBudgetConfigError
-../server_runtime_core/src/resource_utilization_percent_try_from_u8_error.rs:ResourceUtilizationPercentTryFromU8Error
-../server_runtime_core/src/source_selection_error.rs:SourceSelectionError
 ../server_runtime_core/src/std_async_run_history_maximum_len_try_from_usize_error.rs:StdAsyncRunHistoryMaximumLenTryFromUsizeError
 ../server_runtime_core/src/std_lease_stale_timeout_error.rs:StdLeaseStaleTimeoutError
-../server_runtime_core/src/std_retry_attempts_error.rs:StdRetryAttemptsError
 ../server_runtime_http/src/allowed_origin_error.rs:AllowedOriginError
 ../server_runtime_http/src/allowed_origins_error.rs:AllowedOriginsError
 ../server_runtime_http/src/bounded_read_from_utf8_error.rs:BoundedReadFromUtf8Error
@@ -83,7 +68,6 @@
 ../server_runtime_http/src/http_header_to_str_error.rs:HttpHeaderToStrError
 ../server_runtime_http/src/http_metrics_path_cache_maximum_try_from_usize_error.rs:HttpMetricsPathCacheMaximumTryFromUsizeError
 ../server_runtime_http/src/http_normalized_path_error.rs:HttpNormalizedPathError
-../server_runtime_http/src/http_trace_state_error.rs:HttpTraceStateError
 ../server_runtime_http/src/metrics_response_body_error.rs:MetricsResponseBodyError
 ../server_runtime_http/src/parse_int_error.rs:ParseIntError
 ../server_runtime_http/src/request_id_try_from_string_error.rs:RequestIdTryFromStringError
@@ -106,6 +90,5 @@
 ../server_runtime_http/src/trusted_proxy_ranges_error.rs:TrustedProxyRangesError
 ../synchronization_service_runtime/src/synchronization_payload_too_large.rs:SynchronizationPayloadTooLarge
 ../tests_code_style/src/types.rs:SourceTextTryFromStringError
-../text_policy/src/password_length_range_error.rs:PasswordLengthRangeError
 ../workspace_scaffold/src/scaffold_io_error.rs:ScaffoldIoError
 ../workspace_test_runner/src/execution_io_error.rs:ExecutionIoError

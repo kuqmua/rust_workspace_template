@@ -440,7 +440,7 @@ fn table_sort_fields_reject_unknown_and_wrong_table_keys() {
                 constants_str::catalog::CREATED_AT
             ),
         ),
-        Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError)
+        Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)
     );
 }
 

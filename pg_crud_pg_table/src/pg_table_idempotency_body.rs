@@ -19,6 +19,8 @@ impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)
-            .map_err(|_error| crate::pg_table_idempotency_body_error::PgTableIdempotencyBodyError)
+            .map_err(|_error| {
+                crate::pg_table_idempotency_body_error::PgTableIdempotencyBodyError::TooLarge
+            })
     }
 }

@@ -16,7 +16,7 @@ impl server_runtime_http::notification_sender::NotificationSender for MockNotifi
         message: server_runtime_http::notification_message::NotificationMessage,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send {
         std::future::ready(self.sender.0.send(message).map_err(|_error| {
-            crate::mock_notification_provider_closed::MockNotificationProviderClosed
+            crate::mock_notification_provider_closed::MockNotificationProviderClosed::Closed
         }))
     }
 }

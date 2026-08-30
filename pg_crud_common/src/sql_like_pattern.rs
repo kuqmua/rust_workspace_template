@@ -16,7 +16,7 @@ impl TryFrom<String> for SqlLikePattern {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            Err(crate::sql_like_pattern_error::SqlLikePatternError)
+            Err(crate::sql_like_pattern_error::SqlLikePatternError::TooLong)
         } else {
             Ok(Self(value))
         }

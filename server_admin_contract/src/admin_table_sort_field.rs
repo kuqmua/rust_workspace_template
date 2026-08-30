@@ -51,7 +51,7 @@ impl AdminTableSortField {
             .iter()
             .copied()
             .find(|option| option.key().as_ref() == key.0)
-            .ok_or(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError)
+            .ok_or(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)
     }
     fn values(self) -> crate::admin_table_sort_values::AdminTableSortValues {
         let (key, label) = match self {

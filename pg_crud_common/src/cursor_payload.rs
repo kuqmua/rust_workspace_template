@@ -12,7 +12,7 @@ impl TryFrom<String> for CursorPayload {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > Self::MAXIMUM_LENGTH {
-            Err(crate::cursor_payload_error::CursorPayloadError)
+            Err(crate::cursor_payload_error::CursorPayloadError::Empty)
         } else {
             Ok(Self(value))
         }

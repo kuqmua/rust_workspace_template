@@ -22,6 +22,6 @@ impl TryFrom<usize> for RetryAttemptsNonZeroUsize {
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self)
-            .ok_or(crate::std_retry_attempts_error::StdRetryAttemptsError)
+            .ok_or(crate::std_retry_attempts_error::StdRetryAttemptsError::Zero)
     }
 }

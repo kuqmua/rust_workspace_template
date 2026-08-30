@@ -52,7 +52,7 @@ mod tests {
         .collect::<Vec<_>>();
         assert_eq!(
             crate::development_identity_specs::DevelopmentIdentitySpecs::try_from(values),
-            Err(crate::development_identity_specs_error::DevelopmentIdentitySpecsError)
+            Err(crate::development_identity_specs_error::DevelopmentIdentitySpecsError::TooMany)
         );
     }
 
