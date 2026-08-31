@@ -67,7 +67,7 @@ impl AuthSessionKeepAlive {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn refresh_is_single_flight_and_rejection_clears_schedule() {
+    fn test_refresh_is_single_flight_and_rejection_clears_schedule() {
         let interval = crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration::try_from(
             std::time::Duration::from_secs(60u64),
         )

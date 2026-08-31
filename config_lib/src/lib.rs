@@ -81,7 +81,7 @@ pub mod std_env_var_ok;
 pub mod std_env_var_ok_ref;
 pub mod svc_mode;
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;
 pub mod timezone_seconds;
 pub mod tracing_format;
 pub mod tracing_level;

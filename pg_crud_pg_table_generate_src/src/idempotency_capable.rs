@@ -38,7 +38,7 @@ mod tests {
     }
 
     #[test]
-    fn capability_projection_returns_each_independent_descriptor_flag() {
+    fn test_capability_projection_returns_each_independent_descriptor_flag() {
         let idempotent = descriptor(true, false);
         assert!(crate::idempotency_capable::idempotency_capable(&idempotent));
         assert!(

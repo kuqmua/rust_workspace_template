@@ -111,7 +111,7 @@ mod tests {
         assert_eq!(to_upper_snake_case.as_ref(), "HELLO_WORLD");
     }
     #[test]
-    fn as_ref_case_conversions_are_expected() {
+    fn test_as_ref_case_conversions_are_expected() {
         assert_case_triplet(
             super::AsRefStrToUpperCamelCaseStr::case(&constants_str::HELLO_WORLD_ALT),
             super::AsRefStrToSnakeCaseStr::case(&constants_str::HELLOWORLD),
@@ -119,7 +119,7 @@ mod tests {
         );
     }
     #[test]
-    fn ts_case_conversions_are_expected() {
+    fn test_ts_case_conversions_are_expected() {
         assert_case_triplet(
             super::AsRefStrToUpperCamelCaseTokenStream::case_or_panic(
                 &constants_str::HELLO_WORLD_ALT,
@@ -134,7 +134,7 @@ mod tests {
         );
     }
     #[test]
-    fn display_and_tokens_conversion_are_expected() {
+    fn test_display_and_tokens_conversion_are_expected() {
         assert_case_triplet(
             super::DisplayToUpperCamelCaseStr::case(&constants_str::HELLO_WORLD_ALT),
             super::DisplayToSnakeCaseStr::case(&constants_str::HELLOWORLD),
@@ -147,7 +147,7 @@ mod tests {
         );
     }
     #[test]
-    fn display_and_tokens_token_stream_conversion_are_expected() {
+    fn test_display_and_tokens_token_stream_conversion_are_expected() {
         assert_case_triplet(
             super::DisplayToUpperCamelCaseTokenStream::case_or_panic(
                 &constants_str::HELLO_WORLD_ALT,

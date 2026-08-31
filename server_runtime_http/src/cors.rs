@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn parser_trims_valid_origins() {
+    fn test_parser_trims_valid_origins() {
         let parsed = Vec::<http::HeaderValue>::from(
             crate::parse_cors_allow_origin::parse_cors_allow_origin(
                 crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(
@@ -19,7 +19,7 @@ mod tests {
         );
     }
     #[test]
-    fn parser_preserves_empty_configuration_behavior() {
+    fn test_parser_preserves_empty_configuration_behavior() {
         let parsed = Vec::<http::HeaderValue>::from(
             crate::parse_cors_allow_origin::parse_cors_allow_origin(
                 crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(
@@ -31,7 +31,7 @@ mod tests {
         assert!(parsed.is_empty());
     }
     #[test]
-    fn parser_rejects_invalid_wildcard_and_opaque_origins() {
+    fn test_parser_rejects_invalid_wildcard_and_opaque_origins() {
         assert!(
             [
                 constants_str::HTTPS_A_EXAMPLE_BAD_NEWLINE_VALUE_HTTPS_B_EXAMPLE,
@@ -48,7 +48,7 @@ mod tests {
         );
     }
     #[test]
-    fn parser_rejects_too_many_origins() {
+    fn test_parser_rejects_too_many_origins() {
         let value = std::iter::repeat_n(
             constants_str::VALUE_38612C96,
             crate::cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS + 1,

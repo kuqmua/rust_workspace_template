@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[tokio::test]
-    async fn drains_full_batches_until_partial_batch() {
+    async fn test_drains_full_batches_until_partial_batch() {
         let batches = [3u64, 3u64, 1u64];
         let batch_index = std::sync::atomic::AtomicUsize::new(constants_usize::ZERO);
         let report = crate::run_batched_cleanup::run_batched_cleanup(
@@ -26,7 +26,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cancellation_stops_before_query() {
+    async fn test_cancellation_stops_before_query() {
         let report = crate::run_batched_cleanup::run_batched_cleanup(
             crate::cleanup_batch_size::CleanupBatchSize::try_from(3u64)
                 .expect("116ff79d cancellation_stops_before_query invariant must hold"),
@@ -45,7 +45,7 @@ mod tests {
     }
 
     #[test]
-    fn zero_batch_size_is_rejected() {
+    fn test_zero_batch_size_is_rejected() {
         assert_eq!(
             crate::cleanup_batch_size::CleanupBatchSize::try_from(constants_u64::ZERO),
             Err(crate::cleanup_batch_size_error::CleanupBatchSizeError::Zero)

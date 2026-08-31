@@ -38,7 +38,7 @@ impl TryFrom<Vec<crate::pg_relation_resource_id::PgRelationResourceId>> for PgRe
 #[cfg(test)]
 mod tests {
     #[test]
-    fn resources_are_sorted_and_deduplicated_before_locking() {
+    fn test_resources_are_sorted_and_deduplicated_before_locking() {
         let resources = crate::pg_relation_resource_ids::PgRelationResourceIds::try_from(vec![
             crate::pg_relation_resource_id::PgRelationResourceId::from(2i64),
             crate::pg_relation_resource_id::PgRelationResourceId::from(constants_i64::ONE),

@@ -235,7 +235,7 @@ mod tests {
         }
     }
     #[test]
-    fn remove_dir_on_drop_removes_temp_crate_dir() {
+    fn test_remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = TmpDirPathBuf::new();
         let path = dir.path().join(constants_str::CRATE_DIR);
         std::fs::create_dir_all(&path)
@@ -245,14 +245,14 @@ mod tests {
         assert!(!path.exists());
     }
     #[test]
-    fn remove_dir_all_if_exists_accepts_missing_dir() {
+    fn test_remove_dir_all_if_exists_accepts_missing_dir() {
         let dir = TmpDirPathBuf::new();
         let path = dir.path().join(constants_str::MISSING_DIR);
         crate::remove_dir_all_if_exists(&path, constants_str::F39C05AA);
         assert!(!path.exists());
     }
     #[test]
-    fn generated_crate_phases_have_stable_diagnostics() {
+    fn test_generated_crate_phases_have_stable_diagnostics() {
         let phases = [
             super::generated_crate_phase::GeneratedCratePhase::Compilation,
             super::generated_crate_phase::GeneratedCratePhase::Clippy,
@@ -265,7 +265,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_crate_compilation_is_offline_and_follow_up_steps_are_locked() {
+    fn test_generated_crate_compilation_is_offline_and_follow_up_steps_are_locked() {
         assert!(
             constants_str::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS
                 .contains(&"--offline")

@@ -2,7 +2,7 @@
 
 #[allow(
     clippy::single_call_fn,
-    reason = "diagnostic task joining remains directly exercised by focused tests"
+    reason = "diagnostic task joining remains directly exercised by focused test_tests"
 )]
 pub(super) async fn join_diagnostic(
     optional_task: Option<crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask>,

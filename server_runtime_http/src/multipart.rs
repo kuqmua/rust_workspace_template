@@ -14,7 +14,7 @@ mod tests {
         )
     }
     #[test]
-    fn multipart_value_wrappers_enforce_each_boundary() {
+    fn test_multipart_value_wrappers_enforce_each_boundary() {
         assert_eq!(
             crate::multipart_field_name::MultipartFieldName::try_from(String::new()),
             Err(crate::multipart_value_error::MultipartValueError::EmptyFieldName)
@@ -79,7 +79,7 @@ mod tests {
         );
     }
     #[test]
-    fn multipart_parts_preserve_names_values_and_file_names() {
+    fn test_multipart_parts_preserve_names_values_and_file_names() {
         let text = text_part(constants_str::VALUE_CD42404D);
         assert_eq!(text.name().as_ref(), "field");
         assert_eq!(text.value().as_ref(), "value");
@@ -103,7 +103,7 @@ mod tests {
         );
     }
     #[test]
-    fn request_enforces_combined_payload_and_part_count() {
+    fn test_request_enforces_combined_payload_and_part_count() {
         let limited_request = crate::multipart_upload_request::MultipartUploadRequest::new()
             .with_text_part(
                 text_part(constants_str::AB),
@@ -147,7 +147,7 @@ mod tests {
         );
     }
     #[test]
-    fn storage_paths_validate_segments_and_preserve_file_extensions() {
+    fn test_storage_paths_validate_segments_and_preserve_file_extensions() {
         let _valid =
             crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::VALUE_A31BB256)).expect("20b6c6b2 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
@@ -202,7 +202,7 @@ mod tests {
         );
     }
     #[test]
-    fn request_rejects_payload_above_limit() {
+    fn test_request_rejects_payload_above_limit() {
         let name = crate::multipart_field_name::MultipartFieldName::try_from(String::from(
             constants_str::TEST_MULTIPART_FILE_FIELD,
         ))
@@ -223,7 +223,7 @@ mod tests {
         );
     }
     #[test]
-    fn file_name_rejects_path_traversal() {
+    fn test_file_name_rejects_path_traversal() {
         assert_eq!(
             crate::multipart_file_name::MultipartFileName::try_from(String::from(
                 constants_str::TEST_PATH_TRAVERSAL,

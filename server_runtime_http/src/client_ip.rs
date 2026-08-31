@@ -26,7 +26,7 @@ mod tests {
         .to_string()
     }
     #[test]
-    fn trusted_proxy_ranges_reject_oversized_lists() {
+    fn test_trusted_proxy_ranges_reject_oversized_lists() {
         let item = range(constants_str::VALUE_127_0_0_1_32);
         let values = vec![item; constants_usize::VALUE_128.saturating_add(constants_usize::ONE)];
         assert_eq!(
@@ -35,7 +35,7 @@ mod tests {
         );
     }
     #[test]
-    fn trusted_proxy_ranges_text_parses_comma_separated_ranges() {
+    fn test_trusted_proxy_ranges_text_parses_comma_separated_ranges() {
         let ranges = crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(
             crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
                 constants_str::VALUE_127_0_0_1_32_PATH_1_128,
@@ -59,7 +59,7 @@ mod tests {
         );
     }
     #[test]
-    fn trusted_proxy_ranges_text_rejects_empty_list_entries() {
+    fn test_trusted_proxy_ranges_text_rejects_empty_list_entries() {
         assert!(matches!(
             crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
                 "127.0.0.1/32,,::1/128",
@@ -82,7 +82,7 @@ mod tests {
         );
     }
     #[test]
-    fn untrusted_peer_cannot_spoof_forwarded_header() {
+    fn test_untrusted_peer_cannot_spoof_forwarded_header() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
@@ -94,7 +94,7 @@ mod tests {
         );
     }
     #[test]
-    fn trusted_chain_resolves_first_untrusted_address_from_right() {
+    fn test_trusted_chain_resolves_first_untrusted_address_from_right() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
@@ -106,7 +106,7 @@ mod tests {
         );
     }
     #[test]
-    fn ipv4_range_does_not_trust_ipv6_peer() {
+    fn test_ipv4_range_does_not_trust_ipv6_peer() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
@@ -118,7 +118,7 @@ mod tests {
         );
     }
     #[test]
-    fn malformed_and_multiple_headers_fall_back_to_peer() {
+    fn test_malformed_and_multiple_headers_fall_back_to_peer() {
         let mut malformed_headers = http::HeaderMap::new();
         let _inserted_malformed = malformed_headers.append(
             constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
@@ -156,7 +156,7 @@ mod tests {
         );
     }
     #[test]
-    fn oversized_header_falls_back_without_reflecting_input() {
+    fn test_oversized_header_falls_back_without_reflecting_input() {
         let oversized = constants_str::VALUE_1
             .repeat(constants_usize::VALUE_4_096.saturating_add(constants_usize::ONE));
         let mut headers = http::HeaderMap::new();
@@ -172,7 +172,7 @@ mod tests {
         );
     }
     #[test]
-    fn prefixes_are_validated() {
+    fn test_prefixes_are_validated() {
         assert!(matches!(
             crate::trusted_proxy_range::TrustedProxyRange::try_from("127.0.0.1/33".to_owned()),
             Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::PrefixExceedsAddressWidth)

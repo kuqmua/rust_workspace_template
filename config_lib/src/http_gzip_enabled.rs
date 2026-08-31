@@ -20,7 +20,7 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for HttpGzipEnabled {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn boolean_flags_share_strict_boolean_parsing() {
+    fn test_boolean_flags_share_strict_boolean_parsing() {
         let enabled =
             <super::HttpGzipEnabled as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::TRUE)).expect(

@@ -342,7 +342,7 @@ impl crate::safe_file_storage::SafeFileStorage {
 #[cfg(test)]
 mod tests {
     #[tokio::test]
-    async fn prepare_creates_owned_staging_directories() {
+    async fn test_prepare_creates_owned_staging_directories() {
         let root =
             std::env::temp_dir().join(format!("file-storage-adapter-test-{}", std::process::id()));
         let storage = crate::safe_file_storage::SafeFileStorage::new(

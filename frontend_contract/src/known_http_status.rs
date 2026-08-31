@@ -47,7 +47,7 @@ impl KnownHttpStatus {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn known_status_preserves_protocol_code() {
+    fn test_known_status_preserves_protocol_code() {
         assert_eq!(super::KnownHttpStatus::TooManyRequests.get(), 429u16);
     }
 }

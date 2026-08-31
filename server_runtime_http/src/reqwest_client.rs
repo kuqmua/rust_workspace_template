@@ -44,7 +44,7 @@ impl ReqwestClient {
 
     #[allow(
         clippy::single_call_fn,
-        reason = "request instrumentation preparation is shared with deterministic tests"
+        reason = "request instrumentation preparation is shared with deterministic test_tests"
     )]
     pub(crate) fn prepare_observed_http_request(
         request: &mut crate::reqwest_request::ReqwestRequest,

@@ -16,7 +16,7 @@ pub(super) struct PgTypeSpec<CanBeNullable, CanBePrimaryKey, FilterKind, PgName,
 #[cfg(test)]
 mod tests {
     #[test]
-    fn pg_type_spec_keeps_storage_filter_and_wire_capabilities_together() {
+    fn test_pg_type_spec_keeps_storage_filter_and_wire_capabilities_together() {
         let spec = crate::pg_type_spec::PgTypeSpec::new(
             true,
             false,

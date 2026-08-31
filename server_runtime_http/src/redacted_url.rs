@@ -31,7 +31,7 @@ impl std::fmt::Debug for RedactedUrl {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn urls_without_credentials_are_preserved() {
+    fn test_urls_without_credentials_are_preserved() {
         let input = constants_str::VALUE_DABFAFF0;
         let redacted = crate::redact_url_userinfo::redact_url_userinfo(input.into());
         assert_eq!(redacted.as_ref(), input);
@@ -40,7 +40,7 @@ mod tests {
     }
 
     #[test]
-    fn malformed_urls_do_not_reflect_unstructured_input() {
+    fn test_malformed_urls_do_not_reflect_unstructured_input() {
         let malformed =
             crate::redact_url_userinfo::redact_url_userinfo(constants_str::VALUE_D8B5BF9B.into());
         assert_eq!(malformed.as_ref(), constants_str::REDACTED_ALT_3);
@@ -50,7 +50,7 @@ mod tests {
     }
 
     #[test]
-    fn fallback_parser_redacts_userinfo_for_unknown_schemes() {
+    fn test_fallback_parser_redacts_userinfo_for_unknown_schemes() {
         let secret = constants_str::SECRET;
         let input = format!("1invalid://user:{secret}@example.com/path?query=value");
         let redacted = crate::redact_url_userinfo::redact_url_userinfo(input.as_str().into());
@@ -65,7 +65,7 @@ mod tests {
     }
 
     #[test]
-    fn credentials_are_removed_while_non_secret_parts_remain() {
+    fn test_credentials_are_removed_while_non_secret_parts_remain() {
         let redacted = crate::redact_url_userinfo::redact_url_userinfo(
             constants_str::TEST_URL_WITH_CREDENTIALS.into(),
         );
@@ -75,7 +75,7 @@ mod tests {
     }
 
     #[test]
-    fn rtsp_credentials_are_removed() {
+    fn test_rtsp_credentials_are_removed() {
         let redacted = crate::redact_rtsp_url_userinfo::redact_rtsp_url_userinfo(
             constants_str::TEST_RTSP_URL_WITH_CREDENTIALS.into(),
         );

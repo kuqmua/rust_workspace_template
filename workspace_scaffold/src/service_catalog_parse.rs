@@ -136,7 +136,7 @@ pub(super) fn service_catalog_parse(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn empty_catalog_is_rejected() {
+    fn test_empty_catalog_is_rejected() {
         let _error = crate::service_catalog_parse::service_catalog_parse(
             crate::scaffold_text_ref::ScaffoldTextRef::from(
                 constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,

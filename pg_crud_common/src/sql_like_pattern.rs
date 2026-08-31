@@ -26,7 +26,7 @@ impl TryFrom<String> for SqlLikePattern {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn deserialization_uses_bounded_try_from() {
+    fn test_deserialization_uses_bounded_try_from() {
         let _error = <crate::sql_like_pattern::SqlLikePattern as serde::Deserialize>::deserialize(
             serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
                 constants_str::X.repeat(

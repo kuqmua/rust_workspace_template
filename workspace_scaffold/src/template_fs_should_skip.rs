@@ -16,7 +16,7 @@ pub(crate) fn template_fs_should_skip(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn ignored_template_directories_are_explicit() {
+    fn test_ignored_template_directories_are_explicit() {
         assert!(bool::from(
             crate::template_fs_should_skip::template_fs_should_skip(
                 crate::scaffold_path_ref::ScaffoldPathRef::from(std::path::Path::new(

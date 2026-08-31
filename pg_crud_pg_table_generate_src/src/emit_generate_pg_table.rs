@@ -9641,7 +9641,7 @@ enum WrapIntoOptional {
             );
             quote::quote! {
                 #[test]
-                fn size_of() {
+                fn test_size_of() {
                     #ts
                 }
             }
@@ -9851,7 +9851,7 @@ enum WrapIntoOptional {
             const _: () = {
                 #size_of_token_stream
                 #[test]
-                fn crud() {
+                fn test_crud() {
                     #generate_identifier_where_primary_key_others_none_fn_token_stream
                     #generate_pg_type_where_try_new_primary_key_fn_token_stream
                     #generate_pg_type_where_try_new_or_pks_fn_token_stream
@@ -10047,7 +10047,7 @@ enum WrapIntoOptional {
                 &macro_helpers::format_with_cargofmt::FormatWithCargofmt::True,
             )
         {
-            let message = format!("failed to write generated PG table tests: {error}");
+            let message = format!("failed to write generated PG table test_tests: {error}");
             return ProcMacro2GeneratePgTableTestsTokenStream::from(
                 quote::quote! { compile_error!(#message); },
             );

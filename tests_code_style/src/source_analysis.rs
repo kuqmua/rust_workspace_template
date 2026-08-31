@@ -2718,3 +2718,65 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
+pub(super) struct TestNameVisitor {
+    ers: crate::types::DiagnosticMsgs,
+    module_names: crate::types::SourceTextList,
+    root_test_found: crate::types::AnalyzerBool,
+}
+impl<'ast> syn::visit::Visit<'ast> for TestNameVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        let is_test = |attrs: &[syn::Attribute]| {
+            attrs.iter().any(|attr| {
+                attr.path()
+                    .segments
+                    .last()
+                    .is_some_and(|segment| segment.ident == constants_str::TEST_ATTRIBUTE_NAME)
+            })
+        };
+        if is_test(i.attrs.as_slice()) {
+            if !i
+                .sig
+                .ident
+                .to_string()
+                .starts_with(constants_str::TEST_NAME_PREFIX)
+            {
+                self.ers.push(format!(
+                    "test function `{}` must start with `test_`",
+                    i.sig.ident
+                ));
+            }
+            match self.module_names.last() {
+                Some(module_name) if module_name == constants_str::TEST_TESTS => {
+                    let error = format!("test module `{module_name}` must be named `tests`");
+                    if !self.ers.contains(&error) {
+                        self.ers.push(error);
+                    }
+                }
+                Some(module_name)
+                    if module_name != constants_str::TESTS_ALT
+                        && !module_name.starts_with(constants_str::TEST_NAME_PREFIX) =>
+                {
+                    let error = format!(
+                        "test module `{module_name}` must be named `tests` or start with `test_`"
+                    );
+                    if !self.ers.contains(&error) {
+                        self.ers.push(error);
+                    }
+                }
+                None => self.root_test_found = crate::types::AnalyzerBool::from(true),
+                Some(_) => {}
+            }
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        self.module_names.push(i.ident.to_string());
+        syn::visit::visit_item_mod(self, i);
+        drop(self.module_names.pop());
+    }
+}

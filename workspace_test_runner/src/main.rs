@@ -66,7 +66,7 @@ pub mod tool_name;
 pub mod tool_path;
 
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;
 
 fn main() {
     let mode = std::env::args().nth(constants_usize::ONE).map(|value| {
@@ -1243,7 +1243,7 @@ fn main() {
         }),
         Some(other) => {
             eprintln!(
-                "unknown mode `{other}`; expected `static`, `database`, `tests`, `heavy-load`, `release`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"
+                "unknown mode `{other}`; expected `static`, `database`, `test_tests`, `heavy-load`, `release`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"
             );
             Err(())
         }

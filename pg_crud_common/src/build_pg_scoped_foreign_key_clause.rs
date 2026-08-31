@@ -43,7 +43,7 @@ mod tests {
     }
 
     #[test]
-    fn scoped_foreign_key_uses_validated_composite_columns() {
+    fn test_scoped_foreign_key_uses_validated_composite_columns() {
         let foreign_key = crate::pg_scoped_foreign_key::PgScopedForeignKey::new(
             vec![
                 scoped_foreign_key_identifier(constants_str::PG_TEST_FEATURE_ID),

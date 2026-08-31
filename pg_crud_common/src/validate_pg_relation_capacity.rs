@@ -22,7 +22,7 @@ pub fn validate_pg_relation_capacity(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn capacity_rejects_excess_and_overflow() {
+    fn test_capacity_rejects_excess_and_overflow() {
         let maximum =
             crate::pg_relation_capacity_maximum::PgRelationCapacityMaximum::try_from(5u64)
                 .expect("4ddf36da capacity_rejects_excess_and_overflow invariant must hold");

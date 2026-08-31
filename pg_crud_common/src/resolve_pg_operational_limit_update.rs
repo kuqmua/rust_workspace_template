@@ -28,7 +28,7 @@ mod tests {
     }
 
     #[test]
-    fn migration_defaults_only_raise_limits_and_operator_cannot_cross_usage() {
+    fn test_migration_defaults_only_raise_limits_and_operator_cannot_cross_usage() {
         assert_eq!(
             crate::resolve_pg_operational_limit_update::resolve_pg_operational_limit_update(
                 limit(100u64),

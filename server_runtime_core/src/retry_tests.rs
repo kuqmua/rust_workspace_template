@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[tokio::test]
-    async fn retryable_failure_is_retried_until_success() {
+    async fn test_retryable_failure_is_retried_until_success() {
         let mut calls = constants_usize::ZERO;
         let outcome = crate::run_with_retries::run_with_retries(
             crate::retry_policy::RetryPolicy::new(
@@ -23,7 +23,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn terminal_failure_is_not_retried() {
+    async fn test_terminal_failure_is_not_retried() {
         let mut calls = constants_usize::ZERO;
         let outcome = crate::run_with_retries::run_with_retries(
             crate::retry_policy::RetryPolicy::new(

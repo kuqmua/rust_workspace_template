@@ -10,7 +10,7 @@ mod tests {
     }
 
     #[test]
-    fn generates_const_new_for_named_fields_and_generics() {
+    fn test_generates_const_new_for_named_fields_and_generics() {
         let assert_fixture = |value: Fixture<bool>| {
             assert!(value.first);
             assert_eq!(value.second, None);

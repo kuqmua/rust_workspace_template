@@ -155,7 +155,7 @@ impl<
 #[cfg(test)]
 mod tests {
     #[test]
-    fn hash_map_rejects_new_keys_at_capacity() {
+    fn test_hash_map_rejects_new_keys_at_capacity() {
         let mut value = super::BoundedHashMap::<u8, u8, 1>::default();
         assert!(matches!(value.try_insert(1u8, 1u8), Ok(None)));
         assert!(matches!(

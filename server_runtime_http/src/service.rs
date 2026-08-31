@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn service_runtime_returns_owned_parts() {
+    fn test_service_runtime_returns_owned_parts() {
         let runtime = crate::service_runtime::ServiceRuntime::new(
             crate::axum_router::AxumRouter::from(axum::Router::new()),
             None,

@@ -190,7 +190,7 @@ mod tests {
         );
     }
     #[test]
-    fn tp_struct_outputs_expected_tokens() {
+    fn test_tp_struct_outputs_expected_tokens() {
         assert_tokens_eq(super::SqlxAcquire, quote::quote! {sqlx::Acquire});
         assert_tokens_eq(
             super::DeriveDebugCloneCopy,
@@ -198,7 +198,7 @@ mod tests {
         );
     }
     #[test]
-    fn tp_parts_struct_outputs_expected_tokens() {
+    fn test_tp_parts_struct_outputs_expected_tokens() {
         assert_tokens_eq(
             super::CrateDefaultSomeOneElement,
             quote::quote! {crate::DefaultSomeOneElement},
@@ -209,15 +209,15 @@ mod tests {
         );
     }
     #[test]
-    fn tp_batch_struct_outputs_expected_tokens() {
+    fn test_tp_batch_struct_outputs_expected_tokens() {
         assert_tokens_eq(super::Bool, quote::quote! {bool});
     }
     #[test]
-    fn ts_path_fn_outputs_expected_tokens() {
+    fn test_ts_path_fn_outputs_expected_tokens() {
         assert_tokens_eq(crate::pg_crud_common(), quote::quote! {pg_crud_common::});
     }
     #[test]
-    fn path_helper_outputs_expected_tokens() {
+    fn test_path_helper_outputs_expected_tokens() {
         assert_tokens_eq(
             crate::path_default_some_one_element_call(),
             quote::quote! {::default_some_one_element()},

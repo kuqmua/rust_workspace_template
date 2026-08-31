@@ -29,7 +29,7 @@ impl TryFrom<String> for PgRelationLockNamespace {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn namespace_rejects_sql_syntax() {
+    fn test_namespace_rejects_sql_syntax() {
         assert_eq!(
             crate::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(String::from(
                 constants_str::TEST_SQL_INJECTION

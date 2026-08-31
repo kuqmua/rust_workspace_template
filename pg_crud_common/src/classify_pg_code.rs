@@ -34,7 +34,7 @@ pub(crate) fn classify_pg_code(code: &str) -> crate::pg_error_kind::PgErrorKind 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn classifies_known_postgres_codes() {
+    fn test_classifies_known_postgres_codes() {
         assert_eq!(
             crate::classify_pg_code::classify_pg_code(constants_str::PG_SQLSTATE_UNIQUE_VIOLATION),
             crate::pg_error_kind::PgErrorKind::UniqueViolation
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn classifies_unknown_postgres_code() {
+    fn test_classifies_unknown_postgres_code() {
         assert_eq!(
             crate::classify_pg_code::classify_pg_code(constants_str::TEST_UNKNOWN_PG_SQLSTATE),
             crate::pg_error_kind::PgErrorKind::Unknown

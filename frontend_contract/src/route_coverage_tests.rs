@@ -9,7 +9,7 @@ mod tests {
     }
 
     #[test]
-    fn complete_mutating_authenticated_route_is_covered() {
+    fn test_complete_mutating_authenticated_route_is_covered() {
         let descriptors = [
             crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
                 route_coverage_metadata(),
@@ -31,7 +31,7 @@ mod tests {
     }
 
     #[test]
-    fn mutating_route_requires_replay_validation() {
+    fn test_mutating_route_requires_replay_validation() {
         let descriptors = [
             crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
                 route_coverage_metadata(),
@@ -55,7 +55,7 @@ mod tests {
     }
 
     #[test]
-    fn duplicate_route_is_rejected() {
+    fn test_duplicate_route_is_rejected() {
         let descriptor = crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
             route_coverage_metadata(),
             crate::route_access::RouteAccess::Public,
@@ -73,7 +73,7 @@ mod tests {
     }
 
     #[test]
-    fn capabilities_require_matching_test_categories() {
+    fn test_capabilities_require_matching_test_categories() {
         let capabilities = crate::route_test_capabilities::RouteTestCapabilities::new(
             crate::route_database_usage::RouteDatabaseUsage::Database,
             crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody,
@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn routes_without_special_capabilities_require_baseline_categories() {
+    fn test_routes_without_special_capabilities_require_baseline_categories() {
         let capabilities = crate::route_test_capabilities::RouteTestCapabilities::new(
             crate::route_database_usage::RouteDatabaseUsage::None,
             crate::route_json_body_usage::RouteJsonBodyUsage::None,

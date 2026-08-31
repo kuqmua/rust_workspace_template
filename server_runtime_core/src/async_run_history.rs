@@ -43,7 +43,7 @@ impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn history_clone_does_not_require_report_clone() {
+    fn test_history_clone_does_not_require_report_clone() {
         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
         struct NotClone;
         let maximum = crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE)

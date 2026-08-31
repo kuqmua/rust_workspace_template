@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn struct_shape_preserves_named_tuple_and_unit_forms() {
+    fn test_struct_shape_preserves_named_tuple_and_unit_forms() {
         let named = syn::parse_quote!(
             struct Named {
                 value: u8,
@@ -27,7 +27,7 @@ mod tests {
         ));
     }
     #[test]
-    fn split_top_level_commas_keeps_generic_type_commas_inside_part() {
+    fn test_split_top_level_commas_keeps_generic_type_commas_inside_part() {
         let parts = crate::split_top_level_commas::split_top_level_commas(quote::quote! {
             Vec<Result<A, B>>,
             Option<C>
@@ -43,7 +43,7 @@ mod tests {
         );
     }
     #[test]
-    fn split_top_level_commas_keeps_fat_arrow_pair_as_single_part() {
+    fn test_split_top_level_commas_keeps_fat_arrow_pair_as_single_part() {
         let parts = crate::split_top_level_commas::split_top_level_commas(quote::quote! {
             SomeType => "message",
             OtherType => format!("{}" , value)
@@ -59,7 +59,7 @@ mod tests {
         );
     }
     #[test]
-    fn proc_macro2_macro_tokens_to_tokens_preserves_stream() {
+    fn test_proc_macro2_macro_tokens_to_tokens_preserves_stream() {
         let tokens = crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(quote::quote! {
             Result<Vec<A>, B>
         });
@@ -69,7 +69,7 @@ mod tests {
         );
     }
     #[test]
-    fn unique_option_set_preserves_first_span_aware_error() {
+    fn test_unique_option_set_preserves_first_span_aware_error() {
         let mut values = crate::unique_option_b_tree_set::UniqueOptionBTreeSet::default();
         values
             .try_insert_with(1u8, || {

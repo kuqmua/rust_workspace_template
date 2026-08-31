@@ -23,7 +23,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-    fn env_example_matches_generated_descriptor() {
+    fn test_env_example_matches_generated_descriptor() {
         let example_path =
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(constants_str::ENV_EXAMPLE);
         if std::env::var_os(constants_str::UPDATE_CONFIG_PROJECTIONS).is_some() {
@@ -68,7 +68,7 @@ mod tests {
     }
 
     #[test]
-    fn compose_environment_keys_match_generated_descriptor() {
+    fn test_compose_environment_keys_match_generated_descriptor() {
         let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         let service = compose_source
             .split_once(constants_str::VALUE_3D732A3D)
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::needless_for_each)] // workspace source policy forbids for loops
-    fn deployment_ports_match_generated_descriptor() {
+    fn test_deployment_ports_match_generated_descriptor() {
         let mut socket_addresses = descriptor_examples()
             .into_iter()
             .filter(|(name, _value)| name.ends_with(constants_str::VALUE_E0071B88))
@@ -157,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    fn service_image_references_follow_the_config_crate_name() {
+    fn test_service_image_references_follow_the_config_crate_name() {
         let service_name = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .file_name()
             .and_then(std::ffi::OsStr::to_str)

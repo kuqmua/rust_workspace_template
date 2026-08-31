@@ -19,7 +19,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn joins_borrowed_text_without_an_intermediate_collection() {
+    fn test_joins_borrowed_text_without_an_intermediate_collection() {
         assert_eq!(
             crate::join_text::join_text(["reader", "editor"]).as_ref(),
             "reader, editor"

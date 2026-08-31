@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn required_bounded_text_rejects_nul() {
+    fn test_required_bounded_text_rejects_nul() {
         assert_eq!(
             crate::required_nul_free_bounded_text::RequiredNulFreeBoundedText::try_from(
                 constants_str::TEST_TEXT_WITH_NUL.to_owned()
@@ -11,7 +11,7 @@ mod tests {
     }
 
     #[test]
-    fn fixed_hex_requires_lowercase_and_exact_length() {
+    fn test_fixed_hex_requires_lowercase_and_exact_length() {
         let _value = crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText::try_from(
             constants_str::TEST_GIT_COMMIT_HASH.to_owned(),
         )
@@ -25,7 +25,7 @@ mod tests {
     }
 
     #[test]
-    fn url_safe_token_policy_is_table_driven() {
+    fn test_url_safe_token_policy_is_table_driven() {
         assert_eq!(
             [
                 constants_str::ABC_ALT_3,
@@ -60,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    fn password_policy_is_table_driven() {
+    fn test_password_policy_is_table_driven() {
         let range = crate::password_length_range::PasswordLengthRange::from_prevalidated(
             crate::password_length::PasswordLength::from(12usize),
             crate::password_length::PasswordLength::from(128usize),

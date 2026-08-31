@@ -26,7 +26,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn plan_preserves_typed_identity_specs() {
+    fn test_plan_preserves_typed_identity_specs() {
         let plan = crate::development_identity_creation_plan::DevelopmentIdentityCreationPlan::new(
             crate::development_identity_specs::DevelopmentIdentitySpecs::try_from(vec![
                 server_runtime_core::identity_spec::IdentitySpec::new(1u8, 2u8, 3u8, 4u8),
@@ -41,7 +41,7 @@ mod tests {
     }
 
     #[test]
-    fn identity_specs_rejects_more_than_supported_entries() {
+    fn test_identity_specs_rejects_more_than_supported_entries() {
         let values = std::iter::repeat_with(|| {
             server_runtime_core::identity_spec::IdentitySpec::new(1u8, 2u8, 3u8, 4u8)
         })
@@ -57,7 +57,7 @@ mod tests {
     }
 
     #[test]
-    fn summarizes_desired_state_decisions() {
+    fn test_summarizes_desired_state_decisions() {
         let reports = [
             server_runtime_core::plan_identity_creation::plan_identity_creation(
                 server_runtime_core::identity_presence::IdentityPresence::Missing,

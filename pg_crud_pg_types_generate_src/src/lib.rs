@@ -46,7 +46,7 @@ pub mod schema_wire_kind;
 pub mod serde_json_generate_pg_types_error;
 pub mod sqlx;
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;
 pub mod validate_generate_pg_types;
 pub mod validated_generate_pg_types_config;
 pub mod wire_kind;

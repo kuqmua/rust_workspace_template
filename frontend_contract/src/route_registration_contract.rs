@@ -13,7 +13,7 @@ pub trait RouteRegistrationContract: Copy {
 mod tests {
     #[test]
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-    fn route_method_router_supports_every_contract_method() {
+    fn test_route_method_router_supports_every_contract_method() {
         async fn endpoint() -> axum::http::StatusCode {
             axum::http::StatusCode::NO_CONTENT
         }
@@ -37,7 +37,7 @@ mod tests {
     }
 
     #[test]
-    fn registered_route_path_preserves_the_static_path() {
+    fn test_registered_route_path_preserves_the_static_path() {
         assert_eq!(
             crate::registered_route_path::RegisteredRoutePath::from("/health").get(),
             "/health"

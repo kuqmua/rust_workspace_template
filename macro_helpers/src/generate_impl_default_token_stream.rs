@@ -15,7 +15,7 @@ pub fn generate_impl_default_token_stream(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn generated_default_impl_preserves_identifier_and_expression() {
+    fn test_generated_default_impl_preserves_identifier_and_expression() {
         let actual = crate::generate_impl_default_token_stream::generate_impl_default_token_stream(
             &quote::quote!(Example),
             &quote::quote!(Self { value: 7u8 }),

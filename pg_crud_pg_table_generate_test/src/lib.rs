@@ -35,7 +35,7 @@ mod tests {
         }
     }
     #[test]
-    fn shared_json_contract_helper_round_trips_table_fixture() {
+    fn test_shared_json_contract_helper_round_trips_table_fixture() {
         macro_helpers::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
@@ -46,7 +46,7 @@ mod tests {
         );
     }
     #[test]
-    fn duplicate_frontend_order_is_rejected_during_generation() {
+    fn test_duplicate_frontend_order_is_rejected_during_generation() {
         let input = table_input(&quote::quote! {
             #[generate_pg_table_frontend(order = 1)]
             column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
@@ -59,7 +59,7 @@ mod tests {
         assert!(generated.to_string().contains("35d30bd7"));
     }
     #[test]
-    fn unknown_frontend_option_is_rejected_during_generation() {
+    fn test_unknown_frontend_option_is_rejected_during_generation() {
         let input = table_input(&quote::quote! {
             #[generate_pg_table_frontend(unknown)]
             column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
@@ -74,7 +74,7 @@ mod tests {
         miri,
         ignore = "full table source generation is covered by native generator tests and is prohibitively slow under interpretation"
     )]
-    fn generated_metrics_use_bounded_labels() {
+    fn test_generated_metrics_use_bounded_labels() {
         let input = table_input(&quote::quote! {
             column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
         });
@@ -93,7 +93,7 @@ mod tests {
         miri,
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
-    fn pg_table_generate_clippy() {
+    fn test_pg_table_generate_clippy() {
         macro_clippy_check_test_common::clippy_check(
             constants_str::GENERATE_PG_TABLE_TEST_CNT,
             constants_str::PG_CRUD_PG_TABLE,

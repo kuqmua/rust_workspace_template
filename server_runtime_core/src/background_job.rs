@@ -45,7 +45,7 @@ impl<Report: Clone + Send + Sync + 'static> BackgroundJob<Report> {
 #[cfg(test)]
 mod tests {
     #[tokio::test]
-    async fn run_records_retry_outcome_in_bounded_history() {
+    async fn test_run_records_retry_outcome_in_bounded_history() {
         let history = crate::async_run_history::AsyncRunHistory::new(
             crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE).expect(
                 "5dc81fa2 run_records_retry_outcome_in_bounded_history invariant must hold",

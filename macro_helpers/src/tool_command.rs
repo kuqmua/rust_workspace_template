@@ -55,7 +55,7 @@ impl ToolCommand {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn debug_redacts_arguments() {
+    fn test_debug_redacts_arguments() {
         let mut command = super::ToolCommand::new(crate::tool_program_ref::ToolProgramRef::from(
             constants_str::PRINTF,
         ));

@@ -39,7 +39,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn display_preserves_operation_and_rollback_errors() {
+    fn test_display_preserves_operation_and_rollback_errors() {
         let failure = crate::transaction_failure::TransactionFailure::from_operation_and_rollback(
             std::io::Error::other(constants_str::TEST_TRANSACTION_OPERATION_ERROR),
             Err(std::io::Error::other(

@@ -12,7 +12,7 @@ where
                 0,
                 { constants_usize::VALUE_8_192 },
             >::from(value)
-            .into_inner(),
+            .into_string(),
         )
         .map(Some)
         .map_err(|_error| crate::admin_error::AdminError::Validation)

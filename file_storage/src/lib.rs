@@ -26,4 +26,4 @@ pub mod storage_path_ref;
 pub mod storage_relative_path_buf;
 
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;

@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[tokio::test(start_paused = true)]
-    async fn probe_distinguishes_success_failure_and_timeout() {
+    async fn test_probe_distinguishes_success_failure_and_timeout() {
         let timeout = crate::health_probe_timeout_duration::HealthProbeTimeoutDuration::from(
             std::time::Duration::from_secs(1u64),
         );
@@ -18,7 +18,7 @@ mod tests {
     }
 
     #[test]
-    fn readiness_tracks_database_probe_without_affecting_liveness() {
+    fn test_readiness_tracks_database_probe_without_affecting_liveness() {
         let readiness = crate::health_readiness::HealthReadiness::default();
         assert_eq!(
             readiness.snapshot().database(),
@@ -38,7 +38,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn health_routes_distinguish_live_and_ready_statuses() {
+    async fn test_health_routes_distinguish_live_and_ready_statuses() {
         let readiness = crate::health_readiness::HealthReadiness::default();
         let router = axum::Router::from(crate::add_health_routes::add_health_routes(
             crate::axum_router::AxumRouter::from(axum::Router::new()),

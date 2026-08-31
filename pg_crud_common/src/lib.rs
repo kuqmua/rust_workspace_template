@@ -90,10 +90,6 @@ pub mod deduplicate_preserving_order_by_key;
 pub mod default_some_one_element;
 pub mod default_some_one_element_max_page_size;
 pub mod domain_types;
-#[cfg(test)]
-pub mod domain_types_db_schema_conformance_tests;
-#[cfg(test)]
-pub mod domain_types_query_pagination_tests;
 pub mod duplicate_candidates;
 pub mod duplicate_idx;
 pub mod eq_operator;
@@ -247,7 +243,11 @@ pub mod take_fst_dup;
 pub mod take_fst_dup_by;
 pub mod take_fst_dup_by_hash;
 #[cfg(test)]
-pub mod tests_domain_types_operator_to_query_part;
+pub mod test_domain_types_db_schema_conformance_tests;
+#[cfg(test)]
+pub mod test_domain_types_query_pagination_tests;
+#[cfg(test)]
+pub mod test_tests_domain_types_operator_to_query_part;
 pub mod transaction_failure;
 pub mod try_new_unique_vec;
 pub mod u16_test_cases_vec;

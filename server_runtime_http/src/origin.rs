@@ -8,7 +8,7 @@ mod tests {
     }
 
     #[test]
-    fn allowed_origins_reject_oversized_lists() {
+    fn test_allowed_origins_reject_oversized_lists() {
         let values = vec![String::from(constants_str::HTTPS_ADMIN_EXAMPLE_COM); 129usize];
         assert_eq!(
             crate::allowed_origins::AllowedOrigins::try_from(values),
@@ -17,7 +17,7 @@ mod tests {
     }
 
     #[test]
-    fn allowed_origins_reject_userinfo_and_invalid_ports() {
+    fn test_allowed_origins_reject_userinfo_and_invalid_ports() {
         assert_eq!(
             crate::allowed_origin::AllowedOrigin::try_from(String::from(
                 constants_str::HTTPS_ADMIN_EXAMPLE_COM_WITH_USERINFO,
@@ -33,7 +33,7 @@ mod tests {
     }
 
     #[test]
-    fn origin_requires_exact_authority_without_path() {
+    fn test_origin_requires_exact_authority_without_path() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             http::header::ORIGIN,
@@ -48,7 +48,7 @@ mod tests {
     }
 
     #[test]
-    fn referer_accepts_path_and_compares_case_insensitively() {
+    fn test_referer_accepts_path_and_compares_case_insensitively() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             http::header::REFERER,

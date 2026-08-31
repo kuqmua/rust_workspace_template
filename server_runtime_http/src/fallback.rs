@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn api_path_is_machine_readable_without_accept_header() {
+    fn test_api_path_is_machine_readable_without_accept_header() {
         assert_eq!(
             crate::resolve_fallback_response_mode::resolve_fallback_response_mode(
                 crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef::from(
@@ -22,7 +22,7 @@ mod tests {
         );
     }
     #[test]
-    fn zero_quality_json_is_not_accepted() {
+    fn test_zero_quality_json_is_not_accepted() {
         let accept =
             http::HeaderValue::from_static(constants_str::TEST_ACCEPT_HTML_JSON_ZERO_QUALITY);
         assert_eq!(

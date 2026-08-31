@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn timeout_layer_preserves_validated_timeout() {
+    fn test_timeout_layer_preserves_validated_timeout() {
         let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
             std::time::Duration::from_secs(1u64),
         )
@@ -11,7 +11,7 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn timeout_response_contains_retry_after_without_text_round_trip() {
+    async fn test_timeout_response_contains_retry_after_without_text_round_trip() {
         let timeout =
             crate::request_timeout_duration::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(2u64))
                 .expect("b140ead4 timeout_response_contains_retry_after_without_text_round_trip invariant must hold");

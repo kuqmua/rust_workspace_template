@@ -2,7 +2,7 @@
 #[allow(clippy::needless_for_each)] // descriptor matrix avoids repository-forbidden for loops
 mod tests {
     #[test]
-    fn filter_specs_keep_sql_bind_and_value_shape_in_sync() {
+    fn test_filter_specs_keep_sql_bind_and_value_shape_in_sync() {
         [
             crate::filter_spec::FilterSpec::adjacent(),
             crate::filter_spec::FilterSpec::before(),

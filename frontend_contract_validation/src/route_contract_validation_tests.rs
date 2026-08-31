@@ -29,7 +29,7 @@ mod tests {
     }
 
     #[test]
-    fn equal_metadata_satisfies_contract() {
+    fn test_equal_metadata_satisfies_contract() {
         let metadata = route_validation_metadata(
             frontend_contract::route_method::RouteMethod::Get,
             constants_str::ROUTE_READ,
@@ -44,7 +44,7 @@ mod tests {
     }
 
     #[test]
-    fn typed_route_is_the_contract_source_of_truth() {
+    fn test_typed_route_is_the_contract_source_of_truth() {
         assert_eq!(
             crate::validate_typed_route_contract::validate_typed_route_contract::<ReadRoute>(
                 route_validation_metadata(
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn http_fixture_checks_status_and_json_body() {
+    fn test_http_fixture_checks_status_and_json_body() {
         let metadata = route_validation_metadata(
             frontend_contract::route_method::RouteMethod::Get,
             constants_str::ROUTE_READ,
@@ -101,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    fn every_metadata_difference_is_reported() {
+    fn test_every_metadata_difference_is_reported() {
         let expected = route_validation_metadata(
             frontend_contract::route_method::RouteMethod::Get,
             constants_str::ROUTE_READ,

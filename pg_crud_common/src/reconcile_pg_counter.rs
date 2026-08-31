@@ -27,7 +27,7 @@ pub fn reconcile_pg_counter(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn counter_reconciliation_reports_direction_and_distance() {
+    fn test_counter_reconciliation_reports_direction_and_distance() {
         assert_eq!(
             crate::reconcile_pg_counter::reconcile_pg_counter(7u64.into(), 10u64.into()),
             crate::pg_counter_reconciliation::PgCounterReconciliation::ActualAhead(3u64.into())

@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[tokio::test]
-    async fn administrator_asset_route_preserves_static_file_serving() {
+    async fn test_administrator_asset_route_preserves_static_file_serving() {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(server_admin_frontend::admin_frontend_routes::admin_frontend_routes()),
             axum::http::Request::get(constants_str::VALUE_688DB289)
@@ -14,7 +14,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
+    async fn test_operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
         let operational_path = common_routes::common_route::CommonRoute::HealthLive.path();
         let router = axum::Router::from(crate::mount_service_routes::mount_service_routes(
             server_runtime_http::axum_router::AxumRouter::from(
@@ -65,7 +65,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn missing_page_redirects_to_default_authentication_page() {
+    async fn test_missing_page_redirects_to_default_authentication_page() {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(crate::frontend_fallback_routes::frontend_fallback_routes()),
             axum::http::Request::builder()
@@ -84,7 +84,7 @@ mod tests {
         );
     }
     #[test]
-    fn tracing_default_filter_is_stable() {
+    fn test_tracing_default_filter_is_stable() {
         assert_eq!(constants_str::CONFIG_TRACING_INFO, "info");
     }
 }

@@ -38,7 +38,7 @@ impl FilterBindPlan {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn bind_plan_preserves_cross_type_order() {
+    fn test_bind_plan_preserves_cross_type_order() {
         let mut plan = crate::filter_bind_plan::FilterBindPlan::new();
         plan.push_text(
             crate::pg_filter_text::PgFilterText::try_from(String::from(

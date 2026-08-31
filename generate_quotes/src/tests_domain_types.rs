@@ -10,7 +10,7 @@ mod tests {
         assert_eq!(actual.to_string(), expected);
     }
     #[test]
-    fn quote_str_helpers_return_expected_literals() {
+    fn test_quote_str_helpers_return_expected_literals() {
         assert_quote_str(
             &crate::single_quotes_str::single_quotes_str(constants_str::ABC_ALT_3),
             constants_str::ABC,
@@ -29,7 +29,7 @@ mod tests {
         );
     }
     #[test]
-    fn quote_token_stream_helpers_return_expected_tokens() {
+    fn test_quote_token_stream_helpers_return_expected_tokens() {
         assert_quote_token_stream(
             &crate::single_quotes_token_stream::single_quotes_token_stream(constants_str::A_ALT),
             constants_str::A,
@@ -52,7 +52,7 @@ mod tests {
         );
     }
     #[test]
-    fn quote_helpers_support_non_string_display_inputs() {
+    fn test_quote_helpers_support_non_string_display_inputs() {
         assert_quote_str(
             &crate::double_quoted_string::double_quoted_string(&42i32),
             constants_str::VALUE_42_ALT,
@@ -71,7 +71,7 @@ mod tests {
         );
     }
     #[test]
-    fn quote_helpers_support_empty_input() {
+    fn test_quote_helpers_support_empty_input() {
         assert_quote_str(
             &crate::single_quotes_str::single_quotes_str(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             constants_str::TEXT_ALT_4,

@@ -51,8 +51,6 @@ pub mod generate_impl_try_from_token_stream;
 pub mod generate_impl_try_new_for_identifier_token_stream_impl;
 pub mod generate_modified_new_token_stream_impl;
 pub mod generate_modified_try_new_token_stream_impl;
-#[cfg(test)]
-pub mod generate_new_or_try_new_tests;
 pub mod generate_new_token_stream_impl;
 pub mod generate_pub_const_new_token_stream_impl;
 pub mod generate_pub_const_try_new_token_stream_impl;
@@ -115,6 +113,8 @@ pub mod syn_variant_ref;
 #[cfg(feature = "test-utils")]
 pub mod test_database;
 #[cfg(test)]
+pub mod test_generate_new_or_try_new_tests;
+#[cfg(test)]
 pub mod test_path;
 #[cfg(test)]
 pub mod test_path_stem;
@@ -153,5 +153,5 @@ pub mod write_token_stream_into_file_tests;
 pub mod written_file_path_buf;
 pub mod written_file_path_ref;
 
-const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

@@ -20,7 +20,7 @@ mod wire_enum_attrs;
 
 #[cfg(test)]
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(dead_code)] // dev dependencies are exercised by integration tests, not proc-macro unit code
+#[allow(dead_code)] // dev dependencies are exercised by integration test_tests, not proc-macro unit code
 fn newtype_dependency_markers<Value>(
     _: Option<Value>,
     _: Option<serde_json::Value>,
@@ -755,7 +755,7 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
 }
 #[allow(
     clippy::single_call_fn,
-    reason = "the production proc-macro boundary and three unit tests share the bounded-string generator"
+    reason = "the production proc-macro boundary and three unit test_tests share the bounded-string generator"
 )]
 fn generate_bounded_string_token_stream(
     input: newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef<'_>,
@@ -1690,4 +1690,4 @@ fn identifier_to_snake(
         .expect("2e7a9c4f identifier_to_snake invariant must hold")
 }
 #[cfg(test)]
-mod tests;
+mod test_tests;

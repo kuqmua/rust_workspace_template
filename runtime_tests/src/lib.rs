@@ -139,7 +139,7 @@ fn route_url(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn route_url_uses_contract_path() {
+    fn test_route_url_uses_contract_path() {
         let base_url = crate::service_base_url::ServiceBaseUrl::try_from(String::from(
             constants_str::VALUE_FF79C6DD,
         ))

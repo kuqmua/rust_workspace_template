@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn timeout_wrappers_reject_zero() {
+    fn test_timeout_wrappers_reject_zero() {
         assert_eq!(
             crate::reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration::try_from(
                 std::time::Duration::ZERO

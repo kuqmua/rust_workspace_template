@@ -91,7 +91,7 @@ mod tests {
     }
 
     #[test]
-    fn capture_preserves_source_code_and_diagnostics_at_call_site() {
+    fn test_capture_preserves_source_code_and_diagnostics_at_call_site() {
         let expected_line = line!() + 1u32;
         let observed = super::ObservedError::capture(
             InfrastructureTestError::Failed,

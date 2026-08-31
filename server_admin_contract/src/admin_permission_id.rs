@@ -36,7 +36,7 @@ impl AdminPermissionId {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn permission_identifier_round_trips_i64() {
+    fn test_permission_identifier_round_trips_i64() {
         let identifier = super::AdminPermissionId::try_from(constants_i64::ONE)
             .expect("f28b31c9 permission identifier must be positive");
         assert_eq!(i64::from(identifier), constants_i64::ONE);

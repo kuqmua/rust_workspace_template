@@ -54,7 +54,7 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
 #[cfg(test)]
 mod tests {
     #[test]
-    fn deserialization_stops_above_limit() {
+    fn test_deserialization_stops_above_limit() {
         let result = serde_json::from_str::<
             crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<String, u8, 1>,
         >(constants_str::TEST_JSON_MAP_WITH_TWO_ENTRIES);
@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn map_at_limit_is_accepted() {
+    fn test_map_at_limit_is_accepted() {
         let value = serde_json::from_str::<
             crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<String, u8, 1>,
         >(constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY)

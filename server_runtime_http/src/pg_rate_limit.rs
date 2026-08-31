@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn configuration_and_key_parts_are_bounded() {
+    fn test_configuration_and_key_parts_are_bounded() {
         assert_eq!(
             crate::pg_rate_limit_maximum::PgRateLimitMaximum::try_from(constants_i64::ZERO),
             Err(crate::pg_rate_limit_validation_error::PgRateLimitValidationError::MustBePositive)
@@ -12,7 +12,7 @@ mod tests {
         );
     }
     #[test]
-    fn numeric_configuration_requires_positive_values() {
+    fn test_numeric_configuration_requires_positive_values() {
         assert_eq!(
             crate::pg_rate_limit_maximum::PgRateLimitMaximum::try_from(-constants_i64::ONE),
             Err(crate::pg_rate_limit_validation_error::PgRateLimitValidationError::MustBePositive)
@@ -35,7 +35,7 @@ mod tests {
             .expect("a5726134 numeric_configuration_requires_positive_values invariant must hold");
     }
     #[test]
-    fn scope_and_subject_accept_exact_limit_and_reject_excess() {
+    fn test_scope_and_subject_accept_exact_limit_and_reject_excess() {
         let exact = constants_str::A_ALT
             .repeat(crate::pg_rate_limit_key_part_max_len::PG_RATE_LIMIT_KEY_PART_MAX_LEN);
         let _scope = crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef::try_from(exact.as_str()).expect(

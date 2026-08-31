@@ -28,7 +28,7 @@ impl crate::admin_audit_resource::AdminAuditResource {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn audit_action_wire_values_cover_every_variant() {
+    fn test_audit_action_wire_values_cover_every_variant() {
         let actual = [
             crate::admin_audit_action::AdminAuditAction::Create.as_str(),
             crate::admin_audit_action::AdminAuditAction::Delete.as_str(),
@@ -51,7 +51,7 @@ mod tests {
     }
 
     #[test]
-    fn audit_resource_wire_values_cover_every_variant() {
+    fn test_audit_resource_wire_values_cover_every_variant() {
         let actual = [
             crate::admin_audit_resource::AdminAuditResource::AuditLog.as_str(),
             crate::admin_audit_resource::AdminAuditResource::Permission.as_str(),

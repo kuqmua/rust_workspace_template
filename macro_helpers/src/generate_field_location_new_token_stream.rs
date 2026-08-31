@@ -42,7 +42,7 @@ pub fn generate_field_location_new_token_stream(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn coordinates_reject_zero_and_accept_positive_values() {
+    fn test_coordinates_reject_zero_and_accept_positive_values() {
         let _line_error =
             crate::field_location_line::FieldLocationLine::try_from(constants_u32::ZERO)
                 .expect_err(constants_str::VALUE_A7ABF9D9);
@@ -57,7 +57,7 @@ mod tests {
         );
     }
     #[test]
-    fn first_coordinates_generate_complete_location_field() {
+    fn test_first_coordinates_generate_complete_location_field() {
         let generated = crate::generate_field_location_new_token_stream::generate_field_location_new_token_stream(
             crate::field_location_file::FieldLocationFile::from(constants_str::VALUE_E1CEB1AF),
             crate::field_location_line::FieldLocationLine::first(),

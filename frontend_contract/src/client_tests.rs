@@ -285,7 +285,7 @@ mod tests {
         assert_eq!(result, Ok(Response { value: 7u64 }));
     }
     #[test]
-    fn sends_typed_route_through_transport() {
+    fn test_sends_typed_route_through_transport() {
         let response_bytes = match serde_json::to_vec(&Response { value: 7u64 }) {
             Ok(value) => value,
             Err(error) => panic!("4f35f9bb: {error}"),
@@ -317,7 +317,7 @@ mod tests {
         assert_eq!(result, Ok(Response { value: 7u64 }));
     }
     #[test]
-    fn sends_parameterized_route_and_decodes_empty_no_content() {
+    fn test_sends_parameterized_route_and_decodes_empty_no_content() {
         let body = match crate::transport_body::TransportBody::try_from(Vec::new()) {
             Ok(value) => value,
             Err(error) => panic!("57ef3356: {error}"),
@@ -347,7 +347,7 @@ mod tests {
         assert_eq!(result, Ok(NoBody));
     }
     #[test]
-    fn static_absent_request_decodes_empty_ok_response() {
+    fn test_static_absent_request_decodes_empty_ok_response() {
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_B7407642)),
             response: Ok(response(
@@ -363,7 +363,7 @@ mod tests {
         assert_eq!(result, Ok(NoBody));
     }
     #[test]
-    fn path_prefix_variations_join_at_one_separator() {
+    fn test_path_prefix_variations_join_at_one_separator() {
         assert_static_path(
             constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
             constants_str::VALUE_AFE0CD3C,
@@ -373,7 +373,7 @@ mod tests {
         assert_static_path(constants_str::V1_SLASH, constants_str::VALUE_5B762F37);
     }
     #[test]
-    fn created_status_decodes_json_response() {
+    fn test_created_status_decodes_json_response() {
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
                 transport_path(constants_str::VALUE_AFE0CD3C),
@@ -396,7 +396,7 @@ mod tests {
         assert_eq!(result, Ok(Response { value: 7u64 }));
     }
     #[test]
-    fn request_serialization_failure_is_an_encode_error() {
+    fn test_request_serialization_failure_is_an_encode_error() {
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
             response: Ok(response(
@@ -416,7 +416,7 @@ mod tests {
         ));
     }
     #[test]
-    fn request_body_at_shared_limit_is_accepted() {
+    fn test_request_body_at_shared_limit_is_accepted() {
         let value = constants_str::X.repeat(constants_usize::VALUE_16_777_216 - 12usize);
         let transport = TestTransport {
             expected: ExpectedRequest::BodyLen(
@@ -440,7 +440,7 @@ mod tests {
         assert_eq!(result, Ok(Response { value: 7u64 }));
     }
     #[test]
-    fn request_body_above_shared_limit_is_an_encode_error() {
+    fn test_request_body_above_shared_limit_is_an_encode_error() {
         let value = constants_str::X.repeat(constants_usize::VALUE_16_777_216 - 11usize);
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
@@ -461,7 +461,7 @@ mod tests {
         ));
     }
     #[test]
-    fn joined_path_above_transport_limit_is_an_encode_error() {
+    fn test_joined_path_above_transport_limit_is_an_encode_error() {
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(transport_path(constants_str::VALUE_4D1D0E01)),
             response: Ok(response(
@@ -478,7 +478,7 @@ mod tests {
         ));
     }
     #[test]
-    fn malformed_success_body_is_a_decode_error() {
+    fn test_malformed_success_body_is_a_decode_error() {
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
                 transport_path(constants_str::VALUE_AFE0CD3C),
@@ -500,7 +500,7 @@ mod tests {
         ));
     }
     #[test]
-    fn unexpected_status_without_problem_is_a_status_error() {
+    fn test_unexpected_status_without_problem_is_a_status_error() {
         let actual = crate::transport_status::TransportStatus::from(
             crate::known_http_status::KnownHttpStatus::BadRequest,
         );
@@ -526,7 +526,7 @@ mod tests {
         ));
     }
     #[test]
-    fn api_problem_body_is_a_problem_error() {
+    fn test_api_problem_body_is_a_problem_error() {
         let problem = crate::api_problem::ApiProblem::from_error(
             crate::api_problem_error::ApiProblemError::Authentication,
         );
@@ -558,7 +558,7 @@ mod tests {
         ));
     }
     #[test]
-    fn transport_failure_is_preserved() {
+    fn test_transport_failure_is_preserved() {
         let transport_error = match crate::transport_error::TransportError::try_from(
             constants_str::VALUE_8E2C7AC5.to_owned(),
         ) {

@@ -21,7 +21,7 @@ pub fn admin_frontend_routes() -> crate::axum_admin_frontend_router::AxumAdminFr
 #[cfg(test)]
 mod tests {
     #[test]
-    fn routes_build_static_asset_router() {
+    fn test_routes_build_static_asset_router() {
         let _router = crate::admin_frontend_routes::admin_frontend_routes();
     }
 }

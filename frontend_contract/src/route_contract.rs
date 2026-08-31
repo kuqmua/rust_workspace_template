@@ -128,7 +128,7 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[crate::route_error_status::R
 #[cfg(test)]
 mod tests {
     #[test]
-    fn public_read_policy_has_stable_statuses() {
+    fn test_public_read_policy_has_stable_statuses() {
         assert_eq!(
             crate::route_error_policy::RouteErrorPolicy::Default.statuses(
                 crate::authentication_requirement::AuthenticationRequirement::Public,

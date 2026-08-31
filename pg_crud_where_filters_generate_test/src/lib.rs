@@ -13,7 +13,7 @@ mod tests {
         value: Vec<i32>,
     }
     #[test]
-    fn shared_json_contract_helper_round_trips_filter_fixture() {
+    fn test_shared_json_contract_helper_round_trips_filter_fixture() {
         macro_helpers::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
@@ -24,7 +24,7 @@ mod tests {
         );
     }
     #[test]
-    fn text_search_patterns_escape_reserved_symbols_for_every_mode() {
+    fn test_text_search_patterns_escape_reserved_symbols_for_every_mode() {
         let cases = [
             (
                 where_filters::domain_types::TextSearchMode::Contains,
@@ -47,7 +47,7 @@ mod tests {
         });
     }
     #[test]
-    fn text_search_rejects_empty_and_oversized_values() {
+    fn test_text_search_rejects_empty_and_oversized_values() {
         assert_eq!(
             where_filters::domain_types::build_text_search_pattern(
                 "",
@@ -75,7 +75,7 @@ mod tests {
         );
     }
     #[test]
-    fn text_search_query_fragment_uses_ilike_escape_and_ordered_placeholder() {
+    fn test_text_search_query_fragment_uses_ilike_escape_and_ordered_placeholder() {
         let filter = where_filters::domain_types::PgTypeWhereTextSearch::try_new(
             pg_crud_common::operator::Operator::And,
             where_filters::domain_types::TextSearchMode::Contains,
@@ -99,7 +99,7 @@ mod tests {
         miri,
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
-    fn where_filters_generate_clippy() {
+    fn test_where_filters_generate_clippy() {
         macro_clippy_check_test_common::clippy_check(
             constants_str::GENERATE_WHERE_FLTS_TEST_CNT,
             constants_str::PG_CRUD_WHERE_FILTERS,

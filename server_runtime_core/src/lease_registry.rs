@@ -67,7 +67,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn reservation_is_unique_by_key_and_limit() {
+    async fn test_reservation_is_unique_by_key_and_limit() {
         let registry = super::LeaseRegistry::new();
         let first_id = id(constants_str::TEST_LEASE_ID_ONE);
         let first_key = lease_key(constants_str::TEST_LEASE_KEY_ONE);
@@ -96,7 +96,7 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn heartbeat_and_stale_transition_are_observable() {
+    async fn test_heartbeat_and_stale_transition_are_observable() {
         let registry = super::LeaseRegistry::new();
         let lease_id = id(constants_str::TEST_LEASE_ID_ONE);
         let _reservation = registry

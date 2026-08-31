@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn desired_state_planning_is_idempotent_and_requires_role() {
+    fn test_desired_state_planning_is_idempotent_and_requires_role() {
         assert_eq!(
             crate::plan_identity_creation::plan_identity_creation(
                 crate::identity_presence::IdentityPresence::Present,
@@ -26,7 +26,7 @@ mod tests {
     }
 
     #[test]
-    fn identity_spec_keeps_secret_source_separate_from_identity_fields() {
+    fn test_identity_spec_keeps_secret_source_separate_from_identity_fields() {
         let spec = crate::identity_spec::IdentitySpec::new(1u8, 2u8, 3u8, 4u8);
         assert_eq!(spec.login(), &1u8);
         assert_eq!(spec.display_name(), &2u8);

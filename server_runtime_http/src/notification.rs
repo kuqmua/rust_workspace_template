@@ -13,7 +13,7 @@ mod tests {
     }
 
     #[test]
-    fn api_token_debug_is_redacted() {
+    fn test_api_token_debug_is_redacted() {
         let token = crate::notification_api_token::NotificationApiToken::try_from(String::from(
             constants_str::TEST_NOTIFICATION_API_TOKEN,
         ))
@@ -36,7 +36,7 @@ mod tests {
     }
 
     #[test]
-    fn message_deserialization_uses_length_validation() {
+    fn test_message_deserialization_uses_length_validation() {
         let json = serde_json::Value::String(constants_str::X.repeat(65_537usize)).to_string();
         let Err(_error) = serde_json::from_str::<
             crate::runtime_notification_message::RuntimeNotificationMessage,
@@ -46,7 +46,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn router_requires_token_and_delivers_valid_request() {
+    async fn test_router_requires_token_and_delivers_valid_request() {
         let token = crate::notification_api_token::NotificationApiToken::try_from(
             constants_str::TEST_NOTIFICATION_API_TOKEN.to_owned(),
         )

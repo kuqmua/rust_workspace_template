@@ -261,5 +261,5 @@ pub fn generate_derive_token_stream_builder(
     generated.into()
 }
 
-const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

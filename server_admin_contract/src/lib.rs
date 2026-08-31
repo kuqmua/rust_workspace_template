@@ -170,9 +170,9 @@ pub mod admin_user_summaries;
 pub mod admin_user_summary;
 pub mod admin_users_page;
 #[cfg(test)]
-mod audit_branding_tests {
+mod test_audit_branding_tests {
     #[test]
-    fn audit_detail_limit_is_stable() {
+    fn test_audit_detail_limit_is_stable() {
         assert_eq!(
             crate::admin_audit_details_too_large::AdminAuditDetailsTooLarge::from(
                 crate::admin_audit_details_bytes::AdminAuditDetailsBytes::from(
@@ -188,9 +188,9 @@ mod audit_branding_tests {
 }
 pub mod authenticated_admin;
 #[cfg(test)]
-mod authorization_catalog_tests {
+mod test_authorization_catalog_tests {
     #[test]
-    fn user_table_requires_user_read_permission() {
+    fn test_user_table_requires_user_read_permission() {
         assert_eq!(
             crate::admin_data_table::AdminDataTable::Users.permission(),
             crate::admin_permission::AdminPermission::UsersRead,
@@ -198,28 +198,28 @@ mod authorization_catalog_tests {
     }
 }
 pub mod default_admin_api_body_max_bytes;
-#[cfg(test)]
-pub mod domain_types_dto_tests;
-#[cfg(test)]
-#[cfg(test)]
-pub mod domain_types_query_tests;
-#[cfg(test)]
-#[cfg(test)]
-pub mod domain_types_routes_tests;
-#[cfg(test)]
-#[cfg(test)]
-pub mod domain_types_sessions_tests;
-#[cfg(test)]
-pub mod domain_types_settings_tests;
 pub mod identity;
 pub mod positive_non_zero_i64;
 pub mod serde_json_admin_audit_details;
 #[cfg(test)]
-pub mod tests_domain_types;
+pub mod test_domain_types_dto_tests;
 #[cfg(test)]
-mod table_sort_tests {
+#[cfg(test)]
+pub mod test_domain_types_query_tests;
+#[cfg(test)]
+#[cfg(test)]
+pub mod test_domain_types_routes_tests;
+#[cfg(test)]
+#[cfg(test)]
+pub mod test_domain_types_sessions_tests;
+#[cfg(test)]
+pub mod test_domain_types_settings_tests;
+#[cfg(test)]
+pub mod test_tests_domain_types;
+#[cfg(test)]
+mod test_table_sort_tests {
     #[test]
-    fn user_login_sort_field_has_login_key() {
+    fn test_user_login_sort_field_has_login_key() {
         assert_eq!(
             crate::admin_table_sort_field::AdminTableSortField::UserLogin
                 .key()

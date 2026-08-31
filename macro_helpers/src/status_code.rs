@@ -449,7 +449,7 @@ impl TryFrom<&String> for StatusCode {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn status_code_token_views_are_consistent() {
+    fn test_status_code_token_views_are_consistent() {
         let cases = [
             (
                 super::StatusCode::Continue100,
@@ -516,7 +516,7 @@ mod tests {
     }
 
     #[test]
-    fn status_code_parsing_accepts_known_values_and_rejects_unknown() {
+    fn test_status_code_parsing_accepts_known_values_and_rejects_unknown() {
         assert_eq!(
             super::StatusCode::try_from(&String::from(constants_str::VALUE_200_OK)),
             Ok(super::StatusCode::Ok200)
@@ -534,7 +534,7 @@ mod tests {
     }
 
     #[test]
-    fn attribute_selection_requires_exactly_one_supported_status() {
+    fn test_attribute_selection_requires_exactly_one_supported_status() {
         let one: syn::Variant = syn::parse_quote! {
             #[serde(rename = "ignored")]
             #[not_found_404]

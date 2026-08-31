@@ -101,7 +101,7 @@ mod tests {
 
         #[test]
         #[cfg_attr(miri, ignore = constants_str::VALUE_BF7C931C)]
-        fn signed_cursor_round_trips_generated_payloads(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
+        fn test_signed_cursor_round_trips_generated_payloads(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
             let domain_payload = crate::cursor_payload::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_28167829);
             let cursor = codec().encode(&domain_payload).expect(constants_str::VALUE_58718EC8);
             proptest::prop_assert_eq!(codec().decode(&cursor), Ok(domain_payload));
@@ -109,7 +109,7 @@ mod tests {
 
         #[test]
         #[cfg_attr(miri, ignore = constants_str::VALUE_BF7C931C)]
-        fn changing_signature_is_always_rejected(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
+        fn test_changing_signature_is_always_rejected(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
             let domain_payload = crate::cursor_payload::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_52BB899A);
             let cursor = codec().encode(&domain_payload).expect(constants_str::VALUE_5E1A9245);
             let mut modified_bytes = cursor.as_ref().as_bytes().to_vec();
@@ -132,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn signed_cursor_round_trip_preserves_payload() {
+    fn test_signed_cursor_round_trip_preserves_payload() {
         let payload = crate::cursor_payload::CursorPayload::try_from(String::from(
             constants_str::CURSOR_TEST_JSON_PAYLOAD,
         ))
@@ -149,7 +149,7 @@ mod tests {
     }
 
     #[test]
-    fn modified_cursor_is_rejected() {
+    fn test_modified_cursor_is_rejected() {
         let payload = crate::cursor_payload::CursorPayload::try_from(String::from(
             constants_str::CURSOR_TEST_PAYLOAD,
         ))

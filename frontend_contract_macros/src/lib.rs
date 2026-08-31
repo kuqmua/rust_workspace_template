@@ -2286,4 +2286,4 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
 }
 
 #[cfg(test)]
-mod tests;
+mod test_tests;

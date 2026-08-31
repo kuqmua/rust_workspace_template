@@ -25,7 +25,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn pagination_rejects_overlap_and_total_changes() {
+    fn test_pagination_rejects_overlap_and_total_changes() {
         assert_eq!(
             crate::validate_pagination_invariants::validate_pagination_invariants(
                 &[1u8, 2u8],

@@ -3,10 +3,10 @@
 // integration target inherits the library dependency graph while exercising the assembled public router
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(clippy::tests_outside_test_module)] // every item in this integration target is compiled exclusively by the test harness
-mod data_tables {
+mod test_data_tables {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
+    async fn test_postgresql_data_table_api_reads_every_public_field_from_every_table() {
         let fixture = crate::admin_html_test_fixture().await;
         let _cleanup_status = sqlx::query(
         constants_str::VALUE_6E1CBD4B,
@@ -83,7 +83,7 @@ mod data_tables {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_generated_mutation_idempotency_contract() {
+    async fn test_postgresql_generated_mutation_idempotency_contract() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "40c1e398 postgresql_generated_mutation_idempotency_contract invariant must hold",
         );
@@ -418,10 +418,10 @@ mod data_tables {
         );
     }
 }
-mod flow {
+mod test_flow {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn flow() {
+    async fn test_flow() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "ac0cb9e3 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
         );
@@ -1641,10 +1641,10 @@ mod flow {
         );
     }
 }
-mod html {
+mod test_html {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
+    async fn test_postgresql_html_users_crud_covers_every_frontend_field_separately() {
         let fixture = crate::admin_html_test_fixture().await;
         assert!(fixture.cookie.0.contains(fixture.csrf.0.as_str()));
         let login = constants_str::VALUE_2562E0C2;
@@ -1921,7 +1921,7 @@ mod html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
+    async fn test_postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         let fixture = crate::admin_html_test_fixture().await;
         let role_name = constants_str::VALUE_B20522BC;
         let updated_role_name = constants_str::VALUE_C940BA4C;
@@ -2053,7 +2053,7 @@ mod html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
+    async fn test_postgresql_html_settings_updates_and_reads_every_field_separately() {
         let fixture = crate::admin_html_test_fixture().await;
         let site_name_a = super::StdAdminApiTestStrRef::from(constants_str::VALUE_98A13EB2);
         let site_name_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_ABCC7908);
@@ -2377,7 +2377,7 @@ mod html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_initial_administrator_password_must_change_before_admin_access() {
+    async fn test_postgresql_initial_administrator_password_must_change_before_admin_access() {
         let fixture = crate::admin_html_test_fixture_with_password_change(
             server_admin_contract::admin_bool::AdminBool::from(true),
         )
@@ -2449,7 +2449,7 @@ mod html {
 
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
+    async fn test_postgresql_html_profile_reads_every_field_and_changes_own_password() {
         let fixture = crate::admin_html_test_fixture().await;
         let profile_response = crate::admin_html_response(
             &fixture,
@@ -2556,7 +2556,7 @@ mod html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
+    async fn test_postgresql_html_sessions_reads_every_field_and_revokes_session() {
         let fixture = crate::admin_html_test_fixture().await;
         let admin_id =
         sqlx::query_scalar::<_, i64>(constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
@@ -2620,7 +2620,7 @@ mod html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_html_router_registers_every_owned_page_and_action() {
+    async fn test_postgresql_html_router_registers_every_owned_page_and_action() {
         let fixture = crate::admin_html_test_fixture().await;
         let fixture_ref = &fixture;
         futures::StreamExt::fold(
@@ -2729,7 +2729,7 @@ mod html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering() {
+    async fn test_postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering() {
         let fixture = crate::admin_html_test_fixture().await;
         let unauthenticated_response = tower::ServiceExt::oneshot(
         fixture.router.0.clone(),
@@ -2945,10 +2945,10 @@ mod html {
         fixture.lock.0.rollback().await.expect("7361eb5c postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
     }
 }
-mod maintenance {
+mod test_maintenance {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
+    async fn test_postgresql_optimistic_revision_allows_one_concurrent_writer() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
         "63a09eec postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold",
     );
@@ -3025,7 +3025,7 @@ mod maintenance {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
+    async fn test_postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect("7316cf4d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(3u32)
@@ -3102,7 +3102,7 @@ mod maintenance {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn postgresql_migration_creates_complete_schema() {
+    async fn test_postgresql_migration_creates_complete_schema() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
             .expect("b65d1786 postgresql_migration_creates_complete_schema invariant must hold");
         let base_pool = sqlx::postgres::PgPoolOptions::new()
@@ -3233,9 +3233,9 @@ mod maintenance {
                 );
     }
 }
-mod policy {
+mod test_policy {
     #[test]
-    fn policy() {
+    fn test_policy() {
         let read_excluded = <server_admin::admin_users::AdminUsers as pg_crud_common::db_table_schema::DbTableSchema>::read_excluded_columns();
         assert!(
             read_excluded
@@ -3250,9 +3250,9 @@ mod policy {
         );
     }
 }
-mod routing {
+mod test_routing {
     #[tokio::test]
-    async fn protected_routes_reject_missing_authentication_without_database_io() {
+    async fn test_protected_routes_reject_missing_authentication_without_database_io() {
         let users_response = tower::ServiceExt::oneshot(
         crate::admin_api_test_router().0,
         http::Request::builder()
@@ -3285,7 +3285,7 @@ mod routing {
         clippy::needless_for_each,
         reason = "repository policy requires iterator methods instead of for loops"
     )]
-    async fn runtime_auth_router_contains_every_open_api_operation() {
+    async fn test_runtime_auth_router_contains_every_open_api_operation() {
         let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
             server_admin::admin_api_open_api::admin_api_open_api(),
         ))
@@ -3353,7 +3353,7 @@ mod routing {
     });
     }
     #[tokio::test]
-    async fn invalid_access_cookie_is_rejected_before_database_io() {
+    async fn test_invalid_access_cookie_is_rejected_before_database_io() {
         let response = tower::ServiceExt::oneshot(
         crate::admin_api_test_router().0,
         http::Request::builder()
@@ -3377,7 +3377,7 @@ mod routing {
         assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
     }
     #[tokio::test]
-    async fn unknown_admin_api_route_is_not_captured_by_spa_fallback() {
+    async fn test_unknown_admin_api_route_is_not_captured_by_spa_fallback() {
         let response = tower::ServiceExt::oneshot(
         crate::admin_api_test_router().0,
         http::Request::builder()
@@ -3390,7 +3390,7 @@ mod routing {
         assert_eq!(response.status(), http::StatusCode::NOT_FOUND);
     }
     #[tokio::test]
-    async fn wrong_admin_http_method_uses_problem_details_contract() {
+    async fn test_wrong_admin_http_method_uses_problem_details_contract() {
         let response = tower::ServiceExt::oneshot(
         crate::admin_api_test_router().0,
         http::Request::builder()
@@ -3411,7 +3411,7 @@ mod routing {
         );
     }
     #[tokio::test]
-    async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
+    async fn test_invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         let malformed_response = tower::ServiceExt::oneshot(
         crate::admin_api_test_router().0,
         crate::request_with_peer(
@@ -3468,7 +3468,7 @@ mod routing {
         );
     }
     #[tokio::test]
-    async fn sign_in_requires_trusted_origin_without_database_io() {
+    async fn test_sign_in_requires_trusted_origin_without_database_io() {
         let make_request = |origin, referer| {
             let mut builder = http::Request::builder()
                 .method(http::Method::POST)
@@ -3524,10 +3524,10 @@ mod routing {
         );
     }
 }
-mod schema {
+mod test_schema {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn generated_admin_descriptors_match_applied_migrations() {
+    async fn test_generated_admin_descriptors_match_applied_migrations() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "7e62af41 generated_admin_descriptors_match_applied_migrations invariant must hold",
         );
@@ -3567,7 +3567,7 @@ mod schema {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn admin_string_policies_match_postgresql_constraints() {
+    async fn test_admin_string_policies_match_postgresql_constraints() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "93fcb3de admin_string_policies_match_postgresql_constraints invariant must hold",
         );

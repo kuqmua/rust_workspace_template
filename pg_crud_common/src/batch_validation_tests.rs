@@ -24,7 +24,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_duplicate_explicitly() {
+    fn test_rejects_duplicate_explicitly() {
         let report = validate_batch_fixture(
             vec![1i32, 1i32, 2i32],
             4,
@@ -40,7 +40,7 @@ mod tests {
     }
 
     #[test]
-    fn applies_keep_first_and_keep_last_policies() {
+    fn test_applies_keep_first_and_keep_last_policies() {
         let first = crate::validate_batch_by_key::validate_batch_by_key(
             [
                 (1i32, constants_str::TEST_FIRST),
@@ -76,7 +76,7 @@ mod tests {
     }
 
     #[test]
-    fn stops_when_invalid_item_limit_is_reached() {
+    fn test_stops_when_invalid_item_limit_is_reached() {
         let report = validate_batch_fixture(
             vec![-1i32, -2i32, 3i32],
             1,
@@ -89,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    fn zero_invalid_item_limit_processes_nothing() {
+    fn test_zero_invalid_item_limit_processes_nothing() {
         let report = validate_batch_fixture(
             vec![1i32],
             0,

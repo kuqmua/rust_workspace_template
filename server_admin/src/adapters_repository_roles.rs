@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn last_administrator_state_requires_admin_target_and_at_most_one_active_admin() {
+    fn test_last_administrator_state_requires_admin_target_and_at_most_one_active_admin() {
         let would_remove = |active_count, target_is_admin| {
             crate::last_admin_state::LastAdminState::new(
                 crate::admin_active_administrator_count::AdminActiveAdministratorCount::from(

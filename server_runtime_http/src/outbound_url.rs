@@ -10,7 +10,7 @@ mod tests {
         );
 
     #[test]
-    fn public_url_and_address_are_accepted() {
+    fn test_public_url_and_address_are_accepted() {
         let url = POLICY
             .validate(constants_str::TEST_PUBLIC_HTTPS_URL.into())
             .expect("a275c7bf public_url_and_address_are_accepted invariant must hold");
@@ -28,7 +28,7 @@ mod tests {
     }
 
     #[test]
-    fn local_literal_hostname_and_encoded_control_are_rejected() {
+    fn test_local_literal_hostname_and_encoded_control_are_rejected() {
         assert!(matches!(
             POLICY.validate(constants_str::HTTP_LOCALHOST.into()),
             Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
@@ -44,7 +44,7 @@ mod tests {
     }
 
     #[test]
-    fn non_global_special_addresses_are_rejected() {
+    fn test_non_global_special_addresses_are_rejected() {
         assert!(
             [
                 std::net::IpAddr::V4(std::net::Ipv4Addr::new(
@@ -101,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    fn allowlist_requires_exact_host_and_url_rejects_userinfo() {
+    fn test_allowlist_requires_exact_host_and_url_rejects_userinfo() {
         let allowed_host = crate::outbound_allowed_host::OutboundAllowedHost::try_from(
             String::from(constants_str::TEST_PUBLIC_HOST),
         )

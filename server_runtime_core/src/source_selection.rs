@@ -14,7 +14,7 @@ pub enum SourceSelection<'source_lt, LocalSource, RemoteSource> {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn selection_preserves_every_valid_source_combination() {
+    fn test_selection_preserves_every_valid_source_combination() {
         let local = 1u8;
         let remote = 2u8;
         assert_eq!(
@@ -35,7 +35,7 @@ mod tests {
     }
 
     #[test]
-    fn selection_rejects_missing_sources() {
+    fn test_selection_rejects_missing_sources() {
         assert_eq!(
             crate::select_sources::select_sources(None::<&u8>, None::<&u8>),
             Err(crate::source_selection_error::SourceSelectionError::Missing)

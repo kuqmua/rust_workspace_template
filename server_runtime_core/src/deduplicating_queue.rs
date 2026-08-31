@@ -50,7 +50,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn queue_deduplicates_limits_and_releases_key_after_pop() {
+    fn test_queue_deduplicates_limits_and_releases_key_after_pop() {
         let mut queue = super::DeduplicatingQueue::new(
             crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize::from(
                 std::num::NonZeroUsize::MIN,

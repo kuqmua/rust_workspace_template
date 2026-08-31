@@ -30,7 +30,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn generate_simple_syn_punct_builds_three_segment_path() {
+    fn test_generate_simple_syn_punct_builds_three_segment_path() {
         let punct = crate::generate_simple_syn_punct::generate_simple_syn_punct([
             constants_str::STD,
             constants_str::STRING_ALT,
@@ -42,13 +42,13 @@ mod tests {
         );
     }
     #[test]
-    fn generate_simple_syn_punct_builds_single_segment_path() {
+    fn test_generate_simple_syn_punct_builds_single_segment_path() {
         let punct =
             crate::generate_simple_syn_punct::generate_simple_syn_punct([constants_str::ONLY]);
         assert_eq!(quote::quote! {#punct}.to_string(), "Only");
     }
     #[test]
-    fn generate_simple_syn_punct_returns_empty_path_on_empty_input() {
+    fn test_generate_simple_syn_punct_returns_empty_path_on_empty_input() {
         let punct =
             crate::generate_simple_syn_punct::generate_simple_syn_punct(std::iter::empty::<&str>());
         assert!(punct.is_empty());

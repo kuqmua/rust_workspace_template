@@ -27,7 +27,7 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn signing_key_rejects_empty_and_oversized_values() {
+    fn test_signing_key_rejects_empty_and_oversized_values() {
         assert_eq!(
             crate::cursor_signing_key::CursorSigningKey::try_from(Vec::new()).map(drop),
             Err(crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)

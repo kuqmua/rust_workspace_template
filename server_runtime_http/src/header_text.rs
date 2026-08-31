@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn resolution_distinguishes_missing_invalid_oversized_and_valid_values() {
+    fn test_resolution_distinguishes_missing_invalid_oversized_and_valid_values() {
         let maximum = crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(5usize).expect("84792c6a resolution_distinguishes_missing_invalid_oversized_and_valid_values invariant must hold");
         let name = crate::http_header_name::HttpHeaderName::from(
             http::header::HeaderName::from_static(constants_str::TEST_X_TEST_HEADER),
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn maximum_rejects_zero() {
+    fn test_maximum_rejects_zero() {
         assert_eq!(
             crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(
                 constants_usize::ZERO

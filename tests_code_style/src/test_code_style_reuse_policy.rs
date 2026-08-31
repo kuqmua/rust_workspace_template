@@ -1,0 +1,283 @@
+#[derive(
+    generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Debug, Default,
+)]
+struct FunctionBodyComplexity {
+    expression_count: usize,
+}
+
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+struct FunctionBodyVisitor<'visitor_lt> {
+    bodies: crate::types::FunctionBodyLocationsBTreeMapMutRef<'visitor_lt>,
+    identifier_pattern: crate::types::RegexRegexRef<'visitor_lt>,
+    path: crate::types::PathRef<'visitor_lt>,
+}
+
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+struct ReviewedDuplicateGroup {
+    locations: &'static str,
+    reason: &'static str,
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FunctionBodyComplexity {
+    fn visit_expr(&mut self, i: &'ast syn::Expr) {
+        self.expression_count = self.expression_count.saturating_add(constants_usize::ONE);
+        syn::visit::visit_expr(self, i);
+    }
+}
+
+impl FunctionBodyVisitor<'_> {
+    fn record(&mut self, name: &syn::Ident, block: &syn::Block) {
+        if function_body_is_substantial(block) {
+            self.bodies
+                .entry(function_body_hash(block, self.identifier_pattern))
+                .or_default()
+                .push(format!("{}::{name}", self.path.as_ref().display()));
+        }
+    }
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FunctionBodyVisitor<'_> {
+    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+        self.record(&i.sig.ident, &i.block);
+        syn::visit::visit_impl_item_fn(self, i);
+    }
+
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if !crate::code_style::item_fn_is_unit_test(crate::types::SynItemFnRef::from(i)).get() {
+            self.record(&i.sig.ident, &i.block);
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+}
+
+fn function_body_is_substantial(block: &syn::Block) -> bool {
+    let mut complexity = FunctionBodyComplexity::default();
+    syn::visit::Visit::visit_block(&mut complexity, block);
+    complexity.expression_count >= 9usize
+}
+
+fn function_body_hash(
+    block: &syn::Block,
+    identifier_pattern: crate::types::RegexRegexRef<'_>,
+) -> crate::types::FunctionBodyHash {
+    let body = format!("{block:?}");
+    let normalized_body =
+        identifier_pattern.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
+    let mut hasher = std::hash::DefaultHasher::new();
+    std::hash::Hash::hash(&normalized_body, &mut hasher);
+    crate::types::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))
+}
+
+#[test]
+#[allow(clippy::option_if_let_else)] // matched groups update the reviewed inventory as part of branching
+fn test_substantial_function_bodies_have_one_source_of_truth() {
+    let canonicalize_locations = |locations: &str| {
+        locations
+            .lines()
+            .map(|location| {
+                let Some((path, function)) = location.rsplit_once(constants_str::PATH_SEPARATOR)
+                else {
+                    return location.to_owned();
+                };
+                let normalized_path = path
+                    .trim_start_matches(constants_str::TEXT_ALT_9)
+                    .trim_start_matches('/');
+                let immediate_owner =
+                    crate::code_style::declared_children()
+                        .iter()
+                        .find_map(|(owner, child)| {
+                            (child == normalized_path)
+                                .then_some(crate::types::SourceTextRef::from(owner.as_str()))
+                        });
+                let split_owner = immediate_owner.and_then(|candidate| {
+                    let owner_stem = candidate.get().strip_suffix(constants_str::RS_EXTENSION)?;
+                    normalized_path
+                        .strip_prefix(owner_stem)
+                        .is_some_and(|remainder| remainder.starts_with('/'))
+                        .then_some(candidate)
+                });
+                split_owner.map_or_else(
+                    || location.to_owned(),
+                    |candidate| {
+                        format!(
+                            "{}{}::{function}",
+                            constants_str::TEXT_ALT_9,
+                            candidate.get()
+                        )
+                    },
+                )
+            })
+            .collect::<Vec<String>>()
+            .join(constants_str::NEWLINE)
+    };
+    let mut bodies = crate::types::FunctionBodyLocationsBTreeMap::default();
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
+        "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
+    );
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        snapshot.rs_files().iter().for_each(|file| {
+            let mut visitor = FunctionBodyVisitor {
+                bodies: crate::types::FunctionBodyLocationsBTreeMapMutRef::from(&mut bodies),
+                identifier_pattern: crate::types::RegexRegexRef::from(&identifier_pattern),
+                path: crate::types::PathRef::from(file.path().as_ref()),
+            };
+            syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
+        });
+    });
+    let mut reviewed_groups = vec![
+        ReviewedDuplicateGroup {
+            locations: constants_str::STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS,
+            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_082A5401,
+            reason: constants_str::VALUE_61609B06,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_4FDDA503,
+            reason: constants_str::VALUE_BBB02CF4,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_4793A5FE,
+            reason: constants_str::VALUE_95569DAB,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_287FCBEB,
+            reason: constants_str::VALUE_A6A100E2,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_292E1A7F,
+            reason: constants_str::VALUE_F311E43F,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS,
+            reason: constants_str::VALUE_FE253AFB,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_599796F1,
+            reason: constants_str::VALUE_8A3C621C,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_224F7450,
+            reason: constants_str::VALUE_BD024C4B,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_11C1DCC5,
+            reason: constants_str::VALUE_D0150024,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_AE96131E,
+            reason: constants_str::VALUE_879AE029,
+        },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_51DBE253,
+            reason: constants_str::VALUE_91B4F7EC,
+        },
+    ];
+    reviewed_groups.extend(
+        constants_str::CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS
+            .into_iter()
+            .map(|locations| ReviewedDuplicateGroup {
+                locations,
+                reason: constants_str::CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON,
+            }),
+    );
+    reviewed_groups.extend(
+        constants_str::CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026
+            .into_iter()
+            .map(|locations| ReviewedDuplicateGroup {
+                locations,
+                reason: constants_str::CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026,
+            }),
+    );
+    let reviewed = reviewed_groups.into_iter().fold(
+        std::collections::BTreeMap::<String, &str>::new(),
+        |mut reviewed_map, group| {
+            assert!(
+                !group.reason.trim().is_empty(),
+                "reviewed duplicate group must explain why extraction is inappropriate: {}",
+                group.locations
+            );
+            let _previous = reviewed_map.insert(group.locations.to_owned(), group.reason);
+            reviewed_map
+        },
+    );
+    let mut matched_reviewed = std::collections::BTreeSet::<String>::new();
+    let duplicates = std::collections::BTreeMap::<
+        crate::types::FunctionBodyHash,
+        crate::types::SourceTextList,
+    >::from(bodies)
+    .into_values()
+    .filter(|locations| locations.len() > constants_usize::ONE)
+    .filter_map(|mut locations| {
+        locations.sort_unstable();
+        let location_signature = locations.join(constants_str::NEWLINE);
+        let canonical = canonicalize_locations(location_signature.as_str());
+        let actual_lines = canonical
+            .lines()
+            .collect::<std::collections::BTreeSet<&str>>();
+        let reviewed_match = reviewed.keys().find(|reviewed_locations| {
+            let reviewed_lines = reviewed_locations
+                .lines()
+                .collect::<std::collections::BTreeSet<&str>>();
+            actual_lines.is_subset(&reviewed_lines)
+        });
+        if let Some(reviewed_locations) = reviewed_match {
+            let _inserted = matched_reviewed.insert(reviewed_locations.clone());
+            None
+        } else {
+            Some(location_signature)
+        }
+    })
+    .collect::<Vec<String>>();
+    let stale_reviewed = reviewed
+        .keys()
+        .filter(|locations| !matched_reviewed.contains(*locations))
+        .collect::<Vec<&String>>();
+    assert!(
+        stale_reviewed.is_empty(),
+        "8f3c1a72 stale duplicate-function exceptions: {stale_reviewed:#?}"
+    );
+    assert!(
+        duplicates.is_empty(),
+        "substantial duplicate function bodies found; extract one source of truth:\n{}",
+        duplicates.join("\n\n")
+    );
+}
+
+#[test]
+fn test_function_body_similarity_ignores_identifier_names() {
+    let first = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_55C24F35)
+        .expect("ca632fad first invariant must hold");
+    let second = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_A4EA5826)
+        .expect("b608f7e1 second invariant must hold");
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
+        .expect("9658f225 second invariant must hold");
+    let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
+    assert_eq!(
+        function_body_hash(&first.block, identifier_pattern_ref),
+        function_body_hash(&second.block, identifier_pattern_ref)
+    );
+}
+
+#[test]
+fn test_function_body_similarity_preserves_behavioral_structure() {
+    let addition = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_F3BCDB38)
+        .expect("cb1d077f value invariant must hold");
+    let subtraction = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_B28E8E9F)
+        .expect("ae9313cb value invariant must hold");
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
+        .expect("fdf7075b value invariant must hold");
+    let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
+    assert_ne!(
+        function_body_hash(&addition.block, identifier_pattern_ref),
+        function_body_hash(&subtraction.block, identifier_pattern_ref)
+    );
+}
+
+#[test]
+fn test_short_mechanical_adapters_are_not_substantial() {
+    let adapter = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_EC742D93)
+        .expect("9dc062d1 value invariant must hold");
+    assert!(!function_body_is_substantial(&adapter.block));
+}

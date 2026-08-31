@@ -16,9 +16,9 @@ impl PaginationPolicy {
 }
 
 #[cfg(test)]
-mod policy_tests {
+mod test_policy_tests {
     #[test]
-    fn default_limit_is_owned_by_typed_policy() {
+    fn test_default_limit_is_owned_by_typed_policy() {
         assert_eq!(
             crate::pagination_policy::PaginationPolicy::standard()
                 .default_limit()

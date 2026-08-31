@@ -118,7 +118,7 @@ impl From<&HttpErrorDiagnostic> for crate::http_error_telemetry::HttpErrorTeleme
 #[cfg(test)]
 mod tests {
     #[test]
-    fn fallback_diagnostic_keeps_telemetry() {
+    fn test_fallback_diagnostic_keeps_telemetry() {
         let telemetry = crate::http_error_telemetry::HttpErrorTelemetry::new(
             crate::http_error_type::HttpErrorType::from(constants_str::VALUE_AF7C24A2),
             crate::http_error_code::HttpErrorCode::from(constants_str::VALUE_CF4DCEBB),

@@ -32,7 +32,7 @@ impl GenerationGate {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn only_latest_generation_can_commit() {
+    fn test_only_latest_generation_can_commit() {
         let gate = super::GenerationGate::default();
         let first = gate.begin();
         let second = gate.begin();

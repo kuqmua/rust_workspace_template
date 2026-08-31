@@ -12,7 +12,7 @@ pub fn wrap_derive(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn derive_wrapper_preserves_order_and_empty_input() {
+    fn test_derive_wrapper_preserves_order_and_empty_input() {
         let derives = [quote::quote!(Debug), quote::quote!(Clone)];
         let derive_refs = [&derives[0], &derives[1]];
         let actual = crate::wrap_derive::wrap_derive(

@@ -141,7 +141,7 @@ impl pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneEleme
 #[cfg(test)]
 mod tests {
     #[test]
-    fn pagination_starts_with_one_accepts_inclusive_boundaries() {
+    fn test_pagination_starts_with_one_accepts_inclusive_boundaries() {
         let pagination = super::PaginationStartsWithOne::try_new(2i64, constants_i64::ONE).expect(
             "007c805e pagination_starts_with_one_accepts_inclusive_boundaries invariant must hold",
         );
@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[test]
-    fn pagination_starts_with_one_distinguishes_validation_errors() {
+    fn test_pagination_starts_with_one_distinguishes_validation_errors() {
         assert!(matches!(
             super::PaginationStartsWithOne::try_new(constants_i64::ZERO, constants_i64::ONE),
             Err(crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero { .. })
@@ -166,7 +166,7 @@ mod tests {
     }
 
     #[test]
-    fn pagination_defaults_start_at_one_and_use_the_expected_limits() {
+    fn test_pagination_defaults_start_at_one_and_use_the_expected_limits() {
         let standard =
             <super::PaginationStartsWithOne as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element();
         assert_eq!(standard.start().get(), constants_i64::ONE);

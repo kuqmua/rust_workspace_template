@@ -12,7 +12,7 @@ pub const fn validate_operation_budget(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn operation_count_must_not_exceed_budget() {
+    fn test_operation_count_must_not_exceed_budget() {
         assert_eq!(
             crate::validate_operation_budget::validate_operation_budget(
                 10usize.into(),

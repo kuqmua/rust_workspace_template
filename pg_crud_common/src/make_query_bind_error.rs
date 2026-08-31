@@ -11,7 +11,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn query_bind_error_preserves_its_source() {
+    fn test_query_bind_error_preserves_its_source() {
         let error = crate::make_query_bind_error::make_query_bind_error(std::io::Error::other(
             constants_str::ERROR,
         ));

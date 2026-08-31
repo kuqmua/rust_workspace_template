@@ -71,13 +71,13 @@ pub mod not_found_payload;
 pub mod open_api_specification_path;
 pub mod readiness_report;
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;
 #[cfg(test)]
-pub mod tests_domain_types;
+pub mod test_tests_domain_types;
 #[cfg(test)]
-pub mod tests_domain_types_health;
+pub mod test_tests_domain_types_health;
 #[cfg(test)]
-pub mod tests_domain_types_route_contract;
+pub mod test_tests_domain_types_route_contract;
 #[cfg(test)]
 pub mod uri_suffix_ref;
 #[cfg(test)]

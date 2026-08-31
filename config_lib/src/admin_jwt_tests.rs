@@ -5,7 +5,7 @@ mod tests {
         miri,
         ignore = "Miri interpretation is prohibitively slow when zeroizing the intentional oversized allocation"
     )]
-    fn secret_box_string_rejects_values_above_shared_limit() {
+    fn test_secret_box_string_rejects_values_above_shared_limit() {
         let value = constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(
             crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN
                 .saturating_add(constants_usize::ONE),
@@ -17,7 +17,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_primary_and_verification_secrets() {
+    fn test_parses_primary_and_verification_secrets() {
         let first = constants_str::TEST_JWT_SECRET_CHARACTER_A
             .repeat(crate::admin_jwt_secret_min_len::ADMIN_JWT_SECRET_MIN_LEN);
         let second = constants_str::TEST_JWT_SECRET_CHARACTER_B
@@ -37,7 +37,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_empty_effective_secret_list() {
+    fn test_rejects_empty_effective_secret_list() {
         let result = <crate::admin_jwt_secret::AdminJwtSecret as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::TEST_EMPTY_DELIMITED_LIST))
                 .expect("86c514b2 rejects_empty_effective_secret_list invariant must hold"),
@@ -49,7 +49,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_empty_secret_between_rotation_keys() {
+    fn test_rejects_empty_secret_between_rotation_keys() {
         let secret = constants_str::TEST_JWT_SECRET_CHARACTER_A
             .repeat(crate::admin_jwt_secret_min_len::ADMIN_JWT_SECRET_MIN_LEN);
         let result = <crate::admin_jwt_secret::AdminJwtSecret as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(

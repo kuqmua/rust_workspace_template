@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn stable_plan_appends_tie_break_limit_and_offset() {
+    fn test_stable_plan_appends_tie_break_limit_and_offset() {
         let plan = crate::build_stable_read_query_plan::build_stable_read_query_plan(
             crate::query_part_fragment::QueryPartFragment::try_from(String::from(
                 constants_str::TEST_READ_QUERY_BASE,

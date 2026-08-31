@@ -194,13 +194,13 @@ impl<T1> NotEmptyUniqueVec<T1> {
     }
 }
 #[cfg(test)]
-mod tests_not_empty_unique_vec {
+mod test_tests_not_empty_unique_vec {
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, newtype::FromInner,
     )]
     struct NonClone(u8);
     #[test]
-    fn not_empty_unique_vec_try_new_supports_non_clone_values() {
+    fn test_not_empty_unique_vec_try_new_supports_non_clone_values() {
         let error = crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(
             vec![NonClone(1), NonClone(2), NonClone(1)].into(),
         )
@@ -216,7 +216,7 @@ mod tests_not_empty_unique_vec {
         }
     }
     #[test]
-    fn not_empty_unique_vec_rejects_oversized_and_deserialized_empty_values() {
+    fn test_not_empty_unique_vec_rejects_oversized_and_deserialized_empty_values() {
         let oversized = (constants_usize::ZERO
             ..=crate::not_empty_unique_vec_max_len::NOT_EMPTY_UNIQUE_VEC_MAX_LEN)
             .collect::<Vec<_>>();
@@ -232,7 +232,7 @@ mod tests_not_empty_unique_vec {
         .expect_err(constants_str::VALUE_7C1A5E41);
     }
     #[test]
-    fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {
+    fn test_not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {
         let error =
             crate::not_empty_unique_vec::NotEmptyUniqueVec::<u8>::try_new(Vec::new().into())
                 .expect_err(constants_str::VALUE_3B41DE7F);
@@ -242,17 +242,17 @@ mod tests_not_empty_unique_vec {
         ));
     }
     #[test]
-    fn fst_dup_idx_returns_none_for_unique_input() {
+    fn test_fst_dup_idx_returns_none_for_unique_input() {
         let values = vec![1u8, 2u8, 3u8];
         assert!(crate::first_duplicate_index::first_duplicate_index(&values).is_none());
     }
     #[test]
-    fn fst_dup_idx_returns_none_for_empty_and_single_input() {
+    fn test_fst_dup_idx_returns_none_for_empty_and_single_input() {
         assert!(crate::first_duplicate_index::first_duplicate_index::<u8>(&[]).is_none());
         assert!(crate::first_duplicate_index::first_duplicate_index(&[1u8]).is_none());
     }
     #[test]
-    fn fst_dup_idx_returns_fst_repeated_value_idx() {
+    fn test_fst_dup_idx_returns_fst_repeated_value_idx() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
         assert_eq!(
             crate::first_duplicate_index::first_duplicate_index(&values),
@@ -260,7 +260,7 @@ mod tests_not_empty_unique_vec {
         );
     }
     #[test]
-    fn fst_dup_idx_by_hash_returns_fst_repeated_value_idx() {
+    fn test_fst_dup_idx_by_hash_returns_fst_repeated_value_idx() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
         assert_eq!(
             crate::first_duplicate_index_by_hash::first_duplicate_index_by_hash(&values),
@@ -268,7 +268,7 @@ mod tests_not_empty_unique_vec {
         );
     }
     #[test]
-    fn fst_dup_idx_by_hash_returns_none_for_empty_and_single_input() {
+    fn test_fst_dup_idx_by_hash_returns_none_for_empty_and_single_input() {
         assert!(
             crate::first_duplicate_index_by_hash::first_duplicate_index_by_hash::<u8>(&[])
                 .is_none()
@@ -278,7 +278,7 @@ mod tests_not_empty_unique_vec {
         );
     }
     #[test]
-    fn take_fst_dup_returns_none_for_unique_input() {
+    fn test_take_fst_dup_returns_none_for_unique_input() {
         let mut values =
             crate::duplicate_candidates::DuplicateCandidates::from(vec![1u8, 2u8, 3u8]);
         let actual = crate::take_fst_dup::take_fst_dup(&mut values);
@@ -286,7 +286,7 @@ mod tests_not_empty_unique_vec {
         assert_eq!(Vec::from(values), vec![1u8, 2u8, 3u8]);
     }
     #[test]
-    fn take_fst_dup_returns_first_duplicate_value() {
+    fn test_take_fst_dup_returns_first_duplicate_value() {
         let mut values =
             crate::duplicate_candidates::DuplicateCandidates::from(vec![7u8, 8u8, 8u8, 7u8]);
         let actual = crate::take_fst_dup::take_fst_dup(&mut values);
@@ -294,7 +294,7 @@ mod tests_not_empty_unique_vec {
         assert_eq!(Vec::from(values).len(), 3usize);
     }
     #[test]
-    fn take_fst_dup_by_hash_returns_first_duplicate_value() {
+    fn test_take_fst_dup_by_hash_returns_first_duplicate_value() {
         let mut values =
             crate::duplicate_candidates::DuplicateCandidates::from(vec![7u8, 8u8, 8u8, 7u8]);
         let actual = crate::take_fst_dup_by_hash::take_fst_dup_by_hash(&mut values);
@@ -302,7 +302,7 @@ mod tests_not_empty_unique_vec {
         assert_eq!(Vec::from(values).len(), 3usize);
     }
     #[test]
-    fn not_empty_unique_vec_try_new_by_hash_returns_not_unique() {
+    fn test_not_empty_unique_vec_try_new_by_hash_returns_not_unique() {
         let error = crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new_by_hash(
             vec![1u8, 2u8, 1u8].into(),
         )
@@ -316,7 +316,7 @@ mod tests_not_empty_unique_vec {
         ));
     }
     #[test]
-    fn as_slice_matches_to_vec_view() {
+    fn test_as_slice_matches_to_vec_view() {
         let values =
             crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(vec![1u8, 2u8, 3u8].into())
                 .expect("3f6e8a12 as_slice_matches_to_vec_view invariant must hold");

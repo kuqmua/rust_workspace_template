@@ -17,7 +17,7 @@ pub(crate) fn panic_with_location_message(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn panic_with_location_message_is_formatted_as_expected() {
+    fn test_panic_with_location_message_is_formatted_as_expected() {
         assert_eq!(
             crate::panic_with_location_message::panic_with_location_message(
                 crate::panic_file::PanicFile::from("src/lib.rs"),

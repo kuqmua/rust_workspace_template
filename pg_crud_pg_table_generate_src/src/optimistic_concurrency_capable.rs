@@ -24,7 +24,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn returns_optimistic_concurrency_capability() {
+    fn test_returns_optimistic_concurrency_capability() {
         let dsc = crate::operation_dsc::OperationDsc::new((), false, (), (), true, (), ());
         assert!(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&dsc));
     }

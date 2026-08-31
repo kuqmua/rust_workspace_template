@@ -27,7 +27,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn ordering_classification_distinguishes_all_shapes() {
+    fn test_ordering_classification_distinguishes_all_shapes() {
         assert_eq!(
             crate::classify_slice_ordering::classify_slice_ordering(&[1u8, 2u8, 3u8]),
             crate::slice_ordering::SliceOrdering::StrictlyIncreasing

@@ -7,7 +7,7 @@ mod tests {
         ]
     }
     #[test]
-    fn macro_attr_ignores_spaces_in_lookup_path() {
+    fn test_macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
         let attr = crate::try_get_macro_attribute::try_get_macro_attribute(
             &attrs,
@@ -21,21 +21,21 @@ mod tests {
         );
     }
     #[test]
-    fn macro_attr_meta_list_token_stream_returns_list_tokens() {
+    fn test_macro_attr_meta_list_token_stream_returns_list_tokens() {
         let attrs = attrs();
         let ts = crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::SERDE)
             .expect("647b0c3e get_macro_attr_meta_list_token_stream_returns_list_tokens invariant must hold");
         assert_eq!(ts.to_string(), "default");
     }
     #[test]
-    fn find_macro_attr_returns_none_when_path_not_present() {
+    fn test_find_macro_attr_returns_none_when_path_not_present() {
         let attrs = attrs();
         assert!(
             crate::find_macro_attribute::find_macro_attribute(&attrs, "missing::attr").is_none()
         );
     }
     #[test]
-    fn try_get_macro_attr_returns_error_when_attr_not_found() {
+    fn test_try_get_macro_attr_returns_error_when_attr_not_found() {
         let attrs = attrs();
         assert_eq!(
             crate::try_get_macro_attribute::try_get_macro_attribute(&attrs, "missing::attr"),
@@ -43,7 +43,7 @@ mod tests {
         );
     }
     #[test]
-    fn try_get_macro_attr_meta_list_token_stream_returns_error_for_non_list_attr() {
+    fn test_try_get_macro_attr_meta_list_token_stream_returns_error_for_non_list_attr() {
         let attrs = vec![syn::parse_quote!(#[allow])];
         assert!(matches!(
             crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, "allow"),
@@ -51,7 +51,7 @@ mod tests {
         ));
     }
     #[test]
-    fn find_macro_attr_ignores_spaces_in_lookup_path() {
+    fn test_find_macro_attr_ignores_spaces_in_lookup_path() {
         let attrs = attrs();
         let attr = crate::find_macro_attribute::find_macro_attribute(
             &attrs,
@@ -60,7 +60,7 @@ mod tests {
         assert!(attr.is_some());
     }
     #[test]
-    fn find_macro_attr_accepts_leading_colons_in_lookup_path() {
+    fn test_find_macro_attr_accepts_leading_colons_in_lookup_path() {
         let attrs = attrs();
         let attr = crate::find_macro_attribute::find_macro_attribute(
             &attrs,
@@ -69,13 +69,13 @@ mod tests {
         assert!(attr.is_some());
     }
     #[test]
-    fn find_macro_attr_returns_none_for_empty_lookup_path() {
+    fn test_find_macro_attr_returns_none_for_empty_lookup_path() {
         let attrs = attrs();
         let attr = crate::find_macro_attribute::find_macro_attribute(&attrs, constants_str::PATH);
         assert!(attr.is_none());
     }
     #[test]
-    fn find_macro_attr_ignores_empty_segments_between_path_separators() {
+    fn test_find_macro_attr_ignores_empty_segments_between_path_separators() {
         let attrs = attrs();
         let attr = crate::find_macro_attribute::find_macro_attribute(
             &attrs,
@@ -84,7 +84,7 @@ mod tests {
         assert!(attr.is_some());
     }
     #[test]
-    fn find_macro_attr_returns_none_for_partial_path_match() {
+    fn test_find_macro_attr_returns_none_for_partial_path_match() {
         let attrs = attrs();
         let attr = crate::find_macro_attribute::find_macro_attribute(&attrs, constants_str::SQLX);
         assert!(attr.is_none());

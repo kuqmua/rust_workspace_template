@@ -69,7 +69,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialization_distinguishes_omitted_null_and_value() {
+    fn test_deserialization_distinguishes_omitted_null_and_value() {
         assert_eq!(
             serde_json::from_str::<Patch>("{}").expect(
                 "d3e7aa4a deserialization_distinguishes_omitted_null_and_value invariant must hold"
@@ -97,7 +97,7 @@ mod tests {
     }
 
     #[test]
-    fn serialization_preserves_null_and_value_wire_shapes() {
+    fn test_serialization_preserves_null_and_value_wire_shapes() {
         assert_eq!(
             serde_json::to_string(&Patch {
                 value: crate::patch_field::PatchField::<String>::Null,

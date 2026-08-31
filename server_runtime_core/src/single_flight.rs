@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn one_owner_notifies_waiters_and_releases_key() {
+    async fn test_one_owner_notifies_waiters_and_releases_key() {
         let flights = super::SingleFlight::new(
             crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize::from(
                 std::num::NonZeroUsize::MIN,

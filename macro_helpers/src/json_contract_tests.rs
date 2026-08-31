@@ -59,7 +59,7 @@ mod tests {
         }
     }
     #[test]
-    fn round_trip_and_fixture_error_phases_are_stable() {
+    fn test_round_trip_and_fixture_error_phases_are_stable() {
         crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<TestValue>(
             crate::json_fixture_ref::JsonFixtureRef::from(constants_str::VALUE_1_ALT),
         )
@@ -72,7 +72,7 @@ mod tests {
         ));
     }
     #[test]
-    fn serialization_error_phase_is_stable() {
+    fn test_serialization_error_phase_is_stable() {
         assert!(matches!(
             crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<SerializeFails>(
                 crate::json_fixture_ref::JsonFixtureRef::from("null")
@@ -81,7 +81,7 @@ mod tests {
         ));
     }
     #[test]
-    fn round_trip_deserialization_error_phase_is_stable() {
+    fn test_round_trip_deserialization_error_phase_is_stable() {
         assert!(matches!(
             crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<ReparseFails>(
                 crate::json_fixture_ref::JsonFixtureRef::from("1")

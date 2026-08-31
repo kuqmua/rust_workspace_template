@@ -115,7 +115,7 @@ mod tests {
         crate::geo_json_document_text::GeoJsonDocumentText::try_from(value.to_string())
     }
     #[test]
-    fn document_validation_distinguishes_text_shape_type_and_size_errors() {
+    fn test_document_validation_distinguishes_text_shape_type_and_size_errors() {
         assert!(matches!(
             crate::geo_json_document_text::GeoJsonDocumentText::try_from(String::from(
                 constants_str::TEST_INVALID_JSON
@@ -140,7 +140,7 @@ mod tests {
         ));
     }
     #[test]
-    fn feature_and_geometry_collections_validate_children_recursively() {
+    fn test_feature_and_geometry_collections_validate_children_recursively() {
         let properties = constants_str::PROPERTIES;
         let feature = serde_json::json!({
             constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE,
@@ -170,7 +170,7 @@ mod tests {
         let _geometry_collection = document(&geometry_collection).expect("ba7f5e93 feature_and_geometry_collections_validate_children_recursively invariant must hold");
     }
     #[test]
-    fn coordinate_collections_reject_empty_levels() {
+    fn test_coordinate_collections_reject_empty_levels() {
         let line = serde_json::json!({
             constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_LINE_STRING,
             constants_str::GEO_JSON_COORDINATES: []
@@ -197,7 +197,7 @@ mod tests {
         ));
     }
     #[test]
-    fn point_coordinates_are_range_checked() {
+    fn test_point_coordinates_are_range_checked() {
         let _document = crate::geo_json_document_text::GeoJsonDocumentText::try_from(String::from(
             constants_str::TEST_GEO_JSON_POINT,
         ))

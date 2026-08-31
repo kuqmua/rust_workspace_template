@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn content_disposition_sanitizes_and_encodes_file_name() {
+    fn test_content_disposition_sanitizes_and_encodes_file_name() {
         let value =
             crate::build_attachment_content_disposition::build_attachment_content_disposition(
                 crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef::from(
@@ -21,7 +21,7 @@ mod tests {
     }
 
     #[test]
-    fn content_length_accepts_u64_maximum() {
+    fn test_content_length_accepts_u64_maximum() {
         let value = crate::http_content_length::HttpContentLength::try_from(
             constants_str::TEST_U64_MAXIMUM_TEXT.to_owned(),
         )

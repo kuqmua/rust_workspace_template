@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[tokio::test]
-    async fn apply_executes_the_prebuilt_plan() {
+    async fn test_apply_executes_the_prebuilt_plan() {
         let report = crate::execute_plan::execute_plan(
             crate::execution_mode::ExecutionMode::Apply,
             4u8,
@@ -15,7 +15,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn dry_run_returns_plan_without_calling_mutation() {
+    async fn test_dry_run_returns_plan_without_calling_mutation() {
         let called = std::sync::atomic::AtomicBool::new(false);
         let report = crate::execute_plan::execute_plan(
             crate::execution_mode::ExecutionMode::DryRun,
@@ -34,7 +34,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn apply_propagates_mutation_error() {
+    async fn test_apply_propagates_mutation_error() {
         let error = constants_str::VALUE_E5B04B63;
         let report = crate::execute_plan::execute_plan(
             crate::execution_mode::ExecutionMode::Apply,

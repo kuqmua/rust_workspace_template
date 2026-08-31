@@ -293,7 +293,7 @@ impl std::fmt::Debug for crate::std_admin_access_token::StdAdminAccessToken {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn opaque_token_debug_is_redacted() {
+    fn test_opaque_token_debug_is_redacted() {
         let token = crate::admin_opaque_token::AdminOpaqueToken::new(
             server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(
                 constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),

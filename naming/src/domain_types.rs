@@ -478,7 +478,7 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
 #[cfg(test)]
 mod tests {
     #[test]
-    fn generated_static_names_preserve_both_cases_and_tokens() {
+    fn test_generated_static_names_preserve_both_cases_and_tokens() {
         assert_eq!(
             crate::domain_types::PrimaryKeyUpperCamelCase.to_string(),
             "PrimaryKey"
@@ -502,7 +502,7 @@ mod tests {
     }
 
     #[test]
-    fn parameterized_names_preserve_display_token_and_type_path_context() {
+    fn test_parameterized_names_preserve_display_token_and_type_path_context() {
         let display = crate::parameter::SelfPayloadUpperCamelCase::from_display(
             &constants_str::VALUE_BCB2F337,
         );
@@ -520,7 +520,7 @@ mod tests {
     }
 
     #[test]
-    fn swagger_path_helpers_quote_snake_case_paths() {
+    fn test_swagger_path_helpers_quote_snake_case_paths() {
         let name = String::from(constants_str::VALUE_DECD817E);
         let path = crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
             &name,

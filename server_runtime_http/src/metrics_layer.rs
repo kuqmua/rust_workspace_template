@@ -19,7 +19,7 @@ mod tests {
     }
 
     #[test]
-    fn metrics_response_body_is_bounded() {
+    fn test_metrics_response_body_is_bounded() {
         let _empty_body =
             crate::metrics_response_body::MetricsResponseBody::try_from(String::new())
                 .expect("52410ad9 metrics_response_body_is_bounded invariant must hold");
@@ -39,7 +39,7 @@ mod tests {
     }
 
     #[test]
-    fn cache_configuration_and_path_text_validate_boundaries() {
+    fn test_cache_configuration_and_path_text_validate_boundaries() {
         assert_eq!(
             crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::try_from(constants_usize::ZERO),
             Err(crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError::Zero)
@@ -61,7 +61,7 @@ mod tests {
     }
 
     #[test]
-    fn cache_is_bounded_and_reuses_labels() {
+    fn test_cache_is_bounded_and_reuses_labels() {
         let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::from(
             crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::from(
                 std::num::NonZeroUsize::MIN,
@@ -100,7 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn invalid_path_does_not_consume_cache_capacity() {
+    fn test_invalid_path_does_not_consume_cache_capacity() {
         let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::from(
             crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::from(
                 std::num::NonZeroUsize::MIN,
@@ -129,7 +129,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn layer_supports_every_standard_and_custom_http_method() {
+    async fn test_layer_supports_every_standard_and_custom_http_method() {
         let router = axum::Router::from(
             crate::http_metrics_layer::HttpMetricsLayer::default().apply(
                 crate::axum_router::AxumRouter::from(axum::Router::new().route(

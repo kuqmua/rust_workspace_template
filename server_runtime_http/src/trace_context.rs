@@ -5,7 +5,7 @@ mod tests {
         miri,
         ignore = "native TLS initialization calls OpenSSL functions that Miri does not support"
     )]
-    fn validates_and_applies_w3c_trace_context() {
+    fn test_validates_and_applies_w3c_trace_context() {
         let trace_parent = crate::http_trace_parent::HttpTraceParent::try_from(
             constants_str::TRACEPARENT_TEST_VALUE.to_owned(),
         )
@@ -56,7 +56,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_zero_identifiers() {
+    fn test_rejects_zero_identifiers() {
         assert_eq!(
             crate::http_trace_parent::HttpTraceParent::try_from(
                 constants_str::TRACEPARENT_ZERO_TRACE_ID_TEST_VALUE.to_owned(),
@@ -66,7 +66,7 @@ mod tests {
     }
 
     #[test]
-    fn extracts_valid_w3c_parent_context() {
+    fn test_extracts_valid_w3c_parent_context() {
         opentelemetry::global::set_text_map_propagator(
             opentelemetry_sdk::propagation::TraceContextPropagator::new(),
         );
@@ -90,7 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn injects_w3c_context() {
+    fn test_injects_w3c_context() {
         opentelemetry::global::set_text_map_propagator(
             opentelemetry_sdk::propagation::TraceContextPropagator::new(),
         );

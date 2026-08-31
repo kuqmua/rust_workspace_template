@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn builds_one_migration_command_per_database() {
+    fn test_builds_one_migration_command_per_database() {
         let url =
             crate::database_url::DatabaseUrl::try_from(constants_str::TEST_DATABASE_URL.to_owned());
         let source = crate::migrations_source::MigrationsSource::try_from(
@@ -28,7 +28,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_empty_database_url() {
+    fn test_rejects_empty_database_url() {
         assert_eq!(
             crate::database_url::DatabaseUrl::try_from(String::new()),
             Err(crate::database_url_error::DatabaseUrlError::Empty)

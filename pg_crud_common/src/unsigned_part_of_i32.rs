@@ -83,7 +83,7 @@ impl crate::default_some_one_element::DefaultSomeOneElement for UnsignedPartOfI3
 #[cfg(test)]
 mod tests {
     #[test]
-    fn unsigned_database_value_rejects_negative_input() {
+    fn test_unsigned_database_value_rejects_negative_input() {
         assert!(matches!(
             crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(-1i32),
             Err(crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error::LessThanZero { .. })

@@ -88,7 +88,7 @@ impl QueryPartFragment {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn write_does_not_grow_fragment_above_limit() {
+    fn test_write_does_not_grow_fragment_above_limit() {
         let mut fragment = crate::query_part_fragment::QueryPartFragment::try_from(
             constants_str::X
                 .repeat(crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN),

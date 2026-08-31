@@ -36,7 +36,7 @@ impl CursorPaginationUsage {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn pagination_usage_distinguishes_cursor_and_offset() {
+    fn test_pagination_usage_distinguishes_cursor_and_offset() {
         assert_eq!(
             crate::cursor_pagination_usage::CursorPaginationUsage::from_presence(
                 crate::offset_pagination_presence::OffsetPaginationPresence::Present,

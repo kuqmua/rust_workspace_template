@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn content_security_policy_rejects_header_injection() {
+    fn test_content_security_policy_rejects_header_injection() {
         let _error = crate::http_content_security_policy::HttpContentSecurityPolicy::try_from(
             constants_str::VALUE_0E50D890.to_owned(),
         )

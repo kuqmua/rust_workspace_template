@@ -5,7 +5,7 @@
 mod tests {
     #[test]
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-    fn env_example_matches_generated_config_descriptor_and_parsers() {
+    fn test_env_example_matches_generated_config_descriptor_and_parsers() {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(constants_str::SERVER_DOT_ENV_EXAMPLE);
         if std::env::var_os(constants_str::UPDATE_CONFIG_PROJECTIONS).is_some() {

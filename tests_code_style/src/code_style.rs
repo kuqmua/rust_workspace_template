@@ -520,13 +520,13 @@ pub(crate) fn macro_rules_ers(
 ) -> crate::types::DiagnosticMsgs {
     let forbidden = format!("{}!", constants_str::MACRO_RULES);
     if source.as_ref().contains(forbidden.as_str()) {
-        vec![format!(
-            "{}: {}",
-            path.as_ref().display(),
+        let mut error = path.as_ref().display().to_string();
+        error.push_str(constants_str::PATH_ERROR_SEPARATOR);
+        error.push_str(
             constants_str::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD
-                .trim_end_matches(':')
-        )]
-        .into()
+                .trim_end_matches(':'),
+        );
+        vec![error].into()
     } else {
         crate::types::DiagnosticMsgs::default()
     }
@@ -681,14 +681,18 @@ pub(crate) fn assert_rs_ast_ers_empty_with_ctx(
     );
 }
 pub(crate) fn read_toml_table(path: crate::types::PathRef<'_>) -> Option<crate::types::TomlTable> {
-    crate::code_style_snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
+    crate::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        snapshot.read_toml_table(path)
+    })
 }
 
 #[allow(clippy::single_call_fn)] // several policies share the cached manifest lookup through this root facade
 pub(crate) fn cargo_toml_content(
     path: crate::types::PathRef<'_>,
 ) -> Option<crate::types::SourceText> {
-    crate::code_style_snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
+    crate::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        snapshot.cargo_toml_content(path)
+    })
 }
 pub(crate) fn push_repeated_file_error(
     mut ers: crate::types::DiagnosticMsgsMutRef<'_>,
@@ -702,13 +706,13 @@ pub(crate) fn push_repeated_file_error(
     );
 }
 pub(crate) fn workspace_crate_names() -> crate::types::SourceTextBTreeSet {
-    crate::code_style_snapshot::with_codebase_snapshot(
-        crate::code_style_snapshot::CodebaseSnapshot::workspace_crate_names,
+    crate::test_code_style_snapshot::with_codebase_snapshot(
+        crate::test_code_style_snapshot::CodebaseSnapshot::workspace_crate_names,
     )
 }
 
 pub(crate) fn for_each_crate_manifest_file(on_file: impl FnMut(&std::path::Path)) {
-    crate::code_style_snapshot::with_codebase_snapshot(|snapshot| {
+    crate::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.crate_manifest_paths().for_each(on_file);
     });
 }
@@ -1693,8 +1697,10 @@ pub(crate) fn attr_is_test_only_cfg(
     }));
     crate::types::AnalyzerBool::from(is_test_only_cfg)
 }
-pub(crate) fn for_each_rs_file(mut on_file: impl FnMut(&crate::code_style_snapshot::RsSourceFile)) {
-    crate::code_style_snapshot::with_codebase_snapshot(|snapshot| {
+pub(crate) fn for_each_rs_file(
+    mut on_file: impl FnMut(&crate::test_code_style_snapshot::RsSourceFile),
+) {
+    crate::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(&mut on_file);
     });
 }

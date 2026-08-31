@@ -46,7 +46,7 @@ mod tests {
         }
     }
     #[test]
-    fn matching_request_response_and_metadata_share_one_route_contract() {
+    fn test_matching_request_response_and_metadata_share_one_route_contract() {
         let request = crate::client_request::client_request::<Route>(Request::from(1u64));
         let response = crate::server_response::server_response::<Route>(Response::from(2u64));
         assert_eq!(request.body(), &Request(1u64));

@@ -2,7 +2,7 @@
 mod tests {
     #[test]
     #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
-    fn representative_statuses_cover_every_error_class() {
+    fn test_representative_statuses_cover_every_error_class() {
         [
             (
                 http::StatusCode::OK,

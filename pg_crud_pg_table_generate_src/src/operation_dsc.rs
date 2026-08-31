@@ -24,7 +24,7 @@ pub(crate) struct OperationDsc<
 #[cfg(test)]
 mod tests {
     #[test]
-    fn operation_descriptor_keeps_transport_permission_and_capabilities_together() {
+    fn test_operation_descriptor_keeps_transport_permission_and_capabilities_together() {
         let spec = crate::operation_dsc::OperationDsc::new(
             constants_str::PATCH,
             true,

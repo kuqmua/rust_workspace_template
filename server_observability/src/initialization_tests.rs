@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn empty_guard_shutdown_is_idempotent_and_service_name_displays() {
+    fn test_empty_guard_shutdown_is_idempotent_and_service_name_displays() {
         let guard = crate::observability_guard::ObservabilityGuard::from(None);
         guard.shutdown().expect("599ca192 empty_guard_shutdown_is_idempotent_and_service_name_displays invariant must hold");
         assert_eq!(
@@ -10,7 +10,7 @@ mod tests {
         );
     }
     #[test]
-    fn guard_shuts_down_owned_tracer_provider() {
+    fn test_guard_shuts_down_owned_tracer_provider() {
         let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
         let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
             .with_simple_exporter(exporter.clone())
@@ -26,7 +26,7 @@ mod tests {
         assert!(exporter.is_shutdown_called());
     }
     #[test]
-    fn dropping_guard_shuts_down_owned_tracer_provider() {
+    fn test_dropping_guard_shuts_down_owned_tracer_provider() {
         let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
         let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
             .with_simple_exporter(exporter.clone())

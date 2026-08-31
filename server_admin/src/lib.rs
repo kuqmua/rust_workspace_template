@@ -14,8 +14,6 @@ pub mod account_me;
 pub mod account_me_context_view_ref;
 pub mod action_result_impl;
 pub mod adapters_repository_data_tables;
-#[cfg(test)]
-pub mod adapters_repository_data_tables_tests;
 pub mod adapters_repository_roles;
 pub mod admin_access_claims;
 pub mod admin_access_token_error;
@@ -145,11 +143,7 @@ pub mod application_html_actions_settings;
 pub mod application_html_actions_users;
 pub mod application_html_forms;
 pub mod application_html_pages;
-#[cfg(test)]
-pub mod application_html_tests;
 pub mod application_roles;
-#[cfg(test)]
-pub mod application_tests;
 #[cfg(test)]
 pub mod application_tests_helper;
 pub mod application_users;
@@ -215,8 +209,6 @@ pub mod decode_access_token;
 pub mod delete_confirmed_entity;
 pub mod delete_role;
 pub mod delete_user;
-#[cfg(test)]
-pub mod domain_types_generated_tables_tests;
 pub mod encode_access_token;
 pub mod enforce_rate_limit;
 pub mod extractors;
@@ -339,9 +331,17 @@ pub mod std_admin_refresh_ttl_seconds;
 pub mod std_admin_session_limit;
 pub mod success_redirect_impl;
 #[cfg(test)]
-pub mod tests;
+pub mod test_adapters_repository_data_tables_tests;
 #[cfg(test)]
-pub mod tests_domain_types;
+pub mod test_application_html_tests;
+#[cfg(test)]
+pub mod test_application_tests;
+#[cfg(test)]
+pub mod test_domain_types_generated_tables_tests;
+#[cfg(test)]
+pub mod test_tests;
+#[cfg(test)]
+pub mod test_tests_domain_types;
 pub mod token;
 pub mod tokio_admin_acquire_error;
 pub mod tokio_admin_join_error;

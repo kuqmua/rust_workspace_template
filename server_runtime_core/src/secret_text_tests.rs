@@ -6,7 +6,7 @@ mod tests {
     }
 
     #[test]
-    fn secrets_are_redacted_validated_and_compared() {
+    fn test_secrets_are_redacted_validated_and_compared() {
         let expected = bounded_secret(constants_str::TEST_SECRET_TEXT);
         let equal = bounded_secret(constants_str::TEST_SECRET_TEXT);
         let different = bounded_secret(constants_str::TEST_DIFFERENT_SECRET_TEXT);

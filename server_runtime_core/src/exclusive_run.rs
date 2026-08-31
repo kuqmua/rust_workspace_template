@@ -39,7 +39,7 @@ impl Default for ExclusiveRun {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn guard_prevents_overlap_and_releases_on_drop() {
+    fn test_guard_prevents_overlap_and_releases_on_drop() {
         let run = super::ExclusiveRun::new();
         let guard = run
             .try_acquire()

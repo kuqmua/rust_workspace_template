@@ -9,7 +9,7 @@ pub fn generate_pub_type_alias_token_stream(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn generated_alias_preserves_generic_actual_type() {
+    fn test_generated_alias_preserves_generic_actual_type() {
         let actual =
             crate::generate_pub_type_alias_token_stream::generate_pub_type_alias_token_stream(
                 &quote::quote!(Items),

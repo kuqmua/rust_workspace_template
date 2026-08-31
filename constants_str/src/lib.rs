@@ -392,7 +392,7 @@ constants_str_macros::define_str_constants! {
     constants {
         pub BODY_SIZE_ERROR = ["body_size_error"];
         pub EVENT = ["event"];
-        pub CODE_STYLE_TRACING_MESSAGE_FIXTURE = ["fn events() { tracing::trace!(\"trace message\"); tracing::debug!(\"debug message\"); tracing::info!(\"info message\"); tracing::warn!(\"warn message\"); tracing::error!(\"error message\"); tracing::event!(tracing::Level::INFO, \"event message\"); } #[cfg(test)] mod tests { fn event() { tracing::info!(\"test message\"); } }"];
+        pub CODE_STYLE_TRACING_MESSAGE_FIXTURE = ["fn events() { tracing::trace!(\"trace message\"); tracing::debug!(\"debug message\"); tracing::info!(\"info message\"); tracing::warn!(\"warn message\"); tracing::error!(\"error message\"); tracing::event!(tracing::Level::INFO, \"event message\"); } #[cfg(test)] mod test_tests { fn event() { tracing::info!(\"test message\"); } }"];
         pub TRACING_MESSAGES_FOUND_OUTSIDE_CONSTANTS_STR = ["tracing message literals found outside constants_str"];
         pub TRACING_ADMIN_CMD_COMPLETED = ["administrator operation completed"];
         pub TRACING_ADMIN_CMD_FAILED = ["administrator operation failed"];
@@ -776,13 +776,13 @@ constants_str_macros::define_str_constants! {
         pub CODE_STYLE_ROUTE_OPERATION_IDENTIFIER = ["route_operation"];
         pub CODE_STYLE_SOURCE_ATTRIBUTE_IDENTIFIER = ["source"];
         pub CODE_STYLE_THISERROR_CRATE_IDENTIFIER = ["thiserror"];
-        pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[path = \"fixture.rs\"] mod fixture; fn f() { value.expect(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
+        pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[path = \"fixture.rs\"] mod fixture; fn f() { value.expect(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod test_tests { const VALUE: &str = \"test literal\"; }"];
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = ["fn f() { consume(\"ordinary\"); outer!(inner(\"macro\")); }"];
         pub CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE = ["const LOCAL_ALIAS: &str = constants_str::EXPORTED;\nfn runtime_value() -> &'static str { constants_str::EXPORTED }\n"];
         pub CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE = ["\nstruct StructError;\nimpl axum::response::IntoResponse for StructError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\nstruct WrappedError {\n    status: axum::http::StatusCode,\n    payload: axum::Json<()>,\n}\nimpl axum::response::IntoResponse for WrappedError {\n    fn into_response(self) -> axum::response::Response {\n        (self.status, self.payload).into_response()\n    }\n}\n#[derive(thiserror::Error)]\nenum EnumError {\n    #[error(\"failure\")]\n    Failure,\n}\nimpl axum::response::IntoResponse for EnumError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n#[derive(thiserror::Error)]\nenum LocatedEnumError {\n    #[error(\"located failure\")]\n    Failure {\n        location: location_lib::location::Location,\n    },\n}\nimpl axum::response::IntoResponse for LocatedEnumError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n#[derive(thiserror::Error, location::Location)]\nenum DerivedLocationError {\n    #[error(\"derived location failure\")]\n    Failure {\n        value: String,\n    },\n}\nimpl axum::response::IntoResponse for DerivedLocationError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n#[derive(thiserror::Error)]\nenum RawSourceError {\n    #[error(\"raw source failure\")]\n    Failure {\n        #[source]\n        source: std::io::Error,\n    },\n}\nimpl axum::response::IntoResponse for RawSourceError {\n    fn into_response(self) -> axum::response::Response {\n        axum::response::IntoResponse::into_response(axum::Json(()))\n    }\n}\n"];
         pub CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE = ["\n#[frontend_contract::route_openapi()]\nasync fn first() -> Result<(), SharedError> {\n    Ok(())\n}\n#[frontend_contract::route_openapi()]\nasync fn second() -> Result<(), SharedError> {\n    Ok(())\n}\n"];
         pub CODE_STYLE_ROUTE_ENDPOINT_OPERATION_ERROR_FIXTURE = ["\n#[frontend_contract::route_error(HtmlSharedError)]\nasync fn first_html() -> Response {\n    response()\n}\n#[frontend_contract::route_error(HtmlSharedError)]\nasync fn second_html() -> Response {\n    response()\n}\n#[frontend_contract::route_operation]\nasync fn first_operational() -> Result<(), OperationalSharedError> {\n    Ok(())\n}\n#[frontend_contract::route_operation]\nasync fn second_operational() -> Result<(), OperationalSharedError> {\n    Ok(())\n}\n"];
-        pub CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE = ["\nfn runtime_value() -> &'static str { \"runtime-owned\" }\nconst ITEM: &str = \"item\";\nstatic STATIC_ITEM: &str = \"static\";\nstatic RUNTIME_CACHE: std::sync::OnceLock<String> = std::sync::OnceLock::new();\nstruct Example(&'static str);\nconst WRAPPED: Example = Example(\"wrapped\");\nstatic WRAPPED_STATIC: Example = Example(\"wrapped-static\");\nimpl Example {\n    const ASSOCIATED: &str = concat!(\"associated\");\n    const fn value() -> &'static str { concat!(\"const-function\") }\n}\ntrait Contract {\n    const DEFAULT: &'static str = \"trait\";\n    const REQUIRED: &'static str;\n}\nfn generated(value: &str) {\n    let _tokens = quote! { const GENERATED: &'static str = #value; };\n}\nfn anonymous() {\n    let _value = const { \"anonymous\" };\n}\n#[cfg(test)]\nmod tests {\n    const TEST_VALUE: &str = \"test-constant\";\n    #[test]\n    fn local_constant() {\n        const LOCAL_VALUE: &str = \"local-test-constant\";\n        let _runtime_value = \"runtime-test-literal\";\n    }\n}\ndefine_str_constants! {\n    fragments { VALUE = \"generated\"; }\n    values {}\n}\n"];
+        pub CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE = ["\nfn runtime_value() -> &'static str { \"runtime-owned\" }\nconst ITEM: &str = \"item\";\nstatic STATIC_ITEM: &str = \"static\";\nstatic RUNTIME_CACHE: std::sync::OnceLock<String> = std::sync::OnceLock::new();\nstruct Example(&'static str);\nconst WRAPPED: Example = Example(\"wrapped\");\nstatic WRAPPED_STATIC: Example = Example(\"wrapped-static\");\nimpl Example {\n    const ASSOCIATED: &str = concat!(\"associated\");\n    const fn value() -> &'static str { concat!(\"const-function\") }\n}\ntrait Contract {\n    const DEFAULT: &'static str = \"trait\";\n    const REQUIRED: &'static str;\n}\nfn generated(value: &str) {\n    let _tokens = quote! { const GENERATED: &'static str = #value; };\n}\nfn anonymous() {\n    let _value = const { \"anonymous\" };\n}\n#[cfg(test)]\nmod tests {\n    const TEST_VALUE: &str = \"test-constant\";\n    #[test]\n    fn test_local_constant() {\n        const LOCAL_VALUE: &str = \"local-test-constant\";\n        let _runtime_value = \"runtime-test-literal\";\n    }\n}\ndefine_str_constants! {\n    fragments { VALUE = \"generated\"; }\n    values {}\n}\n"];
         pub CODE_STYLE_CI_WORKFLOW_PATH = [".github/workflows/ci.yml"];
         pub CODE_STYLE_WORKSPACE_MANIFEST_PATH = ["../Cargo.toml"];
         pub CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER = ["ProcMacro2GeneratedRustTokenStream"];
@@ -2758,6 +2758,8 @@ constants_str_macros::define_str_constants! {
         pub TEST_HELPER_RS = ["test_helper.rs"];
         pub TEST_UNSTABLE_LINT = ["test_unstable_lint"];
         pub TESTS_ALT = ["tests"];
+        pub TEST_TESTS = ["test_tests"];
+        pub TEST_TESTS_MODULE_FIXTURE = ["mod test_tests { #[test] fn test_works() {} }"];
         pub TESTS_CODE_STYLE = ["tests_code_style"];
         pub TEXT_PLAIN = ["text/plain"];
         pub THREAD = ["thread"];
@@ -3794,7 +3796,7 @@ pub const VALUE_1D86D8F2: &str = "\n#[allow(dead_code)]\nfn invalid() {}\n#[allo
 pub const VALUE_BC13B693: &str = "\n#[derive(Debug, Display)]\nstruct ApiTokenRef<'value_lt>(&'value_lt str);\n#[derive(DebugTransparent)]\nstruct ApiKeyBytes {\n    value: Vec<u8>,\n}\n#[derive(DisplayTransparent)]\nstruct PasswordHash([u8; 32]);\n#[derive(newtype::DebugRedacted)]\nstruct ApiSecret(String);\n";
 pub const VALUE_936BA38B: &str = "\n#[derive(optimal_memory_layout::OptimalMemoryLayout)]\nstruct CheckedStruct;\nenum MissingEnum { Variant }\nstruct MissingStruct;\n#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]\nenum CheckedEnum { Variant }\n";
 pub const VALUE_2CC8E3AF: &str = "\n#[derive(thiserror::Error)]\nenum AuthenticationError {\n    #[error(\"rejected secret: {secret}\")]\n    Named { secret: String },\n    #[error(\"rejected password: {0:?}\")]\n    Tuple(Vec<u8>),\n    #[error(\"token was rejected\")]\n    Redacted { token: String },\n}\n";
-pub const VALUE_402DAFF0: &str = "\n#[test]\nfn nondeterministic_test() {\n    tokio::time::sleep(std::time::Duration::from_secs(1));\n    uuid::Uuid::new_v4();\n}\n#[tokio::test]\nasync fn nondeterministic_async_test() {\n    std::time::SystemTime::now();\n    std::time::Instant::now();\n    rand::rng();\n    getrandom::fill(&mut [0u8; 4]);\n    rand::rngs::OsRng;\n}\nfn integration_test_helper() {\n    rand::random();\n}\n";
+pub const VALUE_402DAFF0: &str = "\n#[test]\nfn nondeterministic_test() {\n    tokio::time::sleep(std::time::Duration::from_secs(1));\n    uuid::Uuid::new_v4();\n}\n#[tokio::test]\nasync fn test_nondeterministic_async_test() {\n    std::time::SystemTime::now();\n    std::time::Instant::now();\n    rand::rng();\n    getrandom::fill(&mut [0u8; 4]);\n    rand::rngs::OsRng;\n}\nfn integration_test_helper() {\n    rand::random();\n}\n";
 pub const VALUE_DB030A59: &str = "\n[target.'cfg(target_arch = \"wasm32\")'.dependencies]\nserde = \"1\"\n\n[target.'cfg(target_arch = \"wasm32\")'.dev-dependencies]\nserde_json = { path = \"../serde_json\" }\n\n[target.'cfg(target_arch = \"wasm32\")'.build-dependencies]\ntoml = { version = \"1\" }\n";
 pub const VALUE_98F81CDD: &str =
     "\n[target.'cfg(target_arch = \"wasm32\")'.dependencies]\nserde = { workspace = true }\n";
@@ -3803,7 +3805,7 @@ pub const VALUE_9AC9CBBD: &str = "\nasync fn blocked() {\n    std::fs::read(\"in
 pub const VALUE_D1E0CA47: &str = "\nfn fixture(result: Result<(), ()>) {\n    result.expect(\"1a2b3c4d: expected fixture result\");\n    panic!(\"5e6f7a8b fixture panic\");\n}\n";
 pub const VALUE_BFBFB833: &str = "\nfn fixture(result: Result<(), ()>) {\n    result.expect(\"not-an-id\");\n    result.expect(\"1a2b3c4d\");\n    panic!(\"also-not-an-id\");\n}\n";
 pub const VALUE_38F6372C: &str = "\nfn generate() {\n    quote::quote! {\n        result.expect(\"10d77b5f generated expect\");\n        panic!(\"d6826d61 generated panic\");\n    };\n    quote::quote! {\n        result.expect(\"invalid\");\n        panic!(\"invalid\");\n    };\n    quote::quote! {\n        result.expect(#unchecked_message);\n    };\n}\n";
-pub const VALUE_606F2B07: &str = "\nfn production() {\n    println!(\"production stdout\");\n    eprintln!(\"production stderr\");\n}\n#[cfg(test)]\nmod tests {\n    fn helper() {\n        test_scope::println!(\"test stdout\");\n        test_scope::eprintln!(\"test stderr\");\n    }\n}\n#[test]\nfn unit_test() {\n    unit_test_scope::println!(\"unit test stdout\");\n    unit_test_scope::eprintln!(\"unit test stderr\");\n}\n#[tokio::test]\nasync fn async_unit_test() {\n    async_test_scope::println!(\"async unit test stdout\");\n    async_test_scope::eprintln!(\"async unit test stderr\");\n}\n";
+pub const VALUE_606F2B07: &str = "\nfn production() {\n    println!(\"production stdout\");\n    eprintln!(\"production stderr\");\n}\n#[cfg(test)]\nmod tests {\n    fn helper() {\n        test_scope::println!(\"test stdout\");\n        test_scope::eprintln!(\"test stderr\");\n    }\n}\n#[test]\nfn unit_test() {\n    unit_test_scope::println!(\"unit test stdout\");\n    unit_test_scope::eprintln!(\"unit test stderr\");\n}\n#[tokio::test]\nasync fn test_async_unit_test() {\n    async_test_scope::println!(\"async unit test stdout\");\n    async_test_scope::eprintln!(\"async unit test stderr\");\n}\n";
 pub const VALUE_EBB24851: &str = "\nfn spawn_tasks() {\n    tokio::spawn(async {});\n    let _ = tokio::task::spawn_blocking(|| {});\n    let _task = std::thread::spawn(|| {});\n    std::mem::drop(tokio::task::spawn_local(async {}));\n    let task = tokio::spawn(async {});\n    supervise(task);\n}\n";
 pub const VALUE_BF61857A: &str = "          # BEGIN GENERATED RELEASE MATRIX\n";
 pub const VALUE_48916059: &str = "          # BEGIN GENERATED SERVICE MATRIX\n";
@@ -3836,8 +3838,8 @@ pub const VALUE_3BA26FB4: &str = "#[cfg(test)]";
 pub const VALUE_68E5AB24: &str = "#[marker{enum EmptyMarker {";
 pub const VALUE_5F528A82: &str = "#[must_use] pub const fn index(self) -> usize";
 pub const VALUE_1FB67C5A: &str = "#[proc_macro]\npub fn entry(input: proc_macro::TokenStream) -> proc_macro::TokenStream { input }\nfn helper(values: Vec<String>) {}";
-pub const VALUE_7BBB4BBC: &str = "#[test]\n         #[ignore]\n         fn ignored_without_reason() {\n             reqwest::get(\"https://example.invalid\");\n         }\n         #[test]\n         #[ignore = \"requires an explicitly provisioned emulator\"]\n         fn ignored_with_reason() {\n             reqwest::get(\"https://example.invalid\");\n         }";
-pub const VALUE_0FE6CFEC: &str = "#[test]\n         fn external_clients() {\n             reqwest::Client::builder();\n             reqwest::get(\"https://example.invalid\");\n             sqlx::postgres::PgPoolOptions::new().connect(\"postgres://example.invalid\");\n             sqlx::PgPool::connect(\"postgres://example.invalid\");\n             std::net::TcpStream::connect(\"127.0.0.1:1\");\n         }";
+pub const VALUE_7BBB4BBC: &str = "#[test]\n         #[ignore]\n         fn test_ignored_without_reason() {\n             reqwest::get(\"https://example.invalid\");\n         }\n         #[test]\n         #[ignore = \"requires an explicitly provisioned emulator\"]\n         fn test_ignored_with_reason() {\n             reqwest::get(\"https://example.invalid\");\n         }";
+pub const VALUE_0FE6CFEC: &str = "#[test]\n         fn test_external_clients() {\n             reqwest::Client::builder();\n             reqwest::get(\"https://example.invalid\");\n             sqlx::postgres::PgPoolOptions::new().connect(\"postgres://example.invalid\");\n             sqlx::PgPool::connect(\"postgres://example.invalid\");\n             std::net::TcpStream::connect(\"127.0.0.1:1\");\n         }";
 pub const VALUE_18A392BE: &str = "#[tokio::main]";
 pub const VALUE_72E2834F: &str = "#[typed_route(path = \"/admin/swagger_ui/{user_id}\")]\n         struct Valid;\n         #[typed_route(path = \"/admin/swagger-ui\")]\n         struct Invalid;";
 pub const VALUE_D7270E5B: &str = "#[typed_route(path = \"/projects\")]\n         struct Valid;\n         #[typed_route(path = \"/api/projects\")]\n         struct Invalid;";
@@ -5204,7 +5206,12 @@ pub const VALUE_AF7C24A2: &str = "test.error";
 pub const VALUE_CF4DCEBB: &str = "test_failure";
 pub const VALUE_D0549AF3: &str = "test_fixtures";
 pub const VALUE_4A3D63F7: &str = "tests_code_style/src/code_style.rs";
-pub const VALUE_959AEDDC: &str = "tests_code_style/src/code_style_snapshot.rs";
+pub const VALUE_959AEDDC: &str = "tests_code_style/src/test_code_style_snapshot.rs";
+pub const TEST_ATTRIBUTE_NAME: &str = "test";
+pub const TEST_NAME_PREFIX: &str = "test_";
+pub const TEST_NAME_POLICY_CTX: &str =
+    "test functions and their containing modules must start with `test_`:";
+pub const PATH_ERROR_SEPARATOR: &str = ": ";
 pub const VALUE_B2FEB0FD: &str = "the CLI runner needs collision-free process-local artifact names";
 pub const VALUE_2773E6CE: &str = "the HTTP runtime must not depend on application or route crates";
 pub const VALUE_FDB078C8: &str =
@@ -5486,9 +5493,9 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrapp
 pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 8] = [
     "../common_routes/src/axum_http_uri.rs::from_request_parts\n../server_admin/src/extractors.rs::from_request_parts",
     "../config_lib/src/env_var_name.rs::try_from\n../config_lib/src/std_env_var_ok.rs::try_from\n../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_string.rs::try_from",
-    "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_await\n../tests_code_style/src/code_style_advanced_policy.rs::visit_macro",
+    "../tests_code_style/src/test_code_style_advanced_policy.rs::visit_expr_await\n../tests_code_style/src/test_code_style_advanced_policy.rs::visit_macro",
     "../pg_crud_common/src/cursor_payload.rs::try_from\n../pg_crud_common/src/signed_cursor.rs::try_from\n../server_runtime_http/src/http_metrics_path_text.rs::try_from",
-    "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_loop\n../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_while\n../tests_code_style/src/runtime_analysis.rs::visit_expr_async",
+    "../tests_code_style/src/test_code_style_advanced_policy.rs::visit_expr_loop\n../tests_code_style/src/test_code_style_advanced_policy.rs::visit_expr_while\n../tests_code_style/src/runtime_analysis.rs::visit_expr_async",
     "../pg_crud_common/src/sql_like_pattern.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_type_records.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_types.rs::try_from",
     "../server_runtime_http/src/pg_rate_limit_maximum.rs::try_from\n../server_runtime_http/src/pg_rate_limit_window_seconds.rs::try_from",
     "../tests_code_style/src/source_analysis.rs::visit_item_static\n../tests_code_style/src/source_analysis.rs::visit_item_trait\n../tests_code_style/src/source_analysis.rs::visit_item_trait_alias\n../tests_code_style/src/source_analysis.rs::visit_item_type\n../tests_code_style/src/source_analysis.rs::visit_item_union",
@@ -5559,7 +5566,7 @@ pub const CODE_STYLE_NON_ZERO_PREFIX: &str = "NonZero";
 pub const CODE_STYLE_REEXPORT_ONLY_FIXTURE: &str =
     "pub use crate::first::*; pub(crate) use crate::second::Item;";
 pub const CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE: &str =
-    "#[cfg(test)] mod tests { pub use crate::first::*; pub(crate) use crate::second::Item; }";
+    "#[cfg(test)] mod test_tests { pub use crate::first::*; pub(crate) use crate::second::Item; }";
 pub const CONSTANTS_STR_MACROS_SYN_IDENT_PATH: &str = "../constants_str_macros/src/syn_ident.rs";
 pub const CONSTANTS_STR_MACROS_SYN_LIT_STR_PATH: &str =
     "../constants_str_macros/src/syn_lit_str.rs";

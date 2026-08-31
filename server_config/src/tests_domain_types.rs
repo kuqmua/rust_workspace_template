@@ -12,7 +12,7 @@ mod tests {
         .expect("741e5201 env invariant must hold")
     }
     #[test]
-    fn generated_accessors_return_expected_refs_and_values() {
+    fn test_generated_accessors_return_expected_refs_and_values() {
         let mut cfg =
             crate::server_config::ServerConfig::new(server_config_test_env(constants_str::ASTERISK), server_config_test_env(constants_str::TEST_CONTENT_SECURITY_POLICY), server_config_test_env(constants_str::POSTGRES_DB), server_config_test_env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES), server_config_test_env(constants_str::TEST_AUDIENCE), server_config_test_env(constants_str::TEST_ISSUER), server_config_test_env(constants_str::VALUE_127_0_0_1_32_PATH_1_128), server_config_test_env(constants_str::VALUE_900), server_config_test_env(constants_str::VALUE_4), server_config_test_env(constants_str::VALUE_10), server_config_test_env(constants_str::VALUE_2592000), server_config_test_env(constants_str::VALUE_20), server_config_test_env(constants_str::VALUE_10), server_config_test_env(constants_str::TEST_VALUE_30), server_config_test_env(constants_str::TEST_VALUE_30), server_config_test_env(constants_str::TEST_VALUE_30), server_config_test_env(constants_str::TEST_VALUE_30), config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("0d9e4b7a generated_getters_return_expected_refs_and_values invariant must hold"), server_config_test_env(constants_str::VALUE_127_0_0_1_8080), config_lib::pg_pool_max_connections::PgPoolMaxConnections::try_from(8)
                     .expect("39a84c10 generated_getters_return_expected_refs_and_values invariant must hold"), server_config_test_env(constants_str::VALUE_0), config_lib::chrono_timezone::ChronoTimezone::try_from(

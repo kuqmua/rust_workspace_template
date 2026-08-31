@@ -90,7 +90,7 @@ pub fn build_date_sql_filter(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn date_bounds_have_ordered_bind_indices_and_values() {
+    fn test_date_bounds_have_ordered_bind_indices_and_values() {
         let from = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_FROM)
             .expect("69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
             .to_utc();

@@ -68,8 +68,7 @@ impl<'de, const MIN: usize, const MAX: usize> serde::Deserialize<'de>
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
+        crate::deserialize_bounded_owned_string::deserialize_bounded_owned_string(deserializer)
     }
 }
 
@@ -89,7 +88,7 @@ impl<const MIN: usize, const MAX: usize> utoipa::ToSchema for BoundedCharsString
 #[cfg(test)]
 mod tests {
     #[test]
-    fn unicode_is_measured_in_chars() {
+    fn test_unicode_is_measured_in_chars() {
         let value = crate::bounded_chars_string::BoundedCharsString::<2, 2>::try_from(
             [char::from_u32(0x430), char::from_u32(0x431)]
                 .into_iter()
@@ -102,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    fn char_bounds_are_inclusive() {
+    fn test_char_bounds_are_inclusive() {
         assert!(matches!(
             crate::bounded_chars_string::BoundedCharsString::<1, 2>::try_from(String::new()),
             Err(crate::bounded_value_error::BoundedValueError::BelowMin { .. })

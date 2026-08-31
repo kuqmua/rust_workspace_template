@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn builder_sets_security_attributes_and_rejects_injection() {
+    fn test_builder_sets_security_attributes_and_rejects_injection() {
         let name = crate::http_cookie_name::HttpCookieName::try_from(String::from(
             constants_str::TEST_COOKIE_NAME,
         ))
@@ -47,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn builder_preserves_unsigned_maximum_age_range() {
+    fn test_builder_preserves_unsigned_maximum_age_range() {
         let name = crate::http_cookie_name::HttpCookieName::try_from(String::from(
             constants_str::TEST_COOKIE_NAME,
         ))

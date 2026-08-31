@@ -32,13 +32,13 @@ pub fn panic_location() {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn panic_location_can_be_called_multiple_times() {
+    fn test_panic_location_can_be_called_multiple_times() {
         crate::panic_location();
         crate::panic_location();
     }
 
     #[test]
-    fn panic_no_location_message_is_stable() {
+    fn test_panic_no_location_message_is_stable() {
         assert_eq!(
             constants_str::PANIC_LOCATION_NO_LOCATION_MSG,
             "panic occurred but can't get location information..."

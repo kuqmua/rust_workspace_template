@@ -16,6 +16,7 @@
 - Add unit tests for public logic.
 - Use test helpers for repeated setup.
 - Keep tests deterministic.
+- Prefix every test function and its containing test module with `test_`.
 - If error message contains 8 random symbols then search workspace for that id.
 - Avoid allocations inside hot loops.
 - Preserve behavior and semantics unless a change is requested; never change semantics silently.

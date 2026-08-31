@@ -103,7 +103,7 @@ impl crate::default_some_one_element::DefaultSomeOneElement for NotZeroUnsignedP
 #[cfg(test)]
 mod tests {
     #[test]
-    fn nonzero_database_value_rejects_zero() {
+    fn test_nonzero_database_value_rejects_zero() {
         assert!(matches!(
             crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(constants_i32::ZERO),
             Err(crate::not_zero_unsigned_part_of_i32_try_from_i32_error::NotZeroUnsignedPartOfI32TryFromI32Error::IsZero { .. })

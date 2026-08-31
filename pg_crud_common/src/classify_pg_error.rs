@@ -33,7 +33,7 @@ pub fn classify_pg_error(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn classifies_non_database_errors() {
+    fn test_classifies_non_database_errors() {
         assert_eq!(
             crate::classify_pg_error::classify_pg_error(
                 crate::sqlx_pg_error_ref::SqlxPgErrorRef::from(&sqlx::Error::PoolTimedOut)

@@ -320,19 +320,19 @@ mod tests {
         }
     }
     #[test]
-    fn not_inner_forwards_to_inner_value() {
+    fn test_not_inner_forwards_to_inner_value() {
         assert!(!BoolValue(false), "f2b418c7");
     }
     #[test]
-    fn debug_display_formats_with_debug() {
+    fn test_debug_display_formats_with_debug() {
         assert_eq!(DebugDisplayError::Failed.to_string(), "Failed", "a67e3b91");
     }
     #[test]
-    fn display_const_formats_configured_expression() {
+    fn test_display_const_formats_configured_expression() {
         assert_eq!(ConstDisplayError.to_string(), "fixed", "e5a9217c");
     }
     #[test]
-    fn clone_and_default_inner_do_not_require_value_bounds() {
+    fn test_clone_and_default_inner_do_not_require_value_bounds() {
         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
         struct NotCloneOrDefault;
         let vec_value = GenericVec::<NotCloneOrDefault>::default();
@@ -352,7 +352,7 @@ mod tests {
         quote::quote! {}
     }
     #[test]
-    fn string_newtype_impls_are_generated() {
+    fn test_string_newtype_impls_are_generated() {
         let v = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
             .expect("9d27b01c string_newtype_impls_are_generated invariant must hold");
         assert_eq!(v.to_string(), "abc");
@@ -369,7 +369,7 @@ mod tests {
         );
     }
     #[test]
-    fn try_from_validator_generates_checked_conversion() {
+    fn test_try_from_validator_generates_checked_conversion() {
         assert_eq!(
             CheckedText::try_from(constants_str::AB.to_owned()),
             Ok(CheckedText(constants_str::AB.to_owned()))
@@ -380,7 +380,7 @@ mod tests {
         );
     }
     #[test]
-    fn try_from_validator_supports_explicit_error_type() {
+    fn test_try_from_validator_supports_explicit_error_type() {
         assert_eq!(
             ExplicitErrorCheckedText::try_from(constants_str::AB.to_owned()),
             Ok(ExplicitErrorCheckedText(constants_str::AB.to_owned()))
@@ -391,7 +391,7 @@ mod tests {
         );
     }
     #[test]
-    fn display_to_err_string_impl_is_generated() {
+    fn test_display_to_err_string_impl_is_generated() {
         let v = UsizeValue::from(42usize);
         assert_eq!(v.to_string(), "42");
         assert_eq!(
@@ -400,7 +400,7 @@ mod tests {
         );
     }
     #[test]
-    fn debug_to_err_string_impl_is_generated() {
+    fn test_debug_to_err_string_impl_is_generated() {
         let v = DebugValue::from(vec![1, 2]);
         assert_eq!(
             to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
@@ -408,44 +408,44 @@ mod tests {
         );
     }
     #[test]
-    fn inner_accessors_are_generated() {
+    fn test_inner_accessors_are_generated() {
         let v = InnerValue::from(7);
         assert_eq!(*v.as_ref(), 7);
         assert_eq!(v.into_inner(), 7);
     }
     #[test]
-    fn direct_inner_accessors_are_generated() {
+    fn test_direct_inner_accessors_are_generated() {
         let text = GetInnerValueRef::from(constants_str::ABC_ALT_3).get();
         let flag = GetInnerBool::from(true).get();
         assert_eq!(text, constants_str::ABC_ALT_3);
         assert!(std::hint::black_box(flag));
     }
     #[test]
-    fn vec_accessors_are_generated() {
+    fn test_vec_accessors_are_generated() {
         let v = VecValue::from(vec![1i32, 2i32]);
         assert_eq!(v.as_slice(), [1i32, 2i32]);
         assert_eq!(v.into_vec(), vec![1i32, 2i32]);
     }
     #[test]
-    fn inner_deref_and_from_are_generated() {
+    fn test_inner_deref_and_from_are_generated() {
         let mut v = InnerVecValue::from(vec![1u8]);
         v.push(2);
         assert_eq!(&*v, &vec![1, 2]);
         assert_eq!(Vec::<u8>::from(v), vec![1, 2]);
     }
     #[test]
-    fn consuming_into_iterator_is_generated() {
+    fn test_consuming_into_iterator_is_generated() {
         let value = InnerVecValue::from(vec![1u8, 2u8]);
         assert_eq!(value.into_iter().collect::<Vec<u8>>(), vec![1u8, 2u8]);
     }
     #[test]
-    fn target_deref_impls_are_generated() {
+    fn test_target_deref_impls_are_generated() {
         let mut v = TargetVecValue::from(Vec::from(*b"lower"));
         v.make_ascii_uppercase();
         assert_eq!(&*v, b"LOWER");
     }
     #[test]
-    fn redacted_debug_does_not_expose_inner_value() {
+    fn test_redacted_debug_does_not_expose_inner_value() {
         let value = RedactedDebugValue::from(constants_str::SECRET.as_bytes().to_vec());
         let output = format!("{value:?}");
         assert!(output.contains(constants_str::REDACTED_ALT_3));
@@ -453,14 +453,14 @@ mod tests {
         assert_eq!(value.0, constants_str::SECRET.as_bytes());
     }
     #[test]
-    fn mutable_reference_as_mut_is_generated() {
+    fn test_mutable_reference_as_mut_is_generated() {
         let mut inner = 1u16;
         let mut value = MutableValueRef::from(&mut inner);
         *AsMut::<u16>::as_mut(&mut value) = 2u16;
         assert_eq!(inner, 2u16);
     }
     #[test]
-    fn bounded_string_description_is_configurable() {
+    fn test_bounded_string_description_is_configurable() {
         let error = DescribedValue::try_from(String::from(constants_str::ABC_ALT_3))
             .expect_err(constants_str::VALUE_3DFCA278);
         assert_eq!(
@@ -469,7 +469,7 @@ mod tests {
         );
     }
     #[test]
-    fn bounded_string_rich_policies_share_runtime_and_serde_validation() {
+    fn test_bounded_string_rich_policies_share_runtime_and_serde_validation() {
         assert_eq!(
             RichValue::try_from(String::from("  \u{430}\u{431}  ")),
             Ok(RichValue(String::from("\u{430}\u{431}")))
@@ -494,7 +494,7 @@ mod tests {
             .expect_err(constants_str::C0E03C6D);
     }
     #[test]
-    fn bounded_string_openapi_limits_match_runtime_limits() {
+    fn test_bounded_string_openapi_limits_match_runtime_limits() {
         let schema = <RichValue as utoipa::PartialSchema>::schema();
         let json = serde_json::to_value(schema).expect(
             "756f3fe9 bounded_string_openapi_limits_match_runtime_limits invariant must hold",
@@ -506,13 +506,13 @@ mod tests {
         assert_eq!(json.get("maxLength"), Some(&serde_json::json!(3usize)));
     }
     #[test]
-    fn bounded_string_openapi_write_only_matches_secret_contract() {
+    fn test_bounded_string_openapi_write_only_matches_secret_contract() {
         let schema = <WriteOnlyValue as utoipa::PartialSchema>::schema();
         let json = serde_json::to_value(schema).expect("ce9351d4 bounded_string_openapi_write_only_matches_secret_contract invariant must hold");
         assert_eq!(json.get("writeOnly"), Some(&serde_json::json!(true)));
     }
     #[test]
-    fn bounded_string_small_input_space_matches_reference_model() {
+    fn test_bounded_string_small_input_space_matches_reference_model() {
         let alphabet = ['a', ' ', '\0'];
         let all_match = alphabet
             .into_iter()
@@ -535,7 +535,7 @@ mod tests {
         assert!(all_match);
     }
     #[test]
-    fn bounded_string_custom_validator_is_applied() {
+    fn test_bounded_string_custom_validator_is_applied() {
         assert_eq!(
             ValidatedValue::try_from(String::from(constants_str::ABC_ALT_3)),
             Ok(ValidatedValue(String::from(constants_str::ABC_ALT_3)))
@@ -546,7 +546,7 @@ mod tests {
         ));
     }
     #[test]
-    fn token_impls_are_generated() {
+    fn test_token_impls_are_generated() {
         let inner = quote::quote! { sample::path };
         let v = ProcMacro2TokenValue::from(inner.clone());
         assert_eq!(v.to_string(), "sample :: path");
@@ -554,13 +554,13 @@ mod tests {
         assert_eq!(v.into_inner().to_string(), inner.to_string());
     }
     #[test]
-    fn reference_inner_impls_are_generated() {
+    fn test_reference_inner_impls_are_generated() {
         let inner = ReferentValue(constants_str::LEFT, constants_str::RIGHT);
         let v = ReferentValueRef::from(&inner);
         assert_eq!(AsRef::<ReferentValue<'_>>::as_ref(&v), &inner);
     }
     #[test]
-    fn borrow_impls_are_generated() {
+    fn test_borrow_impls_are_generated() {
         let string = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
             .expect("f37f2ed0 borrow_impls_are_generated invariant must hold");
         assert_eq!(std::borrow::Borrow::<str>::borrow(&string), "abc");
@@ -575,13 +575,13 @@ mod tests {
         assert_eq!(std::borrow::Borrow::<[u8]>::borrow(&inner), b"abc");
     }
     #[test]
-    fn owned_inner_impls_are_generated() {
+    fn test_owned_inner_impls_are_generated() {
         let v = OwnedValue::from(vec![3, 5, 8]);
         assert_eq!(v, vec![3, 5, 8], "72a4dc19");
         assert_eq!(AsRef::<Vec<u8>>::as_ref(&v), &vec![3, 5, 8]);
     }
     #[test]
-    fn owned_and_borrowed_slice_impls_are_generated() {
+    fn test_owned_and_borrowed_slice_impls_are_generated() {
         let bytes = vec![3u8, 5u8, 8u8];
         let owned = OwnedSliceValue::from(bytes.clone());
         let borrowed = SliceValueRef::from(bytes.as_slice());
@@ -589,11 +589,11 @@ mod tests {
         assert_eq!(AsRef::<[u8]>::as_ref(&borrowed), bytes.as_slice());
     }
     #[test]
-    fn transparent_debug_forwards_inner_format() {
+    fn test_transparent_debug_forwards_inner_format() {
         assert_eq!(format!("{:?}", TransparentDebugValue(17)), "17");
     }
     #[test]
-    fn enum_from_str_impl_is_generated() {
+    fn test_enum_from_str_impl_is_generated() {
         assert_eq!(
             <SampleEnum as std::str::FromStr>::from_str("FIRST_VALUE"),
             Ok(SampleEnum::FirstValue)
@@ -604,7 +604,7 @@ mod tests {
         );
     }
     #[test]
-    fn enum_from_str_error_mentions_allowed_values() {
+    fn test_enum_from_str_error_mentions_allowed_values() {
         let error = <SampleEnum as std::str::FromStr>::from_str(constants_str::BAD)
             .expect_err(constants_str::VALUE_42D13F7A);
         assert_eq!(

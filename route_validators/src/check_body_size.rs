@@ -71,7 +71,7 @@ mod tests {
         assert!(actual.matches(exp));
     }
     #[test]
-    fn check_body_size_returns_bytes_when_body_fits_limit() {
+    fn test_check_body_size_returns_bytes_when_body_fits_limit() {
         assert_body_bytes_eq(
             axum::body::Body::from(constants_str::OK_ALT),
             8,
@@ -80,7 +80,7 @@ mod tests {
         );
     }
     #[test]
-    fn check_body_size_returns_bytes_when_size_eq_limit() {
+    fn test_check_body_size_returns_bytes_when_size_eq_limit() {
         assert_body_bytes_eq(
             axum::body::Body::from(constants_str::OK_ALT),
             2,
@@ -89,7 +89,7 @@ mod tests {
         );
     }
     #[test]
-    fn check_body_size_returns_bytes_for_empty_body_with_zero_limit() {
+    fn test_check_body_size_returns_bytes_for_empty_body_with_zero_limit() {
         assert_body_bytes_eq(
             axum::body::Body::empty(),
             0,
@@ -98,7 +98,7 @@ mod tests {
         );
     }
     #[test]
-    fn check_body_size_returns_error_when_body_exceeds_limit() {
+    fn test_check_body_size_returns_error_when_body_exceeds_limit() {
         assert_reached_max_size_limit(
             axum::body::Body::from(constants_str::OVERSIZED),
             2,
@@ -106,7 +106,7 @@ mod tests {
         );
     }
     #[test]
-    fn check_body_size_returns_error_when_body_not_empty_and_limit_is_zero() {
+    fn test_check_body_size_returns_error_when_body_not_empty_and_limit_is_zero() {
         assert_reached_max_size_limit(
             axum::body::Body::from(constants_str::X),
             0,
@@ -114,7 +114,7 @@ mod tests {
         );
     }
     #[test]
-    fn check_body_size_error_contains_expected_non_zero_size_hint_for_static_body() {
+    fn test_check_body_size_error_contains_expected_non_zero_size_hint_for_static_body() {
         let (_, size_hint_upper) = expect_reached_max_size(
             axum::body::Body::from(constants_str::OVERSIZED),
             2,
@@ -124,7 +124,7 @@ mod tests {
         assert_eq!(size_hint_upper.map(|v| v > 0), Some(true));
     }
     #[test]
-    fn body_size_error_maps_to_payload_too_large() {
+    fn test_body_size_error_maps_to_payload_too_large() {
         crate::assert_err_status_code_only::assert_err_status_code_only(
             crate::poll_test_future::poll_test_future(crate::check_body_size::check_body_size(
                 axum::body::Body::from(constants_str::TOO_BIG),
@@ -135,7 +135,7 @@ mod tests {
         );
     }
     #[test]
-    fn body_size_error_keeps_limit_when_limit_is_one() {
+    fn test_body_size_error_keeps_limit_when_limit_is_one() {
         assert_reached_max_size_limit(
             axum::body::Body::from(constants_str::AB),
             1,

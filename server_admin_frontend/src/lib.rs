@@ -120,8 +120,6 @@ pub mod admin_users_view;
 pub mod axum_admin_frontend_router;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod crud_render_shell;
-#[cfg(all(not(target_arch = "wasm32"), test))]
-pub mod crud_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod csr_admin_nav;
 #[cfg(target_arch = "wasm32")]
@@ -132,8 +130,6 @@ pub mod csr_admin_user_row;
 pub mod csr_page_from_location;
 #[cfg(target_arch = "wasm32")]
 pub mod csrf_token;
-#[cfg(all(not(target_arch = "wasm32"), test))]
-pub mod data_grid_tests;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod data_table_grid;
 #[cfg(not(target_arch = "wasm32"))]
@@ -145,12 +141,6 @@ pub mod domain_types_shared_settings_input;
 pub mod domain_types_ssr_document;
 #[cfg(test)]
 pub mod domain_types_ssr_tests;
-#[cfg(test)]
-pub mod domain_types_ssr_tests_document;
-#[cfg(test)]
-pub mod domain_types_ssr_tests_navigation;
-#[cfg(test)]
-pub mod domain_types_ssr_tests_settings;
 #[cfg(target_arch = "wasm32")]
 pub mod domain_types_start_http_mutation;
 #[cfg(target_arch = "wasm32")]
@@ -163,8 +153,6 @@ pub mod domain_types_with_owner_field;
 pub mod domain_types_with_owner_input;
 pub mod domain_types_with_owner_navigation;
 pub mod domain_types_with_owner_table;
-#[cfg(test)]
-pub mod domain_types_with_owner_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_json;
 #[cfg(target_arch = "wasm32")]
@@ -240,8 +228,6 @@ pub mod ssr;
 pub mod start;
 #[cfg(target_arch = "wasm32")]
 pub mod state;
-#[cfg(all(not(target_arch = "wasm32"), test))]
-pub mod static_pages_tests;
 pub mod table;
 pub mod table_body;
 pub mod table_caption;
@@ -254,6 +240,20 @@ pub mod table_header;
 pub mod table_pagination;
 pub mod table_row;
 pub mod table_wrapper;
+#[cfg(all(not(target_arch = "wasm32"), test))]
+pub mod test_crud_tests;
+#[cfg(all(not(target_arch = "wasm32"), test))]
+pub mod test_data_grid_tests;
+#[cfg(test)]
+pub mod test_domain_types_ssr_tests_document;
+#[cfg(test)]
+pub mod test_domain_types_ssr_tests_navigation;
+#[cfg(test)]
+pub mod test_domain_types_ssr_tests_settings;
+#[cfg(test)]
+pub mod test_domain_types_with_owner_tests;
+#[cfg(all(not(target_arch = "wasm32"), test))]
+pub mod test_static_pages_tests;
 pub mod text;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod text_page;
@@ -262,5 +262,5 @@ pub mod url;
 pub mod values;
 pub mod with_owner;
 
-const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

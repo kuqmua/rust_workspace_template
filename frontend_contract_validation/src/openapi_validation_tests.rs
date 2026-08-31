@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn valid_document_matches_runtime_route_and_references() {
+    fn test_valid_document_matches_runtime_route_and_references() {
         let document = serde_json::json!({
             constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: {
                 constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID,
@@ -26,7 +26,7 @@ mod tests {
     }
 
     #[test]
-    fn dangling_reference_is_rejected() {
+    fn test_dangling_reference_is_rejected() {
         let document = serde_json::json!({
             constants_str::PATHS: {},
             constants_str::COMPONENTS: { constants_str::SCHEMAS: { constants_str::TEST_OPENAPI_SCHEMA: {
@@ -53,7 +53,7 @@ mod tests {
     }
 
     #[test]
-    fn operation_security_status_and_content_type_are_checked() {
+    fn test_operation_security_status_and_content_type_are_checked() {
         let document = serde_json::json!({
             constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: {
                 constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID,
@@ -85,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn payload_schema_checks_required_fields_and_additional_properties() {
+    fn test_payload_schema_checks_required_fields_and_additional_properties() {
         let document = serde_json::json!({
             constants_str::COMPONENTS: { constants_str::SCHEMAS: {}}
         });

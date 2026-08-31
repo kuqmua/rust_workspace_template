@@ -21,7 +21,7 @@ pub const VALUE_16_777_216: usize = 16_777_216usize;
 #[cfg(test)]
 mod tests {
     #[test]
-    fn usize_values_match_primitives() {
+    fn test_usize_values_match_primitives() {
         assert_eq!(super::ZERO, 0usize);
         assert_eq!(super::ONE, 1usize);
         assert_eq!(super::TWO, 2usize);

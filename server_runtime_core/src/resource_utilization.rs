@@ -51,7 +51,7 @@ mod tests {
     }
 
     #[test]
-    fn classifies_every_threshold_boundary() {
+    fn test_classifies_every_threshold_boundary() {
         assert_eq!(
             calculate(69u64, 100u64).status(),
             crate::resource_utilization_status::ResourceUtilizationStatus::Ok
@@ -71,7 +71,7 @@ mod tests {
     }
 
     #[test]
-    fn caps_over_capacity_percent_without_overflow() {
+    fn test_caps_over_capacity_percent_without_overflow() {
         let utilization = calculate(u64::MAX, 1u64);
         assert_eq!(utilization.percent().get(), 100u8);
         assert_eq!(
@@ -89,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    fn percentage_uses_integer_floor_and_zero_usage_is_ok() {
+    fn test_percentage_uses_integer_floor_and_zero_usage_is_ok() {
         let zero = calculate(constants_u64::ZERO, u64::MAX);
         assert_eq!(zero.percent().get(), constants_u8::ZERO);
         assert_eq!(
@@ -105,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_zero_maximum() {
+    fn test_rejects_zero_maximum() {
         assert_eq!(
             crate::calculate_resource_utilization::calculate_resource_utilization(
                 crate::resource_amount::ResourceAmount::from(constants_u64::ZERO),
@@ -115,7 +115,7 @@ mod tests {
         );
     }
     #[test]
-    fn percentage_rejects_values_above_one_hundred() {
+    fn test_percentage_rejects_values_above_one_hundred() {
         let _error =
             crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(101u8)
                 .expect_err(constants_str::VALUE_F7C27C6F);

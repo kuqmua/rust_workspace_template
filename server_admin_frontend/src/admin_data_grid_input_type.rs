@@ -36,7 +36,7 @@ impl AsRef<str> for AdminDataGridInputType {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn maps_contract_input_kinds_to_html_input_types() {
+    fn test_maps_contract_input_kinds_to_html_input_types() {
         [
             (
                 frontend_contract::input_kind::InputKind::Date,

@@ -52,7 +52,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
 #[cfg(test)]
 mod tests {
     #[test]
-    fn duplicate_is_rejected_before_later_invalid_item() {
+    fn test_duplicate_is_rejected_before_later_invalid_item() {
         let result = serde_json::from_str::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 1, 4>>(
             constants_str::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,
         );
@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn shared_bounds_map_to_existing_unique_errors() {
+    fn test_shared_bounds_map_to_existing_unique_errors() {
         assert_eq!(
             crate::bounded_unique_vec::BoundedUniqueVec::<u8, 1, 2>::try_from(Vec::new())
                 .expect_err("e71d26a6"),
@@ -94,7 +94,7 @@ mod tests {
     }
 
     #[test]
-    fn excess_item_is_ignored_without_deserializing_target_type() {
+    fn test_excess_item_is_ignored_without_deserializing_target_type() {
         let error = serde_json::from_str::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 0, 1>>(
             constants_str::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
         )

@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn http_limits_and_csp_validate_boundary_values() {
+    fn test_http_limits_and_csp_validate_boundary_values() {
         let body_limit = <crate::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::VALUE_1)).expect("42f6d81c http_limits_and_csp_validate_boundary_values invariant must hold"),
         )

@@ -11,7 +11,7 @@ pub fn pagination_start_end_initialization_token_stream(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn generated_pagination_initialization_preserves_receiver() {
+    fn test_generated_pagination_initialization_preserves_receiver() {
         let actual =
             crate::pagination_start_end_initialization_token_stream::pagination_start_end_initialization_token_stream(&quote::quote!(parameters));
         let expected = quote::quote! {

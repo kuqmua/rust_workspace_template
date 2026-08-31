@@ -20,7 +20,7 @@ pub(crate) fn error_status(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn exit_codes_distinguish_invalid_input_and_completed_initial_administrator_creation() {
+    fn test_exit_codes_distinguish_invalid_input_and_completed_initial_administrator_creation() {
         assert_eq!(
             crate::error_status::error_status(
                 &crate::administrator_account_command_error::AdministratorAccountCommandError::Args(

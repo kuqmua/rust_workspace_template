@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn pool_limits_and_timeouts_reject_zero() {
+    fn test_pool_limits_and_timeouts_reject_zero() {
         let max =
             <crate::pg_pool_max_connections::PgPoolMaxConnections as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
                 crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::VALUE_1))

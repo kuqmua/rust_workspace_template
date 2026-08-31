@@ -33,7 +33,7 @@ impl GeneratePgTableModel {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn field_count_preserves_validated_model_count() {
+    fn test_field_count_preserves_validated_model_count() {
         let input: syn::DeriveInput = syn::parse_quote!(
             struct Example {
                 value: u8,

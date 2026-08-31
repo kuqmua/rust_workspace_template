@@ -27,7 +27,7 @@ pub(crate) const ADMIN_NEW_PASSWORD_IS_VALID: fn(&str) -> bool = |value| {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn positive_identifier_value_rejects_zero() {
+    fn test_positive_identifier_value_rejects_zero() {
         assert_eq!(
             crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(constants_i64::ZERO),
             Err(crate::admin_id_try_from_i64_error::AdminIdTryFromI64Error::Invalid),

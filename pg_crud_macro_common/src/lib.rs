@@ -11,8 +11,6 @@ pub mod derive_or_impl;
 pub mod dimension;
 pub mod dimension_index_number;
 pub mod dimension_number;
-#[cfg(test)]
-pub mod domain_types_token_emission_tests;
 pub mod emission_types;
 pub mod eq_operator_variant;
 pub mod eq_or_eq_using_fields;
@@ -88,11 +86,13 @@ pub mod struct_els_len;
 pub mod syn_field_refs;
 pub mod syn_identifier_type_refs;
 #[cfg(test)]
-pub mod tests_domain_types;
+pub mod test_domain_types_token_emission_tests;
+#[cfg(test)]
+pub mod test_tests_domain_types;
 pub mod wrap_into_braces;
 pub mod wrap_into_scopes_token_stream;
 
 pub mod domain_types;
 
-const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

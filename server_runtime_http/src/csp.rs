@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn builder_joins_validated_directives() {
+    fn test_builder_joins_validated_directives() {
         let mut builder = crate::http_csp_builder::HttpCspBuilder::default();
         let default_src = crate::http_csp_directive_name::HttpCspDirectiveName::try_from(
             String::from(constants_str::TEST_DEFAULT_SRC),
@@ -26,7 +26,7 @@ mod tests {
     }
 
     #[test]
-    fn tokens_reject_whitespace_semicolon_and_uppercase_name() {
+    fn test_tokens_reject_whitespace_semicolon_and_uppercase_name() {
         assert_eq!(
             crate::http_csp_directive_value::HttpCspDirectiveValue::try_from(String::from(
                 constants_str::TEST_CSP_SELF_DATA

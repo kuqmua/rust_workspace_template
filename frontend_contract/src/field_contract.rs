@@ -5,7 +5,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn type_contract_preserves_input_metadata() {
+    fn test_type_contract_preserves_input_metadata() {
         let contract = crate::type_contract::TypeContract::new(
             crate::input_kind::InputKind::Number,
             crate::value_format::ValueFormat::Int64,

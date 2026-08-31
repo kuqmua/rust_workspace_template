@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn administrator_secret_text_enforces_internal_bound() {
+    fn test_administrator_secret_text_enforces_internal_bound() {
         let at_limit = constants_str::A_ALT.repeat(constants_usize::VALUE_8_192);
         let secret = crate::secrecy_admin_string::SecrecyAdminString::try_from(at_limit.clone())
             .expect(
@@ -24,7 +24,7 @@ mod tests {
         );
     }
     #[test]
-    fn administrator_secret_text_is_redacted_and_zeroizable() {
+    fn test_administrator_secret_text_is_redacted_and_zeroizable() {
         let raw = constants_str::NEVER_PRINT_THIS_VALUE;
         let secret = crate::secrecy_admin_string::SecrecyAdminString::try_from(raw.to_owned())
             .expect(
@@ -38,7 +38,7 @@ mod tests {
         assert!(bounded.as_ref().is_empty());
     }
     #[test]
-    fn administrator_resource_values_are_stable() {
+    fn test_administrator_resource_values_are_stable() {
         let positive =
             server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64::try_from(42i64)
                 .expect("2570af3b administrator_resource_values_are_stable invariant must hold");

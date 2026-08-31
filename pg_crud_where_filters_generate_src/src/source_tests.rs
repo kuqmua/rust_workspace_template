@@ -1,7 +1,7 @@
 #[cfg(test)]
-mod pipeline_tests {
+mod test_pipeline_tests {
     #[test]
-    fn config_builds_and_validates_without_emitting_source() {
+    fn test_config_builds_and_validates_without_emitting_source() {
         let input = quote::quote! {{
             "pg_types_write_into_file": "False",
             "whole_write_into_file": "False"

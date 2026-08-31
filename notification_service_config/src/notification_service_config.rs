@@ -31,7 +31,7 @@ pub struct NotificationServiceConfig {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn derive_generates_typed_accessors() {
+    fn test_derive_generates_typed_accessors() {
         fn is_typed_accessor<Value>(
             _accessor: fn(&super::NotificationServiceConfig) -> &Value,
         ) -> bool {

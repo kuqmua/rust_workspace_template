@@ -15,4 +15,4 @@ pub mod regex_regex_try_from_string_error;
 pub mod variant;
 
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;

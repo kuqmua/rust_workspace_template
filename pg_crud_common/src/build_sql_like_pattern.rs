@@ -47,7 +47,7 @@ pub fn build_sql_like_pattern(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn match_modes_place_wildcards_at_the_requested_edges() {
+    fn test_match_modes_place_wildcards_at_the_requested_edges() {
         assert!(matches!(
             crate::build_sql_like_pattern::build_sql_like_pattern(
                 constants_str::TEST_SQL_LIKE_INPUT.into(),
@@ -72,7 +72,7 @@ mod tests {
     }
 
     #[test]
-    fn reserved_symbols_are_escaped_as_literals() {
+    fn test_reserved_symbols_are_escaped_as_literals() {
         assert!(matches!(
             crate::build_sql_like_pattern::build_sql_like_pattern(
                 constants_str::TEST_SQL_LIKE_RESERVED_INPUT.into(),

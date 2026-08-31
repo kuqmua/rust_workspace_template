@@ -106,7 +106,7 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
 #[cfg(test)]
 mod tests {
     #[test]
-    fn try_from_enforces_inclusive_bounds() {
+    fn test_try_from_enforces_inclusive_bounds() {
         assert!(matches!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(Vec::new()),
             Err(crate::bounded_vec_error::BoundedVecError::BelowMin { .. })
@@ -129,14 +129,14 @@ mod tests {
         ));
     }
     #[test]
-    fn invalid_bounds_are_rejected() {
+    fn test_invalid_bounds_are_rejected() {
         assert!(matches!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 2, 1>::try_from(vec![1u8]),
             Err(crate::bounded_vec_error::BoundedVecError::InvalidBounds { .. })
         ));
     }
     #[test]
-    fn serde_round_trip_and_limits_are_stable() {
+    fn test_serde_round_trip_and_limits_are_stable() {
         let value =
             <crate::pg_bounded_vec::PgBoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
                 serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
@@ -161,7 +161,7 @@ mod tests {
         let _above_max_error = error.expect_err(constants_str::VALUE_91C59B94);
     }
     #[test]
-    fn schemas_match_runtime_bounds() {
+    fn test_schemas_match_runtime_bounds() {
         let schema = schemars::schema_for!(crate::pg_bounded_vec::PgBoundedVec<u8, 1, 2>);
         assert_eq!(
             schema

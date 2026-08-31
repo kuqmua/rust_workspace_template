@@ -15,7 +15,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn migration_and_bulk_snapshots_must_remain_unchanged() {
+    fn test_migration_and_bulk_snapshots_must_remain_unchanged() {
         assert_eq!(
             crate::validate_migration_idempotency::validate_migration_idempotency(
                 &[1u8, 2u8],

@@ -146,7 +146,7 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
 #[cfg(test)]
 mod tests {
     #[test]
-    fn btree_map_preserves_key_order() {
+    fn test_btree_map_preserves_key_order() {
         let value =
             super::BoundedBTreeMap::<u8, u8, 2>::try_from(std::collections::BTreeMap::from([
                 (2u8, 2u8),

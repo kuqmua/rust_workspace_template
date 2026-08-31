@@ -345,15 +345,15 @@ pub mod storage_path_segment;
 pub mod storage_path_segment_error;
 pub mod supported_geo_json_type_validation;
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;
 #[cfg(test)]
-pub mod tests_domain_types_request_id;
+pub mod test_tests_domain_types_request_id;
 #[cfg(test)]
-pub mod tests_domain_types_resource_budget;
+pub mod test_tests_domain_types_resource_budget;
 #[cfg(test)]
-pub mod tests_domain_types_security_headers;
+pub mod test_tests_domain_types_security_headers;
 #[cfg(test)]
-pub mod tests_domain_types_service_runtime;
+pub mod test_tests_domain_types_service_runtime;
 pub mod tokio_abort_task;
 pub mod tokio_acquire_error;
 pub mod tokio_background_task_join;

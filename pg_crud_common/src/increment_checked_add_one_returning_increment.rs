@@ -17,7 +17,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn result_api_maps_overflow_without_mutating_counter() {
+    fn test_result_api_maps_overflow_without_mutating_counter() {
         let mut counter = crate::query_part_increment::QueryPartIncrement::from(u64::MAX);
         assert!(matches!(
             crate::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(&mut counter),

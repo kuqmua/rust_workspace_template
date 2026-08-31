@@ -102,7 +102,7 @@ mod tests {
     }
 
     #[test]
-    fn derive_uses_one_declaration_for_types_and_metadata() {
+    fn test_derive_uses_one_declaration_for_types_and_metadata() {
         let metadata =
             frontend_contract::client_route_metadata::client_route_metadata::<TestRoute>();
         assert_eq!(metadata.method().as_ref(), constants_str::GET);
@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn typed_route_registers_request_response_and_problem_schemas() {
+    fn test_typed_route_registers_request_response_and_problem_schemas() {
         let mut document = utoipa::openapi::OpenApi::default();
         let mut open_api =
             frontend_contract::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut::from(&mut document);
@@ -140,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn typed_route_applies_declared_error_response_schema() {
+    fn test_typed_route_applies_declared_error_response_schema() {
         let mut operation = utoipa::openapi::path::Operation::default();
         frontend_contract::apply_openapi_error_contract::apply_openapi_error_contract::<TestRoute>(
             &mut operation,
@@ -156,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    fn typed_route_applies_declared_json_request_body() {
+    fn test_typed_route_applies_declared_json_request_body() {
         let mut operation = utoipa::openapi::path::Operation::default();
         frontend_contract::apply_openapi_request_contract::apply_openapi_request_contract::<
             TestRoute,
@@ -176,7 +176,7 @@ mod tests {
     }
 
     #[test]
-    fn route_family_generates_valid_coverage_descriptors() {
+    fn test_route_family_generates_valid_coverage_descriptors() {
         let descriptors =
             <TestRouteFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors(
             );
@@ -193,7 +193,7 @@ mod tests {
         );
     }
     #[test]
-    fn route_family_metadata_comes_from_the_typed_routes() {
+    fn test_route_family_metadata_comes_from_the_typed_routes() {
         let metadata =
             <TestRouteFamily as frontend_contract::route_family::RouteFamily>::route_metadata();
         assert_eq!(
@@ -206,7 +206,7 @@ mod tests {
         );
     }
     #[test]
-    fn route_catalog_generates_contract_paths_and_family() {
+    fn test_route_catalog_generates_contract_paths_and_family() {
         assert_eq!(TestCatalog::ALL, [TestCatalog::Custom, TestCatalog::Read]);
         assert_eq!(
             custom_route(),

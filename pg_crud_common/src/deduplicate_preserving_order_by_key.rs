@@ -17,7 +17,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn deduplication_keeps_first_value_and_input_order() {
+    fn test_deduplication_keeps_first_value_and_input_order() {
         let values = vec![(1u8, 10u8), (2u8, 20u8), (1u8, 30u8)];
         assert_eq!(
             Vec::from(

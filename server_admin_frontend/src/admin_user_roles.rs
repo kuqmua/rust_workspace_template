@@ -18,7 +18,7 @@ mod tests {
     use leptos::prelude::RenderHtml;
 
     #[test]
-    fn user_roles_render_only_matching_names_in_catalog_order() {
+    fn test_user_roles_render_only_matching_names_in_catalog_order() {
         let assigned_role = server_admin_contract::admin_role_id::AdminRoleId::try_from(2i64).expect(
             "d8124a6f user_roles_render_only_matching_names_in_catalog_order invariant must hold",
         );
@@ -61,7 +61,7 @@ mod tests {
     }
 
     #[test]
-    fn role_permissions_render_matching_names_with_stable_separator() {
+    fn test_role_permissions_render_matching_names_with_stable_separator() {
         let first_permission =
             server_admin_contract::admin_permission_id::AdminPermissionId::try_from(constants_i64::ONE).expect("61bc809e role_permissions_render_matching_names_with_stable_separator invariant must hold");
         let second_permission =

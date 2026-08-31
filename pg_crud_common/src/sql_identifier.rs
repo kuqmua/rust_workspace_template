@@ -39,7 +39,7 @@ mod tests {
         clippy::needless_for_each,
         reason = "repository source policy requires iterator methods instead of for loops"
     )]
-    fn sql_identifier_uses_restricted_ascii_grammar() {
+    fn test_sql_identifier_uses_restricted_ascii_grammar() {
         [
             constants_str::TABLE_ALT,
             constants_str::TABLE,
@@ -66,7 +66,7 @@ mod tests {
         });
     }
     #[test]
-    fn query_builder_accepts_only_validated_identifiers() {
+    fn test_query_builder_accepts_only_validated_identifiers() {
         let builder = crate::sql_select_builder::SqlSelectBuilder::new(
             crate::sql_qualified_identifier::SqlQualifiedIdentifier::new(
                 sql_identifier_fixture(constants_str::PUBLIC),
@@ -86,7 +86,7 @@ mod tests {
         assert_eq!(second.into_inner(), "SELECT id, login FROM public.users");
     }
     #[test]
-    fn benchmark_black_box_dependency_is_available() {
+    fn test_benchmark_black_box_dependency_is_available() {
         assert_ne!(size_of::<criterion::Criterion>(), constants_usize::ZERO);
     }
 }

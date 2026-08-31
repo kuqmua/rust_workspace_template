@@ -579,7 +579,7 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
 #[cfg(test)]
 mod tests {
     #[test]
-    fn adds_location_to_every_named_variant() {
+    fn test_adds_location_to_every_named_variant() {
         let mut item: syn::ItemEnum = syn::parse_quote! {
             enum SampleError {
                 First { value: String },
@@ -602,7 +602,7 @@ mod tests {
         );
     }
     #[test]
-    fn rejects_existing_location_field() {
+    fn test_rejects_existing_location_field() {
         let mut item: syn::ItemEnum = syn::parse_quote! {
             enum SampleError { First { location: location_lib::location::Location } }
         };
@@ -616,7 +616,7 @@ mod tests {
         );
     }
     #[test]
-    fn rejects_unnamed_variant() {
+    fn test_rejects_unnamed_variant() {
         let mut item: syn::ItemEnum = syn::parse_quote! {
             enum SampleError { First(String) }
         };

@@ -25,7 +25,7 @@ pg_crud_macro_common_macros::bool_enum_to_tokens!(UpdateQueryPartValueUndrscr, f
 #[cfg(test)]
 mod tests {
     #[test]
-    fn import_paths_match_their_owners() {
+    fn test_import_paths_match_their_owners() {
         assert_eq!(
             crate::import::Import::Crate.to_path().to_string(),
             constants_str::CRATE

@@ -59,7 +59,7 @@ mod tests {
     {
     }
     #[test]
-    fn shared_json_contract_helper_round_trips_pg_type_fixture() {
+    fn test_shared_json_contract_helper_round_trips_pg_type_fixture() {
         macro_helpers::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
@@ -74,7 +74,7 @@ mod tests {
         miri,
         ignore = "full type source generation is covered by native determinism tests and is prohibitively slow under interpretation"
     )]
-    fn generated_output_is_deterministic() {
+    fn test_generated_output_is_deterministic() {
         let config = quote::quote! {{
             "pg_table_cols_write_into_file": "False",
             "whole_write_into_file": "False",
@@ -94,7 +94,7 @@ mod tests {
         miri,
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
-    fn pg_types_generate_clippy() {
+    fn test_pg_types_generate_clippy() {
         macro_clippy_check_test_common::clippy_check(
             constants_str::GENERATE_PG_TYPES_TEST_CNT,
             constants_str::PG_CRUD_PG_TYPES,
@@ -113,7 +113,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_integer_open_api_schema_has_format_bounds_and_example() {
+    fn test_generated_integer_open_api_schema_has_format_bounds_and_example() {
         let schema = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect("8af67e13 generated_integer_open_api_schema_has_format_bounds_and_example invariant must hold");
         assert_eq!(schema_json["type"], "integer");
@@ -123,7 +123,7 @@ mod tests {
         assert_eq!(schema_json["examples"], serde_json::json!([42]));
     }
     #[test]
-    fn generated_frontend_type_contract_matches_integer_wire_contract() {
+    fn test_generated_frontend_type_contract_matches_integer_wire_contract() {
         let contract =
             <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::has_type_contract::HasTypeContract>::type_contract();
         assert_eq!(
@@ -152,7 +152,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_frontend_type_contract_preserves_nullable_uuid_semantics() {
+    fn test_generated_frontend_type_contract_preserves_nullable_uuid_semantics() {
         let contract = <pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient as frontend_contract::has_type_contract::HasTypeContract>::type_contract();
         assert_eq!(
             contract.input_kind(),
@@ -168,7 +168,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_form_value_contract_parses_and_formats_wire_values() {
+    fn test_generated_form_value_contract_parses_and_formats_wire_values() {
         let integer = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin as frontend_contract::form_value_contract::FormValueContract>::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_42)).expect("0935c11d generated_form_value_contract_parses_and_formats_wire_values invariant must hold");
         assert_eq!(
             frontend_contract::form_value_contract::FormValueContract::format_form_value(&integer)
@@ -200,7 +200,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_filter_form_values_preserve_json_wire_types() {
+    fn test_generated_filter_form_values_preserve_json_wire_types() {
         let integer = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_42)).expect("12df8cb5 generated_filter_form_values_preserve_json_wire_types invariant must hold");
         assert_eq!(integer.as_ref(), "42");
         let timestamp = <pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect("98f3df36 generated_filter_form_values_preserve_json_wire_types invariant must hold");
@@ -212,7 +212,7 @@ mod tests {
         assert_eq!(nullable.as_ref(), "null");
     }
     #[test]
-    fn generated_nullable_open_api_schema_is_nullable() {
+    fn test_generated_nullable_open_api_schema_is_nullable() {
         let schema =
             <pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema)
@@ -224,7 +224,7 @@ mod tests {
         }));
     }
     #[test]
-    fn generated_uuid_open_api_schema_matches_wire_string() {
+    fn test_generated_uuid_open_api_schema_matches_wire_string() {
         let schema = <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect(
             "80cb3ea4 generated_uuid_open_api_schema_matches_wire_string invariant must hold",
@@ -233,7 +233,7 @@ mod tests {
         assert_eq!(schema_json["format"], "uuid");
     }
     #[test]
-    fn std_bound_wire_shape_is_stable_for_range_schemas() {
+    fn test_std_bound_wire_shape_is_stable_for_range_schemas() {
         assert_eq!(
             serde_json::to_value(std::ops::Bound::Included(1i32)).expect(
                 "90cdfba3 std_bound_wire_shape_is_stable_for_range_schemas invariant must hold"
@@ -248,7 +248,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_time_open_api_properties_match_wire_object() {
+    fn test_generated_time_open_api_properties_match_wire_object() {
         let time = pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin::try_new(
             chrono::NaiveTime::from_hms_micro_opt(12, 34, 56, 789).expect(
                 "c19f58a4 generated_time_open_api_properties_match_wire_object invariant must hold",
@@ -275,7 +275,7 @@ mod tests {
         assert_eq!(schema_json["required"].as_array().map(Vec::len), Some(4));
     }
     #[test]
-    fn generated_range_open_api_properties_match_wire_object() {
+    fn test_generated_range_open_api_properties_match_wire_object() {
         let range = pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin::try_new(
             sqlx::postgres::types::PgRange {
                 start: std::ops::Bound::Included(1),
@@ -308,7 +308,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_filter_has_open_api_one_of_schema() {
+    fn test_generated_filter_has_open_api_one_of_schema() {
         let schema = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Where as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema)
             .expect("4bbd5367 generated_filter_has_open_api_one_of_schema invariant must hold");
@@ -319,7 +319,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_filters_follow_descriptor_capabilities() {
+    fn test_generated_filters_follow_descriptor_capabilities() {
         let uuid_schema =
             <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientWhere as utoipa::PartialSchema>::schema();
         let uuid_schema_json = serde_json::to_string(&uuid_schema).expect(
@@ -347,7 +347,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_frontend_filters_follow_the_same_descriptor_matrix() {
+    fn test_generated_frontend_filters_follow_the_same_descriptor_matrix() {
         let number = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::has_filter_contracts::HasFilterContracts>::filter_contracts();
         assert_eq!(
             number.as_ref().to_vec(),
@@ -374,7 +374,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_schema_examples_deserialize_for_every_wire_kind() {
+    fn test_generated_schema_examples_deserialize_for_every_wire_kind() {
         assert_schema_example_deserializes::<
             pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
         >();
@@ -458,7 +458,7 @@ mod tests {
         .expect("4063a869 generated_schema_examples_deserialize_for_every_wire_kind invariant must hold");
     }
     #[test]
-    fn generated_wire_contract_rejects_invalid_values() {
+    fn test_generated_wire_contract_rejects_invalid_values() {
         drop(
             serde_json::from_value::<pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin>(serde_json::json!(
                 32768
@@ -485,7 +485,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_float8_rejects_non_finite_values() {
+    fn test_generated_float8_rejects_non_finite_values() {
         let _finite =
             pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin::try_new(1.5f64)
                 .expect("40483cd5 generated_float8_rejects_non_finite_values invariant must hold");
@@ -509,7 +509,7 @@ mod tests {
         );
     }
     #[test]
-    fn generated_wrapper_roles_have_standard_conversions_and_borrows() {
+    fn test_generated_wrapper_roles_have_standard_conversions_and_borrows() {
         assert_wrapper_traits::<
             pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2TableType,
             pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
@@ -536,7 +536,7 @@ mod tests {
         >();
     }
     #[test]
-    fn generated_secret_text_is_redacted_and_borrowable() {
+    fn test_generated_secret_text_is_redacted_and_borrowable() {
         fn assert_traits<T>()
         where
             T: Clone

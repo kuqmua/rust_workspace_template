@@ -66,9 +66,9 @@ pub mod select_where_fmt;
 pub mod sqlx_pg_table_idempotency_error;
 pub mod sqlx_pg_table_pg_connection_ref;
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;
 #[cfg(test)]
-pub mod tests_domain_types_idempotency;
+pub mod test_tests_domain_types_idempotency;
 pub mod update_selector_fmt;
 mod validate_pg_table_idempotency_text;
 

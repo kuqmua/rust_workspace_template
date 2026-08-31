@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn bearer_authorization_requires_exact_scheme_and_token() {
+    fn test_bearer_authorization_requires_exact_scheme_and_token() {
         assert!(matches!(
             crate::resolve_bearer_authorization::resolve_bearer_authorization(
                 crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(
@@ -27,7 +27,7 @@ mod tests {
         );
     }
     #[test]
-    fn duplicate_cookie_is_invalid() {
+    fn test_duplicate_cookie_is_invalid() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             http::header::COOKIE,
@@ -44,7 +44,7 @@ mod tests {
         );
     }
     #[test]
-    fn json_content_type_supports_charset() {
+    fn test_json_content_type_supports_charset() {
         assert_eq!(
             crate::classify_optional_json_content_type::classify_optional_json_content_type(
                 crate::http_content_type_text_ref::HttpContentTypeTextRef::from(Some(
@@ -55,7 +55,7 @@ mod tests {
         );
     }
     #[test]
-    fn optional_json_rejects_non_json_non_empty_body() {
+    fn test_optional_json_rejects_non_json_non_empty_body() {
         assert_eq!(
             crate::resolve_optional_json_content_type_decision::resolve_optional_json_content_type_decision(
                 crate::optional_json_body_presence::OptionalJsonBodyPresence::NonEmpty,

@@ -18,7 +18,7 @@ mod tests {
         }
     }
     #[test]
-    fn every_notification_route_has_named_route_and_client_functions() {
+    fn test_every_notification_route_has_named_route_and_client_functions() {
         assert_eq!(
             <crate::notification_route::NotificationRouteFamily as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT,
             constants_usize::ONE
@@ -61,7 +61,7 @@ mod tests {
         );
     }
     #[test]
-    fn notification_message_enforces_bounds() {
+    fn test_notification_message_enforces_bounds() {
         assert!(matches!(
             crate::notification_message::NotificationMessage::try_from(String::new()),
             Err(crate::notification_message_try_from_string_error::NotificationMessageTryFromStringError::Empty)
@@ -77,7 +77,7 @@ mod tests {
     }
 
     #[test]
-    fn notification_message_deserialization_enforces_bounds() {
+    fn test_notification_message_deserialization_enforces_bounds() {
         let _empty_error =
             <crate::notification_message::NotificationMessage as serde::Deserialize>::deserialize(
                 serde::de::value::StringDeserializer::<serde::de::value::Error>::new(String::new()),

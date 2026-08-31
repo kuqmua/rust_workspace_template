@@ -13,11 +13,11 @@ pub mod initialization_entry;
 pub mod initialization_status;
 pub mod initialize;
 pub mod initialize_error;
-#[cfg(test)]
-pub mod initialize_tests;
 pub mod path_exists;
 pub mod read_bounded_content;
 pub mod run_mode;
+#[cfg(test)]
+pub mod test_initialize_tests;
 pub mod toml_init_error;
 pub mod workspace_member;
 pub mod workspace_root_path_ref;

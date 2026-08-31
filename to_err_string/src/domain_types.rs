@@ -40,7 +40,7 @@ mod tests {
         assert_eq!(v.to_err_string().as_ref(), exp);
     }
     #[test]
-    fn to_err_string_for_primitives_and_options() {
+    fn test_to_err_string_for_primitives_and_options() {
         assert_to_err_string(42i32, constants_str::VALUE_42);
         assert_to_err_string(42i128, constants_str::VALUE_42);
         assert_to_err_string(42isize, constants_str::VALUE_42);
@@ -55,7 +55,7 @@ mod tests {
         );
     }
     #[test]
-    fn to_err_string_for_strings_and_str_refs() {
+    fn test_to_err_string_for_strings_and_str_refs() {
         let owned = String::from(constants_str::ABC_ALT_3);
         let borrowed = constants_str::XYZ;
         assert_to_err_string(owned, constants_str::ABC_ALT_3);
@@ -70,7 +70,7 @@ mod tests {
         );
     }
     #[test]
-    fn to_err_string_for_result_values() {
+    fn test_to_err_string_for_result_values() {
         assert_to_err_string(Result::<u8, u16>::Ok(5), constants_str::OK_5);
         assert_to_err_string(
             Result::<u8, &'static str>::Err(constants_str::CONFIG_TRACING_ERROR),
@@ -82,7 +82,7 @@ mod tests {
         miri,
         ignore = "oversized JSON serialization is covered natively and is prohibitively slow under interpretation"
     )]
-    fn error_text_owns_the_shared_length_invariant() {
+    fn test_error_text_owns_the_shared_length_invariant() {
         let valid = crate::error_text::ErrorText::try_from(String::from(constants_str::ERROR))
             .expect("11a745a8 error_text_owns_the_shared_length_invariant invariant must hold");
         assert_eq!(valid.as_ref(), constants_str::ERROR);

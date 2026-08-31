@@ -36,7 +36,7 @@ pub(crate) fn password_from_file(
 #[cfg(test)]
 mod tests {
     #[test]
-    fn password_file_accepts_one_trailing_line_ending() {
+    fn test_password_file_accepts_one_trailing_line_ending() {
         let password_text = constants_str::TEST_STRONG_PASSWORD;
         let password = crate::password_from_bytes::password_from_bytes(
             server_runtime_http::bounded_bytes::BoundedBytes::from(
@@ -51,7 +51,7 @@ mod tests {
     }
 
     #[test]
-    fn password_file_rejects_excess_bytes() {
+    fn test_password_file_rejects_excess_bytes() {
         let Err(_error) = crate::password_from_bytes::password_from_bytes(
             server_runtime_http::bounded_bytes::BoundedBytes::from(vec![
                 b'a';

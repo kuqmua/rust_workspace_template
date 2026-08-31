@@ -36,7 +36,7 @@ impl AdminRoleId {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn role_identifier_round_trips_i64() {
+    fn test_role_identifier_round_trips_i64() {
         let identifier = super::AdminRoleId::try_from(constants_i64::ONE)
             .expect("4dbec052 role identifier must be positive");
         assert_eq!(i64::from(identifier), constants_i64::ONE);

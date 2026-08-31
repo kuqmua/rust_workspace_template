@@ -58,29 +58,29 @@ mod tests {
         assert!(matches!(actual, Err(v) if &v == exp));
     }
     #[test]
-    fn required_header_str_returns_header_when_present_and_utf8() {
+    fn test_required_header_str_returns_header_when_present_and_utf8() {
         let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual.map(<&str>::from), Ok("abc"));
     }
     #[test]
-    fn required_header_str_returns_no_header_error_when_absent() {
+    fn test_required_header_str_returns_no_header_error_when_absent() {
         let headers = axum::http::HeaderMap::new();
         assert_header_err(header(&headers, TEST_HEADER_NAME), &TestError::NoHeader);
     }
     #[test]
-    fn required_header_str_returns_to_str_error_for_non_utf8_header() {
+    fn test_required_header_str_returns_to_str_error_for_non_utf8_header() {
         let headers = make_test_headers(crate::non_utf8_header_value::non_utf8_header_value());
         assert_header_err(header(&headers, TEST_HEADER_NAME), &TestError::ToStr);
     }
     #[test]
-    fn required_header_str_accepts_str_header_name() {
+    fn test_required_header_str_accepts_str_header_name() {
         let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = header(&headers, constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
         assert_eq!(actual.map(<&str>::from), Ok("abc"));
     }
     #[test]
-    fn required_header_returns_header_value_when_present() {
+    fn test_required_header_returns_header_value_when_present() {
         let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = raw_header(&headers, TEST_HEADER_NAME);
         assert_eq!(
@@ -89,18 +89,18 @@ mod tests {
         );
     }
     #[test]
-    fn required_header_returns_no_header_error_when_absent() {
+    fn test_required_header_returns_no_header_error_when_absent() {
         let headers = axum::http::HeaderMap::new();
         assert_header_err(raw_header(&headers, TEST_HEADER_NAME), &TestError::NoHeader);
     }
     #[test]
-    fn required_header_parsed_returns_parsed_value_for_valid_header() {
+    fn test_required_header_parsed_returns_parsed_value_for_valid_header() {
         let headers = make_test_headers_static(constants_str::TRUE);
         let actual = bool_header(&headers, TEST_HEADER_NAME);
         assert_eq!(actual, Ok(true));
     }
     #[test]
-    fn required_header_parsed_returns_parse_error_for_invalid_header_value() {
+    fn test_required_header_parsed_returns_parse_error_for_invalid_header_value() {
         let headers = make_test_headers_static(constants_str::NOPE);
         assert_header_err(
             bool_header(&headers, TEST_HEADER_NAME),
@@ -108,7 +108,7 @@ mod tests {
         );
     }
     #[test]
-    fn required_header_mapped_applies_mapping_for_present_header() {
+    fn test_required_header_mapped_applies_mapping_for_present_header() {
         let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = crate::required_header_value::required_header_value(
             crate::axum_headers_ref::AxumHeadersRef::from(&headers),
@@ -123,7 +123,7 @@ mod tests {
         assert_eq!(actual, Ok(3));
     }
     #[test]
-    fn required_header_str_parsed_does_not_call_parse_when_header_absent() {
+    fn test_required_header_str_parsed_does_not_call_parse_when_header_absent() {
         let headers = axum::http::HeaderMap::new();
         let mut parse_called = false;
         let actual = crate::required_header_str_parsed::required_header_str_parsed(
@@ -140,7 +140,7 @@ mod tests {
         assert!(!parse_called);
     }
     #[test]
-    fn required_header_str_parsed_does_not_call_parse_for_non_utf8_header() {
+    fn test_required_header_str_parsed_does_not_call_parse_for_non_utf8_header() {
         let headers = make_test_headers(crate::non_utf8_header_value::non_utf8_header_value());
         let mut parse_called = false;
         let actual = crate::required_header_str_parsed::required_header_str_parsed(

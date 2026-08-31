@@ -3,7 +3,7 @@ mod tests {
     #[test]
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::needless_for_each)]
-    fn every_api_problem_error_is_an_error_enum_with_a_json_response() {
+    fn test_every_api_problem_error_is_an_error_enum_with_a_json_response() {
         fn assert_error<Error>()
         where
             Error: std::error::Error,
@@ -121,7 +121,7 @@ mod tests {
     }
 
     #[test]
-    fn problem_text_deserialization_uses_bounded_try_from() {
+    fn test_problem_text_deserialization_uses_bounded_try_from() {
         let detail = serde_json::to_string(&constants_str::X.repeat(1_025usize)).expect(
             "6e2db8a1 problem_text_deserialization_uses_bounded_try_from invariant must hold",
         );
@@ -140,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn problem_violation_deserialization_rejects_too_many_items() {
+    fn test_problem_violation_deserialization_rejects_too_many_items() {
         let item = serde_json::json!({ "detail": "invalid", "field": "name" });
         let serialized = serde_json::to_string(&vec![item; 129usize]).expect(
             "a1010d3f problem_violation_deserialization_rejects_too_many_items invariant must hold",

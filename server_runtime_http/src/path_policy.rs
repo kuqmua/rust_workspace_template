@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn proxy_path_matches_only_segment_prefix() {
+    fn test_proxy_path_matches_only_segment_prefix() {
         let path = crate::http_proxy_path::HttpProxyPath::try_from(
             crate::http_proxy_path_ref::HttpProxyPathRef::from(
                 constants_str::TEST_PROXY_USERS_PATH,
@@ -18,7 +18,7 @@ mod tests {
         ));
     }
     #[test]
-    fn proxy_path_rejects_encoded_traversal() {
+    fn test_proxy_path_rejects_encoded_traversal() {
         assert_eq!(
             crate::http_proxy_path::HttpProxyPath::try_from(
                 crate::http_proxy_path_ref::HttpProxyPathRef::from(
@@ -29,7 +29,7 @@ mod tests {
         );
     }
     #[test]
-    fn identifier_path_normalizes_numbers_and_uuid_v4() {
+    fn test_identifier_path_normalizes_numbers_and_uuid_v4() {
         let normalized = crate::normalize_identifier_path::normalize_identifier_path(
             crate::http_request_path_ref::HttpRequestPathRef::from(
                 constants_str::TEST_DYNAMIC_IDENTIFIER_PATH,

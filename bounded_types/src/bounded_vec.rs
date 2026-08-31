@@ -164,7 +164,7 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
 #[cfg(test)]
 mod tests {
     #[test]
-    fn vector_growth_respects_capacity() {
+    fn test_vector_growth_respects_capacity() {
         let mut value = super::BoundedVec::<u8, 0, 1>::default();
         assert!(matches!(value.try_push(1u8), Ok(())));
         assert!(matches!(
@@ -174,7 +174,7 @@ mod tests {
     }
 
     #[test]
-    fn max_iterator_uses_bounded_size_hint_capacity() {
+    fn test_max_iterator_uses_bounded_size_hint_capacity() {
         let value = super::BoundedVec::from_max_iter([1u8, 2u8, 3u8]);
         assert!(value.allocation_capacity() >= 3usize);
     }

@@ -7,7 +7,7 @@ mod tests {
         ))
     }
     #[test]
-    fn exact_limit_and_one_byte_over_are_distinguished() {
+    fn test_exact_limit_and_one_byte_over_are_distinguished() {
         let path = unique_path(constants_str::LIMIT);
         std::fs::write(&path, b"abcd")
             .expect("11ddba38 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
@@ -30,7 +30,7 @@ mod tests {
             .expect("30b575c6 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
     }
     #[test]
-    fn file_growth_after_metadata_is_rechecked() {
+    fn test_file_growth_after_metadata_is_rechecked() {
         let path = unique_path(constants_str::GROWTH);
         std::fs::write(&path, b"a")
             .expect("c0745b58 file_growth_after_metadata_is_rechecked invariant must hold");
@@ -70,7 +70,7 @@ mod tests {
             .expect("385eed61 file_growth_after_metadata_is_rechecked invariant must hold");
     }
     #[test]
-    fn invalid_utf8_is_not_lossily_converted() {
+    fn test_invalid_utf8_is_not_lossily_converted() {
         let result = crate::bounded_text::BoundedText::try_from(
             crate::bounded_bytes::BoundedBytes::from(vec![0xffu8]),
         );
@@ -80,7 +80,7 @@ mod tests {
         ));
     }
     #[test]
-    fn only_not_found_is_classified_as_missing() {
+    fn test_only_not_found_is_classified_as_missing() {
         assert!(matches!(
             crate::classify_not_found_io_error::classify_not_found_io_error(
                 std::io::Error::from(std::io::ErrorKind::NotFound).into()
@@ -95,7 +95,7 @@ mod tests {
         ));
     }
     #[test]
-    fn bounded_json_distinguishes_invalid_document() {
+    fn test_bounded_json_distinguishes_invalid_document() {
         let valid = crate::bounded_bytes::BoundedBytes::from(
             constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY
                 .as_bytes()
@@ -112,7 +112,7 @@ mod tests {
         ));
     }
     #[test]
-    fn bounded_json_formats_pretty_and_compact_text() {
+    fn test_bounded_json_formats_pretty_and_compact_text() {
         let json = crate::bounded_json_text::BoundedJsonText::try_from(String::from(
             constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY,
         ))
@@ -130,7 +130,7 @@ mod tests {
         );
     }
     #[tokio::test]
-    async fn asynchronous_file_read_obeys_limit() {
+    async fn test_asynchronous_file_read_obeys_limit() {
         let path = unique_path(constants_str::ASYNC);
         tokio::fs::write(&path, b"abc")
             .await
@@ -147,7 +147,7 @@ mod tests {
             .expect("9d5a2db0 asynchronous_file_read_obeys_limit invariant must hold");
     }
     #[tokio::test]
-    async fn http_response_stream_obeys_limit_without_external_network() {
+    async fn test_http_response_stream_obeys_limit_without_external_network() {
         let response = http::Response::builder()
             .header(http::header::CONTENT_LENGTH, constants_str::VALUE_4)
             .body(constants_str::ABCD_ALT)

@@ -13,7 +13,7 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
-    fn primary_key_suffix_matches_the_typed_flag() {
+    fn test_primary_key_suffix_matches_the_typed_flag() {
         assert_eq!(
             crate::maybe_primary_key::maybe_primary_key(crate::is_primary_key::IsPrimaryKey::from(
                 true

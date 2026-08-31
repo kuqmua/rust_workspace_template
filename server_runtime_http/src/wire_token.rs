@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn versioned_wire_token_splits_valid_parts() {
+    fn test_versioned_wire_token_splits_valid_parts() {
         let value =
             crate::versioned_url_safe_wire_token_text::VersionedUrlSafeWireTokenText::try_from(
                 constants_str::TEST_VERSIONED_URL_SAFE_WIRE_TOKEN.to_owned(),

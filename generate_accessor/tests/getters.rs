@@ -37,7 +37,7 @@ mod tests {
     }
 
     #[test]
-    fn generates_named_optional_mutable_and_snake_case_getters() {
+    fn test_generates_named_optional_mutable_and_snake_case_getters() {
         let _proc_macro2_marker: Option<proc_macro2::TokenStream> = None;
         let _quote_marker = quote::quote!();
         let _syn_marker: Option<syn::DeriveInput> = None;

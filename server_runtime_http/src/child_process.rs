@@ -16,7 +16,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn process_set_enforces_capacity_and_identifier_overflow() {
+    async fn test_process_set_enforces_capacity_and_identifier_overflow() {
         let mut full = crate::child_process_set::ChildProcessSet::new(
             crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
         );
@@ -42,7 +42,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn missing_child_and_absent_diagnostic_are_explicit() {
+    async fn test_missing_child_and_absent_diagnostic_are_explicit() {
         let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
             std::time::Duration::from_secs(1u64),
         )
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn diagnostic_read_propagates_reader_errors() {
+    async fn test_diagnostic_read_propagates_reader_errors() {
         let result = crate::read_child_diagnostic::read_child_diagnostic(
             ErrorReader,
             crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
@@ -73,7 +73,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn empty_process_set_shuts_down_without_reports() {
+    async fn test_empty_process_set_shuts_down_without_reports() {
         let processes = crate::child_process_set::ChildProcessSet::new(
             crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
         );
@@ -89,7 +89,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn diagnostic_read_is_bounded() {
+    async fn test_diagnostic_read_is_bounded() {
         let (mut writer, reader) = tokio::io::duplex(64usize);
         let write = tokio::spawn(async move {
             tokio::io::AsyncWriteExt::write_all(&mut writer, b"123456")

@@ -23,7 +23,7 @@ impl TryFrom<f64> for FiniteF64 {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn finite_value_rejects_non_finite_values() {
+    fn test_finite_value_rejects_non_finite_values() {
         assert!(
             [f64::NAN, f64::INFINITY, f64::NEG_INFINITY]
                 .into_iter()

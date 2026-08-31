@@ -135,7 +135,7 @@ pub mod server_response;
 pub mod server_route_metadata;
 pub mod success_status;
 #[cfg(test)]
-pub mod tests;
+pub mod test_tests;
 pub mod to_axum_method_filter;
 pub mod transport;
 pub mod transport_body;

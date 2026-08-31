@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn try_maybe_write_token_stream_into_file_skips_when_flag_is_false() {
+    fn test_try_maybe_write_token_stream_into_file_skips_when_flag_is_false() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_SKIP,
         ));
@@ -18,7 +18,7 @@ mod tests {
         let _error = std::fs::metadata(&path).expect_err(constants_str::VALUE_7BE5F201);
     }
     #[test]
-    fn try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true() {
+    fn test_try_maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_WRITE,
         ));
@@ -40,7 +40,7 @@ mod tests {
         crate::cleanup_test_file::cleanup_test_file(path);
     }
     #[test]
-    fn try_maybe_write_token_stream_into_file_writes_tokens_when_enabled() {
+    fn test_try_maybe_write_token_stream_into_file_writes_tokens_when_enabled() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_TRY_WRITE,
         ));
@@ -62,7 +62,7 @@ mod tests {
         crate::cleanup_test_file::cleanup_test_file(path);
     }
     #[test]
-    fn try_maybe_write_token_stream_into_file_accepts_path_input() {
+    fn test_try_maybe_write_token_stream_into_file_accepts_path_input() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_TRY_WRITE_PATH,
         ));
@@ -85,7 +85,7 @@ mod tests {
     }
     #[test]
     #[cfg_attr(miri, ignore = "Miri does not support spawning the rustfmt subprocess")]
-    fn try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled() {
+    fn test_try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_TRY_RUN_RUSTFMT,
         ));

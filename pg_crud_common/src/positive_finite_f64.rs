@@ -26,7 +26,7 @@ impl TryFrom<f64> for PositiveFiniteF64 {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn positive_value_requires_finite_value_greater_than_zero() {
+    fn test_positive_value_requires_finite_value_greater_than_zero() {
         assert_eq!(
             crate::positive_finite_f64::PositiveFiniteF64::try_from(0.0f64),
             Err(crate::positive_finite_f64_error::PositiveFiniteF64Error::NotPositive)

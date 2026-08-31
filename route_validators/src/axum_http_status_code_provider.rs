@@ -14,7 +14,7 @@ mod tests {
     }
 
     #[test]
-    fn axum_http_status_code_default_method_returns_associated_const() {
+    fn test_axum_http_status_code_default_method_returns_associated_const() {
         let error = TestError;
         assert_eq!(
             crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider::axum_http_status_code(&error).get(),

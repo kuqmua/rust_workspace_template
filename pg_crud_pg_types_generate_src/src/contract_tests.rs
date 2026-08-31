@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn all_emitter_projections_read_one_pg_type_spec() {
+    fn test_all_emitter_projections_read_one_pg_type_spec() {
         let spec = crate::pg_type_spec::PgTypeSpec::new(
             true,
             false,
