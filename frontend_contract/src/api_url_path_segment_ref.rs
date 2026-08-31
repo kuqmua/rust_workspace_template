@@ -1,9 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::GetInner,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ApiUrlPathSegmentRef<'value_lt>(pub(super) &'value_lt str);
+pub struct ApiUrlPathSegmentRef<'value_lt>(&'value_lt str);
 
 impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
     type Error = crate::api_url_build_error::ApiUrlBuildError;

@@ -22,70 +22,47 @@ fn make_structure(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(128usize)
                 .expect("837f89a0 make_structure invariant must hold"),
         ),
-        server_config::server_config::ServerConfig {
-            svc_mode: config_lib::svc_mode::SvcMode::Serve,
-            cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(
-                constants_str::ASTERISK.to_owned(),
-            ),
-            content_security_policy: app_state_test_env(
-                constants_str::TEST_CONTENT_SECURITY_POLICY,
-            ),
-            database_url: app_state_test_env(constants_str::POSTGRES_DB),
-            admin_jwt_secret: app_state_test_env(
-                constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES,
-            ),
-            admin_token_audience: app_state_test_env(constants_str::TEST_AUDIENCE),
-            admin_token_issuer: app_state_test_env(constants_str::TEST_ISSUER),
-            admin_access_token_ttl_seconds: app_state_test_env(constants_str::VALUE_900),
-            admin_login_failure_limit: app_state_test_env(constants_str::VALUE_10),
-            admin_password_hash_concurrency: app_state_test_env(constants_str::VALUE_4),
-            admin_refresh_token_ttl_seconds: app_state_test_env(constants_str::VALUE_2592000),
-            admin_session_limit: app_state_test_env(constants_str::VALUE_20),
-            admin_sign_in_rate_limit: app_state_test_env(constants_str::VALUE_10),
-            admin_swagger_enabled: app_state_test_env(constants_str::TRUE),
-            http_gzip_enabled: app_state_test_env(constants_str::TRUE),
-            production_mode: config_lib::production_mode::ProductionMode::from(false),
-            maximum_size_of_http_body_in_bytes:
-                config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes::try_from(16_384)
-                    .expect("d81f6a42 make_structure invariant must hold"),
-            service_socket_address: config_lib::domain_types::ServiceSocketAddress(
-                constants_str::VALUE_127_0_0_1_3000
-                    .parse()
-                    .expect("73f8bc91 make_structure invariant must hold"),
-            ),
-            pg_pool_max_connections: config_lib::pg_pool_max_connections::PgPoolMaxConnections::try_from(7)
+        server_config::server_config::ServerConfig::new(
+            app_state_test_env(constants_str::ASTERISK),
+            app_state_test_env(constants_str::TEST_CONTENT_SECURITY_POLICY),
+            app_state_test_env(constants_str::POSTGRES_DB),
+            app_state_test_env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
+            app_state_test_env(constants_str::TEST_AUDIENCE),
+            app_state_test_env(constants_str::TEST_ISSUER),
+            app_state_test_env(constants_str::VALUE_127_0_0_1_32_PATH_1_128),
+            app_state_test_env(constants_str::VALUE_900),
+            app_state_test_env(constants_str::VALUE_4),
+            app_state_test_env(constants_str::VALUE_10),
+            app_state_test_env(constants_str::VALUE_2592000),
+            app_state_test_env(constants_str::VALUE_20),
+            app_state_test_env(constants_str::VALUE_10),
+            app_state_test_env(constants_str::TEST_VALUE_30),
+            app_state_test_env(constants_str::TEST_VALUE_30),
+            app_state_test_env(constants_str::TEST_VALUE_30),
+            app_state_test_env(constants_str::TEST_VALUE_30),
+            config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes::try_from(
+                16_384,
+            )
+            .expect("d81f6a42 make_structure invariant must hold"),
+            app_state_test_env(constants_str::VALUE_127_0_0_1_3000),
+            config_lib::pg_pool_max_connections::PgPoolMaxConnections::try_from(7)
                 .expect("f20c4a91 make_structure invariant must hold"),
-            pg_pool_min_connections: app_state_test_env(constants_str::VALUE_0),
-            pg_pool_acquire_timeout_seconds: app_state_test_env(
-                constants_str::TEST_VALUE_30,
-            ),
-            pg_pool_idle_timeout_seconds: app_state_test_env(
-                constants_str::TEST_VALUE_30,
-            ),
-            pg_pool_max_lifetime_seconds: app_state_test_env(
-                constants_str::TEST_VALUE_30,
-            ),
-            request_timeout_seconds: app_state_test_env(
-                constants_str::TEST_VALUE_30,
-            ),
-            timezone: config_lib::chrono_timezone::ChronoTimezone::try_from(
+            app_state_test_env(constants_str::VALUE_0),
+            config_lib::chrono_timezone::ChronoTimezone::try_from(
                 chrono::FixedOffset::east_opt(3i32 * 3_600i32)
                     .expect("a95d3c17 make_structure invariant must hold"),
             )
             .expect("e8714250 make_structure invariant must hold"),
-            src_place_type: config_lib::domain_types::SrcPlaceType(
-                config_lib::src_place_type::SrcPlaceType::Github,
-            ),
-            tracing_level: config_lib::domain_types::TracingLevel(
-                config_lib::tracing_level::TracingLevel::Info,
-            ),
-            tracing_format: config_lib::tracing_format::TracingFormat::Text,
-            trusted_proxy_ranges_text: config_lib::domain_types::TrustedProxyRangesText(
-                constants_str::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
-            ),
-            enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck(true),
-            admin_cookie_secure: app_state_test_env(constants_str::FALSE),
-        },
+            app_state_test_env(constants_str::GITHUB_ALT),
+            app_state_test_env(constants_str::CONFIG_TRACING_INFO),
+            config_lib::tracing_format::TracingFormat::Text,
+            app_state_test_env(constants_str::TRUE),
+            app_state_test_env(constants_str::FALSE),
+            app_state_test_env(constants_str::TRUE),
+            app_state_test_env(constants_str::TRUE),
+            config_lib::production_mode::ProductionMode::from(false),
+            config_lib::svc_mode::SvcMode::Serve,
+        ),
         server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(
                 constants_usize::VALUE_1_048_576,

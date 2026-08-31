@@ -1,6 +1,9 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    newtype::FromInner,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct DbSchemaNameRef<'value_lt>(pub(super) &'value_lt str);
+pub struct DbSchemaNameRef<'value_lt>(&'value_lt str);

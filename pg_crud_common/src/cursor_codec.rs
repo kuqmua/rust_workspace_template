@@ -28,18 +28,17 @@ impl CursorCodec {
             payload.as_ref().as_bytes(),
         );
         let signed_text = format!("{}.{encoded_payload}", constants_str::CURSOR_VERSION_V1);
-        let mut mac =
-            <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(self.key.0.as_slice())
-                .map_err(|_error| {
-                    crate::cursor_encode_error::CursorEncodeError::InvalidSigningKey
-                })?;
+        let mut mac = <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(
+            self.key.get_inner().as_slice(),
+        )
+        .map_err(|_error| crate::cursor_encode_error::CursorEncodeError::InvalidSigningKey)?;
         hmac::Mac::update(&mut mac, signed_text.as_bytes());
         let encoded_signature = base64::Engine::encode(
             &base64::engine::general_purpose::URL_SAFE_NO_PAD,
             hmac::Mac::finalize(mac).into_bytes(),
         );
         let cursor_text = format!("{signed_text}.{encoded_signature}");
-        if cursor_text.len() > self.maximum_length.0.get() {
+        if cursor_text.len() > self.maximum_length.get_inner().get() {
             return Err(crate::cursor_encode_error::CursorEncodeError::MaximumLengthExceeded);
         }
         crate::signed_cursor::SignedCursor::try_from(cursor_text)
@@ -51,7 +50,7 @@ impl CursorCodec {
         cursor: &crate::signed_cursor::SignedCursor,
     ) -> Result<crate::cursor_payload::CursorPayload, crate::cursor_decode_error::CursorDecodeError>
     {
-        if cursor.as_ref().len() > self.maximum_length.0.get() {
+        if cursor.as_ref().len() > self.maximum_length.get_inner().get() {
             return Err(crate::cursor_decode_error::CursorDecodeError::MaximumLengthExceeded);
         }
         let mut parts = cursor.as_ref().split('.');
@@ -72,11 +71,10 @@ impl CursorCodec {
             encoded_signature,
         )
         .map_err(|_error| crate::cursor_decode_error::CursorDecodeError::InvalidSignature)?;
-        let mut mac =
-            <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(self.key.0.as_slice())
-                .map_err(|_error| {
-                    crate::cursor_decode_error::CursorDecodeError::InvalidSigningKey
-                })?;
+        let mut mac = <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(
+            self.key.get_inner().as_slice(),
+        )
+        .map_err(|_error| crate::cursor_decode_error::CursorDecodeError::InvalidSigningKey)?;
         hmac::Mac::update(&mut mac, format!("{version}.{encoded_payload}").as_bytes());
         hmac::Mac::verify_slice(mac, signature.as_slice())
             .map_err(|_error| crate::cursor_decode_error::CursorDecodeError::InvalidSignature)?;

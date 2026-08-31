@@ -1,6 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module consumes this parsed domain model
-#[derive(generate_accessor::Getters)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 pub(crate) struct WireEnumAttrs {
     error_message: crate::syn_expr::SynExpr,
     ref_type: crate::syn_type::SynType,

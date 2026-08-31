@@ -7,9 +7,9 @@ pub async fn inspect_postgres_table(
     crate::db_schema_conformance_error::DbSchemaConformanceError,
 > {
     let column_rows = sqlx::query(constants_str::DB_SCHEMA_COLUMN_QUERY)
-        .bind(schema.0)
-        .bind(table.0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .bind(*table.get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
@@ -58,9 +58,9 @@ pub async fn inspect_postgres_table(
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
 
     let constraint_rows = sqlx::query(constants_str::DB_SCHEMA_CONSTRAINT_QUERY)
-        .bind(schema.0)
-        .bind(table.0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .bind(*table.get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
@@ -112,9 +112,9 @@ pub async fn inspect_postgres_table(
         .collect::<Vec<_>>();
 
     let index_rows = sqlx::query(constants_str::DB_SCHEMA_INDEX_QUERY)
-        .bind(schema.0)
-        .bind(table.0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .bind(*table.get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(

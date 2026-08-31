@@ -6,8 +6,8 @@ pub async fn inspect_postgres_catalog(
     crate::db_schema_conformance_error::DbSchemaConformanceError,
 > {
     let rows = sqlx::query(constants_str::DB_SCHEMA_CATALOG_QUERY)
-        .bind(schema.0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(

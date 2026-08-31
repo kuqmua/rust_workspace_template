@@ -1,13 +1,16 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_constructor::New,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct BatchValidationReport<Key, Record, InvalidItem> {
-    pub(super) invalid_items: crate::batch_invalid_items::BatchInvalidItems<InvalidItem>,
-    pub(super) processed_item_count: crate::batch_processed_item_count::BatchProcessedItemCount,
-    pub(super) records_by_key: crate::batch_records_b_tree_map::BatchRecordsBTreeMap<Key, Record>,
-    pub(super) stopped_early: crate::batch_stopped_early::BatchStoppedEarly,
+    invalid_items: crate::batch_invalid_items::BatchInvalidItems<InvalidItem>,
+    processed_item_count: crate::batch_processed_item_count::BatchProcessedItemCount,
+    records_by_key: crate::batch_records_b_tree_map::BatchRecordsBTreeMap<Key, Record>,
+    stopped_early: crate::batch_stopped_early::BatchStoppedEarly,
 }
 
 impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
@@ -23,12 +26,14 @@ impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
 
     #[must_use]
     pub fn invalid_item_count(&self) -> crate::batch_invalid_item_count::BatchInvalidItemCount {
-        crate::batch_invalid_item_count::BatchInvalidItemCount::from(self.invalid_items.0.len())
+        crate::batch_invalid_item_count::BatchInvalidItemCount::from(
+            self.invalid_items.get_inner().len(),
+        )
     }
 
     #[must_use]
     pub const fn invalid_items(&self) -> &[InvalidItem] {
-        self.invalid_items.0.as_slice()
+        self.invalid_items.get_inner().as_slice()
     }
 
     #[must_use]

@@ -46,14 +46,16 @@ impl
             parts
                 .extensions
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
-                .map(|peer| Self {
-                    headers: crate::http_admin_header_map::HttpAdminHeaderMap::from(
-                        parts.headers.clone(),
-                    ),
-                    peer: crate::admin_peer_addr::AdminPeerAddr::from(
-                        server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer.0),
-                    ),
-                    state: state.clone(),
+                .map(|peer| {
+                    Self::new(
+                        crate::http_admin_header_map::HttpAdminHeaderMap::from(
+                            parts.headers.clone(),
+                        ),
+                        state.clone(),
+                        crate::admin_peer_addr::AdminPeerAddr::from(
+                            server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer.0),
+                        ),
+                    )
                 })
                 .ok_or(crate::admin_error::AdminError::Authentication),
         )

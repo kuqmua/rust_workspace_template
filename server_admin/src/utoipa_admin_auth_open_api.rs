@@ -1,11 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::IntoInnerFrom, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    newtype::IntoInnerFrom,
+    newtype::FromInner,
+    generate_accessor::Getters,
 )]
-pub struct UtoipaAdminAuthOpenApi(pub(crate) utoipa::openapi::OpenApi);
+pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(constants_str::UTOIPAADMINAUTHOPENAPI)

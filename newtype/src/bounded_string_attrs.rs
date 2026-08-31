@@ -1,6 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
-#[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module incrementally builds this parsed domain model
-#[derive(generate_accessor::Getters)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Default, generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct BoundedStringAttrs {
     description: Option<crate::syn_expr::SynExpr>,

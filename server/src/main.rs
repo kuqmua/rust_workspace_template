@@ -34,12 +34,12 @@ fn main() -> server_exit_code::ServerExitCode {
         );
         return server_exit_code::ServerExitCode::from(std::process::ExitCode::FAILURE);
     }
-    let tracing_format = if config.tracing_format == config_lib::tracing_format::TracingFormat::Json
-    {
-        server_observability::service_tracing_format::ServiceTracingFormat::Json
-    } else {
-        server_observability::service_tracing_format::ServiceTracingFormat::Text
-    };
+    let tracing_format =
+        if *config.get_tracing_format() == config_lib::tracing_format::TracingFormat::Json {
+            server_observability::service_tracing_format::ServiceTracingFormat::Json
+        } else {
+            server_observability::service_tracing_format::ServiceTracingFormat::Text
+        };
     let observability =
         match server_observability::init_service_observability::init_service_observability(
             tracing_format,
@@ -62,7 +62,7 @@ fn main() -> server_exit_code::ServerExitCode {
         .map_err(|error| {
             run_server_error::RunServerError::BuildRuntime(server_io_error::ServerIoError::from(error))
         })
-        .and_then(|runtime| match config.svc_mode {
+        .and_then(|runtime| match config.get_svc_mode() {
             config_lib::svc_mode::SvcMode::Migrate => {
                 tokio::runtime::Runtime::from(runtime).block_on(async {
                     let pg_pool = make_postgresql_pool::make_postgresql_pool(&config).await?;
@@ -141,7 +141,7 @@ fn main() -> server_exit_code::ServerExitCode {
                         tracing::info!(frontend = %actual_service_socket_address);
                         let trusted_proxy_ranges = server_runtime_http::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(
                             server_runtime_http::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
-                                config.trusted_proxy_ranges_text.0.as_str(),
+                                config.get_trusted_proxy_ranges_text().get_inner().as_str(),
                             ),
                         )
                         .map_err(run_server_error::RunServerError::TrustedProxyRanges)?;
@@ -158,32 +158,32 @@ fn main() -> server_exit_code::ServerExitCode {
                             server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from_state(
                                 server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
                                     pg_pool.clone(),
-                                    &config.admin_jwt_secret,
-                                    &config.admin_access_token_ttl_seconds,
-                                    &config.admin_refresh_token_ttl_seconds,
-                                    &config.admin_session_limit,
-                                    &config.admin_sign_in_rate_limit,
-                                    &config.admin_login_failure_limit,
-                                    &config.admin_password_hash_concurrency,
-                                    &config.admin_cookie_secure,
-                                    &config.admin_token_issuer,
-                                    &config.admin_token_audience,
-                                    &config.cors_allow_origin,
+                                    config.get_admin_jwt_secret(),
+                                    config.get_admin_access_token_ttl_seconds(),
+                                    config.get_admin_refresh_token_ttl_seconds(),
+                                    config.get_admin_session_limit(),
+                                    config.get_admin_sign_in_rate_limit(),
+                                    config.get_admin_login_failure_limit(),
+                                    config.get_admin_password_hash_concurrency(),
+                                    config.get_admin_cookie_secure(),
+                                    config.get_admin_token_issuer(),
+                                    config.get_admin_token_audience(),
+                                    config.get_cors_allow_origin(),
                                 )
                                 .map_err(run_server_error::RunServerError::AdminAuthState)?,
                             );
-                        let swagger_enabled = *config.admin_swagger_enabled;
+                        let swagger_enabled = **config.get_admin_swagger_enabled();
                         let content_security_policy =
                             server_runtime_http::http_content_security_policy::HttpContentSecurityPolicy::try_from(
-                                config.content_security_policy.as_ref().to_owned(),
+                                config.get_content_security_policy().as_ref().to_owned(),
                             )
                             .map_err(run_server_error::RunServerError::ContentSecurityPolicy)?;
                         let maximum_http_body_bytes =
                             *config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytesProvider::maximum_size_of_http_body_in_bytes(
                                 &config,
                             );
-                        let http_gzip_enabled = *config.http_gzip_enabled;
-                        let request_timeout_seconds = config.request_timeout_seconds.get();
+                        let http_gzip_enabled = **config.get_http_gzip_enabled();
+                        let request_timeout_seconds = config.get_request_timeout_seconds().get();
                         let app_state = shared_server_app_state_arc::SharedServerAppStateArc::from_state(
                             server_app_state::server_app_state::ServerAppState::new(
                                 server_runtime_core::resource_budget::ResourceBudget::new(

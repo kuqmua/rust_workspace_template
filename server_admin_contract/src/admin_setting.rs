@@ -84,11 +84,11 @@ impl AdminSetting {
                 ),
             ),
         };
-        crate::admin_setting_spec::AdminSettingSpec {
+        crate::admin_setting_spec::AdminSettingSpec::new(
+            crate::admin_setting_label::AdminSettingLabel::from(label),
+            crate::admin_setting_name::AdminSettingName::from(name),
             input_kind,
-            label: crate::admin_setting_label::AdminSettingLabel::from(label),
-            name: crate::admin_setting_name::AdminSettingName::from(name),
             optionality,
-        }
+        )
     }
 }

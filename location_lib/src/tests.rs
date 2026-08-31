@@ -41,16 +41,14 @@ fn test_location(
     ))
 }
 fn test_occr() -> crate::occr::Occr {
-    crate::occr::Occr {
-        file: crate::location_file::LocationFile::try_from(String::from(
-            constants_str::SRC_ERROR_RS,
-        ))
-        .unwrap_or_else(crate::location_file::LocationFile::from),
-        line: crate::location_line::LocationLine::try_from(30)
+    crate::occr::Occr::new(
+        crate::location_file::LocationFile::try_from(String::from(constants_str::SRC_ERROR_RS))
+            .unwrap_or_else(crate::location_file::LocationFile::from),
+        crate::location_line::LocationLine::try_from(30)
             .expect("1fbd3424 test_occr invariant must hold"),
-        column: crate::location_column::LocationColumn::try_from(40)
+        crate::location_column::LocationColumn::try_from(40)
             .expect("44a1f8ca test_occr invariant must hold"),
-    }
+    )
 }
 fn fmt_place(
     location: &crate::location::Location,

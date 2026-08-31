@@ -49,7 +49,7 @@ impl TryFrom<Vec<server_admin_contract::admin_permission::AdminPermission>>
         value: Vec<server_admin_contract::admin_permission::AdminPermission>,
     ) -> Result<Self, Self::Error> {
         bounded_types::bounded_vec::BoundedVec::try_from(value)
-            .map(Self)
+            .map(Self::from)
             .map_err(crate::admin_auth_collection_error::AdminAuthCollectionError::from)
     }
 }
@@ -61,7 +61,7 @@ impl TryFrom<Vec<server_admin_contract::admin_role_name::AdminRoleName>>
         value: Vec<server_admin_contract::admin_role_name::AdminRoleName>,
     ) -> Result<Self, Self::Error> {
         bounded_types::bounded_vec::BoundedVec::try_from(value)
-            .map(Self)
+            .map(Self::from)
             .map_err(crate::admin_auth_collection_error::AdminAuthCollectionError::from)
     }
 }
@@ -70,11 +70,6 @@ impl From<bounded_types::bounded_value_error::BoundedValueError>
 {
     fn from(_value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
         Self::TooLarge
-    }
-}
-impl crate::sqlx_admin_error::SqlxAdminError {
-    pub(crate) fn into_inner(self) -> sqlx::Error {
-        self.0
     }
 }
 impl From<server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error>
@@ -143,14 +138,11 @@ impl crate::runtime_admin_password::RuntimeAdminPassword {
     pub fn new(value: server_admin_core::secrecy_admin_string::SecrecyAdminString) -> Self {
         Self::from(value)
     }
-    pub(crate) fn into_inner(self) -> server_admin_core::secrecy_admin_string::SecrecyAdminString {
-        self.0
-    }
 }
 impl crate::admin_password_hash::AdminPasswordHash {
     #[must_use]
     pub(crate) fn expose(&self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'_> {
-        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(self.0.as_ref())
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(self.get_inner().as_ref())
     }
 
     #[must_use]
@@ -174,14 +166,14 @@ impl crate::admin_opaque_token::AdminOpaqueToken {
     #[must_use]
     pub(crate) fn expose(&self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'_> {
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-            secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str(),
+            secrecy::ExposeSecret::expose_secret(self.get_inner().as_ref()).as_str(),
         )
     }
     pub(crate) fn clone_secret(
         &self,
     ) -> server_admin_core::secrecy_admin_string::SecrecyAdminString {
         server_admin_core::secrecy_admin_string::SecrecyAdminString::from(secrecy::SecretBox::new(
-            Box::new(secrecy::ExposeSecret::expose_secret(&self.0).clone()),
+            Box::new(secrecy::ExposeSecret::expose_secret(self.get_inner()).clone()),
         ))
     }
 }
@@ -193,7 +185,7 @@ impl crate::admin_refresh_token::AdminRefreshToken {
     #[must_use]
     pub fn expose(&self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'_> {
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-            secrecy::ExposeSecret::expose_secret(self.0.0.as_ref()).as_str(),
+            secrecy::ExposeSecret::expose_secret(self.get_inner().get_inner().as_ref()).as_str(),
         )
     }
 }
@@ -205,7 +197,7 @@ impl crate::admin_token_hash::AdminTokenHash {
     #[must_use]
     pub fn expose(&self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'_> {
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-            secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str(),
+            secrecy::ExposeSecret::expose_secret(self.get_inner().as_ref()).as_str(),
         )
     }
 }
@@ -217,20 +209,20 @@ impl crate::admin_generated_token::AdminGeneratedToken {
             uuid::Uuid::new_v4()
         ))
         .map(crate::admin_opaque_token::AdminOpaqueToken::new)?;
-        crate::hash_opaque_token::hash_opaque_token(&token).map(|hash| Self { hash, token })
+        crate::hash_opaque_token::hash_opaque_token(&token).map(|hash| Self::new(hash, token))
     }
     #[must_use]
     pub const fn hash(&self) -> &crate::admin_token_hash::AdminTokenHash {
-        &self.hash
+        self.get_hash()
     }
     #[must_use]
     pub const fn token(&self) -> &crate::admin_opaque_token::AdminOpaqueToken {
-        &self.token
+        self.get_token()
     }
 }
 impl<'headers_lt> crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'headers_lt> {
     pub(crate) const fn get(self) -> &'headers_lt http::HeaderMap {
-        self.0
+        self.get_inner()
     }
 }
 impl crate::admin_cookie_kind::AdminCookieKind {
@@ -244,45 +236,17 @@ impl crate::admin_cookie_kind::AdminCookieKind {
 }
 impl crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency {
     pub(crate) const fn get(self) -> std::num::NonZeroUsize {
-        self.0
+        *self.get_inner()
     }
 }
 impl crate::admin_unix_token_stream::AdminUnixTokenStream {
     pub(crate) const fn get(self) -> u64 {
-        self.0
+        *self.get_inner()
     }
 }
 impl crate::admin_session_id::AdminSessionId {
     pub(crate) const fn get(self) -> server_admin_core::uuid_admin_value::UuidAdminValue {
-        self.0
-    }
-}
-impl crate::admin_access_claims::AdminAccessClaims {
-    #[must_use]
-    pub const fn new(
-        user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
-        session_id: crate::admin_session_id::AdminSessionId,
-        issued_at: crate::admin_unix_token_stream::AdminUnixTokenStream,
-        expires_at: crate::admin_unix_token_stream::AdminUnixTokenStream,
-        issuer: config_lib::admin_token_issuer::AdminTokenIssuer,
-        audience: config_lib::admin_token_audience::AdminTokenAudience,
-    ) -> Self {
-        Self {
-            aud: audience,
-            exp: expires_at,
-            iat: issued_at,
-            iss: issuer,
-            jti: session_id,
-            sub: user_id,
-        }
-    }
-    #[must_use]
-    pub const fn user_id(&self) -> server_admin_core::admin_user_record_id::AdminUserRecordId {
-        self.sub
-    }
-    #[must_use]
-    pub const fn session_id(&self) -> crate::admin_session_id::AdminSessionId {
-        self.jti
+        *self.get_inner()
     }
 }
 #[allow(
@@ -296,7 +260,7 @@ impl crate::admin_password_hasher::AdminPasswordHasher {
         crate::tokio_admin_owned_semaphore_permit::TokioAdminOwnedSemaphorePermit,
         crate::admin_password_hash_error::AdminPasswordHashError,
     > {
-        std::sync::Arc::<tokio::sync::Semaphore>::clone(&self.semaphore.0)
+        std::sync::Arc::<tokio::sync::Semaphore>::clone(self.get_semaphore().get_inner())
             .acquire_owned()
             .await
             .map(crate::tokio_admin_owned_semaphore_permit::TokioAdminOwnedSemaphorePermit::from)

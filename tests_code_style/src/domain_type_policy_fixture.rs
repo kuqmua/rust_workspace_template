@@ -1,10 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(newtype::FromInner)]
 struct DomainId(u32);
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 struct DomainName(String);
 const DOMAIN_NAME_MAX_LEN: usize = 1_048_576;
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DomainNameTryFromStringError {
     TooLong { len: usize, max: usize },
@@ -35,16 +35,16 @@ impl TryFrom<String> for DomainName {
         Ok(Self(value))
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 struct DomainEntity {
     id: DomainId,
     name: DomainName,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 enum DomainEvent {
     Created(DomainEntity),
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(newtype::FromInner)]
 struct DomainEvents(Vec<DomainEvent>);
 fn make_domain_entity(id: DomainId, name: DomainName) -> DomainEntity {

@@ -9,11 +9,12 @@ pub(crate) fn append_cleared_session_cookies(
     ]
     .into_iter()
     .try_for_each(|kind| {
-        let cookie = crate::clear_admin_cookie::clear_admin_cookie(kind, state.cookie_secure);
+        let cookie =
+            crate::clear_admin_cookie::clear_admin_cookie(kind, *state.get_cookie_secure());
         http::HeaderValue::from_str(cookie.as_ref())
             .map(|header| {
                 response
-                    .0
+                    .get_inner_mut()
                     .headers_mut()
                     .append(http::header::SET_COOKIE, header)
             })

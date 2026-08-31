@@ -1,4 +1,12 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_accessor::Getters,
+)]
 pub struct AdminCleanupCfg {
     audit_retention: crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,
     auth_retention: crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,

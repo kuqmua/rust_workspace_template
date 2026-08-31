@@ -1,6 +1,9 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    newtype::FromInner,
+    newtype::DerefInner,
+    newtype::IntoInner,
+    generate_accessor::Getters,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub(crate) struct AxumAdminJson<Value>(pub(crate) Value);
+pub(crate) struct AxumAdminJson<Value>(Value);

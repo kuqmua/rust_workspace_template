@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, generate_accessor::Getters,
+)]
 pub(crate) struct AdminGeneratedRouteContract {
     permission: Option<server_admin_core::std_admin_str_ref::StdAdminStrRef<'static>>,
     mutates: server_admin_core::std_admin_bool::StdAdminBool,

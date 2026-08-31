@@ -5,7 +5,7 @@ pub(crate) fn authenticated_admin_contract(
     crate::admin_error::AdminError,
 > {
     let permissions = value
-        .permissions
+        .get_permissions()
         .as_ref()
         .iter()
         .map(|permission| {
@@ -16,7 +16,7 @@ pub(crate) fn authenticated_admin_contract(
         })
         .collect::<Result<Vec<_>, crate::admin_error::AdminError>>()?;
     let roles = value
-        .roles
+        .get_roles()
         .as_ref()
         .iter()
         .map(|role| {
@@ -29,12 +29,12 @@ pub(crate) fn authenticated_admin_contract(
     Ok(
         server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
             server_admin_contract::admin_display_name::AdminDisplayName::try_from(
-                value.display_name.as_ref().to_owned(),
+                value.get_display_name().as_ref().to_owned(),
             )
             .map_err(|_error| crate::admin_error::AdminError::Validation)?,
-            server_admin_contract::admin_user_id::AdminUserId::from(value.id.value()),
+            server_admin_contract::admin_user_id::AdminUserId::from(value.get_id().value()),
             server_admin_contract::admin_login::AdminLogin::try_from(
-                value.login.as_ref().to_owned(),
+                value.get_login().as_ref().to_owned(),
             )
             .map_err(|_error| crate::admin_error::AdminError::Validation)?,
             server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(

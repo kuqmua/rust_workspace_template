@@ -3,33 +3,40 @@ pub(crate) async fn audit_export_log(
     auth: crate::admin_auth_req::AdminAuthReq,
     query: crate::axum_admin_query::AxumAdminQuery<crate::admin_audit_query::AdminAuditQuery>,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
-    if !query.0.cursor_is_complete().get() {
+    if !query.get_inner().cursor_is_complete().get() {
         return Err(crate::admin_error::AdminError::Validation);
     }
     let actor = crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
-        auth.state.as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        auth.peer,
+        auth.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+        *auth.get_peer(),
         server_admin_contract::admin_permission::AdminPermission::AuditLogExport.as_str(),
         server_admin_core::std_admin_bool::StdAdminBool::from(false),
     )
     .await?;
-    let rate_subject =
-        server_admin_core::std_admin_string::StdAdminString::try_from(actor.id.get().to_string())
-            .map_err(|_error| crate::admin_error::AdminError::Validation)?;
+    let rate_subject = server_admin_core::std_admin_string::StdAdminString::try_from(
+        actor.get_id().get().to_string(),
+    )
+    .map_err(|_error| crate::admin_error::AdminError::Validation)?;
     crate::enforce_rate_limit::enforce_rate_limit(
-        auth.state.as_ref(),
+        auth.get_state().as_ref(),
         crate::admin_rate_limit_scope::AdminRateLimitScope::AuditExport,
         &rate_subject,
-        auth.state.as_ref().policy.audit_export_limit,
-        auth.state.as_ref().policy.audit_export_window,
+        auth.get_state()
+            .as_ref()
+            .get_policy()
+            .get_audit_export_limit(),
+        auth.get_state()
+            .as_ref()
+            .get_policy()
+            .get_audit_export_window(),
     )
     .await?;
     let page = crate::query_audit_log::query_audit_log(
         crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
+            auth.get_state().as_ref().get_pool().as_ref(),
         ),
-        query.0,
+        query.into_inner(),
     )
     .await
     .map_err(|error| match error {
@@ -71,7 +78,7 @@ pub(crate) async fn audit_export_log(
         server_admin_contract::admin_audit_export_csv::AdminAuditExportCsv::try_from(csv)
             .map_err(|_error| crate::admin_error::AdminError::Validation)?,
     );
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(axum::Json(export)),
     ))
 }

@@ -20,7 +20,7 @@ impl ApiUrl {
             self.0.push('/');
         }
         self.0.extend(percent_encoding::utf8_percent_encode(
-            segment.0,
+            segment.get(),
             crate::api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET,
         ));
     }
@@ -31,7 +31,7 @@ impl ApiUrl {
         value: crate::api_url_query_component_ref::ApiUrlQueryComponentRef<'_>,
     ) {
         self.0.push(if self.0.contains('?') { '&' } else { '?' });
-        [&name.0, &value.0]
+        [name.get(), value.get()]
             .into_iter()
             .enumerate()
             .for_each(|(idx, component)| {

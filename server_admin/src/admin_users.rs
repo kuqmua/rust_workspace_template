@@ -18,7 +18,8 @@
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[allow(dead_code)] // private descriptor fields are consumed by proc-macro expansion and keep password hashes out of the public API
+#[allow(dead_code)] // private descriptor fields are consumed by the macro and keep password hashes out of the API
+#[derive(generate_accessor::Getters)]
 pub struct AdminUsers {
     #[generate_pg_table_primary_key]
     id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
@@ -38,11 +39,11 @@ pub struct AdminUsers {
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(constants_str::ADMINUSERS)
-            .field(constants_str::SQL_NAMES_ID, &self.id)
-            .field(constants_str::LOGIN, &self.login)
-            .field(constants_str::DISPLAY_NAME, &self.display_name)
+            .field(constants_str::SQL_NAMES_ID, self.get_id())
+            .field(constants_str::LOGIN, self.get_login())
+            .field(constants_str::DISPLAY_NAME, self.get_display_name())
             .field(constants_str::PASSWORD_HASH, &constants_str::REDACTED_ALT_3)
-            .field(constants_str::IS_BANNED, &self.is_banned)
+            .field(constants_str::IS_BANNED, self.get_is_banned())
             .field(constants_str::CREATED_AT, &self.created_at)
             .field(constants_str::UPDATED_AT, &self.updated_at)
             .finish()

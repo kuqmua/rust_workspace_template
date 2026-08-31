@@ -10,27 +10,29 @@ pub fn build_pg_scoped_foreign_key_clause(
         )?;
     crate::push_identifier_list::push_identifier_list(
         &mut clause,
-        foreign_key.local_columns.0.as_slice(),
+        foreign_key.get_local_columns().get_inner().as_slice(),
     );
-    clause.0.push_str(constants_str::REFERENCES);
+    clause.get_inner_mut().push_str(constants_str::REFERENCES);
     clause
-        .0
-        .push_str(foreign_key.referenced_table.to_string().as_str());
-    clause.0.push('(');
+        .get_inner_mut()
+        .push_str(foreign_key.get_referenced_table().to_string().as_str());
+    clause.get_inner_mut().push('(');
     crate::push_identifier_list::push_identifier_list(
         &mut clause,
-        foreign_key.referenced_columns.0.as_slice(),
+        foreign_key.get_referenced_columns().get_inner().as_slice(),
     );
-    clause.0.push(')');
-    clause.0.push_str(match foreign_key.on_delete {
-        crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Cascade => {
-            constants_str::ON_DELETE_CASCADE
-        }
-        crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Restrict => {
-            constants_str::ON_DELETE_RESTRICT
-        }
-    });
-    crate::query_part_fragment::QueryPartFragment::try_from(clause.0)
+    clause.get_inner_mut().push(')');
+    clause
+        .get_inner_mut()
+        .push_str(match foreign_key.get_on_delete() {
+            crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Cascade => {
+                constants_str::ON_DELETE_CASCADE
+            }
+            crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Restrict => {
+                constants_str::ON_DELETE_RESTRICT
+            }
+        });
+    crate::query_part_fragment::QueryPartFragment::try_from(clause.into_inner())
 }
 
 #[cfg(test)]

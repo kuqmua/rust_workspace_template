@@ -6,7 +6,7 @@ pub(crate) async fn settings_branding_view_ref(
 > {
     let settings = crate::read_settings::read_settings(
         crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
+            auth.get_state().as_ref().get_pool().as_ref(),
         ),
     )
     .await

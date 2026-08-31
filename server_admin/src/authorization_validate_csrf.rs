@@ -25,9 +25,9 @@ pub(crate) async fn authorization_validate_csrf(
     let provided_hash = crate::hash_opaque_token::hash_opaque_token(&provided_token)
         .map_err(crate::admin_error::AdminError::csrf_secret_text)?;
     let expected = sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_CSRF_HASH_SQL)
-        .bind(authenticated.session_id.get().get())
-        .bind(authenticated.id.get())
-        .fetch_optional(state.pool.as_ref())
+        .bind(authenticated.get_session_id().get().get())
+        .bind(authenticated.get_id().get())
+        .fetch_optional(state.get_pool().as_ref())
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .and_then(|value| {

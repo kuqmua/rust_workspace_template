@@ -69,12 +69,10 @@ where
                 }
                 std::ops::ControlFlow::Continue(())
             });
-    crate::batch_validation_report::BatchValidationReport {
-        records_by_key: records_by_key.into(),
-        invalid_items: invalid_items.into(),
-        processed_item_count: crate::batch_processed_item_count::BatchProcessedItemCount::from(
-            processed_item_count,
-        ),
-        stopped_early: crate::batch_stopped_early::BatchStoppedEarly::from(stopped_early),
-    }
+    crate::batch_validation_report::BatchValidationReport::new(
+        invalid_items.into(),
+        crate::batch_processed_item_count::BatchProcessedItemCount::from(processed_item_count),
+        records_by_key.into(),
+        crate::batch_stopped_early::BatchStoppedEarly::from(stopped_early),
+    )
 }

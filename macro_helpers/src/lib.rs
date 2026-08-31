@@ -152,3 +152,6 @@ pub mod write_string_into_file_tests;
 pub mod write_token_stream_into_file_tests;
 pub mod written_file_path_buf;
 pub mod written_file_path_ref;
+
+const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+    bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

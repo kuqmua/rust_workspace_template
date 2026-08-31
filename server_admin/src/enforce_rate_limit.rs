@@ -2,13 +2,13 @@ pub(crate) async fn enforce_rate_limit(
     state: &crate::admin_auth_svc_state::AdminAuthSvcState,
     scope: crate::admin_rate_limit_scope::AdminRateLimitScope,
     subject: &server_admin_core::std_admin_string::StdAdminString,
-    limit: crate::std_admin_rate_limit_count::StdAdminRateLimitCount,
-    window_seconds: crate::std_admin_rate_limit_window_seconds::StdAdminRateLimitWindowSeconds,
+    limit: &crate::std_admin_rate_limit_count::StdAdminRateLimitCount,
+    window_seconds: &crate::std_admin_rate_limit_window_seconds::StdAdminRateLimitWindowSeconds,
 ) -> Result<(), crate::admin_error::AdminError> {
     let scope_text = scope.as_str();
     let decision = server_runtime_http::enforce_pg_rate_limit::enforce_pg_rate_limit(
         server_runtime_http::sqlx_pg_rate_limit_pool_ref::SqlxPgRateLimitPoolRef::from(
-            state.pool.as_ref(),
+            state.get_pool().as_ref(),
         ),
         server_runtime_http::pg_rate_limit_query_ref::PgRateLimitQueryRef::from(
             constants_str::SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL,
@@ -21,10 +21,10 @@ pub(crate) async fn enforce_rate_limit(
             subject.as_ref().as_str(),
         )
         .map_err(|_error| crate::admin_error::AdminError::Validation)?,
-        server_runtime_http::pg_rate_limit_maximum::PgRateLimitMaximum::try_from(i64::from(limit))
+        server_runtime_http::pg_rate_limit_maximum::PgRateLimitMaximum::try_from(i64::from(*limit))
             .map_err(|_error| crate::admin_error::AdminError::Validation)?,
         server_runtime_http::pg_rate_limit_window_seconds::PgRateLimitWindowSeconds::try_from(
-            i32::from(window_seconds),
+            i32::from(*window_seconds),
         )
         .map_err(|_error| crate::admin_error::AdminError::Validation)?,
     )

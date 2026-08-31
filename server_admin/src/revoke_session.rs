@@ -2,17 +2,15 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn revoke_session(
     auth: crate::admin_auth_req::AdminAuthReq,
-    crate::axum_admin_form::AxumAdminForm(form): crate::axum_admin_form::AxumAdminForm<
-        crate::revoke_session_form::RevokeSessionForm,
-    >,
+    form: crate::axum_admin_form::AxumAdminForm<crate::revoke_session_form::RevokeSessionForm>,
 ) -> axum::response::Response {
-    if !bool::from(form.confirmation) {
+    if !bool::from(*form.get_confirmation()) {
         return axum::response::IntoResponse::into_response(
             crate::admin_error::AdminError::Validation,
         );
     }
     let session_id = form
-        .session_id
+        .get_session_id()
         .to_string()
         .parse::<uuid::Uuid>()
         .map(server_admin_core::uuid_admin_value::UuidAdminValue::from)
@@ -26,7 +24,7 @@ pub(crate) async fn revoke_session(
         Ok(auth) => {
             match crate::sessions_revoke_session::sessions_revoke_session(
                 auth,
-                crate::admin_session_path::AdminSessionPath(session_id),
+                crate::admin_session_path::AdminSessionPath::from(session_id),
             )
             .await
             {

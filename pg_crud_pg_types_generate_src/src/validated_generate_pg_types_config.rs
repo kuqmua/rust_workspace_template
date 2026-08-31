@@ -1,14 +1,23 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
 )]
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ValidatedGeneratePgTypesConfig {
-    pub(super) config: crate::generate_pg_types_config::GeneratePgTypesConfig,
-    pub(super) entry_count: crate::pg_types_model_entry_count::PgTypesModelEntryCount,
+    config: crate::generate_pg_types_config::GeneratePgTypesConfig,
+    entry_count: crate::pg_types_model_entry_count::PgTypesModelEntryCount,
 }
 impl ValidatedGeneratePgTypesConfig {
+    pub(super) fn into_parts(
+        self,
+    ) -> (
+        crate::generate_pg_types_config::GeneratePgTypesConfig,
+        crate::pg_types_model_entry_count::PgTypesModelEntryCount,
+    ) {
+        (self.config, self.entry_count)
+    }
+
     #[must_use]
     pub const fn entry_count(&self) -> crate::pg_types_model_entry_count::PgTypesModelEntryCount {
         self.entry_count

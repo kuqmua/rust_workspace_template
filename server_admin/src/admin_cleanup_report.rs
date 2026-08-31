@@ -1,11 +1,20 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_accessor::Getters,
+)]
 pub struct AdminCleanupReport {
-    pub(crate) access_sessions: crate::admin_cleanup_rows::AdminCleanupRows,
-    pub(crate) audit_log: crate::admin_cleanup_rows::AdminCleanupRows,
-    pub(crate) idempotency: crate::admin_cleanup_rows::AdminCleanupRows,
-    pub(crate) login_attempts: crate::admin_cleanup_rows::AdminCleanupRows,
-    pub(crate) rate_limits: crate::admin_cleanup_rows::AdminCleanupRows,
-    pub(crate) refresh_tokens: crate::admin_cleanup_rows::AdminCleanupRows,
+    access_sessions: crate::admin_cleanup_rows::AdminCleanupRows,
+    audit_log: crate::admin_cleanup_rows::AdminCleanupRows,
+    idempotency: crate::admin_cleanup_rows::AdminCleanupRows,
+    login_attempts: crate::admin_cleanup_rows::AdminCleanupRows,
+    rate_limits: crate::admin_cleanup_rows::AdminCleanupRows,
+    refresh_tokens: crate::admin_cleanup_rows::AdminCleanupRows,
 }
 impl AdminCleanupReport {
     #[must_use]

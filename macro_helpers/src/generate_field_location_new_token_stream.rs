@@ -24,13 +24,13 @@ pub fn generate_field_location_new_token_stream(
                 location_lib::location_column::LocationColumn::from(
                     std::num::NonZeroU32::new(column!()).unwrap_or(std::num::NonZeroU32::MIN),
                 ),
-                Some(location_lib::occr::Occr {
-                    file: location_lib::location_file::LocationFile::try_from(String::from(#file_token_stream)).unwrap_or_else(location_lib::location_file::LocationFile::from),
-                    line: location_lib::location_line::LocationLine::try_from(#line_token_stream)
+                Some(location_lib::occr::Occr::new(
+                    location_lib::location_file::LocationFile::try_from(String::from(#file_token_stream)).unwrap_or_else(location_lib::location_file::LocationFile::from),
+                    location_lib::location_line::LocationLine::try_from(#line_token_stream)
                         .unwrap_or_else(|_error| location_lib::location_line::LocationLine::first()),
-                    column: location_lib::location_column::LocationColumn::try_from(#column_token_stream)
+                    location_lib::location_column::LocationColumn::try_from(#column_token_stream)
                         .unwrap_or_else(|_error| location_lib::location_column::LocationColumn::first()),
-                })
+                ))
             )
         }
     };

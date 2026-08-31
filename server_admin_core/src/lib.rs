@@ -11,3 +11,6 @@ pub mod std_admin_string;
 #[cfg(test)]
 pub mod tests_domain_types;
 pub mod uuid_admin_value;
+
+const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+    bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

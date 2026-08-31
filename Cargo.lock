@@ -16,6 +16,7 @@ dependencies = [
  "config_lib",
  "constants_str",
  "constants_usize",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "secrecy",
@@ -734,6 +735,7 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "dotenv",
+ "generate_accessor",
  "generate_accessor_traits_for_struct_fields",
  "newtype",
  "optimal_memory_layout",
@@ -1352,6 +1354,7 @@ dependencies = [
  "constants_usize",
  "frontend_contract_macros",
  "futures",
+ "generate_accessor",
  "generate_constructor",
  "newtype",
  "optimal_memory_layout",
@@ -1542,6 +1545,7 @@ dependencies = [
 name = "generate_derive_token_stream_builder"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "naming",
  "naming_common",
  "newtype",
@@ -1563,8 +1567,11 @@ dependencies = [
 name = "generate_pg_table_src"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "constants_usize",
+ "generate_accessor",
+ "generate_constructor",
  "generate_quotes",
  "macro_helpers",
  "naming",
@@ -1615,6 +1622,8 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
+ "generate_accessor",
+ "generate_constructor",
  "generate_quotes",
  "macro_helpers",
  "naming",
@@ -2616,11 +2625,14 @@ dependencies = [
 name = "location_lib"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "chrono",
  "config_lib",
  "constants_str",
  "constants_u32",
  "constants_usize",
+ "generate_accessor",
+ "generate_constructor",
  "git_info",
  "newtype",
  "optimal_memory_layout",
@@ -2641,7 +2653,10 @@ dependencies = [
 name = "location_test"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
+ "generate_accessor",
+ "generate_constructor",
  "location",
  "location_lib",
  "location_macros",
@@ -2710,10 +2725,13 @@ name = "macro_helpers"
 version = "0.1.0"
 dependencies = [
  "atomic-write-file",
+ "bounded_types",
  "constants_str",
  "constants_u32",
  "constants_u8",
  "constants_usize",
+ "generate_accessor",
+ "generate_constructor",
  "generate_derive_token_stream_builder",
  "generate_quotes",
  "naming",
@@ -3396,6 +3414,7 @@ dependencies = [
 name = "pg_crud_macro_common"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "generate_accessor",
  "generate_quotes",
@@ -3434,6 +3453,8 @@ dependencies = [
  "constants_str",
  "constants_u8",
  "constants_usize",
+ "generate_accessor",
+ "generate_constructor",
  "newtype",
  "optimal_memory_layout",
  "server_runtime_core",
@@ -4592,6 +4613,7 @@ dependencies = [
  "frontend_contract_validation",
  "futures",
  "generate_accessor",
+ "generate_constructor",
  "generate_pg_table",
  "git_info",
  "http",
@@ -4641,6 +4663,7 @@ dependencies = [
  "constants_usize",
  "frontend_contract",
  "frontend_contract_macros",
+ "generate_accessor",
  "generate_constructor",
  "newtype",
  "optimal_memory_layout",
@@ -4656,6 +4679,7 @@ dependencies = [
 name = "server_admin_core"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "constants_usize",
  "newtype",
@@ -4673,6 +4697,7 @@ name = "server_admin_frontend"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "bounded_types",
  "constants_i64",
  "constants_str",
  "constants_u32",
@@ -4733,6 +4758,8 @@ dependencies = [
  "config_lib",
  "constants_str",
  "dotenv",
+ "generate_accessor",
+ "generate_constructor",
  "optimal_memory_layout",
  "secrecy",
  "thiserror 2.0.20",
@@ -5436,6 +5463,8 @@ dependencies = [
  "constants_usize",
  "frontend_contract",
  "frontend_contract_macros",
+ "generate_accessor",
+ "generate_constructor",
  "macro_helpers",
  "newtype",
  "optimal_memory_layout",
@@ -6272,6 +6301,8 @@ dependencies = [
  "bounded_types",
  "constants_str",
  "constants_usize",
+ "generate_accessor",
+ "generate_constructor",
  "generate_where_filters",
  "location",
  "location_lib",
@@ -6524,6 +6555,8 @@ dependencies = [
  "constants_u16",
  "constants_usize",
  "frontend_contract",
+ "generate_accessor",
+ "generate_constructor",
  "macro_helpers",
  "newtype",
  "optimal_memory_layout",

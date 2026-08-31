@@ -1,6 +1,5 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
-#[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module parses and consumes this domain model
 #[derive(generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct NewtypeAttrs {

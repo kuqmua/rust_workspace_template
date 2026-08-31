@@ -1,7 +1,3 @@
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the history owner module reads the validated private maximum length"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,

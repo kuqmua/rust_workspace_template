@@ -1,8 +1,5 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
+    generate_accessor::Getters,
     Debug,
     Clone,
     Copy,
@@ -15,7 +12,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "i32")]
-pub struct UnsignedPartOfI32(pub(super) i32);
+pub struct UnsignedPartOfI32(i32);
 
 impl From<u16> for UnsignedPartOfI32 {
     fn from(value: u16) -> Self {

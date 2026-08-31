@@ -50,7 +50,7 @@ impl AdminTableSortField {
         options
             .iter()
             .copied()
-            .find(|option| option.key().as_ref() == key.0)
+            .find(|option| option.key().as_ref() == key.get())
             .ok_or(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)
     }
     fn values(self) -> crate::admin_table_sort_values::AdminTableSortValues {

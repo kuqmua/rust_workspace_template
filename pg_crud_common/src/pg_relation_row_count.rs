@@ -1,8 +1,5 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
+    generate_accessor::Getters,
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
@@ -12,4 +9,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub struct PgRelationRowCount(pub(super) u64);
+pub struct PgRelationRowCount(u64);

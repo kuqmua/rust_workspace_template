@@ -4,7 +4,7 @@ pub const fn resolve_list_total_source(
     rows: crate::list_rows_presence::ListRowsPresence,
     window_total: crate::window_total_presence::WindowTotalPresence,
 ) -> crate::list_total_source::ListTotalSource {
-    match (rows, window_total, offset.0) {
+    match (rows, window_total, *offset.get_inner()) {
         (
             crate::list_rows_presence::ListRowsPresence::Present,
             crate::window_total_presence::WindowTotalPresence::Present,

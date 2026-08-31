@@ -5,7 +5,7 @@
     reason = "policy visitors stay grouped with their invariant, repository policy requires iterator methods, and syn non-exhaustive enums require fallback handling"
 )]
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct AwaitVisitor {
     found: crate::types::AnalyzerBool,
 }
@@ -16,7 +16,7 @@ impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LockAcrossAwaitVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -26,7 +26,7 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
         i.stmts.iter().for_each(|statement| {
             let mut await_visitor = AwaitVisitor::default();
             syn::visit::Visit::visit_stmt(&mut await_visitor, statement);
-            if await_visitor.found.get() && !active_guards.is_empty() {
+            if await_visitor.get_found().get() && !active_guards.is_empty() {
                 self.violations.push(format!(
                     "lock guards held across await: {}",
                     active_guards
@@ -107,7 +107,7 @@ fn expression_acquires_lock(expression: &syn::Expr) -> bool {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LeakApiVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -155,7 +155,7 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SpawnConsumptionVisitor {
     consumed: crate::types::SourceTextBTreeSet,
 }
@@ -226,7 +226,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SpawnLifecycleVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -258,7 +258,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct RouteLiteralVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -335,7 +335,7 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SelectMacroVisitor {
     count: crate::types::AnalyzerCount,
     unsafe_operations: crate::types::DiagnosticMsgs,
@@ -382,7 +382,7 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct ExpressionPathVisitor {
     paths: crate::types::SourceTextList,
 }
@@ -397,7 +397,7 @@ impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct IgnoredMapErrBindingVisitor {
     entries: crate::types::DiagnosticMsgs,
 }
@@ -435,12 +435,12 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct RawVecTupleWrapperVisitor {
     identifiers: crate::types::SourceTextList,
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct FromVecImplVisitor {
     targets: crate::types::SourceTextList,
 }
@@ -484,7 +484,7 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct UsizeMaxExprVisitor {
     count: crate::types::AnalyzerCount,
 }
@@ -516,7 +516,7 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SharedDispatchVisitor {
     arc_types: crate::types::AnalyzerCount,
     lock_types: crate::types::AnalyzerCount,
@@ -541,7 +541,7 @@ impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 struct PublicApiVisitor {
     entries: crate::types::SourceTextList,
     lines: crate::types::SourceTextList,
@@ -768,7 +768,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct StructErrorVisitor {
     identifiers: crate::types::SourceTextList,
 }
@@ -787,7 +787,7 @@ impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
     }
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct LoopAllocationVisitor {
     depth: crate::types::AnalyzerCount,
     entries: crate::types::DiagnosticMsgs,
@@ -874,9 +874,13 @@ fn lock_guards_are_not_held_across_await() {
                     crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     LockAcrossAwaitVisitor::default(),
                 );
-                visitor.violations.into_iter().map(|violation| {
-                    format!("{}: {violation}", source_file.path().as_ref().display())
-                })
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}: {violation}", source_file.path().as_ref().display())
+                    })
             })
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "ce73f4a1 {violations:#?}");
@@ -969,7 +973,8 @@ fn struct_error_exceptions_match_reviewed_snapshot() {
                 );
                 let path = source_file.path().as_ref().display().to_string();
                 visitor
-                    .identifiers
+                    .get_identifiers()
+                    .clone()
                     .into_iter()
                     .map(move |identifier| format!("{path}:{identifier}"))
             })
@@ -1131,7 +1136,7 @@ fn arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (
                 0,
                 0,
-                31,
+                30,
                 constants_str::CODE_STYLE_SHARED_DISPATCH_OWNER_REASON,
             ),
         ),
@@ -1578,7 +1583,8 @@ fn raw_vec_tuple_wrappers_match_reviewed_inventory() {
                 );
                 let path = source_file.path().as_ref().display().to_string();
                 visitor
-                    .identifiers
+                    .get_identifiers()
+                    .clone()
                     .into_iter()
                     .map(move |identifier| format!("{path}:{identifier}"))
             })
@@ -1631,7 +1637,7 @@ fn raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
         crate::types::SynFileRef::from(&file),
         RawVecTupleWrapperVisitor::default(),
     );
-    assert_eq!(visitor.identifiers.len(), 2usize);
+    assert_eq!(visitor.get_identifiers().len(), 2usize);
 }
 
 #[test]
@@ -2034,11 +2040,11 @@ fn lock_across_await_policy_requires_explicit_drop() {
         LockAcrossAwaitVisitor::default(),
     );
     assert_eq!(
-        invalid_visitor.violations.len(),
+        invalid_visitor.get_violations().len(),
         constants_usize::ONE,
         "bbfce72c"
     );
-    assert!(valid_visitor.violations.is_empty(), "4b732bd1");
+    assert!(valid_visitor.get_violations().is_empty(), "4b732bd1");
 }
 
 #[test]
@@ -2058,9 +2064,13 @@ fn production_code_does_not_use_explicit_leak_apis() {
                     crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     LeakApiVisitor::default(),
                 );
-                visitor.violations.into_iter().map(|violation| {
-                    format!("{}: {violation}", source_file.path().as_ref().display())
-                })
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}: {violation}", source_file.path().as_ref().display())
+                    })
             })
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "8522eda3 {violations:#?}");
@@ -2078,9 +2088,13 @@ fn retained_spawn_tasks_are_supervised() {
                     crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     SpawnLifecycleVisitor::default(),
                 );
-                visitor.violations.into_iter().map(|violation| {
-                    format!("{}: {violation}", source_file.path().as_ref().display())
-                })
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}: {violation}", source_file.path().as_ref().display())
+                    })
             })
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "aa16974d {violations:#?}");
@@ -2096,7 +2110,7 @@ fn spawn_lifecycle_policy_rejects_unconsumed_tasks() {
         SpawnLifecycleVisitor::default(),
     );
     assert_eq!(
-        visitor.violations.as_slice(),
+        visitor.get_violations().as_slice(),
         [
             "spawned task `forgotten` is retained but never awaited, aborted, or transferred to an owner"
         ],
@@ -2115,9 +2129,13 @@ fn route_path_segments_use_snake_case() {
                     crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     RouteLiteralVisitor::default(),
                 );
-                visitor.violations.into_iter().map(|violation| {
-                    format!("{}: {violation}", source_file.path().as_ref().display())
-                })
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}: {violation}", source_file.path().as_ref().display())
+                    })
             })
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "ebde2ab8 {violations:#?}");
@@ -2132,7 +2150,11 @@ fn route_path_policy_rejects_kebab_case() {
         crate::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
-    assert_eq!(visitor.violations.len(), constants_usize::ONE, "d15287e9");
+    assert_eq!(
+        visitor.get_violations().len(),
+        constants_usize::ONE,
+        "d15287e9"
+    );
 }
 
 #[test]
@@ -2143,5 +2165,9 @@ fn route_path_policy_rejects_api_prefix() {
         crate::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
-    assert_eq!(visitor.violations.len(), constants_usize::ONE, "5caaea72");
+    assert_eq!(
+        visitor.get_violations().len(),
+        constants_usize::ONE,
+        "5caaea72"
+    );
 }

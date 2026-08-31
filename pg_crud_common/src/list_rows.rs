@@ -1,14 +1,27 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ListRows<Item> {
-    pub(super) items: crate::list_items::ListItems<Item>,
-    pub(super) window_total: Option<crate::list_total::ListTotal>,
+    items: crate::list_items::ListItems<Item>,
+    window_total: Option<crate::list_total::ListTotal>,
 }
 
 impl<Item> ListRows<Item> {
+    #[must_use]
+    pub fn into_parts(
+        self,
+    ) -> (
+        crate::list_items::ListItems<Item>,
+        Option<crate::list_total::ListTotal>,
+    ) {
+        (self.items, self.window_total)
+    }
+
     #[must_use]
     pub const fn new(
         items: crate::list_items::ListItems<Item>,

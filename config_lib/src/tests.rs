@@ -66,11 +66,9 @@ fn administrator_token_text_deserialization_uses_bounded_try_from() {
 }
 #[test]
 fn cors_allow_origin_parsing_returns_value() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::CorsAllowOrigin,
-        constants_str::ASTERISK,
-        crate::domain_types::CorsAllowOrigin(_)
-    );
+    let value = parse_env::<crate::domain_types::CorsAllowOrigin>(constants_str::ASTERISK)
+        .expect("3178aecc CORS origin fixture must parse");
+    assert_eq!(value.get_inner(), constants_str::ASTERISK);
 }
 #[test]
 fn cors_allow_origin_parsing_returns_error_for_empty_string() {
@@ -81,10 +79,9 @@ fn cors_allow_origin_parsing_returns_error_for_empty_string() {
 }
 #[test]
 fn database_url_parsing_returns_value_for_non_empty_input() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::DatabaseUrl,
-        constants_str::POSTGRES_DB,
-        crate::domain_types::DatabaseUrl(_)
+    drop(
+        parse_env::<crate::domain_types::DatabaseUrl>(constants_str::POSTGRES_DB)
+            .expect("19de9ea2 database URL fixture must parse"),
     );
 }
 #[test]
@@ -116,10 +113,9 @@ fn secret_url_debug_output_redacts_credentials() {
 }
 #[test]
 fn mongo_url_parsing_returns_value_for_non_empty_input() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::MongoUrl,
-        constants_str::MONGODB_DB,
-        crate::domain_types::MongoUrl(_)
+    drop(
+        parse_env::<crate::domain_types::MongoUrl>(constants_str::MONGODB_DB)
+            .expect("2fd74787 MongoDB URL fixture must parse"),
     );
 }
 #[test]
@@ -131,10 +127,9 @@ fn mongo_url_parsing_returns_error_for_empty_string() {
 }
 #[test]
 fn redis_url_parsing_returns_value_for_non_empty_input() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::RedisUrl,
-        constants_str::REDIS_DB,
-        crate::domain_types::RedisUrl(_)
+    drop(
+        parse_env::<crate::domain_types::RedisUrl>(constants_str::REDIS_DB)
+            .expect("a9f87d4f Redis URL fixture must parse"),
     );
 }
 #[test]
@@ -146,10 +141,11 @@ fn redis_url_parsing_returns_error_for_empty_string() {
 }
 #[test]
 fn src_place_type_parsing_is_case_insensitive() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::SrcPlaceType,
-        constants_str::GITHUB_ALT,
-        crate::domain_types::SrcPlaceType(crate::src_place_type::SrcPlaceType::Github)
+    let value = parse_env::<crate::domain_types::SrcPlaceType>(constants_str::GITHUB_ALT)
+        .expect("f7d20b3a source-place fixture must parse");
+    assert_eq!(
+        *value.get_inner(),
+        crate::src_place_type::SrcPlaceType::Github
     );
 }
 #[test]
@@ -162,10 +158,11 @@ fn src_place_type_parsing_returns_error_for_unknown_value() {
 }
 #[test]
 fn tracing_level_parsing_is_case_insensitive() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::TracingLevel,
-        constants_str::DEBUG,
-        crate::domain_types::TracingLevel(crate::tracing_level::TracingLevel::Debug)
+    let value = parse_env::<crate::domain_types::TracingLevel>(constants_str::DEBUG)
+        .expect("1209ea21 tracing-level fixture must parse");
+    assert_eq!(
+        *value.get_inner(),
+        crate::tracing_level::TracingLevel::Debug
     );
 }
 #[test]
@@ -178,11 +175,9 @@ fn tracing_level_parsing_returns_error_for_unknown_value() {
 }
 #[test]
 fn enable_api_git_commit_check_parsing_returns_bool() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::EnableApiGitCommitCheck,
-        constants_str::TRUE,
-        crate::domain_types::EnableApiGitCommitCheck(true)
-    );
+    let value = parse_env::<crate::domain_types::EnableApiGitCommitCheck>(constants_str::TRUE)
+        .expect("ea443a2a boolean fixture must parse");
+    assert!(*value.get_inner());
 }
 #[test]
 fn enable_api_git_commit_check_parsing_returns_error_for_invalid_bool() {
@@ -251,19 +246,16 @@ fn non_empty_string_parser_returns_error_for_empty_value() {
 }
 #[test]
 fn non_empty_string_parser_returns_value_for_non_empty_value() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::StartingCheckLink,
-        constants_str::HTTPS_EXAMPLE_COM,
-        crate::domain_types::StartingCheckLink(_)
-    );
+    let value =
+        parse_env::<crate::domain_types::StartingCheckLink>(constants_str::HTTPS_EXAMPLE_COM)
+            .expect("9aee76d2 starting-check link fixture must parse");
+    assert_eq!(value.get_inner(), constants_str::HTTPS_EXAMPLE_COM);
 }
 #[test]
 fn service_socket_address_parsing_returns_socket_addr() {
-    config_lib_macros::assert_parse_ok_matches!(
-        crate::domain_types::ServiceSocketAddress,
-        constants_str::VALUE_127_0_0_1_3000,
-        crate::domain_types::ServiceSocketAddress(_)
-    );
+    let _address =
+        parse_env::<crate::domain_types::ServiceSocketAddress>(constants_str::VALUE_127_0_0_1_3000)
+            .expect("a8b92bac service socket fixture must parse");
 }
 #[test]
 fn service_socket_address_parsing_returns_error_for_invalid_addr() {

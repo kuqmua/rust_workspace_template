@@ -4,7 +4,7 @@ pub fn register_openapi_route_schemas<Route>(
     Route: crate::typed_route::TypedRoute,
 {
     let raw_components = document
-        .0
+        .as_mut()
         .components
         .get_or_insert_with(utoipa::openapi::schema::Components::new);
     let mut schema_components =

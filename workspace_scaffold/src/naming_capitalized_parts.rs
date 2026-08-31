@@ -3,15 +3,15 @@ pub(super) fn naming_capitalized_parts(
     separator: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
 ) -> crate::scaffold_text::ScaffoldText {
     let output = value
-        .0
+        .get()
         .split('_')
         .filter(|part| !part.is_empty())
         .enumerate()
         .fold(
-            String::with_capacity(value.0.len()),
+            String::with_capacity(value.get().len()),
             |mut output, (index, part)| {
                 if index > constants_usize::ZERO {
-                    output.push_str(separator.0);
+                    output.push_str(separator.get());
                 }
                 let mut chars = part.chars();
                 if let Some(first) = chars.next() {

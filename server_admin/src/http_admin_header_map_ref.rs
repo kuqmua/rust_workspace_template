@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -9,5 +5,6 @@
     Copy,
     newtype::AsRefInner,
     newtype::FromInner,
+    generate_accessor::Getters,
 )]
-pub struct HttpAdminHeaderMapRef<'headers_lt>(pub(crate) &'headers_lt http::HeaderMap);
+pub struct HttpAdminHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);

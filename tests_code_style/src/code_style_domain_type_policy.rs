@@ -27,16 +27,10 @@ fn string_wrappers_do_not_use_from_string() {
                 crate::code_style::string_wrapper_names(crate::types::SynFileRef::from(ast));
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::StringWrapperFromVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                    len_checked_function_names: &len_checked_function_names,
-                    string_wrapper_names: &string_wrapper_names,
-                    try_from_string_names: crate::types::SourceTextBTreeSet::default(),
-                    try_from_string_len_checked_names: crate::types::SourceTextBTreeSet::default(),
-                },
+                super::domain_analysis::StringWrapperFromVisitor::new(crate::types::DiagnosticMsgs::default(), &len_checked_function_names, &string_wrapper_names, crate::types::SourceTextBTreeSet::default(), crate::types::SourceTextBTreeSet::default()),
             );
             ers.extend(string_wrapper_names.iter().filter_map(|name| {
-                        if visitor.try_from_string_names.contains(name) {
+                        if visitor.get_try_from_string_names().contains(name) {
                             None
                         } else {
                             Some(format!(
@@ -46,7 +40,7 @@ fn string_wrappers_do_not_use_from_string() {
                         }
                     }));
             ers.extend(string_wrapper_names.iter().filter_map(|name| {
-                        if visitor.try_from_string_len_checked_names.contains(name) {
+                        if visitor.get_try_from_string_len_checked_names().contains(name) {
                             None
                         } else {
                             Some(format!(
@@ -57,8 +51,7 @@ fn string_wrappers_do_not_use_from_string() {
                     }));
             ers.extend(
                 visitor
-                    .ers
-                    .into_iter()
+                    .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -72,15 +65,19 @@ fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
         crate::code_style::len_checked_function_names(crate::types::SynFileRef::from(&ast));
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::StringWrapperFromVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-            len_checked_function_names: &len_checked_function_names,
-            string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_string_len_checked_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::StringWrapperFromVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            &len_checked_function_names,
+            &string_wrapper_names,
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
-    let ers = visitor.ers.into_iter().collect::<Vec<String>>();
+    let ers = visitor
+        .get_ers()
+        .clone()
+        .into_iter()
+        .collect::<Vec<String>>();
     assert_eq!(ers.len(), 1, "a06d3c4f {ers:#?}");
     assert!(
         ers.iter()
@@ -100,25 +97,29 @@ fn bounded_string_derive_satisfies_string_wrapper_policy() {
         crate::code_style::len_checked_function_names(crate::types::SynFileRef::from(&ast));
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::StringWrapperFromVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-            len_checked_function_names: &len_checked_function_names,
-            string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_string_len_checked_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::StringWrapperFromVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            &len_checked_function_names,
+            &string_wrapper_names,
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
     assert!(
-        visitor.try_from_string_names.contains("SourceText"),
+        visitor.get_try_from_string_names().contains("SourceText"),
         "e4b9120c"
     );
     assert!(
         visitor
-            .try_from_string_len_checked_names
+            .get_try_from_string_len_checked_names()
             .contains("SourceText"),
         "69f280b3"
     );
-    assert!(visitor.ers.is_empty(), "fbd8c479 {:#?}", visitor.ers);
+    assert!(
+        visitor.get_ers().is_empty(),
+        "fbd8c479 {:#?}",
+        visitor.get_ers()
+    );
 }
 #[test]
 fn newtype_try_from_validator_satisfies_string_wrapper_policy() {
@@ -142,17 +143,22 @@ fn newtype_try_from_validator_satisfies_string_wrapper_policy() {
         crate::code_style::len_checked_function_names(crate::types::SynFileRef::from(&ast));
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::StringWrapperFromVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-            len_checked_function_names: &len_checked_function_names,
-            string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_string_len_checked_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::StringWrapperFromVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            &len_checked_function_names,
+            &string_wrapper_names,
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
-    assert!(visitor.try_from_string_names.contains("Value"), "4d8a4c7e");
     assert!(
-        visitor.try_from_string_len_checked_names.contains("Value"),
+        visitor.get_try_from_string_names().contains("Value"),
+        "4d8a4c7e"
+    );
+    assert!(
+        visitor
+            .get_try_from_string_len_checked_names()
+            .contains("Value"),
         "7c2e4b50"
     );
 }
@@ -181,17 +187,22 @@ fn newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
         crate::code_style::len_checked_function_names(crate::types::SynFileRef::from(&ast));
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::StringWrapperFromVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-            len_checked_function_names: &len_checked_function_names,
-            string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_string_len_checked_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::StringWrapperFromVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            &len_checked_function_names,
+            &string_wrapper_names,
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
-    assert!(visitor.try_from_string_names.contains("Value"), "89c632cd");
     assert!(
-        visitor.try_from_string_len_checked_names.contains("Value"),
+        visitor.get_try_from_string_names().contains("Value"),
+        "89c632cd"
+    );
+    assert!(
+        visitor
+            .get_try_from_string_len_checked_names()
+            .contains("Value"),
         "b49bc6d0"
     );
 }
@@ -220,17 +231,22 @@ fn manual_try_from_delegated_validator_satisfies_string_wrapper_policy() {
         crate::code_style::len_checked_function_names(crate::types::SynFileRef::from(&ast));
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::StringWrapperFromVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-            len_checked_function_names: &len_checked_function_names,
-            string_wrapper_names: &string_wrapper_names,
-            try_from_string_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_string_len_checked_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::StringWrapperFromVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            &len_checked_function_names,
+            &string_wrapper_names,
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
-    assert!(visitor.try_from_string_names.contains("Value"), "49c5a28f");
     assert!(
-        visitor.try_from_string_len_checked_names.contains("Value"),
+        visitor.get_try_from_string_names().contains("Value"),
+        "49c5a28f"
+    );
+    assert!(
+        visitor
+            .get_try_from_string_len_checked_names()
+            .contains("Value"),
         "21d03c6b"
     );
 }
@@ -242,14 +258,11 @@ fn tuple_wrappers_do_not_expose_inner_field() {
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::PublicTupleWrapperFieldVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::domain_analysis::PublicTupleWrapperFieldVisitor::new(crate::types::DiagnosticMsgs::default()),
             );
             ers.extend(
                 visitor
-                    .ers
-                    .into_iter()
+                    .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -263,38 +276,40 @@ fn tuple_wrapper_deserialization_uses_from_or_try_from() {
         |path, ast, ers| {
             let collector = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::TupleWrapperConversionCollector {
-                    converted_names: crate::types::SourceTextBTreeSet::default(),
-                    inner_types: std::collections::BTreeMap::default(),
-                    names: crate::types::SourceTextBTreeSet::default(),
-                    from_names: crate::types::SourceTextBTreeSet::default(),
-                    from_inner_names: crate::types::SourceTextBTreeSet::default(),
-                    try_from_names: crate::types::SourceTextBTreeSet::default(),
-                    try_from_inner_names: crate::types::SourceTextBTreeSet::default(),
-                },
+                super::domain_analysis::TupleWrapperConversionCollector::new(
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    std::collections::BTreeMap::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                ),
             );
             let derive_visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::DirectDeserializeTupleWrapperVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::domain_analysis::DirectDeserializeTupleWrapperVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                ),
             );
             ers.extend(
                 derive_visitor
-                    .ers
+                    .get_ers()
+                    .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
             let manual_visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::ManualDeserializeTupleWrapperVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                    names: &collector.names,
-                },
+                super::domain_analysis::ManualDeserializeTupleWrapperVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                    collector.get_names(),
+                ),
             );
             ers.extend(
                 manual_visitor
-                    .ers
+                    .get_ers()
+                    .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
@@ -336,25 +351,25 @@ fn tuple_wrapper_deserialization_policy_rejects_direct_derive() {
     };
     let collector = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::TupleWrapperConversionCollector {
-            converted_names: crate::types::SourceTextBTreeSet::default(),
-            inner_types: std::collections::BTreeMap::default(),
-            names: crate::types::SourceTextBTreeSet::default(),
-            from_names: crate::types::SourceTextBTreeSet::default(),
-            from_inner_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_inner_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::TupleWrapperConversionCollector::new(
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            std::collections::BTreeMap::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
     let derive_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::DirectDeserializeTupleWrapperVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-        },
+        super::domain_analysis::DirectDeserializeTupleWrapperVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+        ),
     );
-    assert_eq!(derive_visitor.ers.len(), 1, "b0406560");
+    assert_eq!(derive_visitor.get_ers().len(), 1, "b0406560");
     assert!(
-        derive_visitor.ers.first().is_some_and(|error| {
+        derive_visitor.get_ers().first().is_some_and(|error| {
             error.contains("can bypass validation or other construction invariants")
                 && error.contains("#[serde(try_from = \"RawType\")]")
         }),
@@ -362,14 +377,14 @@ fn tuple_wrapper_deserialization_policy_rejects_direct_derive() {
     );
     let manual_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::ManualDeserializeTupleWrapperVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-            names: &collector.names,
-        },
+        super::domain_analysis::ManualDeserializeTupleWrapperVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            collector.get_names(),
+        ),
     );
-    assert_eq!(manual_visitor.ers.len(), 1, "fbe61e18");
+    assert_eq!(manual_visitor.get_ers().len(), 1, "fbe61e18");
     assert!(
-        manual_visitor.ers.first().is_some_and(|error| {
+        manual_visitor.get_ers().first().is_some_and(|error| {
             error.contains("without an explicit From/TryFrom call")
                 && error.contains("Self::try_from(raw)")
         }),
@@ -384,20 +399,20 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
         |path, ast, ers| {
             let collector = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::TupleWrapperConversionCollector {
-                    converted_names: crate::types::SourceTextBTreeSet::default(),
-                    inner_types: std::collections::BTreeMap::default(),
-                    names: crate::types::SourceTextBTreeSet::default(),
-                    from_names: crate::types::SourceTextBTreeSet::default(),
-                    from_inner_names: crate::types::SourceTextBTreeSet::default(),
-                    try_from_names: crate::types::SourceTextBTreeSet::default(),
-                    try_from_inner_names: crate::types::SourceTextBTreeSet::default(),
-                },
+                super::domain_analysis::TupleWrapperConversionCollector::new(
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    std::collections::BTreeMap::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                    crate::types::SourceTextBTreeSet::default(),
+                ),
             );
             ers.extend(
                 collector
-                    .names
-                    .difference(&collector.converted_names)
+                    .get_names()
+                    .difference(collector.get_converted_names())
                     .map(|name| {
                         format!(
                             "{}: tuple wrapper `{name}` has no From/TryFrom implementation",
@@ -407,8 +422,8 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
             );
             ers.extend(
                 collector
-                    .from_inner_names
-                    .intersection(&collector.try_from_inner_names)
+                    .get_from_inner_names()
+                    .intersection(collector.get_try_from_inner_names())
                     .map(|name| {
                         format!(
                             "{}: tuple wrapper `{name}` implements both From and TryFrom for its inner type",
@@ -418,16 +433,17 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
             );
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::DirectTupleWrapperConstructorVisitor {
-                    names: &collector.names,
-                    inside_conversion_impl: crate::types::AnalyzerBool::default(),
-                    current_wrapper_name: None,
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::domain_analysis::DirectTupleWrapperConstructorVisitor::new(
+                    None,
+                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::AnalyzerBool::default(),
+                    collector.get_names(),
+                ),
             );
             ers.extend(
                 visitor
-                    .ers
+                    .get_ers()
+                    .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
@@ -473,19 +489,19 @@ fn tuple_wrapper_rejects_from_and_try_from_for_same_inner_type() {
 
     let collector = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::TupleWrapperConversionCollector {
-            converted_names: crate::types::SourceTextBTreeSet::default(),
-            inner_types: std::collections::BTreeMap::default(),
-            names: crate::types::SourceTextBTreeSet::default(),
-            from_names: crate::types::SourceTextBTreeSet::default(),
-            from_inner_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_inner_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::TupleWrapperConversionCollector::new(
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            std::collections::BTreeMap::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
     let conflicts: std::collections::BTreeSet<String> = collector
-        .from_inner_names
-        .intersection(&collector.try_from_inner_names)
+        .get_from_inner_names()
+        .intersection(collector.get_try_from_inner_names())
         .cloned()
         .collect();
     assert_eq!(
@@ -522,22 +538,22 @@ fn tuple_wrapper_initialization_policy_rejects_direct_constructors() {
     };
     let collector = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::TupleWrapperConversionCollector {
-            converted_names: crate::types::SourceTextBTreeSet::default(),
-            inner_types: std::collections::BTreeMap::default(),
-            names: crate::types::SourceTextBTreeSet::default(),
-            from_names: crate::types::SourceTextBTreeSet::default(),
-            from_inner_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_names: crate::types::SourceTextBTreeSet::default(),
-            try_from_inner_names: crate::types::SourceTextBTreeSet::default(),
-        },
+        super::domain_analysis::TupleWrapperConversionCollector::new(
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            std::collections::BTreeMap::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     );
-    assert_eq!(collector.names.len(), 2, "b058f76c");
-    assert_eq!(collector.converted_names.len(), 1, "70552188");
+    assert_eq!(collector.get_names().len(), 2, "b058f76c");
+    assert_eq!(collector.get_converted_names().len(), 1, "70552188");
     assert_eq!(
         collector
-            .names
-            .difference(&collector.converted_names)
+            .get_names()
+            .difference(collector.get_converted_names())
             .count(),
         1,
         "5cbdfec2"
@@ -545,14 +561,14 @@ fn tuple_wrapper_initialization_policy_rejects_direct_constructors() {
 
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::DirectTupleWrapperConstructorVisitor {
-            names: &collector.names,
-            inside_conversion_impl: crate::types::AnalyzerBool::default(),
-            current_wrapper_name: None,
-            ers: crate::types::DiagnosticMsgs::default(),
-        },
+        super::domain_analysis::DirectTupleWrapperConstructorVisitor::new(
+            None,
+            crate::types::DiagnosticMsgs::default(),
+            crate::types::AnalyzerBool::default(),
+            collector.get_names(),
+        ),
     );
-    assert_eq!(visitor.ers.len(), 2, "dd79f331");
+    assert_eq!(visitor.get_ers().len(), 2, "dd79f331");
 }
 #[test]
 fn domain_boundaries_use_repository_declared_types() {
@@ -561,11 +577,11 @@ fn domain_boundaries_use_repository_declared_types() {
     crate::code_style::for_each_rs_file(|file| {
         let visitor = crate::code_style::visit_syn_file(
             crate::types::SynFileRef::from(file.ast().as_ref()),
-            super::domain_analysis::DeclaredDomainTypeVisitor {
-                names: crate::types::SourceTextBTreeSet::default(),
-            },
+            super::domain_analysis::DeclaredDomainTypeVisitor::new(
+                crate::types::SourceTextBTreeSet::default(),
+            ),
         );
-        names.extend(visitor.names);
+        names.extend(visitor.get_names().iter().cloned());
     });
     let repo_types = crate::types::SourceTextBTreeSet::from(names);
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
@@ -584,19 +600,11 @@ fn domain_boundaries_use_repository_declared_types() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::DomainTypePolicyVisitor {
-                    check_non_public: crate::types::AnalyzerBool::default(),
-                    ers: crate::types::DiagnosticMsgs::default(),
-                    closure_body_scan_depth: crate::types::AnalyzerCount::default(),
-                    generic_scopes: Vec::new(),
-                    repo_crates: crate::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()),
-                    repo_types: crate::types::SourceTextBTreeSetRef::from(repo_types.as_ref()),
-                },
+                super::domain_analysis::DomainTypePolicyVisitor::new(crate::types::AnalyzerBool::default(), crate::types::AnalyzerCount::default(), crate::types::DiagnosticMsgs::default(), Vec::new(), crate::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()), crate::types::SourceTextBTreeSetRef::from(repo_types.as_ref())),
             );
             ers.extend(
                 visitor
-                    .ers
-                    .into_iter()
+                    .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -699,24 +707,24 @@ fn domain_type_policy_reports_raw_browser_external_types_natively() {
     let repo_types = std::collections::BTreeSet::new();
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::DomainTypePolicyVisitor {
-            check_non_public: crate::types::AnalyzerBool::from(true),
-            ers: crate::types::DiagnosticMsgs::default(),
-            closure_body_scan_depth: crate::types::AnalyzerCount::default(),
-            generic_scopes: Vec::new(),
-            repo_crates: crate::types::SourceTextBTreeSetRef::from(&repo_crates),
-            repo_types: crate::types::SourceTextBTreeSetRef::from(&repo_types),
-        },
+        super::domain_analysis::DomainTypePolicyVisitor::new(
+            crate::types::AnalyzerBool::from(true),
+            crate::types::AnalyzerCount::default(),
+            crate::types::DiagnosticMsgs::default(),
+            Vec::new(),
+            crate::types::SourceTextBTreeSetRef::from(&repo_crates),
+            crate::types::SourceTextBTreeSetRef::from(&repo_types),
+        ),
     );
     assert_eq!(
-        visitor.ers.len(),
+        visitor.get_ers().len(),
         constants_usize::ONE,
         "79ce162a {:#?}",
-        visitor.ers
+        visitor.get_ers()
     );
     assert!(
         visitor
-            .ers
+            .get_ers()
             .first()
             .is_some_and(|error| error.contains("web_sys")),
         "bd624f03"
@@ -730,18 +738,26 @@ fn proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
     let repo_types = std::collections::BTreeSet::new();
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::DomainTypePolicyVisitor {
-            check_non_public: crate::types::AnalyzerBool::from(true),
-            ers: crate::types::DiagnosticMsgs::default(),
-            closure_body_scan_depth: crate::types::AnalyzerCount::default(),
-            generic_scopes: Vec::new(),
-            repo_crates: crate::types::SourceTextBTreeSetRef::from(&repo_crates),
-            repo_types: crate::types::SourceTextBTreeSetRef::from(&repo_types),
-        },
+        super::domain_analysis::DomainTypePolicyVisitor::new(
+            crate::types::AnalyzerBool::from(true),
+            crate::types::AnalyzerCount::default(),
+            crate::types::DiagnosticMsgs::default(),
+            Vec::new(),
+            crate::types::SourceTextBTreeSetRef::from(&repo_crates),
+            crate::types::SourceTextBTreeSetRef::from(&repo_types),
+        ),
     );
-    assert_eq!(visitor.ers.len(), 2usize, "c82fb6d1 {:#?}", visitor.ers);
+    assert_eq!(
+        visitor.get_ers().len(),
+        2usize,
+        "c82fb6d1 {:#?}",
+        visitor.get_ers()
+    );
     assert!(
-        visitor.ers.iter().all(|error| error.contains("helper")),
+        visitor
+            .get_ers()
+            .iter()
+            .all(|error| error.contains("helper")),
         "109eb4a7"
     );
 }
@@ -757,16 +773,20 @@ fn domain_type_policy_checks_explicit_closure_parameter_types() {
     let repo_types = std::collections::BTreeSet::from([String::from(constants_str::SOURCETEXT)]);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::DomainTypePolicyVisitor {
-            check_non_public: crate::types::AnalyzerBool::from(true),
-            ers: crate::types::DiagnosticMsgs::default(),
-            closure_body_scan_depth: crate::types::AnalyzerCount::default(),
-            generic_scopes: Vec::new(),
-            repo_crates: crate::types::SourceTextBTreeSetRef::from(&repo_crates),
-            repo_types: crate::types::SourceTextBTreeSetRef::from(&repo_types),
-        },
+        super::domain_analysis::DomainTypePolicyVisitor::new(
+            crate::types::AnalyzerBool::from(true),
+            crate::types::AnalyzerCount::default(),
+            crate::types::DiagnosticMsgs::default(),
+            Vec::new(),
+            crate::types::SourceTextBTreeSetRef::from(&repo_crates),
+            crate::types::SourceTextBTreeSetRef::from(&repo_types),
+        ),
     );
-    let ers = visitor.ers.into_iter().collect::<Vec<String>>();
+    let ers = visitor
+        .get_ers()
+        .clone()
+        .into_iter()
+        .collect::<Vec<String>>();
     assert_eq!(ers.len(), 2, "0f6d3a91 {ers:#?}");
     assert!(
         ers.iter()
@@ -802,16 +822,20 @@ fn domain_type_policy_allows_only_option_and_result_containers() {
     ]);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::DomainTypePolicyVisitor {
-            check_non_public: crate::types::AnalyzerBool::from(true),
-            ers: crate::types::DiagnosticMsgs::default(),
-            closure_body_scan_depth: crate::types::AnalyzerCount::default(),
-            generic_scopes: Vec::new(),
-            repo_crates: crate::types::SourceTextBTreeSetRef::from(&repo_crates),
-            repo_types: crate::types::SourceTextBTreeSetRef::from(&repo_types),
-        },
+        super::domain_analysis::DomainTypePolicyVisitor::new(
+            crate::types::AnalyzerBool::from(true),
+            crate::types::AnalyzerCount::default(),
+            crate::types::DiagnosticMsgs::default(),
+            Vec::new(),
+            crate::types::SourceTextBTreeSetRef::from(&repo_crates),
+            crate::types::SourceTextBTreeSetRef::from(&repo_types),
+        ),
     );
-    let ers = visitor.ers.into_iter().collect::<Vec<String>>();
+    let ers = visitor
+        .get_ers()
+        .clone()
+        .into_iter()
+        .collect::<Vec<String>>();
     assert_eq!(ers.len(), 1, "c47a91e2 {ers:#?}");
     assert!(
         ers.first()
@@ -832,14 +856,11 @@ fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::AnalyzerStateRawContainerFieldVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::domain_analysis::AnalyzerStateRawContainerFieldVisitor::new(crate::types::DiagnosticMsgs::default()),
             );
             ers.extend(
                 visitor
-                    .ers
-                    .into_iter()
+                    .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -850,11 +871,15 @@ fn analyzer_state_raw_container_field_visitor_reports_helper_fields() {
     let ast = syn::parse_file(constants_str::NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS).expect("9f4d2a7c analyzer_state_raw_container_field_visitor_reports_helper_fields invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::AnalyzerStateRawContainerFieldVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-        },
+        super::domain_analysis::AnalyzerStateRawContainerFieldVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+        ),
     );
-    let ers = visitor.ers.into_iter().collect::<Vec<String>>();
+    let ers = visitor
+        .get_ers()
+        .clone()
+        .into_iter()
+        .collect::<Vec<String>>();
     assert_eq!(ers.len(), 3, "2c0b7e91 {ers:#?}");
     assert!(
         ers.iter()
@@ -885,14 +910,11 @@ fn helper_return_types_use_repository_declared_text_wrappers() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::HelperRawTextReturnVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::domain_analysis::HelperRawTextReturnVisitor::new(crate::types::DiagnosticMsgs::default()),
             );
             ers.extend(
                 visitor
-                    .ers
-                    .into_iter()
+                    .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -906,11 +928,15 @@ fn helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
     .expect("3a9d7e2c helper_raw_text_return_visitor_reports_free_and_inherent_helpers invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::HelperRawTextReturnVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-        },
+        super::domain_analysis::HelperRawTextReturnVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+        ),
     );
-    let ers = visitor.ers.into_iter().collect::<Vec<String>>();
+    let ers = visitor
+        .get_ers()
+        .clone()
+        .into_iter()
+        .collect::<Vec<String>>();
     assert_eq!(ers.len(), 4, "7b2e41a0 {ers:#?}");
     assert!(
         ers.iter()
@@ -951,14 +977,15 @@ fn external_leaf_tuple_wrappers_include_source_name() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::ExternalLeafWrapperNameVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                    repo_crates: crate::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()),
-                },
+                super::domain_analysis::ExternalLeafWrapperNameVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()),
+                ),
             );
             ers.extend(
                 visitor
-                    .ers
+                    .get_ers()
+                    .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
@@ -974,20 +1001,20 @@ fn external_leaf_wrapper_type_rule_has_no_name_exceptions() {
     let repo_crates = std::collections::BTreeSet::new();
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::ExternalLeafWrapperNameVisitor {
-            ers: crate::types::DiagnosticMsgs::default(),
-            repo_crates: crate::types::SourceTextBTreeSetRef::from(&repo_crates),
-        },
+        super::domain_analysis::ExternalLeafWrapperNameVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            crate::types::SourceTextBTreeSetRef::from(&repo_crates),
+        ),
     );
     assert_eq!(
-        visitor.ers.len(),
+        visitor.get_ers().len(),
         constants_usize::ONE,
         "9db6310a {:#?}",
-        visitor.ers
+        visitor.get_ers()
     );
     assert!(
         visitor
-            .ers
+            .get_ers()
             .first()
             .is_some_and(|error| error.contains("GeneratedTokens")),
         "e7340ba2"

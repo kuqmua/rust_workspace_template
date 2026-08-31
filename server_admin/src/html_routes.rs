@@ -10,12 +10,12 @@ pub(crate) fn html_routes(
             .merge(crate::admin_html_settings_action_route_registry::AdminHtmlSettingsActionRouteRegistry::router())
             .merge(crate::admin_html_user_action_route_registry::AdminHtmlUserActionRouteRegistry::router()),
     );
-    let router = if swagger_enabled.0 {
+    let router = if *swagger_enabled.get_inner() {
         router.merge(
             crate::admin_html_swagger_route_registry::AdminHtmlSwaggerRouteRegistry::router(),
         )
     } else {
         router
     };
-    crate::axum_admin_auth_router::AxumAdminAuthRouter(router.with_state(state))
+    crate::axum_admin_auth_router::AxumAdminAuthRouter::from(router.with_state(state))
 }

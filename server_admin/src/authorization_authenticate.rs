@@ -12,10 +12,10 @@ pub(crate) async fn authorization_authenticate(
     )
     .ok_or(crate::admin_error::AdminError::Authentication)?;
     let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
-    validation.set_issuer(&[state.issuer.as_ref()]);
-    validation.set_audience(&[state.audience.as_ref()]);
+    validation.set_issuer(&[state.get_issuer().as_ref()]);
+    validation.set_audience(&[state.get_audience().as_ref()]);
     let claims = state
-        .decoding_keys
+        .get_decoding_keys()
         .as_ref()
         .iter()
         .find_map(|decoding_key| {
@@ -38,7 +38,7 @@ pub(crate) async fn authorization_authenticate(
             .bind(claims.session_id().get().get())
             .bind(claims.user_id().get())
             .bind(context_hash.expose().as_ref())
-            .fetch_one(state.pool.as_ref())
+            .fetch_one(state.get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
             .map(server_admin_core::std_admin_bool::StdAdminBool::from)

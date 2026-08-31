@@ -1,4 +1,12 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_accessor::Getters,
+)]
 pub struct AdminCleanupRetentionSeconds(
     server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,
 );
@@ -12,6 +20,6 @@ impl TryFrom<i64> for AdminCleanupRetentionSeconds {
 }
 impl AdminCleanupRetentionSeconds {
     pub(crate) const fn get(self) -> i64 {
-        self.0.get()
+        self.get_inner().get()
     }
 }

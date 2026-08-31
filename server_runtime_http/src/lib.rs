@@ -2,7 +2,6 @@
     unused_imports,
     unreachable_pub,
     clippy::arbitrary_source_item_ordering,
-    clippy::field_scoped_visibility_modifiers,
     clippy::wildcard_imports,
     reason = "root-owned modules retain vocabulary, representation, and compatibility wrappers previously inherited from nested owner modules"
 )]

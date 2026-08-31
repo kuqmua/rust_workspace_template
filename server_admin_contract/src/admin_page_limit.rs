@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -14,7 +9,12 @@
     serde::Serialize,
     utoipa::ToSchema,
 )]
-pub struct AdminPageLimit(pub(super) u16);
+pub struct AdminPageLimit(u16);
+impl From<crate::admin_default_page_limit::AdminDefaultPageLimit> for AdminPageLimit {
+    fn from(_value: crate::admin_default_page_limit::AdminDefaultPageLimit) -> Self {
+        Self(Self::DEFAULT)
+    }
+}
 impl<'de> serde::Deserialize<'de> for AdminPageLimit {
     fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
     where

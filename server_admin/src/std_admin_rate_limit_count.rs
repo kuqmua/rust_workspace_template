@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -9,5 +5,6 @@
     Copy,
     newtype::FromInner,
     newtype::IntoInnerFrom,
+    generate_accessor::Getters,
 )]
-pub(crate) struct StdAdminRateLimitCount(pub(crate) i64);
+pub(crate) struct StdAdminRateLimitCount(i64);

@@ -15,9 +15,9 @@ pub async fn cleanup_pg_table_idempotency(
     let result = sqlx::query(
         constants_str::WITH_EXPIRED_AS_SELECT_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY_FROM,
     )
-    .bind(completed_retention_seconds.0)
-    .bind(pending_retention_seconds.0)
-    .bind(batch_size.0.get())
+    .bind(completed_retention_seconds.get())
+    .bind(pending_retention_seconds.get())
+    .bind(batch_size.get().get())
     .execute(pool.as_ref())
     .await
     .map_err(crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from)?;

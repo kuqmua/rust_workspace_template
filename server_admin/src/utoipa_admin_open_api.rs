@@ -1,5 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::IntoInnerFrom, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    newtype::IntoInnerFrom,
+    newtype::FromInner,
+    generate_accessor::Getters,
 )]
 pub struct UtoipaAdminOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminOpenApi {

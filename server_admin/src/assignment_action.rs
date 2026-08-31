@@ -1,7 +1,7 @@
 pub(crate) async fn assignment_action<Ids, Parse, Request, BuildRequest, Target, Run, RunFuture>(
     auth: crate::admin_auth_req::AdminAuthReq,
     expected: &crate::admin_html_form_text::AdminHtmlFormText,
-    selected: crate::std_admin_html_selected::StdAdminHtmlSelected,
+    selected: &crate::std_admin_html_selected::StdAdminHtmlSelected,
     parse: Parse,
     path: server_admin_contract::admin_frontend_path::AdminFrontendPath,
     build_request: BuildRequest,
@@ -29,11 +29,6 @@ where
         let auth = crate::form_auth_impl::form_auth_impl(auth)?;
         let expected = parse(expected)?;
         let separator = constants_str::COMMA_SPACE.trim();
-        let selected = bounded_types::bounded_b_tree_map::BoundedBTreeMap::<
-            crate::admin_html_form_key::AdminHtmlFormKey,
-            crate::admin_html_form_text::AdminHtmlFormText,
-            { crate::admin_html_form_selected_max_items::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS },
-        >::from(selected);
         let capacity = selected
             .iter()
             .map(|(_key, value)| value.len().get())
@@ -45,7 +40,7 @@ where
                     .saturating_sub(constants_usize::ONE)
                     .saturating_mul(separator.len()),
             );
-        let text = selected.into_values().enumerate().fold(
+        let text = selected.iter().map(|(_key, value)| value).enumerate().fold(
             String::with_capacity(capacity),
             |mut text, (index, value)| {
                 if index > constants_usize::ZERO {
@@ -67,7 +62,7 @@ where
         run(
             auth,
             target,
-            crate::axum_admin_json::AxumAdminJson(build_request(expected, selected)),
+            crate::axum_admin_json::AxumAdminJson::from(build_request(expected, selected)),
         )
         .await,
         path,

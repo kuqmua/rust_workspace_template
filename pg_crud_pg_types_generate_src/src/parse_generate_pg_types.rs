@@ -7,7 +7,7 @@ pub fn parse_generate_pg_types(
     serde_json::from_str::<crate::generate_pg_types_config::GeneratePgTypesConfig>(
         &input.as_ref().to_string(),
     )
-    .map(crate::parsed_generate_pg_types_config::ParsedGeneratePgTypesConfig)
+    .map(crate::parsed_generate_pg_types_config::ParsedGeneratePgTypesConfig::from)
     .map_err(|error| {
         crate::generate_pg_types_pipeline_error::GeneratePgTypesPipelineError::Parse(
             crate::serde_json_generate_pg_types_error::SerdeJsonGeneratePgTypesError::from(error),

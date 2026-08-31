@@ -9,17 +9,17 @@ where
         .iter()
         .map(|spec| {
             Ok(crate::db_object_snapshot::DbObjectSnapshot::new(
-                crate::schema_text::schema_text(spec.column.0.to_owned())?,
+                crate::schema_text::schema_text((*spec.get_column().get_inner()).to_owned())?,
                 crate::db_object_kind::DbObjectKind::Default,
-                crate::schema_text::schema_text(spec.expression.0.to_owned())?,
+                crate::schema_text::schema_text((*spec.get_expression().get_inner()).to_owned())?,
             ))
         })
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
         )?;
     let default_rows = sqlx::query(constants_str::DB_SCHEMA_EXACT_DEFAULT_QUERY)
-        .bind(schema.0)
-        .bind(Table::schema_table_text().0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .bind(*Table::schema_table_text().get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
@@ -59,14 +59,14 @@ where
         );
     }
     let public_schema_qualifier = format!("{}.", constants_str::PUBLIC);
-    let observed_schema_qualifier = format!("{}.", schema.0);
+    let observed_schema_qualifier = format!("{}.", *schema.get_inner());
     let mut expected_objects = Table::checks_and_indexes()
         .iter()
         .map(|spec| {
             Ok(crate::db_object_snapshot::DbObjectSnapshot::new(
-                crate::schema_text::schema_text(spec.name.0.to_owned())?,
-                spec.kind,
-                crate::schema_text::schema_text(spec.definition.0.replace(
+                crate::schema_text::schema_text((*spec.get_name().get_inner()).to_owned())?,
+                *spec.get_kind(),
+                crate::schema_text::schema_text(spec.get_definition().get_inner().replace(
                     public_schema_qualifier.as_str(),
                     observed_schema_qualifier.as_str(),
                 ))?,
@@ -75,9 +75,9 @@ where
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
         )?;
     let rows = sqlx::query(constants_str::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
-        .bind(schema.0)
-        .bind(Table::schema_table_text().0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .bind(*Table::schema_table_text().get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(

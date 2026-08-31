@@ -5,7 +5,7 @@ pub(crate) fn authorization_origin_is_present_and_allowed(
     server_admin_core::std_admin_bool::StdAdminBool::from(bool::from(
         server_runtime_http::resolve_request_origin_allowed::resolve_request_origin_allowed(
             server_runtime_http::http_origin_headers_ref::HttpOriginHeadersRef::from(headers.get()),
-            &state.allowed_origins,
+            state.get_allowed_origins(),
         ),
     ))
 }

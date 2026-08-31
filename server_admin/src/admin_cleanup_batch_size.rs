@@ -1,4 +1,12 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_accessor::Getters,
+)]
 pub struct AdminCleanupBatchSize(i64);
 impl TryFrom<i64> for AdminCleanupBatchSize {
     type Error = crate::admin_cleanup_cfg_error::AdminCleanupCfgError;
@@ -12,6 +20,6 @@ impl TryFrom<i64> for AdminCleanupBatchSize {
 }
 impl AdminCleanupBatchSize {
     pub(crate) const fn get(self) -> i64 {
-        self.0
+        *self.get_inner()
     }
 }

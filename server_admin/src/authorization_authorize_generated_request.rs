@@ -10,14 +10,14 @@ pub(crate) async fn authorization_authorize_generated_request(
 > {
     let authenticated =
         crate::authorization_authenticate::authorization_authenticate(state, headers, peer).await?;
-    if *authenticated.password_change_required {
+    if **authenticated.get_password_change_required() {
         return Err(crate::admin_error::AdminError::Authorization);
     }
     let required_permission =
         server_admin_contract::admin_permission::AdminPermission::try_from(permission.as_ref())
             .map_err(|_error| crate::admin_error::AdminError::Authorization)?;
     if !authenticated
-        .permissions
+        .get_permissions()
         .as_ref()
         .contains(&required_permission)
     {
@@ -25,15 +25,15 @@ pub(crate) async fn authorization_authorize_generated_request(
     }
     if mutates.get() {
         let subject = server_admin_core::std_admin_string::StdAdminString::try_from(
-            authenticated.id.get().to_string(),
+            authenticated.get_id().get().to_string(),
         )
         .map_err(|_error| crate::admin_error::AdminError::Validation)?;
         crate::enforce_rate_limit::enforce_rate_limit(
             state,
             crate::admin_rate_limit_scope::AdminRateLimitScope::Mutation,
             &subject,
-            state.policy.mutation_limit,
-            state.policy.mutation_window,
+            state.get_policy().get_mutation_limit(),
+            state.get_policy().get_mutation_window(),
         )
         .await?;
         crate::authorization_validate_csrf::authorization_validate_csrf(

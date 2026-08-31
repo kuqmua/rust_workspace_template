@@ -88,11 +88,17 @@ fn workspace_denies_single_call_production_functions() {
     let parsed = manifest
         .parse::<toml::Table>()
         .expect("c4a81f36 workspace manifest must be valid TOML");
+    let single_call_fn = constants_str::SHARED_VALUES_CLIPPY_SINGLE_CALL_FN
+        .rsplit_once(constants_str::PATH_SEPARATOR)
+        .map_or(
+            constants_str::SHARED_VALUES_CLIPPY_SINGLE_CALL_FN,
+            |(_, lint)| lint,
+        );
     let lint_level = parsed
         .get(constants_str::WORKSPACE)
         .and_then(|workspace| workspace.get(constants_str::LINTS))
         .and_then(|lints| lints.get(constants_str::CLIPPY))
-        .and_then(|clippy| clippy.get(constants_str::SINGLE_CALL_FN))
+        .and_then(|clippy| clippy.get(single_call_fn))
         .and_then(toml::Value::as_str);
     assert_eq!(
         lint_level,
@@ -474,7 +480,7 @@ fn library_crates_with_public_logic_own_tests() {
                         crate::types::SynFileRef::from(source_file.ast().as_ref()),
                         super::source_analysis::PublicLogicVisitor::default(),
                     )
-                    .found
+                    .get_found()
                     .get()
                 });
                 let has_owned_test = source_files.iter().any(|source_file| {
@@ -482,7 +488,7 @@ fn library_crates_with_public_logic_own_tests() {
                         crate::types::SynFileRef::from(source_file.ast().as_ref()),
                         super::source_analysis::OwnedTestVisitor::default(),
                     )
-                    .found
+                    .get_found()
                     .get()
                 });
                 (has_public_logic && !has_owned_test).then(|| package.name.to_string())

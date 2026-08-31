@@ -1,8 +1,10 @@
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "sibling emitters read this private operation descriptor directly"
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(crate) struct OperationDsc<
     Capability,
     HttpMethod,
@@ -11,33 +13,33 @@ pub(crate) struct OperationDsc<
     PermissionAction,
     StatusCode,
 > {
-    pub(crate) http_method: HttpMethod,
-    pub(crate) idempotency_capable: Capability,
-    pub(crate) operation: Operation,
-    pub(crate) operation_kind: OperationKind,
-    pub(crate) optimistic_concurrency_capable: Capability,
-    pub(crate) permission_action: PermissionAction,
-    pub(crate) success_status_code: StatusCode,
+    http_method: HttpMethod,
+    idempotency_capable: Capability,
+    operation: Operation,
+    operation_kind: OperationKind,
+    optimistic_concurrency_capable: Capability,
+    permission_action: PermissionAction,
+    success_status_code: StatusCode,
 }
 #[cfg(test)]
 mod tests {
     #[test]
     fn operation_descriptor_keeps_transport_permission_and_capabilities_together() {
-        let spec = crate::operation_dsc::OperationDsc {
-            http_method: constants_str::PATCH,
-            idempotency_capable: true,
-            operation: constants_str::UO,
-            operation_kind: constants_str::UPDATE_ONE,
-            optimistic_concurrency_capable: true,
-            permission_action: constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
-            success_status_code: 200u16,
-        };
-        assert_eq!(spec.http_method, "PATCH");
-        assert!(spec.idempotency_capable);
-        assert_eq!(spec.operation, "uo");
-        assert_eq!(spec.operation_kind, "update_one");
-        assert!(spec.optimistic_concurrency_capable);
-        assert_eq!(spec.permission_action, "update");
-        assert_eq!(spec.success_status_code, 200u16);
+        let spec = crate::operation_dsc::OperationDsc::new(
+            constants_str::PATCH,
+            true,
+            constants_str::UO,
+            constants_str::UPDATE_ONE,
+            true,
+            constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
+            200u16,
+        );
+        assert_eq!(*spec.get_http_method(), "PATCH");
+        assert!(*spec.get_idempotency_capable());
+        assert_eq!(*spec.get_operation(), "uo");
+        assert_eq!(*spec.get_operation_kind(), "update_one");
+        assert!(*spec.get_optimistic_concurrency_capable());
+        assert_eq!(*spec.get_permission_action(), "update");
+        assert_eq!(*spec.get_success_status_code(), 200u16);
     }
 }

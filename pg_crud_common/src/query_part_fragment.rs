@@ -9,10 +9,6 @@
     newtype::Display,
     newtype::IntoInner,
 )]
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the private parent module assembles query fragments without widening public API"
-)]
 pub struct QueryPartFragment(String);
 impl
     From<crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError>

@@ -18,5 +18,5 @@ pub(super) const fn route_success_status<
 where
     StatusCode: Copy,
 {
-    dsc.success_status_code
+    *dsc.get_success_status_code()
 }

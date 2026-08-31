@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -16,7 +12,7 @@
     newtype::FromInner,
 )]
 #[serde(try_from = "i32")]
-pub struct NotZeroUnsignedPartOfI32(pub(super) std::num::NonZeroI32);
+pub struct NotZeroUnsignedPartOfI32(std::num::NonZeroI32);
 
 impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
     fn from(value: std::num::NonZeroU16) -> Self {
@@ -47,7 +43,7 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
                     location: location_macros::location!(),
                 }
             })?;
-        std::num::NonZeroI32::new(value.0)
+        std::num::NonZeroI32::new(*value.get_inner())
             .map(Self)
             .ok_or_else(|| Self::Error::IsZero {
                 location: location_macros::location!(),

@@ -1,16 +1,18 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
+#[derive(
+    generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Debug, Default,
+)]
 struct FunctionBodyComplexity {
     expression_count: usize,
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 struct FunctionBodyVisitor<'visitor_lt> {
     bodies: crate::types::FunctionBodyLocationsBTreeMapMutRef<'visitor_lt>,
     identifier_pattern: crate::types::RegexRegexRef<'visitor_lt>,
     path: crate::types::PathRef<'visitor_lt>,
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
 struct ReviewedDuplicateGroup {
     locations: &'static str,
     reason: &'static str,
@@ -130,10 +132,6 @@ fn substantial_function_bodies_have_one_source_of_truth() {
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_082A5401,
             reason: constants_str::VALUE_61609B06,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_3AE4AA02,
-            reason: constants_str::VALUE_9DA4CB90,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_4FDDA503,

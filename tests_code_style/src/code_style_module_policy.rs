@@ -47,7 +47,7 @@ fn custom_type_names_are_unique_across_workspace() {
                     crate::types::SynFileRef::from(source_file.ast().as_ref()),
                     super::source_analysis::CustomTypeNameVisitor::default(),
                 );
-                visitor.names.into_iter().for_each(|name| {
+                visitor.get_names().clone().into_iter().for_each(|name| {
                     declarations
                         .entry(name)
                         .or_default()
@@ -83,7 +83,11 @@ fn custom_type_name_visitor_covers_all_rust_type_declarations() {
         super::source_analysis::CustomTypeNameVisitor::default(),
     );
     assert_eq!(
-        visitor.names.into_iter().collect::<Vec<String>>(),
+        visitor
+            .get_names()
+            .clone()
+            .into_iter()
+            .collect::<Vec<String>>(),
         [
             "StructName",
             "EnumName",
@@ -106,7 +110,11 @@ fn free_function_name_visitor_excludes_methods() {
         super::source_analysis::FreeFnNameVisitor::default(),
     );
     assert_eq!(
-        visitor.names.into_iter().collect::<Vec<String>>(),
+        visitor
+            .get_names()
+            .clone()
+            .into_iter()
+            .collect::<Vec<String>>(),
         ["outer", "inner", "module_function"].map(String::from),
         "6d857f95"
     );
@@ -122,7 +130,8 @@ fn free_function_names_are_unique_across_workspace() {
                 super::source_analysis::FreeFnNameVisitor::default(),
             );
             visitor
-                .names
+                .get_names()
+                .clone()
                 .into_iter()
                 .filter(|name| name != constants_str::MAIN)
                 .for_each(|name| {

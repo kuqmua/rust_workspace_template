@@ -1,5 +1,5 @@
 pub(crate) async fn insert_audit_success(
-    connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
+    mut connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
     user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
     login: &server_admin_contract::admin_login::AdminLogin,
     action: crate::admin_audit_action::AdminAuditAction,
@@ -16,7 +16,7 @@ pub(crate) async fn insert_audit_success(
         .bind(resource_id.as_ref())
         .bind(request_id.get())
         .bind(details.as_ref())
-        .execute(connection.0)
+        .execute(&mut **connection)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map(drop)

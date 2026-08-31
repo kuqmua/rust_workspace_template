@@ -10,8 +10,8 @@ impl AsRef<syn::DeriveInput> for NewtypeSynDeriveInputRef<'_> {
         self.0
     }
 }
-impl<'syn_lt> NewtypeSynDeriveInputRef<'syn_lt> {
-    pub(crate) const fn get(self) -> &'syn_lt syn::DeriveInput {
-        self.0
+impl<'syn_lt> From<NewtypeSynDeriveInputRef<'syn_lt>> for &'syn_lt syn::DeriveInput {
+    fn from(value: NewtypeSynDeriveInputRef<'syn_lt>) -> Self {
+        value.0
     }
 }

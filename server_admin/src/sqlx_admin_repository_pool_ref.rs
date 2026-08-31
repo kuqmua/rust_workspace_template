@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -9,5 +5,6 @@
     Debug,
     newtype::DerefInner,
     newtype::FromInner,
+    generate_accessor::Getters,
 )]
-pub(crate) struct SqlxAdminRepositoryPoolRef<'pool_lt>(pub(crate) &'pool_lt sqlx::PgPool);
+pub(crate) struct SqlxAdminRepositoryPoolRef<'pool_lt>(&'pool_lt sqlx::PgPool);

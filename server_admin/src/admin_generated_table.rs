@@ -152,23 +152,23 @@ impl AdminGeneratedTable {
     ) -> server_runtime_http::axum_router::AxumRouter {
         server_runtime_http::axum_router::AxumRouter::from(match self {
             Self::Roles => {
-                crate::admin_roles::AdminRoles::routes(std::sync::Arc::clone(&app_state.0))
+                crate::admin_roles::AdminRoles::routes(std::sync::Arc::clone(app_state.get_inner()))
             }
             Self::RolePermissions => crate::admin_role_permissions::AdminRolePermissions::routes(
-                std::sync::Arc::clone(&app_state.0),
+                std::sync::Arc::clone(app_state.get_inner()),
             ),
             Self::Users => {
-                crate::admin_users::AdminUsers::routes(std::sync::Arc::clone(&app_state.0))
+                crate::admin_users::AdminUsers::routes(std::sync::Arc::clone(app_state.get_inner()))
             }
             Self::Permissions => crate::admin_permissions::AdminPermissions::routes(
-                std::sync::Arc::clone(&app_state.0),
+                std::sync::Arc::clone(app_state.get_inner()),
             ),
             Self::SystemSettings => crate::admin_system_settings::AdminSystemSettings::routes(
-                std::sync::Arc::clone(&app_state.0),
+                std::sync::Arc::clone(app_state.get_inner()),
             ),
-            Self::UserRoles => {
-                crate::admin_user_roles::AdminUserRoles::routes(std::sync::Arc::clone(&app_state.0))
-            }
+            Self::UserRoles => crate::admin_user_roles::AdminUserRoles::routes(
+                std::sync::Arc::clone(app_state.get_inner()),
+            ),
         })
     }
 

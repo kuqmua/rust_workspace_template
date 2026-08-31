@@ -2,38 +2,46 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn update_settings(
     auth: crate::admin_auth_req::AdminAuthReq,
-    crate::axum_admin_form::AxumAdminForm(form): crate::axum_admin_form::AxumAdminForm<
-        crate::settings_form::SettingsForm,
-    >,
+    form: crate::axum_admin_form::AxumAdminForm<crate::settings_form::SettingsForm>,
 ) -> axum::response::Response {
     let Ok(auth) = crate::form_auth_impl::form_auth_impl(auth) else {
         return axum::response::IntoResponse::into_response(crate::admin_error::AdminError::Csrf);
     };
+    let (
+        default_admin_route,
+        main_logo_form,
+        organization_contacts_form,
+        organization_name_form,
+        primary_color_form,
+        site_name,
+        support_url_form,
+        tab_title_form,
+    ) = form.into_inner().into_parts();
     let parsed = (
         crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::admin_main_logo::AdminMainLogo,
             _,
-        >(form.main_logo),
+        >(main_logo_form),
         crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::admin_organization_contacts::AdminOrganizationContacts,
             _,
-        >(form.organization_contacts),
+        >(organization_contacts_form),
         crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::admin_organization_name::AdminOrganizationName,
             _,
-        >(form.organization_name),
+        >(organization_name_form),
         crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::admin_primary_color::AdminPrimaryColor,
             _,
-        >(form.primary_color),
+        >(primary_color_form),
         crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::admin_support_url::AdminSupportUrl,
             _,
-        >(form.support_url),
+        >(support_url_form),
         crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::admin_tab_title::AdminTabTitle,
             _,
-        >(form.tab_title),
+        >(tab_title_form),
     );
     let (
         Ok(main_logo),
@@ -86,12 +94,12 @@ pub(crate) async fn update_settings(
         );
     };
     let request = server_admin_contract::admin_update_settings_req::AdminUpdateSettingsReq::new(
-        Some(form.default_admin_route),
+        Some(default_admin_route),
         main_logo,
         organization_contacts,
         organization_name,
         primary_color,
-        Some(form.site_name),
+        Some(site_name),
         support_url,
         tab_title,
         clear,
@@ -99,7 +107,7 @@ pub(crate) async fn update_settings(
     crate::action_result_impl::action_result_impl(
         crate::settings_update::settings_update(
             auth,
-            crate::axum_admin_json::AxumAdminJson(request),
+            crate::axum_admin_json::AxumAdminJson::from(request),
         )
         .await,
         server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings,

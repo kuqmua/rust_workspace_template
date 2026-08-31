@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+generate_constructor = { workspace = true }
 constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 app_state = { workspace = true }

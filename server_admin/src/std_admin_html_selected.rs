@@ -9,6 +9,7 @@
 #[serde(
     from = "bounded_types::bounded_b_tree_map::BoundedBTreeMap<crate::admin_html_form_key::AdminHtmlFormKey, crate::admin_html_form_text::AdminHtmlFormText, { crate::admin_html_form_selected_max_items::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS }>"
 )]
+#[derive(generate_accessor::Getters)]
 pub(crate) struct StdAdminHtmlSelected(
     bounded_types::bounded_b_tree_map::BoundedBTreeMap<
         crate::admin_html_form_key::AdminHtmlFormKey,

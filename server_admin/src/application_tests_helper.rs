@@ -17,6 +17,13 @@ pub(crate) fn auth_state(
     crate::admin_auth_svc_state::AdminAuthSvcState,
     crate::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError,
 > {
+    let Ok(allowed_origin) =
+        config_lib::domain_types::CorsAllowOrigin::try_from(allowed_origin.to_owned())
+    else {
+        return Err(
+            crate::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError::AllowedOrigin,
+        );
+    };
     crate::admin_auth_svc_state::AdminAuthSvcState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(pool),
         &admin_app_test_env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
@@ -29,6 +36,6 @@ pub(crate) fn auth_state(
         &admin_app_test_env(constants_str::FALSE),
         &admin_app_test_env(constants_str::INTEGRATION_TEST),
         &admin_app_test_env(constants_str::INTEGRATION_TEST_ADMIN),
-        &config_lib::domain_types::CorsAllowOrigin(allowed_origin.to_owned()),
+        &allowed_origin,
     )
 }

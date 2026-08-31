@@ -1,23 +1,23 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn data_tables_get(
     auth: crate::admin_auth_req::AdminAuthReq,
-    crate::axum_admin_path::AxumAdminPath(table): crate::axum_admin_path::AxumAdminPath<
+    table: crate::axum_admin_path::AxumAdminPath<
         server_admin_contract::admin_data_table::AdminDataTable,
     >,
-    crate::axum_admin_query::AxumAdminQuery(data_query): crate::axum_admin_query::AxumAdminQuery<
+    data_query: crate::axum_admin_query::AxumAdminQuery<
         server_admin_contract::admin_data_table_query::AdminDataTableQuery,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let _actor = crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
-        auth.state.as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        auth.peer,
+        auth.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+        *auth.get_peer(),
         table.permission().as_str(),
         server_admin_core::std_admin_bool::StdAdminBool::from(false),
     )
     .await?;
     let pool = crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-        auth.state.as_ref().pool.as_ref(),
+        auth.get_state().as_ref().get_pool().as_ref(),
     );
     let view = async {
             let spec = table.spec();
@@ -25,7 +25,7 @@ pub(crate) async fn data_tables_get(
                 let column_names = spec.columns();
                 (|| {
                         let generated_fields =
-                            crate::admin_generated_table::AdminGeneratedTable::for_data_table(table)
+                            crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
                                 .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts);
                         let columns = column_names
                             .get()
@@ -113,7 +113,7 @@ pub(crate) async fn data_tables_get(
                                 };
                             };
                             let fields =
-                                crate::admin_generated_table::AdminGeneratedTable::for_data_table(table)
+                                crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
                                     .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
                                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
                             let field_contract = fields
@@ -126,7 +126,7 @@ pub(crate) async fn data_tables_get(
                             }
                             let parse_value = |value: &server_admin_contract::admin_filter_value::AdminFilterValue| {
                                 let wire_value =
-                                    crate::admin_generated_table::AdminGeneratedTable::for_data_table(table)
+                                    crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
                                         .and_then(|generated| {
                                             generated.filter_value(
                                                 frontend_contract::form_field_name_ref::FormFieldNameRef::from(field.as_ref()),
@@ -265,7 +265,7 @@ pub(crate) async fn data_tables_get(
                         let Some(payload_wrapper) = payload else {
                             return Ok(None);
                         };
-                        crate::admin_generated_table::AdminGeneratedTable::for_data_table(table)
+                        crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
                             .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
                             .parse_filter(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                                 payload_wrapper.as_ref(),
@@ -341,7 +341,7 @@ pub(crate) async fn data_tables_get(
                     pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
                 );
             let count_row = bound_count_query
-                .fetch_one(pool.0)
+                .fetch_one(*pool)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
             let total = sqlx::Row::try_get::<i64, _>(&count_row, constants_usize::ZERO)
@@ -362,7 +362,7 @@ pub(crate) async fn data_tables_get(
                 .bind(i64::from(u16::from(data_query.page().limit())))
                 .bind(i64::from(u32::from(data_query.page().offset())));
             let rows = bound_data_query
-                .fetch_all(pool.0)
+                .fetch_all(*pool)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?
                 .into_iter()
@@ -393,7 +393,7 @@ pub(crate) async fn data_tables_get(
                     columns,
                     server_admin_contract::admin_data_rows::AdminDataRows::try_from(items)
                         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                    table,
+                    *table,
                     crate::repository_page_total::repository_page_total(crate::admin_page_total_count::AdminPageTotalCount::from(total))?,
                 ),
             )

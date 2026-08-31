@@ -1,9 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::GetInner,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AuthSessionRefreshIntervalDuration(pub(super) std::time::Duration);
+pub struct AuthSessionRefreshIntervalDuration(std::time::Duration);
 
 impl TryFrom<std::time::Duration> for AuthSessionRefreshIntervalDuration {
     type Error = crate::auth_session_keep_alive_error::AuthSessionKeepAliveError;

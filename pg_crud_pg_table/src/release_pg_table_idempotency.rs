@@ -10,11 +10,11 @@ pub async fn release_pg_table_idempotency(
     let _query_result = sqlx::query(
         constants_str::DELETE_FROM_PG_TABLE_IDEMPOTENCY_WHERE_ACTOR_DOLLAR_1_AND_HTTP_METHOD,
     )
-    .bind(request.scope.actor.0.as_str())
-    .bind(request.scope.method.0.as_str())
-    .bind(request.scope.route.0.as_str())
-    .bind(request.scope.key.as_ref())
-    .bind(request.request_hash.0.as_slice())
+    .bind(request.get_scope().get_actor().as_ref())
+    .bind(request.get_scope().get_method().as_ref())
+    .bind(request.get_scope().get_route().as_ref())
+    .bind(request.get_scope().get_key().as_ref())
+    .bind(request.get_request_hash().get().as_slice())
     .execute(pool.as_ref())
     .await
     .map_err(crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from)?;

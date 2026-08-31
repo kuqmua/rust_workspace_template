@@ -707,14 +707,14 @@ impl syn::parse::Parse for route_registry_args::RouteRegistryArgs {
         if bindings.is_empty() {
             return Err(input.error(constants_str::ROUTE_REGISTRY_REQUIRES_BINDING));
         }
-        Ok(Self {
+        Ok(Self::new(
             authenticated_security,
-            bindings: syn_route_registry_bindings::SynRouteRegistryBindings::from(bindings),
+            syn_route_registry_bindings::SynRouteRegistryBindings::from(bindings),
             csrf_security,
             family,
-            schemas: syn_route_registry_schemas::SynRouteRegistrySchemas::from(schemas),
+            syn_route_registry_schemas::SynRouteRegistrySchemas::from(schemas),
             state,
-        })
+        ))
     }
 }
 
@@ -1001,29 +1001,25 @@ impl syn::parse::Parse for typed_route_args::TypedRouteArgs {
                 );
             }
         };
-        Ok(Self {
-            authentication: authentication
+        Ok(Self::new(
+            authentication
                 .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_AUTHENTICATION))?,
             error_response,
             errors,
-            method: method
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_METHOD))?,
+            method.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_METHOD))?,
             mutation,
             obligations,
-            openapi_operation_id: openapi_operation_id
+            openapi_operation_id
                 .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_OPERATION_ID))?,
-            path: path.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_PATH))?,
+            path.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_PATH))?,
             path_parameter,
-            request: request
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_REQUEST))?,
+            request.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_REQUEST))?,
             request_body,
-            response: response
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_RESPONSE))?,
-            success_status: success_status
+            response.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_RESPONSE))?,
+            success_status
                 .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_SUCCESS_STATUS))?,
-            transport: transport
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_TRANSPORT))?,
-        })
+            transport.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_TRANSPORT))?,
+        ))
     }
 }
 
@@ -2197,7 +2193,7 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
             pub fn from_path(path: #path_ref<'_>) -> Option<Self> {
                 #inventory
                     .iter()
-                    .find(|spec| spec.path().as_ref() == path.0)
+                    .find(|spec| spec.path().as_ref() == path.get())
                     .map(|spec| spec.page())
             }
             #[must_use]

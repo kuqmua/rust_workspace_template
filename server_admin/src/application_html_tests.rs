@@ -10,19 +10,19 @@ async fn html_form_auth_rejects_cookie_without_trusted_origin() {
         .expect("1c2a7f54 HTML form authentication pool invariant must hold");
     let state = crate::application_tests_helper::auth_state(pool, constants_str::HTTP_LOCALHOST)
         .expect("adf9c06e HTML form authentication state invariant must hold");
-    let request = crate::admin_auth_req::AdminAuthReq {
-        headers: crate::http_admin_header_map::HttpAdminHeaderMap::from(headers),
-        peer: crate::admin_peer_addr::AdminPeerAddr::from(
+    let request = crate::admin_auth_req::AdminAuthReq::new(
+        crate::http_admin_header_map::HttpAdminHeaderMap::from(headers),
+        crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
+            std::sync::Arc::new(state),
+        ),
+        crate::admin_peer_addr::AdminPeerAddr::from(
             server_admin_core::admin_socket_addr::AdminSocketAddr::from(
                 constants_str::VALUE_127_0_0_1_43210
                     .parse::<std::net::SocketAddr>()
                     .expect("0ce8ff47 HTML form authentication peer invariant must hold"),
             ),
         ),
-        state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
-            std::sync::Arc::new(state),
-        ),
-    };
+    );
     assert!(matches!(
         crate::form_auth_impl::form_auth_impl(request),
         Err(crate::admin_error::AdminError::Csrf)
@@ -95,13 +95,14 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
             (),
         >>::from_request(request, &())
         .await;
-    let Ok(crate::axum_admin_form::AxumAdminForm(form)) = result else {
+    let Ok(form) = result else {
         panic!("f639d7d1");
     };
+    let form = form.into_inner();
 
-    assert_eq!(i64::from(form.user_id), 7i64);
-    assert_eq!(form.expected_role_ids.as_ref(), "1,2");
-    assert_eq!(form.selected.len().get(), 2usize);
+    assert_eq!(i64::from(*form.get_user_id()), 7i64);
+    assert_eq!(form.get_expected_role_ids().as_ref(), "1,2");
+    assert_eq!(form.get_selected().len().get(), 2usize);
 }
 
 #[test]

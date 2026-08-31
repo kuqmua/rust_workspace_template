@@ -1,10 +1,13 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationResourceIds(
-    pub(super)  bounded_types::bounded_vec::BoundedVec<
+    bounded_types::bounded_vec::BoundedVec<
         crate::pg_relation_resource_id::PgRelationResourceId,
         { constants_usize::ZERO },
         { crate::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },

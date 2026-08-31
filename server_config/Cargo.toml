@@ -9,6 +9,8 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+generate_accessor = { workspace = true }
+generate_constructor = { workspace = true }
 bounded_types = { workspace = true }
 chrono = { workspace = true }
 thiserror = { workspace = true }

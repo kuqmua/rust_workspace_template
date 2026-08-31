@@ -1,6 +1,9 @@
 #![allow(
-    dead_code,
     clippy::field_scoped_visibility_modifiers,
+    reason = "Leptos component expansion models props as generated fields even though the source declares functions"
+)]
+#![allow(
+    dead_code,
     clippy::multiple_inherent_impl,
     clippy::same_name_method,
     clippy::shadow_reuse,

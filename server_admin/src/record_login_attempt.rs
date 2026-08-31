@@ -9,7 +9,7 @@ pub(crate) async fn record_login_attempt(
         .bind(peer.socket_addr().get().ip())
         .bind(succeeded.get())
         .bind(uuid::Uuid::new_v4())
-        .execute(state.pool.as_ref())
+        .execute(state.get_pool().as_ref())
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map(drop)

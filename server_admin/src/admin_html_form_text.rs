@@ -6,6 +6,7 @@
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
+#[derive(generate_accessor::Getters)]
 pub(crate) struct AdminHtmlFormText(
     bounded_types::bounded_string::BoundedString<0, { constants_usize::VALUE_8_192 }>,
 );

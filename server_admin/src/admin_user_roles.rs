@@ -21,12 +21,13 @@
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
+#[derive(generate_accessor::Getters)]
 pub struct AdminUserRoles {
     #[generate_pg_table_primary_key]
-    pub id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
-    pub user_id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
-    pub role_id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
+    id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+    user_id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
+    role_id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
     #[generate_pg_table_db_default]
-    pub created_at:
+    created_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }

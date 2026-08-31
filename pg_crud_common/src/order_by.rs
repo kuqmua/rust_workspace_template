@@ -1,9 +1,14 @@
 #[derive(
-    Debug, serde::Serialize, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    generate_accessor::Getters,
+    generate_constructor::New,
+    serde::Serialize,
+    serde::Deserialize,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct OrderBy<ColumnGeneric> {
-    pub column: ColumnGeneric,
-    pub order: Option<crate::order::Order>,
+    column: ColumnGeneric,
+    order: Option<crate::order::Order>,
 }
 
 impl<ColumnGeneric: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for OrderBy<ColumnGeneric> {

@@ -1,7 +1,3 @@
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the HTTP client owner reads this validated timeout across owner modules"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::DerefInner)]
 pub struct ReqwestRequestTimeoutDuration(std::time::Duration);
 impl TryFrom<std::time::Duration> for ReqwestRequestTimeoutDuration {

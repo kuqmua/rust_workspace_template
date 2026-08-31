@@ -10,12 +10,12 @@ where
         .iter()
         .map(|column| {
             Ok(crate::db_column_contract_snapshot::DbColumnContractSnapshot::new(
-                crate::db_schema_text::DbSchemaText::try_from(column.name.0.to_owned())
+                crate::db_schema_text::DbSchemaText::try_from((*column.get_name().get_inner()).to_owned())
                     .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?,
-                crate::db_schema_text::DbSchemaText::try_from(column.data_type.0.to_owned())
+                crate::db_schema_text::DbSchemaText::try_from((*column.get_data_type().get_inner()).to_owned())
                     .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?,
-                column.nullable,
-                column.has_server_default,
+                *column.get_nullable(),
+                *column.get_has_server_default(),
             ))
         })
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
@@ -33,18 +33,18 @@ where
                 }),
         )
         .try_for_each(|field| {
-            if table_columns.iter().any(|column| column.name == field) {
+            if table_columns.iter().any(|column| *column.get_name() == field) {
                 Ok(())
             } else {
-                let name = crate::db_schema_text::DbSchemaText::try_from(field.0.to_owned())
+                let name = crate::db_schema_text::DbSchemaText::try_from((*field.get_inner()).to_owned())
                     .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?;
                 Err(crate::db_schema_conformance_error::DbSchemaConformanceError::DescriptorFieldMismatch(name))
             }
         })?;
     let rows = sqlx::query(constants_str::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
-        .bind(schema.0)
-        .bind(Table::schema_table_text().0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .bind(*Table::schema_table_text().get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
@@ -133,9 +133,9 @@ where
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
         )?;
     let key_rows = sqlx::query(constants_str::DB_SCHEMA_KEY_CONTRACT_QUERY)
-        .bind(schema.0)
-        .bind(Table::schema_table_text().0)
-        .fetch_all(pool.0)
+        .bind(*schema.get_inner())
+        .bind(*Table::schema_table_text().get_inner())
+        .fetch_all(*pool.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(

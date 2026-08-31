@@ -1,14 +1,12 @@
 #![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#![allow(
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgTableIdempotencyCleanupBatchSize(pub(super) std::num::NonZeroI64);
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::GetInner,
+)]
+pub struct PgTableIdempotencyCleanupBatchSize(std::num::NonZeroI64);
 impl TryFrom<i64> for PgTableIdempotencyCleanupBatchSize {
     type Error = crate::pg_table_idempotency_cleanup_value_try_from_i64_error::PgTableIdempotencyCleanupValueTryFromI64Error;
 

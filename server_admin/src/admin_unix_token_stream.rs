@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -14,4 +10,5 @@
     newtype::FromInner,
 )]
 #[serde(from = "u64")]
-pub struct AdminUnixTokenStream(pub(crate) u64);
+#[derive(generate_accessor::Getters)]
+pub struct AdminUnixTokenStream(u64);

@@ -58,12 +58,6 @@ pub const PG_CRUD_SERDE_BETWEEN_FIELDS: &[&str] = &[PG_CRUD_START_FIELD, PG_CRUD
 pub const PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS: &[&str] = &[PG_CRUD_OPERATOR_FIELD, PG_CRUD_V_FIELD];
 
 pub const CODE_STYLE_CLIPPY_LINT_EXCEPTIONS: [&str; 0] = [];
-pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS: &[&[&str]] = &[&["identifier", "type0", "vis"]];
-pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_SUFFIXES: [&str; 1] =
-    ["macro_helpers/src/syn_field.rs"];
-pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_REASONS: [&str; 1] =
-    ["macro generators consume the parsed field descriptor across crate boundaries"];
-pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_STRUCT_NAMES: [&str; 1] = ["SynField"];
 pub const CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES: [&str; 16] = [
     "/administrator_account_initialization_and_password_reset/src/main.rs",
     "/config_lib/src/parse_required_env_var.rs",
@@ -400,8 +394,8 @@ constants_str_macros::define_str_constants! {
         pub EVENT = ["event"];
         pub CODE_STYLE_TRACING_MESSAGE_FIXTURE = ["fn events() { tracing::trace!(\"trace message\"); tracing::debug!(\"debug message\"); tracing::info!(\"info message\"); tracing::warn!(\"warn message\"); tracing::error!(\"error message\"); tracing::event!(tracing::Level::INFO, \"event message\"); } #[cfg(test)] mod tests { fn event() { tracing::info!(\"test message\"); } }"];
         pub TRACING_MESSAGES_FOUND_OUTSIDE_CONSTANTS_STR = ["tracing message literals found outside constants_str"];
-        pub TRACING_ADMIN_OPERATION_COMPLETED = ["administrator operation completed"];
-        pub TRACING_ADMIN_OPERATION_FAILED = ["administrator operation failed"];
+        pub TRACING_ADMIN_CMD_COMPLETED = ["administrator operation completed"];
+        pub TRACING_ADMIN_CMD_FAILED = ["administrator operation failed"];
         pub TRACING_ADMIN_RUNTIME_CREATION_FAILED = ["failed to create initial administrator creation runtime"];
         pub TRACING_ADMIN_TABLE_CLEANUP_FAILED = ["administrator operational table cleanup failed"];
         pub TRACING_ADMIN_TABLES_CLEANED = ["administrator operational tables cleaned"];
@@ -573,8 +567,8 @@ constants_str_macros::define_str_constants! {
         pub GIT_INFO_TREE_SEGMENT = ["/tree/"];
         pub LOCATION_INCORRECT_DATETIME_MSG = ["incorrect datetime"];
         pub MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR = ["#[newtype(as_ref_inner)] requires a shared reference inner type"];
-        pub NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE = ["AsMut supports only mutable reference inner types"];
         pub MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR = ["BoundedString requires #[bounded_string(max = ...)]"];
+        pub NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE = ["AsMut supports only mutable reference inner types"];
         pub MACRO_DIAGNOSTICS_CASE_TRAIT_PAIR_EXPECTED_CLOSURE_ERROR = ["case_trait_pair expects closure"];
         pub MACRO_DIAGNOSTICS_CASE_TRAIT_PAIR_EXPECTED_PARTS_ERROR = ["case_trait_pair expects str trait, ts trait, bound, closure expr"];
         pub MACRO_DIAGNOSTICS_CASE_TRAIT_PAIR_EXPECTED_STR_TRAIT_ERROR = ["case_trait_pair expects string trait name"];
@@ -1679,7 +1673,7 @@ constants_str_macros::define_str_constants! {
         pub X_CSRF_TOKEN = ["X-CSRF-Token"];
         pub REDACTED_ALT_3 = ["[REDACTED]"];
         pub A_Z_PLUS = ["[a-z]+"];
-        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[dependencies]\napp_state = { workspace = true }\naxum = { workspace = true }\nconstants_usize = { workspace = true }\nfutures = { workspace = true }\nfrontend_contract = { workspace = true }\nhttp = { workspace = true }\nsqlx = { workspace = true }\nreqwest = { workspace = true }\nserde = { workspace = true }\nserde_json = { workspace = true }\nthiserror = { workspace = true }\nutoipa = { workspace = true }\ntracing = { workspace = true }\nwhere_filters = { workspace = true }\ngit_info = { workspace = true }\nlocation_lib = { workspace = true }\nlocation_macros = { workspace = true }\nmetrics = { workspace = true }\nlocation = { workspace = true }\npg_crud_common = { workspace = true }\npg_table = { workspace = true }\npg_types_numeric = { workspace = true }\npg_types_text_misc = { workspace = true }\ngenerate_pg_table = { workspace = true }\noptimal_memory_layout = { workspace = true }\nroute_validators = { workspace = true }\nserver_runtime_core = { workspace = true }\nserver_runtime_http = { workspace = true }\nto_err_string = { workspace = true }\n"];
+        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[dependencies]\napp_state = { workspace = true }\naxum = { workspace = true }\nconstants_usize = { workspace = true }\nfutures = { workspace = true }\nfrontend_contract = { workspace = true }\ngenerate_accessor = { workspace = true }\ngenerate_constructor = { workspace = true }\nhttp = { workspace = true }\nsqlx = { workspace = true }\nreqwest = { workspace = true }\nserde = { workspace = true }\nserde_json = { workspace = true }\nthiserror = { workspace = true }\nutoipa = { workspace = true }\ntracing = { workspace = true }\nwhere_filters = { workspace = true }\ngit_info = { workspace = true }\nlocation_lib = { workspace = true }\nlocation_macros = { workspace = true }\nmetrics = { workspace = true }\nlocation = { workspace = true }\npg_crud_common = { workspace = true }\npg_table = { workspace = true }\npg_types_numeric = { workspace = true }\npg_types_text_misc = { workspace = true }\ngenerate_pg_table = { workspace = true }\noptimal_memory_layout = { workspace = true }\nroute_validators = { workspace = true }\nserver_runtime_core = { workspace = true }\nserver_runtime_http = { workspace = true }\nto_err_string = { workspace = true }\n"];
         pub DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE = ["[dependencies]\nchrono = { workspace = true }\nuuid = { workspace = true }\nsqlx = { workspace = true }\nserde = { workspace = true }\nserde_json = { workspace = true }\nfrontend_contract = { workspace = true }\nthiserror = { workspace = true }\nlocation_lib = { workspace = true }\nlocation_macros = { workspace = true }\nlocation = { workspace = true }\npg_crud_common = { workspace = true }\npg_types_common = { workspace = true }\nwhere_filters = { workspace = true }\noptimal_memory_layout = { workspace = true }\nschemars = { workspace = true }\nto_err_string = { workspace = true }\nutoipa = { workspace = true }\n[features]\ntest-utils = []"];
         pub DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE = ["[dependencies]\nsqlx = { workspace = true }\nserde = { workspace = true }\nschemars = { workspace = true }\nthiserror = { workspace = true }\nutoipa = { workspace = true }\nlocation_lib = { workspace = true }\nlocation_macros = { workspace = true }\nlocation = { workspace = true }\nnewtype = { workspace = true }\npg_crud_common = { workspace = true }\nwhere_filters = { workspace = true }\nconstants_usize = { workspace = true }\nto_err_string = { workspace = true }\n[features]\ntest-utils = []"];
         pub WORKSPACE_DEPENDENCIES = ["[workspace.dependencies]"];
@@ -2801,9 +2795,9 @@ constants_str_macros::define_str_constants! {
         pub UNIMPLEMENTED = ["unimplemented"];
         pub UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD = ["unit tests contain external-service clients; use deterministic local fakes instead:"];
         pub UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER = ["unit tests use nondeterministic time, sleep, or randomness without a reviewed owner:"];
-        pub UNKNOWN_BOUNDED_STRING_OPTION = ["unknown bounded_string option"];
         pub UNKNOWN_ADMINISTRATOR_PERMISSION = ["unknown administrator permission"];
         pub UNKNOWN_ADMINISTRATOR_DATA_TABLE = ["unknown administrator data table"];
+        pub UNKNOWN_BOUNDED_STRING_OPTION = ["unknown bounded_string option"];
         pub UNKNOWN_NEWTYPE_OPTION = ["unknown newtype option"];
         pub UNKNOWN_ALT = ["unknown"];
         pub UNKNOWN_USER_AGENT = ["unknown-user-agent"];
@@ -3859,11 +3853,10 @@ pub const VALUE_7E4078D9: &str = "../config_lib/src/domain_types.rs::try_from\n.
 pub const VALUE_522C0343: &str = "../config_lib/src/domain_types.rs::try_from\n../server_admin_core/src/tests_domain_types.rs::try_from";
 pub const VALUE_4CB1E1F3: &str =
     "../config_lib/src/http_tests.rs::try_from\n../config_lib/src/pg_pool_tests.rs::try_from";
-pub const VALUE_FAB1545F: &str = "../constants_str_macros/src/constant_parts.rs:ConstantParts";
-pub const VALUE_9FB992E8: &str = "../constants_str_macros/src/constants.rs:Constants";
-pub const VALUE_D200D86F: &str = "../constants_str_macros/src/fragments.rs:Fragments";
-pub const VALUE_63BD6017: &str =
-    "../constants_str_macros/src/define_str_constants_input.rs:collect";
+pub const VALUE_FAB1545F: &str = "../constants_str_macros/src/lib.rs:ConstantParts";
+pub const VALUE_9FB992E8: &str = "../constants_str_macros/src/lib.rs:Constants";
+pub const VALUE_D200D86F: &str = "../constants_str_macros/src/lib.rs:Fragments";
+pub const VALUE_63BD6017: &str = "../constants_str_macros/src/lib.rs:collect";
 pub const VALUE_6C761A40: &str =
     "../dev_identity_creation_planner/src/development_identity_specs.rs:DevelopmentIdentitySpecs";
 pub const VALUE_EEF4AEDA: &str = "../file_storage/src/domain_types.rs";
@@ -5490,8 +5483,7 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 11] = [
     "../pg_crud_common/src/pg_scoped_foreign_key_clause_text.rs::try_from\n../pg_crud_common/src/sql_identifier_list_text.rs::try_from\n../pg_crud_common/src/sql_query_text.rs::try_from",
 ];
 pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrappers retain distinct types while sharing a small validated conversion shape";
-pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 10] = [
-    "../pg_crud_common/src/eq_operator.rs::to_query_str\n../pg_crud_macro_common/src/import.rs::sc_str\n../pg_crud_macro_common/src/is_nullable.rs::non_null_or_nullable_str",
+pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 8] = [
     "../common_routes/src/axum_http_uri.rs::from_request_parts\n../server_admin/src/extractors.rs::from_request_parts",
     "../config_lib/src/env_var_name.rs::try_from\n../config_lib/src/std_env_var_ok.rs::try_from\n../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_string.rs::try_from",
     "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_await\n../tests_code_style/src/code_style_advanced_policy.rs::visit_macro",
@@ -5499,44 +5491,18 @@ pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 10] = [
     "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_loop\n../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_while\n../tests_code_style/src/runtime_analysis.rs::visit_expr_async",
     "../pg_crud_common/src/sql_like_pattern.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_type_records.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_types.rs::try_from",
     "../server_runtime_http/src/pg_rate_limit_maximum.rs::try_from\n../server_runtime_http/src/pg_rate_limit_window_seconds.rs::try_from",
-    "../bounded_types/src/bounded_string.rs::try_from\n../bounded_types/src/bounded_vec.rs::try_from",
     "../tests_code_style/src/source_analysis.rs::visit_item_static\n../tests_code_style/src/source_analysis.rs::visit_item_trait\n../tests_code_style/src/source_analysis.rs::visit_item_trait_alias\n../tests_code_style/src/source_analysis.rs::visit_item_type\n../tests_code_style/src/source_analysis.rs::visit_item_union",
 ];
 pub const CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026: &str = "distinct domain conversions, generated metadata, and analyzer callbacks intentionally retain independently owned entry points";
-pub const CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS: [(&str, usize); 10] = [
-    ("constants_str_macros", 11usize),
-    ("frontend_contract", 16usize),
-    ("pg_crud_common", 55usize),
-    ("pg_crud_pg_table", 15usize),
-    ("pg_crud_pg_table_generate_src", 10usize),
-    ("pg_crud_pg_types_generate_src", 20usize),
-    ("server_admin", 168usize),
-    ("server_admin_contract", 10usize),
-    ("server_admin_frontend", 10usize),
-    ("workspace_scaffold", 33usize),
-];
-pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS: [(&str, usize); 14] = [
-    (
-        "administrator_account_initialization_and_password_reset",
-        5usize,
-    ),
-    ("constants_str_macros", 11usize),
-    ("frontend_contract", 16usize),
-    ("frontend_contract_macros", 28usize),
-    ("location_lib", 5usize),
-    ("pg_crud_common", 64usize),
-    ("pg_crud_pg_table", 15usize),
-    ("pg_crud_pg_table_generate_src", 10usize),
-    ("pg_crud_pg_types_generate_src", 20usize),
-    ("server_admin", 194usize),
-    ("server_admin_contract", 10usize),
-    ("server_admin_frontend", 10usize),
-    ("server_config", 31usize),
-    ("workspace_scaffold", 33usize),
-];
 pub const CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON: &str =
     "single_call_fn suppressions must be attached to exact items";
-pub const CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE: &str = "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 }";
+pub const CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE: &str = "struct Example { private: u8, pub(super) parent: u8, pub(crate) workspace: u8, pub(in crate) restricted: u8, pub public: u8 } struct TuplePrivate(u8); struct TupleRestricted(pub(crate) u8); struct TuplePublic(pub u8);";
+pub const CODE_STYLE_GENERATED_STRUCT_FIELD_VISIBILITY_FIXTURE: &str = "fn generated() { let field = quote::format_ident!(\"field\"); let visibility = quote::quote!(pub); let _ = quote::quote! { struct Example { private: u8, pub public: u8, pub(super) parent: u8, pub #field: u8, pub(crate) #field: u8, #visibility #field: u8 } }; }";
+pub const PUB_KEYWORD: &str = "pub";
+pub const VISIBILITY_IDENTIFIER_FRAGMENT: &str = "vis";
+pub const QUOTE_MACRO_NAME: &str = "quote";
+pub const QUOTE_SPANNED_MACRO_NAME: &str = "quote_spanned";
+pub const SINGLE_SPACE: &str = " ";
 pub const CODE_STYLE_DECLARED_CHILD_USE_FIXTURE: &str = "mod child;\nuse crate::child::Item;";
 pub const CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH: &str = "../fixture/src/declared_child.rs";
 pub const SERVE_WITH_GRACEFUL_SHUTDOWN_PATH: &str =

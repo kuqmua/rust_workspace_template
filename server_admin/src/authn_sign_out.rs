@@ -1,9 +1,9 @@
 pub(crate) async fn authn_sign_out(
     auth: crate::admin_auth_req::AdminAuthReq,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
-    let peer = auth.peer;
-    let state = auth.state;
-    let headers = auth.headers;
+    let peer = *auth.get_peer();
+    let state = auth.get_state();
+    let headers = auth.get_headers();
     let authenticated = crate::authorization_authenticate::authorization_authenticate(
         state.as_ref(),
         crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(headers.as_ref()),
@@ -18,7 +18,7 @@ pub(crate) async fn authn_sign_out(
     .await?;
     let mut tx = state
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -27,8 +27,8 @@ pub(crate) async fn authn_sign_out(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        authenticated.session_id,
-        authenticated.id,
+        *authenticated.get_session_id(),
+        *authenticated.get_id(),
     )
     .await
     .map_err(crate::admin_error::AdminError::from)?;
@@ -57,7 +57,7 @@ pub(crate) async fn authn_sign_out(
         crate::revoke_refresh_token::revoke_refresh_token(
             crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
             &refresh_hash,
-            authenticated.id,
+            *authenticated.get_id(),
         )
         .await
         .map_err(crate::admin_error::AdminError::from)?;
@@ -66,21 +66,21 @@ pub(crate) async fn authn_sign_out(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::SignOut,
-            login: &authenticated.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::Session,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::Session(
-                authenticated.session_id,
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::SignOut,
+            authenticated.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::Session,
+            crate::admin_audit_resource_id::AdminAuditResourceId::Session(
+                *authenticated.get_session_id(),
             ),
-            user_id: authenticated.id,
-        },
+            *authenticated.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    let mut response = crate::axum_admin_response::AxumAdminResponse(
+    let mut response = crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     );
     crate::append_cleared_session_cookies::append_cleared_session_cookies(

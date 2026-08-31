@@ -1,8 +1,5 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
+    generate_accessor::Getters,
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
@@ -11,7 +8,7 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct CursorMaximumLength(pub(super) std::num::NonZeroUsize);
+pub struct CursorMaximumLength(std::num::NonZeroUsize);
 
 impl TryFrom<usize> for CursorMaximumLength {
     type Error = crate::cursor_codec_build_error::CursorCodecBuildError;

@@ -8,28 +8,28 @@ pub fn validate_route_coverage(
             if descriptors
                 .iter()
                 .take(index)
-                .any(|previous| previous.metadata == descriptor.metadata)
+                .any(|previous| previous.get_metadata() == descriptor.get_metadata())
             {
                 return Err(crate::route_coverage_error::RouteCoverageError::DuplicateRoute {
-                    metadata: descriptor.metadata,
+                    metadata: *descriptor.get_metadata(),
                 });
             }
             let required = [
                 (
                     crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
-                    descriptor.evidence.obligations.contains(
+                    descriptor.get_evidence().get_obligations().contains(
                         &crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
                     ),
                 ),
                 (
                     crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
-                    descriptor.evidence.obligations.contains(
+                    descriptor.get_evidence().get_obligations().contains(
                         &crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
                     ),
                 ),
                 (
                     crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
-                    descriptor.evidence.obligations.contains(
+                    descriptor.get_evidence().get_obligations().contains(
                         &crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
                     ),
                 ),
@@ -38,29 +38,29 @@ pub fn validate_route_coverage(
                 required.into_iter().find(|(_kind, present)| !present)
             {
                 return Err(crate::route_coverage_error::RouteCoverageError::Missing {
-                    metadata: descriptor.metadata,
+                    metadata: *descriptor.get_metadata(),
                     obligation,
                 });
             }
-            if descriptor.access == crate::route_access::RouteAccess::Authenticated
+            if *descriptor.get_access() == crate::route_access::RouteAccess::Authenticated
                 && !descriptor
-                    .evidence
-                    .obligations
+                    .get_evidence()
+                    .get_obligations()
                     .contains(&crate::route_coverage_obligation::RouteCoverageObligation::SecurityValidation)
             {
                 return Err(crate::route_coverage_error::RouteCoverageError::Missing {
-                    metadata: descriptor.metadata,
+                    metadata: *descriptor.get_metadata(),
                     obligation: crate::route_coverage_obligation::RouteCoverageObligation::SecurityValidation,
                 });
             }
-            if descriptor.mutation == crate::route_mutation::RouteMutation::Mutating
+            if *descriptor.get_mutation() == crate::route_mutation::RouteMutation::Mutating
                 && !descriptor
-                    .evidence
-                    .obligations
+                    .get_evidence()
+                    .get_obligations()
                     .contains(&crate::route_coverage_obligation::RouteCoverageObligation::ReplayValidation)
             {
                 return Err(crate::route_coverage_error::RouteCoverageError::Missing {
-                    metadata: descriptor.metadata,
+                    metadata: *descriptor.get_metadata(),
                     obligation: crate::route_coverage_obligation::RouteCoverageObligation::ReplayValidation,
                 });
             }

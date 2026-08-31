@@ -8,16 +8,16 @@ pub(super) fn synchronize_generated_file(
     let source = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(path)?;
     let (prefix, after_begin) = source
         .as_ref()
-        .split_once(begin.0)
+        .split_once(begin.get())
         .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
     let (_previous, suffix) = after_begin
-        .split_once(end.0)
+        .split_once(end.get())
         .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
     let expected = crate::scaffold_text::ScaffoldText::try_from(format!(
         "{prefix}{}{generated}{}{suffix}",
-        begin.0,
-        end.0,
-        generated = generated.0
+        begin.get(),
+        end.get(),
+        generated = generated.get()
     ))
     .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?;
     if expected.as_ref() == source.as_ref() {

@@ -1,8 +1,4 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner, newtype::GetInner,
 )]
-pub(crate) struct CargoArgsRef<'args_lt>(pub(super) &'args_lt [&'args_lt str]);
+pub(crate) struct CargoArgsRef<'args_lt>(&'args_lt [&'args_lt str]);

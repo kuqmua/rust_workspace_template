@@ -3781,7 +3781,10 @@ fn admin_api_test_router() -> AxumAdminApiTestRouter {
         &env::<config_lib::admin_token_audience::AdminTokenAudience>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::domain_types::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
+        &config_lib::domain_types::CorsAllowOrigin::try_from(
+            constants_str::HTTP_LOCALHOST.to_owned(),
+        )
+        .expect("396509b1 test origin must be non-empty"),
     )
     .expect("f7d8c961 router invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(
@@ -3825,7 +3828,10 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
         &env::<config_lib::admin_token_audience::AdminTokenAudience>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::domain_types::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
+        &config_lib::domain_types::CorsAllowOrigin::try_from(
+            constants_str::HTTP_LOCALHOST.to_owned(),
+        )
+        .expect("192c6b7a test origin must be non-empty"),
     )
     .expect("a59d73c1 router_with_pool invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(
@@ -4083,7 +4089,10 @@ async fn admin_html_test_fixture_with_password_change(
         &env::<config_lib::admin_token_audience::AdminTokenAudience>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::domain_types::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
+        &config_lib::domain_types::CorsAllowOrigin::try_from(
+            constants_str::HTTP_LOCALHOST.to_owned(),
+        )
+        .expect("4bfc42c7 test origin must be non-empty"),
     )
     .expect("ec39b61d admin_html_test_fixture_with_password_change invariant must hold");
     let router = AxumAdminApiTestRouter::from(axum::Router::from(

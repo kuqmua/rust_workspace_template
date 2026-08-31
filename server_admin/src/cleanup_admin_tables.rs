@@ -72,14 +72,14 @@ pub async fn cleanup_admin_tables(
     )
     .await
     .map_err(crate::admin_cleanup_error::AdminCleanupError::Idempotency)?;
-    let report = crate::admin_cleanup_report::AdminCleanupReport {
-        access_sessions: crate::admin_cleanup_rows::AdminCleanupRows::from(access_sessions),
-        audit_log: crate::admin_cleanup_rows::AdminCleanupRows::from(audit_log),
-        idempotency: crate::admin_cleanup_rows::AdminCleanupRows::from(u64::from(idempotency)),
-        login_attempts: crate::admin_cleanup_rows::AdminCleanupRows::from(login_attempts),
-        rate_limits: crate::admin_cleanup_rows::AdminCleanupRows::from(rate_limits),
-        refresh_tokens: crate::admin_cleanup_rows::AdminCleanupRows::from(refresh_tokens),
-    };
+    let report = crate::admin_cleanup_report::AdminCleanupReport::new(
+        crate::admin_cleanup_rows::AdminCleanupRows::from(access_sessions),
+        crate::admin_cleanup_rows::AdminCleanupRows::from(audit_log),
+        crate::admin_cleanup_rows::AdminCleanupRows::from(u64::from(idempotency)),
+        crate::admin_cleanup_rows::AdminCleanupRows::from(login_attempts),
+        crate::admin_cleanup_rows::AdminCleanupRows::from(rate_limits),
+        crate::admin_cleanup_rows::AdminCleanupRows::from(refresh_tokens),
+    );
     let stored_rows = i64::try_from(report.total_rows().get())
         .map_err(|_error| crate::admin_cleanup_error::AdminCleanupError::Count)?;
     sqlx::query(constants_str::SERVER_ADMIN_RECORD_CLEANUP_STATUS_SQL)

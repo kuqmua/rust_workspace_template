@@ -1,7 +1,27 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
 struct SecretBoxStringVisitor {
     argument_identifiers: crate::types::SourceTextBTreeSet,
     found_count: crate::types::AnalyzerCount,
+}
+
+#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+struct BoundedStringIdentifierVisitor {
+    identifiers: crate::types::SourceTextBTreeSet,
+}
+
+impl<'ast> syn::visit::Visit<'ast> for BoundedStringIdentifierVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if i.attrs.iter().any(|attribute| {
+            crate::code_style::derive_attr_has_terminal(
+                crate::types::SynAttributeRef::from(attribute),
+                crate::types::SourceTextRef::from(stringify!(BoundedString)),
+            )
+            .get()
+        }) {
+            let _: bool = self.identifiers.insert(i.ident.to_string());
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for SecretBoxStringVisitor {
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
@@ -60,7 +80,7 @@ fn secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
                 crate::types::DiagnosticMsgsMutRef::from(errors),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(constants_str::VALUE_05D8F7AC),
-                visitor.found_count,
+                *visitor.get_found_count(),
             );
         },
     );
@@ -84,7 +104,7 @@ fn repository_secret_box_policy_checks_generated_tokens() {
         crate::types::SynFileRef::from(&ast),
         SecretBoxStringVisitor::default(),
     );
-    assert_eq!(visitor.found_count.get(), constants_usize::ONE);
+    assert_eq!(visitor.get_found_count().get(), constants_usize::ONE);
 }
 #[test]
 fn repository_secret_boxes_use_bounded_string_types() {
@@ -92,22 +112,13 @@ fn repository_secret_boxes_use_bounded_string_types() {
         let bounded_identifiers = snapshot
             .rs_files()
             .iter()
-            .flat_map(|source_file| source_file.ast().as_ref().items.iter())
-            .filter_map(|item| {
-                let syn::Item::Struct(item_struct) = item else {
-                    return None;
-                };
-                item_struct
-                    .attrs
-                    .iter()
-                    .any(|attribute| {
-                        crate::code_style::derive_attr_has_terminal(
-                            crate::types::SynAttributeRef::from(attribute),
-                            crate::types::SourceTextRef::from(stringify!(BoundedString)),
-                        )
-                        .get()
-                    })
-                    .then(|| item_struct.ident.to_string())
+            .flat_map(|source_file| {
+                crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    BoundedStringIdentifierVisitor::default(),
+                )
+                .identifiers
+                .into_iter()
             })
             .collect::<std::collections::BTreeSet<_>>();
         let unbounded_arguments = snapshot

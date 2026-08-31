@@ -60,5 +60,5 @@ pub fn admin_api_open_api() -> crate::utoipa_admin_auth_open_api::UtoipaAdminAut
             ),
         );
     }
-    crate::utoipa_admin_auth_open_api::UtoipaAdminAuthOpenApi(document)
+    crate::utoipa_admin_auth_open_api::UtoipaAdminAuthOpenApi::from(document)
 }

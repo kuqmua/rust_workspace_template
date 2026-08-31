@@ -21,6 +21,7 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             ));
         };
         let identifier = &parsed_input_ref.ident;
+        let visibility = &parsed_input_ref.vis;
         let (impl_generics, type_generics, where_clause) =
             parsed_input_ref.generics.split_for_impl();
         let container_get_mut =
@@ -104,13 +105,13 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     && let Some(syn::GenericArgument::Type(inner_type)) = arguments.args.first()
                 {
                     quote::quote! {
-                        pub(crate) const fn #field_name(&self) -> Option<&#inner_type> {
+                        #visibility const fn #field_name(&self) -> Option<&#inner_type> {
                             self.#field_member.as_ref()
                         }
                     }
                 } else {
                     quote::quote! {
-                        pub(crate) const fn #field_name(&self) -> &#field_type {
+                        #visibility const fn #field_name(&self) -> &#field_type {
                             &self.#field_member
                         }
                     }
@@ -118,7 +119,7 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 let mutable = (container_get_mut || get_mut).then(|| {
                     let mutable_name = quote::format_ident!("{}_mut", field_name);
                     quote::quote! {
-                        pub(crate) const fn #mutable_name(&mut self) -> &mut #field_type {
+                        #visibility const fn #mutable_name(&mut self) -> &mut #field_type {
                             &mut self.#field_member
                         }
                     }

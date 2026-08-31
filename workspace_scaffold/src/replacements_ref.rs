@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,5 +7,5 @@
     newtype::GetInner,
 )]
 pub(crate) struct ReplacementsRef<'replacements_lt>(
-    pub(super) &'replacements_lt [(&'replacements_lt str, String)],
+    &'replacements_lt [(&'replacements_lt str, String)],
 );

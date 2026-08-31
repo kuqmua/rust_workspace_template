@@ -12,7 +12,7 @@ pub fn resolve_pg_operational_limit_update(
             Ok(current.max(requested))
         }
         crate::pg_operational_limit_update_authority::PgOperationalLimitUpdateAuthority::Operator
-            if requested.0.get() < current_usage.0 =>
+            if requested.get_inner().get() < *current_usage.get_inner() =>
         {
             Err(crate::pg_operational_limit_error::PgOperationalLimitError::BelowCurrentUsage)
         }

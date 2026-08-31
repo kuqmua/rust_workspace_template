@@ -2,7 +2,6 @@
 #[allow(
     dead_code,
     non_snake_case,
-    clippy::field_scoped_visibility_modifiers,
     reason = "the immutable token-name context is shared by sibling generation modules without becoming public API"
 )]
 #[derive(generate_accessor::Getters)]

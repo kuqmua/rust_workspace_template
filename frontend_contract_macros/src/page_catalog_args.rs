@@ -1,8 +1,8 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 pub(crate) struct PageCatalogArgs {
-    pub inventory: crate::contract_syn_ident::ContractSynIdent,
-    pub path_ref: crate::contract_syn_type::ContractSynType,
-    pub spec: crate::contract_syn_type::ContractSynType,
+    inventory: crate::contract_syn_ident::ContractSynIdent,
+    path_ref: crate::contract_syn_type::ContractSynType,
+    spec: crate::contract_syn_type::ContractSynType,
 }
 
 impl syn::parse::Parse for PageCatalogArgs {

@@ -1,6 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct StringWrapperNameVisitor {
-    pub names: crate::types::SourceTextBTreeSet,
+    names: crate::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
@@ -14,13 +18,17 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct StringWrapperFromVisitor<'names_lt> {
-    pub ers: crate::types::DiagnosticMsgs,
-    pub len_checked_function_names: &'names_lt crate::types::SourceTextBTreeSet,
-    pub string_wrapper_names: &'names_lt crate::types::SourceTextBTreeSet,
-    pub try_from_string_len_checked_names: crate::types::SourceTextBTreeSet,
-    pub try_from_string_names: crate::types::SourceTextBTreeSet,
+    ers: crate::types::DiagnosticMsgs,
+    len_checked_function_names: &'names_lt crate::types::SourceTextBTreeSet,
+    string_wrapper_names: &'names_lt crate::types::SourceTextBTreeSet,
+    try_from_string_len_checked_names: crate::types::SourceTextBTreeSet,
+    try_from_string_names: crate::types::SourceTextBTreeSet,
 }
 impl StringWrapperFromVisitor<'_> {
     fn check_bounded_string_attr(&mut self, item: crate::types::SynItemStructRef<'_>) {
@@ -237,10 +245,14 @@ impl StringWrapperFromVisitor<'_> {
         }
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct LenCheckedFunctionCallVisitor<'names_lt> {
-    pub found: crate::types::AnalyzerBool,
-    pub names: &'names_lt crate::types::SourceTextBTreeSet,
+    found: crate::types::AnalyzerBool,
+    names: &'names_lt crate::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionCallVisitor<'_> {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
@@ -260,9 +272,13 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionCallVisitor<'_> {
         syn::visit::visit_expr_call(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct LenCheckedFunctionNameVisitor {
-    pub names: crate::types::SourceTextBTreeSet,
+    names: crate::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
@@ -311,9 +327,13 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
         syn::visit::visit_item_struct(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct LenMethodCallVisitor {
-    pub found: crate::types::AnalyzerBool,
+    found: crate::types::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
@@ -323,39 +343,63 @@ impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
         syn::visit::visit_expr_method_call(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct PublicTupleWrapperFieldVisitor {
-    pub ers: crate::types::DiagnosticMsgs,
+    ers: crate::types::DiagnosticMsgs,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct DirectDeserializeTupleWrapperVisitor {
-    pub ers: crate::types::DiagnosticMsgs,
+    ers: crate::types::DiagnosticMsgs,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct DeserializeConversionCallVisitor {
-    pub found: crate::types::AnalyzerBool,
+    found: crate::types::AnalyzerBool,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct ManualDeserializeTupleWrapperVisitor<'names> {
-    pub ers: crate::types::DiagnosticMsgs,
-    pub names: &'names crate::types::SourceTextBTreeSet,
+    ers: crate::types::DiagnosticMsgs,
+    names: &'names crate::types::SourceTextBTreeSet,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct TupleWrapperConversionCollector {
-    pub converted_names: crate::types::SourceTextBTreeSet,
-    pub from_inner_names: crate::types::SourceTextBTreeSet,
-    pub from_names: crate::types::SourceTextBTreeSet,
-    pub inner_types: std::collections::BTreeMap<String, syn::Type>,
-    pub names: crate::types::SourceTextBTreeSet,
-    pub try_from_inner_names: crate::types::SourceTextBTreeSet,
-    pub try_from_names: crate::types::SourceTextBTreeSet,
+    converted_names: crate::types::SourceTextBTreeSet,
+    from_inner_names: crate::types::SourceTextBTreeSet,
+    from_names: crate::types::SourceTextBTreeSet,
+    inner_types: std::collections::BTreeMap<String, syn::Type>,
+    names: crate::types::SourceTextBTreeSet,
+    try_from_inner_names: crate::types::SourceTextBTreeSet,
+    try_from_names: crate::types::SourceTextBTreeSet,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct DirectTupleWrapperConstructorVisitor<'names> {
-    pub current_wrapper_name: Option<String>,
-    pub ers: crate::types::DiagnosticMsgs,
-    pub inside_conversion_impl: crate::types::AnalyzerBool,
-    pub names: &'names crate::types::SourceTextBTreeSet,
+    current_wrapper_name: Option<String>,
+    ers: crate::types::DiagnosticMsgs,
+    inside_conversion_impl: crate::types::AnalyzerBool,
+    names: &'names crate::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
@@ -611,9 +655,13 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
         self.current_wrapper_name = previous_wrapper_name;
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct DeclaredDomainTypeVisitor {
-    pub names: crate::types::SourceTextBTreeSet,
+    names: crate::types::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     fn visit_item(&mut self, i: &'ast syn::Item) {
@@ -773,27 +821,43 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct DomainTypePolicyVisitor<'types> {
-    pub check_non_public: crate::types::AnalyzerBool,
-    pub closure_body_scan_depth: crate::types::AnalyzerCount,
-    pub ers: crate::types::DiagnosticMsgs,
-    pub generic_scopes: Vec<crate::types::SourceTextBTreeSet>,
-    pub repo_crates: crate::types::SourceTextBTreeSetRef<'types>,
-    pub repo_types: crate::types::SourceTextBTreeSetRef<'types>,
+    check_non_public: crate::types::AnalyzerBool,
+    closure_body_scan_depth: crate::types::AnalyzerCount,
+    ers: crate::types::DiagnosticMsgs,
+    generic_scopes: Vec<crate::types::SourceTextBTreeSet>,
+    repo_crates: crate::types::SourceTextBTreeSetRef<'types>,
+    repo_types: crate::types::SourceTextBTreeSetRef<'types>,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct AnalyzerStateRawContainerFieldVisitor {
-    pub ers: crate::types::DiagnosticMsgs,
+    ers: crate::types::DiagnosticMsgs,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct HelperRawTextReturnVisitor {
-    pub ers: crate::types::DiagnosticMsgs,
+    ers: crate::types::DiagnosticMsgs,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct ExternalLeafWrapperNameVisitor<'types> {
-    pub ers: crate::types::DiagnosticMsgs,
-    pub repo_crates: crate::types::SourceTextBTreeSetRef<'types>,
+    ers: crate::types::DiagnosticMsgs,
+    repo_crates: crate::types::SourceTextBTreeSetRef<'types>,
 }
 impl DomainTypePolicyVisitor<'_> {
     fn check_fields(

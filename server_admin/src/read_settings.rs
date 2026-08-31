@@ -17,7 +17,7 @@ pub(crate) async fn read_settings(
             String,
         ),
     >(constants_str::SERVER_ADMIN_READ_SETTINGS_SQL)
-    .fetch_one(pool.0)
+    .fetch_one(*pool)
     .await
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
     Ok(server_admin_contract::admin_settings_view::AdminSettingsView::new(

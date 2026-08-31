@@ -5,33 +5,34 @@ pub(crate) async fn account_change_own_password(
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorization_authenticate::authorization_authenticate(
-        auth.state.as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        auth.peer,
+        auth.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+        *auth.get_peer(),
     )
     .await?;
-    let subject =
-        server_admin_core::std_admin_string::StdAdminString::try_from(actor.id.get().to_string())
-            .map_err(|_error| crate::admin_error::AdminError::Validation)?;
+    let subject = server_admin_core::std_admin_string::StdAdminString::try_from(
+        actor.get_id().get().to_string(),
+    )
+    .map_err(|_error| crate::admin_error::AdminError::Validation)?;
     crate::enforce_rate_limit::enforce_rate_limit(
-        auth.state.as_ref(),
+        auth.get_state().as_ref(),
         crate::admin_rate_limit_scope::AdminRateLimitScope::Mutation,
         &subject,
-        auth.state.as_ref().policy.mutation_limit,
-        auth.state.as_ref().policy.mutation_window,
+        auth.get_state().as_ref().get_policy().get_mutation_limit(),
+        auth.get_state().as_ref().get_policy().get_mutation_window(),
     )
     .await?;
     crate::authorization_validate_csrf::authorization_validate_csrf(
-        auth.state.as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
         &actor,
     )
     .await?;
-    let (current_password, new_password) = request.0.into_parts();
+    let (current_password, new_password) = request.into_inner().into_parts();
     let expected_hash =
         sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_PASSWORD_HASH_SQL)
-            .bind(actor.id.get())
-            .fetch_optional(auth.state.as_ref().pool.as_ref())
+            .bind(actor.get_id().get())
+            .fetch_optional(auth.get_state().as_ref().get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
             .map(|value| {
@@ -46,9 +47,9 @@ pub(crate) async fn account_change_own_password(
             .map_err(crate::admin_error::AdminError::from)?
             .ok_or(crate::admin_error::AdminError::Authentication)?;
     if !auth
-        .state
+        .get_state()
         .as_ref()
-        .password_hasher
+        .get_password_hasher()
         .verify(
             crate::admin_password_from_contract::admin_password_from_contract(current_password)
                 .map_err(crate::admin_error::AdminError::password_text)?,
@@ -61,9 +62,9 @@ pub(crate) async fn account_change_own_password(
         return Err(crate::admin_error::AdminError::Validation);
     }
     let password_hash = auth
-        .state
+        .get_state()
         .as_ref()
-        .password_hasher
+        .get_password_hasher()
         .hash(
             crate::admin_new_password_from_contract::admin_new_password_from_contract(new_password)
                 .map_err(crate::admin_error::AdminError::password_text)?,
@@ -71,9 +72,9 @@ pub(crate) async fn account_change_own_password(
         .await
         .map_err(crate::admin_error::AdminError::password_hash)?;
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -82,7 +83,7 @@ pub(crate) async fn account_change_own_password(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        actor.id,
+        *actor.get_id(),
         &password_hash,
         crate::admin_password_change_required::AdminPasswordChangeRequired::from(false),
     )
@@ -92,15 +93,15 @@ pub(crate) async fn account_change_own_password(
     .then_some(())
     .ok_or(crate::admin_error::AdminError::Conflict)?;
     sqlx::query(constants_str::SERVER_ADMIN_REVOKE_OTHER_ACCESS_SESSIONS_SQL)
-        .bind(actor.id.get())
-        .bind(actor.session_id.get().get())
+        .bind(actor.get_id().get())
+        .bind(actor.get_session_id().get().get())
         .execute(&mut *tx)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_error::AdminError::from)
         .map(drop)?;
     sqlx::query(constants_str::SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL)
-        .bind(actor.id.get())
+        .bind(actor.get_id().get())
         .execute(&mut *tx)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
@@ -110,19 +111,19 @@ pub(crate) async fn account_change_own_password(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Update,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::User,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::User(actor.id),
-            user_id: actor.id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Update,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::User,
+            crate::admin_audit_resource_id::AdminAuditResourceId::User(*actor.get_id()),
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

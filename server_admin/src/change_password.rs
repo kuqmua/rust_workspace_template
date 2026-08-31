@@ -2,19 +2,17 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn change_password(
     auth: crate::admin_auth_req::AdminAuthReq,
-    crate::axum_admin_form::AxumAdminForm(form): crate::axum_admin_form::AxumAdminForm<
-        crate::change_password_form::ChangePasswordForm,
-    >,
+    form: crate::axum_admin_form::AxumAdminForm<crate::change_password_form::ChangePasswordForm>,
 ) -> axum::response::Response {
     match crate::form_auth_impl::form_auth_impl(auth) {
         Ok(auth) => {
             let request = server_admin_contract::admin_change_own_password_req::AdminChangeOwnPasswordReq::new(
-                form.current_password,
-                form.new_password,
+                form.get_current_password().clone(),
+                form.get_new_password().clone(),
             );
             match crate::account_change_own_password::account_change_own_password(
                 auth,
-                crate::axum_admin_json::AxumAdminJson(request),
+                crate::axum_admin_json::AxumAdminJson::from(request),
             )
             .await
             {

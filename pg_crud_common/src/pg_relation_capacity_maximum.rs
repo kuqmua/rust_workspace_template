@@ -1,8 +1,5 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
+    generate_accessor::Getters,
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
@@ -11,7 +8,7 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct PgRelationCapacityMaximum(pub(super) std::num::NonZeroU64);
+pub struct PgRelationCapacityMaximum(std::num::NonZeroU64);
 
 impl TryFrom<u64> for PgRelationCapacityMaximum {
     type Error = crate::pg_relation_capacity_error::PgRelationCapacityError;

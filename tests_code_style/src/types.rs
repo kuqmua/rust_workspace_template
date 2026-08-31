@@ -26,7 +26,14 @@ impl AnalyzerBool {
         self.0 = true;
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+)]
 pub(super) struct CargoTomlFileIdx(usize);
 impl CargoTomlFileIdx {
     pub(super) const fn get(self) -> usize {
@@ -65,14 +72,28 @@ impl<'metadata_lt> CargoMetadataRef<'metadata_lt> {
 pub(super) struct CargoPackageIdRefHashSet<'metadata_lt>(
     std::collections::HashSet<&'metadata_lt cargo_metadata::PackageId>,
 );
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+)]
 pub(super) struct StaticStr(&'static str);
 impl StaticStr {
     pub(super) const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    newtype::FromInner,
+)]
 pub(super) struct StaticStrSliceRef<'text_lt>(&'text_lt [&'text_lt str]);
 impl<'text_lt> StaticStrSliceRef<'text_lt> {
     pub(super) const fn get(self) -> &'text_lt [&'text_lt str] {
@@ -147,7 +168,13 @@ impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMsgsMutRef<'msgs
         Self(&mut value.0)
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::AsRefStr)]
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    newtype::AsRefStr,
+)]
 pub(super) struct SourceText(Box<str>);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, thiserror::Error)]
 pub(super) enum SourceTextTryFromStringError {
@@ -525,5 +552,10 @@ impl<'toml_lt> TomlValueRef<'toml_lt> {
         self.0
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::IntoIterator)]
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromInner,
+    newtype::IntoIterator,
+)]
 pub(super) struct WalkdirWalkDir(walkdir::WalkDir);

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,4 +6,4 @@
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-pub(crate) struct ShouldSkip(pub(super) bool);
+pub(crate) struct ShouldSkip(bool);

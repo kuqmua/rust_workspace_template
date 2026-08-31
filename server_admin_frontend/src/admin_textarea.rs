@@ -1,6 +1,9 @@
 #![allow(
-    clippy::arbitrary_source_item_ordering,
     clippy::field_scoped_visibility_modifiers,
+    reason = "Leptos component expansion models props as generated fields even though the source declares functions"
+)]
+#![allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::impl_trait_in_params,
     clippy::multiple_inherent_impl,
     clippy::needless_pass_by_value,

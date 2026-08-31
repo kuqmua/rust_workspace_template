@@ -5,14 +5,15 @@ pub fn encode_access_token(
     crate::std_admin_access_token::StdAdminAccessToken,
     crate::admin_access_token_error::AdminAccessTokenError,
 > {
-    jsonwebtoken::encode(
+    let encoded = jsonwebtoken::encode(
         &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256),
         claims,
         &jsonwebtoken::EncodingKey::from_secret(
-            secrecy::ExposeSecret::expose_secret(secret.0.as_ref()).as_bytes(),
+            secrecy::ExposeSecret::expose_secret(secret.get_inner().as_ref()).as_bytes(),
         ),
     )
-    .map(crate::std_admin_access_token::StdAdminAccessToken)
     .map_err(crate::jsonwebtoken_admin_error::JsonwebtokenAdminError::from)
-    .map_err(crate::admin_access_token_error::AdminAccessTokenError::from)
+    .map_err(crate::admin_access_token_error::AdminAccessTokenError::from)?;
+    crate::std_admin_access_token::StdAdminAccessToken::try_from(encoded)
+        .map_err(crate::admin_access_token_error::AdminAccessTokenError::from)
 }

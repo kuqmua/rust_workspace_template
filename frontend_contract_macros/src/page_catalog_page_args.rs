@@ -1,11 +1,11 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, generate_accessor::Getters)]
 #[getters(get_mut)]
 pub(crate) struct PageCatalogPageArgs {
-    pub capability: crate::contract_syn_expr::ContractSynExpr,
-    pub metadata: crate::contract_syn_expr::ContractSynExpr,
-    pub path: crate::contract_syn_expr::ContractSynExpr,
-    pub route: crate::contract_syn_expr::ContractSynExpr,
-    pub title: crate::contract_syn_expr::ContractSynExpr,
+    capability: crate::contract_syn_expr::ContractSynExpr,
+    metadata: crate::contract_syn_expr::ContractSynExpr,
+    path: crate::contract_syn_expr::ContractSynExpr,
+    route: crate::contract_syn_expr::ContractSynExpr,
+    title: crate::contract_syn_expr::ContractSynExpr,
 }
 
 impl syn::parse::Parse for PageCatalogPageArgs {

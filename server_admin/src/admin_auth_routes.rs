@@ -12,7 +12,7 @@ pub fn admin_auth_routes(
         Some(limit) => base_router.layer(axum::extract::DefaultBodyLimit::max(limit.get())),
         None => base_router,
     };
-    crate::axum_admin_auth_router::AxumAdminAuthRouter(router.with_state(state))
+    crate::axum_admin_auth_router::AxumAdminAuthRouter::from(router.with_state(state))
 }
 
 // Root-owned module compatibility wrappers.

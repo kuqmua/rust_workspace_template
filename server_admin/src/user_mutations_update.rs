@@ -12,7 +12,7 @@ pub(crate) async fn user_mutations_update(
         server_admin_contract::admin_permission::AdminPermission::UsersUpdate,
     )
     .await?;
-    let (contract_display_name, contract_login) = request.0.into_parts();
+    let (contract_display_name, contract_login) = request.into_inner().into_parts();
     let display_name = contract_display_name
         .map(|value| {
             server_admin_contract::admin_display_name::AdminDisplayName::try_from(
@@ -29,15 +29,15 @@ pub(crate) async fn user_mutations_update(
         return Err(crate::admin_error::AdminError::Validation);
     }
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
     sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_USER_SQL)
-        .bind(path.0.get())
+        .bind(path.get_inner().get())
         .bind(login.as_ref().map(|value| value.as_ref().as_str()))
         .bind(display_name.as_ref().map(|value| value.as_ref().as_str()))
         .fetch_optional(&mut *tx)
@@ -52,19 +52,19 @@ pub(crate) async fn user_mutations_update(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Update,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::User,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::User(path.0),
-            user_id: actor.id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Update,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::User,
+            crate::admin_audit_resource_id::AdminAuditResourceId::User(*path.get_inner()),
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

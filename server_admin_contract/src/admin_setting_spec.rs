@@ -1,13 +1,17 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    generate_constructor::New,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AdminSettingSpec {
-    pub(super) label: crate::admin_setting_label::AdminSettingLabel,
-    pub(super) name: crate::admin_setting_name::AdminSettingName,
-    pub(super) input_kind: crate::admin_setting_input_kind::AdminSettingInputKind,
-    pub(super) optionality: crate::admin_setting_optionality::AdminSettingOptionality,
+    label: crate::admin_setting_label::AdminSettingLabel,
+    name: crate::admin_setting_name::AdminSettingName,
+    input_kind: crate::admin_setting_input_kind::AdminSettingInputKind,
+    optionality: crate::admin_setting_optionality::AdminSettingOptionality,
 }
 
 impl AdminSettingSpec {

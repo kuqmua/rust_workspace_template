@@ -96,9 +96,9 @@ impl Location {
                     formatter.write_str(constants_str::TEXT)?;
                     Self::fmt_src_location(
                         crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
-                        crate::location_file_ref::LocationFileRef::from(v.file.as_ref()),
-                        v.line,
-                        v.column,
+                        crate::location_file_ref::LocationFileRef::from(v.get_file().as_ref()),
+                        *v.get_line(),
+                        *v.get_column(),
                     )?;
                     formatter.write_str(constants_str::TEXT_ALT_5)
                 } else {
@@ -115,8 +115,8 @@ impl Location {
                     formatter.write_str(constants_str::TEXT)?;
                     self.fmt_github_location(
                         crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
-                        crate::location_file_ref::LocationFileRef::from(v.file.as_ref()),
-                        v.line,
+                        crate::location_file_ref::LocationFileRef::from(v.get_file().as_ref()),
+                        *v.get_line(),
                     )?;
                     formatter.write_str(constants_str::TEXT_ALT_5)
                 } else {

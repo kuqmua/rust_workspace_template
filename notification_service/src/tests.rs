@@ -253,7 +253,8 @@ async fn create_notification_persists_through_http_route() {
         |error| error.to_string(),
     )
     .expect("b3aacb7e create_notification_persists_through_http_route invariant must hold");
-    let exposed_database_url = secrecy::ExposeSecret::expose_secret(&database_url.0).as_str();
+    let exposed_database_url =
+        secrecy::ExposeSecret::expose_secret(database_url.get_inner()).as_str();
     let setup_pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(1u32)
         .connect(exposed_database_url)

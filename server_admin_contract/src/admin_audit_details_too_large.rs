@@ -4,7 +4,7 @@
 pub enum AdminAuditDetailsTooLarge {
     #[error(
         "administrator audit details contain {} bytes, maximum is {} bytes",
-        .0.0,
+        .0.get(),
         crate::admin_audit_details_max_bytes::ADMIN_AUDIT_DETAILS_MAX_BYTES
     )]
     TooLarge(crate::admin_audit_details_bytes::AdminAuditDetailsBytes),

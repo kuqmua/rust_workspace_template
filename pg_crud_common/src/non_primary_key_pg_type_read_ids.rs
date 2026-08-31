@@ -53,6 +53,6 @@ impl sqlx::Type<sqlx::Postgres> for NonPrimaryKeyPgTypeReadIds {
 
 impl Default for NonPrimaryKeyPgTypeReadIds {
     fn default() -> Self {
-        Self::from(crate::v::V { v: None })
+        Self::from(crate::v::V::new(None))
     }
 }

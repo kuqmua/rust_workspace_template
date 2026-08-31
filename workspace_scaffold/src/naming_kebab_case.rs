@@ -1,7 +1,7 @@
 pub(crate) fn naming_kebab_case(
     value: crate::project_name_ref::ProjectNameRef<'_>,
 ) -> crate::scaffold_text::ScaffoldText {
-    crate::scaffold_text::ScaffoldText::try_from(value.0.replace('_', constants_str::HYPHEN))
+    crate::scaffold_text::ScaffoldText::try_from(value.get().replace('_', constants_str::HYPHEN))
         .unwrap_or_else(crate::scaffold_text::ScaffoldText::from)
 }
 

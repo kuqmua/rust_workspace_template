@@ -203,6 +203,6 @@ impl axum::response::IntoResponse for crate::admin_error::AdminError {
 }
 impl axum::response::IntoResponse for crate::axum_admin_response::AxumAdminResponse {
     fn into_response(self) -> axum::response::Response {
-        self.0
+        axum::response::Response::from(self)
     }
 }

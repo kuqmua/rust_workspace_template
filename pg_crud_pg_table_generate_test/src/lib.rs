@@ -29,7 +29,7 @@ mod tests {
             #[generate_pg_table::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
-                pub primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
+                primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
                 #field_attrs
             }
         }
@@ -49,9 +49,9 @@ mod tests {
     fn duplicate_frontend_order_is_rejected_during_generation() {
         let input = table_input(&quote::quote! {
             #[generate_pg_table_frontend(order = 1)]
-            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+            column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
             #[generate_pg_table_frontend(order = 1)]
-            pub column_1: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
+            column_1: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
         });
         let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
@@ -62,7 +62,7 @@ mod tests {
     fn unknown_frontend_option_is_rejected_during_generation() {
         let input = table_input(&quote::quote! {
             #[generate_pg_table_frontend(unknown)]
-            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+            column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
         });
         let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
@@ -76,7 +76,7 @@ mod tests {
     )]
     fn generated_metrics_use_bounded_labels() {
         let input = table_input(&quote::quote! {
-            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+            column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
         });
         let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
@@ -115,6 +115,10 @@ mod tests {
                     };
                     quote::quote! {
                         #allow_clippy_arbitrary_src_item_ordering
+                        #[allow(
+                            dead_code,
+                            reason = "the compile-only macro fixture validates generated contracts without reading its source model"
+                        )]
                         #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
                         #[generate_pg_table::generate_pg_table_config{{
                             "cm_write_into_file": "False",
@@ -149,11 +153,11 @@ mod tests {
                         #[generate_pg_table::common_logic{}]
                         pub struct TableExample {
                             #maybe_generate_pg_table_primary_key_token_stream
-                            pub primary_key_column:
+                            primary_key_column:
                                 pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
-                            pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
-                            pub column_1: pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
-                            pub column_2: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
+                            column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+                            column_1: pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
+                            column_2: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
                         }
                     }
                 };

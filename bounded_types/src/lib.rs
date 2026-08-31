@@ -5,6 +5,7 @@
 
 pub mod bounded_b_tree_map;
 pub mod bounded_b_tree_map_visitor_phantom_data;
+pub mod bounded_chars_string;
 pub mod bounded_hash_map;
 pub mod bounded_hash_map_visitor_phantom_data;
 pub mod bounded_len;

@@ -5,7 +5,7 @@ pub fn build_generate_pg_table(
     crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError,
 > {
     let _shape = crate::struct_shape::struct_shape(
-        workspace_macro_helpers::syn_derive_input_ref::SynDeriveInputRef::from(&parsed.0),
+        workspace_macro_helpers::syn_derive_input_ref::SynDeriveInputRef::from(parsed.get_inner()),
     )
     .map_err(|error| {
         crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Build(
@@ -14,20 +14,19 @@ pub fn build_generate_pg_table(
             ),
         )
     })?;
-    let input =
-        crate::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput::from(parsed.0);
+    let input = crate::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput::from(
+        syn::DeriveInput::from(parsed),
+    );
     let field_count = match &input.data {
         syn::Data::Struct(data) => data.fields.iter().count(),
         syn::Data::Enum(_) | syn::Data::Union(_) => constants_usize::ZERO,
     };
     Ok(
         crate::syn_built_generate_pg_table_input::SynBuiltGeneratePgTableInput::from(
-            crate::generate_pg_table_model::GeneratePgTableModel {
-                field_count: crate::generate_pg_table_field_count::GeneratePgTableFieldCount::from(
-                    field_count,
-                ),
+            crate::generate_pg_table_model::GeneratePgTableModel::new(
+                crate::generate_pg_table_field_count::GeneratePgTableFieldCount::from(field_count),
                 input,
-            },
+            ),
         ),
     )
 }

@@ -35,12 +35,24 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
     let name = quote::format_ident!("{name_text}");
     let error_name = quote::format_ident!("{error_name_text}");
     quote::quote! {
-        #[derive(Debug, Clone, generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
-        pub struct #name(pub String);
+        #[derive(Debug, Clone, generate_accessor::Getters, generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
+        pub struct #name(String);
         #[derive(Debug, Clone, Copy, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
         pub enum #error_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
+        }
+        impl TryFrom<String> for #name {
+            type Error = #error_name;
+            fn try_from(value: String) -> Result<Self, Self::Error> {
+                if value.is_empty() {
+                    Err(Self::Error::IsEmpty {
+                        is_empty: constants_str::CONFIG_ENV_VALUE_IS_EMPTY_MSG,
+                    })
+                } else {
+                    Ok(Self(value))
+                }
+            }
         }
         impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for #name {
             type Error = #error_name;
@@ -88,8 +100,8 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
     let name = quote::format_ident!("{name_text}");
     let error_name = quote::format_ident!("{error_name_text}");
     quote::quote! {
-        #[derive(Debug, generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
-        pub struct #name(pub secrecy::SecretBox<crate::std_config_secret_string::StdConfigSecretString>);
+        #[derive(Debug, generate_accessor::Getters, generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
+        pub struct #name(secrecy::SecretBox<crate::std_config_secret_string::StdConfigSecretString>);
         #[derive(Debug, Clone, Copy, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
         pub enum #error_name {
             #[error("{is_empty:?}")]
@@ -231,8 +243,8 @@ fn impl_try_from_parse_with_error_ty(
     );
     proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
         proc_macro::TokenStream::from(quote::quote! {
-            #[derive(Debug, #(#derives,)* generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
-            pub struct #name(pub #inner);
+            #[derive(Debug, #(#derives,)* generate_accessor::Getters, generate_accessor_traits_for_struct_fields::GenerateAccessorTrait, optimal_memory_layout::OptimalMemoryLayout)]
+            pub struct #name(#inner);
             #[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #error_name {
                 #[error("{:?}", .#error_field)]

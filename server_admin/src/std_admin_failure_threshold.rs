@@ -1,11 +1,14 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    generate_accessor::Getters,
 )]
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StdAdminFailureThreshold(
-    pub(crate) server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,
+    server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,
 );
 impl TryFrom<i64> for StdAdminFailureThreshold {
     type Error = crate::admin_auth_positive_value_error::AdminAuthPositiveValueError;
@@ -18,6 +21,6 @@ impl TryFrom<i64> for StdAdminFailureThreshold {
 }
 impl StdAdminFailureThreshold {
     pub(crate) const fn get(self) -> i64 {
-        self.0.get()
+        self.get_inner().get()
     }
 }

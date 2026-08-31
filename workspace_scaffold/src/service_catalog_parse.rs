@@ -6,7 +6,7 @@ pub(super) fn service_catalog_parse(
 > {
     let mut entries = Vec::new();
     let mut current = None;
-    source.0.lines().try_for_each(|raw_line| {
+    source.get().lines().try_for_each(|raw_line| {
         let trimmed_line = raw_line.trim();
         if trimmed_line == constants_str::VALUE_484ADD83 {
             if let Some(draft) = current.take() {
@@ -24,7 +24,7 @@ pub(super) fn service_catalog_parse(
             crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
             crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::CRATE),
         )? {
-            draft.crate_name = Some(
+            *draft.get_crate_name_mut() = Some(
                 crate::service_crate::ServiceCrate::try_from(value.as_ref().to_owned())
                     .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
@@ -34,7 +34,7 @@ pub(super) fn service_catalog_parse(
             crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
             crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_DB669AF6),
         )? {
-            draft.compose_name = Some(
+            *draft.get_compose_name_mut() = Some(
                 crate::service_compose_name::ServiceComposeName::try_from(
                     value.as_ref().to_owned(),
                 )
@@ -46,7 +46,7 @@ pub(super) fn service_catalog_parse(
             crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
             crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_739ED940),
         )? {
-            draft.compose_file = Some(
+            *draft.get_compose_file_mut() = Some(
                 crate::service_compose_file::ServiceComposeFile::try_from(
                     value.as_ref().to_owned(),
                 )
@@ -58,7 +58,7 @@ pub(super) fn service_catalog_parse(
             crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
             crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_254DB0FB),
         )? {
-            draft.dockerfile = Some(
+            *draft.get_dockerfile_mut() = Some(
                 crate::service_dockerfile::ServiceDockerfile::try_from(value.as_ref().to_owned())
                     .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
@@ -68,7 +68,7 @@ pub(super) fn service_catalog_parse(
             crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
             crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_6105D6CC),
         )? {
-            draft.image = Some(
+            *draft.get_image_mut() = Some(
                 crate::service_image::ServiceImage::try_from(value.as_ref().to_owned())
                     .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
@@ -78,7 +78,7 @@ pub(super) fn service_catalog_parse(
             crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
             crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_94ABCB2D),
         )? {
-            draft.kubernetes_manifest = Some(
+            *draft.get_kubernetes_manifest_mut() = Some(
                 crate::service_kubernetes_manifest::ServiceKubernetesManifest::try_from(
                     value.as_ref().to_owned(),
                 )
@@ -92,14 +92,14 @@ pub(super) fn service_catalog_parse(
             .map(str::trim)
             .and_then(|port_text| port_text.parse::<u16>().ok())
         {
-            draft.port = Some(crate::service_port::ServicePort::from(port));
+            *draft.get_port_mut() = Some(crate::service_port::ServicePort::from(port));
             return Ok(());
         }
         if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
             crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
             crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_20E49707),
         )? {
-            draft.socket_env = Some(
+            *draft.get_socket_env_mut() = Some(
                 crate::service_socket_env::ServiceSocketEnv::try_from(value.as_ref().to_owned())
                     .map_err(|_error| crate::scaffold_error::ScaffoldError::Catalog)?,
             );
@@ -116,7 +116,7 @@ pub(super) fn service_catalog_parse(
                         .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
                 })
         {
-            draft.release = Some(crate::should_release::ShouldRelease::from(release));
+            *draft.get_release_mut() = Some(crate::should_release::ShouldRelease::from(release));
         }
         Ok::<(), crate::scaffold_error::ScaffoldError>(())
     })?;

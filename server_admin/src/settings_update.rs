@@ -9,13 +9,14 @@ pub(crate) async fn settings_update(
         server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate,
     )
     .await?;
-    if !bool::from(request.0.has_fields()) || !bool::from(request.0.is_valid()) {
+    if !bool::from(request.get_inner().has_fields()) || !bool::from(request.get_inner().is_valid())
+    {
         return Err(crate::admin_error::AdminError::Validation);
     }
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -30,7 +31,7 @@ pub(crate) async fn settings_update(
         support_url,
         tab_title,
         clear,
-    ) = request.0.into_parts();
+    ) = request.into_inner().into_parts();
     sqlx::query_scalar::<_, bool>(
         constants_str::SERVER_ADMIN_UPDATE_SETTINGS_SQL,
     )
@@ -78,19 +79,19 @@ pub(crate) async fn settings_update(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Update,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::SystemSettings,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::SystemSettings,
-            user_id: actor.id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Update,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::SystemSettings,
+            crate::admin_audit_resource_id::AdminAuditResourceId::SystemSettings,
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

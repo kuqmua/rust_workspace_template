@@ -3,15 +3,19 @@ pub fn reconcile_pg_counter(
     tracked: crate::pg_counter_value::PgCounterValue,
     actual: crate::pg_counter_value::PgCounterValue,
 ) -> crate::pg_counter_reconciliation::PgCounterReconciliation {
-    match actual.0.cmp(&tracked.0) {
+    match actual.get_inner().cmp(tracked.get_inner()) {
         std::cmp::Ordering::Greater => {
             crate::pg_counter_reconciliation::PgCounterReconciliation::ActualAhead(
-                crate::pg_counter_value::PgCounterValue::from(actual.0.saturating_sub(tracked.0)),
+                crate::pg_counter_value::PgCounterValue::from(
+                    actual.get_inner().saturating_sub(*tracked.get_inner()),
+                ),
             )
         }
         std::cmp::Ordering::Less => {
             crate::pg_counter_reconciliation::PgCounterReconciliation::TrackedAhead(
-                crate::pg_counter_value::PgCounterValue::from(tracked.0.saturating_sub(actual.0)),
+                crate::pg_counter_value::PgCounterValue::from(
+                    tracked.get_inner().saturating_sub(*actual.get_inner()),
+                ),
             )
         }
         std::cmp::Ordering::Equal => {

@@ -10,15 +10,15 @@ pub(crate) async fn role_mutations_delete(
     )
     .await?;
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
     sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_DELETE_ROLE_SQL)
-        .bind(path.0.get())
+        .bind(path.get_inner().get())
         .fetch_optional(&mut *tx)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
@@ -31,19 +31,19 @@ pub(crate) async fn role_mutations_delete(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Delete,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::Role,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::Role(path.0),
-            user_id: actor.id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Delete,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::Role,
+            crate::admin_audit_resource_id::AdminAuditResourceId::Role(*path.get_inner()),
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

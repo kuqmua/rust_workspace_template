@@ -18,3 +18,6 @@ pub mod std_time_duration_secs;
 
 #[cfg(test)]
 pub mod tests;
+
+const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+    bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

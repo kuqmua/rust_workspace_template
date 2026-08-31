@@ -8,9 +8,11 @@
     serde::Deserialize,
     schemars::JsonSchema,
     optimal_memory_layout::OptimalMemoryLayout,
+    generate_accessor::Getters,
+    generate_constructor::New,
 )]
 pub struct V<T> {
-    pub v: T,
+    v: T,
 }
 
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for V<T> {

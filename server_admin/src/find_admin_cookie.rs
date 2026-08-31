@@ -4,7 +4,7 @@ pub fn find_admin_cookie(
     kind: crate::admin_cookie_kind::AdminCookieKind,
 ) -> Option<server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>> {
     match server_runtime_http::resolve_unique_cookie::resolve_unique_cookie(
-        server_runtime_http::http_cookie_headers_ref::HttpCookieHeadersRef::from(headers.0),
+        server_runtime_http::http_cookie_headers_ref::HttpCookieHeadersRef::from(headers.get()),
         server_runtime_http::http_cookie_name_ref::HttpCookieNameRef::from(kind.name().as_ref()),
     ) {
         server_runtime_http::cookie_resolution::CookieResolution::Resolved(value) => Some(

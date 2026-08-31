@@ -3,8 +3,8 @@ pub(crate) async fn authn_sign_in(
     peer: crate::admin_peer_addr::AdminPeerAddr,
     request_json: crate::admin_sign_in_json::AdminSignInJson,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
-    let state = auth.state;
-    let headers = auth.headers;
+    let state = auth.get_state();
+    let headers = auth.get_headers();
     if !crate::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state.as_ref(),
         crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(headers.as_ref()),
@@ -13,7 +13,7 @@ pub(crate) async fn authn_sign_in(
     {
         return Err(crate::admin_error::AdminError::Authentication);
     }
-    let request = request_json.0;
+    let request = request_json.into_inner();
     let (contract_login, contract_password) = request.into_parts();
     let login =
         server_admin_contract::admin_login::AdminLogin::try_from(contract_login.into_inner())
@@ -22,20 +22,20 @@ pub(crate) async fn authn_sign_in(
         crate::admin_password_from_contract::admin_password_from_contract(contract_password)
             .map_err(crate::admin_error::AdminError::password_text)?;
     let peer_subject = server_admin_core::std_admin_string::StdAdminString::try_from(
-        peer.0.as_ref().ip().to_string(),
+        peer.get_inner().as_ref().ip().to_string(),
     )
     .map_err(|_error| crate::admin_error::AdminError::Validation)?;
     crate::enforce_rate_limit::enforce_rate_limit(
         state.as_ref(),
         crate::admin_rate_limit_scope::AdminRateLimitScope::SignInIp,
         &peer_subject,
-        state.as_ref().policy.sign_in_ip_limit,
-        state.as_ref().policy.sign_in_window,
+        state.as_ref().get_policy().get_sign_in_ip_limit(),
+        state.as_ref().get_policy().get_sign_in_window(),
     )
     .await?;
     let pair_subject = server_admin_core::std_admin_string::StdAdminString::try_from(format!(
         "{}|{}",
-        peer.0.as_ref().ip(),
+        peer.get_inner().as_ref().ip(),
         login.as_ref()
     ))
     .map_err(|_error| crate::admin_error::AdminError::Validation)?;
@@ -43,20 +43,20 @@ pub(crate) async fn authn_sign_in(
         state.as_ref(),
         crate::admin_rate_limit_scope::AdminRateLimitScope::SignInIpLogin,
         &pair_subject,
-        state.as_ref().policy.sign_in_limit,
-        state.as_ref().policy.sign_in_window,
+        state.as_ref().get_policy().get_sign_in_limit(),
+        state.as_ref().get_policy().get_sign_in_window(),
     )
     .await?;
     let recent_failures =
         sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL)
             .bind(login.as_ref())
-            .fetch_one(state.as_ref().pool.as_ref())
+            .fetch_one(state.as_ref().get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
             .map(crate::admin_recent_login_failure_count::AdminRecentLoginFailureCount::from)
             .map_err(crate::admin_error::AdminError::from)?;
     if recent_failures
-        .reached(state.as_ref().policy.failure_threshold)
+        .reached(*state.as_ref().get_policy().get_failure_threshold())
         .get()
     {
         return Err(crate::admin_error::AdminError::RateLimited);
@@ -64,7 +64,7 @@ pub(crate) async fn authn_sign_in(
     let optional_user =
         sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_SIGN_IN_USER_SQL)
             .bind(login.as_ref())
-            .fetch_optional(state.as_ref().pool.as_ref())
+            .fetch_optional(state.as_ref().get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
             .and_then(|value| {
@@ -77,7 +77,7 @@ pub(crate) async fn authn_sign_in(
         drop(
             state
                 .as_ref()
-                .password_hasher
+                .get_password_hasher()
                 .hash(password)
                 .await
                 .map_err(crate::admin_error::AdminError::password_hash)?,
@@ -98,7 +98,7 @@ pub(crate) async fn authn_sign_in(
     )>::from(sign_in_user);
     let verified = state
         .as_ref()
-        .password_hasher
+        .get_password_hasher()
         .verify(password, password_hash)
         .await
         .map_err(|_error| crate::admin_error::AdminError::Authentication)?;
@@ -114,7 +114,7 @@ pub(crate) async fn authn_sign_in(
     }
     let mut tx = state
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -146,15 +146,13 @@ pub(crate) async fn authn_sign_in(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::SignIn,
-            login: &login,
-            resource: crate::admin_audit_resource::AdminAuditResource::Session,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::Session(
-                session.session_id(),
-            ),
-            user_id: admin_user_id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::SignIn,
+            &login,
+            crate::admin_audit_resource::AdminAuditResource::Session,
+            crate::admin_audit_resource_id::AdminAuditResourceId::Session(session.session_id()),
+            admin_user_id,
+        ),
     )
     .await?;
     tx.commit()

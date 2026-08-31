@@ -255,7 +255,7 @@ pub(crate) fn scan_generated_diagnostic_tokens(
         let group_index = index.saturating_add(if is_panic { 2usize } else { constants_usize::ONE });
         let Some(proc_macro2::TokenTree::Group(arguments)) = trees.get(group_index) else {
             visitor
-                .ers
+                .get_ers_mut()
                 .push(format!("generated `{identifier_text}` has no argument group"));
             return;
         };
@@ -288,10 +288,10 @@ pub(crate) fn scan_generated_diagnostic_tokens(
                 crate::types::SourceTextRef::from(message_value.as_str()),
             ),
             None => match interpolated_identifier {
-                Some(interpolated) => visitor.ers.push(format!(
+                Some(interpolated) => visitor.get_ers_mut().push(format!(
                     "generated `{identifier_text}` uses unchecked interpolated diagnostic message `#{interpolated}`"
                 )),
-                None => visitor.ers.push(format!(
+                None => visitor.get_ers_mut().push(format!(
                     "generated `{identifier_text}` message must begin with a string literal"
                 )),
             },
@@ -512,6 +512,24 @@ pub(crate) fn text_content_hygiene_ers(
             ));
         });
     ers
+}
+
+pub(crate) fn macro_rules_ers(
+    path: crate::types::PathRef<'_>,
+    source: crate::types::SourceTextRef<'_>,
+) -> crate::types::DiagnosticMsgs {
+    let forbidden = format!("{}!", constants_str::MACRO_RULES);
+    if source.as_ref().contains(forbidden.as_str()) {
+        vec![format!(
+            "{}: {}",
+            path.as_ref().display(),
+            constants_str::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD
+                .trim_end_matches(':')
+        )]
+        .into()
+    } else {
+        crate::types::DiagnosticMsgs::default()
+    }
 }
 
 pub(crate) fn env_keys_from_file(path: crate::types::StaticStr) -> crate::types::SourceTextList {
@@ -913,22 +931,23 @@ pub(crate) fn collect_first_macro_identifier_domain_name(
 pub(crate) fn len_checked_function_names(
     file: crate::types::SynFileRef<'_>,
 ) -> crate::types::SourceTextBTreeSet {
-    let mut visitor = crate::domain_analysis::LenCheckedFunctionNameVisitor {
-        names: crate::types::SourceTextBTreeSet::default(),
-    };
+    let mut visitor = crate::domain_analysis::LenCheckedFunctionNameVisitor::new(
+        crate::types::SourceTextBTreeSet::default(),
+    );
     syn::visit::Visit::visit_file(&mut visitor, file.as_ref());
-    visitor.names
+    visitor.get_names().clone()
 }
 pub(crate) fn string_wrapper_names(
     ast: crate::types::SynFileRef<'_>,
 ) -> crate::types::SourceTextBTreeSet {
     visit_syn_file(
         ast,
-        crate::domain_analysis::StringWrapperNameVisitor {
-            names: crate::types::SourceTextBTreeSet::default(),
-        },
+        crate::domain_analysis::StringWrapperNameVisitor::new(
+            crate::types::SourceTextBTreeSet::default(),
+        ),
     )
-    .names
+    .get_names()
+    .clone()
 }
 pub(crate) fn domain_type_policy_should_check_path(
     path: crate::types::PathRef<'_>,

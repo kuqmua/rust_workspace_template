@@ -10,12 +10,12 @@ pub(crate) async fn user_mutation_form_action(
                 |auth| {
                     crate::mutations_set_ban::mutations_set_ban(
                         auth,
-                        crate::axum_admin_path::AxumAdminPath(
-                            crate::user_path_impl::user_path_impl(form.user_id),
+                        crate::axum_admin_path::AxumAdminPath::from(
+                            crate::user_path_impl::user_path_impl(*form.get_user_id()),
                         ),
-                        crate::axum_admin_json::AxumAdminJson(
+                        crate::axum_admin_json::AxumAdminJson::from(
                             server_admin_contract::admin_set_user_ban_req::AdminSetUserBanReq::new(
-                                form.is_banned,
+                                *form.get_is_banned(),
                             ),
                         ),
                     )
@@ -30,12 +30,12 @@ pub(crate) async fn user_mutation_form_action(
                 |auth| {
                     crate::mutations_set_password::mutations_set_password(
                         auth,
-                        crate::axum_admin_path::AxumAdminPath(
-                            crate::user_path_impl::user_path_impl(form.user_id),
+                        crate::axum_admin_path::AxumAdminPath::from(
+                            crate::user_path_impl::user_path_impl(*form.get_user_id()),
                         ),
-                        crate::axum_admin_json::AxumAdminJson(
+                        crate::axum_admin_json::AxumAdminJson::from(
                             server_admin_contract::admin_set_user_password_req::AdminSetUserPasswordReq::new(
-                                form.password,
+                                form.get_password().clone(),
                             ),
                         ),
                     )

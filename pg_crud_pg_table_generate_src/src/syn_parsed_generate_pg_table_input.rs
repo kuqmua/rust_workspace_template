@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct SynParsedGeneratePgTableInput(pub(super) syn::DeriveInput);
+pub struct SynParsedGeneratePgTableInput(syn::DeriveInput);

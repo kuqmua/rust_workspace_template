@@ -13,7 +13,7 @@ pub fn decode_access_token(
     jsonwebtoken::decode::<crate::admin_access_claims::AdminAccessClaims>(
         token.as_ref(),
         &jsonwebtoken::DecodingKey::from_secret(
-            secrecy::ExposeSecret::expose_secret(secret.0.as_ref()).as_bytes(),
+            secrecy::ExposeSecret::expose_secret(secret.get_inner().as_ref()).as_bytes(),
         ),
         &validation,
     )

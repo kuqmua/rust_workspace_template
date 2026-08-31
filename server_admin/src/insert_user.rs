@@ -1,5 +1,5 @@
 pub(crate) async fn insert_user(
-    connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
+    mut connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
     login: &server_admin_contract::admin_login::AdminLogin,
     display_name: &server_admin_contract::admin_display_name::AdminDisplayName,
     password_hash: &crate::admin_password_hash::AdminPasswordHash,
@@ -11,7 +11,7 @@ pub(crate) async fn insert_user(
         .bind(login.as_ref())
         .bind(display_name.as_ref())
         .bind(password_hash.expose().as_ref())
-        .fetch_one(connection.0)
+        .fetch_one(&mut **connection)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .and_then(|value| {

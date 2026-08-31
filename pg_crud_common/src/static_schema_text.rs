@@ -4,6 +4,6 @@ pub(crate) fn static_schema_text(
     crate::db_schema_text::DbSchemaText,
     crate::db_schema_conformance_error::DbSchemaConformanceError,
 > {
-    crate::db_schema_text::DbSchemaText::try_from(value.0.to_owned())
+    crate::db_schema_text::DbSchemaText::try_from((*value.get_inner()).to_owned())
         .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)
 }

@@ -1,6 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
+#[derive(generate_accessor::Getters)]
 pub(crate) struct SignInForm {
-    pub(crate) login: server_admin_contract::admin_login::AdminLogin,
-    pub(crate) password: server_admin_contract::admin_password::AdminPassword,
+    login: server_admin_contract::admin_login::AdminLogin,
+    password: server_admin_contract::admin_password::AdminPassword,
 }

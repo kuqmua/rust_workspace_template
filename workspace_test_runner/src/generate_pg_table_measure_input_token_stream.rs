@@ -40,10 +40,10 @@ pub(crate) fn generate_pg_table_measure_input_token_stream(
             #[generate_pg_table::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
-                pub primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
-                pub column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
-                pub column_1: pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
-                pub column_2: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
+                primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
+                column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+                column_1: pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
+                column_2: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
             }
         },
     )

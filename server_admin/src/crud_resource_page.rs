@@ -24,7 +24,7 @@ pub(crate) async fn crud_resource_page(
                 |auth| {
                     crate::queries_users_page::queries_users_page(
                         auth,
-                        crate::axum_admin_query::AxumAdminQuery(
+                        crate::axum_admin_query::AxumAdminQuery::from(
                             server_admin_contract::admin_table_query::AdminTableQuery::default(),
                         ),
                     )
@@ -54,7 +54,7 @@ pub(crate) async fn crud_resource_page(
                 |auth| {
                     crate::queries_roles_page::queries_roles_page(
                         auth,
-                        crate::axum_admin_query::AxumAdminQuery(
+                        crate::axum_admin_query::AxumAdminQuery::from(
                             server_admin_contract::admin_table_query::AdminTableQuery::default(),
                         ),
                     )

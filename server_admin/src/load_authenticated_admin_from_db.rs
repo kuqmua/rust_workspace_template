@@ -67,14 +67,14 @@ pub(crate) async fn load_authenticated_admin_from_db(
         .try_into()
         .map_err(|_error| crate::admin_error::AdminError::Authentication)?;
     Ok(
-        crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin {
+        crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin::new(
             display_name,
-            id: user_id,
+            user_id,
             login,
-            password_change_required,
             permissions,
             roles,
             session_id,
-        },
+            password_change_required,
+        ),
     )
 }

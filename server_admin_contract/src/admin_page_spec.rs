@@ -31,11 +31,11 @@ impl AdminPageSpec {
     }
     #[must_use]
     pub const fn client_mode(self) -> crate::admin_page_client_mode::AdminPageClientMode {
-        self.metadata.client_mode
+        *self.metadata.get_client_mode()
     }
     #[must_use]
     pub const fn navigation(self) -> Option<crate::admin_page_navigation::AdminPageNavigation> {
-        self.metadata.navigation
+        self.metadata.get_navigation().copied()
     }
     #[must_use]
     pub const fn frontend_path(self) -> crate::admin_frontend_path::AdminFrontendPath {

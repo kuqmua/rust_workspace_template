@@ -44,17 +44,17 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
                         drop(value);
                         administrator_command_args_error::AdministratorCommandArgsError::Login
                     })?;
-                    admin_command::AdminCommand::PasswordReset(password_reset_args::PasswordResetArgs {
-                        login: server_admin_contract::admin_login::AdminLogin::try_from(login).map_err(
+                    admin_command::AdminCommand::PasswordReset(password_reset_args::PasswordResetArgs::new(
+                        server_admin_contract::admin_login::AdminLogin::try_from(login).map_err(
                             |error| {
                                 let _error_text = format!("{error:?}");
                                 administrator_command_args_error::AdministratorCommandArgsError::Login
                             },
                         )?,
-                        password_file: administrator_password_file_path_buf::AdministratorPasswordFilePathBuf::from(
+                        administrator_password_file_path_buf::AdministratorPasswordFilePathBuf::from(
                             std::path::PathBuf::from(password_file),
                         ),
-                    })
+                    ))
                 } else {
                     let display_name_arg =
                         args.next().ok_or(administrator_command_args_error::AdministratorCommandArgsError::Usage)?;
@@ -70,24 +70,24 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
                         drop(value);
                         administrator_command_args_error::AdministratorCommandArgsError::DisplayName
                     })?;
-                    admin_command::AdminCommand::CreateInitialAdministrator(initial_administrator_creation_args::InitialAdministratorCreationArgs {
-                        display_name: server_admin_contract::admin_display_name::AdminDisplayName::try_from(
+                    admin_command::AdminCommand::CreateInitialAdministrator(initial_administrator_creation_args::InitialAdministratorCreationArgs::new(
+                        server_admin_contract::admin_display_name::AdminDisplayName::try_from(
                             display_name,
                         )
                         .map_err(|error| {
                             let _error_text = format!("{error:?}");
                             administrator_command_args_error::AdministratorCommandArgsError::DisplayName
                         })?,
-                        login: server_admin_contract::admin_login::AdminLogin::try_from(login).map_err(
+                        server_admin_contract::admin_login::AdminLogin::try_from(login).map_err(
                             |error| {
                                 let _error_text = format!("{error:?}");
                                 administrator_command_args_error::AdministratorCommandArgsError::Login
                             },
                         )?,
-                        password_file: administrator_password_file_path_buf::AdministratorPasswordFilePathBuf::from(
+                        administrator_password_file_path_buf::AdministratorPasswordFilePathBuf::from(
                             std::path::PathBuf::from(password_file),
                         ),
-                    })
+                    ))
                 },
             )
         })()
@@ -113,7 +113,7 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
         )
         .await
         .map_err(administrator_account_command_error::AdministratorAccountCommandError::Migrate)?;
-        let concurrency = std::num::NonZeroUsize::new(config.admin_password_hash_concurrency.get())
+        let concurrency = std::num::NonZeroUsize::new(config.get_admin_password_hash_concurrency().get())
             .ok_or(administrator_account_command_error::AdministratorAccountCommandError::PasswordFileValue)?;
         let password_hasher = server_admin::admin_password_hasher::AdminPasswordHasher::new(
             server_admin::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
@@ -152,7 +152,7 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
         Ok(user_id) => {
             tracing::info!(
                 user_id = %user_id,
-                message = %constants_str::TRACING_ADMIN_OPERATION_COMPLETED,
+                message = %constants_str::TRACING_ADMIN_CMD_COMPLETED,
             );
             administrator_account_command_exit_code::AdministratorAccountCommandExitCode::from(
                 std::process::ExitCode::SUCCESS,
@@ -161,7 +161,7 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
         Err(error) => {
             tracing::error!(
                 error = %error,
-                message = %constants_str::TRACING_ADMIN_OPERATION_FAILED,
+                message = %constants_str::TRACING_ADMIN_CMD_FAILED,
             );
             let status = administrator_account_command_status::AdministratorAccountCommandStatus::from(match error {
                 administrator_account_command_error::AdministratorAccountCommandError::Args(_)

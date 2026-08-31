@@ -1,8 +1,7 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(generate_constructor::New, optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(crate) struct PasswordResetArgs {
-    pub login: server_admin_contract::admin_login::AdminLogin,
-    pub password_file:
-        crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf,
+    login: server_admin_contract::admin_login::AdminLogin,
+    password_file: crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf,
 }
 
 impl PasswordResetArgs {

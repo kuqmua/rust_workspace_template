@@ -9,10 +9,12 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
+    generate_accessor::Getters,
+    generate_constructor::New,
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Occr {
-    pub file: crate::location_file::LocationFile,
-    pub line: crate::location_line::LocationLine,
-    pub column: crate::location_column::LocationColumn,
+    file: crate::location_file::LocationFile,
+    line: crate::location_line::LocationLine,
+    column: crate::location_column::LocationColumn,
 }

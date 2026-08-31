@@ -1,7 +1,3 @@
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the history owner module accesses this private shared storage wrapper"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,

@@ -76,7 +76,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
             let pool = sqlx::postgres::PgPoolOptions::new()
                 .max_connections(**config.pg_pool_max_connections())
                 .connect(secrecy::ExposeSecret::expose_secret(
-                    &config.notification_database_url().0,
+                    config.notification_database_url().get_inner(),
                 ))
                 .await
                 .map_err(|error| {
@@ -108,7 +108,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
             let pool = sqlx::postgres::PgPoolOptions::new()
                 .max_connections(**config.pg_pool_max_connections())
                 .connect(secrecy::ExposeSecret::expose_secret(
-                    &config.notification_database_url().0,
+                    config.notification_database_url().get_inner(),
                 ))
                 .await
                 .map_err(|error| {
@@ -117,7 +117,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
                     )
                 })?;
             let listener =
-                tokio::net::TcpListener::bind(config.notification_service_socket_address().0)
+                tokio::net::TcpListener::bind(*config.notification_service_socket_address().get_inner())
                     .await
                     .map_err(|error| {
                         notification_service_error::NotificationServiceError::Socket(notification_io_error::NotificationIoError::from(error))

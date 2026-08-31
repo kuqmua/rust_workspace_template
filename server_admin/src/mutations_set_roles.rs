@@ -12,7 +12,7 @@ pub(crate) async fn mutations_set_roles(
         server_admin_contract::admin_permission::AdminPermission::UserRolesUpdate,
     )
     .await?;
-    let (expected_role_ids, contract_role_ids) = request.0.into_parts();
+    let (expected_role_ids, contract_role_ids) = request.into_inner().into_parts();
     if AsRef::<[server_admin_contract::admin_role_id::AdminRoleId]>::as_ref(&expected_role_ids)
         .iter()
         .collect::<std::collections::HashSet<_>>()
@@ -31,9 +31,9 @@ pub(crate) async fn mutations_set_roles(
         return Err(crate::admin_error::AdminError::Validation);
     }
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -45,7 +45,7 @@ pub(crate) async fn mutations_set_roles(
         .await?;
         let optional_target_is_active =
             sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_LOCK_USER_ACTIVE_STATE_SQL)
-                .bind(path.0.get())
+                .bind(path.get_inner().get())
                 .fetch_optional(&mut *tx)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
@@ -56,7 +56,7 @@ pub(crate) async fn mutations_set_roles(
         };
         let current_role_ids =
             sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_USER_ROLE_IDS_SQL)
-                .bind(path.0.get())
+                .bind(path.get_inner().get())
                 .fetch_all(&mut *tx)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
@@ -92,7 +92,7 @@ pub(crate) async fn mutations_set_roles(
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let target_was_admin =
             sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_USER_HAS_ROLE_SQL)
-                .bind(path.0.get())
+                .bind(path.get_inner().get())
                 .bind(admin_role_id)
                 .fetch_one(&mut *tx)
                 .await
@@ -110,19 +110,19 @@ pub(crate) async fn mutations_set_roles(
             }
         }
         let _delete_result = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL)
-            .bind(path.0.get())
+            .bind(path.get_inner().get())
             .execute(&mut *tx)
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let _insert_result = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_USER_ROLES_INSERT_SQL)
-            .bind(path.0.get())
+            .bind(path.get_inner().get())
             .bind(&raw_ids)
             .execute(&mut *tx)
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         crate::revoke_user_sessions::revoke_user_sessions(
             crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
-            path.0,
+            *path.get_inner(),
         )
         .await?;
         Ok(crate::replace_user_roles_outcome::ReplaceUserRolesOutcome::Updated)
@@ -144,19 +144,19 @@ pub(crate) async fn mutations_set_roles(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Update,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::User,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::User(path.0),
-            user_id: actor.id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Update,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::User,
+            crate::admin_audit_resource_id::AdminAuditResourceId::User(*path.get_inner()),
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

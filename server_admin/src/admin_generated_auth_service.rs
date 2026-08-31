@@ -1,15 +1,13 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    generate_accessor::Getters,
 )]
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the generated-auth layer constructs this service while fields remain private outside the facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct AdminGeneratedAuthService<Service> {
-    pub(crate) inner: Service,
-    pub(crate) state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+    inner: Service,
+    state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
 }
 impl<Service> tower::Service<axum::extract::Request> for AdminGeneratedAuthService<Service>
 where
@@ -28,7 +26,7 @@ where
     fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
         let mut inner = self.inner.clone();
         std::mem::swap(&mut inner, &mut self.inner);
-        let state = self.state.clone();
+        let state = self.get_state().clone();
         Box::pin(async move {
             let path = req.uri().path();
             let contract = crate::admin_generated_table::AdminGeneratedTable::ALL

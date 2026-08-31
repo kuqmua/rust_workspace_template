@@ -39,7 +39,6 @@ pub fn emit_generate_where_filters(
     let column_snake_case = naming::domain_types::ColumnSnakeCase;
     let error_snake_case = naming::domain_types::ErrorSnakeCase;
     let increment_snake_case = naming::domain_types::IncrementSnakeCase;
-    let pub_snake_case = naming::domain_types::PubSnakeCase;
     let query_snake_case = naming::domain_types::QuerySnakeCase;
     let self_snake_case = naming::domain_types::SelfSnakeCase;
     let v_snake_case = naming::domain_types::VSnakeCase;
@@ -50,7 +49,7 @@ pub fn emit_generate_where_filters(
     let t_token_stream = quote::quote! {T};
     let t_ann_generic_token_stream = quote::quote! {<#t_token_stream>};
     let proc_macro2_token_stream_new = proc_macro2::TokenStream::new();
-    let pub_v_t_token_stream = quote::quote! {#[schema(inline)] pub #v_snake_case: T};
+    let pub_v_t_token_stream = quote::quote! {#[schema(inline)] #v_snake_case: T};
     let v_default_some_one_element_token_stream = quote::quote! {
         #v_snake_case: #pg_crud_common_default_some_one_element_call
     };
@@ -59,12 +58,6 @@ pub fn emit_generate_where_filters(
          generic: &Generic,
          identifier: &dyn quote::ToTokens,
          struct_extra_fields_token_stream: &dyn quote::ToTokens| {
-            let maybe_pub_token_stream: &dyn quote::ToTokens =
-                if filter_initialization_with_try_new_result_is_ok {
-                    &proc_macro2_token_stream_new
-                } else {
-                    &pub_snake_case
-                };
             macro_helpers::derive_token_stream_builder::DTokenStreamBuilder::new()
                 .make_pub()
                 .d_debug()
@@ -79,7 +72,7 @@ pub fn emit_generate_where_filters(
                 .d_schemars_json_schema()
                 .d_utoipa_to_schema()
                 .build_struct(
-                    &proc_macro2::TokenStream::new(),
+                    &quote::quote! {#[derive(generate_accessor::Getters, generate_constructor::New)]},
                     &identifier,
                     &match &generic {
                         Generic::False => proc_macro2::TokenStream::new(),
@@ -91,7 +84,7 @@ pub fn emit_generate_where_filters(
                         ),
                     },
                     &quote::quote! {{
-                        #maybe_pub_token_stream operator: #import::operator::Operator,
+                        operator: #import::operator::Operator,
                         #struct_extra_fields_token_stream
                     }},
                 )
@@ -163,8 +156,8 @@ pub fn emit_generate_where_filters(
     let add_regex_case_and_v_declaration_token_stream = |ts: &dyn quote::ToTokens| {
         quote::quote! {
             #ts
-            pub regex_case: crate::regex_case::RegexCase,
-            pub #v_snake_case: crate::regex_regex::RegexRegex
+            regex_case: crate::regex_case::RegexCase,
+            #v_snake_case: crate::regex_regex::RegexRegex
         }
     };
     let add_regex_case_and_v_default_initialization_token_stream = |ts: &dyn quote::ToTokens| {
@@ -245,7 +238,7 @@ pub fn emit_generate_where_filters(
         }),
     };
     let pub_v_between_t_token_stream =
-        quote::quote! {#[schema(inline)] pub #v_snake_case: crate::between::Between<T>};
+        quote::quote! {#[schema(inline)] #v_snake_case: crate::between::Between<T>};
     let generate_match_query_bind_token_stream = |field_token_stream: &dyn quote::ToTokens| {
         pg_crud_macro_common::generate_match_ok_assign_or_return_err_token_stream::generate_match_ok_assign_or_return_err_token_stream(
             &quote::quote! {#field_token_stream.query_bind(#query_snake_case)},
@@ -489,7 +482,7 @@ pub fn emit_generate_where_filters(
                             },
                             quote::quote! {
                                 #maybe_dimensions_declaration_token_stream
-                                pub #v_snake_case: crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec<T>
+                                #v_snake_case: crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec<T>
                             },
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
@@ -640,8 +633,8 @@ pub fn emit_generate_where_filters(
                                 Generic::False,
                                 quote::quote! {
                                     #maybe_dimensions_declaration_token_stream
-                                    pub encode_format: crate::encode_format::EncodeFormat,
-                                    pub encoded_string_representation: String,
+                                    encode_format: crate::encode_format::EncodeFormat,
+                                    encoded_string_representation: String,
                                 },
                                 quote::quote! {
                                     #maybe_dimensions_default_initialization_token_stream
@@ -712,7 +705,7 @@ pub fn emit_generate_where_filters(
                             Generic::False,
                             quote::quote! {
                                 #maybe_dimensions_declaration_token_stream
-                                pub #v_snake_case: #import::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32
+                                #v_snake_case: #import::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32
                             },
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,

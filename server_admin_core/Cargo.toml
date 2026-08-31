@@ -8,6 +8,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+bounded_types = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
 secrecy = { workspace = true }

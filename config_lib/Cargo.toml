@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+generate_accessor = { workspace = true }
 bounded_types = { workspace = true }
 secrecy = { workspace = true }
 chrono = { workspace = true }

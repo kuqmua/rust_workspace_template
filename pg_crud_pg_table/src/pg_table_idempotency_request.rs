@@ -2,14 +2,28 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_accessor::Getters,
 )]
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyRequest {
-    pub(super) scope: crate::pg_table_idempotency_scope::PgTableIdempotencyScope,
-    pub(super) request_hash:
-        crate::pg_table_idempotency_request_hash::PgTableIdempotencyRequestHash,
+    scope: crate::pg_table_idempotency_scope::PgTableIdempotencyScope,
+    request_hash: crate::pg_table_idempotency_request_hash::PgTableIdempotencyRequestHash,
+}
+
+impl PgTableIdempotencyRequest {
+    #[must_use]
+    pub fn new(
+        scope: crate::pg_table_idempotency_scope::PgTableIdempotencyScope,
+        body: crate::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef<'_>,
+    ) -> Self {
+        Self {
+            scope,
+            request_hash: crate::calculate_pg_table_idempotency_request_hash::calculate_pg_table_idempotency_request_hash(body),
+        }
+    }
 }

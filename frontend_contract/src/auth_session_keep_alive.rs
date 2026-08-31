@@ -23,7 +23,7 @@ impl AuthSessionKeepAlive {
             return crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipAlreadyRunning;
         }
         if let Some(next) = self.next
-            && now.0 < next.0
+            && now.get() < next.get()
         {
             return crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipNotDue { next };
         }
@@ -40,8 +40,8 @@ impl AuthSessionKeepAlive {
         self.next = match outcome {
             crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Failed
             | crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Refreshed => now
-                .0
-                .checked_add(self.interval.0)
+                .get()
+                .checked_add(self.interval.get())
                 .map(crate::auth_session_instant::AuthSessionInstant::from),
             crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Rejected => None,
         };

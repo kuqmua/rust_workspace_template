@@ -17,31 +17,30 @@ where
     FetchCountFuture: Future<Output = Result<crate::list_total::ListTotal, Error>>,
 {
     let rows = fetch_list().await?;
-    let rows_presence = if rows.items.0.is_empty() {
+    let rows_presence = if rows.get_items().get_inner().is_empty() {
         crate::list_rows_presence::ListRowsPresence::Empty
     } else {
         crate::list_rows_presence::ListRowsPresence::Present
     };
-    let window_presence = if rows.window_total.is_some() {
+    let window_presence = if rows.get_window_total().is_some() {
         crate::window_total_presence::WindowTotalPresence::Present
     } else {
         crate::window_total_presence::WindowTotalPresence::Absent
     };
-    let total = match crate::resolve_list_total_source::resolve_list_total_source(
+    let total_source = crate::resolve_list_total_source::resolve_list_total_source(
         offset,
         rows_presence,
         window_presence,
-    ) {
+    );
+    let (items, window_total) = rows.into_parts();
+    let total = match total_source {
         crate::list_total_source::ListTotalSource::CountQuery => fetch_count().await?,
-        crate::list_total_source::ListTotalSource::Window => rows
-            .window_total
-            .unwrap_or_else(|| crate::list_total::ListTotal::from(constants_u32::ZERO)),
+        crate::list_total_source::ListTotalSource::Window => {
+            window_total.unwrap_or_else(|| crate::list_total::ListTotal::from(constants_u32::ZERO))
+        }
         crate::list_total_source::ListTotalSource::Zero => {
             crate::list_total::ListTotal::from(constants_u32::ZERO)
         }
     };
-    Ok(crate::list_page::ListPage {
-        items: rows.items,
-        total,
-    })
+    Ok(crate::list_page::ListPage::new(items, total))
 }

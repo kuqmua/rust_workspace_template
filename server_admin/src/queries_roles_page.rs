@@ -7,20 +7,20 @@ pub(crate) async fn queries_roles_page(
 {
     let _actor =
         crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
-            auth.state.as_ref(),
-            crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-            auth.peer,
+            auth.get_state().as_ref(),
+            crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+            *auth.get_peer(),
             server_admin_contract::admin_permission::AdminPermission::RolesRead.as_str(),
             server_admin_core::std_admin_bool::StdAdminBool::from(false),
         )
         .await?;
     crate::validate_table_sort::validate_table_sort(
-        &query.0,
+        query.get_inner(),
         &server_admin_contract::admin_table_sort_field::AdminTableSortField::ROLE,
     )?;
-    let role_pool = auth.state.as_ref().pool.as_ref();
+    let role_pool = auth.get_state().as_ref().get_pool().as_ref();
     let (roles, total) = async {
-        let search = query.0.search().as_ref();
+        let search = query.get_inner().search().as_ref();
         let total =
             sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_ROLES_SQL)
                 .bind(search)
@@ -30,10 +30,10 @@ pub(crate) async fn queries_roles_page(
         let rows =
             sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_PAGE_ROLES_SQL)
                 .bind(search)
-                .bind(query.0.sort().as_ref())
-                .bind(query.0.direction().as_ref())
-                .bind(i64::from(u16::from(query.0.limit())))
-                .bind(i64::from(u32::from(query.0.offset())))
+                .bind(query.get_inner().sort().as_ref())
+                .bind(query.get_inner().direction().as_ref())
+                .bind(i64::from(u16::from(query.get_inner().limit())))
+                .bind(i64::from(u32::from(query.get_inner().offset())))
                 .fetch_all(role_pool)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
@@ -97,7 +97,7 @@ pub(crate) async fn queries_roles_page(
     .await
     .map_err(crate::map_repository_error::map_repository_error)?;
     let permissions = async {
-        let permission_pool = auth.state.as_ref().pool.as_ref();
+        let permission_pool = auth.get_state().as_ref().get_pool().as_ref();
         let values =
             sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
                 .fetch_all(permission_pool)

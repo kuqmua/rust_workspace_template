@@ -18,5 +18,5 @@ pub(super) const fn route_http_method<
 where
     HttpMethod: Copy,
 {
-    dsc.http_method
+    *dsc.get_http_method()
 }

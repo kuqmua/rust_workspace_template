@@ -18,7 +18,7 @@ pub(crate) const fn idempotency_capable<
 where
     Capability: Copy,
 {
-    dsc.idempotency_capable
+    *dsc.get_idempotency_capable()
 }
 #[cfg(test)]
 mod tests {
@@ -26,15 +26,15 @@ mod tests {
         idempotency_capable: bool,
         optimistic_concurrency_capable: bool,
     ) -> crate::operation_dsc::OperationDsc<bool, (), (), (), (), ()> {
-        crate::operation_dsc::OperationDsc {
-            http_method: (),
+        crate::operation_dsc::OperationDsc::new(
+            (),
             idempotency_capable,
-            operation: (),
-            operation_kind: (),
+            (),
+            (),
             optimistic_concurrency_capable,
-            permission_action: (),
-            success_status_code: (),
-        }
+            (),
+            (),
+        )
     }
 
     #[test]

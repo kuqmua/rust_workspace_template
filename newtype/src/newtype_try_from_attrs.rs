@@ -1,6 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
-#[allow(clippy::field_scoped_visibility_modifiers)] // the proc-macro entry module consumes this parsed domain model
-#[derive(generate_accessor::Getters, generate_constructor::New)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    generate_accessor::Getters,
+    generate_constructor::New,
+)]
 pub(crate) struct NewtypeTryFromAttrs {
     error: Option<crate::syn_type::SynType>,
     validator: crate::syn_expr::SynExpr,

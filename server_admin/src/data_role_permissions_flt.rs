@@ -1,4 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    newtype::FromInner,
+    newtype::IntoInner,
+    generate_accessor::Getters,
+)]
 pub(crate) struct DataRolePermissionsFlt(
-    pub(super) crate::admin_role_permissions::StdOptionalOptionalAdminRolePermissionsWhereMany,
+    crate::admin_role_permissions::StdOptionalOptionalAdminRolePermissionsWhereMany,
 );

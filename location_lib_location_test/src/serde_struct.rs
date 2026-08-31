@@ -1,12 +1,16 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
-    Debug, serde::Serialize, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    generate_constructor::New,
+    serde::Serialize,
+    serde::Deserialize,
+    optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct SerdeStruct {
-    pub one: crate::location_test_text::LocationTestText,
-    pub three: crate::location_test_count::LocationTestCount,
-    pub two: crate::location_test_flag::LocationTestFlag,
+    one: crate::location_test_text::LocationTestText,
+    three: crate::location_test_count::LocationTestCount,
+    two: crate::location_test_flag::LocationTestFlag,
 }
 
 impl to_err_string::to_err_string::ToErrString for SerdeStruct {

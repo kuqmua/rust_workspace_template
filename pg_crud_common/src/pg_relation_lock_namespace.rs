@@ -1,9 +1,12 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct PgRelationLockNamespace(pub(super) String);
+pub struct PgRelationLockNamespace(String);
 
 impl TryFrom<String> for PgRelationLockNamespace {
     type Error = crate::pg_relation_lock_error::PgRelationLockError;

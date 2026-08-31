@@ -10,7 +10,7 @@ pub fn build_admin_cookie(
     } else {
         constants_str::HTTPONLY
     };
-    let secure_attr = if secure.0 {
+    let secure_attr = if *secure.get_inner() {
         constants_str::SECURE
     } else {
         constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
@@ -19,7 +19,7 @@ pub fn build_admin_cookie(
         "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attr}",
         kind.name().as_ref(),
         value.as_ref(),
-        max_age.0
+        max_age.get_inner()
     ))
     .unwrap_or_else(crate::std_admin_cookie::StdAdminCookie::from)
 }

@@ -9,6 +9,7 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
+bounded_types = { workspace = true }
 constants_usize = { workspace = true }
 constants_u8 = { workspace = true }
 atomic-write-file = { workspace = true }
@@ -23,6 +24,8 @@ server_runtime_http = { workspace = true }
 thiserror = { workspace = true }
 token_patterns = { workspace = true }
 generate_quotes = { workspace = true }
+generate_accessor = { workspace = true }
+generate_constructor = { workspace = true }
 naming = { workspace = true }
 naming_common = { workspace = true }
 naming_macros = { workspace = true }

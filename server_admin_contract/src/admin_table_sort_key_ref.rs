@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,5 +6,6 @@
     PartialEq,
     Eq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
-pub struct AdminTableSortKeyRef<'value_lt>(pub(super) &'value_lt str);
+pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);

@@ -9,7 +9,8 @@ pub(crate) async fn user_mutations_create(
         server_admin_contract::admin_permission::AdminPermission::UsersCreate,
     )
     .await?;
-    let (contract_display_name, contract_login, contract_password) = request.0.into_parts();
+    let (contract_display_name, contract_login, contract_password) =
+        request.into_inner().into_parts();
     let display_name = server_admin_contract::admin_display_name::AdminDisplayName::try_from(
         contract_display_name.into_inner(),
     )
@@ -22,16 +23,16 @@ pub(crate) async fn user_mutations_create(
     )
     .map_err(crate::admin_error::AdminError::password_text)?;
     let password_hash = auth
-        .state
+        .get_state()
         .as_ref()
-        .password_hasher
+        .get_password_hasher()
         .hash(password)
         .await
         .map_err(crate::admin_error::AdminError::password_hash)?;
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -50,21 +51,21 @@ pub(crate) async fn user_mutations_create(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Create,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::User,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::User(
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Create,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::User,
+            crate::admin_audit_resource_id::AdminAuditResourceId::User(
                 server_admin_core::admin_user_record_id::AdminUserRecordId::from(user_id.value()),
             ),
-            user_id: actor.id,
-        },
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(

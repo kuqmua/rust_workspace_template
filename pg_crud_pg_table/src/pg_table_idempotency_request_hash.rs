@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,5 +6,6 @@
     Eq,
     PartialEq,
     newtype::FromInner,
+    newtype::GetInner,
 )]
-pub struct PgTableIdempotencyRequestHash(pub(super) [u8; 32usize]);
+pub struct PgTableIdempotencyRequestHash([u8; 32usize]);

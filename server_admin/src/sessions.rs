@@ -6,24 +6,24 @@ pub(crate) async fn sessions(
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let authenticated = crate::authorization_authenticate::authorization_authenticate(
-        auth.state.as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        auth.peer,
+        auth.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+        *auth.get_peer(),
     )
     .await?;
     let total = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
-        .bind(authenticated.id.get())
-        .fetch_one(auth.state.as_ref().pool.as_ref())
+        .bind(authenticated.get_id().get())
+        .fetch_one(auth.get_state().as_ref().get_pool().as_ref())
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_error::AdminError::from)?;
     let items = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
         constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
-    .bind(authenticated.id.get())
-    .bind(i64::from(u16::from(query.0.limit())))
-    .bind(i64::from(u32::from(query.0.offset())))
-    .fetch_all(auth.state.as_ref().pool.as_ref())
+    .bind(authenticated.get_id().get())
+    .bind(i64::from(u16::from(query.get_inner().limit())))
+    .bind(i64::from(u32::from(query.get_inner().offset())))
+    .fetch_all(auth.get_state().as_ref().get_pool().as_ref())
     .await
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     .map_err(crate::admin_error::AdminError::from)?
@@ -50,7 +50,7 @@ pub(crate) async fn sessions(
                     crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
                 })?,
                 server_admin_contract::admin_bool::AdminBool::from(
-                    id == authenticated.session_id.get().get(),
+                    id == authenticated.get_session_id().get().get(),
                 ),
             ),
         )

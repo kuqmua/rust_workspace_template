@@ -2,7 +2,6 @@
     unused_imports,
     unreachable_pub,
     clippy::arbitrary_source_item_ordering,
-    clippy::field_scoped_visibility_modifiers,
     clippy::needless_for_each,
     clippy::partial_pub_fields,
     clippy::shadow_reuse,

@@ -7,10 +7,10 @@ pub fn validate_pg_relation_capacity(
     crate::pg_relation_capacity_error::PgRelationCapacityError,
 > {
     let projected = current
-        .0
-        .checked_add(incoming.0)
+        .get_inner()
+        .checked_add(*incoming.get_inner())
         .ok_or(crate::pg_relation_capacity_error::PgRelationCapacityError::Overflow)?;
-    if projected > maximum.0.get() {
+    if projected > maximum.get_inner().get() {
         Err(crate::pg_relation_capacity_error::PgRelationCapacityError::Exceeded)
     } else {
         Ok(crate::pg_relation_row_count::PgRelationRowCount::from(

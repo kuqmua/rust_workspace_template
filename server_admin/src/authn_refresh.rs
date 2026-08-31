@@ -3,8 +3,8 @@ pub(crate) async fn authn_refresh(
     auth: crate::admin_auth_req::AdminAuthReq,
     peer: crate::admin_peer_addr::AdminPeerAddr,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
-    let state = auth.state;
-    let headers = auth.headers;
+    let state = auth.get_state();
+    let headers = auth.get_headers();
     if !crate::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state.as_ref(),
         crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(headers.as_ref()),
@@ -12,21 +12,21 @@ pub(crate) async fn authn_refresh(
     .get()
     {
         crate::authn_apply_refresh_failure_delay::authn_apply_refresh_failure_delay(
-            state.as_ref().policy.failure_delay,
+            state.as_ref().get_policy().get_failure_delay(),
         )
         .await;
         return Err(crate::admin_error::AdminError::Authentication);
     }
     let peer_subject = server_admin_core::std_admin_string::StdAdminString::try_from(
-        peer.0.as_ref().ip().to_string(),
+        peer.get_inner().as_ref().ip().to_string(),
     )
     .map_err(|_error| crate::admin_error::AdminError::Validation)?;
     crate::enforce_rate_limit::enforce_rate_limit(
         state.as_ref(),
         crate::admin_rate_limit_scope::AdminRateLimitScope::RefreshIp,
         &peer_subject,
-        state.as_ref().policy.refresh_limit,
-        state.as_ref().policy.refresh_window,
+        state.as_ref().get_policy().get_refresh_limit(),
+        state.as_ref().get_policy().get_refresh_window(),
     )
     .await?;
     let Some(raw_token) = crate::find_admin_cookie::find_admin_cookie(
@@ -34,7 +34,7 @@ pub(crate) async fn authn_refresh(
         crate::admin_cookie_kind::AdminCookieKind::Refresh,
     ) else {
         crate::authn_apply_refresh_failure_delay::authn_apply_refresh_failure_delay(
-            state.as_ref().policy.failure_delay,
+            state.as_ref().get_policy().get_failure_delay(),
         )
         .await;
         return Err(crate::admin_error::AdminError::Authentication);
@@ -59,7 +59,7 @@ pub(crate) async fn authn_refresh(
         .map_err(crate::admin_error::AdminError::authentication_secret_text)?;
     let mut tx = state
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -82,7 +82,7 @@ pub(crate) async fn authn_refresh(
             .await
             .map_err(crate::admin_error::AdminError::from)?;
         crate::authn_apply_refresh_failure_delay::authn_apply_refresh_failure_delay(
-            state.as_ref().policy.failure_delay,
+            state.as_ref().get_policy().get_failure_delay(),
         )
         .await;
         return Err(crate::admin_error::AdminError::Authentication);
@@ -122,15 +122,13 @@ pub(crate) async fn authn_refresh(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Refresh,
-            login: &login,
-            resource: crate::admin_audit_resource::AdminAuditResource::Session,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::Session(
-                session.session_id(),
-            ),
-            user_id: admin_user_id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Refresh,
+            &login,
+            crate::admin_audit_resource::AdminAuditResource::Session,
+            crate::admin_audit_resource_id::AdminAuditResourceId::Session(session.session_id()),
+            admin_user_id,
+        ),
     )
     .await?;
     let authenticated = crate::load_authenticated_admin_from_db::load_authenticated_admin_from_db(

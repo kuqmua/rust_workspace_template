@@ -760,7 +760,7 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
 fn generate_bounded_string_token_stream(
     input: newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef<'_>,
 ) -> syn::Result<proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream> {
-    let input_ref = input.as_ref();
+    let input_ref: &syn::DeriveInput = input.into();
     let attrs = input_ref
         .attrs
         .iter()
@@ -1623,7 +1623,7 @@ fn generate_newtype_token_stream_with_attrs(
 fn tuple_struct_one_field_ty(
     input: newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef<'_>,
 ) -> syn::Result<syn_type_ref::SynTypeRef<'_>> {
-    let input_ref = input.get();
+    let input_ref: &syn::DeriveInput = input.into();
     let shape =
         workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::try_from(input_ref)
             .map_err(|_error| {
@@ -1633,8 +1633,8 @@ fn tuple_struct_one_field_ty(
                 )
             })?;
     let unnamed = match shape {
-        workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Tuple(v) => {
-            &v.get().unnamed
+        workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Tuple(value) => {
+            &value.get().unnamed
         }
         workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Named(_)
         | workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Unit => {
@@ -1659,7 +1659,7 @@ fn type_path_ends_with_string_identifier(
     ty: syn_type_ref::SynTypeRef<'_>,
 ) -> newtype_bool::NewtypeBool {
     newtype_bool::NewtypeBool::from(match ty.as_ref() {
-        syn::Type::Path(v) if v.qself.is_none() => v
+        syn::Type::Path(value) if value.qself.is_none() => value
             .path
             .segments
             .last()

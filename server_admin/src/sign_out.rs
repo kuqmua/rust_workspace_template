@@ -11,7 +11,7 @@ pub(crate) async fn sign_out(
                         server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn.get(),
                     ));
                 response
-                    .0
+                    .get_inner()
                     .headers()
                     .get_all(http::header::SET_COOKIE)
                     .iter()

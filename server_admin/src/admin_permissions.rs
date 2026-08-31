@@ -17,11 +17,12 @@
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
+#[derive(generate_accessor::Getters)]
 pub struct AdminPermissions {
     #[generate_pg_table_primary_key]
-    pub id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
-    pub name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+    id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+    name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    pub created_at:
+    created_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }

@@ -3,9 +3,7 @@
 pub(crate) async fn sign_in(
     auth: crate::admin_auth_req::AdminAuthReq,
     peer: crate::admin_peer_addr::AdminPeerAddr,
-    crate::axum_admin_form::AxumAdminForm(form): crate::axum_admin_form::AxumAdminForm<
-        crate::sign_in_form::SignInForm,
-    >,
+    form: crate::axum_admin_form::AxumAdminForm<crate::sign_in_form::SignInForm>,
 ) -> axum::response::Response {
     let branding = crate::settings_branding_view_ref::settings_branding_view_ref(&auth)
         .await
@@ -13,17 +11,17 @@ pub(crate) async fn sign_in(
     match crate::authn_sign_in::authn_sign_in(
         auth,
         peer,
-        crate::admin_sign_in_json::AdminSignInJson(
+        crate::admin_sign_in_json::AdminSignInJson::from(
             server_admin_contract::admin_sign_in_req::AdminSignInReq::new(
-                form.login,
-                form.password,
+                form.get_login().clone(),
+                form.get_password().clone(),
             ),
         ),
     )
     .await
     {
         Ok(response) => {
-            let source = response.0;
+            let source = response.get_inner();
             let mut target =
                 axum::response::IntoResponse::into_response(axum::response::Redirect::to(
                     server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),

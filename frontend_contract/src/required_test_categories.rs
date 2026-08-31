@@ -5,11 +5,12 @@ pub fn required_test_categories(
     let categories = [
         Some(crate::route_test_category::RouteTestCategory::FixtureHook),
         Some(crate::route_test_category::RouteTestCategory::Metadata),
-        (capabilities.database == crate::route_database_usage::RouteDatabaseUsage::Database)
+        (*capabilities.get_database() == crate::route_database_usage::RouteDatabaseUsage::Database)
             .then_some(crate::route_test_category::RouteTestCategory::DatabaseFixture),
-        (capabilities.json_body == crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody)
+        (*capabilities.get_json_body()
+            == crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody)
             .then_some(crate::route_test_category::RouteTestCategory::JsonRoundTrip),
-        (capabilities.response == crate::route_response_kind::RouteResponseKind::Streaming)
+        (*capabilities.get_response() == crate::route_response_kind::RouteResponseKind::Streaming)
             .then_some(crate::route_test_category::RouteTestCategory::StreamingResponse),
     ]
     .into_iter()

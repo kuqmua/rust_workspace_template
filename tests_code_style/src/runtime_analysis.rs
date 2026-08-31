@@ -1,6 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct RuntimePanicExpectUnwrapVisitor {
-    pub ers: crate::types::DiagnosticMsgs,
+    ers: crate::types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
@@ -29,9 +33,13 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct RuntimeMutexVisitor {
-    pub found_count: crate::types::AnalyzerCount,
+    found_count: crate::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
     fn visit_item(&mut self, i: &'ast syn::Item) {
@@ -52,12 +60,16 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
         syn::visit::visit_type_path(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub(super) struct RuntimeArcVisitor {
-    pub ers: crate::types::DiagnosticMsgs,
-    pub allow_arc_value_usage: crate::types::AnalyzerBool,
+    ers: crate::types::DiagnosticMsgs,
+    allow_arc_value_usage: crate::types::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
@@ -120,10 +132,14 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
         syn::visit::visit_item_type(self, i);
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct AsyncBlockingCallVisitor {
-    pub async_fn_depth: crate::types::AnalyzerCount,
-    pub ers: crate::types::DiagnosticMsgs,
+    async_fn_depth: crate::types::AnalyzerCount,
+    ers: crate::types::DiagnosticMsgs,
 }
 impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
     fn visit_expr_async(&mut self, i: &'ast syn::ExprAsync) {
@@ -247,10 +263,14 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
         }
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct UnitTestExternalServiceVisitor {
-    pub ers: crate::types::DiagnosticMsgs,
-    pub test_depth: crate::types::AnalyzerCount,
+    ers: crate::types::DiagnosticMsgs,
+    test_depth: crate::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {

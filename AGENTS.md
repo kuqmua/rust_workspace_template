@@ -21,6 +21,9 @@
 - Preserve behavior and semantics unless a change is requested; never change semantics silently.
 - Keep diffs minimal.
 - Keep generated functions and closures inside usage scope.
+- Keep every struct field private, including tuple-struct fields. Expose required reads through
+  generated getters such as `generate_accessor::Getters` or `newtype::GetInner`, and expose
+  construction through validated conversions or generated constructors.
 - Rewrite a private production function with exactly one non-test call site as a closure inside
   that call site's function when doing so preserves attributes, async behavior, architecture
   boundaries, domain wrappers, and direct unit-test coverage. Keep an item-scoped, justified
@@ -39,6 +42,7 @@
 - Commit debug prints.
 - Use import or re-export aliases with `as`, including `use ... as ...` and `pub use ... as ...`; use the original item name or rename the item at its definition when a rename is explicitly required.
 - Create type aliases with `type`; use explicit types at usage sites.
+- Define declarative macros with `macro_rules!`; use a proc-macro crate for code generation.
 - Expose primitive or external crate types in domain boundaries when a repository domain wrapper type can be used instead.
 - Use `unwrap()`.
 - Use `expect()` or `panic!()` in library code except in `proc-macro`, tests, or generated test code inside `quote!`.
@@ -55,6 +59,7 @@
 - Leak generics to users.
 - Refactor or reformat without request.
 - Rename public items casually.
+- Declare `pub`, `pub(crate)`, `pub(super)`, or `pub(in ...)` visibility on a struct field.
 
 ## Review-only rules
 

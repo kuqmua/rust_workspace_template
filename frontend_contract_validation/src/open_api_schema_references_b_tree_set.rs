@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::DerefInner, newtype::FromInner)]
 pub(super) struct OpenApiSchemaReferencesBTreeSet(
     std::collections::BTreeSet<crate::open_api_contract_text::OpenApiContractText>,

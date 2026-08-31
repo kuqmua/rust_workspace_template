@@ -42,7 +42,7 @@ pub(crate) async fn query_audit_log(
             .bind(parts.get_user_login().map(|value| value.as_ref().as_str()))
             .bind(parts.get_resource_id().map(|value| value.as_ref().as_str()))
             .bind(parts.get_succeeded().copied().map(bool::from))
-            .fetch_one(pool.0)
+            .fetch_one(*pool)
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
     let rows = sqlx::query_as::<
@@ -88,7 +88,7 @@ pub(crate) async fn query_audit_log(
     .bind(parts.get_succeeded().copied().map(bool::from))
     .bind(fetch_limit)
     .bind(i64::from(u32::from(*parts.get_offset())))
-    .fetch_all(pool.0)
+    .fetch_all(*pool)
     .await
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
     let has_more = rows.len() > limit;

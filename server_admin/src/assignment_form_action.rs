@@ -6,13 +6,13 @@ pub(crate) async fn assignment_form_action(
         crate::assignment_form_target::AssignmentFormTarget::RolePermissions(form) => {
             crate::assignment_action::assignment_action(
                 auth,
-                &form.expected_permission_ids,
-                form.selected,
+                form.get_expected_permission_ids(),
+                form.get_selected(),
                 crate::permission_ids_impl::permission_ids_impl,
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
                 server_admin_contract::admin_set_role_permissions_req::AdminSetRolePermissionsReq::new,
-                crate::axum_admin_path::AxumAdminPath(crate::role_path_impl::role_path_impl(
-                    form.role_id,
+                crate::axum_admin_path::AxumAdminPath::from(crate::role_path_impl::role_path_impl(
+                    *form.get_role_id(),
                 )),
                 crate::mutations_set_permissions::mutations_set_permissions,
             )
@@ -21,13 +21,13 @@ pub(crate) async fn assignment_form_action(
         crate::assignment_form_target::AssignmentFormTarget::UserRoles(form) => {
             crate::assignment_action::assignment_action(
                 auth,
-                &form.expected_role_ids,
-                form.selected,
+                form.get_expected_role_ids(),
+                form.get_selected(),
                 crate::role_ids_impl::role_ids_impl,
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
                 server_admin_contract::admin_set_user_roles_req::AdminSetUserRolesReq::new,
-                crate::axum_admin_path::AxumAdminPath(crate::user_path_impl::user_path_impl(
-                    form.user_id,
+                crate::axum_admin_path::AxumAdminPath::from(crate::user_path_impl::user_path_impl(
+                    *form.get_user_id(),
                 )),
                 crate::mutations_set_roles::mutations_set_roles,
             )

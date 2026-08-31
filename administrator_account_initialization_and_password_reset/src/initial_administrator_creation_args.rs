@@ -1,9 +1,8 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(generate_constructor::New, optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(crate) struct InitialAdministratorCreationArgs {
-    pub display_name: server_admin_contract::admin_display_name::AdminDisplayName,
-    pub login: server_admin_contract::admin_login::AdminLogin,
-    pub password_file:
-        crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf,
+    display_name: server_admin_contract::admin_display_name::AdminDisplayName,
+    login: server_admin_contract::admin_login::AdminLogin,
+    password_file: crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf,
 }
 
 impl InitialAdministratorCreationArgs {

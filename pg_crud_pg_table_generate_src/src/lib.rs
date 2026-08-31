@@ -32,3 +32,6 @@ pub mod table_test_names;
 #[cfg(test)]
 pub mod tests;
 pub mod validate_generate_pg_table;
+
+const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+    bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

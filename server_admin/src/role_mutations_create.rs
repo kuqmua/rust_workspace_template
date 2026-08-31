@@ -10,13 +10,13 @@ pub(crate) async fn role_mutations_create(
     )
     .await?;
     let name = server_admin_contract::admin_role_name::AdminRoleName::try_from(
-        request.0.into_name().into_inner(),
+        request.into_inner().into_name().into_inner(),
     )
     .map_err(|_error| crate::admin_error::AdminError::Validation)?;
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -35,19 +35,19 @@ pub(crate) async fn role_mutations_create(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Create,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::Role,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::Role(role_id),
-            user_id: actor.id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Create,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::Role,
+            crate::admin_audit_resource_id::AdminAuditResourceId::Role(role_id),
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(

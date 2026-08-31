@@ -9,14 +9,11 @@ fn runtime_code_does_not_use_expect_unwrap_or_panic() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::RuntimePanicExpectUnwrapVisitor {
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::runtime_analysis::RuntimePanicExpectUnwrapVisitor::new(crate::types::DiagnosticMsgs::default()),
             );
             ers.extend(
                 visitor
-                    .ers
-                    .into_iter()
+                    .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -33,15 +30,13 @@ fn runtime_code_does_not_use_mutex() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::RuntimeMutexVisitor {
-                    found_count: crate::types::AnalyzerCount::default(),
-                },
+                super::runtime_analysis::RuntimeMutexVisitor::new(crate::types::AnalyzerCount::default()),
             );
             crate::code_style::push_repeated_file_error(
                 crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(constants_str::MUTEX_TYPE_USAGE),
-                visitor.found_count,
+                *visitor.get_found_count(),
             );
         },
     );
@@ -82,16 +77,15 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::RuntimeArcVisitor {
-                    allow_arc_value_usage: crate::types::AnalyzerBool::from(
-                        defines_explicit_shared_arc_wrapper(ast),
-                    ),
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::runtime_analysis::RuntimeArcVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::AnalyzerBool::from(defines_explicit_shared_arc_wrapper(ast)),
+                ),
             );
             ers.extend(
                 visitor
-                    .ers
+                    .get_ers()
+                    .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
@@ -157,14 +151,15 @@ fn async_functions_do_not_make_blocking_executor_calls() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::AsyncBlockingCallVisitor {
-                    async_fn_depth: crate::types::AnalyzerCount::default(),
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::runtime_analysis::AsyncBlockingCallVisitor::new(
+                    crate::types::AnalyzerCount::default(),
+                    crate::types::DiagnosticMsgs::default(),
+                ),
             );
             ers.extend(
                 visitor
-                    .ers
+                    .get_ers()
+                    .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
@@ -177,12 +172,12 @@ fn async_blocking_policy_rejects_sync_filesystem_network_and_executor_calls() {
         .expect("57a4f701 synchronous_is_allowed invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::runtime_analysis::AsyncBlockingCallVisitor {
-            async_fn_depth: crate::types::AnalyzerCount::default(),
-            ers: crate::types::DiagnosticMsgs::default(),
-        },
+        super::runtime_analysis::AsyncBlockingCallVisitor::new(
+            crate::types::AnalyzerCount::default(),
+            crate::types::DiagnosticMsgs::default(),
+        ),
     );
-    assert_eq!(visitor.ers.len(), 7usize);
+    assert_eq!(visitor.get_ers().len(), 7usize);
 }
 #[test]
 fn unit_tests_do_not_create_external_service_clients() {
@@ -195,15 +190,11 @@ fn unit_tests_do_not_create_external_service_clients() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::UnitTestExternalServiceVisitor {
-                    test_depth: crate::types::AnalyzerCount::default(),
-                    ers: crate::types::DiagnosticMsgs::default(),
-                },
+                super::runtime_analysis::UnitTestExternalServiceVisitor::new(crate::types::DiagnosticMsgs::default(), crate::types::AnalyzerCount::default()),
             );
             ers.extend(
                 visitor
-                    .ers
-                    .into_iter()
+                    .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -216,12 +207,12 @@ fn external_service_policy_rejects_http_database_and_socket_clients() {
         .expect("62a4c3a8 external_clients invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::runtime_analysis::UnitTestExternalServiceVisitor {
-            test_depth: crate::types::AnalyzerCount::default(),
-            ers: crate::types::DiagnosticMsgs::default(),
-        },
+        super::runtime_analysis::UnitTestExternalServiceVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            crate::types::AnalyzerCount::default(),
+        ),
     );
-    assert_eq!(visitor.ers.len(), 5usize, "e165d841");
+    assert_eq!(visitor.get_ers().len(), 5usize, "e165d841");
 }
 
 #[test]
@@ -230,10 +221,10 @@ fn external_service_policy_requires_a_reason_for_ignored_integration_tests() {
         .expect("fa48e32b ignored_with_reason invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::runtime_analysis::UnitTestExternalServiceVisitor {
-            test_depth: crate::types::AnalyzerCount::default(),
-            ers: crate::types::DiagnosticMsgs::default(),
-        },
+        super::runtime_analysis::UnitTestExternalServiceVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+            crate::types::AnalyzerCount::default(),
+        ),
     );
-    assert_eq!(visitor.ers.len(), constants_usize::ONE, "31fd7ca0");
+    assert_eq!(visitor.get_ers().len(), constants_usize::ONE, "31fd7ca0");
 }

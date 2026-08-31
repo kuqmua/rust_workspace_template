@@ -1,6 +1,7 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(generate_accessor::Getters)]
 pub(crate) struct AdminSignInUser {
     id: server_admin_core::admin_user_record_id::AdminUserRecordId,
     password_hash: crate::admin_password_hash::AdminPasswordHash,
@@ -31,6 +32,8 @@ impl From<AdminSignInUser>
     )
 {
     fn from(value: AdminSignInUser) -> Self {
-        (value.id, value.password_hash, value.is_banned)
+        let id = *value.get_id();
+        let is_banned = *value.get_is_banned();
+        (id, value.password_hash, is_banned)
     }
 }

@@ -261,3 +261,6 @@ pub mod text_page;
 pub mod url;
 pub mod values;
 pub mod with_owner;
+
+const _: fn(&str) -> Result<(), bounded_types::bounded_value_error::BoundedValueError> =
+    bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

@@ -17,6 +17,8 @@ bounded_types = { workspace = true }
 constants_str = { workspace = true }
 app_state = { workspace = true }
 config_lib = { workspace = true }
+generate_accessor = { workspace = true }
+generate_constructor = { workspace = true }
 newtype = { workspace = true }
 sha2 = { workspace = true }
 server_runtime_core = { workspace = true }

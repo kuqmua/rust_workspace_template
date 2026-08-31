@@ -1,11 +1,7 @@
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "sibling generator pipeline modules construct the private table descriptor"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(generate_constructor::New, optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct GeneratePgTableModel {
-    pub(crate) field_count: super::generate_pg_table_field_count::GeneratePgTableFieldCount,
-    pub(crate) input: super::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput,
+    field_count: super::generate_pg_table_field_count::GeneratePgTableFieldCount,
+    input: super::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput,
 }
 impl GeneratePgTableModel {
     #[must_use]

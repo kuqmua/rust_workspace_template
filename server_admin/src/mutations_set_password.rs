@@ -13,20 +13,20 @@ pub(crate) async fn mutations_set_password(
     )
     .await?;
     let password = crate::admin_new_password_from_contract::admin_new_password_from_contract(
-        request.0.into_password(),
+        request.into_inner().into_password(),
     )
     .map_err(crate::admin_error::AdminError::password_text)?;
     let password_hash = auth
-        .state
+        .get_state()
         .as_ref()
-        .password_hasher
+        .get_password_hasher()
         .hash(password)
         .await
         .map_err(crate::admin_error::AdminError::password_hash)?;
     let mut tx = auth
-        .state
+        .get_state()
         .as_ref()
-        .pool
+        .get_pool()
         .as_ref()
         .begin()
         .await
@@ -35,7 +35,7 @@ pub(crate) async fn mutations_set_password(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        path.0,
+        *path.get_inner(),
         &password_hash,
         crate::admin_password_change_required::AdminPasswordChangeRequired::from(true),
     )
@@ -48,7 +48,7 @@ pub(crate) async fn mutations_set_password(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        path.0,
+        *path.get_inner(),
     )
     .await
     .map_err(crate::admin_error::AdminError::from)?;
@@ -56,19 +56,19 @@ pub(crate) async fn mutations_set_password(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        crate::admin_audit_success_ref::AdminAuditSuccessRef {
-            action: crate::admin_audit_action::AdminAuditAction::Update,
-            login: &actor.login,
-            resource: crate::admin_audit_resource::AdminAuditResource::User,
-            resource_id: crate::admin_audit_resource_id::AdminAuditResourceId::User(path.0),
-            user_id: actor.id,
-        },
+        crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
+            crate::admin_audit_action::AdminAuditAction::Update,
+            actor.get_login(),
+            crate::admin_audit_resource::AdminAuditResource::User,
+            crate::admin_audit_resource_id::AdminAuditResourceId::User(*path.get_inner()),
+            *actor.get_id(),
+        ),
     )
     .await?;
     tx.commit()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    Ok(crate::axum_admin_response::AxumAdminResponse(
+    Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }

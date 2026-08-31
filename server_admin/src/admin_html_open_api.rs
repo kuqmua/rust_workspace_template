@@ -7,9 +7,9 @@ pub(crate) async fn admin_html_open_api(
         crate::settings_branding_view_ref::settings_branding_view_ref(&auth).await;
     let authorized =
         crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
-            auth.state.as_ref(),
-            crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-            auth.peer,
+            auth.get_state().as_ref(),
+            crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+            *auth.get_peer(),
             server_admin_contract::admin_permission::AdminPermission::OpenApiRead.as_str(),
             server_admin_core::std_admin_bool::StdAdminBool::from(false),
         )

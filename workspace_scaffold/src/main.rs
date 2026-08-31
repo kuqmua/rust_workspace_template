@@ -87,9 +87,9 @@ fn main() {
                         repository_url_ref::RepositoryUrlRef::from(repository_url.as_str());
                     naming_validate_project_name::naming_validate_project_name(name_ref)?;
                     if !repository_url_ref
-                        .0
+                        .get()
                         .starts_with(constants_str::HTTPS_SCHEME_PREFIX)
-                        || repository_url_ref.0.ends_with('/')
+                        || repository_url_ref.get().ends_with('/')
                     {
                         return Err(scaffold_error::ScaffoldError::RepositoryUrl);
                     }
@@ -166,15 +166,15 @@ fn main() {
                         let root = workspace_root()?;
                         let service_name = project_name_ref::ProjectNameRef::from(name.as_str());
                         naming_validate_project_name::naming_validate_project_name(service_name)?;
-                        if port.0 == constants_u16::ZERO {
+                        if port.get() == constants_u16::ZERO {
                             return Err(scaffold_error::ScaffoldError::ServicePort);
                         }
-                        let service = service_name.0;
+                        let service = service_name.get();
                         let config = format!("{service}_config");
                         let contract = format!("{service}_contract");
                         if [service, config.as_str(), contract.as_str()]
                             .iter()
-                            .any(|path| root.0.join(path).exists())
+                            .any(|path| root.get().join(path).exists())
                         {
                             return Err(scaffold_error::ScaffoldError::ServiceExists);
                         }
@@ -208,44 +208,44 @@ fn main() {
                             ),
                             (
                                 constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_PORT,
-                                port.0.to_string(),
+                                port.get().to_string(),
                             ),
                         ];
                         template_fs_copy_template_tree::template_fs_copy_template_tree(
                             scaffold_path_ref::ScaffoldPathRef::from(
-                                root.0
+                                root.get()
                                     .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
                                     .as_path(),
                             ),
                             scaffold_path_ref::ScaffoldPathRef::from(
-                                root.0.join(service).as_path(),
+                                root.get().join(service).as_path(),
                             ),
                             replacements_ref::ReplacementsRef::from(replacements.as_slice()),
                         )?;
                         template_fs_copy_template_tree::template_fs_copy_template_tree(
                             scaffold_path_ref::ScaffoldPathRef::from(
-                                root.0
+                                root.get()
                                     .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
                                     .as_path(),
                             ),
                             scaffold_path_ref::ScaffoldPathRef::from(
-                                root.0.join(config.as_str()).as_path(),
+                                root.get().join(config.as_str()).as_path(),
                             ),
                             replacements_ref::ReplacementsRef::from(replacements.as_slice()),
                         )?;
                         template_fs_copy_template_tree::template_fs_copy_template_tree(
                             scaffold_path_ref::ScaffoldPathRef::from(
-                                root.0
+                                root.get()
                                     .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
                                     .as_path(),
                             ),
                             scaffold_path_ref::ScaffoldPathRef::from(
-                                root.0.join(contract.as_str()).as_path(),
+                                root.get().join(contract.as_str()).as_path(),
                             ),
                             replacements_ref::ReplacementsRef::from(replacements.as_slice()),
                         )?;
 
-                        let manifest = root.0.join(constants_str::CARGO_TOML);
+                        let manifest = root.get().join(constants_str::CARGO_TOML);
                         template_fs_insert_once::template_fs_insert_once(
                                 scaffold_path_ref::ScaffoldPathRef::from(manifest.as_path()),
                                 scaffold_text_ref::ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
@@ -270,11 +270,11 @@ fn main() {
                             )?;
 
                         let k8s_source = root
-                            .0
+                            .get()
                             .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH);
                         let k8s_file_name = format!("{kebab}.yaml");
                         let k8s_destination = root
-                            .0
+                            .get()
                             .join(constants_str::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
                             .join(k8s_file_name.as_str());
                         let _copied_bytes =
@@ -292,7 +292,7 @@ fn main() {
                         k8s_contents.push_str(
                                 format!(
                                     "\n---\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: {kebab}-access\n  namespace: rust-workspace-template\nspec:\n  podSelector:\n    matchLabels:\n      app.kubernetes.io/name: {kebab}\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app.kubernetes.io/name: application\n      ports:\n        - protocol: TCP\n          port: {port}\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: database\n          podSelector:\n            matchLabels:\n              app.kubernetes.io/name: {kebab}-postgresql\n      ports:\n        - protocol: TCP\n          port: 5432\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              kubernetes.io/metadata.name: kube-system\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n      ports:\n        - protocol: UDP\n          port: 53\n        - protocol: TCP\n          port: 53\n  policyTypes: [\"Ingress\", \"Egress\"]\n",
-                                    port = port.0,
+                                    port = port.get(),
                                 )
                                 .as_str(),
                             );
@@ -301,7 +301,7 @@ fn main() {
                             scaffold_text_ref::ScaffoldTextRef::from(k8s_contents.as_str()),
                         )?;
                         let kustomization = root
-                            .0
+                            .get()
                             .join(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
                         template_fs_insert_once::template_fs_insert_once(
                             scaffold_path_ref::ScaffoldPathRef::from(kustomization.as_path()),
@@ -315,7 +315,7 @@ fn main() {
                         )?;
 
                         let config_example_path = root
-                            .0
+                            .get()
                             .join(config.as_str())
                             .join(constants_str::ENV_EXAMPLE);
                         let config_example =
@@ -336,7 +336,7 @@ fn main() {
                                             "postgres://{service}:${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}@{service}_database:5432/{service}"
                                         )
                                     } else if key == socket_key {
-                                        format!("0.0.0.0:{}", port.0)
+                                        format!("0.0.0.0:{}", port.get())
                                     } else {
                                         example.to_owned()
                                     };
@@ -353,18 +353,18 @@ fn main() {
                                 <common_routes::health_ready_route::HealthReadyRoute as frontend_contract::typed_route::TypedRoute>::metadata().path();
                         let compose = format!(
                             "services:\n  {service}_database:\n    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55\n    environment:\n      POSTGRES_DB: {service}\n      POSTGRES_USER: {service}\n      POSTGRES_PASSWORD: ${{{upper_snake}_POSTGRES_PASSWORD:?set {upper_snake}_POSTGRES_PASSWORD}}\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U {service} -d {service}\"]\n      interval: 5s\n      timeout: 3s\n      retries: 20\n    networks: [application]\n    volumes: [{service}_database_data:/var/lib/postgresql/data]\n  # BEGIN GENERATED COMPOSE IDENTITY {service}\n  {service}:\n    build:\n      context: .\n      dockerfile: {service}/Dockerfile\n  # END GENERATED COMPOSE IDENTITY {service}\n    depends_on:\n      {service}_database:\n        condition: service_healthy\n    environment:\n{environment}    healthcheck:\n      # BEGIN GENERATED COMPOSE HEALTH {service}\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:{port}{ready_path}\"]\n      # END GENERATED COMPOSE HEALTH {service}\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n    networks: [application]\n    # BEGIN GENERATED COMPOSE PORT {service}\n    ports:\n      - \"127.0.0.1:{port}:{port}\"\n    # END GENERATED COMPOSE PORT {service}\n    read_only: true\n    restart: unless-stopped\n    tmpfs: [/tmp:size=16m,mode=1777]\nvolumes:\n  {service}_database_data:\n",
-                            port = port.0,
+                            port = port.get(),
                             environment = compose_environment,
                             ready_path = ready_path.as_ref(),
                         );
-                        let compose_path = root.0.join(format!("docker-compose.{service}.yml"));
+                        let compose_path = root.get().join(format!("docker-compose.{service}.yml"));
                         template_fs_write_text::template_fs_write_text(
                             scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
                             scaffold_text_ref::ScaffoldTextRef::from(compose.as_str()),
                         )?;
 
                         let service_catalog = root
-                            .0
+                            .get()
                             .join(constants_str::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
                         let mut service_catalog_contents =
                             template_fs_read_bounded_text::template_fs_read_bounded_text(
@@ -375,7 +375,7 @@ fn main() {
                         service_catalog_contents.push_str(
                                 format!(
                                     "\n[[service]]\ncrate = \"{service}\"\ncompose = \"{service}\"\ncompose_file = \"docker-compose.{service}.yml\"\ndockerfile = \"{service}/Dockerfile\"\nimage = \"{kebab}\"\nkubernetes = \"deploy/k8s/base/{k8s_file_name}\"\nport = {}\nrelease = false\nsocket_env = \"{upper_snake}_SERVICE_SOCKET_ADDRESS\"\n",
-                                    port.0
+                                    port.get()
                                 )
                                 .as_str(),
                             );

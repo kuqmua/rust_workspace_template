@@ -15,6 +15,7 @@ categories = ["web-programming"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+bounded_types = { workspace = true }
 constants_usize = { workspace = true }
 constants_u32 = { workspace = true }
 frontend_contract = { workspace = true }

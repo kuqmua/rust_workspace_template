@@ -4,7 +4,7 @@ mod tests {
     fn json_response_wraps_serializable_values() {
         let response =
             crate::json_response::json_response(server_admin_contract::admin_no_body::AdminNoBody);
-        assert_eq!(response.0.status(), http::StatusCode::OK);
+        assert_eq!(response.get_inner().status(), http::StatusCode::OK);
     }
 
     #[test]

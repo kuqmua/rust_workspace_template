@@ -8,7 +8,7 @@ pub(crate) async fn load_authenticated_admin(
 > {
     let mut db = crate::admin_db_ref::AdminDbRef::Pool(
         crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-            state.pool.as_ref(),
+            state.get_pool().as_ref(),
         ),
     );
     crate::load_authenticated_admin_from_db::load_authenticated_admin_from_db(

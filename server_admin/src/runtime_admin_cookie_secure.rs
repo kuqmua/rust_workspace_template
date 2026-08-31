@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -10,5 +6,6 @@
     PartialEq,
     Eq,
     newtype::FromInner,
+    generate_accessor::Getters,
 )]
-pub struct RuntimeAdminCookieSecure(pub(crate) bool);
+pub struct RuntimeAdminCookieSecure(bool);
