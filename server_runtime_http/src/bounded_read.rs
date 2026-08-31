@@ -23,13 +23,8 @@ mod tests {
         );
         assert!(matches!(
             over,
-            Err(
-                crate::bounded_read_error::BoundedReadError::ExceedsMaximum {
-                    maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes(
-                        3usize
-                    )
-                }
-            )
+            Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes })
+                if maximum_bytes.get() == 3usize
         ));
         std::fs::remove_file(path)
             .expect("30b575c6 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
@@ -47,7 +42,7 @@ mod tests {
                     source: crate::bounded_read_io_error::BoundedReadIoError::from(source),
                 }
             })?;
-            if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
+            if metadata.len() > u64::try_from(maximum_bytes.get()).unwrap_or(u64::MAX) {
                 return Err(
                     crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes },
                 );
@@ -67,13 +62,9 @@ mod tests {
         })();
         assert!(matches!(
             result,
-            Err(
-                crate::bounded_read_error::BoundedReadError::ExceedsMaximum {
-                    maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes(
-                        constants_usize::ONE
-                    )
-                }
-            )
+            Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum {
+                maximum_bytes: error_maximum_bytes,
+            }) if error_maximum_bytes.get() == constants_usize::ONE
         ));
         std::fs::remove_file(path)
             .expect("385eed61 file_growth_after_metadata_is_rechecked invariant must hold");

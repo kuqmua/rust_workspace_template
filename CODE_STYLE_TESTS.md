@@ -1,8 +1,8 @@
 # Code style tests
 
-This checklist lists all 243 tests discovered by `cargo test -p tests_code_style -- --list`.
+This checklist lists all 244 tests discovered by `cargo test -p tests_code_style -- --list`.
 
-Tests marked with **Exceptions** contain an explicit allowlist, reviewed inventory, snapshot, or exempt owner/path. Each marked entry states what is exempted and where that inventory is maintained. Ordinary test-fixture and out-of-scope filtering is not marked.
+Tests marked with **Exceptions** contain an explicit allowlist, reviewed inventory, snapshot, or exempt owner/path. Each marked entry states what is exempted, the current inventory size when it is meaningful, where the authoritative inventory is maintained, and how stale or newly introduced entries are rejected. Ordinary test-fixture and out-of-scope filtering is not marked.
 
 ## `code_style_advanced_policy` (21)
 
@@ -157,7 +157,7 @@ Tests marked with **Exceptions** contain an explicit allowlist, reviewed invento
 - [ ] `function_body_similarity_ignores_identifier_names`
 - [ ] `function_body_similarity_preserves_behavioral_structure`
 - [ ] `short_mechanical_adapters_are_not_substantial`
-- [ ] `substantial_function_bodies_have_one_source_of_truth` — **Exceptions:** known groups of structurally identical substantial functions are reviewed inline as exact location sets with reasons in `code_style_reuse_policy.rs`; renamed/split module paths are canonicalized, and new or stale duplicate groups fail.
+- [ ] `substantial_function_bodies_have_one_source_of_truth` — **Exceptions:** 34 exact duplicate groups remain: 13 individually named fixture groups in `code_style_reuse_policy.rs`, 11 split-owner groups in `CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS`, and 10 independently reviewed groups in `CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026`. Each group records exact function locations and a non-empty extraction rationale; renamed/split module paths are canonicalized, and both new duplicates and stale exceptions fail. The reviewed-group inventory has been reduced from 16 to 10.
 
 ## `code_style_route_contract_policy` (1)
 
@@ -231,7 +231,7 @@ Tests marked with **Exceptions** contain an explicit allowlist, reviewed invento
 - [ ] `map_err_does_not_discard_source_with_wildcard`
 - [ ] `module_and_function_names_do_not_use_unclear_short_forms`
 - [ ] `module_and_function_names_use_single_underscores`
-- [ ] `new_runtime_structs_keep_fields_private` — **Exceptions:** legacy public fields are tracked either as exact path/struct/field sets with reasons or as reviewed owner/count pairs (`CODE_STYLE_REVIEWED_PUBLIC_FIELD_*`); new public fields and stale inventory entries fail, while test-crate sources are out of scope.
+- [ ] `new_runtime_structs_keep_fields_private` — **Exceptions:** 455 legacy public fields remain: 452 fields tracked as exact counts across 14 owners in `CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS`, plus one exact three-field struct entry in `CODE_STYLE_REVIEWED_PUBLIC_FIELD_*`. Exact entries carry path, struct, field names, and reasons. New public fields, missing exact fields, empty reasons, and owner-count drift fail; test-crate sources are out of scope.
 - [ ] `no_dbg_macro_in_source_code`
 - [ ] `no_duplicated_string_literals_in_non_policy_test_code`
 - [ ] `no_empty_enums_in_rust_sources`
@@ -275,7 +275,7 @@ Tests marked with **Exceptions** contain an explicit allowlist, reviewed invento
 - [ ] `string_constant_visitor_checks_test_code_and_allows_reviewed_syntax_boundaries`
 - [ ] `string_constant_visitor_detects_expression_and_nested_macro_literals`
 - [ ] `struct_field_visibility_policy_rejects_restricted_visibility`
-- [ ] `struct_fields_do_not_use_restricted_visibility` — **Exceptions:** 16 reviewed workspace owners retain exact counts of `pub(crate)`, `pub(super)`, or `pub(in path)` fields in `CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS`; unlisted restricted fields and count drift fail.
+- [ ] `struct_fields_do_not_use_restricted_visibility` — **Exceptions:** 348 restricted-visible fields remain across 10 reviewed workspace owners. Exact per-owner counts of `pub(crate)`, `pub(super)`, and `pub(in path)` fields are stored in `CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS`; all 145 previously reviewed `server_runtime_http` fields, all 42 previously reviewed `server_runtime_core` fields, all 21 previously reviewed `common_routes` fields, all 18 previously reviewed `macro_helpers` fields, all 18 previously reviewed `route_validators` fields, all 14 previously reviewed `workspace_test_runner` fields, 12 `pg_crud_pg_table` fields, 8 `server_admin_contract` fields, 8 `workspace_scaffold` fields, 6 `pg_crud_pg_types_generate_src` fields, and 4 `pg_crud_pg_table_generate_src` fields have been privatized. Unlisted owners, newly added fields, and stale count entries fail.
 - [ ] `text_content_hygiene_policy_rejects_all_line_ending_violations`
 - [ ] `tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow` — **Exceptions:** the foundational `newtype` implementation that powers `Borrow` generation may implement the forwarding trait manually; workspace consumers must use the derive.
 - [ ] `tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref` — **Exceptions:** the foundational `newtype` implementation that powers `DerefInner` generation may implement forwarding manually; workspace consumers must use the derive.

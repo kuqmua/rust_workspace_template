@@ -2,12 +2,12 @@
 fn reports_distinguish_liveness_and_dependency_readiness() {
     let live = crate::health_report::HealthReport::liveness();
     assert_eq!(live.status(), crate::health_status::HealthStatus::Ok);
-    assert_eq!(live.components.0.len(), constants_usize::ONE);
+    assert_eq!(live.components().len(), constants_usize::ONE);
     let ready = crate::health_report::HealthReport::readiness(
         crate::health_database_available::HealthDatabaseAvailable::from(true),
     );
     assert_eq!(ready.status(), crate::health_status::HealthStatus::Ok);
-    assert_eq!(ready.components.0.len(), 2usize);
+    assert_eq!(ready.components().len(), 2usize);
     let degraded = crate::health_report::HealthReport::readiness(
         crate::health_database_available::HealthDatabaseAvailable::from(false),
     );
@@ -17,23 +17,22 @@ fn reports_distinguish_liveness_and_dependency_readiness() {
     );
     assert_eq!(
         degraded
-            .components
-            .0
+            .components()
             .get(constants_usize::ONE)
             .expect(
                 "16ca1c84 reports_distinguish_liveness_and_dependency_readiness invariant must hold"
             )
-            .status,
+            .status(),
         crate::health_status::HealthStatus::Error
     );
 }
 
 #[test]
 fn components_reject_more_than_supported() {
-    let component = crate::health_component::HealthComponent {
-        kind: crate::health_component_kind::HealthComponentKind::ServiceAvailability,
-        status: crate::health_status::HealthStatus::Ok,
-    };
+    let component = crate::health_component::HealthComponent::new(
+        crate::health_component_kind::HealthComponentKind::ServiceAvailability,
+        crate::health_status::HealthStatus::Ok,
+    );
     assert_eq!(
         crate::health_components::HealthComponents::try_from(vec![component, component, component]),
         Err(crate::health_components_error::HealthComponentsError::TooMany)
@@ -55,14 +54,14 @@ fn component_schema_matches_runtime_limit() {
 
 #[test]
 fn component_serde_accepts_exact_runtime_limit() {
-    let first = crate::health_component::HealthComponent {
-        kind: crate::health_component_kind::HealthComponentKind::ServiceAvailability,
-        status: crate::health_status::HealthStatus::Ok,
-    };
-    let second = crate::health_component::HealthComponent {
-        kind: crate::health_component_kind::HealthComponentKind::DatabaseConnectivity,
-        status: crate::health_status::HealthStatus::Degraded,
-    };
+    let first = crate::health_component::HealthComponent::new(
+        crate::health_component_kind::HealthComponentKind::ServiceAvailability,
+        crate::health_status::HealthStatus::Ok,
+    );
+    let second = crate::health_component::HealthComponent::new(
+        crate::health_component_kind::HealthComponentKind::DatabaseConnectivity,
+        crate::health_status::HealthStatus::Degraded,
+    );
     let expected = crate::health_components::HealthComponents::from([first, second]);
     let encoded = serde_json::to_value(&expected)
         .expect("60490918 component_serde_accepts_exact_runtime_limit invariant must hold");
@@ -75,13 +74,13 @@ fn component_serde_accepts_exact_runtime_limit() {
 fn check_status_maps_success_and_failure() {
     assert_eq!(
         crate::map_health_check_status_tests::map_health_check_status(
-            crate::health_check_succeeded::HealthCheckSucceeded(true)
+            crate::health_check_succeeded::HealthCheckSucceeded::from(true)
         ),
         crate::axum_health_check_status::AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
     );
     assert_eq!(
         crate::map_health_check_status_tests::map_health_check_status(
-            crate::health_check_succeeded::HealthCheckSucceeded(false)
+            crate::health_check_succeeded::HealthCheckSucceeded::from(false)
         ),
         crate::axum_health_check_status::AxumHealthCheckStatus::from(
             axum::http::StatusCode::SERVICE_UNAVAILABLE

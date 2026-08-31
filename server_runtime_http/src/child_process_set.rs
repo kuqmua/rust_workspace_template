@@ -1,11 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ChildProcessSet {
     maximum: crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize,
-    pub(super) next_id: crate::child_process_id::ChildProcessId,
+    next_id: crate::child_process_id::ChildProcessId,
     processes: crate::std_collections_child_process_map::StdCollectionsChildProcessMap,
 }
 
@@ -17,18 +13,16 @@ impl ChildProcessSet {
         crate::child_process_id::ChildProcessId,
         crate::child_process_set_error::ChildProcessSetError,
     > {
-        if self.processes.0.len().get() >= self.maximum.0.get() {
+        if self.processes.len().get() >= self.maximum.get() {
             return Err(crate::child_process_set_error::ChildProcessSetError::Full);
         }
         let id = self.next_id;
         self.next_id = crate::child_process_id::ChildProcessId::from(
-            self.next_id
-                .0
+            (*self.next_id)
                 .checked_add(constants_u64::ONE)
                 .ok_or(crate::child_process_set_error::ChildProcessSetError::IdOverflow)?,
         );
         self.processes
-            .0
             .try_insert(id, process)
             .map(|_previous| id)
             .map_err(crate::child_process_set_error::ChildProcessSetError::from)
@@ -55,8 +49,8 @@ impl ChildProcessSet {
         crate::child_process_reports::ChildProcessReports,
         crate::child_process_set_error::ChildProcessSetError,
     > {
-        let mut reports = Vec::with_capacity(self.processes.0.len().get());
-        while let Some((_id, process)) = self.processes.0.pop_first() {
+        let mut reports = Vec::with_capacity(self.processes.len().get());
+        while let Some((_id, process)) = self.processes.pop_first() {
             reports.push(
                 process
                     .shutdown(timeout)
@@ -67,5 +61,13 @@ impl ChildProcessSet {
         Ok(crate::child_process_reports::ChildProcessReports::from(
             bounded_types::bounded_vec::BoundedVec::from_max_iter(reports),
         ))
+    }
+
+    #[cfg(test)]
+    pub(crate) const fn set_next_id_for_test(
+        &mut self,
+        value: crate::child_process_id::ChildProcessId,
+    ) {
+        self.next_id = value;
     }
 }

@@ -12,7 +12,6 @@ impl GenerationGate {
     pub fn begin(&self) -> crate::generation::Generation {
         crate::generation::Generation::from(
             self.current
-                .0
                 .fetch_add(1u64, std::sync::atomic::Ordering::AcqRel)
                 .saturating_add(1u64),
         )
@@ -23,7 +22,7 @@ impl GenerationGate {
         &self,
         generation: crate::generation::Generation,
     ) -> crate::generation_commit::GenerationCommit {
-        if self.current.0.load(std::sync::atomic::Ordering::Acquire) == generation.0 {
+        if self.current.load(std::sync::atomic::Ordering::Acquire) == *generation {
             crate::generation_commit::GenerationCommit::Current
         } else {
             crate::generation_commit::GenerationCommit::Stale

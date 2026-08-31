@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,4 +6,4 @@
     newtype::Display,
     newtype::FromInner,
 )]
-pub(super) struct CommandDurationMillis(pub(super) u128);
+pub(super) struct CommandDurationMillis(u128);

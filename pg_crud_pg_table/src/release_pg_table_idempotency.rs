@@ -13,7 +13,7 @@ pub async fn release_pg_table_idempotency(
     .bind(request.scope.actor.0.as_str())
     .bind(request.scope.method.0.as_str())
     .bind(request.scope.route.0.as_str())
-    .bind(request.scope.key.0.as_str())
+    .bind(request.scope.key.as_ref())
     .bind(request.request_hash.0.as_slice())
     .execute(pool.as_ref())
     .await

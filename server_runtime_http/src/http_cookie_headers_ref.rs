@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpCookieHeadersRef<'value_lt>(pub(super) &'value_lt http::HeaderMap);
+pub struct HttpCookieHeadersRef<'value_lt>(&'value_lt http::HeaderMap);
+
+impl<'value_lt> HttpCookieHeadersRef<'value_lt> {
+    pub(crate) const fn get(self) -> &'value_lt http::HeaderMap {
+        self.0
+    }
+}

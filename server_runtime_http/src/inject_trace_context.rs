@@ -4,7 +4,7 @@ pub fn inject_trace_context(
 ) {
     opentelemetry::global::get_text_map_propagator(|propagator| {
         propagator.inject_context(
-            &context.0,
+            context,
             &mut crate::http_header_injector::HttpHeaderInjector::from(&mut **headers),
         );
     });

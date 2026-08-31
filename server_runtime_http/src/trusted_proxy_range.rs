@@ -36,6 +36,8 @@ impl TrustedProxyRange {
         self,
         candidate_ip: crate::parsed_ip_addr::ParsedIpAddr,
     ) -> crate::std_range_contains::StdRangeContains {
-        crate::std_range_contains::StdRangeContains::from(self.network.0.contains(&candidate_ip.0))
+        crate::std_range_contains::StdRangeContains::from(
+            self.network.get().contains(&candidate_ip.get()),
+        )
     }
 }

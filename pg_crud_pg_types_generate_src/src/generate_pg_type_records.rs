@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -11,7 +6,7 @@
     serde::Deserialize,
 )]
 #[serde(try_from = "Vec<crate::pg_type_record::PgTypeRecord>")]
-pub(super) struct GeneratePgTypeRecords(pub(super) Vec<crate::pg_type_record::PgTypeRecord>);
+pub(super) struct GeneratePgTypeRecords(Vec<crate::pg_type_record::PgTypeRecord>);
 
 impl TryFrom<Vec<crate::pg_type_record::PgTypeRecord>> for GeneratePgTypeRecords {
     type Error = crate::generate_pg_types_length_error::GeneratePgTypesLengthError;

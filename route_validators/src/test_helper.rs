@@ -21,20 +21,19 @@ mod tests {
                 crate::test_poll_count::TestPollCount::from(0)
             )
         );
-        assert!(
+        assert!(bool::from(
             crate::is_block_on_poll_limit_reached::is_block_on_poll_limit_reached(
                 crate::test_poll_count::TestPollCount::from(
                     crate::max_block_on_polls::MAX_BLOCK_ON_POLLS,
                 )
             )
-            .0
-        );
+        ));
     }
     #[test]
     fn poll_count_increment_helper_increments_once() {
         let mut poll_count = crate::test_poll_count::TestPollCount::from(constants_usize::ZERO);
         crate::increment_block_on_poll_count::increment_block_on_poll_count(&mut poll_count);
-        assert_eq!(poll_count.0, constants_usize::ONE);
+        assert_eq!(*poll_count, constants_usize::ONE);
     }
     #[test]
     fn expect_ok_returns_inner_value() {

@@ -8,7 +8,8 @@ pub fn build_secure_strict_cookie(
     crate::http_set_cookie_header_value::HttpSetCookieHeaderValue,
     crate::http_secure_cookie_error::HttpSecureCookieError,
 > {
-    let text = i64::try_from(maximum_age.0).map_or_else(
+    let maximum_age_seconds_u64 = maximum_age.get();
+    let text = i64::try_from(maximum_age_seconds_u64).map_or_else(
         |_conversion_error| {
             let http_only = match access {
                 crate::http_cookie_access::HttpCookieAccess::HttpOnly => {
@@ -28,11 +29,13 @@ pub fn build_secure_strict_cookie(
             };
             format!(
                 "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attribute}",
-                name.0, value.0, maximum_age.0
+                name.as_str(),
+                value.as_str(),
+                maximum_age_seconds_u64
             )
         },
         |maximum_age_seconds| {
-            cookie::Cookie::build((name.0.as_str(), value.0.as_str()))
+            cookie::Cookie::build((name.as_str(), value.as_str()))
                 .path(constants_str::catalog::SLASH)
                 .max_age(cookie::time::Duration::seconds(maximum_age_seconds))
                 .same_site(cookie::SameSite::Strict)

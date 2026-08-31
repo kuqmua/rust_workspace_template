@@ -52,7 +52,9 @@ mod tests {
                 maximum
             ),
             crate::http_header_text_resolution::HttpHeaderTextResolution::Value(
-                crate::http_header_text_ref::HttpHeaderTextRef(constants_str::catalog::OK_ALT)
+                crate::http_header_text_ref::HttpHeaderTextRef::from(
+                    constants_str::catalog::OK_ALT
+                )
             )
         );
     }

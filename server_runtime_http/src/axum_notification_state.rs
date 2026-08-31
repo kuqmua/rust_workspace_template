@@ -1,11 +1,21 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AxumNotificationState<Sender> {
-    pub(super) headers: crate::http_notification_header_map::HttpNotificationHeaderMap,
-    pub(super) state: crate::notification_service_state::NotificationServiceState<Sender>,
+    headers: crate::http_notification_header_map::HttpNotificationHeaderMap,
+    state: crate::notification_service_state::NotificationServiceState<Sender>,
+}
+
+impl<Sender> AxumNotificationState<Sender> {
+    pub(super) const fn headers(
+        &self,
+    ) -> &crate::http_notification_header_map::HttpNotificationHeaderMap {
+        &self.headers
+    }
+
+    pub(super) const fn state(
+        &self,
+    ) -> &crate::notification_service_state::NotificationServiceState<Sender> {
+        &self.state
+    }
 }
 
 impl<Sender>

@@ -1,9 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct HttpCspDirectiveValue(pub(super) String);
+pub struct HttpCspDirectiveValue(String);
+
+impl HttpCspDirectiveValue {
+    pub(crate) const fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
 
 impl TryFrom<String> for HttpCspDirectiveValue {
     type Error = crate::http_csp_token_error::HttpCspTokenError;

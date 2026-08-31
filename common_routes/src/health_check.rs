@@ -10,10 +10,7 @@ pub(super) async fn health_check(
     crate::axum_health_check_status::AxumHealthCheckStatus,
     crate::health_check_error::HealthCheckError,
 > {
-    let status = if super::database_is_ready::database_is_ready(&app_state)
-        .await
-        .0
-    {
+    let status = if bool::from(super::database_is_ready::database_is_ready(&app_state).await) {
         crate::axum_health_check_status::AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
     } else {
         crate::axum_health_check_status::AxumHealthCheckStatus::from(

@@ -49,19 +49,22 @@ fn suffix_ref(v: &str) -> crate::uri_suffix_ref::UriSuffixRef<'_> {
     crate::uri_suffix_ref::UriSuffixRef::from(v)
 }
 fn assert_git_info_commit(payload: &crate::git_info::GitInfo, exp_commit: &str) {
-    assert_eq!(payload.commit.as_ref(), exp_commit);
+    assert!(payload.commit_matches(exp_commit));
 }
 fn assert_not_found_payload_with_commit(
     payload: &crate::not_found_payload::NotFoundPayload,
     exp_commit: &str,
     exp_uri_suffix: &str,
 ) {
-    assert_eq!(payload.commit.as_ref(), exp_commit);
-    assert_no_route_message(&payload.message, exp_uri_suffix);
-    assert_eq!(
-        payload.open_api_specification.0,
-        constants_str::catalog::COMMON_ROUTES_SWAGGER_UI
-    );
+    let expected_message =
+        crate::make_no_route_message_for_suffix_tests::make_no_route_message_for_suffix(
+            suffix_ref(exp_uri_suffix),
+        );
+    assert!(payload.matches(
+        exp_commit,
+        &expected_message,
+        constants_str::catalog::COMMON_ROUTES_SWAGGER_UI,
+    ));
 }
 fn assert_no_route_message(actual: &to_err_string::error_text::ErrorText, uri_suffix: &str) {
     assert_eq!(
@@ -113,7 +116,7 @@ fn no_route_message_for_suffix_uses_prefix_once() {
 fn uri_suffix_prefers_path_and_query_when_query_exists() {
     let uri = axum::http::Uri::from_static(constants_str::catalog::MISSING_PATH_QUESTION_LIMIT_10);
     assert_eq!(
-        crate::uri_suffix_tests::uri_suffix(uri_ref(&uri)).0,
+        *crate::uri_suffix_tests::uri_suffix(uri_ref(&uri)),
         "/missing/path?limit=10"
     );
 }
@@ -210,7 +213,7 @@ fn make_json_response_wraps_success_payload() {
         )),
     );
     assert_git_info_commit(
-        &response.payload.0,
+        response.as_ref(),
         constants_str::catalog::TEST_VALUES_COMMIT,
     );
 }
@@ -235,7 +238,7 @@ fn make_commit_json_response_combines_status_and_commit_payload() {
             ),
         ),
     );
-    assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
+    assert_git_info_commit(response.as_ref(), test_commit_link().as_str());
 }
 #[tokio::test]
 async fn default_service_routes_return_success_statuses_and_match_openapi() {

@@ -6,7 +6,7 @@ pub(super) fn map_err<T, E, R>(
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R {
     let exp_id = exp_id.into();
-    let error = crate::expect_error::expect_error(v, exp_id.0);
+    let error = crate::expect_error::expect_error(v, exp_id.get());
     check(&error);
-    map(error, exp_id.0)
+    map(error, exp_id.get())
 }

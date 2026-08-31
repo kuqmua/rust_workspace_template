@@ -1,13 +1,10 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 #[must_use]
 pub struct BackgroundTask {
-    pub(super) shutdown_tx:
+    shutdown_tx:
         Option<crate::tokio_background_task_shutdown_sender::TokioBackgroundTaskShutdownSender>,
-    pub(super) task_join: Option<crate::tokio_background_task_join::TokioBackgroundTaskJoin>,
+    task_join: Option<crate::tokio_background_task_join::TokioBackgroundTaskJoin>,
 }
 
 impl BackgroundTask {
@@ -19,11 +16,13 @@ impl BackgroundTask {
     > {
         let _shutdown_tx = self.shutdown_tx.take();
         match self.task_join.take() {
-            Some(task_join) => task_join.0.await.map_err(|error| {
-                crate::background_task_shutdown_error::BackgroundTaskShutdownError::Join(
-                    crate::tokio_task_join_error::TokioTaskJoinError::from(error),
-                )
-            }),
+            Some(task_join) => tokio::task::JoinHandle::from(task_join)
+                .await
+                .map_err(|error| {
+                    crate::background_task_shutdown_error::BackgroundTaskShutdownError::Join(
+                        crate::tokio_task_join_error::TokioTaskJoinError::from(error),
+                    )
+                }),
             None => Ok(crate::background_task_outcome::BackgroundTaskOutcome::Completed),
         }
     }
@@ -36,9 +35,9 @@ impl BackgroundTask {
         crate::background_task_shutdown_error::BackgroundTaskShutdownError,
     > {
         if let Some(shutdown_tx) = self.shutdown_tx.take() {
-            let _send_result = shutdown_tx.0.send(());
+            let _send_result = tokio::sync::oneshot::Sender::from(shutdown_tx).send(());
         }
-        let Some(mut task_join) = self.task_join.take().map(|value| value.0) else {
+        let Some(mut task_join) = self.task_join.take().map(tokio::task::JoinHandle::from) else {
             return Ok(crate::background_task_outcome::BackgroundTaskOutcome::ShutdownRequested);
         };
         match tokio::time::timeout(timeout.get(), &mut task_join).await {
@@ -61,11 +60,10 @@ impl BackgroundTask {
 
 impl Drop for BackgroundTask {
     fn drop(&mut self) {
-        if let Some(shutdown_tx) = self.shutdown_tx.take() {
-            let _send_result = shutdown_tx.0.send(());
-        }
-        if let Some(task_join) = self.task_join.take() {
-            task_join.0.abort();
-        }
+        let _send_result = self
+            .shutdown_tx
+            .take()
+            .map(|shutdown_tx| tokio::sync::oneshot::Sender::from(shutdown_tx).send(()));
+        let _abort_result = self.task_join.take().map(|task_join| task_join.abort());
     }
 }

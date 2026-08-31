@@ -2,15 +2,10 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::DerefTarget, newtype::Display,
 )]
-pub struct PgTableQueryPartFragment(pub(super) String);
+pub struct PgTableQueryPartFragment(String);
 impl From<crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError> for PgTableQueryPartFragment {
     fn from(value: crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError) -> Self {
         Self(value.to_string())

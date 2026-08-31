@@ -35,12 +35,11 @@ impl OutboundHostAllowlist {
         url: &crate::reqwest_outbound_url::ReqwestOutboundUrl,
     ) -> Result<(), crate::outbound_host_allowlist_error::OutboundHostAllowlistError> {
         let host = url
-            .0
             .host_str()
             .ok_or(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost)?;
         if self
             .0
-            .binary_search_by(|allowed| allowed.0.as_str().cmp(host))
+            .binary_search_by(|allowed| allowed.as_str().cmp(host))
             .is_ok()
         {
             Ok(())

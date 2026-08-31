@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct HttpAttachmentFileNameRef<'value_lt>(pub(super) &'value_lt str);
+pub struct HttpAttachmentFileNameRef<'value_lt>(&'value_lt str);
+
+impl<'value_lt> HttpAttachmentFileNameRef<'value_lt> {
+    pub(crate) const fn get(self) -> &'value_lt str {
+        self.0
+    }
+}

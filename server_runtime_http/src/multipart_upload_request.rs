@@ -8,7 +8,7 @@ pub struct MultipartUploadRequest {
 impl MultipartUploadRequest {
     #[must_use]
     pub const fn bytes_parts(&self) -> &[crate::multipart_bytes_part::MultipartBytesPart] {
-        self.bytes_parts.0.as_slice()
+        self.bytes_parts.as_slice()
     }
 
     fn ensure_additional_part(
@@ -27,10 +27,10 @@ impl MultipartUploadRequest {
         }
         let payload_bytes = self
             .payload_bytes
-            .0
-            .checked_add(part_bytes.0)
+            .get()
+            .checked_add(part_bytes.get())
             .ok_or(crate::multipart_request_error::MultipartRequestError::PayloadTooLarge)?;
-        if payload_bytes > maximum.0 {
+        if payload_bytes > maximum.get() {
             return Err(crate::multipart_request_error::MultipartRequestError::PayloadTooLarge);
         }
         self.payload_bytes =
@@ -45,7 +45,7 @@ impl MultipartUploadRequest {
 
     #[must_use]
     pub const fn text_parts(&self) -> &[crate::multipart_text_part::MultipartTextPart] {
-        self.text_parts.0.as_slice()
+        self.text_parts.as_slice()
     }
 
     pub fn with_bytes_part(
@@ -57,7 +57,7 @@ impl MultipartUploadRequest {
             crate::multipart_value_length::MultipartValueLength::from(part.bytes().as_ref().len()),
             maximum,
         )?;
-        self.bytes_parts.0.push(part);
+        Vec::push(&mut self.bytes_parts, part);
         Ok(self)
     }
 
@@ -70,7 +70,7 @@ impl MultipartUploadRequest {
             crate::multipart_value_length::MultipartValueLength::from(part.value().as_ref().len()),
             maximum,
         )?;
-        self.text_parts.0.push(part);
+        self.text_parts.push(part);
         Ok(self)
     }
 }

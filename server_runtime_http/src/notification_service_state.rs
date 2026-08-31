@@ -1,15 +1,23 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct NotificationServiceState<Sender> {
-    pub(super) permits: crate::arc_tokio_semaphore::ArcTokioSemaphore,
-    pub(super) sender: Sender,
-    pub(super) token: crate::notification_api_token::NotificationApiToken,
+    permits: crate::arc_tokio_semaphore::ArcTokioSemaphore,
+    sender: Sender,
+    token: crate::notification_api_token::NotificationApiToken,
 }
 
 impl<Sender> NotificationServiceState<Sender> {
+    pub(crate) const fn permits(&self) -> &crate::arc_tokio_semaphore::ArcTokioSemaphore {
+        &self.permits
+    }
+
+    pub(crate) const fn sender(&self) -> &Sender {
+        &self.sender
+    }
+
+    pub(crate) const fn token(&self) -> &crate::notification_api_token::NotificationApiToken {
+        &self.token
+    }
+
     #[must_use]
     pub fn new(
         token: crate::notification_api_token::NotificationApiToken,

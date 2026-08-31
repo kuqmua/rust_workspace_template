@@ -26,23 +26,23 @@ impl ResourceBudget {
         crate::resource_budget_reservation::ResourceBudgetReservation,
         crate::resource_budget_reserve_error::ResourceBudgetReserveError,
     > {
-        let result = self.reserved.0.try_update(
+        let result = self.reserved.try_update(
             std::sync::atomic::Ordering::AcqRel,
             std::sync::atomic::Ordering::Acquire,
             |current| {
                 current
-                    .checked_add(amount.0)
-                    .filter(|next| *next <= self.maximum.0.get())
+                    .checked_add(*amount)
+                    .filter(|next| *next <= self.maximum.get())
             },
         );
         match result {
             Ok(_previous) => Ok(
-                crate::resource_budget_reservation::ResourceBudgetReservation {
+                crate::resource_budget_reservation::ResourceBudgetReservation::new(
                     amount,
-                    reserved: self.reserved.clone(),
-                },
+                    self.reserved.clone(),
+                ),
             ),
-            Err(current) if current.checked_add(amount.0).is_none() => {
+            Err(current) if current.checked_add(*amount).is_none() => {
                 Err(crate::resource_budget_reserve_error::ResourceBudgetReserveError::Overflow)
             }
             Err(_current) => {
@@ -54,7 +54,7 @@ impl ResourceBudget {
     #[must_use]
     pub fn reserved(&self) -> crate::resource_budget_amount::ResourceBudgetAmount {
         crate::resource_budget_amount::ResourceBudgetAmount::from(
-            self.reserved.0.load(std::sync::atomic::Ordering::Acquire),
+            self.reserved.load(std::sync::atomic::Ordering::Acquire),
         )
     }
 }

@@ -4,8 +4,7 @@ pub(super) fn required_header_value<E>(
     no_header_error: impl FnOnce() -> E,
 ) -> Result<crate::axum_header_value_ref::AxumHeaderValueRef<'_>, E> {
     headers
-        .0
-        .get(header_name)
+        .header(header_name)
         .map(crate::axum_header_value_ref::AxumHeaderValueRef::from)
         .ok_or_else(no_header_error)
 }

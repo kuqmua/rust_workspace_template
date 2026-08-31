@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -12,4 +8,11 @@
     newtype::ToErrStringAsRefStr,
     newtype::FromInner,
 )]
-pub struct CommitNotEqMessage(pub(super) &'static str);
+pub struct CommitNotEqMessage(&'static str);
+
+impl CommitNotEqMessage {
+    #[cfg(test)]
+    pub(crate) const fn as_str(self) -> &'static str {
+        self.0
+    }
+}

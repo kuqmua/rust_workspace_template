@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,4 +7,10 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct StdCookieMaxAgeSeconds(pub(super) u64);
+pub struct StdCookieMaxAgeSeconds(u64);
+
+impl StdCookieMaxAgeSeconds {
+    pub(crate) const fn get(self) -> u64 {
+        self.0
+    }
+}

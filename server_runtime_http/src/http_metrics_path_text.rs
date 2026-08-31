@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,8 +6,9 @@
     Hash,
     PartialEq,
     newtype::BorrowStr,
+    newtype::DerefInner,
 )]
-pub(super) struct HttpMetricsPathText(pub(super) String);
+pub(super) struct HttpMetricsPathText(String);
 
 impl TryFrom<String> for HttpMetricsPathText {
     type Error = crate::http_metrics_path_text_error::HttpMetricsPathTextError;

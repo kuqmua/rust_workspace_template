@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -12,4 +8,10 @@
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct ClientSocketAddr(pub(super) std::net::SocketAddr);
+pub struct ClientSocketAddr(std::net::SocketAddr);
+
+impl ClientSocketAddr {
+    pub(crate) const fn ip(self) -> std::net::IpAddr {
+        self.0.ip()
+    }
+}

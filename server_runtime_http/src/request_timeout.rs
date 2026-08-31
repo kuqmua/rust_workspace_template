@@ -7,7 +7,7 @@ mod tests {
         )
         .expect("65a8fd30 timeout_layer_preserves_validated_timeout invariant must hold");
         let layer = crate::request_timeout_layer::RequestTimeoutLayer::from(timeout);
-        assert_eq!(layer.0.get(), std::time::Duration::from_secs(1u64));
+        assert_eq!(layer.duration().get(), std::time::Duration::from_secs(1u64));
     }
 
     #[tokio::test(start_paused = true)]

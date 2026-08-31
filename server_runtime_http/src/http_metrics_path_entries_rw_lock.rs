@@ -1,10 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DerefInner, newtype::FromInner,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(super) struct HttpMetricsPathEntriesRwLock(
-    pub(super)  std::sync::RwLock<
+    std::sync::RwLock<
         std::collections::HashMap<
             crate::http_metrics_path_text::HttpMetricsPathText,
             crate::metrics_shared_string::MetricsSharedString,

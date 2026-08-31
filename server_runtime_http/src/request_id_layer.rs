@@ -6,9 +6,7 @@ impl RequestIdLayer {
     #[must_use]
     pub fn apply(self, router: super::axum_router::AxumRouter) -> super::axum_router::AxumRouter {
         super::axum_router::AxumRouter::from(axum::Router::from(router).layer(
-            super::request_id_tower_layer::RequestIdTowerLayer {
-                span_config: self.span_config,
-            },
+            super::request_id_tower_layer::RequestIdTowerLayer::new(self.span_config),
         ))
     }
 

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -12,4 +8,11 @@
     newtype::DerefTarget,
     newtype::FromInner,
 )]
-pub struct BytesBodyBytes(pub(super) bytes::Bytes);
+pub struct BytesBodyBytes(bytes::Bytes);
+
+impl BytesBodyBytes {
+    #[cfg(test)]
+    pub(crate) fn matches(&self, expected: &'static [u8]) -> bool {
+        self.0 == bytes::Bytes::from_static(expected)
+    }
+}

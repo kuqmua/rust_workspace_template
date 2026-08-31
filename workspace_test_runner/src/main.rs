@@ -684,11 +684,12 @@ fn main() {
                 allocation_tools::allocation_tools()
                     .iter()
                     .try_fold((), |(), tool| {
-                        let available = check_tool_available::check_tool_available(tool.path());
+                        let available =
+                            check_tool_available::check_tool_available(*tool.get_path());
                         println!(
                             "measurement=allocation_tool_available tool={} path={} available={}",
-                            tool.name().get(),
-                            tool.path().get(),
+                            tool.get_name().get(),
+                            tool.get_path().get(),
                             available.get()
                         );
                         Ok(())

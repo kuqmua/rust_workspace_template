@@ -1,9 +1,12 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub struct HttpBodySizeHint(pub(super) http_body::SizeHint);
+pub struct HttpBodySizeHint(http_body::SizeHint);
+
+impl HttpBodySizeHint {
+    #[cfg(test)]
+    pub(crate) fn upper(self) -> Option<u64> {
+        self.0.upper()
+    }
+}
 
 impl to_err_string::to_err_string::ToErrString for HttpBodySizeHint {
     fn to_err_string(&self) -> to_err_string::error_text::ErrorText {

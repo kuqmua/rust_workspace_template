@@ -1,13 +1,17 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, serde::Serialize,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_constructor::New,
+    serde::Serialize,
 )]
+#[constructor(pub(crate))]
 pub struct HealthSnapshot {
-    pub(super) database: crate::health_component_status::HealthComponentStatus,
-    pub(super) service: crate::health_component_status::HealthComponentStatus,
+    database: crate::health_component_status::HealthComponentStatus,
+    service: crate::health_component_status::HealthComponentStatus,
 }
 
 impl HealthSnapshot {

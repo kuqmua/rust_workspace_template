@@ -16,15 +16,15 @@ where
             .as_ref()
             .is_err_and(|error| attempt < maximum_attempts && is_retryable(error));
         if !should_retry {
-            return crate::retry_outcome::RetryOutcome {
-                attempts: crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::from(
+            return crate::retry_outcome::RetryOutcome::new(
+                crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::from(
                     std::num::NonZeroUsize::new(attempt).unwrap_or(std::num::NonZeroUsize::MIN),
                 ),
                 result,
-            };
+            );
         }
         if let Some(delay) = policy.delay() {
-            tokio::time::sleep(delay.0).await;
+            tokio::time::sleep(*delay).await;
         }
         attempt = attempt.saturating_add(constants_usize::ONE);
     }

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -10,6 +6,11 @@
     newtype::IntoInnerFrom,
     newtype::ToTokens,
 )]
-pub struct SynPathSegments(
-    pub(super) syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>,
-);
+pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
+
+impl SynPathSegments {
+    #[cfg(test)]
+    pub(crate) fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}

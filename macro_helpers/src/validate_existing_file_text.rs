@@ -5,7 +5,7 @@ pub(super) fn validate_existing_file_text(
     server_runtime_http::read_bounded_file::read_bounded_file(
         server_runtime_http::runtime_path_ref::RuntimePathRef::from(path.as_ref()),
         server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
-            maximum_bytes.0,
+            usize::from(maximum_bytes),
         ),
     )
     .and_then(server_runtime_http::bounded_text::BoundedText::try_from)

@@ -1,9 +1,15 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, generate_constructor::New)]
 pub(super) struct AdminTableSortValues {
-    pub(super) key: frontend_contract::contract_str::ContractStr,
-    pub(super) label: frontend_contract::contract_str::ContractStr,
+    key: frontend_contract::contract_str::ContractStr,
+    label: frontend_contract::contract_str::ContractStr,
+}
+impl AdminTableSortValues {
+    pub(super) const fn into_parts(
+        self,
+    ) -> (
+        frontend_contract::contract_str::ContractStr,
+        frontend_contract::contract_str::ContractStr,
+    ) {
+        (self.key, self.label)
+    }
 }

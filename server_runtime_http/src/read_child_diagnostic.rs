@@ -11,10 +11,10 @@ pub(super) async fn read_child_diagnostic<Reader>(
 where
     Reader: tokio::io::AsyncRead + Unpin,
 {
-    let mut output = Vec::with_capacity(maximum.0.get());
+    let mut output = Vec::with_capacity(maximum.get());
     let mut buffer = [constants_u8::ZERO; constants_usize::VALUE_4_096];
-    while output.len() < maximum.0.get() {
-        let remaining = maximum.0.get().saturating_sub(output.len());
+    while output.len() < maximum.get() {
+        let remaining = maximum.get().saturating_sub(output.len());
         let read_length = remaining.min(buffer.len());
         let target = buffer
             .get_mut(..read_length)

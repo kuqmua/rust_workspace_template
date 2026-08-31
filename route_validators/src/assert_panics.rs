@@ -5,5 +5,5 @@ pub(crate) fn assert_panics(
 ) {
     let exp_id = exp_id.into();
     let panic_res = std::panic::catch_unwind(action);
-    drop(panic_res.expect_err(exp_id.0));
+    drop(panic_res.expect_err(exp_id.get()));
 }

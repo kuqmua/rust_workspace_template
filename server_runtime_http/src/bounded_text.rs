@@ -30,7 +30,7 @@ impl TryFrom<crate::bounded_bytes::BoundedBytes> for BoundedText {
     type Error = crate::bounded_read_error::BoundedReadError;
 
     fn try_from(value: crate::bounded_bytes::BoundedBytes) -> Result<Self, Self::Error> {
-        let text = String::from_utf8(value.0).map_err(|source| {
+        let text = String::from_utf8(value.into_inner()).map_err(|source| {
             crate::bounded_read_error::BoundedReadError::Utf8 {
                 source: crate::bounded_read_from_utf8_error::BoundedReadFromUtf8Error::from(source),
             }

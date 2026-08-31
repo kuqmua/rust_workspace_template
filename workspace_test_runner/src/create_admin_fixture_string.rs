@@ -11,7 +11,7 @@ where
             constants_str::catalog::WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID
         );
     })?;
-    Value::try_from(bounded_value.0).map_err(|error| {
+    Value::try_from(String::from(bounded_value)).map_err(|error| {
         eprintln!("{error}");
     })
 }

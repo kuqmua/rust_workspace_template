@@ -4832,7 +4832,7 @@ pub(super) enum CreateReadIds {
         Vec<macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream>,
         Vec<macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream>,
     )>();
-    if generate_pg_types_config.generate_secret_text.0 {
+    if bool::from(generate_pg_types_config.generate_secret_text) {
         pg_type_array_vec.push(quote::quote! {
             /// Secret PostgreSQL text deliberately has no serialization contract.
             ///

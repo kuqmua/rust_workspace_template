@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,7 +6,7 @@
     newtype::FromInner,
     newtype::ToTokens,
 )]
-pub(super) struct PgSqlName(pub(super) &'static str);
+pub(super) struct PgSqlName(&'static str);
 impl crate::pg_type_catalog_kind::PgTypeCatalogKind {
     pub(super) fn pg_type_can_be_nullable(self) -> crate::can_be_nullable::CanBeNullable {
         crate::pg_type_can_be_nullable::pg_type_can_be_nullable(self.spec())

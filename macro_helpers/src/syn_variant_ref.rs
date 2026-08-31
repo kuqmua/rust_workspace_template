@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub struct SynVariantRef<'variant_lt>(pub(crate) &'variant_lt syn::Variant);
+pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
+
+impl<'variant_lt> SynVariantRef<'variant_lt> {
+    pub(crate) const fn variant(self) -> &'variant_lt syn::Variant {
+        self.0
+    }
+}

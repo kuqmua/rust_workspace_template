@@ -1,19 +1,22 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(super) struct HttpMetricsTowerLayer {
-    pub(super) paths: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
+    paths: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
+}
+
+impl From<crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc>
+    for HttpMetricsTowerLayer
+{
+    fn from(
+        value: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
+    ) -> Self {
+        Self { paths: value }
+    }
 }
 
 impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
     type Service = crate::http_metrics_service::HttpMetricsService<Service>;
 
     fn layer(&self, inner: Service) -> Self::Service {
-        crate::http_metrics_service::HttpMetricsService {
-            inner,
-            paths: self.paths.clone(),
-        }
+        crate::http_metrics_service::HttpMetricsService::new(inner, self.paths.clone())
     }
 }

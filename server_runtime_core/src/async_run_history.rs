@@ -32,13 +32,12 @@ impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
         &self,
     ) -> super::async_run_history_snapshot::AsyncRunHistorySnapshot<RunReport> {
         let reports = self.reports.read().await;
-        super::async_run_history_snapshot::AsyncRunHistorySnapshot {
-            latest_report: reports.back().cloned(),
-            report_count:
-                super::std_async_run_history_report_count::StdAsyncRunHistoryReportCount::from(
-                    reports.len(),
-                ),
-        }
+        super::async_run_history_snapshot::AsyncRunHistorySnapshot::new(
+            reports.back().cloned(),
+            super::std_async_run_history_report_count::StdAsyncRunHistoryReportCount::from(
+                reports.len(),
+            ),
+        )
     }
 }
 #[cfg(test)]

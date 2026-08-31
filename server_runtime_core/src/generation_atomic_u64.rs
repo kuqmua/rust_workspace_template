@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Default,
+    newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default, newtype::FromInner)]
-pub(super) struct GenerationAtomicU64(pub(super) std::sync::atomic::AtomicU64);
+pub(super) struct GenerationAtomicU64(std::sync::atomic::AtomicU64);

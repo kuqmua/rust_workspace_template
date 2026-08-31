@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -9,8 +5,8 @@
     Copy,
     PartialEq,
     Eq,
+    newtype::DerefTarget,
     newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-pub(crate) struct AxumHeaderValueRef<'header_value_lt>(
-    pub(super) &'header_value_lt axum::http::HeaderValue,
-);
+pub(crate) struct AxumHeaderValueRef<'header_value_lt>(&'header_value_lt axum::http::HeaderValue);

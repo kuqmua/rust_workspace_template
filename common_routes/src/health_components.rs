@@ -1,12 +1,13 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, serde::Serialize,
 )]
-pub struct HealthComponents(pub(super) Vec<crate::health_component::HealthComponent>);
+pub struct HealthComponents(Vec<crate::health_component::HealthComponent>);
+impl HealthComponents {
+    #[cfg(test)]
+    pub(crate) const fn as_slice(&self) -> &[crate::health_component::HealthComponent] {
+        self.0.as_slice()
+    }
+}
 impl utoipa::PartialSchema for HealthComponents {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         <bounded_types::bounded_vec::BoundedVec<

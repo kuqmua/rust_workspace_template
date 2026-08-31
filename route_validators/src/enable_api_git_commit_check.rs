@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -11,4 +7,10 @@
     Eq,
     newtype::FromInner,
 )]
-pub struct EnableApiGitCommitCheck(pub(super) bool);
+pub struct EnableApiGitCommitCheck(bool);
+
+impl EnableApiGitCommitCheck {
+    pub(crate) const fn is_enabled(self) -> bool {
+        self.0
+    }
+}

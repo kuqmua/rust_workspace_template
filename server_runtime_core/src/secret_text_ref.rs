@@ -1,9 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-pub struct SecretTextRef<'value_lt>(pub(super) &'value_lt str);
+pub struct SecretTextRef<'value_lt>(&'value_lt str);
+
+impl<'value_lt> SecretTextRef<'value_lt> {
+    pub(super) const fn as_str(self) -> &'value_lt str {
+        self.0
+    }
+}
 
 impl<'value_lt> TryFrom<&'value_lt str> for SecretTextRef<'value_lt> {
     type Error = crate::bounded_secret_text_error::BoundedSecretTextError;
@@ -34,7 +36,7 @@ impl<'value_lt> From<&'value_lt crate::bounded_secret_text::BoundedSecretText>
     for SecretTextRef<'value_lt>
 {
     fn from(value: &'value_lt crate::bounded_secret_text::BoundedSecretText) -> Self {
-        Self(value.0.as_str())
+        Self(value.as_str())
     }
 }
 

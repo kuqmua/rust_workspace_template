@@ -1,13 +1,9 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 pub(super) struct SecurityHeadersService<Service> {
-    pub(super) content_security_policy:
-        Option<crate::http_content_security_policy::HttpContentSecurityPolicy>,
-    pub(super) forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust,
-    pub(super) inner: Service,
+    content_security_policy: Option<crate::http_content_security_policy::HttpContentSecurityPolicy>,
+    forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust,
+    inner: Service,
 }
 
 impl<Service> tower::Service<axum::extract::Request> for SecurityHeadersService<Service>
@@ -71,7 +67,7 @@ where
                     http::HeaderName::from_static(
                         constants_str::test_fixtures::CONTENT_SECURITY_POLICY_HEADER,
                     ),
-                    resolved_content_security_policy.0,
+                    resolved_content_security_policy.into_inner(),
                 );
             }
             response.headers_mut().iter_mut().for_each(|(name, value)| {

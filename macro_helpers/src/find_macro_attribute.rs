@@ -9,9 +9,9 @@ where
 {
     attrs
         .into_iter()
-        .map(crate::syn_macro_attr_ref::SynMacroAttrRef)
+        .map(crate::syn_macro_attr_ref::SynMacroAttrRef::from)
         .find(|attr| {
-            let mut attr_segments = attr.0.path().segments.iter();
+            let mut attr_segments = attr.attr().path().segments.iter();
             let mut expected_segments = attr_path
                 .as_ref()
                 .split(constants_str::catalog::PATH_SEPARATOR)

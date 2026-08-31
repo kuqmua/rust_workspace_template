@@ -2,7 +2,7 @@
 pub fn resolve_bearer_authorization(
     header: crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef<'_>,
 ) -> crate::bearer_authorization_resolution::BearerAuthorizationResolution<'_> {
-    let Some(value) = header.0 else {
+    let Some(value) = header.get() else {
         return crate::bearer_authorization_resolution::BearerAuthorizationResolution::Missing;
     };
     if value.len() > constants_usize::VALUE_4_096 {

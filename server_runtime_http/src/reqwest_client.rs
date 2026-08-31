@@ -84,8 +84,8 @@ impl ReqwestClient {
         policy: super::reqwest_client_policy::ReqwestClientPolicy,
     ) -> Result<Self, super::reqwest_client_build_error::ReqwestClientBuildError> {
         reqwest::Client::builder()
-            .connect_timeout(*policy.connect_timeout)
-            .timeout(*policy.request_timeout)
+            .connect_timeout(*policy.connect_timeout())
+            .timeout(*policy.request_timeout())
             .redirect(reqwest::redirect::Policy::none())
             .user_agent(concat!(
                 env!("CARGO_PKG_NAME"),

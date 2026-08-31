@@ -2376,12 +2376,11 @@ pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS: [&str; 11] = [
     "../pg_crud_common/src/pg_scoped_foreign_key_clause_text.rs::try_from\n../pg_crud_common/src/sql_identifier_list_text.rs::try_from\n../pg_crud_common/src/sql_query_text.rs::try_from",
 ];
 pub const CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON: &str = "domain-specific wrappers retain distinct types while sharing a small validated conversion shape";
-pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 11] = [
+pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 10] = [
     "../pg_crud_common/src/eq_operator.rs::to_query_str\n../pg_crud_macro_common/src/import.rs::sc_str\n../pg_crud_macro_common/src/is_nullable.rs::non_null_or_nullable_str",
     "../common_routes/src/axum_http_uri.rs::from_request_parts\n../server_admin/src/extractors.rs::from_request_parts",
     "../config_lib/src/env_var_name.rs::try_from\n../config_lib/src/std_env_var_ok.rs::try_from\n../pg_crud_common/src/order_text_string.rs::try_from\n../pg_crud_common/src/query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_part_fragment.rs::try_from\n../pg_crud_pg_table/src/pg_table_query_string.rs::try_from",
     "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_await\n../tests_code_style/src/code_style_advanced_policy.rs::visit_macro",
-    "../frontend_contract/src/route_tests.rs::metadata\n../tests_code_style/trybuild/route_contract_wrong_path_parameter.rs::metadata",
     "../pg_crud_common/src/cursor_payload.rs::try_from\n../pg_crud_common/src/signed_cursor.rs::try_from\n../server_runtime_http/src/http_metrics_path_text.rs::try_from",
     "../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_loop\n../tests_code_style/src/code_style_advanced_policy.rs::visit_expr_while\n../tests_code_style/src/runtime_analysis.rs::visit_expr_async",
     "../pg_crud_common/src/sql_like_pattern.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_type_records.rs::try_from\n../pg_crud_pg_types_generate_src/src/generate_pg_types.rs::try_from",
@@ -2390,47 +2389,36 @@ pub const CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026: [&str; 11] = [
     "../tests_code_style/src/source_analysis.rs::visit_item_static\n../tests_code_style/src/source_analysis.rs::visit_item_trait\n../tests_code_style/src/source_analysis.rs::visit_item_trait_alias\n../tests_code_style/src/source_analysis.rs::visit_item_type\n../tests_code_style/src/source_analysis.rs::visit_item_union",
 ];
 pub const CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026: &str = "distinct domain conversions, generated metadata, and analyzer callbacks intentionally retain independently owned entry points";
-pub const CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS: [(&str, usize); 16] = [
-    ("common_routes", 21usize),
+pub const CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS: [(&str, usize); 10] = [
     ("constants_str_macros", 11usize),
     ("frontend_contract", 16usize),
-    ("macro_helpers", 18usize),
     ("pg_crud_common", 55usize),
-    ("pg_crud_pg_table", 27usize),
-    ("pg_crud_pg_table_generate_src", 14usize),
-    ("pg_crud_pg_types_generate_src", 26usize),
-    ("route_validators", 18usize),
+    ("pg_crud_pg_table", 15usize),
+    ("pg_crud_pg_table_generate_src", 10usize),
+    ("pg_crud_pg_types_generate_src", 20usize),
     ("server_admin", 168usize),
-    ("server_admin_contract", 18usize),
+    ("server_admin_contract", 10usize),
     ("server_admin_frontend", 10usize),
-    ("server_runtime_core", 42usize),
-    ("server_runtime_http", 130usize),
-    ("workspace_scaffold", 41usize),
-    ("workspace_test_runner", 14usize),
+    ("workspace_scaffold", 33usize),
 ];
-pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS: [(&str, usize); 19] = [
+pub const CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS: [(&str, usize); 14] = [
     (
         "administrator_account_initialization_and_password_reset",
         5usize,
     ),
-    ("common_routes", 21usize),
     ("constants_str_macros", 11usize),
     ("frontend_contract", 16usize),
     ("frontend_contract_macros", 28usize),
     ("location_lib", 5usize),
-    ("macro_helpers", 18usize),
     ("pg_crud_common", 64usize),
-    ("pg_crud_pg_table", 27usize),
-    ("pg_crud_pg_table_generate_src", 14usize),
-    ("pg_crud_pg_types_generate_src", 26usize),
-    ("route_validators", 18usize),
+    ("pg_crud_pg_table", 15usize),
+    ("pg_crud_pg_table_generate_src", 10usize),
+    ("pg_crud_pg_types_generate_src", 20usize),
     ("server_admin", 194usize),
-    ("server_admin_contract", 18usize),
+    ("server_admin_contract", 10usize),
     ("server_admin_frontend", 10usize),
     ("server_config", 31usize),
-    ("server_runtime_core", 42usize),
-    ("server_runtime_http", 130usize),
-    ("workspace_scaffold", 41usize),
+    ("workspace_scaffold", 33usize),
 ];
 pub const CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON: &str =
     "single_call_fn suppressions must be attached to exact items";

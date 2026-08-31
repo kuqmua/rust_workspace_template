@@ -4,11 +4,11 @@ pub fn parse_trusted_proxy_ranges(
     crate::trusted_proxy_ranges::TrustedProxyRanges,
     crate::trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError,
 > {
-    if value.0.trim().is_empty() {
+    let value_text = value.get();
+    if value_text.trim().is_empty() {
         return Ok(crate::trusted_proxy_ranges::TrustedProxyRanges::default());
     }
-    let ranges = value
-        .0
+    let ranges = value_text
         .split(',')
         .map(str::trim)
         .map(|item| {

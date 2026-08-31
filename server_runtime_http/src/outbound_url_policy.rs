@@ -25,8 +25,9 @@ impl OutboundUrlPolicy {
         crate::reqwest_outbound_url::ReqwestOutboundUrl,
         crate::outbound_url_error::OutboundUrlError,
     > {
-        if value.0.contains(['\0', '\r', '\n'])
-            || value.0.as_bytes().windows(3usize).any(|window| {
+        let value_text = value.get();
+        if value_text.contains(['\0', '\r', '\n'])
+            || value_text.as_bytes().windows(3usize).any(|window| {
                 window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_NUL)
                     || window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_CR)
                     || window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_LF)
@@ -34,7 +35,7 @@ impl OutboundUrlPolicy {
         {
             return Err(crate::outbound_url_error::OutboundUrlError::ControlCharacter);
         }
-        let url = reqwest::Url::parse(value.0)
+        let url = reqwest::Url::parse(value_text)
             .map_err(|_error| crate::outbound_url_error::OutboundUrlError::Invalid)?;
         if !url.username().is_empty() || url.password().is_some() {
             return Err(crate::outbound_url_error::OutboundUrlError::UserInfo);

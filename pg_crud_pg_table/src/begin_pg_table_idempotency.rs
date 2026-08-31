@@ -9,7 +9,7 @@ pub async fn begin_pg_table_idempotency(
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
-        .bind(request.scope.key.0.as_str())
+        .bind(request.scope.key.as_ref())
         .bind(request.request_hash.0.as_slice())
         .fetch_optional(pool.as_ref())
         .await
@@ -23,7 +23,7 @@ pub async fn begin_pg_table_idempotency(
     .bind(request.scope.actor.0.as_str())
     .bind(request.scope.method.0.as_str())
     .bind(request.scope.route.0.as_str())
-    .bind(request.scope.key.0.as_str())
+    .bind(request.scope.key.as_ref())
     .fetch_one(pool.as_ref())
     .await
     .map_err(crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from)?;

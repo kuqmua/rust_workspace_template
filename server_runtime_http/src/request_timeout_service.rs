@@ -1,11 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 pub(super) struct RequestTimeoutService<Service> {
-    pub(super) inner: Service,
-    pub(super) timeout: crate::request_timeout_duration::RequestTimeoutDuration,
+    inner: Service,
+    timeout: crate::request_timeout_duration::RequestTimeoutDuration,
 }
 
 impl<Service> tower::Service<axum::extract::Request> for RequestTimeoutService<Service>

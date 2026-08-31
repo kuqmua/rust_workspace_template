@@ -41,7 +41,6 @@ mod tests {
             |_to_str_error| TestError::ToStr,
             |header_value| {
                 header_value
-                    .0
                     .parse::<bool>()
                     .map_err(|_parse_bool_error| TestError::ParseBool)
             },
@@ -63,7 +62,7 @@ mod tests {
     fn required_header_str_returns_header_when_present_and_utf8() {
         let headers = make_test_headers_static(constants_str::catalog::ABC_ALT_3);
         let actual = header(&headers, TEST_HEADER_NAME);
-        assert_eq!(actual.map(|v| v.0), Ok("abc"));
+        assert_eq!(actual.map(<&str>::from), Ok("abc"));
     }
     #[test]
     fn required_header_str_returns_no_header_error_when_absent() {
@@ -82,14 +81,14 @@ mod tests {
             &headers,
             constants_str::catalog::ROUTE_VALIDATORS_TEST_HEADER_NAME,
         );
-        assert_eq!(actual.map(|v| v.0), Ok("abc"));
+        assert_eq!(actual.map(<&str>::from), Ok("abc"));
     }
     #[test]
     fn required_header_returns_header_value_when_present() {
         let headers = make_test_headers_static(constants_str::catalog::ABC_ALT_3);
         let actual = raw_header(&headers, TEST_HEADER_NAME);
         assert_eq!(
-            actual.map(|v| v.0),
+            actual.map(<&axum::http::HeaderValue>::from),
             Ok(&axum::http::HeaderValue::from_static("abc"))
         );
     }
@@ -121,7 +120,7 @@ mod tests {
             || TestError::NoHeader,
         )
         .and_then(|v| {
-            v.0.to_str()
+            v.to_str()
                 .map(str::len)
                 .map_err(|_to_str_error| TestError::ToStr)
         });

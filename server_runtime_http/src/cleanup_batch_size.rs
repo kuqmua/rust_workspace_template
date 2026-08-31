@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,7 +7,13 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct CleanupBatchSize(pub(super) std::num::NonZeroU64);
+pub struct CleanupBatchSize(std::num::NonZeroU64);
+
+impl CleanupBatchSize {
+    pub(crate) const fn get(self) -> u64 {
+        self.0.get()
+    }
+}
 
 impl TryFrom<u64> for CleanupBatchSize {
     type Error = crate::cleanup_batch_size_error::CleanupBatchSizeError;

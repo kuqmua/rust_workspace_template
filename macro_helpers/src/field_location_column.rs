@@ -1,9 +1,5 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub struct FieldLocationColumn(pub(super) std::num::NonZeroU32);
+pub struct FieldLocationColumn(std::num::NonZeroU32);
 
 impl TryFrom<u32> for FieldLocationColumn {
     type Error =
@@ -20,5 +16,9 @@ impl FieldLocationColumn {
     #[must_use]
     pub fn first() -> Self {
         Self::from(std::num::NonZeroU32::MIN)
+    }
+
+    pub(crate) const fn value(self) -> u32 {
+        self.0.get()
     }
 }

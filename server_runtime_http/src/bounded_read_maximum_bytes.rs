@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -12,4 +8,10 @@
     newtype::FromInner,
     newtype::Display,
 )]
-pub struct BoundedReadMaximumBytes(pub(super) usize);
+pub struct BoundedReadMaximumBytes(usize);
+
+impl BoundedReadMaximumBytes {
+    pub(crate) const fn get(self) -> usize {
+        self.0
+    }
+}

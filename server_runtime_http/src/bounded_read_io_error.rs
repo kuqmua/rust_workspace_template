@@ -1,9 +1,9 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error, newtype::FromInner,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    thiserror::Error,
+    newtype::DerefInner,
+    newtype::FromInner,
 )]
 #[error(transparent)]
-pub struct BoundedReadIoError(pub(super) std::io::Error);
+pub struct BoundedReadIoError(std::io::Error);

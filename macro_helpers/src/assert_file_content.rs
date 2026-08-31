@@ -3,10 +3,12 @@ pub(crate) fn assert_file_content(
     exp: crate::expected_file_content::ExpectedFileContent<'_>,
 ) {
     let cnt = server_runtime_http::read_bounded_file::read_bounded_file(
-        server_runtime_http::runtime_path_ref::RuntimePathRef::from(path.0),
-        server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(exp.0.len()),
+        server_runtime_http::runtime_path_ref::RuntimePathRef::from(path.as_ref()),
+        server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
+            exp.as_ref().len(),
+        ),
     )
     .and_then(server_runtime_http::bounded_text::BoundedText::try_from)
     .expect("d5ec6712 assert_file_content invariant must hold");
-    assert_eq!(cnt.as_ref(), exp.0);
+    assert_eq!(cnt.as_ref(), exp.as_ref());
 }

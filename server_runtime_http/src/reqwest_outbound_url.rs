@@ -1,11 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner)]
-pub struct ReqwestOutboundUrl(pub(super) reqwest::Url);
+pub struct ReqwestOutboundUrl(reqwest::Url);
 
 impl ReqwestOutboundUrl {
+    pub(crate) fn host_str(&self) -> Option<&str> {
+        self.0.host_str()
+    }
+
     #[must_use]
     pub fn scheme(&self) -> crate::outbound_url_scheme::OutboundUrlScheme {
         match self.0.scheme() {

@@ -79,7 +79,7 @@ mod tests {
         let context = crate::extract_remote_trace_context::extract_remote_trace_context(
             crate::http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef::from(&headers),
         );
-        let span = opentelemetry::trace::TraceContextExt::span(&context.0);
+        let span = opentelemetry::trace::TraceContextExt::span(&*context);
         assert!(span.span_context().is_remote());
         let expected_trace_id = constants_str::test_fixtures::TRACEPARENT_TEST_VALUE
             .get(3usize..35usize)

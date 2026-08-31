@@ -4,7 +4,7 @@ pub fn ensure_json_contract_round_trip<Value>(
 where
     Value: Eq + serde::Serialize + serde::de::DeserializeOwned,
 {
-    let fixture_value = serde_json::from_str::<Value>(fixture.0).map_err(|error| {
+    let fixture_value = serde_json::from_str::<Value>(fixture.as_str()).map_err(|error| {
         crate::contract_error::ContractError::DeserializeFixture(
             crate::macro_serde_json_error::MacroSerdeJsonError::from(error),
         )

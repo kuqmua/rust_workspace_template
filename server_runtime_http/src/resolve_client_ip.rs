@@ -4,7 +4,7 @@ pub fn resolve_client_ip(
     peer: crate::client_socket_addr::ClientSocketAddr,
     trusted_proxy_ranges: &crate::trusted_proxy_ranges::TrustedProxyRanges,
 ) -> crate::resolved_client_ip_addr::ResolvedClientIpAddr {
-    let peer_ip = peer.0.ip();
+    let peer_ip = peer.ip();
     if !trusted_proxy_ranges
         .contains(crate::parsed_ip_addr::ParsedIpAddr::from(peer_ip))
         .get()

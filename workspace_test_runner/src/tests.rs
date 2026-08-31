@@ -3,10 +3,10 @@ fn ansi_cleanup_processes_multiple_and_unterminated_sequences() {
     let clean = crate::strip_ansi_codes::strip_ansi_codes(crate::ansi_text_ref::AnsiTextRef::from(
         constants_str::test_fixtures::VALUE_22233BC3,
     ));
-    assert_eq!(clean.0, "plain red tail");
+    assert_eq!(clean.as_ref(), "plain red tail");
     assert_eq!(
         crate::strip_ansi_codes::strip_ansi_codes(crate::ansi_text_ref::AnsiTextRef::from("plain"))
-            .0,
+            .as_ref(),
         "plain"
     );
 }
@@ -75,10 +75,13 @@ fn measurement_catalogs_are_complete_and_ordered() {
     let tools = crate::allocation_tools::allocation_tools();
     assert_eq!(tools.len(), 6usize);
     assert_eq!(
-        tools[0].name.get(),
+        tools[0].get_name().get(),
         constants_str::catalog::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL
     );
-    assert_eq!(tools[5].name.get(), constants_str::catalog::PG_CRUD_PG_TIME);
+    assert_eq!(
+        tools[5].get_name().get(),
+        constants_str::catalog::PG_CRUD_PG_TIME
+    );
 }
 #[test]
 fn tool_discovery_checks_the_exact_path() {

@@ -7,8 +7,7 @@ pub(crate) fn required_header_str_parsed<'headers, E, T>(
 ) -> Result<T, E> {
     let header_value =
         crate::required_header_value::required_header_value(headers, header_name, no_header_error)?;
-    let header_str = header_value
-        .0
+    let header_str = <&axum::http::HeaderValue>::from(header_value)
         .to_str()
         .map(crate::header_str_ref::HeaderStrRef::from)
         .map_err(to_str_error)?;

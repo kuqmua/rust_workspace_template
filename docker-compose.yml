@@ -3,7 +3,7 @@ services:
     image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
     environment:
       POSTGRES_DB: rust_workspace_template
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}"
+      POSTGRES_PASSWORD: development-only
       POSTGRES_USER: postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d rust_workspace_template"]
@@ -20,7 +20,7 @@ services:
     image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
     environment:
       POSTGRES_DB: notification_service
-      POSTGRES_PASSWORD: "${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}"
+      POSTGRES_PASSWORD: development-only
       POSTGRES_USER: notification_service
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U notification_service -d notification_service"]
@@ -39,7 +39,7 @@ services:
     env_file:
       - server/.env
     environment:
-      DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@database:5432/rust_workspace_template"
+      DATABASE_URL: "postgres://postgres:development-only@database:5432/rust_workspace_template"
       SVC_MODE: migrate
     networks:
       - application
@@ -61,7 +61,7 @@ services:
     env_file:
       - server/.env
     environment:
-      DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@database:5432/rust_workspace_template"
+      DATABASE_URL: "postgres://postgres:development-only@database:5432/rust_workspace_template"
       SVC_MODE: serve
       # BEGIN GENERATED COMPOSE SOCKET server
       SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"
@@ -90,7 +90,7 @@ services:
       notification_database:
         condition: service_healthy
     environment:
-      NOTIFICATION_DATABASE_URL: "postgres://notification_service:${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}@notification_database:5432/notification_service"
+      NOTIFICATION_DATABASE_URL: "postgres://notification_service:development-only@notification_database:5432/notification_service"
       NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
       PG_POOL_MAX_CONNECTIONS: "1"
       REQUEST_TIMEOUT_SECONDS: "30"
@@ -114,7 +114,7 @@ services:
       notification_service_migrate:
         condition: service_completed_successfully
     environment:
-      NOTIFICATION_DATABASE_URL: "postgres://notification_service:${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}@notification_database:5432/notification_service"
+      NOTIFICATION_DATABASE_URL: "postgres://notification_service:development-only@notification_database:5432/notification_service"
       # BEGIN GENERATED COMPOSE SOCKET notification_service
       NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
       # END GENERATED COMPOSE SOCKET notification_service

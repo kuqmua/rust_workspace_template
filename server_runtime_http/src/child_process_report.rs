@@ -1,14 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct ChildProcessReport {
-    pub(super) diagnostic: crate::child_diagnostic::ChildDiagnostic,
-    pub(super) status: crate::child_exit_status::ChildExitStatus,
-    pub(super) completion: crate::child_process_completion::ChildProcessCompletion,
+    diagnostic: crate::child_diagnostic::ChildDiagnostic,
+    status: crate::child_exit_status::ChildExitStatus,
+    completion: crate::child_process_completion::ChildProcessCompletion,
 }
 
 impl ChildProcessReport {

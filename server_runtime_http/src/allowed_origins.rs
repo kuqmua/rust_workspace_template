@@ -1,11 +1,15 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct AllowedOrigins(
-    pub(super) bounded_types::bounded_vec::BoundedVec<crate::allowed_origin::AllowedOrigin, 0, 128>,
+    bounded_types::bounded_vec::BoundedVec<crate::allowed_origin::AllowedOrigin, 0, 128>,
 );
+
+impl AllowedOrigins {
+    pub(crate) const fn get(
+        &self,
+    ) -> &bounded_types::bounded_vec::BoundedVec<crate::allowed_origin::AllowedOrigin, 0, 128> {
+        &self.0
+    }
+}
 
 impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = crate::allowed_origins_error::AllowedOriginsError;

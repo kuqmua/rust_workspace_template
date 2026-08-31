@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     Debug,
     Clone,
@@ -12,7 +7,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::FromInner,
 )]
-pub(crate) struct AxumHealthCheckStatus(pub(super) axum::http::StatusCode);
+pub(crate) struct AxumHealthCheckStatus(axum::http::StatusCode);
 impl AxumHealthCheckStatus {
     pub(crate) fn is_ok(self) -> crate::health_check_succeeded::HealthCheckSucceeded {
         crate::health_check_succeeded::HealthCheckSucceeded::from(

@@ -1,11 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 pub(super) struct HttpMetricsService<Service> {
-    pub(super) inner: Service,
-    pub(super) paths: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
+    inner: Service,
+    paths: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
 }
 
 impl<Service> tower::Service<axum::extract::Request> for HttpMetricsService<Service>
@@ -52,7 +49,6 @@ where
             .unwrap_or(constants_str::catalog::HTTP_METRICS_UNMATCHED_PATH);
         let path_label = self
             .paths
-            .0
             .label(crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(path_text));
         let started_at = std::time::Instant::now();
         let response_future = tower::Service::call(&mut self.inner, req);
@@ -63,8 +59,8 @@ where
             );
             let labels = [
                 metrics::Label::new(constants_str::catalog::HTTP_METRICS_LABEL_METHOD, method),
-                metrics::Label::new(constants_str::catalog::PATH_ALT_5, path_label.0),
-                metrics::Label::new(constants_str::catalog::STATUS_ALT, status.0),
+                metrics::Label::new(constants_str::catalog::PATH_ALT_5, path_label.into_inner()),
+                metrics::Label::new(constants_str::catalog::STATUS_ALT, status.into_inner()),
             ];
             metrics::counter!(
                 constants_str::catalog::HTTP_METRICS_REQUESTS_TOTAL,

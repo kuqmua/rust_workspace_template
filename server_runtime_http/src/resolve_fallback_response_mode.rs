@@ -18,7 +18,7 @@ pub fn resolve_fallback_response_mode(
     }
     let accepts_json = accept
         .get()
-        .filter(|value| value.as_bytes().len() <= maximum_accept_bytes.0)
+        .filter(|value| value.as_bytes().len() <= maximum_accept_bytes.get())
         .and_then(|value| value.to_str().ok())
         .is_some_and(|value| {
             value

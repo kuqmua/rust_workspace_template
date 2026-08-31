@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct PgRateLimitQueryRef(pub(super) &'static str);
+pub struct PgRateLimitQueryRef(&'static str);
+
+impl PgRateLimitQueryRef {
+    pub(crate) const fn get(self) -> &'static str {
+        self.0
+    }
+}

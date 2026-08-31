@@ -1,8 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -15,6 +10,21 @@
     utoipa::ToSchema,
 )]
 pub struct HealthComponent {
-    pub(super) kind: crate::health_component_kind::HealthComponentKind,
-    pub(super) status: crate::health_status::HealthStatus,
+    kind: crate::health_component_kind::HealthComponentKind,
+    status: crate::health_status::HealthStatus,
+}
+impl HealthComponent {
+    #[must_use]
+    pub(crate) const fn new(
+        kind: crate::health_component_kind::HealthComponentKind,
+        status: crate::health_status::HealthStatus,
+    ) -> Self {
+        Self { kind, status }
+    }
+
+    #[cfg(test)]
+    #[must_use]
+    pub(crate) const fn status(self) -> crate::health_status::HealthStatus {
+        self.status
+    }
 }

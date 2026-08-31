@@ -2,11 +2,6 @@
     clippy::wildcard_imports,
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -23,4 +18,15 @@
         if (100u16..1_000u16).contains(value) { Ok(()) } else { Err(crate::pg_table_idempotency_response_status_try_from_u16_error::PgTableIdempotencyResponseStatusTryFromU16Error::OutOfRange) }
     }
 )]
-pub struct PgTableIdempotencyResponseStatus(pub(super) u16);
+pub struct PgTableIdempotencyResponseStatus(u16);
+impl From<crate::pg_table_idempotency_known_response_status::PgTableIdempotencyKnownResponseStatus>
+    for PgTableIdempotencyResponseStatus
+{
+    fn from(
+        value: crate::pg_table_idempotency_known_response_status::PgTableIdempotencyKnownResponseStatus,
+    ) -> Self {
+        match value {
+            crate::pg_table_idempotency_known_response_status::PgTableIdempotencyKnownResponseStatus::InternalServerError => Self(500u16),
+        }
+    }
+}

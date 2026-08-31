@@ -1,11 +1,8 @@
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the request-id tower layer constructs this private service owner"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 pub(super) struct RequestIdService<Service> {
-    pub(super) inner: Service,
-    pub(super) span_config: Option<super::http_request_span_config::HttpRequestSpanConfig>,
+    inner: Service,
+    span_config: Option<super::http_request_span_config::HttpRequestSpanConfig>,
 }
 impl<Service> tower::Service<axum::extract::Request> for RequestIdService<Service>
 where
@@ -63,7 +60,7 @@ where
                     crate::resolve_client_ip::resolve_client_ip(
                         crate::http_header_map_ref::HttpHeaderMapRef::from(req.headers()),
                         crate::client_socket_addr::ClientSocketAddr::from(connect_info.0),
-                        &span_config.trusted_proxy_ranges,
+                        span_config.trusted_proxy_ranges(),
                     )
                 })
         });
@@ -95,11 +92,11 @@ where
         if let Some(span_config) = &self.span_config {
             let _server_address_record = span.record(
                 constants_str::test_fixtures::OTEL_SERVER_ADDRESS,
-                tracing::field::display(span_config.server_address),
+                tracing::field::display(span_config.server_address()),
             );
             let _service_name_record = span.record(
                 constants_str::test_fixtures::OTEL_SERVICE_NAME,
-                tracing::field::display(&span_config.service_name),
+                tracing::field::display(span_config.service_name()),
             );
         }
         if let Some(address) = client_address {
@@ -124,7 +121,7 @@ where
         let service_name = self
             .span_config
             .as_ref()
-            .map_or_else(String::new, |config| config.service_name.to_string());
+            .map_or_else(String::new, |config| config.service_name().to_string());
         let _trace_id_record = span.record(
             constants_str::test_fixtures::OTEL_TRACE_ID,
             trace_id.as_str(),
@@ -172,7 +169,7 @@ where
                         .get::<crate::http_error_diagnostic::HttpErrorDiagnostic>(
                     );
                     let error_telemetry = optional_diagnostic
-                        .map(|diagnostic| diagnostic.telemetry)
+                        .map(crate::http_error_telemetry::HttpErrorTelemetry::from)
                         .or_else(|| {
                             response
                                 .extensions()

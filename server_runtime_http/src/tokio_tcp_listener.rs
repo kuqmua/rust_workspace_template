@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct TokioTcpListener(pub(super) tokio::net::TcpListener);
+pub struct TokioTcpListener(tokio::net::TcpListener);
+
+impl TokioTcpListener {
+    pub(crate) fn into_inner(self) -> tokio::net::TcpListener {
+        self.0
+    }
+}

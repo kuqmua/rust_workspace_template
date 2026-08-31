@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,7 +7,13 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct HttpMetricsPathCacheMaximum(pub(super) std::num::NonZeroUsize);
+pub struct HttpMetricsPathCacheMaximum(std::num::NonZeroUsize);
+
+impl HttpMetricsPathCacheMaximum {
+    pub(crate) const fn get(self) -> usize {
+        self.0.get()
+    }
+}
 
 impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
     type Error = crate::http_metrics_path_cache_maximum_try_from_usize_error::HttpMetricsPathCacheMaximumTryFromUsizeError;

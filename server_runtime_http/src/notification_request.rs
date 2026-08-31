@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -12,5 +8,11 @@
 )]
 #[serde(deny_unknown_fields)]
 pub struct NotificationRequest {
-    pub(super) message: crate::runtime_notification_message::RuntimeNotificationMessage,
+    message: crate::runtime_notification_message::RuntimeNotificationMessage,
+}
+
+impl From<NotificationRequest> for crate::runtime_notification_message::RuntimeNotificationMessage {
+    fn from(value: NotificationRequest) -> Self {
+        value.message
+    }
 }

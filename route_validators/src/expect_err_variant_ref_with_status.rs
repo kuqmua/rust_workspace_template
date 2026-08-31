@@ -13,11 +13,11 @@ where
         Some(status_code) => {
             crate::assert_err_status_code_variant_ref::assert_err_status_code_variant_ref(
                 v,
-                exp_id.0,
+                exp_id.get(),
                 status_code,
                 map,
             )
         }
-        None => crate::expect_error_variant_ref::expect_error_variant_ref(v, exp_id.0, map),
+        None => crate::expect_error_variant_ref::expect_error_variant_ref(v, exp_id.get(), map),
     }
 }

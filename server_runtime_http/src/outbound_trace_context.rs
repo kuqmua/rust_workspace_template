@@ -11,7 +11,7 @@ impl OutboundTraceContext {
         &self,
         request: crate::reqwest_request_builder::ReqwestRequestBuilder,
     ) -> crate::reqwest_request_builder::ReqwestRequestBuilder {
-        let request_with_parent = request.0.header(
+        let request_with_parent = reqwest::RequestBuilder::from(request).header(
             constants_str::test_fixtures::TRACEPARENT,
             self.trace_parent.as_ref(),
         );

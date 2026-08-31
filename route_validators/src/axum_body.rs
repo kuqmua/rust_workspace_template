@@ -1,6 +1,12 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct AxumBody(pub(super) axum::body::Body);
+pub struct AxumBody(axum::body::Body);
+
+impl AxumBody {
+    pub(crate) fn into_inner(self) -> axum::body::Body {
+        self.0
+    }
+
+    pub(crate) fn size_hint(&self) -> http_body::SizeHint {
+        axum::body::HttpBody::size_hint(&self.0)
+    }
+}

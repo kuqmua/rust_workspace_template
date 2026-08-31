@@ -1,11 +1,8 @@
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the exclusive-run owner module constructs this private lifecycle guard"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 #[must_use]
 pub struct ExclusiveRunGuard<'run_lt> {
-    pub(super) active: &'run_lt super::exclusive_run_atomic_bool::ExclusiveRunAtomicBool,
+    active: &'run_lt super::exclusive_run_atomic_bool::ExclusiveRunAtomicBool,
 }
 impl Drop for ExclusiveRunGuard<'_> {
     fn drop(&mut self) {

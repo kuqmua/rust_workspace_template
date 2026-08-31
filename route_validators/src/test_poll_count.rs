@@ -1,6 +1,9 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    newtype::DerefInner,
+    newtype::DerefMutInner,
+    newtype::FromInner,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
-pub(super) struct TestPollCount(pub(super) usize);
+pub(super) struct TestPollCount(usize);

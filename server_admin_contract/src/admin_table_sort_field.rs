@@ -34,11 +34,11 @@ impl AdminTableSortField {
     ];
     #[must_use]
     pub fn key(self) -> frontend_contract::contract_str::ContractStr {
-        self.values().key
+        self.values().into_parts().0
     }
     #[must_use]
     pub fn label(self) -> frontend_contract::contract_str::ContractStr {
-        self.values().label
+        self.values().into_parts().1
     }
     pub fn try_from_key(
         options: &[Self],
@@ -100,9 +100,9 @@ impl AdminTableSortField {
                 constants_str::catalog::SHARED_VALUES_STATUS_2,
             ),
         };
-        crate::admin_table_sort_values::AdminTableSortValues {
-            key: frontend_contract::contract_str::ContractStr::from(key),
-            label: frontend_contract::contract_str::ContractStr::from(label),
-        }
+        crate::admin_table_sort_values::AdminTableSortValues::new(
+            frontend_contract::contract_str::ContractStr::from(key),
+            frontend_contract::contract_str::ContractStr::from(label),
+        )
     }
 }

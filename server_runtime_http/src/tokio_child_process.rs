@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
-pub struct TokioChildProcess(pub(super) tokio::process::Child);
+pub struct TokioChildProcess(tokio::process::Child);
+
+impl TokioChildProcess {
+    pub(crate) fn into_inner(self) -> tokio::process::Child {
+        self.0
+    }
+}

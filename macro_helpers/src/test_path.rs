@@ -6,7 +6,7 @@ pub(crate) fn test_path(
     let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     crate::rs_file_path_buf::RsFilePathBuf::from(std::env::temp_dir().join(format!(
         "{}_{}_{}",
-        stem.0,
+        stem.as_ref(),
         std::process::id(),
         seq
     )))

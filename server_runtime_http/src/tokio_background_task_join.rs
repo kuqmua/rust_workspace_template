@@ -1,8 +1,12 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::IntoInnerFrom,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(super) struct TokioBackgroundTaskJoin(
-    pub(super) tokio::task::JoinHandle<crate::background_task_outcome::BackgroundTaskOutcome>,
+    tokio::task::JoinHandle<crate::background_task_outcome::BackgroundTaskOutcome>,
 );
+
+impl TokioBackgroundTaskJoin {
+    pub(super) fn abort(&self) {
+        self.0.abort();
+    }
+}

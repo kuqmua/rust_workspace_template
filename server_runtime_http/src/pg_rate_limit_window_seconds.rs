@@ -1,9 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PgRateLimitWindowSeconds(pub(super) std::num::NonZeroI32);
+pub struct PgRateLimitWindowSeconds(std::num::NonZeroI32);
+
+impl PgRateLimitWindowSeconds {
+    pub(crate) const fn get(self) -> std::num::NonZeroI32 {
+        self.0
+    }
+}
 
 impl TryFrom<i32> for PgRateLimitWindowSeconds {
     type Error = crate::pg_rate_limit_validation_error::PgRateLimitValidationError;

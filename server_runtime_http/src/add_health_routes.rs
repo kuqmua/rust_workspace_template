@@ -9,9 +9,11 @@ pub fn add_health_routes(
             .route(
                 constants_str::catalog::LIVE_PATH,
                 axum::routing::get(async || {
-                    axum::Json(crate::service_liveness_snapshot::ServiceLivenessSnapshot {
-                        service: crate::health_component_status::HealthComponentStatus::Ok,
-                    })
+                    axum::Json(
+                        crate::service_liveness_snapshot::ServiceLivenessSnapshot::new(
+                            crate::health_component_status::HealthComponentStatus::Ok,
+                        ),
+                    )
                 }),
             )
             .route(
@@ -20,7 +22,7 @@ pub fn add_health_routes(
                     let route_readiness = readiness_for_route.clone();
                     async move {
                         let snapshot = route_readiness.snapshot();
-                        if snapshot.database
+                        if snapshot.database()
                             == crate::health_component_status::HealthComponentStatus::Ok
                         {
                             Ok(axum::Json(snapshot))

@@ -15,21 +15,21 @@ impl SingleFlight {
         key: crate::single_flight_key::SingleFlightKey,
     ) -> crate::single_flight_acquire::SingleFlightAcquire {
         let mut inner = crate::write_inner::write_inner(&self.inner);
-        if let Some(sender) = inner.flights.get(&key) {
+        if let Some(sender) = inner.get(&key) {
             return crate::single_flight_acquire::SingleFlightAcquire::Waiter(
                 crate::single_flight_waiter::SingleFlightWaiter::from(
                     crate::tokio_single_flight_receiver::TokioSingleFlightReceiver::from(
-                        sender.0.subscribe(),
+                        sender.subscribe(),
                     ),
                 ),
             );
         }
-        if inner.flights.len().get() >= self.maximum.0.get() {
+        if inner.len().get() >= self.maximum.get() {
             return crate::single_flight_acquire::SingleFlightAcquire::Full;
         }
         let (sender, _) =
             tokio::sync::watch::channel(crate::single_flight_signal::SingleFlightSignal::Running);
-        let insertion = inner.flights.try_insert(
+        let insertion = inner.try_insert(
             key.clone(),
             crate::tokio_single_flight_sender::TokioSingleFlightSender::from(sender),
         );
@@ -38,10 +38,7 @@ impl SingleFlight {
         }
         drop(inner);
         crate::single_flight_acquire::SingleFlightAcquire::Owner(
-            crate::single_flight_owner::SingleFlightOwner {
-                inner: self.inner.clone(),
-                key: Some(key),
-            },
+            crate::single_flight_owner::SingleFlightOwner::new(self.inner.clone(), Some(key)),
         )
     }
 

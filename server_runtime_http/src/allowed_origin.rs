@@ -1,11 +1,19 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct AllowedOrigin {
-    pub(super) authority: crate::http_origin_authority_text::HttpOriginAuthorityText,
-    pub(super) scheme: crate::http_origin_scheme_text::HttpOriginSchemeText,
+    authority: crate::http_origin_authority_text::HttpOriginAuthorityText,
+    scheme: crate::http_origin_scheme_text::HttpOriginSchemeText,
+}
+
+impl AllowedOrigin {
+    pub(crate) const fn authority(
+        &self,
+    ) -> &crate::http_origin_authority_text::HttpOriginAuthorityText {
+        &self.authority
+    }
+
+    pub(crate) const fn scheme(&self) -> &crate::http_origin_scheme_text::HttpOriginSchemeText {
+        &self.scheme
+    }
 }
 
 impl TryFrom<String> for AllowedOrigin {

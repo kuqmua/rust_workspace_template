@@ -1,9 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::DerefInner)]
-pub struct HttpContentSecurityPolicy(pub(super) http::HeaderValue);
+pub struct HttpContentSecurityPolicy(http::HeaderValue);
+
+impl HttpContentSecurityPolicy {
+    pub(crate) fn into_inner(self) -> http::HeaderValue {
+        self.0
+    }
+}
 
 impl TryFrom<String> for HttpContentSecurityPolicy {
     type Error = crate::http_content_security_policy_error::HttpContentSecurityPolicyError;

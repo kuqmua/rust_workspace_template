@@ -5,12 +5,12 @@ pub fn calculate_resource_utilization(
     crate::resource_utilization::ResourceUtilization,
     crate::resource_utilization_error::ResourceUtilizationError,
 > {
-    if maximum.0 == constants_u64::ZERO {
+    if *maximum == constants_u64::ZERO {
         return Err(crate::resource_utilization_error::ResourceUtilizationError::ZeroMaximum);
     }
-    let percent_u128 = u128::from(used.0)
+    let percent_u128 = u128::from(*used)
         .saturating_mul(100u128)
-        .div_euclid(u128::from(maximum.0))
+        .div_euclid(u128::from(*maximum))
         .min(100u128);
     let percent_u8 = u8::try_from(percent_u128).unwrap_or(100u8);
     let percent =
@@ -20,7 +20,7 @@ pub fn calculate_resource_utilization(
                     crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent::Max,
                 )
             });
-    let status = match percent.0 {
+    let status = match percent.get() {
         crate::reject_non_essential_writes_percent::REJECT_NON_ESSENTIAL_WRITES_PERCENT
             ..=u8::MAX => {
             crate::resource_utilization_status::ResourceUtilizationStatus::RejectNonEssentialWrites
@@ -36,10 +36,7 @@ pub fn calculate_resource_utilization(
             crate::resource_utilization_status::ResourceUtilizationStatus::Ok
         }
     };
-    Ok(crate::resource_utilization::ResourceUtilization {
-        maximum,
-        used,
-        percent,
-        status,
-    })
+    Ok(crate::resource_utilization::ResourceUtilization::new(
+        maximum, used, percent, status,
+    ))
 }

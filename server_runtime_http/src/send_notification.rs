@@ -12,8 +12,8 @@ where
     Sender: crate::notification_sender::NotificationSender,
 {
     let authorization = state
-        .headers
-        .0
+        .headers()
+        .get()
         .get(http::header::AUTHORIZATION)
         .and_then(|value| value.to_str().ok());
     let authorized = match crate::resolve_bearer_authorization::resolve_bearer_authorization(
@@ -22,7 +22,7 @@ where
         ),
     ) {
         crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(token) => {
-            bool::from(state.state.token.authorizes(
+            bool::from(state.state().token().authorizes(
                 crate::notification_api_token_ref::NotificationApiTokenRef::from(token.as_ref()),
             ))
         }
@@ -32,10 +32,19 @@ where
     if !authorized {
         return http::StatusCode::UNAUTHORIZED;
     }
-    let Some(_permit) = state.state.permits.try_acquire() else {
+    let Some(_permit) = state.state().permits().try_acquire() else {
         return http::StatusCode::TOO_MANY_REQUESTS;
     };
-    match state.state.sender.send(request.0.message).await {
+    match state
+        .state()
+        .sender()
+        .send(
+            crate::runtime_notification_message::RuntimeNotificationMessage::from(
+                request.into_inner(),
+            ),
+        )
+        .await
+    {
         Ok(()) => http::StatusCode::NO_CONTENT,
         Err(_error) => http::StatusCode::BAD_GATEWAY,
     }

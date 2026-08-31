@@ -17,10 +17,10 @@ impl SecurityHeadersLayer {
     #[must_use]
     pub fn apply(self, router: crate::axum_router::AxumRouter) -> crate::axum_router::AxumRouter {
         crate::axum_router::AxumRouter::from(axum::Router::from(router).layer(
-            crate::security_headers_tower_layer::SecurityHeadersTowerLayer {
-                content_security_policy: self.content_security_policy,
-                forwarded_proto_trust: self.forwarded_proto_trust,
-            },
+            crate::security_headers_tower_layer::SecurityHeadersTowerLayer::new(
+                self.content_security_policy,
+                self.forwarded_proto_trust,
+            ),
         ))
     }
 

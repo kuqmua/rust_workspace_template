@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -13,7 +9,7 @@
     newtype::Display,
 )]
 #[sqlx(transparent)]
-pub struct PgTableRevision(pub(super) i64);
+pub struct PgTableRevision(i64);
 
 impl TryFrom<String> for PgTableRevision {
     type Error = crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError;

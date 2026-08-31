@@ -16,7 +16,6 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
         })?;
     let mut command_runs = std::thread::scope(|scope| {
         commands
-            .0
             .iter()
             .enumerate()
             .map(|(idx, (program, args))| {
@@ -68,7 +67,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
         crate::summary_text::SummaryText::try_from(String::new()).map_err(|_error| ())?;
     let mut succeeded = true;
     command_runs.sort_by_key(|command_run_result| match command_run_result {
-        Ok(command_run) => command_run.get_idx().get(),
+        Ok(command_run) => usize::from(*command_run.get_idx()),
         Err(_panic) => usize::MAX,
     });
     command_runs.into_iter().try_for_each(|command_run_result| {
@@ -83,8 +82,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             }
         };
         let (program, args) = commands
-            .0
-            .get(command_run.get_idx().get())
+            .get(usize::from(*command_run.get_idx()))
             .copied()
             .ok_or(())?;
         let parts = std::iter::once(program)
@@ -117,7 +115,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             .collect::<String>();
         let log_name = crate::command_text::CommandText::try_from(format!(
             "{:02}-{sanitized}.log",
-            command_run.get_idx().get()
+            usize::from(*command_run.get_idx())
         ))
         .unwrap_or_else(crate::command_text::CommandText::from);
         let log_path = run_dir.join(log_name.as_ref());
@@ -165,14 +163,14 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             .as_str(),
             ),
         )?;
-        if !command_run.get_succeeded().get() {
+        if !bool::from(*command_run.get_succeeded()) {
             succeeded = false;
         }
         Ok(())
     })?;
     std::fs::write(
         run_dir.join(constants_str::catalog::SUMMARY_TXT),
-        crate::strip_ansi::strip_ansi(crate::text_ref::TextRef::from(summary.0.as_str())).as_ref(),
+        crate::strip_ansi::strip_ansi(crate::text_ref::TextRef::from(summary.as_ref())).as_ref(),
     )
     .map_err(crate::execution_io_error::ExecutionIoError::from)
     .map_err(|error| {

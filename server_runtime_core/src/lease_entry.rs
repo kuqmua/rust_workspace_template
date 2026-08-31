@@ -1,11 +1,34 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 pub(super) struct LeaseEntry {
-    pub(super) heartbeat: crate::tokio_lease_instant::TokioLeaseInstant,
-    pub(super) key: crate::lease_key::LeaseKey,
-    pub(super) state: crate::lease_state::LeaseState,
+    heartbeat: crate::tokio_lease_instant::TokioLeaseInstant,
+    key: crate::lease_key::LeaseKey,
+    state: crate::lease_state::LeaseState,
+}
+
+impl LeaseEntry {
+    pub(crate) fn into_key(self) -> crate::lease_key::LeaseKey {
+        self.key
+    }
+
+    pub(crate) fn is_stale(&self) -> bool {
+        self.state == crate::lease_state::LeaseState::Stale
+    }
+
+    pub(crate) fn mark_stale_if_expired(
+        &mut self,
+        now: tokio::time::Instant,
+        timeout: crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration,
+    ) -> bool {
+        if now.duration_since(*self.heartbeat) <= *timeout {
+            return false;
+        }
+        self.state = crate::lease_state::LeaseState::Stale;
+        true
+    }
+
+    pub(crate) fn refresh(&mut self, now: tokio::time::Instant) {
+        self.heartbeat = crate::tokio_lease_instant::TokioLeaseInstant::from(now);
+        self.state = crate::lease_state::LeaseState::Ready;
+    }
 }

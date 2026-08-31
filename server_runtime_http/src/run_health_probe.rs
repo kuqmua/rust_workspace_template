@@ -6,7 +6,7 @@ where
     Probe: Future<Output = bool>,
 {
     crate::health_probe_succeeded::HealthProbeSucceeded::from(matches!(
-        tokio::time::timeout(timeout.0, probe).await,
+        tokio::time::timeout(timeout.get(), probe).await,
         Ok(true)
     ))
 }

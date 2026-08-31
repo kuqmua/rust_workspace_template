@@ -52,6 +52,6 @@ mod tests {
     fn generate_simple_syn_punct_returns_empty_path_on_empty_input() {
         let punct =
             crate::generate_simple_syn_punct::generate_simple_syn_punct(std::iter::empty::<&str>());
-        assert!(punct.0.is_empty());
+        assert!(punct.is_empty());
     }
 }

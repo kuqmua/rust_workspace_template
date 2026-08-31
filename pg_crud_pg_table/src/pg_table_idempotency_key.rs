@@ -1,11 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
 )]
-pub struct PgTableIdempotencyKey(pub(super) String);
+pub struct PgTableIdempotencyKey(String);
 
 impl TryFrom<String> for PgTableIdempotencyKey {
     type Error = crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError;

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,4 +7,10 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub(super) struct IpnetNetwork(pub(super) ipnet::IpNet);
+pub(super) struct IpnetNetwork(ipnet::IpNet);
+
+impl IpnetNetwork {
+    pub(crate) const fn get(self) -> ipnet::IpNet {
+        self.0
+    }
+}

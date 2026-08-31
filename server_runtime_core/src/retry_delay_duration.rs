@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -9,6 +5,7 @@
     Debug,
     Eq,
     PartialEq,
+    newtype::DerefInner,
     newtype::FromInner,
 )]
-pub struct RetryDelayDuration(pub(super) std::time::Duration);
+pub struct RetryDelayDuration(std::time::Duration);

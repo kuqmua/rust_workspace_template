@@ -6,7 +6,7 @@ pub async fn acquire_permit(
     crate::tokio_owned_semaphore_permit::TokioOwnedSemaphorePermit,
     crate::acquire_permit_error::AcquirePermitError,
 > {
-    match tokio::time::timeout(wait_timeout.0, semaphore.0.acquire_owned()).await {
+    match tokio::time::timeout(wait_timeout.get(), semaphore.into_inner().acquire_owned()).await {
         Ok(Ok(permit)) => {
             Ok(crate::tokio_owned_semaphore_permit::TokioOwnedSemaphorePermit::from(permit))
         }

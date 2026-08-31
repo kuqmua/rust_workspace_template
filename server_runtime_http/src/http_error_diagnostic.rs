@@ -8,7 +8,7 @@ pub struct HttpErrorDiagnostic {
     error_chain: crate::std_http_error_chain::StdHttpErrorChain,
     location: server_observability::std_panic_location::StdPanicLocation,
     span_trace: crate::tracing_http_span_trace::TracingHttpSpanTrace,
-    pub(crate) telemetry: crate::http_error_telemetry::HttpErrorTelemetry,
+    telemetry: crate::http_error_telemetry::HttpErrorTelemetry,
 }
 
 impl HttpErrorDiagnostic {
@@ -107,6 +107,12 @@ impl HttpErrorDiagnostic {
 
     pub(crate) const fn span_trace(&self) -> &crate::tracing_http_span_trace::TracingHttpSpanTrace {
         &self.span_trace
+    }
+}
+
+impl From<&HttpErrorDiagnostic> for crate::http_error_telemetry::HttpErrorTelemetry {
+    fn from(value: &HttpErrorDiagnostic) -> Self {
+        value.telemetry
     }
 }
 #[cfg(test)]

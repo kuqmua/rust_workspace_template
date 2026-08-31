@@ -1,9 +1,7 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner, newtype::IntoInner,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
-pub struct ArcTokioSemaphore(pub(super) std::sync::Arc<tokio::sync::Semaphore>);
+pub struct ArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 
 impl ArcTokioSemaphore {
     #[must_use]
@@ -11,7 +9,7 @@ impl ArcTokioSemaphore {
         permit_count: crate::semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize,
     ) -> Self {
         Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
-            permit_count.0.get(),
+            permit_count.get(),
         )))
     }
 

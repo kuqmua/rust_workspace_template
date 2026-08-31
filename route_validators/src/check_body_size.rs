@@ -12,8 +12,8 @@ where
 {
     let body_value = body.into();
     let limit_value = limit.into();
-    let size_hint = axum::body::HttpBody::size_hint(&body_value.0);
-    axum::body::to_bytes(body_value.0, limit_value.0)
+    let size_hint = body_value.size_hint();
+    axum::body::to_bytes(body_value.into_inner(), limit_value.value())
         .await
         .map(crate::bytes_body_bytes::BytesBodyBytes::from)
         .map_err(
@@ -44,7 +44,10 @@ mod tests {
                         maximum_size_of_body_limit_in_bytes,
                         size_hint,
                         ..
-                    } => (maximum_size_of_body_limit_in_bytes.0, size_hint.0.upper()),
+                    } => (
+                        maximum_size_of_body_limit_in_bytes.value(),
+                        size_hint.upper(),
+                    ),
                 })
             },
         )
@@ -65,7 +68,7 @@ mod tests {
             )),
             exp_id,
         );
-        assert_eq!(actual.0, bytes::Bytes::from_static(exp));
+        assert!(actual.matches(exp));
     }
     #[test]
     fn check_body_size_returns_bytes_when_body_fits_limit() {

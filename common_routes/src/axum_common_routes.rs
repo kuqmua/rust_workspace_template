@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     Clone,
@@ -9,4 +5,4 @@
     newtype::IntoInnerFrom,
     newtype::FromInner,
 )]
-pub struct AxumCommonRoutes(pub(super) axum::Router);
+pub struct AxumCommonRoutes(axum::Router);

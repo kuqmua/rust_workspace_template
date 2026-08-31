@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,7 +7,13 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct RetryAfterSecs(pub(super) std::num::NonZeroU64);
+pub struct RetryAfterSecs(std::num::NonZeroU64);
+
+impl RetryAfterSecs {
+    pub(crate) const fn get(self) -> u64 {
+        self.0.get()
+    }
+}
 
 impl TryFrom<u64> for RetryAfterSecs {
     type Error = crate::retry_after_secs_try_from_u64_error::RetryAfterSecsTryFromU64Error;
@@ -27,6 +29,6 @@ impl TryFrom<RetryAfterSecs> for http::HeaderValue {
     type Error = http::header::InvalidHeaderValue;
 
     fn try_from(value: RetryAfterSecs) -> Result<Self, Self::Error> {
-        Self::from_str(value.0.get().to_string().as_str())
+        Self::from_str(value.get().to_string().as_str())
     }
 }

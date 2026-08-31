@@ -3,8 +3,7 @@ pub(crate) fn memusage_table_value(
     row_name: crate::memusage_row_name::MemusageRowName,
     column_idx: crate::memusage_column_idx::MemusageColumnIdx,
 ) -> crate::memusage_value_ref::MemusageValueRef<'_> {
-    text.0
-        .as_str()
+    text.as_ref()
         .lines()
         .find(|line| line.contains(row_name.get()))
         .and_then(|line| line.split('|').nth(1))
@@ -15,6 +14,6 @@ pub(crate) fn memusage_table_value(
                     constants_str::catalog::UNAVAILABLE,
                 )
             },
-            crate::memusage_value_ref::MemusageValueRef,
+            crate::memusage_value_ref::MemusageValueRef::from,
         )
 }

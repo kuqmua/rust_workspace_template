@@ -2,16 +2,21 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_constructor::New,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[constructor(pub(crate))]
 pub struct ResourceUtilization {
-    pub(super) maximum: crate::resource_amount::ResourceAmount,
-    pub(super) used: crate::resource_amount::ResourceAmount,
-    pub(super) percent: crate::resource_utilization_percent::ResourceUtilizationPercent,
-    pub(super) status: crate::resource_utilization_status::ResourceUtilizationStatus,
+    maximum: crate::resource_amount::ResourceAmount,
+    used: crate::resource_amount::ResourceAmount,
+    percent: crate::resource_utilization_percent::ResourceUtilizationPercent,
+    status: crate::resource_utilization_status::ResourceUtilizationStatus,
 }
 
 impl ResourceUtilization {

@@ -2,7 +2,7 @@
 pub const fn classify_http_error_status(
     status: crate::http_error_status::HttpErrorStatus,
 ) -> crate::http_error_class::HttpErrorClass {
-    match status.0.as_u16() {
+    match status.as_u16() {
         200..=299 => crate::http_error_class::HttpErrorClass::UnexpectedSuccess,
         401 => crate::http_error_class::HttpErrorClass::Authentication,
         403 => crate::http_error_class::HttpErrorClass::Forbidden,

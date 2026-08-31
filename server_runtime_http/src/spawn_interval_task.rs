@@ -12,7 +12,7 @@ where
     let interval = optional_interval?;
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel();
     let task_join = tokio::spawn(async move {
-        let mut timer = tokio::time::interval(interval.0);
+        let mut timer = tokio::time::interval(interval.get());
         timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         loop {
             tokio::select! {
@@ -23,14 +23,12 @@ where
             }
         }
     });
-    Some(crate::background_task::BackgroundTask {
-        task_join: Some(
-            crate::tokio_background_task_join::TokioBackgroundTaskJoin::from(task_join),
-        ),
-        shutdown_tx: Some(
+    Some(crate::background_task::BackgroundTask::new(
+        Some(
             crate::tokio_background_task_shutdown_sender::TokioBackgroundTaskShutdownSender::from(
                 shutdown_tx,
             ),
         ),
-    })
+        Some(crate::tokio_background_task_join::TokioBackgroundTaskJoin::from(task_join)),
+    ))
 }

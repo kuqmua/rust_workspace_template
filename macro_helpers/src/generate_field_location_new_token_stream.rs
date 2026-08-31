@@ -6,13 +6,13 @@ pub fn generate_field_location_new_token_stream(
 ) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let location_snake_case = naming::domain_types::LocationSnakeCase;
     let location_new_token_stream = {
-        let file_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&file.0);
+        let file_token_stream = generate_quotes::dq_token_stream::dq_token_stream(file.as_str());
         let line_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(line.0.get());
+            let literal = proc_macro2::Literal::u32_unsuffixed(line.value());
             quote::quote! {#literal}
         };
         let column_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(column.0.get());
+            let literal = proc_macro2::Literal::u32_unsuffixed(column.value());
             quote::quote! {#literal}
         };
         quote::quote! {

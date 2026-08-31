@@ -12,17 +12,8 @@ impl LeaseRegistry {
         id: &crate::lease_id::LeaseId,
     ) -> crate::lease_heartbeat::LeaseHeartbeat {
         {
-            let mut inner = self.inner.0.write().await;
-            match inner.by_id.get_mut(id) {
-                Some(entry) if entry.state != crate::lease_state::LeaseState::Stale => {
-                    entry.heartbeat = crate::tokio_lease_instant::TokioLeaseInstant::from(
-                        tokio::time::Instant::now(),
-                    );
-                    entry.state = crate::lease_state::LeaseState::Ready;
-                    crate::lease_heartbeat::LeaseHeartbeat::Accepted
-                }
-                Some(_) | None => crate::lease_heartbeat::LeaseHeartbeat::Missing,
-            }
+            let mut inner = self.inner.write().await;
+            inner.heartbeat(id, tokio::time::Instant::now())
         }
     }
 
@@ -35,12 +26,8 @@ impl LeaseRegistry {
         &self,
         id: &crate::lease_id::LeaseId,
     ) -> crate::lease_heartbeat::LeaseHeartbeat {
-        let mut inner = self.inner.0.write().await;
-        let Some(entry) = inner.by_id.remove(id) else {
-            return crate::lease_heartbeat::LeaseHeartbeat::Missing;
-        };
-        let _removed = inner.by_key.remove(&entry.key);
-        crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        let mut inner = self.inner.write().await;
+        inner.release(id)
     }
 
     pub async fn reserve(
@@ -50,61 +37,8 @@ impl LeaseRegistry {
         maximum: crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize,
     ) -> crate::lease_reservation::LeaseReservation {
         {
-            let mut inner = self.inner.0.write().await;
-            if let Some(existing_id) = inner.by_key.get(&key)
-                && inner
-                    .by_id
-                    .get(existing_id)
-                    .is_some_and(|entry| entry.state != crate::lease_state::LeaseState::Stale)
-            {
-                return crate::lease_reservation::LeaseReservation::Existing(existing_id.clone());
-            }
-            #[allow(
-                clippy::needless_collect,
-                reason = "expired lease keys must be collected before mutating the registry"
-            )]
-            // ids must be owned before mutating both registry indexes
-            let stale = inner
-                .by_id
-                .iter()
-                .filter(|(_id, entry)| entry.state == crate::lease_state::LeaseState::Stale)
-                .map(|(stale_id, _entry)| stale_id.clone())
-                .collect::<Vec<_>>();
-            stale.into_iter().fold((), |(), stale_id| {
-                if let Some(entry) = inner.by_id.remove(&stale_id) {
-                    let _removed = inner.by_key.remove(&entry.key);
-                }
-            });
-            if inner.by_id.len().get() >= maximum.0.get() {
-                return crate::lease_reservation::LeaseReservation::LimitReached;
-            }
-            if let Some(previous) = inner.by_id.remove(&id) {
-                let _removed = inner.by_key.remove(&previous.key);
-            }
-            if let Some(previous_id) = inner.by_key.remove(&key) {
-                let _removed = inner.by_id.remove(&previous_id);
-            }
-            let id_insertion = inner.by_key.try_insert(key.clone(), id.clone());
-            if id_insertion.is_err() {
-                return crate::lease_reservation::LeaseReservation::LimitReached;
-            }
-            let entry_insertion = inner.by_id.try_insert(
-                id,
-                crate::lease_entry::LeaseEntry {
-                    heartbeat: crate::tokio_lease_instant::TokioLeaseInstant::from(
-                        tokio::time::Instant::now(),
-                    ),
-                    key: key.clone(),
-                    state: crate::lease_state::LeaseState::Reserved,
-                },
-            );
-            if entry_insertion.is_err() {
-                let _removed_id = inner.by_key.remove(&key);
-                drop(inner);
-                return crate::lease_reservation::LeaseReservation::LimitReached;
-            }
-            drop(inner);
-            crate::lease_reservation::LeaseReservation::Reserved
+            let mut inner = self.inner.write().await;
+            inner.reserve(id, &key, maximum, tokio::time::Instant::now())
         }
     }
 
@@ -112,22 +46,8 @@ impl LeaseRegistry {
         &self,
         timeout: crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration,
     ) -> crate::lease_ids::LeaseIds {
-        crate::lease_ids::LeaseIds::from({
-            let mut inner = self.inner.0.write().await;
-            let now = tokio::time::Instant::now();
-            let mut stale_ids = bounded_types::bounded_vec::BoundedVec::default();
-            inner
-                .by_id
-                .iter_mut()
-                .filter_map(|(id, entry)| {
-                    (now.duration_since(entry.heartbeat.0) > timeout.0).then(|| {
-                        entry.state = crate::lease_state::LeaseState::Stale;
-                        id.clone()
-                    })
-                })
-                .for_each(|id| stale_ids.push_max_capacity(id));
-            stale_ids
-        })
+        let mut inner = self.inner.write().await;
+        inner.stale(tokio::time::Instant::now(), timeout)
     }
 }
 #[cfg(test)]

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     Debug,
     serde::Deserialize,
@@ -11,5 +7,22 @@
 )]
 pub struct GitInfo {
     #[schema(value_type = String)]
-    pub(super) commit: git_info::git_commit_link_cow::GitCommitLinkCow,
+    commit: git_info::git_commit_link_cow::GitCommitLinkCow,
+}
+
+impl GitInfo {
+    #[allow(
+        clippy::single_call_fn,
+        reason = "the contract owner constructs its private serialized field for the route adapter"
+    )]
+    pub(super) const fn from_commit(
+        commit: git_info::git_commit_link_cow::GitCommitLinkCow,
+    ) -> Self {
+        Self { commit }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn commit_matches(&self, expected: &str) -> bool {
+        self.commit.as_ref() == expected
+    }
 }

@@ -5,7 +5,7 @@ pub(super) fn insert_header_no_prev<'headers_lt, ValueTy>(
 ) where
     ValueTy: Into<crate::axum_test_header_value::AxumTestHeaderValue>,
 {
-    let headers = headers.into();
-    let prev = headers.0.insert(name, value.into().0);
+    let mut headers = headers.into();
+    let prev = headers.insert(name, axum::http::HeaderValue::from(value.into()));
     assert!(prev.is_none());
 }

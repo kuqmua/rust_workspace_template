@@ -22,7 +22,7 @@ impl TryFrom<crate::http_proxy_path_ref::HttpProxyPathRef<'_>> for HttpProxyPath
     fn try_from(
         value: crate::http_proxy_path_ref::HttpProxyPathRef<'_>,
     ) -> Result<Self, Self::Error> {
-        let path = value.0.trim().trim_start_matches('/');
+        let path = value.get().trim().trim_start_matches('/');
         if path.is_empty() {
             return Err(Self::Error::Empty);
         }

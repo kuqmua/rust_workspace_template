@@ -2,7 +2,7 @@ pub async fn read_bounded_file_async(
     path: crate::runtime_path_ref::RuntimePathRef<'_>,
     maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes,
 ) -> Result<crate::bounded_bytes::BoundedBytes, crate::bounded_read_error::BoundedReadError> {
-    let file = tokio::fs::File::open(path.0).await.map_err(|source| {
+    let file = tokio::fs::File::open(path.get()).await.map_err(|source| {
         crate::bounded_read_error::BoundedReadError::Io {
             source: crate::bounded_read_io_error::BoundedReadIoError::from(source),
         }
@@ -12,13 +12,13 @@ pub async fn read_bounded_file_async(
             source: crate::bounded_read_io_error::BoundedReadIoError::from(source),
         }
     })?;
-    if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
+    if metadata.len() > u64::try_from(maximum_bytes.get()).unwrap_or(u64::MAX) {
         return Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
     let initial_capacity = usize::try_from(metadata.len())
-        .unwrap_or(maximum_bytes.0)
-        .min(maximum_bytes.0);
-    let read_limit = u64::try_from(maximum_bytes.0)
+        .unwrap_or_else(|_error| maximum_bytes.get())
+        .min(maximum_bytes.get());
+    let read_limit = u64::try_from(maximum_bytes.get())
         .unwrap_or(u64::MAX)
         .saturating_add(constants_u64::ONE);
     let mut reader = tokio::io::AsyncReadExt::take(file, read_limit);

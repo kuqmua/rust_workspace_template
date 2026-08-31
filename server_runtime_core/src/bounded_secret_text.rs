@@ -1,12 +1,14 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::DisplayConst,
 )]
 #[display_const(constants_str::catalog::REDACTED_ALT_3)]
-pub struct BoundedSecretText(pub(super) String);
+pub struct BoundedSecretText(String);
+
+impl BoundedSecretText {
+    pub(super) const fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
 
 impl TryFrom<String> for BoundedSecretText {
     type Error = crate::bounded_secret_text_error::BoundedSecretTextError;

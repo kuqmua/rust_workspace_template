@@ -8,7 +8,7 @@ impl frontend_contract::typed_route::TypedRoute for ParameterizedTestRoute {
 
     fn metadata() -> frontend_contract::route_metadata::RouteMetadata {
         frontend_contract::route_metadata::RouteMetadata::new(
-            frontend_contract::route_method::RouteMethod::Get,
+            std::convert::identity(frontend_contract::route_method::RouteMethod::Get),
             frontend_contract::contract_str::ContractStr::from(constants_str::catalog::READ),
             frontend_contract::contract_str::ContractStr::from(constants_str::catalog::ROUTE),
         )

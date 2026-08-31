@@ -1,22 +1,18 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_constructor::New)]
+#[constructor(pub(crate))]
 pub(super) struct SecurityHeadersTowerLayer {
-    pub(super) content_security_policy:
-        Option<crate::http_content_security_policy::HttpContentSecurityPolicy>,
-    pub(super) forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust,
+    content_security_policy: Option<crate::http_content_security_policy::HttpContentSecurityPolicy>,
+    forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust,
 }
 
 impl<Service> tower::Layer<Service> for SecurityHeadersTowerLayer {
     type Service = crate::security_headers_service::SecurityHeadersService<Service>;
 
     fn layer(&self, inner: Service) -> Self::Service {
-        crate::security_headers_service::SecurityHeadersService {
-            content_security_policy: self.content_security_policy.clone(),
-            forwarded_proto_trust: self.forwarded_proto_trust,
+        crate::security_headers_service::SecurityHeadersService::new(
+            self.content_security_policy.clone(),
+            self.forwarded_proto_trust,
             inner,
-        }
+        )
     }
 }

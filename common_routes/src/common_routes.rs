@@ -19,17 +19,16 @@ pub fn common_routes(
                     message.push_str(constants_str::catalog::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX);
                     message.push_str(uri_suffix);
                     crate::common_not_found_error::CommonNotFoundError::NotFound(
-                        crate::not_found_payload::NotFoundPayload {
-                            commit: git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
+                        crate::not_found_payload::NotFoundPayload::from_parts(
+                            git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
                                 app_state_19103bd5.get(),
                             ),
-                            message: to_err_string::error_text::ErrorText::try_from(message)
+                            to_err_string::error_text::ErrorText::try_from(message)
                                 .unwrap_or_else(to_err_string::error_text::ErrorText::from),
-                            open_api_specification:
-                                crate::open_api_specification_path::OpenApiSpecificationPath::from(
-                                    constants_str::catalog::COMMON_ROUTES_SWAGGER_UI,
-                                ),
-                        },
+                            crate::open_api_specification_path::OpenApiSpecificationPath::from(
+                                constants_str::catalog::COMMON_ROUTES_SWAGGER_UI,
+                            ),
+                        ),
                     )
                 },
             )

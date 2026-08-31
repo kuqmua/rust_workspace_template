@@ -8,3 +8,9 @@ pub struct ValidatedGeneratePgTypesConfig {
     pub(super) config: crate::generate_pg_types_config::GeneratePgTypesConfig,
     pub(super) entry_count: crate::pg_types_model_entry_count::PgTypesModelEntryCount,
 }
+impl ValidatedGeneratePgTypesConfig {
+    #[must_use]
+    pub const fn entry_count(&self) -> crate::pg_types_model_entry_count::PgTypesModelEntryCount {
+        self.entry_count
+    }
+}

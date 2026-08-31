@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -20,7 +16,7 @@
         if *value <= 100u8 { Ok(()) } else { Err(crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error::OutOfRange) }
     }
 )]
-pub struct ResourceUtilizationPercent(pub(super) u8);
+pub struct ResourceUtilizationPercent(u8);
 
 impl From<crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent>
     for ResourceUtilizationPercent

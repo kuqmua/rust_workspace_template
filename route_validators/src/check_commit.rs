@@ -6,12 +6,11 @@ pub fn check_commit(
     enable_api_git_commit_check: crate::enable_api_git_commit_check::EnableApiGitCommitCheck,
     headers: crate::axum_headers_ref::AxumHeadersRef<'_>,
 ) -> Result<(), crate::commit_error::CommitError> {
-    if !enable_api_git_commit_check.0 {
+    if !enable_api_git_commit_check.is_enabled() {
         return Ok(());
     }
     let commit = headers
-        .0
-        .get(crate::commit_header_name::COMMIT_HEADER_NAME)
+        .header(crate::commit_header_name::COMMIT_HEADER_NAME)
         .ok_or_else(|| crate::commit_error::CommitError::NoCommitHeader {
             no_commit_header: crate::no_commit_header_message::NoCommitHeaderMessage::from(
                 constants_str::catalog::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
@@ -106,7 +105,7 @@ mod tests {
         match v {
             crate::commit_error::CommitError::NoCommitHeader {
                 no_commit_header, ..
-            } => Some(no_commit_header.0),
+            } => Some(no_commit_header.as_str()),
             crate::commit_error::CommitError::CommitNotEq { .. }
             | crate::commit_error::CommitError::CommitToStrConversion { .. } => None,
         }
@@ -126,7 +125,7 @@ mod tests {
                 commit_not_eq,
                 commit_to_use,
                 ..
-            } => Some((commit_not_eq.0, commit_to_use.0)),
+            } => Some((commit_not_eq.as_str(), commit_to_use.as_str())),
             crate::commit_error::CommitError::CommitToStrConversion { .. }
             | crate::commit_error::CommitError::NoCommitHeader { .. } => None,
         }
@@ -212,7 +211,7 @@ mod tests {
             crate::read_commit_header_str::read_commit_header_str(
                 crate::axum_headers_ref::AxumHeadersRef::from(&headers),
             )
-            .map(|value| value.0),
+            .map(<&str>::from),
             constants_str::catalog::E1D07F53,
             &git_info::project_git_info_value::project_git_info_value()
                 .commit()

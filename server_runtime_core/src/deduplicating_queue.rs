@@ -20,29 +20,29 @@ where
     pub fn new(maximum: crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize) -> Self {
         Self {
             items: crate::collections_vec_deque::CollectionsVecDeque::from(
-                std::collections::VecDeque::with_capacity(maximum.0.get()),
+                std::collections::VecDeque::with_capacity(maximum.get()),
             ),
             keys: crate::collections_hash_set::CollectionsHashSet::from(
-                std::collections::HashSet::with_capacity(maximum.0.get()),
+                std::collections::HashSet::with_capacity(maximum.get()),
             ),
             maximum,
         }
     }
 
     pub fn pop(&mut self) -> Option<Item> {
-        let item = self.items.0.pop_front()?;
-        let _removed = self.keys.0.remove(&item);
+        let item = self.items.pop_front()?;
+        let _removed = self.keys.remove(&item);
         Some(item)
     }
 
     pub fn push(&mut self, item: Item) -> crate::queue_push::QueuePush {
-        if self.keys.0.contains(&item) {
+        if self.keys.contains(&item) {
             crate::queue_push::QueuePush::Duplicate
-        } else if self.items.0.len() >= self.maximum.0.get() {
+        } else if self.items.len() >= self.maximum.get() {
             crate::queue_push::QueuePush::Full
         } else {
-            let _inserted = self.keys.0.insert(item.clone());
-            self.items.0.push_back(item);
+            let _inserted = self.keys.insert(item.clone());
+            self.items.push_back(item);
             crate::queue_push::QueuePush::Queued
         }
     }

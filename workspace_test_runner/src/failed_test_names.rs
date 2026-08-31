@@ -3,7 +3,7 @@ pub(super) fn failed_test_names(
     log_text: crate::text_ref::TextRef<'_>,
 ) -> crate::command_texts::CommandTexts {
     let mut names = log_text
-        .get()
+        .as_ref()
         .lines()
         .filter_map(|line| {
             line.strip_prefix(constants_str::catalog::TEST_ALT)

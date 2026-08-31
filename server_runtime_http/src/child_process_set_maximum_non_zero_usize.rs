@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,4 +7,10 @@
     PartialEq,
     newtype::FromInner,
 )]
-pub struct ChildProcessSetMaximumNonZeroUsize(pub(super) std::num::NonZeroUsize);
+pub struct ChildProcessSetMaximumNonZeroUsize(std::num::NonZeroUsize);
+
+impl ChildProcessSetMaximumNonZeroUsize {
+    pub(crate) const fn get(self) -> usize {
+        self.0.get()
+    }
+}

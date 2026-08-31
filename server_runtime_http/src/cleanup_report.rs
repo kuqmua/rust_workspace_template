@@ -1,14 +1,19 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    generate_constructor::New,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[constructor(pub(crate))]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct CleanupReport {
-    pub(super) batches: crate::cleanup_batch_count::CleanupBatchCount,
-    pub(super) rows: crate::cleanup_rows::CleanupRows,
-    pub(super) completion: crate::cleanup_completion::CleanupCompletion,
+    batches: crate::cleanup_batch_count::CleanupBatchCount,
+    rows: crate::cleanup_rows::CleanupRows,
+    completion: crate::cleanup_completion::CleanupCompletion,
 }
 
 impl CleanupReport {

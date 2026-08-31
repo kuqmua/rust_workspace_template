@@ -4,14 +4,14 @@ pub fn build_attachment_content_disposition(
     crate::http_content_disposition::HttpContentDisposition,
     crate::http_content_disposition_error::HttpContentDispositionError,
 > {
-    if file_name.0.is_empty() {
+    let file_name_text = file_name.get();
+    if file_name_text.is_empty() {
         return Err(crate::http_content_disposition_error::HttpContentDispositionError::Empty);
     }
-    if file_name.0.len() > constants_usize::VALUE_4_096 {
+    if file_name_text.len() > constants_usize::VALUE_4_096 {
         return Err(crate::http_content_disposition_error::HttpContentDispositionError::TooLong);
     }
-    let escaped = file_name
-        .0
+    let escaped = file_name_text
         .chars()
         .map(|character| {
             if character == '"' || character == '/' || character == '\\' || character.is_control() {

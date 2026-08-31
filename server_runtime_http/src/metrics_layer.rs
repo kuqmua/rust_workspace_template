@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn cache_is_bounded_and_reuses_labels() {
-        let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::new(
+        let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::from(
             crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::from(
                 std::num::NonZeroUsize::MIN,
             ),
@@ -74,8 +74,7 @@ mod tests {
                         constants_str::catalog::ROOT
                     )
                 )
-                .0
-                .as_ref(),
+                .as_str(),
             constants_str::catalog::ROOT
         );
         assert_eq!(
@@ -85,8 +84,7 @@ mod tests {
                         constants_str::catalog::ROOT
                     )
                 )
-                .0
-                .as_ref(),
+                .as_str(),
             constants_str::catalog::ROOT
         );
         assert_eq!(
@@ -96,15 +94,14 @@ mod tests {
                         constants_str::catalog::V1
                     )
                 )
-                .0
-                .as_ref(),
+                .as_str(),
             constants_str::catalog::HTTP_METRICS_UNMATCHED_PATH
         );
     }
 
     #[test]
     fn invalid_path_does_not_consume_cache_capacity() {
-        let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::new(
+        let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::from(
             crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::from(
                 std::num::NonZeroUsize::MIN,
             ),
@@ -116,8 +113,7 @@ mod tests {
                         constants_str::test_fixtures::EMPTY
                     )
                 )
-                .0
-                .as_ref(),
+                .as_str(),
             constants_str::catalog::HTTP_METRICS_UNMATCHED_PATH
         );
         assert_eq!(
@@ -127,8 +123,7 @@ mod tests {
                         constants_str::catalog::ROOT
                     )
                 )
-                .0
-                .as_ref(),
+                .as_str(),
             constants_str::catalog::ROOT
         );
     }

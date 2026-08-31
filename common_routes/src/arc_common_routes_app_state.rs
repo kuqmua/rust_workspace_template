@@ -1,11 +1,6 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
-
 #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
 pub struct ArcCommonRoutesAppState(
-    pub(super) std::sync::Arc<dyn crate::common_routes_parameters::CommonRoutesParameters>,
+    std::sync::Arc<dyn crate::common_routes_parameters::CommonRoutesParameters>,
 );
 impl ArcCommonRoutesAppState {
     pub(crate) fn get(&self) -> &dyn crate::common_routes_parameters::CommonRoutesParameters {

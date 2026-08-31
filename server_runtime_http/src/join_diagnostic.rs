@@ -10,7 +10,7 @@ pub(super) async fn join_diagnostic(
 {
     match optional_task {
         Some(diagnostic_task) => diagnostic_task
-            .0
+            .into_inner()
             .await
             .map_err(crate::tokio_child_process_join_error::TokioChildProcessJoinError::from)
             .map_err(crate::child_process_error::ChildProcessError::Join)?,

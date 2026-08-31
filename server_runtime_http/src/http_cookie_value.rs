@@ -1,9 +1,11 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
-pub struct HttpCookieValue(pub(super) String);
+pub struct HttpCookieValue(String);
+
+impl HttpCookieValue {
+    pub(crate) const fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
 
 impl std::fmt::Debug for HttpCookieValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

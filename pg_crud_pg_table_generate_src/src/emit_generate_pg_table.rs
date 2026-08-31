@@ -8188,7 +8188,7 @@ enum WrapIntoOptional {
         let fill_table_fis_vec_token_stream: &mut dyn FnMut(
             crate::table_test_names::TableTestNames<'_>,
         ) = &mut |test_names| {
-            test_names.0.into_iter().fold((), |(), el0| {
+            test_names.into_iter().fold((), |(), el0| {
                 let generate_initialization_variable_name_token_stream: &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream =
                     &|field| {
                         let initialization_variable_name = quote::format_ident!("table_{el0}_{field}");

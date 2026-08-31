@@ -3,7 +3,8 @@ pub fn resolve_unique_cookie<'value_lt>(
     headers: crate::http_cookie_headers_ref::HttpCookieHeadersRef<'value_lt>,
     name: crate::http_cookie_name_ref::HttpCookieNameRef<'_>,
 ) -> crate::cookie_resolution::CookieResolution<'value_lt> {
-    let mut header_values = headers.0.get_all(http::header::COOKIE).iter();
+    let mut header_values = headers.get().get_all(http::header::COOKIE).iter();
+    let cookie_name = name.get();
     let Some(header) = header_values.next() else {
         return crate::cookie_resolution::CookieResolution::Missing;
     };
@@ -28,7 +29,7 @@ pub fn resolve_unique_cookie<'value_lt>(
                     found,
                 ));
             };
-            if pair_name != name.0 {
+            if pair_name != cookie_name {
                 return std::ops::ControlFlow::Continue((
                     pair_count.saturating_add(constants_usize::ONE),
                     found,

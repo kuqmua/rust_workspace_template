@@ -1,11 +1,10 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq, generate_constructor::New,
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
+#[constructor(pub(crate))]
 pub struct RetryOutcome<Success, Error> {
-    pub(super) attempts: crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize,
-    pub(super) result: Result<Success, Error>,
+    attempts: crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize,
+    result: Result<Success, Error>,
 }
 
 impl<Success, Error> RetryOutcome<Success, Error> {

@@ -9,7 +9,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
     response_status: crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus,
     response_body: crate::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef<'_>,
 ) -> Result<(), crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError> {
-    if response_body.0.len() > constants_usize::VALUE_1_048_576 {
+    if response_body.as_ref().len() > constants_usize::VALUE_1_048_576 {
         return Err(
             crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
                 sqlx::Error::Protocol(
@@ -19,7 +19,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
             ),
         );
     }
-    let response_status_i16 = i16::try_from(response_status.0).map_err(|_error| {
+    let response_status_i16 = i16::try_from(u16::from(response_status)).map_err(|_error| {
         crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
             sqlx::Error::Protocol(
                 constants_str::catalog::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
@@ -30,10 +30,10 @@ pub async fn complete_pg_table_idempotency_in_connection(
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
-        .bind(request.scope.key.0.as_str())
+        .bind(request.scope.key.as_ref())
         .bind(request.request_hash.0.as_slice())
         .bind(response_status_i16)
-        .bind(response_body.0)
+        .bind(response_body.as_ref())
         .execute(connection.as_mut())
         .await
         .map_err(crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from)?;

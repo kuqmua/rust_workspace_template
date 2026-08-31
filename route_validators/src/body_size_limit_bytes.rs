@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -16,4 +12,10 @@
     newtype::ToErrString,
 )]
 #[serde(from = "usize")]
-pub struct BodySizeLimitBytes(pub(super) usize);
+pub struct BodySizeLimitBytes(usize);
+
+impl BodySizeLimitBytes {
+    pub(crate) const fn value(self) -> usize {
+        self.0
+    }
+}

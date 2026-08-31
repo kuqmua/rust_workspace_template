@@ -2,7 +2,7 @@
 pub fn generate_serde_version_of_named_syn_variant(
     v: crate::syn_variant_ref::SynVariantRef<'_>,
 ) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let variant = v.0;
+    let variant = v.variant();
     let hash_map_upper_camel_case = naming::hash_map_upper_camel_case::HashMapUpperCamelCase;
     let location_snake_case = naming::domain_types::LocationSnakeCase;
     let string_token_stream = token_patterns::StringTokenStream;
@@ -102,7 +102,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                             "{}{}",
                             {
                                 let Some(first_arg) = args.iter().next() else {
-                                    return crate::macro_compile_error_tokens::macro_compile_error_tokens(crate::compile_error_message::CompileErrorMessage(
+                                    return crate::macro_compile_error_tokens::macro_compile_error_tokens(crate::compile_error_message::CompileErrorMessage::from(
                                         constants_str::catalog::COMPILE_ERROR_CE_053,
                                     ));
                                 };

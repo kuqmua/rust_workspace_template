@@ -14,10 +14,7 @@ mod tests {
         }
     }
     fn empty_supervisor() -> crate::child_process_supervisor::ChildProcessSupervisor {
-        crate::child_process_supervisor::ChildProcessSupervisor {
-            child: None,
-            diagnostic: None,
-        }
+        crate::child_process_supervisor::ChildProcessSupervisor::default()
     }
 
     #[tokio::test]
@@ -39,7 +36,7 @@ mod tests {
         let mut overflowing = crate::child_process_set::ChildProcessSet::new(crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize::from(
             std::num::NonZeroUsize::new(2usize).expect("d96a312b process_set_enforces_capacity_and_identifier_overflow invariant must hold"),
         ));
-        overflowing.next_id = crate::child_process_id::ChildProcessId::from(u64::MAX);
+        overflowing.set_next_id_for_test(crate::child_process_id::ChildProcessId::from(u64::MAX));
         assert!(matches!(
             overflowing.insert(empty_supervisor()),
             Err(crate::child_process_set_error::ChildProcessSetError::IdOverflow)

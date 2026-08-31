@@ -16,20 +16,19 @@ impl Default for HealthReadiness {
 impl HealthReadiness {
     #[must_use]
     pub fn snapshot(&self) -> crate::health_snapshot::HealthSnapshot {
-        let database = if self.shared.0.load(std::sync::atomic::Ordering::Acquire) {
+        let database = if self.shared.load(std::sync::atomic::Ordering::Acquire) {
             crate::health_component_status::HealthComponentStatus::Ok
         } else {
             crate::health_component_status::HealthComponentStatus::Error
         };
-        crate::health_snapshot::HealthSnapshot {
+        crate::health_snapshot::HealthSnapshot::new(
             database,
-            service: crate::health_component_status::HealthComponentStatus::Ok,
-        }
+            crate::health_component_status::HealthComponentStatus::Ok,
+        )
     }
 
     pub fn store_database_probe(&self, value: crate::health_probe_succeeded::HealthProbeSucceeded) {
         self.shared
-            .0
             .store(bool::from(value), std::sync::atomic::Ordering::Release);
     }
 }

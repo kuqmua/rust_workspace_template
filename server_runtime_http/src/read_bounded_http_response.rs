@@ -4,20 +4,22 @@ pub async fn read_bounded_http_response(
     concurrency: crate::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore,
 ) -> Result<crate::bounded_bytes::BoundedBytes, crate::bounded_read_error::BoundedReadError> {
     let _permit = concurrency
-        .0
+        .into_inner()
         .acquire_owned()
         .await
         .map_err(|_error| crate::bounded_read_error::BoundedReadError::LimiterClosed)?;
-    let mut inner_response = response.0;
+    let mut inner_response = response.into_inner();
     if let Some(content_length) = inner_response.content_length()
-        && content_length > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX)
+        && content_length > u64::try_from(maximum_bytes.get()).unwrap_or(u64::MAX)
     {
         return Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
     let initial_capacity = inner_response
         .content_length()
         .and_then(|length| usize::try_from(length).ok())
-        .map_or(constants_usize::ZERO, |length| length.min(maximum_bytes.0));
+        .map_or(constants_usize::ZERO, |length| {
+            length.min(maximum_bytes.get())
+        });
     let mut bytes = Vec::with_capacity(initial_capacity);
     while let Some(chunk) = inner_response.chunk().await.map_err(|source| {
         crate::bounded_read_error::BoundedReadError::Http {

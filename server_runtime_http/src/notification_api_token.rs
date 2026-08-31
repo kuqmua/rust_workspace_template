@@ -1,9 +1,5 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
-pub struct NotificationApiToken(pub(super) String);
+pub struct NotificationApiToken(String);
 
 impl NotificationApiToken {
     #[must_use]
@@ -11,9 +7,10 @@ impl NotificationApiToken {
         &self,
         candidate: crate::notification_api_token_ref::NotificationApiTokenRef<'_>,
     ) -> crate::notification_api_token_authorized::NotificationApiTokenAuthorized {
-        let maximum_len = self.0.len().max(candidate.0.len());
+        let candidate_text = candidate.get();
+        let maximum_len = self.0.len().max(candidate_text.len());
         let difference = (constants_usize::ZERO..maximum_len).fold(
-            self.0.len() ^ candidate.0.len(),
+            self.0.len() ^ candidate_text.len(),
             |acc, index| {
                 acc | usize::from(
                     self.0
@@ -21,8 +18,7 @@ impl NotificationApiToken {
                         .get(index)
                         .copied()
                         .unwrap_or(constants_u8::ZERO)
-                        ^ candidate
-                            .0
+                        ^ candidate_text
                             .as_bytes()
                             .get(index)
                             .copied()

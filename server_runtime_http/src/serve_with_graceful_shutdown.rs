@@ -12,7 +12,7 @@ where
     let (shutdown_started_tx, shutdown_started_rx) = tokio::sync::oneshot::channel();
     let server = IntoFuture::into_future(
         axum::serve(
-            listener.0,
+            listener.into_inner(),
             axum::Router::from(router)
                 .into_make_service_with_connect_info::<std::net::SocketAddr>(),
         )

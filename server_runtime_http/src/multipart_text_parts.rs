@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,6 +6,14 @@
     Eq,
     PartialEq,
     newtype::AsRefTarget,
+    newtype::DerefInner,
+    newtype::DerefMutInner,
     newtype::FromInner,
 )]
-pub(super) struct MultipartTextParts(pub(super) Vec<crate::multipart_text_part::MultipartTextPart>);
+pub(super) struct MultipartTextParts(Vec<crate::multipart_text_part::MultipartTextPart>);
+
+impl MultipartTextParts {
+    pub(crate) const fn as_slice(&self) -> &[crate::multipart_text_part::MultipartTextPart] {
+        self.0.as_slice()
+    }
+}

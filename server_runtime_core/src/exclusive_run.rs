@@ -25,9 +25,7 @@ impl ExclusiveRun {
                 std::sync::atomic::Ordering::AcqRel,
                 std::sync::atomic::Ordering::Acquire,
             )
-            .map(|_previous| crate::exclusive_run_guard::ExclusiveRunGuard {
-                active: &self.active,
-            })
+            .map(|_previous| crate::exclusive_run_guard::ExclusiveRunGuard::new(&self.active))
             .map_err(|_active| {
                 crate::exclusive_run_already_active::ExclusiveRunAlreadyActive::Active
             })

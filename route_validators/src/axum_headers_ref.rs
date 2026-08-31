@@ -1,9 +1,14 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
-pub struct AxumHeadersRef<'headers_lt>(pub(super) &'headers_lt axum::http::HeaderMap);
+pub struct AxumHeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
+
+impl<'headers_lt> AxumHeadersRef<'headers_lt> {
+    pub(crate) fn header(
+        self,
+        name: impl axum::http::header::AsHeaderName,
+    ) -> Option<&'headers_lt axum::http::HeaderValue> {
+        self.0.get(name)
+    }
+}
 
 #[cfg(test)]
 impl<'headers_lt> From<&'headers_lt crate::axum_test_headers::AxumTestHeaders>

@@ -7,10 +7,9 @@
 pub(super) async fn git_info_response(
     app_state: crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
 ) -> crate::json_res::JsonRes<crate::git_info::GitInfo> {
-    crate::make_json_response::make_json_response(crate::git_info::GitInfo {
-        commit:
-            git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
-                app_state.get(),
-            ),
-    })
+    crate::make_json_response::make_json_response(crate::git_info::GitInfo::from_commit(
+        git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
+            app_state.get(),
+        ),
+    ))
 }

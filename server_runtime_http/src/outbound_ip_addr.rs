@@ -1,6 +1,8 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
-pub struct OutboundIpAddr(pub(super) std::net::IpAddr);
+pub struct OutboundIpAddr(std::net::IpAddr);
+
+impl OutboundIpAddr {
+    pub(crate) const fn get(self) -> std::net::IpAddr {
+        self.0
+    }
+}

@@ -1,7 +1,3 @@
-#![allow(
-    clippy::field_scoped_visibility_modifiers,
-    reason = "the owner-module split exposes representation only to its parent facade"
-)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -10,7 +6,7 @@
     newtype::AsRefInner,
     newtype::Display,
 )]
-pub struct PgTableNameRef<'lt>(pub(super) &'lt str);
+pub struct PgTableNameRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTableNameRef<'lt>
 where
     T: AsRef<str> + ?Sized,
