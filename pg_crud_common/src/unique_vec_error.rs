@@ -2,24 +2,18 @@
     optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
 )]
 pub enum UniqueVecError {
-    #[error("{} {max}", constants_str::catalog::BOUNDED_UNIQUE_VEC_ABOVE_MAX)]
+    #[error("{} {max}", constants_str::BOUNDED_UNIQUE_VEC_ABOVE_MAX)]
     AboveMax {
         max: crate::unique_vec_len::UniqueVecLen,
     },
-    #[error(
-        "{}: {actual} < {min}",
-        constants_str::catalog::BOUNDED_UNIQUE_VEC_BELOW_MIN
-    )]
+    #[error("{}: {actual} < {min}", constants_str::BOUNDED_UNIQUE_VEC_BELOW_MIN)]
     BelowMin {
         actual: crate::unique_vec_len::UniqueVecLen,
         min: crate::unique_vec_len::UniqueVecLen,
     },
-    #[error("{}", constants_str::catalog::BOUNDED_UNIQUE_VEC_DUPLICATE)]
+    #[error("{}", constants_str::BOUNDED_UNIQUE_VEC_DUPLICATE)]
     Duplicate,
-    #[error(
-        "{}: {min} > {max}",
-        constants_str::catalog::BOUNDED_UNIQUE_VEC_INVALID_BOUNDS
-    )]
+    #[error("{}: {min} > {max}", constants_str::BOUNDED_UNIQUE_VEC_INVALID_BOUNDS)]
     InvalidBounds {
         min: crate::unique_vec_len::UniqueVecLen,
         max: crate::unique_vec_len::UniqueVecLen,

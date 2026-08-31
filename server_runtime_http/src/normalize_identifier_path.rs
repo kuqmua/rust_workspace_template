@@ -18,12 +18,11 @@ pub fn normalize_identifier_path(
                 && segment.len() <= constants_usize::TWENTY.saturating_sub(constants_usize::ONE)
                 && segment.bytes().all(|byte| byte.is_ascii_digit())
             {
-                normalized
-                    .push_str(constants_str::test_fixtures::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
+                normalized.push_str(constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
             } else if uuid::Uuid::parse_str(segment)
                 .is_ok_and(|value| value.get_version_num() == constants_usize::FOUR)
             {
-                normalized.push_str(constants_str::test_fixtures::HTTP_NORMALIZED_UUID_SEGMENT);
+                normalized.push_str(constants_str::HTTP_NORMALIZED_UUID_SEGMENT);
             } else {
                 normalized.push_str(segment);
             }

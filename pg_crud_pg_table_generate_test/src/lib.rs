@@ -39,7 +39,7 @@ mod tests {
         macro_helpers::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
-            constants_str::integration_fixtures::OPERATION_RM,
+            constants_str::OPERATION_RM,
         ))
         .expect(
             "f9f9af71 shared_json_contract_helper_round_trips_table_fixture invariant must hold",
@@ -95,9 +95,9 @@ mod tests {
     )]
     fn pg_table_generate_clippy() {
         macro_clippy_check_test_common::clippy_check(
-            constants_str::catalog::GENERATE_PG_TABLE_TEST_CNT,
-            constants_str::catalog::PG_CRUD_PG_TABLE,
-            constants_str::catalog::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
+            constants_str::GENERATE_PG_TABLE_TEST_CNT,
+            constants_str::PG_CRUD_PG_TABLE,
+            constants_str::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
             &{
                 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
                 enum AddGeneratePgTablePrimaryKey {

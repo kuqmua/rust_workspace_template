@@ -76,7 +76,7 @@ fn custom_type_names_are_unique_across_workspace() {
 
 #[test]
 fn custom_type_name_visitor_covers_all_rust_type_declarations() {
-    let ast = syn::parse_file(constants_str::test_fixtures::CODE_STYLE_TYPE_DECLARATIONS_FIXTURE)
+    let ast = syn::parse_file(constants_str::CODE_STYLE_TYPE_DECLARATIONS_FIXTURE)
         .expect("a9ea85b6 custom type declaration fixture must parse");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -99,10 +99,8 @@ fn custom_type_name_visitor_covers_all_rust_type_declarations() {
 
 #[test]
 fn free_function_name_visitor_excludes_methods() {
-    let ast = syn::parse_file(
-        constants_str::test_fixtures::CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE,
-    )
-    .expect("31495514 free function declaration fixture must parse");
+    let ast = syn::parse_file(constants_str::CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE)
+        .expect("31495514 free function declaration fixture must parse");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::FreeFnNameVisitor::default(),
@@ -126,7 +124,7 @@ fn free_function_names_are_unique_across_workspace() {
             visitor
                 .names
                 .into_iter()
-                .filter(|name| name != constants_str::catalog::MAIN)
+                .filter(|name| name != constants_str::MAIN)
                 .for_each(|name| {
                     declarations
                         .entry(name)
@@ -168,7 +166,7 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                 item_struct
                     .ident
                     .to_string()
-                    .ends_with(constants_str::catalog::ERROR)
+                    .ends_with(constants_str::ERROR)
                     .then(|| item_struct.ident.to_string())
             })
             .collect::<std::collections::BTreeSet<_>>();
@@ -189,7 +187,7 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                         if !item_struct
                             .ident
                             .to_string()
-                            .ends_with(constants_str::catalog::ERROR)
+                            .ends_with(constants_str::ERROR)
                         {
                             return None;
                         }
@@ -208,9 +206,9 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                             || inner_type.path.segments.first().is_some_and(|segment| {
                                 matches!(
                                     segment.ident.to_string().as_str(),
-                                    constants_str::test_fixtures::CODE_STYLE_CRATE_PATH_SEGMENT
-                                        | constants_str::test_fixtures::CODE_STYLE_SELF_PATH_SEGMENT
-                                        | constants_str::test_fixtures::CODE_STYLE_SUPER_PATH_SEGMENT
+                                    constants_str::CODE_STYLE_CRATE_PATH_SEGMENT
+                                        | constants_str::CODE_STYLE_SELF_PATH_SEGMENT
+                                        | constants_str::CODE_STYLE_SUPER_PATH_SEGMENT
                                 )
                             })
                             || inner_type
@@ -219,7 +217,7 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                                 .iter()
                                 .any(|segment| {
                                     segment.ident
-                                        == constants_str::test_fixtures::CODE_STYLE_DOMAIN_TYPES_PATH_SEGMENT
+                                        == constants_str::CODE_STYLE_DOMAIN_TYPES_PATH_SEGMENT
                                 });
                         if !repository_qualified {
                             return None;
@@ -231,7 +229,7 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                         let adds_context = item_struct.attrs.iter().any(|attribute| {
                             if !attribute
                                 .path()
-                                .is_ident(constants_str::test_fixtures::CODE_STYLE_ERROR_ATTRIBUTE)
+                                .is_ident(constants_str::CODE_STYLE_ERROR_ATTRIBUTE)
                             {
                                 return false;
                             }
@@ -241,8 +239,8 @@ fn error_types_do_not_only_wrap_other_repository_errors() {
                             syn::parse2::<syn::LitStr>(list.tokens.clone()).is_ok_and(|message| {
                                     !matches!(
                                         message.value().as_str(),
-                                        constants_str::test_fixtures::CODE_STYLE_TRANSPARENT_DISPLAY_FORMAT
-                                            | constants_str::test_fixtures::CODE_STYLE_TRANSPARENT_DEBUG_FORMAT
+                                        constants_str::CODE_STYLE_TRANSPARENT_DISPLAY_FORMAT
+                                            | constants_str::CODE_STYLE_TRANSPARENT_DEBUG_FORMAT
                                     )
                                 })
                         });
@@ -287,10 +285,12 @@ fn domain_types_do_not_add_intermediate_representation_wrappers() {
                     return None;
                 };
                 let inner_name = inner_type.path.segments.last()?.ident.to_string();
-                (inner_type.path.segments.iter().any(|segment| {
-                    segment.ident == constants_str::test_fixtures::CODE_STYLE_NUM_PATH_SEGMENT
-                }) && inner_name
-                    .starts_with(constants_str::test_fixtures::CODE_STYLE_NON_ZERO_PREFIX))
+                (inner_type
+                    .path
+                    .segments
+                    .iter()
+                    .any(|segment| segment.ident == constants_str::CODE_STYLE_NUM_PATH_SEGMENT)
+                    && inner_name.starts_with(constants_str::CODE_STYLE_NON_ZERO_PREFIX))
                 .then(|| item_struct.ident.to_string())
             })
             .collect::<std::collections::BTreeSet<_>>();
@@ -376,7 +376,7 @@ fn module_declarations_do_not_use_path_attributes() {
                             return None;
                         };
                         let explicit_path_text = item_mod.attrs.iter().find_map(|attribute| {
-                            if !attribute.path().is_ident(constants_str::catalog::PATH_ALT_5) {
+                            if !attribute.path().is_ident(constants_str::PATH_ALT_5) {
                                 return None;
                             }
                             let syn::Meta::NameValue(name_value) = &attribute.meta else {
@@ -423,7 +423,7 @@ fn external_module_declarations_exist_only_in_crate_roots() {
                         .as_ref()
                         .file_stem()
                         .and_then(std::ffi::OsStr::to_str),
-                    Some(constants_str::catalog::LIB | constants_str::catalog::MAIN)
+                    Some(constants_str::LIB | constants_str::MAIN)
                 )
             })
             .flat_map(|source_file| {
@@ -465,10 +465,7 @@ fn single_item_modules_match_their_item_name() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let external_module_path = |parent_path: &std::path::Path, item_mod: &syn::ItemMod| {
             let optional_explicit_path = item_mod.attrs.iter().find_map(|attribute| {
-                if !attribute
-                    .path()
-                    .is_ident(constants_str::catalog::PATH_ALT_5)
-                {
+                if !attribute.path().is_ident(constants_str::PATH_ALT_5) {
                     return None;
                 }
                 let syn::Meta::NameValue(name_value) = &attribute.meta else {
@@ -489,9 +486,7 @@ fn single_item_modules_match_their_item_name() {
             let parent_stem = parent_path.file_stem()?.to_str()?;
             let module_directory = if matches!(
                 parent_stem,
-                constants_str::catalog::LIB
-                    | constants_str::catalog::MAIN
-                    | constants_str::catalog::MOD
+                constants_str::LIB | constants_str::MAIN | constants_str::MOD
             ) {
                 parent_directory.to_path_buf()
             } else {
@@ -503,7 +498,7 @@ fn single_item_modules_match_their_item_name() {
                 Some(
                     module_directory
                         .join(module_name)
-                        .join(constants_str::catalog::MOD_RS),
+                        .join(constants_str::MOD_RS),
                 )
             })
         };
@@ -661,17 +656,15 @@ fn non_root_workspace_modules_are_not_reexport_only_facades() {
     fn is_crate_root(path: &std::path::Path) -> bool {
         path.parent()
             .and_then(std::path::Path::file_name)
-            .is_some_and(|directory| directory == constants_str::catalog::SRC_ALT)
+            .is_some_and(|directory| directory == constants_str::SRC_ALT)
             && path.file_stem().is_some_and(|file_stem| {
-                file_stem == constants_str::catalog::LIB
-                    || file_stem == constants_str::catalog::MAIN
+                file_stem == constants_str::LIB || file_stem == constants_str::MAIN
             })
     }
-    let reexports = syn::parse_file(constants_str::test_fixtures::CODE_STYLE_REEXPORT_ONLY_FIXTURE)
+    let reexports = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_ONLY_FIXTURE)
         .expect("f4a6c213 re-export-only module fixture must parse");
-    let module_with_logic =
-        syn::parse_file(constants_str::test_fixtures::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
-            .expect("875cd8ad module-with-logic fixture must parse");
+    let module_with_logic = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
+        .expect("875cd8ad module-with-logic fixture must parse");
     assert!(is_reexport_only(reexports.items.as_slice()), "fd841ceb");
     assert!(
         !is_reexport_only(module_with_logic.items.as_slice()),
@@ -707,9 +700,9 @@ fn workspace_modules_reject_local_root_use_imports() {
                 && matches!(
                     &i.tree,
                     syn::UseTree::Path(path)
-                        if path.ident == constants_str::catalog::CRATE
-                            || path.ident == constants_str::catalog::SELF_ALT
-                            || path.ident == constants_str::catalog::SUPER
+                        if path.ident == constants_str::CRATE
+                            || path.ident == constants_str::SELF_ALT
+                            || path.ident == constants_str::SUPER
                 )
             {
                 self.lines.push(i.use_token.span.start().line);
@@ -717,9 +710,8 @@ fn workspace_modules_reject_local_root_use_imports() {
             syn::visit::visit_item_use(self, i);
         }
     }
-    let grouped_import =
-        syn::parse_file(constants_str::integration_fixtures::LOCAL_IMPORT_POLICY_FIXTURE)
-            .expect("86c23b47 grouped local import fixture must parse");
+    let grouped_import = syn::parse_file(constants_str::LOCAL_IMPORT_POLICY_FIXTURE)
+        .expect("86c23b47 grouped local import fixture must parse");
     let mut grouped_import_visitor = CrateImportVisitor::default();
     syn::visit::Visit::visit_file(&mut grouped_import_visitor, &grouped_import);
     assert_eq!(
@@ -766,8 +758,8 @@ fn production_named_modules_contain_production_items() {
                     .and_then(std::ffi::OsStr::to_str)
                     .is_some_and(|file_stem| {
                         file_stem.split('_').any(|segment| {
-                            segment == constants_str::catalog::TEST_ALT_3
-                                || segment == constants_str::catalog::TESTS_ALT
+                            segment == constants_str::TEST_ALT_3
+                                || segment == constants_str::TESTS_ALT
                         })
                     })
             })
@@ -811,22 +803,19 @@ fn production_modules_contain_at_most_one_named_owner() {
             })
             .filter_map(|file| {
                 let owner = |item: &syn::Item| match item {
-                    syn::Item::Enum(item_enum) => Some((
-                        constants_str::test_fixtures::ITEM_KIND_ENUM,
-                        item_enum.ident.to_string(),
-                    )),
-                    syn::Item::Fn(item_fn) => Some((
-                        constants_str::test_fixtures::ITEM_KIND_FN,
-                        item_fn.sig.ident.to_string(),
-                    )),
+                    syn::Item::Enum(item_enum) => {
+                        Some((constants_str::ITEM_KIND_ENUM, item_enum.ident.to_string()))
+                    }
+                    syn::Item::Fn(item_fn) => {
+                        Some((constants_str::ITEM_KIND_FN, item_fn.sig.ident.to_string()))
+                    }
                     syn::Item::Struct(item_struct) => Some((
-                        constants_str::test_fixtures::ITEM_KIND_STRUCT,
+                        constants_str::ITEM_KIND_STRUCT,
                         item_struct.ident.to_string(),
                     )),
-                    syn::Item::Trait(item_trait) => Some((
-                        constants_str::test_fixtures::ITEM_KIND_TRAIT,
-                        item_trait.ident.to_string(),
-                    )),
+                    syn::Item::Trait(item_trait) => {
+                        Some((constants_str::ITEM_KIND_TRAIT, item_trait.ident.to_string()))
+                    }
                     syn::Item::Const(_)
                     | syn::Item::ExternCrate(_)
                     | syn::Item::ForeignMod(_)
@@ -882,10 +871,7 @@ fn production_modules_contain_at_most_one_named_owner() {
     });
 }
 fn large_module_exceptions() -> [&'static str; 2] {
-    [
-        constants_str::test_fixtures::VALUE_7FE2AF02,
-        constants_str::test_fixtures::VALUE_D405F3E1,
-    ]
+    [constants_str::VALUE_7FE2AF02, constants_str::VALUE_D405F3E1]
 }
 
 fn is_test_source(path: &std::path::Path) -> bool {
@@ -893,11 +879,11 @@ fn is_test_source(path: &std::path::Path) -> bool {
         || path.file_stem().is_some_and(|file_stem| {
             file_stem
                 .to_string_lossy()
-                .ends_with(constants_str::test_fixtures::TEST_FIXTURES_MODULE_SUFFIX)
+                .ends_with(constants_str::TEST_FIXTURES_MODULE_SUFFIX)
         })
         || path
             .components()
-            .any(|component| component.as_os_str() == constants_str::test_fixtures::VALUE_D0549AF3)
+            .any(|component| component.as_os_str() == constants_str::VALUE_D0549AF3)
 }
 
 #[test]
@@ -939,7 +925,7 @@ fn large_production_modules_keep_tests_in_separate_files() {
                     let syn::Item::Mod(module) = item else {
                         return false;
                     };
-                    module.ident == constants_str::catalog::TESTS_ALT
+                    module.ident == constants_str::TESTS_ALT
                         && module.content.is_some()
                         && module.attrs.iter().any(|attribute| {
                             crate::code_style::attr_is_test_only_cfg(
@@ -995,23 +981,23 @@ fn notification_service_domain_types_exclude_application_and_adapter_workflows()
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_8E41EC63)
+                    .ends_with(constants_str::VALUE_8E41EC63)
             })
             .expect("2a6298c3 notification service domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split(constants_str::test_fixtures::VALUE_3BA26FB4)
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("3ae48239 split always returns the production source prefix");
         [
-            constants_str::test_fixtures::VALUE_18A392BE,
-            constants_str::test_fixtures::VALUE_99D94433,
-            constants_str::test_fixtures::VALUE_96E8A555,
-            constants_str::test_fixtures::VALUE_5015C549,
-            constants_str::test_fixtures::VALUE_9B877603,
-            constants_str::test_fixtures::VALUE_8B0F112C,
-            constants_str::test_fixtures::VALUE_3A4EDC2D,
+            constants_str::VALUE_18A392BE,
+            constants_str::VALUE_99D94433,
+            constants_str::VALUE_96E8A555,
+            constants_str::VALUE_5015C549,
+            constants_str::VALUE_9B877603,
+            constants_str::VALUE_8B0F112C,
+            constants_str::VALUE_3A4EDC2D,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -1037,17 +1023,17 @@ fn administrator_account_initialization_and_password_reset_domain_types_exclude_
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_2C978AB0)
+                    .ends_with(constants_str::VALUE_2C978AB0)
             })
             .expect("f49a25d6 initial administrator creation domain types source must exist")
             .content()
             .as_ref();
         [
-            constants_str::test_fixtures::VALUE_E7118A3C,
-            constants_str::test_fixtures::VALUE_3349907E,
-            constants_str::test_fixtures::VALUE_FF3A4973,
-            constants_str::test_fixtures::VALUE_EB9EA192,
-            constants_str::test_fixtures::VALUE_9B877603,
+            constants_str::VALUE_E7118A3C,
+            constants_str::VALUE_3349907E,
+            constants_str::VALUE_FF3A4973,
+            constants_str::VALUE_EB9EA192,
+            constants_str::VALUE_9B877603,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -1072,21 +1058,21 @@ fn common_route_domain_types_exclude_http_and_database_workflows() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_30296F9B)
+                    .ends_with(constants_str::VALUE_30296F9B)
             })
             .expect("1ef73397 common route domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split(constants_str::test_fixtures::VALUE_3BA26FB4)
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("90fc214f split always returns the production source prefix");
         [
-            constants_str::test_fixtures::VALUE_99D94433,
-            constants_str::test_fixtures::VALUE_2E84067B,
-            constants_str::test_fixtures::VALUE_C5EAB055,
-            constants_str::test_fixtures::VALUE_0E48D7B1,
-            constants_str::test_fixtures::VALUE_1812E35F,
+            constants_str::VALUE_99D94433,
+            constants_str::VALUE_2E84067B,
+            constants_str::VALUE_C5EAB055,
+            constants_str::VALUE_0E48D7B1,
+            constants_str::VALUE_1812E35F,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -1111,22 +1097,22 @@ fn server_domain_types_exclude_application_and_adapter_workflows() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_47325207)
+                    .ends_with(constants_str::VALUE_47325207)
             })
             .expect("2a49fec1 server domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split(constants_str::test_fixtures::VALUE_3BA26FB4)
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("82d0ffa2 split always returns the production source prefix");
         [
-            constants_str::test_fixtures::VALUE_58D8E00E,
-            constants_str::test_fixtures::VALUE_4BB60066,
-            constants_str::test_fixtures::VALUE_5BE799DC,
-            constants_str::test_fixtures::VALUE_062AEA27,
-            constants_str::test_fixtures::VALUE_69B22E2A,
-            constants_str::test_fixtures::VALUE_9B877603,
+            constants_str::VALUE_58D8E00E,
+            constants_str::VALUE_4BB60066,
+            constants_str::VALUE_5BE799DC,
+            constants_str::VALUE_062AEA27,
+            constants_str::VALUE_69B22E2A,
+            constants_str::VALUE_9B877603,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -1146,10 +1132,10 @@ fn server_admin_domain_types_exclude_repository_workflows() {
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
-                path.contains(constants_str::test_fixtures::VALUE_5A1A4545)
-                    || path.contains(constants_str::test_fixtures::VALUE_43EF539D)
-                    || path.ends_with(constants_str::test_fixtures::VALUE_9CAC1060)
-                    || path.ends_with(constants_str::test_fixtures::VALUE_AAA5BED8)
+                path.contains(constants_str::VALUE_5A1A4545)
+                    || path.contains(constants_str::VALUE_43EF539D)
+                    || path.ends_with(constants_str::VALUE_9CAC1060)
+                    || path.ends_with(constants_str::VALUE_AAA5BED8)
             })
             .map(|file| file.path().as_ref().display().to_string())
             .collect::<Vec<_>>();
@@ -1173,22 +1159,22 @@ fn workspace_scaffold_domain_types_exclude_entrypoint_and_template_filesystem_wo
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_1A456B0D)
+                    .ends_with(constants_str::VALUE_1A456B0D)
             })
             .expect("3119b009 workspace scaffold domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split(constants_str::test_fixtures::VALUE_3BA26FB4)
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("1e5e6186 split always returns the production source prefix");
         [
-            constants_str::test_fixtures::VALUE_59CAD555,
-            constants_str::test_fixtures::VALUE_E72B634A,
-            constants_str::test_fixtures::VALUE_731FDA74,
-            constants_str::test_fixtures::VALUE_522C24E5,
-            constants_str::test_fixtures::VALUE_C36F32EE,
-            constants_str::test_fixtures::VALUE_BCDC0F38,
+            constants_str::VALUE_59CAD555,
+            constants_str::VALUE_E72B634A,
+            constants_str::VALUE_731FDA74,
+            constants_str::VALUE_522C24E5,
+            constants_str::VALUE_C36F32EE,
+            constants_str::VALUE_BCDC0F38,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -1213,21 +1199,21 @@ fn file_storage_domain_types_exclude_filesystem_workflows() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_712F68AD)
+                    .ends_with(constants_str::VALUE_712F68AD)
             })
             .expect("a081579c file storage domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split(constants_str::test_fixtures::VALUE_3BA26FB4)
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("622c12de split always returns the production source prefix");
         [
-            constants_str::catalog::TOKIO_PATH_FS_PATH,
-            constants_str::test_fixtures::VALUE_BAA7CB12,
-            constants_str::test_fixtures::VALUE_303C9B02,
-            constants_str::test_fixtures::VALUE_D30B72A0,
-            constants_str::test_fixtures::VALUE_B863F79E,
+            constants_str::TOKIO_PATH_FS_PATH,
+            constants_str::VALUE_BAA7CB12,
+            constants_str::VALUE_303C9B02,
+            constants_str::VALUE_D30B72A0,
+            constants_str::VALUE_B863F79E,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -1252,22 +1238,22 @@ fn workspace_test_runner_domain_types_exclude_application_and_adapter_workflows(
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_F45EC0EE)
+                    .ends_with(constants_str::VALUE_F45EC0EE)
             })
             .expect("8b3cb235 workspace test runner domain types source must exist")
             .content()
             .as_ref();
         let source = source_with_tests
-            .split(constants_str::test_fixtures::VALUE_3BA26FB4)
+            .split(constants_str::VALUE_3BA26FB4)
             .next()
             .expect("4c2a6281 split always returns the production source prefix");
         [
-            constants_str::test_fixtures::VALUE_32E64619,
-            constants_str::test_fixtures::VALUE_B9D99DED,
-            constants_str::test_fixtures::VALUE_7C10C158,
-            constants_str::test_fixtures::VALUE_E63A5758,
-            constants_str::test_fixtures::VALUE_9B877603,
-            constants_str::test_fixtures::VALUE_CC4BBDCE,
+            constants_str::VALUE_32E64619,
+            constants_str::VALUE_B9D99DED,
+            constants_str::VALUE_7C10C158,
+            constants_str::VALUE_E63A5758,
+            constants_str::VALUE_9B877603,
+            constants_str::VALUE_CC4BBDCE,
         ]
         .iter()
         .for_each(|forbidden| {

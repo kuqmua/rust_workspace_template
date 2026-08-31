@@ -37,7 +37,7 @@ pub(crate) fn password_from_file(
 mod tests {
     #[test]
     fn password_file_accepts_one_trailing_line_ending() {
-        let password_text = constants_str::test_fixtures::TEST_STRONG_PASSWORD;
+        let password_text = constants_str::TEST_STRONG_PASSWORD;
         let password = crate::password_from_bytes::password_from_bytes(
             server_runtime_http::bounded_bytes::BoundedBytes::from(
                 format!("{password_text}\r\n").into_bytes(),
@@ -46,7 +46,7 @@ mod tests {
         .expect("05536bb6 password_file_accepts_one_trailing_line_ending invariant must hold");
 
         let debug = format!("{password:?}");
-        assert!(debug.contains(constants_str::catalog::REDACTED_ALT_3));
+        assert!(debug.contains(constants_str::REDACTED_ALT_3));
         assert!(!debug.contains(password_text));
     }
 

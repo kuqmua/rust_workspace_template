@@ -21,18 +21,16 @@ pub(crate) async fn role_mutations_create(
         .begin()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    let role_id = sqlx::query_scalar::<_, i64>(
-        constants_str::integration_fixtures::SERVER_ADMIN_INSERT_ROLE_SQL,
-    )
-    .bind(name.as_ref())
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .and_then(|value| {
-        server_admin_core::admin_role_record_id::AdminRoleRecordId::try_from(value)
-            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    })
-    .map_err(|error| crate::map_unique_violation::map_unique_violation(error.into_inner()))?;
+    let role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_INSERT_ROLE_SQL)
+        .bind(name.as_ref())
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .and_then(|value| {
+            server_admin_core::admin_role_record_id::AdminRoleRecordId::try_from(value)
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        })
+        .map_err(|error| crate::map_unique_violation::map_unique_violation(error.into_inner()))?;
     crate::record_audit_success_in_connection::record_audit_success_in_connection(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,

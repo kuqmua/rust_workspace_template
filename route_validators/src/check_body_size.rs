@@ -73,18 +73,18 @@ mod tests {
     #[test]
     fn check_body_size_returns_bytes_when_body_fits_limit() {
         assert_body_bytes_eq(
-            axum::body::Body::from(constants_str::catalog::OK_ALT),
+            axum::body::Body::from(constants_str::OK_ALT),
             8,
-            constants_str::catalog::VALUE_2FB3E958,
+            constants_str::VALUE_2FB3E958,
             b"ok",
         );
     }
     #[test]
     fn check_body_size_returns_bytes_when_size_eq_limit() {
         assert_body_bytes_eq(
-            axum::body::Body::from(constants_str::catalog::OK_ALT),
+            axum::body::Body::from(constants_str::OK_ALT),
             2,
-            constants_str::catalog::VALUE_1736F4DB,
+            constants_str::VALUE_1736F4DB,
             b"ok",
         );
     }
@@ -93,32 +93,32 @@ mod tests {
         assert_body_bytes_eq(
             axum::body::Body::empty(),
             0,
-            constants_str::catalog::VALUE_44C8AD59,
+            constants_str::VALUE_44C8AD59,
             b"",
         );
     }
     #[test]
     fn check_body_size_returns_error_when_body_exceeds_limit() {
         assert_reached_max_size_limit(
-            axum::body::Body::from(constants_str::catalog::OVERSIZED),
+            axum::body::Body::from(constants_str::OVERSIZED),
             2,
-            constants_str::catalog::DDF0983A,
+            constants_str::DDF0983A,
         );
     }
     #[test]
     fn check_body_size_returns_error_when_body_not_empty_and_limit_is_zero() {
         assert_reached_max_size_limit(
-            axum::body::Body::from(constants_str::catalog::X),
+            axum::body::Body::from(constants_str::X),
             0,
-            constants_str::catalog::VALUE_7DA3CAE4,
+            constants_str::VALUE_7DA3CAE4,
         );
     }
     #[test]
     fn check_body_size_error_contains_expected_non_zero_size_hint_for_static_body() {
         let (_, size_hint_upper) = expect_reached_max_size(
-            axum::body::Body::from(constants_str::catalog::OVERSIZED),
+            axum::body::Body::from(constants_str::OVERSIZED),
             2,
-            constants_str::catalog::CC0F2F3E,
+            constants_str::CC0F2F3E,
         );
         assert_eq!(size_hint_upper, Some(9));
         assert_eq!(size_hint_upper.map(|v| v > 0), Some(true));
@@ -127,19 +127,19 @@ mod tests {
     fn body_size_error_maps_to_payload_too_large() {
         crate::assert_err_status_code_only::assert_err_status_code_only(
             crate::poll_test_future::poll_test_future(crate::check_body_size::check_body_size(
-                axum::body::Body::from(constants_str::catalog::TOO_BIG),
+                axum::body::Body::from(constants_str::TOO_BIG),
                 1,
             )),
-            constants_str::catalog::VALUE_7ED49BA1,
+            constants_str::VALUE_7ED49BA1,
             crate::axum_http_status_code::AxumHttpStatusCode::payload_too_large(),
         );
     }
     #[test]
     fn body_size_error_keeps_limit_when_limit_is_one() {
         assert_reached_max_size_limit(
-            axum::body::Body::from(constants_str::catalog::AB),
+            axum::body::Body::from(constants_str::AB),
             1,
-            constants_str::catalog::VALUE_1FE7A3B4,
+            constants_str::VALUE_1FE7A3B4,
         );
     }
 }

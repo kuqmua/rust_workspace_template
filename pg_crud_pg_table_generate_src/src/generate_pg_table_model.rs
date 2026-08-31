@@ -25,7 +25,7 @@ impl GeneratePgTableModel {
         if *self.field_count == constants_usize::ZERO {
             Err(syn::Error::new_spanned(
                 &self.input.ident,
-                constants_str::test_fixtures::GENERATE_PG_TABLE_REQUIRES_FIELD,
+                constants_str::GENERATE_PG_TABLE_REQUIRES_FIELD,
             )
             .into())
         } else {

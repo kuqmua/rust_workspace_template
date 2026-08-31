@@ -25,14 +25,13 @@ where
     })?;
 
     if let Some(reference) = schema_value
-        .get(constants_str::catalog::DOLLAR_REF)
+        .get(constants_str::DOLLAR_REF)
         .and_then(serde_json::Value::as_str)
     {
         let referenced_schema = reference
-            .strip_prefix(constants_str::catalog::COMPONENTS_SCHEMAS)
+            .strip_prefix(constants_str::COMPONENTS_SCHEMAS)
             .and_then(|name| {
-                let schemas =
-                    document_value.pointer(constants_str::catalog::COMPONENTS_SCHEMAS_ALT)?;
+                let schemas = document_value.pointer(constants_str::COMPONENTS_SCHEMAS_ALT)?;
                 schemas.get(name)
             })
             .ok_or(
@@ -44,14 +43,14 @@ where
     }
     if payload_value.is_null()
         && schema_value
-            .get(constants_str::catalog::NULLABLE)
+            .get(constants_str::NULLABLE)
             .and_then(serde_json::Value::as_bool)
             .unwrap_or(false)
     {
         return Ok(());
     }
     if let Some(all_of) = schema_value
-        .get(constants_str::test_fixtures::ALL_OF)
+        .get(constants_str::ALL_OF)
         .and_then(serde_json::Value::as_array)
     {
         all_of.iter().try_for_each(|candidate| {
@@ -59,7 +58,7 @@ where
         })?;
     }
     if let Some(one_of) = schema_value
-        .get(constants_str::test_fixtures::ONE_OF)
+        .get(constants_str::ONE_OF)
         .and_then(serde_json::Value::as_array)
     {
         let matches = one_of
@@ -77,7 +76,7 @@ where
         }
     }
     if let Some(any_of) = schema_value
-        .get(constants_str::test_fixtures::ANY_OF)
+        .get(constants_str::ANY_OF)
         .and_then(serde_json::Value::as_array)
         && !any_of.iter().any(|candidate| {
             validate_openapi_json_payload(&payload_value, candidate, &document_value).is_ok()
@@ -90,19 +89,19 @@ where
         );
     }
     if let Some(expected_type) = schema_value
-        .get(constants_str::test_fixtures::JSON_TYPE)
+        .get(constants_str::JSON_TYPE)
         .and_then(serde_json::Value::as_str)
     {
         let type_matches = match expected_type {
-            constants_str::test_fixtures::ARRAY => payload_value.is_array(),
-            constants_str::test_fixtures::BOOLEAN => payload_value.is_boolean(),
-            constants_str::test_fixtures::INTEGER => {
+            constants_str::ARRAY => payload_value.is_array(),
+            constants_str::BOOLEAN => payload_value.is_boolean(),
+            constants_str::INTEGER => {
                 payload_value.as_i64().is_some() || payload_value.as_u64().is_some()
             }
-            constants_str::test_fixtures::JSON_NULL => payload_value.is_null(),
-            constants_str::test_fixtures::NUMBER => payload_value.is_number(),
-            constants_str::test_fixtures::OBJECT => payload_value.is_object(),
-            constants_str::catalog::STRING => payload_value.is_string(),
+            constants_str::JSON_NULL => payload_value.is_null(),
+            constants_str::NUMBER => payload_value.is_number(),
+            constants_str::OBJECT => payload_value.is_object(),
+            constants_str::STRING => payload_value.is_string(),
             _ => false,
         };
         if !type_matches {
@@ -114,7 +113,7 @@ where
         }
     }
     if schema_value
-        .get(constants_str::catalog::ENUM)
+        .get(constants_str::ENUM)
         .and_then(serde_json::Value::as_array)
         .is_some_and(|values| !values.contains(&payload_value))
     {
@@ -125,7 +124,7 @@ where
         );
     }
     if schema_value
-        .get(constants_str::test_fixtures::CONST)
+        .get(constants_str::CONST)
         .is_some_and(|value| value != &payload_value)
     {
         return Err(
@@ -136,10 +135,10 @@ where
     }
     if let Some(object) = payload_value.as_object() {
         let properties = schema_value
-            .get(constants_str::catalog::PROPERTIES)
+            .get(constants_str::PROPERTIES)
             .and_then(serde_json::Value::as_object);
         if let Some(required) = schema_value
-            .get(constants_str::test_fixtures::REQUIRED)
+            .get(constants_str::REQUIRED)
             .and_then(serde_json::Value::as_array)
             && required.iter().any(|field| {
                 field
@@ -154,7 +153,7 @@ where
             );
         }
         if schema_value
-            .get(constants_str::test_fixtures::ADDITIONAL_PROPERTIES)
+            .get(constants_str::ADDITIONAL_PROPERTIES)
             .and_then(serde_json::Value::as_bool)
             == Some(false)
             && object.keys().any(|field| {
@@ -177,7 +176,7 @@ where
                 })?;
         }
         if let Some(additional_schema) = schema_value
-            .get(constants_str::test_fixtures::ADDITIONAL_PROPERTIES)
+            .get(constants_str::ADDITIONAL_PROPERTIES)
             .and_then(serde_json::Value::as_object)
         {
             object
@@ -190,7 +189,7 @@ where
                 })?;
         }
     }
-    if let Some(items_schema) = schema_value.get(constants_str::test_fixtures::ITEMS)
+    if let Some(items_schema) = schema_value.get(constants_str::ITEMS)
         && let Some(items) = payload_value.as_array()
     {
         items.iter().try_for_each(|item| {

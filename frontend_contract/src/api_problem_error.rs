@@ -93,14 +93,12 @@ impl axum::response::IntoResponse for ApiProblemError {
         ));
         let _previous_content_type = response.headers_mut().insert(
             axum::http::header::CONTENT_TYPE,
-            axum::http::HeaderValue::from_static(
-                constants_str::catalog::APPLICATION_PROBLEM_PLUS_JSON,
-            ),
+            axum::http::HeaderValue::from_static(constants_str::APPLICATION_PROBLEM_PLUS_JSON),
         );
         if self == Self::RateLimited {
             let _previous_retry_after = response.headers_mut().insert(
                 axum::http::header::RETRY_AFTER,
-                axum::http::HeaderValue::from_static(constants_str::catalog::VALUE_60),
+                axum::http::HeaderValue::from_static(constants_str::VALUE_60),
             );
         }
         response

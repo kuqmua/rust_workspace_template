@@ -12,14 +12,14 @@ impl<ColumnGeneric: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for Orde
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::catalog::COLUMN,
+                constants_str::COLUMN,
                 <ColumnGeneric as utoipa::PartialSchema>::schema(),
             )
             .property(
-                constants_str::catalog::ORDER,
+                constants_str::ORDER,
                 <crate::order::Order as utoipa::PartialSchema>::schema(),
             )
-            .required(constants_str::catalog::COLUMN)
+            .required(constants_str::COLUMN)
             .build()
             .into()
     }
@@ -27,6 +27,6 @@ impl<ColumnGeneric: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for Orde
 
 impl<ColumnGeneric: utoipa::ToSchema> utoipa::ToSchema for OrderBy<ColumnGeneric> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::ORDERBY)
+        std::borrow::Cow::Borrowed(constants_str::ORDERBY)
     }
 }

@@ -27,10 +27,7 @@ impl CursorCodec {
             &base64::engine::general_purpose::URL_SAFE_NO_PAD,
             payload.as_ref().as_bytes(),
         );
-        let signed_text = format!(
-            "{}.{encoded_payload}",
-            constants_str::catalog::CURSOR_VERSION_V1
-        );
+        let signed_text = format!("{}.{encoded_payload}", constants_str::CURSOR_VERSION_V1);
         let mut mac =
             <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(self.key.0.as_slice())
                 .map_err(|_error| {
@@ -67,7 +64,7 @@ impl CursorCodec {
         let encoded_signature = parts
             .next()
             .ok_or(crate::cursor_decode_error::CursorDecodeError::InvalidFormat)?;
-        if parts.next().is_some() || version != constants_str::catalog::CURSOR_VERSION_V1 {
+        if parts.next().is_some() || version != constants_str::CURSOR_VERSION_V1 {
             return Err(crate::cursor_decode_error::CursorDecodeError::InvalidFormat);
         }
         let signature = base64::Engine::decode(
@@ -105,24 +102,24 @@ mod tests {
         })]
 
         #[test]
-        #[cfg_attr(miri, ignore = constants_str::test_fixtures::VALUE_BF7C931C)]
-        fn signed_cursor_round_trips_generated_payloads(payload_text in constants_str::test_fixtures::TEST_CURSOR_PAYLOAD_PATTERN) {
-            let domain_payload = crate::cursor_payload::CursorPayload::try_from(payload_text).expect(constants_str::test_fixtures::VALUE_28167829);
-            let cursor = codec().encode(&domain_payload).expect(constants_str::test_fixtures::VALUE_58718EC8);
+        #[cfg_attr(miri, ignore = constants_str::VALUE_BF7C931C)]
+        fn signed_cursor_round_trips_generated_payloads(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
+            let domain_payload = crate::cursor_payload::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_28167829);
+            let cursor = codec().encode(&domain_payload).expect(constants_str::VALUE_58718EC8);
             proptest::prop_assert_eq!(codec().decode(&cursor), Ok(domain_payload));
         }
 
         #[test]
-        #[cfg_attr(miri, ignore = constants_str::test_fixtures::VALUE_BF7C931C)]
-        fn changing_signature_is_always_rejected(payload_text in constants_str::test_fixtures::TEST_CURSOR_PAYLOAD_PATTERN) {
-            let domain_payload = crate::cursor_payload::CursorPayload::try_from(payload_text).expect(constants_str::test_fixtures::VALUE_52BB899A);
-            let cursor = codec().encode(&domain_payload).expect(constants_str::test_fixtures::VALUE_5E1A9245);
+        #[cfg_attr(miri, ignore = constants_str::VALUE_BF7C931C)]
+        fn changing_signature_is_always_rejected(payload_text in constants_str::TEST_CURSOR_PAYLOAD_PATTERN) {
+            let domain_payload = crate::cursor_payload::CursorPayload::try_from(payload_text).expect(constants_str::VALUE_52BB899A);
+            let cursor = codec().encode(&domain_payload).expect(constants_str::VALUE_5E1A9245);
             let mut modified_bytes = cursor.as_ref().as_bytes().to_vec();
-            let signature_start = modified_bytes.iter().rposition(|byte| *byte == b'.').and_then(|index| index.checked_add(constants_usize::ONE)).expect(constants_str::test_fixtures::VALUE_02A18550);
-            let signature_byte = modified_bytes.get_mut(signature_start).expect(constants_str::test_fixtures::VALUE_EB8B9918);
+            let signature_start = modified_bytes.iter().rposition(|byte| *byte == b'.').and_then(|index| index.checked_add(constants_usize::ONE)).expect(constants_str::VALUE_02A18550);
+            let signature_byte = modified_bytes.get_mut(signature_start).expect(constants_str::VALUE_EB8B9918);
             *signature_byte = if *signature_byte == b'A' { b'B' } else { b'A' };
-            let modified_text = String::from_utf8(modified_bytes).expect(constants_str::test_fixtures::VALUE_130A34B8);
-            let modified_cursor = crate::signed_cursor::SignedCursor::try_from(modified_text).expect(constants_str::test_fixtures::VALUE_D1169A2F);
+            let modified_text = String::from_utf8(modified_bytes).expect(constants_str::VALUE_130A34B8);
+            let modified_cursor = crate::signed_cursor::SignedCursor::try_from(modified_text).expect(constants_str::VALUE_D1169A2F);
             proptest::prop_assert_eq!(codec().decode(&modified_cursor), Err(crate::cursor_decode_error::CursorDecodeError::InvalidSignature));
         }
     }
@@ -139,7 +136,7 @@ mod tests {
     #[test]
     fn signed_cursor_round_trip_preserves_payload() {
         let payload = crate::cursor_payload::CursorPayload::try_from(String::from(
-            constants_str::catalog::CURSOR_TEST_JSON_PAYLOAD,
+            constants_str::CURSOR_TEST_JSON_PAYLOAD,
         ))
         .expect("ead70a9e signed_cursor_round_trip_preserves_payload invariant must hold");
         let cursor = codec()
@@ -156,7 +153,7 @@ mod tests {
     #[test]
     fn modified_cursor_is_rejected() {
         let payload = crate::cursor_payload::CursorPayload::try_from(String::from(
-            constants_str::catalog::CURSOR_TEST_PAYLOAD,
+            constants_str::CURSOR_TEST_PAYLOAD,
         ))
         .expect("256860a7 modified_cursor_is_rejected invariant must hold");
         let cursor = codec()

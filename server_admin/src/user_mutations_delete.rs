@@ -38,18 +38,16 @@ pub(crate) async fn user_mutations_delete(
     if last_admin_state.would_remove_last().get() {
         return Err(crate::admin_error::AdminError::Conflict);
     }
-    sqlx::query_scalar::<_, bool>(
-        constants_str::integration_fixtures::SERVER_ADMIN_DELETE_USER_SQL,
-    )
-    .bind(path.0.get())
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map(|value| server_admin_core::std_admin_bool::StdAdminBool::from(value.is_some()))
-    .map_err(crate::admin_error::AdminError::from)?
-    .get()
-    .then_some(())
-    .ok_or(crate::admin_error::AdminError::Conflict)?;
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_DELETE_USER_SQL)
+        .bind(path.0.get())
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map(|value| server_admin_core::std_admin_bool::StdAdminBool::from(value.is_some()))
+        .map_err(crate::admin_error::AdminError::from)?
+        .get()
+        .then_some(())
+        .ok_or(crate::admin_error::AdminError::Conflict)?;
     crate::record_audit_success_in_connection::record_audit_success_in_connection(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,

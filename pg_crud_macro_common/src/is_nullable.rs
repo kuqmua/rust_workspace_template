@@ -45,12 +45,12 @@ impl IsNullable {
         &self,
     ) -> crate::non_null_or_nullable_str::NonNullOrNullableStr {
         match &self {
-            Self::False => crate::non_null_or_nullable_str::NonNullOrNullableStr::from(
-                constants_str::catalog::NONNULL,
-            ),
-            Self::True => crate::non_null_or_nullable_str::NonNullOrNullableStr::from(
-                constants_str::catalog::NULLABLE,
-            ),
+            Self::False => {
+                crate::non_null_or_nullable_str::NonNullOrNullableStr::from(constants_str::NONNULL)
+            }
+            Self::True => {
+                crate::non_null_or_nullable_str::NonNullOrNullableStr::from(constants_str::NULLABLE)
+            }
         }
     }
     #[must_use]
@@ -61,7 +61,7 @@ impl IsNullable {
                     .unwrap_or_else(crate::is_nullable_prefix_str::IsNullablePrefixStr::from)
             }
             Self::True => crate::is_nullable_prefix_str::IsNullablePrefixStr::try_from(
-                String::from(constants_str::catalog::STDOPTIONALOPTIONAL),
+                String::from(constants_str::STDOPTIONALOPTIONAL),
             )
             .unwrap_or_else(crate::is_nullable_prefix_str::IsNullablePrefixStr::from),
         }
@@ -69,7 +69,7 @@ impl IsNullable {
     #[must_use]
     pub fn rust(&self) -> &'static dyn std::fmt::Display {
         match &self {
-            Self::False => &constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
+            Self::False => &constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
             Self::True => &naming::domain_types::OptionalUpperCamelCase,
         }
     }

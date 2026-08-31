@@ -20,14 +20,14 @@ pub(super) fn generate_select_query_string(
             .saturating_add(where_string.as_ref().len())
             .saturating_add(where_len),
     );
-    query.push_str(constants_str::catalog::SELECT_ALT);
+    query.push_str(constants_str::SELECT_ALT);
     query.push_str(select_string.as_ref());
-    query.push_str(constants_str::catalog::FROM_ALT);
+    query.push_str(constants_str::FROM_ALT);
     query.push_str(table.as_ref());
     match select_where_fmt {
         crate::select_where_fmt::SelectWhereFmt::Plain => query.push(' '),
         crate::select_where_fmt::SelectWhereFmt::Where => {
-            query.push_str(constants_str::catalog::WHERE);
+            query.push_str(constants_str::WHERE);
         }
     }
     query.push_str(where_string.as_ref());

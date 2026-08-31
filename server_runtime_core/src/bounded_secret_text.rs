@@ -1,7 +1,7 @@
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::DisplayConst,
 )]
-#[display_const(constants_str::catalog::REDACTED_ALT_3)]
+#[display_const(constants_str::REDACTED_ALT_3)]
 pub struct BoundedSecretText(String);
 
 impl BoundedSecretText {
@@ -21,6 +21,6 @@ impl TryFrom<String> for BoundedSecretText {
 
 impl std::fmt::Debug for BoundedSecretText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::catalog::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }

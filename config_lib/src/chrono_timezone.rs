@@ -29,7 +29,7 @@ impl TryFrom<crate::timezone_seconds::TimezoneSeconds> for ChronoTimezone {
             .map(Self)
             .ok_or_else(|| {
                 crate::chrono_fixed_offset_error::ChronoFixedOffsetError::from(
-                    constants_str::catalog::CONFIG_TIMEZONE_NOT_EAST_MSG,
+                    constants_str::CONFIG_TIMEZONE_NOT_EAST_MSG,
                 )
             })
     }

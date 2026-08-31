@@ -15,7 +15,7 @@ impl frontend_contract::typed_route::TypedRoute for AuthenticatedRoute {
     type Request = Request;
     type Response = Response;
     type Transport = frontend_contract::authenticated_transport::AuthenticatedTransport;
-    fn metadata() -> frontend_contract::route_metadata::RouteMetadata { frontend_contract::route_metadata::RouteMetadata::new(frontend_contract::route_method::RouteMethod::Post, frontend_contract::contract_str::ContractStr::from(constants_str::catalog::WRITE_ALT), frontend_contract::contract_str::ContractStr::from(constants_str::catalog::WRITE)) }
+    fn metadata() -> frontend_contract::route_metadata::RouteMetadata { frontend_contract::route_metadata::RouteMetadata::new(frontend_contract::route_method::RouteMethod::Post, frontend_contract::contract_str::ContractStr::from(constants_str::WRITE_ALT), frontend_contract::contract_str::ContractStr::from(constants_str::WRITE)) }
 }
 fn main() {
     require_public(frontend_contract::client_request::client_request::<AuthenticatedRoute>(Request));

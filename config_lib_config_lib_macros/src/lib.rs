@@ -9,7 +9,7 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_065,
+            constants_str::COMPILE_ERROR_CE_065,
         )
         .into_inner()
         .into();
@@ -18,7 +18,7 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
         workspace_macro_helpers::first_identifier_at::first_identifier_at(&parts, 0)
     else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_064,
+            constants_str::COMPILE_ERROR_CE_064,
         )
         .into_inner()
         .into();
@@ -27,7 +27,7 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
         workspace_macro_helpers::first_identifier_at::first_identifier_at(&parts, 1)
     else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_063,
+            constants_str::COMPILE_ERROR_CE_063,
         )
         .into_inner()
         .into();
@@ -62,7 +62,7 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_074,
+            constants_str::COMPILE_ERROR_CE_074,
         )
         .into_inner()
         .into();
@@ -71,7 +71,7 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
         workspace_macro_helpers::first_identifier_at::first_identifier_at(&parts, 0)
     else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_073,
+            constants_str::COMPILE_ERROR_CE_073,
         )
         .into_inner()
         .into();
@@ -80,7 +80,7 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
         workspace_macro_helpers::first_identifier_at::first_identifier_at(&parts, 1)
     else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_072,
+            constants_str::COMPILE_ERROR_CE_072,
         )
         .into_inner()
         .into();
@@ -102,7 +102,7 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
             fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
                 if v.is_empty() {
                     return Err(Self::Error::IsEmpty {
-                        is_empty: constants_str::catalog::CONFIG_ENV_VALUE_IS_EMPTY_MSG,
+                        is_empty: constants_str::CONFIG_ENV_VALUE_IS_EMPTY_MSG,
                     });
                 }
                 crate::std_config_secret_string::StdConfigSecretString::try_from(String::from(v))
@@ -146,7 +146,7 @@ fn impl_try_from_parse_with_error_ty(
         return proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-                    constants_str::catalog::COMPILE_ERROR_CE_071,
+                    constants_str::COMPILE_ERROR_CE_071,
                 )
                 .into_inner(),
             ),
@@ -158,7 +158,7 @@ fn impl_try_from_parse_with_error_ty(
         return proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-                    constants_str::catalog::COMPILE_ERROR_CE_070,
+                    constants_str::COMPILE_ERROR_CE_070,
                 )
                 .into_inner(),
             ),
@@ -170,7 +170,7 @@ fn impl_try_from_parse_with_error_ty(
         return proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-                    constants_str::catalog::COMPILE_ERROR_CE_067,
+                    constants_str::COMPILE_ERROR_CE_067,
                 )
                 .into_inner(),
             ),
@@ -182,7 +182,7 @@ fn impl_try_from_parse_with_error_ty(
         return proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-                    constants_str::catalog::COMPILE_ERROR_CE_068,
+                    constants_str::COMPILE_ERROR_CE_068,
                 )
                 .into_inner(),
             ),
@@ -194,7 +194,7 @@ fn impl_try_from_parse_with_error_ty(
         return proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-                    constants_str::catalog::COMPILE_ERROR_CE_066,
+                    constants_str::COMPILE_ERROR_CE_066,
                 )
                 .into_inner(),
             ),
@@ -208,7 +208,7 @@ fn impl_try_from_parse_with_error_ty(
         return proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
             proc_macro::TokenStream::from(
                 workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-                    constants_str::catalog::COMPILE_ERROR_CE_069,
+                    constants_str::COMPILE_ERROR_CE_069,
                 )
                 .into_inner(),
             ),
@@ -258,28 +258,28 @@ pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::To
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_040,
+            constants_str::COMPILE_ERROR_CE_040,
         )
         .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_039,
+            constants_str::COMPILE_ERROR_CE_039,
         )
         .into_inner()
         .into();
     };
     let Some(value) = workspace_macro_helpers::part_at::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_041,
+            constants_str::COMPILE_ERROR_CE_041,
         )
         .into_inner()
         .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_038,
+            constants_str::COMPILE_ERROR_CE_038,
         )
         .into_inner()
         .into();
@@ -296,28 +296,28 @@ pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::T
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_036,
+            constants_str::COMPILE_ERROR_CE_036,
         )
         .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_035,
+            constants_str::COMPILE_ERROR_CE_035,
         )
         .into_inner()
         .into();
     };
     let Some(value) = workspace_macro_helpers::part_at::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_037,
+            constants_str::COMPILE_ERROR_CE_037,
         )
         .into_inner()
         .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_034,
+            constants_str::COMPILE_ERROR_CE_034,
         )
         .into_inner()
         .into();
@@ -334,21 +334,21 @@ pub fn assert_empty_parse_err_matches(input: proc_macro::TokenStream) -> proc_ma
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_033,
+            constants_str::COMPILE_ERROR_CE_033,
         )
         .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_032,
+            constants_str::COMPILE_ERROR_CE_032,
         )
         .into_inner()
         .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::catalog::COMPILE_ERROR_CE_031,
+            constants_str::COMPILE_ERROR_CE_031,
         )
         .into_inner()
         .into();

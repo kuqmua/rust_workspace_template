@@ -3,16 +3,16 @@ fn data_grid() {
     let columns = server_admin_contract::admin_data_columns::AdminDataColumns::try_from(vec![
         server_admin_contract::admin_data_column::AdminDataColumn::new(
             server_admin_contract::admin_data_filters::AdminDataFilters::try_from(Vec::new())
-                .expect(constants_str::test_fixtures::VALUE_D0BD1ECC),
+                .expect(constants_str::VALUE_D0BD1ECC),
             frontend_contract::input_kind::InputKind::Number,
             server_admin_contract::admin_text::AdminText::try_from(String::from(
-                constants_str::test_fixtures::VALUE_1D438D9B,
+                constants_str::VALUE_1D438D9B,
             ))
-            .expect(constants_str::test_fixtures::VALUE_46CE1BB0),
+            .expect(constants_str::VALUE_46CE1BB0),
             server_admin_contract::admin_text::AdminText::try_from(String::from(
-                constants_str::catalog::SQL_NAMES_ID,
+                constants_str::SQL_NAMES_ID,
             ))
-            .expect(constants_str::test_fixtures::VALUE_81310A83),
+            .expect(constants_str::VALUE_81310A83),
         ),
         server_admin_contract::admin_data_column::AdminDataColumn::new(
             server_admin_contract::admin_data_filters::AdminDataFilters::try_from(vec![
@@ -26,28 +26,28 @@ fn data_grid() {
                     frontend_contract::filter_operation::FilterOperation::Between,
                 ),
             ])
-            .expect(constants_str::test_fixtures::VALUE_4C7734E6),
+            .expect(constants_str::VALUE_4C7734E6),
             frontend_contract::input_kind::InputKind::Text,
             server_admin_contract::admin_text::AdminText::try_from(String::from(
-                constants_str::test_fixtures::VALUE_B2D6201D,
+                constants_str::VALUE_B2D6201D,
             ))
-            .expect(constants_str::test_fixtures::VALUE_EC14A0FD),
+            .expect(constants_str::VALUE_EC14A0FD),
             server_admin_contract::admin_text::AdminText::try_from(String::from(
-                constants_str::catalog::LOGIN,
+                constants_str::LOGIN,
             ))
-            .expect(constants_str::test_fixtures::VALUE_6A1237E9),
+            .expect(constants_str::VALUE_6A1237E9),
         ),
     ])
     .expect("57462ad9 generated_column_metadata_drives_data_table_markup invariant must hold");
     let values = server_admin_contract::admin_texts::AdminTexts::try_from(vec![
         server_admin_contract::admin_text::AdminText::try_from(String::from(
-            constants_str::catalog::VALUE_42,
+            constants_str::VALUE_42,
         ))
-        .expect(constants_str::test_fixtures::VALUE_1DF3FF47),
+        .expect(constants_str::VALUE_1DF3FF47),
         server_admin_contract::admin_text::AdminText::try_from(String::from(
-            constants_str::test_fixtures::VALUE_2BD806C9,
+            constants_str::VALUE_2BD806C9,
         ))
-        .expect(constants_str::test_fixtures::VALUE_BED65ED1),
+        .expect(constants_str::VALUE_BED65ED1),
     ])
     .expect("58fed1d1 generated_column_metadata_drives_data_table_markup invariant must hold");
     let rows = server_admin_contract::admin_data_rows::AdminDataRows::try_from(vec![
@@ -90,12 +90,12 @@ fn data_grid() {
     let query = server_admin_contract::admin_data_table_query::AdminDataTableQuery::new(
         server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
             Some(
-                server_admin_contract::admin_filter_field::AdminFilterField::try_from(String::from(constants_str::catalog::LOGIN))
+                server_admin_contract::admin_filter_field::AdminFilterField::try_from(String::from(constants_str::LOGIN))
                     .expect("774bc583 generated_column_metadata_drives_data_table_markup invariant must hold"),
             ),
             Some(frontend_contract::filter_operation::FilterOperation::Eq),
             Some(
-                server_admin_contract::admin_filter_value::AdminFilterValue::try_from(String::from(constants_str::test_fixtures::VALUE_2BD806C9))
+                server_admin_contract::admin_filter_value::AdminFilterValue::try_from(String::from(constants_str::VALUE_2BD806C9))
                     .expect("63d17f8e generated_column_metadata_drives_data_table_markup invariant must hold"),
             ),
             None,
@@ -118,10 +118,10 @@ fn data_grid() {
     assert!(!filters_html.as_ref().contains("table-filter-tools"));
     let (_before_login, login_tail) = filters_html
         .as_ref()
-        .split_once(constants_str::test_fixtures::VALUE_3837854C)
+        .split_once(constants_str::VALUE_3837854C)
         .expect("45b73477 generated_column_metadata_drives_data_table_markup invariant must hold");
     let (login_header, _after_login) = login_tail
-        .split_once(constants_str::test_fixtures::VALUE_25C350AC)
+        .split_once(constants_str::VALUE_25C350AC)
         .expect("e8120a92 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(login_header.contains("class=\"table-column-filter\""));
     assert!(login_header.contains("data-name=\"Popover\""));
@@ -129,10 +129,10 @@ fn data_grid() {
     assert!(login_header.contains("data-name=\"RadioButtonGroup\""));
     let (_before_id, id_tail) = filters_html
         .as_ref()
-        .split_once(constants_str::test_fixtures::VALUE_469219C9)
+        .split_once(constants_str::VALUE_469219C9)
         .expect("c8a92ef4 generated_column_metadata_drives_data_table_markup invariant must hold");
     let (id_header, _after_id) = id_tail
-        .split_once(constants_str::test_fixtures::VALUE_25C350AC)
+        .split_once(constants_str::VALUE_25C350AC)
         .expect("58cdf783 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(!id_header.contains("class=\"table-column-filter\""));
     assert!(
@@ -183,15 +183,15 @@ fn data_grid() {
     assert!(filters_html.as_ref().contains(">Clear</a>"));
     let apply_position = filters_html
         .as_ref()
-        .find(constants_str::test_fixtures::VALUE_38228244)
+        .find(constants_str::VALUE_38228244)
         .expect("10c26d45 generated_column_metadata_drives_data_table_markup invariant must hold");
     let close_position = filters_html
         .as_ref()
-        .find(constants_str::test_fixtures::VALUE_0D4379EB)
+        .find(constants_str::VALUE_0D4379EB)
         .expect("1542a5c3 generated_column_metadata_drives_data_table_markup invariant must hold");
     let clear_position = filters_html
         .as_ref()
-        .find(constants_str::test_fixtures::VALUE_BD7A6256)
+        .find(constants_str::VALUE_BD7A6256)
         .expect("58f35e11 generated_column_metadata_drives_data_table_markup invariant must hold");
     assert!(close_position > apply_position);
     assert!(clear_position > apply_position);

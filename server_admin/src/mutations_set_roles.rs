@@ -44,7 +44,7 @@ pub(crate) async fn mutations_set_roles(
         )
         .await?;
         let optional_target_is_active =
-            sqlx::query_scalar::<_, bool>(constants_str::integration_fixtures::SERVER_ADMIN_LOCK_USER_ACTIVE_STATE_SQL)
+            sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_LOCK_USER_ACTIVE_STATE_SQL)
                 .bind(path.0.get())
                 .fetch_optional(&mut *tx)
                 .await
@@ -55,7 +55,7 @@ pub(crate) async fn mutations_set_roles(
             );
         };
         let current_role_ids =
-            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_READ_USER_ROLE_IDS_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_USER_ROLE_IDS_SQL)
                 .bind(path.0.get())
                 .fetch_all(&mut *tx)
                 .await
@@ -77,7 +77,7 @@ pub(crate) async fn mutations_set_roles(
                 .map(i64::from)
                 .collect::<Vec<_>>();
         let existing_count =
-            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_COUNT_ROLES_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ROLES_SQL)
                 .bind(&raw_ids)
                 .fetch_one(&mut *tx)
                 .await
@@ -86,12 +86,12 @@ pub(crate) async fn mutations_set_roles(
             return Ok(crate::replace_user_roles_outcome::ReplaceUserRolesOutcome::UnknownRole);
         }
         let admin_role_id =
-            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
                 .fetch_one(&mut *tx)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let target_was_admin =
-            sqlx::query_scalar::<_, bool>(constants_str::integration_fixtures::SERVER_ADMIN_USER_HAS_ROLE_SQL)
+            sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_USER_HAS_ROLE_SQL)
                 .bind(path.0.get())
                 .bind(admin_role_id)
                 .fetch_one(&mut *tx)
@@ -99,7 +99,7 @@ pub(crate) async fn mutations_set_roles(
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         if target_is_active && target_was_admin && !raw_ids.contains(&admin_role_id) {
             let active_admin_count = sqlx::query_scalar::<_, i64>(
-                constants_str::integration_fixtures::SERVER_ADMIN_ACTIVE_ROLE_USER_COUNT_SQL,
+                constants_str::SERVER_ADMIN_ACTIVE_ROLE_USER_COUNT_SQL,
             )
             .bind(admin_role_id)
             .fetch_one(&mut *tx)
@@ -109,12 +109,12 @@ pub(crate) async fn mutations_set_roles(
                 return Ok(crate::replace_user_roles_outcome::ReplaceUserRolesOutcome::LastActiveAdministrator);
             }
         }
-        let _delete_result = sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL)
+        let _delete_result = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL)
             .bind(path.0.get())
             .execute(&mut *tx)
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-        let _insert_result = sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REPLACE_USER_ROLES_INSERT_SQL)
+        let _insert_result = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_USER_ROLES_INSERT_SQL)
             .bind(path.0.get())
             .bind(&raw_ids)
             .execute(&mut *tx)

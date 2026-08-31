@@ -24,7 +24,7 @@ pub mod workspace_root_path_ref;
 pub mod write_content;
 
 fn main() -> Result<(), initialize_error::InitializeError> {
-    let mode = if std::env::args().any(|argument| argument == constants_str::catalog::DRY_RUN) {
+    let mode = if std::env::args().any(|argument| argument == constants_str::DRY_RUN) {
         run_mode::RunMode::DryRun
     } else {
         run_mode::RunMode::Apply
@@ -38,7 +38,7 @@ fn main() -> Result<(), initialize_error::InitializeError> {
     )?
     .into_iter()
     .for_each(|entry| {
-        let separator = constants_str::test_fixtures::COMMA_SPACE.trim();
+        let separator = constants_str::COMMA_SPACE.trim();
         let keys_capacity = entry
             .keys()
             .as_ref()
@@ -68,7 +68,7 @@ fn main() -> Result<(), initialize_error::InitializeError> {
             member = entry.member().as_ref(),
             status = ?entry.status(),
             keys,
-            "environment file initialization completed"
+            message = %constants_str::TRACING_ENV_FILE_INITIALIZATION_COMPLETED,
         );
     });
     Ok(())

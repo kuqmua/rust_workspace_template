@@ -7,9 +7,7 @@ mod tests {
             Err(crate::pg_rate_limit_validation_error::PgRateLimitValidationError::MustBePositive)
         );
         assert_eq!(
-            crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef::try_from(
-                constants_str::test_fixtures::EMPTY
-            ),
+            crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef::try_from(constants_str::EMPTY),
             Err(crate::pg_rate_limit_validation_error::PgRateLimitValidationError::EmptyKeyPart)
         );
     }
@@ -38,7 +36,7 @@ mod tests {
     }
     #[test]
     fn scope_and_subject_accept_exact_limit_and_reject_excess() {
-        let exact = constants_str::catalog::A_ALT
+        let exact = constants_str::A_ALT
             .repeat(crate::pg_rate_limit_key_part_max_len::PG_RATE_LIMIT_KEY_PART_MAX_LEN);
         let _scope = crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef::try_from(exact.as_str()).expect(
             "1b100a47 scope_and_subject_accept_exact_limit_and_reject_excess invariant must hold",
@@ -49,7 +47,7 @@ mod tests {
         .expect(
             "082e2933 scope_and_subject_accept_exact_limit_and_reject_excess invariant must hold",
         );
-        let excess = constants_str::catalog::A_ALT.repeat(
+        let excess = constants_str::A_ALT.repeat(
             crate::pg_rate_limit_key_part_max_len::PG_RATE_LIMIT_KEY_PART_MAX_LEN
                 + constants_usize::ONE,
         );
@@ -62,9 +60,7 @@ mod tests {
             Err(crate::pg_rate_limit_validation_error::PgRateLimitValidationError::KeyPartTooLong)
         );
         assert_eq!(
-            crate::pg_rate_limit_subject_ref::PgRateLimitSubjectRef::try_from(
-                constants_str::test_fixtures::EMPTY
-            ),
+            crate::pg_rate_limit_subject_ref::PgRateLimitSubjectRef::try_from(constants_str::EMPTY),
             Err(crate::pg_rate_limit_validation_error::PgRateLimitValidationError::EmptyKeyPart)
         );
     }

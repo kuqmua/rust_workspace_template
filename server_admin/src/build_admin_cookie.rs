@@ -6,14 +6,14 @@ pub fn build_admin_cookie(
     secure: crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure,
 ) -> crate::std_admin_cookie::StdAdminCookie {
     let http_only = if matches!(kind, crate::admin_cookie_kind::AdminCookieKind::Csrf) {
-        constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX
+        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
     } else {
-        constants_str::catalog::HTTPONLY
+        constants_str::HTTPONLY
     };
     let secure_attr = if secure.0 {
-        constants_str::catalog::SECURE
+        constants_str::SECURE
     } else {
-        constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX
+        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
     };
     crate::std_admin_cookie::StdAdminCookie::try_from(format!(
         "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attr}",

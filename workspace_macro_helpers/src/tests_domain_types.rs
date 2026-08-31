@@ -73,22 +73,16 @@ mod tests {
         let mut values = crate::unique_option_b_tree_set::UniqueOptionBTreeSet::default();
         values
             .try_insert_with(1u8, || {
-                syn::Error::new(
-                    proc_macro2::Span::call_site(),
-                    constants_str::catalog::FIRST_ALT,
-                )
+                syn::Error::new(proc_macro2::Span::call_site(), constants_str::FIRST_ALT)
             })
             .expect(
                 "12817d29 unique_option_set_preserves_first_span_aware_error invariant must hold",
             );
         let error = values
             .try_insert_with(1u8, || {
-                syn::Error::new(
-                    proc_macro2::Span::call_site(),
-                    constants_str::catalog::DUPLICATE,
-                )
+                syn::Error::new(proc_macro2::Span::call_site(), constants_str::DUPLICATE)
             })
-            .expect_err(constants_str::catalog::CE4826F4);
+            .expect_err(constants_str::CE4826F4);
         assert_eq!(error.to_string(), "duplicate");
         assert!(values.contains(1u8).get());
     }

@@ -125,9 +125,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                 std::sync::Arc::new({
                     let metadata = crate::types::CargoMetadata::from(
                         cargo_metadata::MetadataCommand::new()
-                            .manifest_path(
-                                constants_str::catalog::CODE_STYLE_WORKSPACE_MANIFEST_PATH,
-                            )
+                            .manifest_path(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
                             .exec()
                             .expect("c84e9d1f workspace metadata invariant must hold"),
                     );
@@ -180,25 +178,24 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                             crate::types::CargoTomlFileIdx,
                         >>();
                     let project_source_files = crate::types::WalkdirWalkDir::from(
-                        walkdir::WalkDir::new(constants_str::catalog::TEXT_ALT_9),
+                        walkdir::WalkDir::new(constants_str::TEXT_ALT_9),
                     )
                     .into_iter()
                     .filter_entry(|element| {
-                        element.file_name() != constants_str::catalog::TARGET
-                            && element.file_name() != constants_str::catalog::GIT
-                            && element.file_name()
-                                != constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NODE_MODULES
+                        element.file_name() != constants_str::TARGET
+                            && element.file_name() != constants_str::GIT
+                            && element.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
                             && (element.file_type().is_dir()
                                 || matches!(
                                     element.path().extension().and_then(std::ffi::OsStr::to_str),
                                     Some(
-                                        constants_str::catalog::RS
-                                            | constants_str::integration_fixtures::MD
-                                            | constants_str::integration_fixtures::TOML
-                                            | constants_str::catalog::TXT
-                                            | constants_str::integration_fixtures::YML
-                                            | constants_str::integration_fixtures::YAML
-                                            | constants_str::integration_fixtures::JSON
+                                        constants_str::RS
+                                            | constants_str::MD
+                                            | constants_str::TOML
+                                            | constants_str::TXT
+                                            | constants_str::YML
+                                            | constants_str::YAML
+                                            | constants_str::JSON
                                     )
                                 ))
                     })
@@ -226,7 +223,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                         .as_ref()
                         .extension()
                         .and_then(std::ffi::OsStr::to_str)
-                        == Some(constants_str::catalog::RS)
+                        == Some(constants_str::RS)
                 })
                 .map(|source_file| {
                     let ast =
@@ -266,7 +263,7 @@ fn project_source_content(path: &std::path::Path, raw_content: String) -> crate:
 }
 #[test]
 fn invalid_project_source_content_fails_snapshot_loading() {
-    let oversized = constants_str::catalog::X.repeat(16_777_217usize);
+    let oversized = constants_str::X.repeat(16_777_217usize);
     assert!(
         std::panic::catch_unwind(|| {
             project_source_content(std::path::Path::new("oversized.rs"), oversized)
@@ -277,7 +274,7 @@ fn invalid_project_source_content_fails_snapshot_loading() {
 }
 #[test]
 fn missing_project_source_file_fails_snapshot_loading() {
-    let missing = std::path::PathBuf::from(constants_str::test_fixtures::VALUE_5E88EEB9);
+    let missing = std::path::PathBuf::from(constants_str::VALUE_5E88EEB9);
     assert!(
         std::panic::catch_unwind(|| project_source_file(missing)).is_err(),
         "46045b88"

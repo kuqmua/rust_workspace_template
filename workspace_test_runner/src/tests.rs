@@ -1,7 +1,7 @@
 #[test]
 fn ansi_cleanup_processes_multiple_and_unterminated_sequences() {
     let clean = crate::strip_ansi_codes::strip_ansi_codes(crate::ansi_text_ref::AnsiTextRef::from(
-        constants_str::test_fixtures::VALUE_22233BC3,
+        constants_str::VALUE_22233BC3,
     ));
     assert_eq!(clean.as_ref(), "plain red tail");
     assert_eq!(
@@ -13,7 +13,7 @@ fn ansi_cleanup_processes_multiple_and_unterminated_sequences() {
 #[test]
 fn memusage_parsers_distinguish_values_and_missing_fields() {
     let text = crate::clean_ansi_text::CleanAnsiText::try_from(String::from(
-        constants_str::test_fixtures::VALUE_D36CD261,
+        constants_str::VALUE_D36CD261,
     ))
     .expect("afa44055 memusage_parsers_distinguish_values_and_missing_fields invariant must hold");
     assert_eq!(
@@ -30,7 +30,7 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
             crate::memusage_key::MemusageKey::from("Stack peak:")
         )
         .get(),
-        constants_str::catalog::UNAVAILABLE
+        constants_str::UNAVAILABLE
     );
     assert_eq!(
         crate::memusage_table_value::memusage_table_value(
@@ -48,7 +48,7 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
             crate::memusage_column_idx::MemusageColumnIdx::from(constants_usize::ZERO)
         )
         .get(),
-        constants_str::catalog::UNAVAILABLE
+        constants_str::UNAVAILABLE
     );
     assert_eq!(
         crate::memusage_table_value::memusage_table_value(
@@ -57,7 +57,7 @@ fn memusage_parsers_distinguish_values_and_missing_fields() {
             crate::memusage_column_idx::MemusageColumnIdx::from(9usize)
         )
         .get(),
-        constants_str::catalog::UNAVAILABLE
+        constants_str::UNAVAILABLE
     );
 }
 #[test]
@@ -66,22 +66,19 @@ fn measurement_catalogs_are_complete_and_ordered() {
     assert_eq!(measurements.len(), 3usize);
     assert_eq!(
         measurements[0].0.get(),
-        constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT
+        constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT
     );
     assert_eq!(
         measurements[2].0.get(),
-        constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT
+        constants_str::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT
     );
     let tools = crate::allocation_tools::allocation_tools();
     assert_eq!(tools.len(), 6usize);
     assert_eq!(
         tools[0].get_name().get(),
-        constants_str::catalog::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL
+        constants_str::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL
     );
-    assert_eq!(
-        tools[5].get_name().get(),
-        constants_str::catalog::PG_CRUD_PG_TIME
-    );
+    assert_eq!(tools[5].get_name().get(), constants_str::PG_CRUD_PG_TIME);
 }
 #[test]
 fn tool_discovery_checks_the_exact_path() {
@@ -124,15 +121,15 @@ fn tests_mode_leaves_ignored_suite_to_database_mode() {
 fn tests_mode_runs_code_style_once() {
     assert!(
         constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS
-            .contains(&constants_str::catalog::TESTS_CODE_STYLE)
+            .contains(&constants_str::TESTS_CODE_STYLE)
     );
     assert!(
         constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS
             .windows(constants_usize::TWO)
             .any(|args| {
                 args == [
-                    constants_str::catalog::SHARED_VALUES_EXCLUDE,
-                    constants_str::catalog::TESTS_CODE_STYLE,
+                    constants_str::SHARED_VALUES_EXCLUDE,
+                    constants_str::TESTS_CODE_STYLE,
                 ]
             })
     );

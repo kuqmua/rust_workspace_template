@@ -12,43 +12,40 @@ pub fn build_stable_read_query_plan(
     let tie_break_len = if sort_column == tie_break_column {
         constants_usize::ZERO
     } else {
-        constants_str::catalog::TEXT_ALT_6
+        constants_str::TEXT_ALT_6
             .len()
             .saturating_add(tie_break_column.as_ref().len())
             .saturating_add(constants_usize::ONE)
             .saturating_add(order_sql.as_ref().len())
     };
     query.reserve(
-        constants_str::test_fixtures::READ_ORDER_BY
+        constants_str::READ_ORDER_BY
             .len()
             .saturating_add(sort_column.as_ref().len())
             .saturating_add(constants_usize::ONE)
             .saturating_add(order_sql.as_ref().len())
             .saturating_add(tie_break_len)
-            .saturating_add(constants_str::test_fixtures::LIMIT_DOLLAR.len())
+            .saturating_add(constants_str::LIMIT_DOLLAR.len())
             .saturating_add(10usize)
-            .saturating_add(constants_str::test_fixtures::OFFSET_DOLLAR.len())
+            .saturating_add(constants_str::OFFSET_DOLLAR.len())
             .saturating_add(10usize),
     );
-    query.push_str(constants_str::test_fixtures::READ_ORDER_BY);
+    query.push_str(constants_str::READ_ORDER_BY);
     query.push_str(sort_column.as_ref());
     query.push(' ');
     query.push_str(order_sql.as_ref());
     if sort_column != tie_break_column {
-        query.push_str(constants_str::catalog::TEXT_ALT_6);
+        query.push_str(constants_str::TEXT_ALT_6);
         query.push_str(tie_break_column.as_ref());
         query.push(' ');
         query.push_str(order_sql.as_ref());
     }
-    query.push_str(constants_str::test_fixtures::LIMIT_DOLLAR);
+    query.push_str(constants_str::LIMIT_DOLLAR);
     let mut query_fragment = crate::query_part_fragment::QueryPartFragment::try_from(query)
         .map_err(|_error| crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?;
     query_fragment.append_read_bind_index(limit_bind)?;
-    std::fmt::Write::write_str(
-        &mut query_fragment,
-        constants_str::test_fixtures::OFFSET_DOLLAR,
-    )
-    .map_err(|_error| crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?;
+    std::fmt::Write::write_str(&mut query_fragment, constants_str::OFFSET_DOLLAR)
+        .map_err(|_error| crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?;
     query_fragment.append_read_bind_index(offset_bind)?;
     Ok(crate::read_query_plan::ReadQueryPlan::from(query_fragment))
 }
@@ -64,11 +61,11 @@ mod tests {
     fn stable_plan_appends_tie_break_limit_and_offset() {
         let plan = crate::build_stable_read_query_plan::build_stable_read_query_plan(
             crate::query_part_fragment::QueryPartFragment::try_from(String::from(
-                constants_str::test_fixtures::TEST_READ_QUERY_BASE,
+                constants_str::TEST_READ_QUERY_BASE,
             ))
             .expect("ef7cd3e2 stable_plan_appends_tie_break_limit_and_offset invariant must hold"),
-            &stable_read_identifier(constants_str::catalog::CREATED_AT),
-            &stable_read_identifier(constants_str::catalog::SQL_NAMES_ID),
+            &stable_read_identifier(constants_str::CREATED_AT),
+            &stable_read_identifier(constants_str::SQL_NAMES_ID),
             crate::query_sort_order::QuerySortOrder::Descending,
             std::num::NonZeroU32::new(1u32)
                 .expect(
@@ -83,9 +80,6 @@ mod tests {
         )
         .expect("377c56d0 stable_plan_appends_tie_break_limit_and_offset invariant must hold");
         let fragment = crate::query_part_fragment::QueryPartFragment::from(plan);
-        assert_eq!(
-            fragment.into_inner(),
-            constants_str::test_fixtures::TEST_STABLE_READ_QUERY
-        );
+        assert_eq!(fragment.into_inner(), constants_str::TEST_STABLE_READ_QUERY);
     }
 }

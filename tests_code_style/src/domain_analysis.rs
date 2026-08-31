@@ -29,25 +29,25 @@ impl StringWrapperFromVisitor<'_> {
             return;
         }
         let has_derive = item_ref.attrs.iter().any(|attr| {
-            attr.path().is_ident(constants_str::catalog::DERIVE)
+            attr.path().is_ident(constants_str::DERIVE)
                 && attr.meta.require_list().is_ok_and(|list| {
                     list.tokens
                         .to_string()
-                        .contains(constants_str::catalog::BOUNDEDSTRING)
+                        .contains(constants_str::BOUNDEDSTRING)
                 })
         });
         let has_max_bound = item_ref.attrs.iter().any(|attr| {
-            if !attr.path().is_ident(constants_str::catalog::BOUNDED_STRING) {
+            if !attr.path().is_ident(constants_str::BOUNDED_STRING) {
                 return false;
             }
             let mut has_max = false;
             drop(attr.parse_nested_meta(|meta| {
-                if meta.path.is_ident(constants_str::catalog::MAX) {
+                if meta.path.is_ident(constants_str::MAX) {
                     drop(meta.value()?.parse::<syn::Expr>()?);
                     has_max = true;
                     return Ok(());
                 }
-                Err(meta.error(constants_str::catalog::UNKNOWN_BOUNDED_STRING_OPTION))
+                Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
             }));
             has_max
         });
@@ -62,9 +62,7 @@ impl StringWrapperFromVisitor<'_> {
             item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
                 crate::code_style::path_ends_with(
                     crate::types::SynPathRef::from(path),
-                    crate::types::StaticStrSliceRef::from(
-                        [constants_str::catalog::FROM_ALT_3].as_slice(),
-                    ),
+                    crate::types::StaticStrSliceRef::from([constants_str::FROM_ALT_3].as_slice()),
                 )
                 .get()
                     && crate::code_style::from_trait_arg_is_string(crate::types::SynPathRef::from(
@@ -77,7 +75,7 @@ impl StringWrapperFromVisitor<'_> {
             return;
         }
         let identifier = crate::code_style::item_impl_self_ty_identifier(item).map_or_else(
-            || String::from(constants_str::catalog::NON_PATH_TARGET),
+            || String::from(constants_str::NON_PATH_TARGET),
             String::from,
         );
         self.ers.push(format!(
@@ -90,11 +88,11 @@ impl StringWrapperFromVisitor<'_> {
             return;
         }
         if item_ref.attrs.iter().any(|attr| {
-            attr.path().is_ident(constants_str::catalog::DERIVE)
+            attr.path().is_ident(constants_str::DERIVE)
                 && attr.meta.require_list().is_ok_and(|list| {
                     list.tokens
                         .to_string()
-                        .contains(constants_str::test_fixtures::NEWTYPE_FROM_INNER_DERIVE_NAME)
+                        .contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME)
                 })
         }) {
             self.ers.push(format!(
@@ -103,33 +101,27 @@ impl StringWrapperFromVisitor<'_> {
                     ));
         }
         let has_try_from = item_ref.attrs.iter().any(|attr| {
-            attr.path().is_ident(constants_str::catalog::DERIVE)
+            attr.path().is_ident(constants_str::DERIVE)
                 && attr.meta.require_list().is_ok_and(|list| {
                     list.tokens
                         .to_string()
-                        .contains(constants_str::test_fixtures::NEWTYPE_TRY_FROM_DERIVE_NAME)
+                        .contains(constants_str::NEWTYPE_TRY_FROM_DERIVE_NAME)
                 })
         });
         let mut has_len_check = false;
         item_ref
             .attrs
             .iter()
-            .filter(|attr| {
-                attr.path()
-                    .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM)
-            })
+            .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
             .for_each(|attr| {
                 drop(attr.parse_nested_meta(|meta| {
-                    if meta
-                        .path
-                        .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_ERROR)
-                    {
+                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
                         let _error_type = meta.value()?.parse::<syn::Type>()?;
                         return Ok(());
                     }
                     if meta
                         .path
-                        .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR)
+                        .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
                     {
                         let expr = meta.value()?.parse::<syn::Expr>()?;
                         let mut visitor = LenMethodCallVisitor {
@@ -208,9 +200,7 @@ impl StringWrapperFromVisitor<'_> {
             item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
                 crate::code_style::path_ends_with(
                     crate::types::SynPathRef::from(path),
-                    crate::types::StaticStrSliceRef::from(
-                        [constants_str::catalog::TRYFROM].as_slice(),
-                    ),
+                    crate::types::StaticStrSliceRef::from([constants_str::TRYFROM].as_slice()),
                 )
                 .get()
                     && crate::code_style::from_trait_arg_is_string(crate::types::SynPathRef::from(
@@ -259,9 +249,10 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionCallVisitor<'_> {
                 crate::code_style::path_to_string(crate::types::SynPathRef::from(&path.path));
             if self.names.iter().any(|name| {
                 full_path.as_ref() == name
-                    || full_path.as_ref().strip_suffix(name).is_some_and(|prefix| {
-                        prefix.ends_with(constants_str::catalog::PATH_SEPARATOR)
-                    })
+                    || full_path
+                        .as_ref()
+                        .strip_suffix(name)
+                        .is_some_and(|prefix| prefix.ends_with(constants_str::PATH_SEPARATOR))
             }) {
                 self.found.set_true();
             }
@@ -326,7 +317,7 @@ pub(super) struct LenMethodCallVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == constants_str::catalog::LEN {
+        if i.method == constants_str::LEN {
             self.found.set_true();
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -392,27 +383,24 @@ impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
 impl<'ast> syn::visit::Visit<'ast> for DirectDeserializeTupleWrapperVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         let derives_deserialize = i.attrs.iter().any(|attr| {
-            attr.path().is_ident(constants_str::catalog::DERIVE)
+            attr.path().is_ident(constants_str::DERIVE)
                 && match &attr.meta {
                     syn::Meta::List(list) => list
                         .tokens
                         .to_string()
-                        .contains(constants_str::test_fixtures::CODE_STYLE_DESERIALIZE_DERIVE_NAME),
+                        .contains(constants_str::CODE_STYLE_DESERIALIZE_DERIVE_NAME),
                     syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
                 }
         });
         let deserialize_uses_conversion = i.attrs.iter().any(|attr| {
-            if !attr.path().is_ident(constants_str::catalog::SERDE) {
+            if !attr.path().is_ident(constants_str::SERDE) {
                 return false;
             }
             match &attr.meta {
                 syn::Meta::List(list) => {
                     let tokens = list.tokens.to_string();
-                    tokens
-                        .contains(constants_str::test_fixtures::CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT)
-                        || tokens.contains(
-                            constants_str::test_fixtures::CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT,
-                        )
+                    tokens.contains(constants_str::CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT)
+                        || tokens.contains(constants_str::CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT)
                 }
                 syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
             }
@@ -437,8 +425,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeserializeConversionCallVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
         if let syn::Expr::Path(path) = i.func.as_ref()
             && path.path.segments.last().is_some_and(|segment| {
-                segment.ident == constants_str::catalog::FROM_ALT_4
-                    || segment.ident == constants_str::test_fixtures::NEWTYPE_TRY_FROM
+                segment.ident == constants_str::FROM_ALT_4
+                    || segment.ident == constants_str::NEWTYPE_TRY_FROM
             })
         {
             self.found.set_true();
@@ -450,7 +438,7 @@ impl<'ast> syn::visit::Visit<'ast> for ManualDeserializeTupleWrapperVisitor<'_> 
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         let is_deserialize_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
-                segment.ident == constants_str::test_fixtures::CODE_STYLE_DESERIALIZE_DERIVE_NAME
+                segment.ident == constants_str::CODE_STYLE_DESERIALIZE_DERIVE_NAME
             })
         });
         let Some(name) =
@@ -486,7 +474,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
             item_ref.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
                 path.segments
                     .last()
-                    .is_some_and(|segment| segment.ident == constants_str::catalog::FROM_ALT_3)
+                    .is_some_and(|segment| segment.ident == constants_str::FROM_ALT_3)
             }),
         );
         if is_from.get() {
@@ -501,7 +489,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
             item_ref.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
                 path.segments
                     .last()
-                    .is_some_and(|segment| segment.ident == constants_str::catalog::TRYFROM)
+                    .is_some_and(|segment| segment.ident == constants_str::TRYFROM)
             }),
         );
         if is_try_from.get() {
@@ -532,14 +520,14 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 drop(self.inner_types.insert(name.clone(), field.ty.clone()));
             }
             let derives_from_inner = i.attrs.iter().any(|attr| {
-                if !attr.path().is_ident(constants_str::catalog::DERIVE) {
+                if !attr.path().is_ident(constants_str::DERIVE) {
                     return false;
                 }
                 match &attr.meta {
                     syn::Meta::List(list) => list
                         .tokens
                         .to_string()
-                        .contains(constants_str::test_fixtures::NEWTYPE_FROM_INNER_DERIVE_NAME),
+                        .contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME),
                     syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
                 }
             });
@@ -548,15 +536,15 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 let _: bool = self.from_inner_names.insert(name.clone());
             }
             let derives_try_from = i.attrs.iter().any(|attr| {
-                if !attr.path().is_ident(constants_str::catalog::DERIVE) {
+                if !attr.path().is_ident(constants_str::DERIVE) {
                     return false;
                 }
                 match &attr.meta {
                     syn::Meta::List(list) => {
                         let tokens = list.tokens.to_string();
-                        tokens.contains(constants_str::test_fixtures::NEWTYPE_TRY_FROM_DERIVE_NAME)
-                            || tokens.contains(constants_str::catalog::BOUNDEDSTRING)
-                            || tokens.contains(constants_str::catalog::TRYFROM)
+                        tokens.contains(constants_str::NEWTYPE_TRY_FROM_DERIVE_NAME)
+                            || tokens.contains(constants_str::BOUNDEDSTRING)
+                            || tokens.contains(constants_str::TRYFROM)
                     }
                     syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
                 }
@@ -566,16 +554,15 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 let _: bool = self.try_from_inner_names.insert(name.clone());
             }
             let derives_conversion = i.attrs.iter().any(|attr| {
-                if !attr.path().is_ident(constants_str::catalog::DERIVE) {
+                if !attr.path().is_ident(constants_str::DERIVE) {
                     return false;
                 }
                 match &attr.meta {
                     syn::Meta::List(list) => {
                         let tokens = list.tokens.to_string();
-                        tokens
-                            .contains(constants_str::test_fixtures::NEWTYPE_FROM_INNER_DERIVE_NAME)
-                            || tokens.contains(constants_str::catalog::BOUNDEDSTRING)
-                            || tokens.contains(constants_str::catalog::TRYFROM)
+                        tokens.contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME)
+                            || tokens.contains(constants_str::BOUNDEDSTRING)
+                            || tokens.contains(constants_str::TRYFROM)
                     }
                     syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
                 }
@@ -593,8 +580,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
             && let syn::Expr::Path(path) = i.func.as_ref()
             && let Some(segment) = path.path.segments.last()
             && (self.names.contains(segment.ident.to_string().as_str())
-                || (segment.ident == constants_str::catalog::SELF
-                    && self.current_wrapper_name.is_some()))
+                || (segment.ident == constants_str::SELF && self.current_wrapper_name.is_some()))
         {
             let span = syn::spanned::Spanned::span(i.func.as_ref());
             let start = span.start();
@@ -602,7 +588,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
             let wrapper_name = self
                 .current_wrapper_name
                 .as_deref()
-                .filter(|_| segment.ident == constants_str::catalog::SELF)
+                .filter(|_| segment.ident == constants_str::SELF)
                 .map_or_else(|| segment.ident.to_string(), str::to_owned);
             self.ers.push(format!(
                 "tuple wrapper `{}` is initialized directly at {}:{}-{}:{}; use From/TryFrom",
@@ -643,15 +629,15 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         let _: bool = self.names.insert(i.ident.to_string());
         if i.attrs.iter().any(|attr| {
-            attr.path().is_ident(constants_str::catalog::DERIVE)
+            attr.path().is_ident(constants_str::DERIVE)
                 && matches!(
                     &attr.meta,
                     syn::Meta::List(list)
-                        if list.tokens.to_string().contains(constants_str::catalog::BOUNDEDSTRING)
+                        if list.tokens.to_string().contains(constants_str::BOUNDEDSTRING)
                 )
         }) {
             let mut generated_error_name = i.ident.to_string();
-            generated_error_name.push_str(constants_str::catalog::TRYFROMSTRINGERROR);
+            generated_error_name.push_str(constants_str::TRYFROMSTRINGERROR);
             let _: bool = self.names.insert(generated_error_name);
         }
         syn::visit::visit_item_struct(self, i);
@@ -669,8 +655,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             crate::types::SynPathRef::from(&i.path),
             crate::types::StaticStrSliceRef::from(
                 [
-                    constants_str::catalog::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
-                    constants_str::catalog::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
                 ]
                 .as_slice(),
             ),
@@ -678,14 +664,13 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         .get()
         {
             let tokens = i.tokens.to_string();
-            let pattern =
-                regex::Regex::new(constants_str::catalog::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS)
-                    .expect("f4e61b29 generated PostgreSQL type name pattern invariant must hold");
+            let pattern = regex::Regex::new(constants_str::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS)
+                .expect("f4e61b29 generated PostgreSQL type name pattern invariant must hold");
             pattern
                 .captures_iter(tokens.as_str())
                 .filter_map(|captures| {
                     let base = captures.get(1).map(|element| element.as_str())?;
-                    base.split_once(constants_str::catalog::AS)
+                    base.split_once(constants_str::AS)
                 })
                 .for_each(|(prefix, suffix)| {
                     let _: bool = self.names.insert(format!("{prefix}AsNonNull{suffix}"));
@@ -699,8 +684,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             path,
             crate::types::StaticStrSliceRef::from(
                 [
-                    constants_str::catalog::CONFIG_LIB_MACROS,
-                    constants_str::catalog::IMPL_TRY_FROM_NON_EMPTY_STRING,
+                    constants_str::CONFIG_LIB_MACROS,
+                    constants_str::IMPL_TRY_FROM_NON_EMPTY_STRING,
                 ]
                 .as_slice(),
             ),
@@ -710,8 +695,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
                 path,
                 crate::types::StaticStrSliceRef::from(
                     [
-                        constants_str::catalog::CONFIG_LIB_MACROS,
-                        constants_str::catalog::IMPL_TRY_FROM_SECRET_URL,
+                        constants_str::CONFIG_LIB_MACROS,
+                        constants_str::IMPL_TRY_FROM_SECRET_URL,
                     ]
                     .as_slice(),
                 ),
@@ -721,8 +706,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
                 path,
                 crate::types::StaticStrSliceRef::from(
                     [
-                        constants_str::catalog::CONFIG_LIB_MACROS,
-                        constants_str::catalog::IMPL_TRY_FROM_PARSE,
+                        constants_str::CONFIG_LIB_MACROS,
+                        constants_str::IMPL_TRY_FROM_PARSE,
                     ]
                     .as_slice(),
                 ),
@@ -732,8 +717,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
                 path,
                 crate::types::StaticStrSliceRef::from(
                     [
-                        constants_str::catalog::CONFIG_LIB_MACROS,
-                        constants_str::catalog::IMPL_TRY_FROM_PARSE_STRING_ERROR,
+                        constants_str::CONFIG_LIB_MACROS,
+                        constants_str::IMPL_TRY_FROM_PARSE_STRING_ERROR,
                     ]
                     .as_slice(),
                 ),
@@ -748,7 +733,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         if crate::code_style::path_ends_with(
             crate::types::SynPathRef::from(&i.path),
             crate::types::StaticStrSliceRef::from(
-                [constants_str::catalog::API_OPERATION_ERROR_MACRO_IDENTIFIER].as_slice(),
+                [constants_str::API_OPERATION_ERROR_MACRO_IDENTIFIER].as_slice(),
             ),
         )
         .get()
@@ -760,9 +745,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         }
         if crate::code_style::path_ends_with(
             crate::types::SynPathRef::from(&i.path),
-            crate::types::StaticStrSliceRef::from(
-                [constants_str::catalog::BOOL_ENUM_TO_TOKENS].as_slice(),
-            ),
+            crate::types::StaticStrSliceRef::from([constants_str::BOOL_ENUM_TO_TOKENS].as_slice()),
         )
         .get()
         {
@@ -775,8 +758,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             crate::types::SynPathRef::from(&i.path),
             crate::types::StaticStrSliceRef::from(
                 [
-                    constants_str::catalog::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
-                    constants_str::catalog::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+                    constants_str::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
                 ]
                 .as_slice(),
             ),
@@ -785,7 +768,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         {
             let _: bool = self
                 .names
-                .insert(String::from(constants_str::catalog::DTOKENSTREAMBUILDER));
+                .insert(String::from(constants_str::DTOKENSTREAMBUILDER));
         }
         syn::visit::visit_macro(self, i);
     }
@@ -959,7 +942,7 @@ impl DomainTypePolicyVisitor<'_> {
             .path
             .segments
             .first()
-            .is_some_and(|first_segment| first_segment.ident == constants_str::catalog::SELF)
+            .is_some_and(|first_segment| first_segment.ident == constants_str::SELF)
         {
             self.check_path_arguments(
                 crate::types::SynPathArgumentsRef::from(&segment.arguments),
@@ -969,7 +952,7 @@ impl DomainTypePolicyVisitor<'_> {
         }
         if matches!(
             identifier.as_str(),
-            constants_str::catalog::OPTION | constants_str::catalog::RESULT
+            constants_str::OPTION | constants_str::RESULT
         ) {
             self.check_path_arguments(
                 crate::types::SynPathArgumentsRef::from(&segment.arguments),
@@ -1047,7 +1030,7 @@ impl DomainTypePolicyVisitor<'_> {
     ) -> crate::types::AnalyzerBool {
         let identifier_ref = identifier.as_ref();
         crate::types::AnalyzerBool::from(
-            identifier_ref == constants_str::catalog::SELF
+            identifier_ref == constants_str::SELF
                 || self.repo_types.as_ref().contains(identifier_ref)
                 || self
                     .generic_scopes
@@ -1080,9 +1063,9 @@ impl DomainTypePolicyVisitor<'_> {
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
                     let identifier = segment.ident.to_string();
-                    identifier != constants_str::catalog::CRATE
-                        && identifier != constants_str::catalog::SELF_ALT
-                        && identifier != constants_str::catalog::SUPER
+                    identifier != constants_str::CRATE
+                        && identifier != constants_str::SELF_ALT
+                        && identifier != constants_str::SUPER
                         && !self.repo_crates.as_ref().contains(&identifier)
                         && !self
                             .is_allowed_type_identifier(crate::types::SourceTextRef::from(
@@ -1136,7 +1119,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             if let syn::Pat::Type(pat_ty) = input {
                 self.check_ty(
                     crate::types::SynTypeRef::from(&*pat_ty.ty),
-                    crate::types::SourceTextRef::from(constants_str::catalog::CLOSURE_PARAMETER),
+                    crate::types::SourceTextRef::from(constants_str::CLOSURE_PARAMETER),
                 );
             }
         });
@@ -1154,7 +1137,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
         if i.ident
             .to_string()
-            .ends_with(constants_str::catalog::TRYFROMSTRINGERROR)
+            .ends_with(constants_str::TRYFROMSTRINGERROR)
         {
             return;
         }
@@ -1202,7 +1185,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
                     )
                     .get()
                         || (matches!(item_fn.vis, syn::Visibility::Inherited)
-                            && item_fn.sig.ident == constants_str::test_fixtures::VALIDATE)
+                            && item_fn.sig.ident == constants_str::VALIDATE)
                     {
                         None
                     } else {
@@ -1291,10 +1274,10 @@ impl AnalyzerStateRawContainerFieldVisitor {
             if let Some((raw_ty, wrapper_ty)) = crate::code_style::analyzer_state_raw_container_ty(
                 crate::types::SynTypeRef::from(&field.ty),
             ) {
-                let field_name = field.ident.as_ref().map_or_else(
-                    || String::from(constants_str::catalog::TUPLE),
-                    ToString::to_string,
-                );
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .map_or_else(|| String::from(constants_str::TUPLE), ToString::to_string);
                 self.ers.push(format!(
                     "struct `{}` field `{}` uses `{}`; use `{}`",
                     item_ref.ident,
@@ -1429,15 +1412,15 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         let leaf_segment_ref = leaf_segment.get();
         let root_segment_ref = root_segment.get();
         let item_ref = item.as_ref();
-        if root_segment_ref.ident == constants_str::catalog::STD
+        if root_segment_ref.ident == constants_str::STD
             && leaf_segment_ref
                 .ident
                 .to_string()
-                .starts_with(constants_str::test_fixtures::CODE_STYLE_NON_ZERO_PREFIX)
+                .starts_with(constants_str::CODE_STYLE_NON_ZERO_PREFIX)
         {
             return;
         }
-        let required_segment = if root_segment_ref.ident == constants_str::catalog::STD {
+        let required_segment = if root_segment_ref.ident == constants_str::STD {
             leaf_segment_ref
         } else {
             root_segment_ref
@@ -1495,9 +1478,9 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 }
                 let first_segment = ty_path_ref.path.segments.first()?;
                 let parse_first_identifier = first_segment.ident.to_string();
-                if parse_first_identifier == constants_str::catalog::CRATE
-                    || parse_first_identifier == constants_str::catalog::SELF_ALT
-                    || parse_first_identifier == constants_str::catalog::SUPER
+                if parse_first_identifier == constants_str::CRATE
+                    || parse_first_identifier == constants_str::SELF_ALT
+                    || parse_first_identifier == constants_str::SUPER
                     || self.repo_crates.as_ref().contains(&parse_first_identifier)
                 {
                     return ty_path_ref.path.segments.iter().find_map(|segment| {
@@ -1588,9 +1571,9 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 }
                 let first_segment = ty_path_ref.path.segments.first()?;
                 let parse_first_identifier = first_segment.ident.to_string();
-                if parse_first_identifier == constants_str::catalog::CRATE
-                    || parse_first_identifier == constants_str::catalog::SELF_ALT
-                    || parse_first_identifier == constants_str::catalog::SUPER
+                if parse_first_identifier == constants_str::CRATE
+                    || parse_first_identifier == constants_str::SELF_ALT
+                    || parse_first_identifier == constants_str::SUPER
                     || self.repo_crates.as_ref().contains(&parse_first_identifier)
                 {
                     return ty_path_ref.path.segments.iter().find_map(|segment| {

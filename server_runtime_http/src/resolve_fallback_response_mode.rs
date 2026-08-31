@@ -31,7 +31,7 @@ pub fn resolve_fallback_response_mode(
                     }
                     let mut segments = range.split(';').map(str::trim);
                     segments.next().is_some_and(|media_type| {
-                        media_type.eq_ignore_ascii_case(constants_str::catalog::APPLICATION_JSON)
+                        media_type.eq_ignore_ascii_case(constants_str::APPLICATION_JSON)
                     }) && !segments.any(|parameter| {
                         parameter
                             .split_once('=')

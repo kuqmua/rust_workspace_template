@@ -46,8 +46,8 @@ impl frontend_contract::route_registration_contract::RouteRegistrationContract
     }
     fn path(self) -> frontend_contract::registered_route_path::RegisteredRoutePath {
         frontend_contract::registered_route_path::RegisteredRoutePath::from(match self {
-            Self::Metrics => constants_str::catalog::METRICS,
-            Self::OpenApi => constants_str::catalog::OPENAPI_JSON,
+            Self::Metrics => constants_str::METRICS,
+            Self::OpenApi => constants_str::OPENAPI_JSON,
         })
     }
 }

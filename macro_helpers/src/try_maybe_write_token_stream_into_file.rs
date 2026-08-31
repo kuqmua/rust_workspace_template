@@ -27,7 +27,7 @@ where
     {
         let path = wr_outcome.path();
         let mut command = crate::tool_command::ToolCommand::new(
-            crate::tool_program_ref::ToolProgramRef::from(constants_str::catalog::RUSTFMT),
+            crate::tool_program_ref::ToolProgramRef::from(constants_str::RUSTFMT),
         );
         let path_text = path.as_ref().to_string_lossy();
         let status = command

@@ -34,7 +34,7 @@ impl Location {
         write!(
             formatter,
             "{}/blob/{}/{}#L{}",
-            constants_str::catalog::NAMING_GITHUB_URL,
+            constants_str::NAMING_GITHUB_URL,
             self.commit.as_ref(),
             <&str>::from(file),
             line
@@ -75,7 +75,7 @@ impl Location {
                 "{}",
                 chrono::DateTime::<chrono::FixedOffset>::from(v).format("%Y-%m-%d %H:%M:%S")
             ),
-            None => formatter.write_str(constants_str::catalog::LOCATION_INCORRECT_DATETIME_MSG),
+            None => formatter.write_str(constants_str::LOCATION_INCORRECT_DATETIME_MSG),
         }
     }
     pub(super) fn fmt_place(
@@ -93,14 +93,14 @@ impl Location {
                     self.column,
                 )?;
                 if let Some(v) = self.occr.as_ref() {
-                    formatter.write_str(constants_str::catalog::TEXT)?;
+                    formatter.write_str(constants_str::TEXT)?;
                     Self::fmt_src_location(
                         crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                         crate::location_file_ref::LocationFileRef::from(v.file.as_ref()),
                         v.line,
                         v.column,
                     )?;
-                    formatter.write_str(constants_str::catalog::TEXT_ALT_5)
+                    formatter.write_str(constants_str::TEXT_ALT_5)
                 } else {
                     Ok(())
                 }
@@ -112,13 +112,13 @@ impl Location {
                     self.line,
                 )?;
                 if let Some(v) = self.occr.as_ref() {
-                    formatter.write_str(constants_str::catalog::TEXT)?;
+                    formatter.write_str(constants_str::TEXT)?;
                     self.fmt_github_location(
                         crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                         crate::location_file_ref::LocationFileRef::from(v.file.as_ref()),
                         v.line,
                     )?;
-                    formatter.write_str(constants_str::catalog::TEXT_ALT_5)
+                    formatter.write_str(constants_str::TEXT_ALT_5)
                 } else {
                     Ok(())
                 }
@@ -193,7 +193,7 @@ impl std::fmt::Display for Location {
             config_lib::src_place_type::SrcPlaceType::from_env_or_default(),
             crate::formatter_ref_mut::FormatterRefMut::from(&mut *f),
         )?;
-        f.write_str(constants_str::catalog::SPACE)?;
+        f.write_str(constants_str::SPACE)?;
         self.fmt_datetime(crate::formatter_ref_mut::FormatterRefMut::from(&mut *f))
     }
 }

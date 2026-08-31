@@ -17,7 +17,7 @@ impl utoipa::PartialSchema for LocationDuration {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::catalog::SECS,
+                constants_str::SECS,
                 utoipa::openapi::ObjectBuilder::new()
                     .schema_type(utoipa::openapi::schema::Type::Integer)
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
@@ -25,7 +25,7 @@ impl utoipa::PartialSchema for LocationDuration {
                     ))),
             )
             .property(
-                constants_str::catalog::NANOS,
+                constants_str::NANOS,
                 utoipa::openapi::ObjectBuilder::new()
                     .schema_type(utoipa::openapi::schema::Type::Integer)
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
@@ -34,14 +34,14 @@ impl utoipa::PartialSchema for LocationDuration {
                     .minimum(Some(0.0))
                     .maximum(Some(999_999_999.0)),
             )
-            .required(constants_str::catalog::SECS)
-            .required(constants_str::catalog::NANOS)
+            .required(constants_str::SECS)
+            .required(constants_str::NANOS)
             .build()
             .into()
     }
 }
 impl utoipa::ToSchema for LocationDuration {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::STDLOCATIONDURATION)
+        std::borrow::Cow::Borrowed(constants_str::STDLOCATIONDURATION)
     }
 }

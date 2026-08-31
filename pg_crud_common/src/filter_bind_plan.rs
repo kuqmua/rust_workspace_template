@@ -42,7 +42,7 @@ mod tests {
         let mut plan = crate::filter_bind_plan::FilterBindPlan::new();
         plan.push_text(
             crate::pg_filter_text::PgFilterText::try_from(String::from(
-                constants_str::test_fixtures::TEST_FILTER_TEXT,
+                constants_str::TEST_FILTER_TEXT,
             ))
             .expect("43d8053d bind_plan_preserves_cross_type_order invariant must hold"),
         );

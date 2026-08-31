@@ -37,8 +37,7 @@ mod tests {
 
     #[test]
     fn message_deserialization_uses_length_validation() {
-        let json =
-            serde_json::Value::String(constants_str::catalog::X.repeat(65_537usize)).to_string();
+        let json = serde_json::Value::String(constants_str::X.repeat(65_537usize)).to_string();
         let Err(_error) = serde_json::from_str::<
             crate::runtime_notification_message::RuntimeNotificationMessage,
         >(&json) else {
@@ -62,17 +61,14 @@ mod tests {
         .into();
         let request = http::Request::builder()
             .method(http::Method::POST)
-            .uri(constants_str::catalog::NOTIFICATIONS_PATH)
+            .uri(constants_str::NOTIFICATIONS_PATH)
             .header(
                 http::header::AUTHORIZATION,
-                constants_str::test_fixtures::TEST_BEARER_AUTHORIZATION,
+                constants_str::TEST_BEARER_AUTHORIZATION,
             )
-            .header(
-                http::header::CONTENT_TYPE,
-                constants_str::catalog::APPLICATION_JSON,
-            )
+            .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
             .body(axum::body::Body::from(
-                constants_str::catalog::TEST_NOTIFICATION_REQUEST_JSON,
+                constants_str::TEST_NOTIFICATION_REQUEST_JSON,
             ))
             .expect(
                 "9e3b810c router_requires_token_and_delivers_valid_request invariant must hold",

@@ -3,8 +3,8 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    let run_dir = std::path::Path::new(constants_str::catalog::WORKSPACE_TEST_RUNNER_RESULT_ROOT)
-        .join(format!(
+    let run_dir =
+        std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_RESULT_ROOT).join(format!(
             "{timestamp}-{}-{}",
             std::process::id(),
             crate::run_counter::RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
@@ -76,7 +76,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             Err(_panic) => {
                 succeeded = false;
                 summary.push_str(crate::text_ref::TextRef::from(
-                    constants_str::catalog::COMMAND_THREAD_PANICKED_SUMMARY,
+                    constants_str::COMMAND_THREAD_PANICKED_SUMMARY,
                 ))?;
                 return Ok(());
             }
@@ -97,7 +97,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             String::with_capacity(raw_capacity),
             |mut raw, (index, part)| {
                 if index > constants_usize::ZERO {
-                    raw.push_str(constants_str::catalog::HYPHEN);
+                    raw.push_str(constants_str::HYPHEN);
                 }
                 raw.push_str(part);
                 raw
@@ -140,13 +140,13 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
                     .as_ref()
                     .len()
                     .saturating_sub(constants_usize::ONE)
-                    .saturating_mul(constants_str::catalog::TEXT_ALT_7.len()),
+                    .saturating_mul(constants_str::TEXT_ALT_7.len()),
             );
         let failed_names = failed_test_names.as_ref().iter().enumerate().fold(
             String::with_capacity(failed_names_capacity),
             |mut names, (index, name)| {
                 if index > constants_usize::ZERO {
-                    names.push_str(constants_str::catalog::TEXT_ALT_7);
+                    names.push_str(constants_str::TEXT_ALT_7);
                 }
                 names.push_str(name.as_ref());
                 names
@@ -169,7 +169,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
         Ok(())
     })?;
     std::fs::write(
-        run_dir.join(constants_str::catalog::SUMMARY_TXT),
+        run_dir.join(constants_str::SUMMARY_TXT),
         crate::strip_ansi::strip_ansi(crate::text_ref::TextRef::from(summary.as_ref())).as_ref(),
     )
     .map_err(crate::execution_io_error::ExecutionIoError::from)

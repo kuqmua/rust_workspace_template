@@ -14,18 +14,18 @@ where
         let (content_type, metadata, security, response_status) = expectation.parts();
         let method = metadata.method().as_ref().to_ascii_lowercase();
         let operation = document_value
-            .get(constants_str::catalog::PATHS)
+            .get(constants_str::PATHS)
             .and_then(|paths| paths.get(metadata.path().as_ref()))
             .and_then(|path| path.get(method.as_str()))
             .ok_or(crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingOperation)?;
         let security_matches = match security {
             crate::open_api_security_expectation::OpenApiSecurityExpectation::Public => operation
-                .get(constants_str::test_fixtures::SECURITY)
+                .get(constants_str::SECURITY)
                 .is_none_or(|security_value| {
                     security_value.as_array().is_some_and(Vec::is_empty)
                 }),
             crate::open_api_security_expectation::OpenApiSecurityExpectation::Required(name) => operation
-                .get(constants_str::test_fixtures::SECURITY)
+                .get(constants_str::SECURITY)
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|requirements| {
                     requirements.iter().any(|requirement| {
@@ -42,19 +42,19 @@ where
         }
         let status = response_status.to_string();
         let response = operation
-            .get(constants_str::catalog::RESPONSES)
+            .get(constants_str::RESPONSES)
             .and_then(|responses| responses.get(status.as_str()))
             .ok_or(
                 crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingResponseStatus,
             )?;
         let content = response
-            .get(constants_str::test_fixtures::OPENAPI_CONTENT)
+            .get(constants_str::OPENAPI_CONTENT)
             .and_then(serde_json::Value::as_object)
             .and_then(|content| content.get(content_type.as_ref()))
             .ok_or(
                 crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingContentType,
             )?;
-        if content.get(constants_str::test_fixtures::JSON_SCHEMA).is_none() {
+        if content.get(constants_str::JSON_SCHEMA).is_none() {
             Err(crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingResponseSchema)
         } else {
             Ok(())

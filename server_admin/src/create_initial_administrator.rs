@@ -24,25 +24,22 @@ pub async fn create_initial_administrator(
             crate::sqlx_admin_error::SqlxAdminError::from(error),
         )
     })?;
-    let _lock_result =
-        sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_LOCK_USERS_SQL)
-            .execute(&mut *tx)
-            .await
-            .map_err(|error| {
-                crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
-                    crate::sqlx_admin_error::SqlxAdminError::from(error),
-                )
-            })?;
-    let user_exists = sqlx::query_scalar::<_, bool>(
-        constants_str::integration_fixtures::SERVER_ADMIN_USERS_EXIST_SQL,
-    )
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(|error| {
-        crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
-            crate::sqlx_admin_error::SqlxAdminError::from(error),
-        )
-    })?;
+    let _lock_result = sqlx::query(constants_str::SERVER_ADMIN_LOCK_USERS_SQL)
+        .execute(&mut *tx)
+        .await
+        .map_err(|error| {
+            crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+                crate::sqlx_admin_error::SqlxAdminError::from(error),
+            )
+        })?;
+    let user_exists = sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_USERS_EXIST_SQL)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(|error| {
+            crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+                crate::sqlx_admin_error::SqlxAdminError::from(error),
+            )
+        })?;
     if user_exists {
         return Err(crate::initial_administrator_creation_error::InitialAdministratorCreationError::AlreadyInitialized);
     }
@@ -56,16 +53,15 @@ pub async fn create_initial_administrator(
     )
     .await
     .map_err(crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg)?;
-    let _role_link_result =
-        sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
-            .bind(user_id.get())
-            .execute(&mut *tx)
-            .await
-            .map_err(|error| {
-                crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
-                    crate::sqlx_admin_error::SqlxAdminError::from(error),
-                )
-            })?;
+    let _role_link_result = sqlx::query(constants_str::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
+        .bind(user_id.get())
+        .execute(&mut *tx)
+        .await
+        .map_err(|error| {
+            crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
+                crate::sqlx_admin_error::SqlxAdminError::from(error),
+            )
+        })?;
     let contract_login = server_admin_contract::admin_login::AdminLogin::try_from(
         login.as_ref().to_owned(),
     )

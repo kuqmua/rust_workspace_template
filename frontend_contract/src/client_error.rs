@@ -22,7 +22,7 @@ impl std::fmt::Display for ClientError {
             }
             Self::Transport(value) => write!(f, "transport failed: {value}"),
             Self::UnexpectedResponse => {
-                f.write_str(constants_str::catalog::SERVER_RETURNED_AN_ERROR_RESPONSE)
+                f.write_str(constants_str::SERVER_RETURNED_AN_ERROR_RESPONSE)
             }
         }
     }

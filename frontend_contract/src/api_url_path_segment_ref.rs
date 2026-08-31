@@ -11,10 +11,7 @@ impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
     fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
         if value.is_empty()
             || value.contains('/')
-            || matches!(
-                value,
-                constants_str::catalog::DOT | constants_str::test_fixtures::DOT_DOT
-            )
+            || matches!(value, constants_str::DOT | constants_str::DOT_DOT)
         {
             Err(crate::api_url_build_error::ApiUrlBuildError::InvalidPathSegment)
         } else {

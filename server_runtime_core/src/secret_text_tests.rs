@@ -7,9 +7,9 @@ mod tests {
 
     #[test]
     fn secrets_are_redacted_validated_and_compared() {
-        let expected = bounded_secret(constants_str::test_fixtures::TEST_SECRET_TEXT);
-        let equal = bounded_secret(constants_str::test_fixtures::TEST_SECRET_TEXT);
-        let different = bounded_secret(constants_str::test_fixtures::TEST_DIFFERENT_SECRET_TEXT);
+        let expected = bounded_secret(constants_str::TEST_SECRET_TEXT);
+        let equal = bounded_secret(constants_str::TEST_SECRET_TEXT);
+        let different = bounded_secret(constants_str::TEST_DIFFERENT_SECRET_TEXT);
         assert_eq!(
             crate::secret_texts_match::secret_texts_match((&expected).into(), (&equal).into()),
             crate::secret_text_match::SecretTextMatch::Equal,
@@ -18,19 +18,14 @@ mod tests {
             crate::secret_texts_match::secret_texts_match((&expected).into(), (&different).into()),
             crate::secret_text_match::SecretTextMatch::Different,
         );
-        assert_eq!(
-            format!("{expected:?}"),
-            constants_str::catalog::REDACTED_ALT_3
-        );
+        assert_eq!(format!("{expected:?}"), constants_str::REDACTED_ALT_3);
         assert!(matches!(
-            crate::secret_text_ref::SecretTextRef::try_from(
-                constants_str::test_fixtures::TEST_SECRET_TEXT
-            ),
+            crate::secret_text_ref::SecretTextRef::try_from(constants_str::TEST_SECRET_TEXT),
             Ok(_value)
         ));
         assert_eq!(
             crate::bounded_secret_text::BoundedSecretText::try_from(String::from(
-                constants_str::test_fixtures::TEST_REPEATED_SECRET
+                constants_str::TEST_REPEATED_SECRET
             )),
             Err(crate::bounded_secret_text_error::BoundedSecretTextError::RepeatedByte),
         );

@@ -11,7 +11,7 @@ pub(crate) async fn enforce_rate_limit(
             state.pool.as_ref(),
         ),
         server_runtime_http::pg_rate_limit_query_ref::PgRateLimitQueryRef::from(
-            constants_str::integration_fixtures::SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL,
+            constants_str::SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL,
         ),
         server_runtime_http::pg_rate_limit_scope_ref::PgRateLimitScopeRef::try_from(
             scope_text.as_ref(),

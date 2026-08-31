@@ -54,10 +54,10 @@ mod tests {
     #[test]
     fn duplicate_is_rejected_before_later_invalid_item() {
         let result = serde_json::from_str::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 1, 4>>(
-            constants_str::test_fixtures::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,
+            constants_str::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,
         );
         assert!(
-            matches!(result, Err(error) if error.to_string().contains(constants_str::catalog::DUPLICATE))
+            matches!(result, Err(error) if error.to_string().contains(constants_str::DUPLICATE))
         );
     }
 
@@ -96,13 +96,13 @@ mod tests {
     #[test]
     fn excess_item_is_ignored_without_deserializing_target_type() {
         let error = serde_json::from_str::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 0, 1>>(
-            constants_str::test_fixtures::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
+            constants_str::TEST_BOUNDED_UNIQUE_VEC_EXCESS_INVALID,
         )
-        .expect_err(constants_str::test_fixtures::VALUE_A37B95DF);
+        .expect_err(constants_str::VALUE_A37B95DF);
         assert!(
             error
                 .to_string()
-                .contains(constants_str::catalog::BOUNDED_UNIQUE_VEC_ABOVE_MAX)
+                .contains(constants_str::BOUNDED_UNIQUE_VEC_ABOVE_MAX)
         );
     }
 }

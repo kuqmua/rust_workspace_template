@@ -26,7 +26,7 @@ pub fn render_admin_csr(
         &crate::admin_ssr_text::AdminSsrText::try_from(title)
             .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from),
         leptos::view! {
-            <div id=constants_str::test_fixtures::ADMIN_CSR_ROOT_ID style=primary_color>
+            <div id=constants_str::ADMIN_CSR_ROOT_ID style=primary_color>
                 <crate::admin_spinner::AdminSpinner />
             </div>
             <script type="module" src="/admin/assets/admin_csr_application.js?v=20260801-37"></script>

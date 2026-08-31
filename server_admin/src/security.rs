@@ -112,7 +112,7 @@ impl utoipa::PartialSchema for crate::runtime_admin_password::RuntimeAdminPasswo
 }
 impl utoipa::ToSchema for crate::runtime_admin_password::RuntimeAdminPassword {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::ADMINPASSWORD)
+        std::borrow::Cow::Borrowed(constants_str::ADMINPASSWORD)
     }
 }
 impl TryFrom<String> for crate::runtime_admin_password::RuntimeAdminPassword {
@@ -236,9 +236,9 @@ impl<'headers_lt> crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'heade
 impl crate::admin_cookie_kind::AdminCookieKind {
     pub(crate) fn name(self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'static> {
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(match self {
-            Self::Access => constants_str::catalog::SERVER_ADMIN_ACCESS_COOKIE_NAME,
-            Self::Csrf => constants_str::catalog::ADMIN_CSRF_TOKEN,
-            Self::Refresh => constants_str::catalog::ADMIN_REFRESH_TOKEN,
+            Self::Access => constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
+            Self::Csrf => constants_str::ADMIN_CSRF_TOKEN,
+            Self::Refresh => constants_str::ADMIN_REFRESH_TOKEN,
         })
     }
 }
@@ -322,7 +322,7 @@ impl From<crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError>
 }
 impl std::fmt::Debug for crate::std_admin_access_token::StdAdminAccessToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::catalog::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 
@@ -332,13 +332,13 @@ mod tests {
     fn opaque_token_debug_is_redacted() {
         let token = crate::admin_opaque_token::AdminOpaqueToken::new(
             server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(
-                constants_str::catalog::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
+                constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
             )
             .expect("4f0db163 bounded test secret must be valid"),
         );
         let debug = format!("{token:?}");
-        assert!(debug.contains(constants_str::catalog::REDACTED_ALT_3));
-        assert!(!debug.contains(constants_str::catalog::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES));
+        assert!(debug.contains(constants_str::REDACTED_ALT_3));
+        assert!(!debug.contains(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES));
     }
 }
 

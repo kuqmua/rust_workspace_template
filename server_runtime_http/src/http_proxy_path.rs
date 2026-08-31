@@ -45,8 +45,8 @@ impl TryFrom<crate::http_proxy_path_ref::HttpProxyPathRef<'_>> for HttpProxyPath
                 constants_str::ENCODED_DOT,
                 constants_str::ENCODED_SLASH,
                 constants_str::ENCODED_QUERY,
-                constants_str::test_fixtures::ENCODED_FRAGMENT,
-                constants_str::test_fixtures::ENCODED_BACKSLASH,
+                constants_str::ENCODED_FRAGMENT,
+                constants_str::ENCODED_BACKSLASH,
             ]
             .into_iter()
             .any(contains_ignore_ascii_case)
@@ -57,8 +57,8 @@ impl TryFrom<crate::http_proxy_path_ref::HttpProxyPathRef<'_>> for HttpProxyPath
         }
         if path.split('/').any(|segment| {
             segment.is_empty()
-                || segment == constants_str::test_fixtures::CURRENT_PATH_SEGMENT
-                || segment == constants_str::test_fixtures::PARENT_PATH_SEGMENT
+                || segment == constants_str::CURRENT_PATH_SEGMENT
+                || segment == constants_str::PARENT_PATH_SEGMENT
         }) {
             return Err(Self::Error::ForbiddenSegment);
         }

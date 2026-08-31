@@ -4,9 +4,9 @@ where
     V: Into<crate::is_primary_key::IsPrimaryKey>,
 {
     if bool::from(v.into()) {
-        constants_str::catalog::PRIMARY_KEY
+        constants_str::PRIMARY_KEY
     } else {
-        constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX
+        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
     }
 }
 
@@ -19,21 +19,21 @@ mod tests {
                 true
             ))
             .to_string(),
-            constants_str::catalog::PRIMARY_KEY
+            constants_str::PRIMARY_KEY
         );
         assert_eq!(
             crate::maybe_primary_key::maybe_primary_key(crate::is_primary_key::IsPrimaryKey::from(
                 false
             ))
             .to_string(),
-            constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX
+            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
         );
         assert_eq!(
             crate::maybe_primary_key::maybe_primary_key(
                 pg_crud_common::pg_is_primary_key::PgIsPrimaryKey::from(true)
             )
             .to_string(),
-            constants_str::catalog::PRIMARY_KEY
+            constants_str::PRIMARY_KEY
         );
     }
 }

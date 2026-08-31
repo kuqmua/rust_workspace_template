@@ -15,9 +15,9 @@ pub enum AdminButtonVariant {
 impl AdminButtonVariant {
     pub(super) const fn class(self) -> &'static str {
         match self {
-            Self::Primary => constants_str::test_fixtures::VALUE_82FEF3B0,
-            Self::Secondary => constants_str::test_fixtures::VALUE_D720672A,
-            Self::Danger => constants_str::test_fixtures::VALUE_7BE8BA9D,
+            Self::Primary => constants_str::VALUE_82FEF3B0,
+            Self::Secondary => constants_str::VALUE_D720672A,
+            Self::Danger => constants_str::VALUE_7BE8BA9D,
         }
     }
 }

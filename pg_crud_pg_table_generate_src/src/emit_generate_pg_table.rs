@@ -274,16 +274,14 @@ pub fn emit_generate_pg_table(
                 optimistic_concurrency_capable: matches!(operation, Operation::Uo),
                 permission_action: match operation {
                     Operation::Cm | Operation::Co => {
-                        constants_str::catalog::PG_CRUD_CREATE_PERMISSION_ACTION
+                        constants_str::PG_CRUD_CREATE_PERMISSION_ACTION
                     }
-                    Operation::Rm | Operation::Ro => {
-                        constants_str::catalog::PG_CRUD_READ_PERMISSION_ACTION
-                    }
+                    Operation::Rm | Operation::Ro => constants_str::PG_CRUD_READ_PERMISSION_ACTION,
                     Operation::Um | Operation::Uo => {
-                        constants_str::catalog::PG_CRUD_UPDATE_PERMISSION_ACTION
+                        constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION
                     }
                     Operation::Dm | Operation::Dlo => {
-                        constants_str::catalog::PG_CRUD_DELETE_PERMISSION_ACTION
+                        constants_str::PG_CRUD_DELETE_PERMISSION_ACTION
                     }
                 },
                 success_status_code: operation.desirable_status_code(),
@@ -695,7 +693,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_A2_ERROR,
+                        constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_A2_ERROR,
                     ),
                 ),
             );
@@ -718,7 +716,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_028,
+                        constants_str::COMPILE_ERROR_CE_028,
                     ),
                 ),
             );
@@ -740,7 +738,7 @@ pub fn emit_generate_pg_table(
         let config_attr =
                 match macro_helpers::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(
                     &di.attrs,
-                    constants_str::catalog::PG_CRUD_GENERATE_PG_TABLE_CONFIG_PATH,
+                    constants_str::PG_CRUD_GENERATE_PG_TABLE_CONFIG_PATH,
                 ) {
                     Ok(config_attr) => config_attr,
                     Err(error) => {
@@ -773,7 +771,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_013,
+                        constants_str::COMPILE_ERROR_CE_013,
                     ),
                 ),
             );
@@ -787,7 +785,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_051,
+                        constants_str::COMPILE_ERROR_CE_051,
                     ),
                 ),
             );
@@ -801,7 +799,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_083,
+                        constants_str::COMPILE_ERROR_CE_083,
                     ),
                 ),
             );
@@ -837,7 +835,7 @@ pub fn emit_generate_pg_table(
                     };
                     if parsed_di.ident != generate_pg_table_attr_str {
                         return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::COMPILE_ERROR_CE_022,
+                            constants_str::COMPILE_ERROR_CE_022,
                         )));
                     }
                     if let syn::Data::Enum(data_enum) = parsed_di.data {
@@ -849,7 +847,7 @@ pub fn emit_generate_pg_table(
                                 let variant_model = (|| {
                             let syn::Fields::Named(fields_named) = syn_variant.fields else {
                                 return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                    constants_str::catalog::COMPILE_ERROR_CE_004,
+                                    constants_str::COMPILE_ERROR_CE_004,
                                 )));
                             };
                             let fields_len = fields_named.named.len();
@@ -860,7 +858,7 @@ pub fn emit_generate_pg_table(
                                     let field_model = (|| {
                                     let Some(identifier) = syn_field.ident else {
                                         return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                            constants_str::catalog::COMPILE_ERROR_CE_030,
+                                            constants_str::COMPILE_ERROR_CE_030,
                                         )));
                                     };
                                     let parsed_location_attr = if identifier
@@ -881,12 +879,12 @@ pub fn emit_generate_pg_table(
                                         let location_attr = location_attrs.next();
                                         if location_attrs.next().is_some() {
                                             return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                                constants_str::catalog::COMPILE_ERROR_CE_029,
+                                                constants_str::COMPILE_ERROR_CE_029,
                                             )));
                                         }
                                         let Some(parsed_location_attr) = location_attr else {
                                             return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                                constants_str::catalog::COMPILE_ERROR_CE_023,
+                                                constants_str::COMPILE_ERROR_CE_023,
                                             )));
                                         };
                                         Some(parsed_location_attr)
@@ -1057,7 +1055,7 @@ pub fn emit_generate_pg_table(
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
     let PgCrudCommonDefaultSomeOneElementMaxPageSizeCall =
         token_patterns::PgCrudCommonDefaultSomeOneElementMaxPageSizeCall;
-    let PgCrudSnakeCase = constants_str::catalog::PG_CRUD_COMMON;
+    let PgCrudSnakeCase = constants_str::PG_CRUD_COMMON;
     let PgPoolForTokioSpawnSyncMoveSnakeCase =
         naming::domain_types::PgPoolForTokioSpawnSyncMoveSnakeCase;
     let PgPoolSnakeCase = naming::domain_types::PgPoolSnakeCase;
@@ -1216,14 +1214,14 @@ pub fn emit_generate_pg_table(
                 let syn_field = field_ref.get();
                 let Some(field_identifier) = syn_field.ident.clone() else {
                     return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_026,
+                        constants_str::COMPILE_ERROR_CE_026,
                     )));
                 };
                 let field_len = field_identifier.to_string().len();
                 let max_pg_column_len = 63;
                 if field_len > max_pg_column_len {
                     return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_002,
+                        constants_str::COMPILE_ERROR_CE_002,
                     )));
                 }
                 let field = macro_helpers::syn_field::SynField {
@@ -1238,7 +1236,7 @@ pub fn emit_generate_pg_table(
                 let has_db_default = syn_field.attrs.iter().any(|attribute| {
                     attribute
                         .path()
-                        .is_ident(constants_str::test_fixtures::GENERATE_PG_TABLE_DB_DEFAULT)
+                        .is_ident(constants_str::GENERATE_PG_TABLE_DB_DEFAULT)
                 });
                 let mut frontend = GeneratePgTableFrontendFieldEmission::default();
                 let mut frontend_flags =
@@ -1249,47 +1247,47 @@ pub fn emit_generate_pg_table(
                     .iter()
                     .filter(|attr| {
                         attr.path()
-                            .is_ident(constants_str::catalog::GENERATE_PG_TABLE_FRONTEND)
+                            .is_ident(constants_str::GENERATE_PG_TABLE_FRONTEND)
                     })
                     .try_for_each(|attr| {
                         frontend_attr_count = frontend_attr_count.saturating_add(constants_usize::ONE);
                         if frontend_attr_count > constants_usize::ONE {
                             return Err(syn::Error::new_spanned(
                                 attr,
-                                constants_str::catalog::DUPLICATE_GENERATE_PG_TABLE_FRONTEND_ATTRIBUTE,
+                                constants_str::DUPLICATE_GENERATE_PG_TABLE_FRONTEND_ATTRIBUTE,
                             ));
                         }
                         attr.parse_nested_meta(|meta| {
-                            if meta.path.is_ident(constants_str::catalog::FILTERABLE) {
+                            if meta.path.is_ident(constants_str::FILTERABLE) {
                                 frontend_flags
                                     .try_insert_with(GeneratePgTableFrontendFlag::Filterable, || {
-                                        meta.error(constants_str::catalog::DUPLICATE_FILTERABLE_OPTION)
+                                        meta.error(constants_str::DUPLICATE_FILTERABLE_OPTION)
                                     })?;
                                 frontend.filterable = true;
                                 return Ok(());
                             }
-                            if meta.path.is_ident(constants_str::catalog::HIDDEN) {
+                            if meta.path.is_ident(constants_str::HIDDEN) {
                                 frontend_flags
                                     .try_insert_with(GeneratePgTableFrontendFlag::Hidden, || {
-                                        meta.error(constants_str::catalog::DUPLICATE_HIDDEN_OPTION)
+                                        meta.error(constants_str::DUPLICATE_HIDDEN_OPTION)
                                     })?;
                                 frontend.hidden = true;
                                 return Ok(());
                             }
-                            if meta.path.is_ident(constants_str::catalog::LABEL) {
+                            if meta.path.is_ident(constants_str::LABEL) {
                                 if frontend.label.is_some() {
-                                    return Err(meta.error(constants_str::catalog::DUPLICATE_LABEL_OPTION));
+                                    return Err(meta.error(constants_str::DUPLICATE_LABEL_OPTION));
                                 }
                                 let value = meta.value()?.parse::<syn::LitStr>()?.value();
                                 if value.trim().is_empty() {
-                                    return Err(meta.error(constants_str::catalog::FRONTEND_LABEL_MUST_NOT_BE_EMPTY));
+                                    return Err(meta.error(constants_str::FRONTEND_LABEL_MUST_NOT_BE_EMPTY));
                                 }
                                 frontend.label = Some(value);
                                 return Ok(());
                             }
-                            if meta.path.is_ident(constants_str::catalog::ORDER) {
+                            if meta.path.is_ident(constants_str::ORDER) {
                                 if frontend.order.is_some() {
-                                    return Err(meta.error(constants_str::catalog::DUPLICATE_ORDER_OPTION));
+                                    return Err(meta.error(constants_str::DUPLICATE_ORDER_OPTION));
                                 }
                                 frontend.order = Some(
                                     meta.value()?
@@ -1298,22 +1296,22 @@ pub fn emit_generate_pg_table(
                                 );
                                 return Ok(());
                             }
-                            if meta.path.is_ident(constants_str::catalog::PLACEHOLDER) {
+                            if meta.path.is_ident(constants_str::PLACEHOLDER) {
                                 if frontend.placeholder.is_some() {
-                                    return Err(meta.error(constants_str::catalog::DUPLICATE_PLACEHOLDER_OPTION));
+                                    return Err(meta.error(constants_str::DUPLICATE_PLACEHOLDER_OPTION));
                                 }
                                 frontend.placeholder = Some(meta.value()?.parse::<syn::LitStr>()?.value());
                                 return Ok(());
                             }
-                            if meta.path.is_ident(constants_str::catalog::SORTABLE) {
+                            if meta.path.is_ident(constants_str::SORTABLE) {
                                 frontend_flags
                                     .try_insert_with(GeneratePgTableFrontendFlag::Sortable, || {
-                                        meta.error(constants_str::catalog::DUPLICATE_SORTABLE_OPTION)
+                                        meta.error(constants_str::DUPLICATE_SORTABLE_OPTION)
                                     })?;
                                 frontend.sortable = true;
                                 return Ok(());
                             }
-                            Err(meta.error(constants_str::catalog::UNSUPPORTED_GENERATE_PG_TABLE_FRONTEND_OPTION))
+                            Err(meta.error(constants_str::UNSUPPORTED_GENERATE_PG_TABLE_FRONTEND_OPTION))
                         })
                     })
                     .map_err(|error| {
@@ -1345,7 +1343,7 @@ pub fn emit_generate_pg_table(
                     if field_model.is_primary_key {
                         if optional_primary_key_field.is_some() {
                             return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                constants_str::catalog::COMPILE_ERROR_CE_003,
+                                constants_str::COMPILE_ERROR_CE_003,
                             )));
                         }
                         optional_primary_key_field = Some(field_idx);
@@ -1374,7 +1372,7 @@ pub fn emit_generate_pg_table(
                 return Err(
                     crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                         crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::COMPILE_ERROR_CE_015,
+                            constants_str::COMPILE_ERROR_CE_015,
                         ),
                     ),
                 );
@@ -1393,14 +1391,14 @@ pub fn emit_generate_pg_table(
         ) => Err(
             crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                    constants_str::catalog::COMPILE_ERROR_CE_018,
+                    constants_str::COMPILE_ERROR_CE_018,
                 ),
             ),
         ),
         Err(_error) => Err(
             crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                    constants_str::catalog::COMPILE_ERROR_CE_043,
+                    constants_str::COMPILE_ERROR_CE_043,
                 ),
             ),
         ),
@@ -1418,7 +1416,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
+                        constants_str::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
                     ),
                 ),
             );
@@ -1431,7 +1429,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_006,
+                        constants_str::COMPILE_ERROR_CE_006,
                     ),
                 ),
             );
@@ -1440,7 +1438,7 @@ pub fn emit_generate_pg_table(
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_021,
+                        constants_str::COMPILE_ERROR_CE_021,
                     ),
                 ),
             );
@@ -1462,7 +1460,7 @@ pub fn emit_generate_pg_table(
     let Some(primary_key_field) = fields.get(primary_key_field_idx.get()) else {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                constants_str::catalog::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
+                constants_str::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
             ),
         );
     };
@@ -1488,7 +1486,7 @@ pub fn emit_generate_pg_table(
     }) {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                constants_str::catalog::COMPILE_ERROR_CE_017,
+                constants_str::COMPILE_ERROR_CE_017,
             ),
         );
     }
@@ -1513,7 +1511,7 @@ pub fn emit_generate_pg_table(
     if !read_excluded_fields_are_unique || !read_excluded_fields_are_valid {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                constants_str::catalog::COMPILE_ERROR_CE_027,
+                constants_str::COMPILE_ERROR_CE_027,
             ),
         );
     }
@@ -1539,7 +1537,7 @@ pub fn emit_generate_pg_table(
         else {
             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                    constants_str::catalog::COMPILE_ERROR_CE_055,
+                    constants_str::COMPILE_ERROR_CE_055,
                 ),
             );
         };
@@ -1550,15 +1548,15 @@ pub fn emit_generate_pg_table(
             type_path.path.segments.last().is_some_and(|segment| {
                 matches!(
                     segment.ident.to_string().as_str(),
-                    constants_str::integration_fixtures::I64ASNONNULLINT8
-                        | constants_str::integration_fixtures::I64ASNONNULLBIGSERIALINITIALIZATIONBYPG
+                    constants_str::I64ASNONNULLINT8
+                        | constants_str::I64ASNONNULLBIGSERIALINITIALIZATIONBYPG
                 )
             })
         });
         if field_idx == primary_key_field_idx.get() || !revision_type_is_valid {
             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                    constants_str::catalog::COMPILE_ERROR_CE_012,
+                    constants_str::COMPILE_ERROR_CE_012,
                 ),
             );
         }
@@ -1611,7 +1609,7 @@ pub fn emit_generate_pg_table(
     if !frontend_orders_are_unique {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                constants_str::catalog::COMPILE_ERROR_CE_011,
+                constants_str::COMPILE_ERROR_CE_011,
             ),
         );
     }
@@ -1748,7 +1746,7 @@ pub fn emit_generate_pg_table(
         return macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             syn::Error::new_spanned(
                 &**primary_key_field_type,
-                constants_str::catalog::UPDATE_OPERATIONS_REQUIRE_AT_LEAST_ONE_NON_PRIMARY_KEY_FIELD,
+                constants_str::UPDATE_OPERATIONS_REQUIRE_AT_LEAST_ONE_NON_PRIMARY_KEY_FIELD,
             )
             .into_compile_error(),
         );
@@ -1757,13 +1755,13 @@ pub fn emit_generate_pg_table(
         && let Some(last_segment) = type_path.path.segments.last()
     {
         let primary_key_type_name = last_segment.ident.to_string();
-        if primary_key_type_name.starts_with(constants_str::catalog::OPTIONAL)
-            || primary_key_type_name.contains(constants_str::catalog::ASNULLABLE)
+        if primary_key_type_name.starts_with(constants_str::OPTIONAL)
+            || primary_key_type_name.contains(constants_str::ASNULLABLE)
         {
             return macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                 syn::Error::new_spanned(
                     &**primary_key_field_type,
-                    constants_str::catalog::PRIMARY_KEY_TYPE_MUST_BE_NON_NULLABLE,
+                    constants_str::PRIMARY_KEY_TYPE_MUST_BE_NON_NULLABLE,
                 )
                 .into_compile_error(),
             );
@@ -1817,7 +1815,7 @@ pub fn emit_generate_pg_table(
                 if let Some(last_segment) = role_type_path.path.segments.last_mut() {
                     let identifier_string = last_segment.ident.to_string();
                     let without_optional = identifier_string
-                        .strip_prefix(constants_str::catalog::OPTIONAL)
+                        .strip_prefix(constants_str::OPTIONAL)
                         .map_or(identifier_string.as_str(), |value| value);
                     last_segment.ident = quote::format_ident!(
                         "{}{}",
@@ -2096,7 +2094,7 @@ pub fn emit_generate_pg_table(
             .enumerate()
             .fold(String::with_capacity(identifier_snake_case_string.len()), |mut title, (index, part)| {
                 if index > constants_usize::ZERO {
-                    title.push_str(constants_str::catalog::SPACE);
+                    title.push_str(constants_str::SPACE);
                 }
                 let mut chars = part.chars();
                 if let Some(first) = chars.next() {
@@ -2181,7 +2179,7 @@ pub fn emit_generate_pg_table(
                     if idx != 0 {
                         accumulator.push(',');
                     }
-                    accumulator.push_str(constants_str::integration_fixtures::TEXT_ALT_14);
+                    accumulator.push_str(constants_str::TEXT_ALT_14);
                     accumulator
                 },
             );
@@ -2324,13 +2322,10 @@ pub fn emit_generate_pg_table(
         quote::quote! {#identifier_operation_suffix}
     };
     let generate_identifier_operation_error_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(operation, constants_str::catalog::ERROR)
+        generate_identifier_operation_suffix_token_stream(operation, constants_str::ERROR)
     };
     let generate_identifier_operation_res_variants_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(
-            operation,
-            constants_str::catalog::RESVARIANTS,
-        )
+        generate_identifier_operation_suffix_token_stream(operation, constants_str::RESVARIANTS)
     };
     let generate_initialization_token_stream: &dyn Fn(
         &SynVariant,
@@ -2342,7 +2337,7 @@ pub fn emit_generate_pg_table(
                 let field = &element.ident;
                 let Some(field_ref) = field.as_ref() else {
                     return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_054,
+                        constants_str::COMPILE_ERROR_CE_054,
                     ))
                     .into();
                 };
@@ -2363,7 +2358,7 @@ pub fn emit_generate_pg_table(
         } else {
             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                    constants_str::catalog::COMPILE_ERROR_CE_001,
+                    constants_str::COMPILE_ERROR_CE_001,
                 ),
             )
             .into();
@@ -2388,7 +2383,7 @@ pub fn emit_generate_pg_table(
                 Some(v) => v.to_http_status_code_token_stream(),
                 None => {
                     return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_019,
+                        constants_str::COMPILE_ERROR_CE_019,
                     ))
                     .into();
                 }
@@ -2532,7 +2527,7 @@ pub fn emit_generate_pg_table(
             &ErrorSnakeCase,
             macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
                 PgCrudSnakeCase,
-                constants_str::catalog::QUERY_PART_ERROR,
+                constants_str::QUERY_PART_ERROR,
                 &QueryPartErrorUpperCamelCase.to_string(),
             ]),
         )],
@@ -3072,7 +3067,7 @@ pub fn emit_generate_pg_table(
     let macro_helpers_location_field_attr_eo_to_err_string_serde =
         macro_helpers::location_field_attr::LocationFieldAttr::EoToErrStringSerde;
     let string_syn_punct = macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-        constants_str::catalog::STRING,
+        constants_str::STRING,
     ]);
     let try_bind_syn_variant = new_syn_variant(
         &TryBindUpperCamelCase,
@@ -3102,8 +3097,8 @@ pub fn emit_generate_pg_table(
         );
     let simple_syn_punct_sqlx_error =
         macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-            constants_str::catalog::SQLX,
-            constants_str::catalog::ERROR,
+            constants_str::SQLX,
+            constants_str::ERROR,
         ]);
     let macro_helpers_location_field_attr_eo_to_err_string =
         macro_helpers::location_field_attr::LocationFieldAttr::EoToErrString;
@@ -3502,7 +3497,7 @@ enum WrapIntoOptional {
         |operation: &Operation| {
             generate_identifier_operation_suffix_token_stream(
                 operation,
-                constants_str::catalog::ERRORWITHSERDE,
+                constants_str::ERRORWITHSERDE,
             )
         };
     let pg_crud_order_by_token_stream =
@@ -3929,8 +3924,8 @@ enum WrapIntoOptional {
     );
     let simple_syn_punct_serde_error =
         macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-            constants_str::catalog::SERDE_JSON,
-            constants_str::catalog::ERROR,
+            constants_str::SERDE_JSON,
+            constants_str::ERROR,
         ]);
     let serde_json_to_string_syn_variant = new_syn_variant(
         &SerdeJsonToStringUpperCamelCase,
@@ -3944,8 +3939,8 @@ enum WrapIntoOptional {
     );
     let simple_syn_punct_reqwest_error =
         macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-            constants_str::catalog::REQWEST,
-            constants_str::catalog::ERROR,
+            constants_str::REQWEST,
+            constants_str::ERROR,
         ]);
     let status_code_field_name: &dyn std::fmt::Display = &StatusCodeSnakeCase;
     let failed_to_get_res_text_syn_variant = new_syn_variant(
@@ -3956,17 +3951,17 @@ enum WrapIntoOptional {
                 macro_helpers_location_field_attr_eo_to_err_string,
                 status_code_field_name,
                 macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    constants_str::catalog::REQWEST,
-                    constants_str::integration_fixtures::STATUSCODE,
+                    constants_str::REQWEST,
+                    constants_str::STATUSCODE,
                 ]),
             ),
             (
                 macro_helpers_location_field_attr_eo_to_err_string,
                 &HeadersSnakeCase,
                 macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    constants_str::catalog::REQWEST,
-                    constants_str::integration_fixtures::HEADER,
-                    constants_str::integration_fixtures::HEADERMAP,
+                    constants_str::REQWEST,
+                    constants_str::HEADER,
+                    constants_str::HEADERMAP,
                 ]),
             ),
             (
@@ -3985,17 +3980,17 @@ enum WrapIntoOptional {
                 macro_helpers_location_field_attr_eo_to_err_string,
                 status_code_field_name,
                 macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    constants_str::catalog::REQWEST,
-                    constants_str::integration_fixtures::STATUSCODE,
+                    constants_str::REQWEST,
+                    constants_str::STATUSCODE,
                 ]),
             ),
             (
                 macro_helpers_location_field_attr_eo_to_err_string,
                 &HeadersSnakeCase,
                 macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    constants_str::catalog::REQWEST,
-                    constants_str::integration_fixtures::HEADER,
-                    constants_str::integration_fixtures::HEADERMAP,
+                    constants_str::REQWEST,
+                    constants_str::HEADER,
+                    constants_str::HEADERMAP,
                 ]),
             ),
             (
@@ -4028,8 +4023,8 @@ enum WrapIntoOptional {
             macro_helpers::location_field_attr::LocationFieldAttr::EoLocation,
             &CheckBodySizeSnakeCase,
             macro_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                constants_str::integration_fixtures::ROUTE_VALIDATORS,
-                constants_str::catalog::BODY_SIZE_ERROR,
+                constants_str::ROUTE_VALIDATORS,
+                constants_str::BODY_SIZE_ERROR,
                 &BodySizeErrorUpperCamelCase.to_string(),
             ]),
         )],
@@ -4329,7 +4324,7 @@ enum WrapIntoOptional {
                     || {
                         crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                constants_str::catalog::COMPILE_ERROR_CE_050,
+                                constants_str::COMPILE_ERROR_CE_050,
                             ),
                         )
                         .into()
@@ -4347,7 +4342,7 @@ enum WrapIntoOptional {
                 let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                     return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                         crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::COMPILE_ERROR_CE_008,
+                            constants_str::COMPILE_ERROR_CE_008,
                         ),
                     )
                     .into();
@@ -4356,7 +4351,7 @@ enum WrapIntoOptional {
                     fields_named.named.iter().map(|field| {
                         let Some(field_identifier) = field.ident.as_ref() else {
                             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_A2_ERROR,
+                                constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_A2_ERROR,
                             ))
                             .into();
                         };
@@ -4441,7 +4436,7 @@ enum WrapIntoOptional {
                 let element_type_token_stream = quote::quote! {#ty};
                 let Some(parsed_location_attr) = location_attr.get() else {
                     return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                        constants_str::catalog::COMPILE_ERROR_CE_042,
+                        constants_str::COMPILE_ERROR_CE_042,
                     ));
                 };
                 let element_type_with_serde_token_stream = match parsed_location_attr {
@@ -4455,9 +4450,9 @@ enum WrapIntoOptional {
                         Ok(parsed_token_stream) => parsed_token_stream,
                         Err(error) => {
                             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                &constants_str::catalog::COMPILE_ERROR_CE_005
+                                &constants_str::COMPILE_ERROR_CE_005
                                     .replace(
-                                        constants_str::catalog::COMPILE_ERROR_ERROR_PLACEHOLDER,
+                                        constants_str::COMPILE_ERROR_ERROR_PLACEHOLDER,
                                         &error.to_string(),
                                     ),
                             ));
@@ -4471,12 +4466,12 @@ enum WrapIntoOptional {
                     let segments = if let syn::Type::Path(v0) = ty {
                         &v0.path.segments
                     } else {
-                        return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(constants_str::catalog::COMPILE_ERROR_CE_024));
+                        return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(constants_str::COMPILE_ERROR_CE_024));
                     };
                     assert!(segments.len() == 1, "8c6c5e9d");
                     let Some(first_segment) = segments.iter().next() else {
                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_FIRST_PATH_SEGMENT_ERROR,
+                            constants_str::MACRO_DIAGNOSTICS_EXPECTED_FIRST_PATH_SEGMENT_ERROR,
                         ));
                     };
                     let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
@@ -4485,13 +4480,13 @@ enum WrapIntoOptional {
                     }) = &first_segment.arguments
                     else {
                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
+                            constants_str::MACRO_DIAGNOSTICS_EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
                         ));
                     };
                     assert!(args.len() == 1, "5bf19c5d");
                     let Some(first_arg) = args.iter().next() else {
                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::COMPILE_ERROR_CE_053,
+                            constants_str::COMPILE_ERROR_CE_053,
                         ));
                     };
                     let element_vec_type_with_serde_token_stream =
@@ -4501,9 +4496,9 @@ enum WrapIntoOptional {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
                                 return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                    &constants_str::catalog::COMPILE_ERROR_CE_007
+                                    &constants_str::COMPILE_ERROR_CE_007
                                         .replace(
-                                            constants_str::catalog::COMPILE_ERROR_ERROR_PLACEHOLDER,
+                                            constants_str::COMPILE_ERROR_ERROR_PLACEHOLDER,
                                             &error.to_string(),
                                         ),
                                 ));
@@ -4514,7 +4509,7 @@ enum WrapIntoOptional {
                 macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrString => {
                     if get_hashmap_args().is_none() {
                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR,
+                            constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR,
                         ));
                     }
                     quote::quote! {std::collections::HashMap<#string_token_stream, #string_token_stream>}
@@ -4522,7 +4517,7 @@ enum WrapIntoOptional {
                 macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_E9_ERROR,
+                            constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_E9_ERROR,
                         ));
                     };
                     quote::quote! {std::collections::HashMap<#string_token_stream, #second_argument>}
@@ -4530,7 +4525,7 @@ enum WrapIntoOptional {
                 macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVLocation => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C8_ERROR,
+                            constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C8_ERROR,
                         ));
                     };
                     let element_hashmap_v_type_with_serde_token_stream =
@@ -4540,9 +4535,9 @@ enum WrapIntoOptional {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
                                 return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                    &constants_str::catalog::COMPILE_ERROR_CE_020
+                                    &constants_str::COMPILE_ERROR_CE_020
                                         .replace(
-                                            constants_str::catalog::COMPILE_ERROR_ERROR_PLACEHOLDER,
+                                            constants_str::COMPILE_ERROR_ERROR_PLACEHOLDER,
                                             &error.to_string(),
                                         ),
                                 ));
@@ -4564,14 +4559,14 @@ enum WrapIntoOptional {
                 GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                            constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
+                            constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
                         ))
                         .into();
                     };
                     let fields_with_serde_token_stream = fields_named.named.iter().map(|field| {
                         let Some(field_identifier) = field.ident.as_ref() else {
                             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_ERROR,
+                                constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_ERROR,
                             ));
                         };
                         let location_attr = match generate_pg_table_syn_field_location_attr_stage(
@@ -4623,10 +4618,7 @@ enum WrapIntoOptional {
             ),
         };
     let generate_identifier_operation_parameters_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(
-            operation,
-            constants_str::catalog::PARAMETERS,
-        )
+        generate_identifier_operation_suffix_token_stream(operation, constants_str::PARAMETERS)
     };
     let std_sync_arc_combination_of_app_state_logic_traits_token_stream = quote::quote! {std::sync::Arc<dyn pg_table::combination_of_app_state_logic_traits::CombinationOfAppStateLogicTraits>};
     let generate_operation_result_type_token_stream =
@@ -4646,7 +4638,7 @@ enum WrapIntoOptional {
         let Some(source_last_segment) = type_path.path.segments.last() else {
             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                    constants_str::catalog::COMPILE_ERROR_CE_016,
+                    constants_str::COMPILE_ERROR_CE_016,
                 ),
             );
         };
@@ -4659,7 +4651,7 @@ enum WrapIntoOptional {
         let Some(last_segment) = origin_type_path.path.segments.last_mut() else {
             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                    constants_str::catalog::COMPILE_ERROR_CE_052,
+                    constants_str::COMPILE_ERROR_CE_052,
                 ),
             );
         };
@@ -4668,7 +4660,7 @@ enum WrapIntoOptional {
     } else {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                constants_str::catalog::COMPILE_ERROR_CE_009,
+                constants_str::COMPILE_ERROR_CE_009,
             ),
         );
     };
@@ -4777,9 +4769,9 @@ enum WrapIntoOptional {
         let open_api_status = if crate::route_success_status::route_success_status(operation_dsc)
             == macro_helpers::status_code::StatusCode::Created201
         {
-            constants_str::catalog::VALUE_201
+            constants_str::VALUE_201
         } else {
-            constants_str::catalog::VALUE_200
+            constants_str::VALUE_200
         };
         let open_api_status_literal = proc_macro2::Literal::string(open_api_status);
         let open_api_payload_type_token_stream = generate_identifier_operation_payload_upper_camel_case(operation);
@@ -5006,7 +4998,7 @@ enum WrapIntoOptional {
             open_api_schema_types_token_stream.push(open_api_response_type_token_stream);
         }
         let application_json_double_quoted_token_stream =
-            generate_quotes::dq_token_stream::dq_token_stream(&constants_str::catalog::APPLICATION_JSON);
+            generate_quotes::dq_token_stream::dq_token_stream(&constants_str::APPLICATION_JSON);
         let open_api_path_fn_token_stream = quote::quote! {
             // The owner module retains lint-sensitive semantics from the original implementation.
             #[allow(non_camel_case_types)]
@@ -5254,7 +5246,7 @@ enum WrapIntoOptional {
                             git_info::project_git_info_value::project_git_info_value().commit().as_ref(),
                         )
                     };
-                    let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&constants_str::catalog::APPLICATION_JSON);
+                    let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&constants_str::APPLICATION_JSON);
                     let content_type_app_json_header_addition_token_stream = quote::quote! {
                         .header(reqwest::header::CONTENT_TYPE, #app_json_double_quoted_token_stream)
                     };
@@ -5340,7 +5332,7 @@ enum WrapIntoOptional {
                                 GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                            constants_str::catalog::COMPILE_ERROR_CE_025,
+                                            constants_str::COMPILE_ERROR_CE_025,
                                         ))
                                         .into();
                                     };
@@ -6634,7 +6626,7 @@ enum WrapIntoOptional {
                                 &quote::quote! {(#vec_identifier_update_schema_token_stream);},
                             );
                         let identifier_operation_payload_try_new_error_upper_camel_case =
-                            generate_identifier_operation_suffix_token_stream(operation, constants_str::catalog::PAYLOADTRYNEWERROR);
+                            generate_identifier_operation_suffix_token_stream(operation, constants_str::PAYLOADTRYNEWERROR);
                         let identifier_operation_payload_try_new_error_token_stream = pg_crud_macro_common::error_enum_d_token_stream_builder::error_enum_d_token_stream_builder()
                         .build_enum(
                                 &proc_macro2::TokenStream::new(),
@@ -6806,7 +6798,7 @@ enum WrapIntoOptional {
                                     let syn::Fields::Named(variant_fields) = &syn_variant.fields else {
                                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                                             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                                constants_str::catalog::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
+                                                constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
                                             ),
                                         )
                                         .into();
@@ -6876,7 +6868,7 @@ enum WrapIntoOptional {
                                 GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
-                                            constants_str::catalog::COMPILE_ERROR_CE_000,
+                                            constants_str::COMPILE_ERROR_CE_000,
                                         )).into();
                                     };
                                     let fields_token_stream = fields_named.named.iter().map(|field| &field.ident);
@@ -7423,9 +7415,8 @@ enum WrapIntoOptional {
                 );
             }
         });
-    let path_separator_literal =
-        proc_macro2::Literal::string(constants_str::catalog::PATH_SEPARATOR);
-    let dot_literal = proc_macro2::Literal::string(constants_str::catalog::DOT);
+    let path_separator_literal = proc_macro2::Literal::string(constants_str::PATH_SEPARATOR);
+    let dot_literal = proc_macro2::Literal::string(constants_str::DOT);
     let open_api_path_type_identifiers = open_api_path_fn_identifiers
         .iter()
         .map(|path_identifier| quote::format_ident!("__generated_path_{path_identifier}"))
@@ -7665,16 +7656,16 @@ enum WrapIntoOptional {
             let open_api_operation_id = format!("{identifier_snake_case_string}_{operation}");
             let path = format!("/{identifier_snake_case_string}/{operation}");
             let method = match crate::route_http_method::route_http_method(operation_dsc) {
-                OperationHttpMethod::Post => constants_str::catalog::POST_ALT,
-                OperationHttpMethod::Patch => constants_str::catalog::PATCH_ALT,
-                OperationHttpMethod::Delete => constants_str::catalog::PG_CRUD_DELETE_PERMISSION_ACTION,
+                OperationHttpMethod::Post => constants_str::POST_ALT,
+                OperationHttpMethod::Patch => constants_str::PATCH_ALT,
+                OperationHttpMethod::Delete => constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
             };
             let success_status = if crate::route_success_status::route_success_status(operation_dsc)
                 == macro_helpers::status_code::StatusCode::Created201
             {
-                constants_str::catalog::VALUE_201
+                constants_str::VALUE_201
             } else {
-                constants_str::catalog::VALUE_200
+                constants_str::VALUE_200
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
                 && crate::idempotency_capable::idempotency_capable(operation_dsc);
@@ -8213,13 +8204,12 @@ enum WrapIntoOptional {
                 ));
             });
         };
-        let table_read_ids_and_create_into_where_eq_name = constants_str::catalog::VALUE_8E427AD7;
-        let table_read_ids_and_create_into_vec_where_eq_using_fields_name =
-            constants_str::catalog::EB24448C;
+        let table_read_ids_and_create_into_where_eq_name = constants_str::VALUE_8E427AD7;
+        let table_read_ids_and_create_into_vec_where_eq_using_fields_name = constants_str::EB24448C;
         let table_read_ids_and_create_into_optional_vec_where_eq_to_field_name =
-            constants_str::catalog::VALUE_9AC6D79A;
+            constants_str::VALUE_9AC6D79A;
         let table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name =
-            constants_str::catalog::VALUE_5A52AF33;
+            constants_str::VALUE_5A52AF33;
         fill_table_fis_vec_token_stream(
             vec![
                 table_read_ids_and_create_into_where_eq_name,
@@ -9256,8 +9246,8 @@ enum WrapIntoOptional {
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {element_a6bc6b2f.#fi0},
-                                constants_str::catalog::VALUE_96213542,
-                                constants_str::catalog::BF0D6F55,
+                                constants_str::VALUE_96213542,
+                                constants_str::BF0D6F55,
                             );
                         let expected_rm_token_stream = {
                             let ts = generate_identifier_read_initialization_token_stream(&identifier_read_fields_initialization_without_primary_key_after_uo_token_stream);
@@ -9380,8 +9370,8 @@ enum WrapIntoOptional {
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {previous_read.#fi0},
-                                constants_str::catalog::VALUE_4F19D0D2,
-                                constants_str::catalog::C7685B19,
+                                constants_str::VALUE_4F19D0D2,
+                                constants_str::C7685B19,
                             );
                         let uo_read_inner_into_update_token_stream =
                             generate_read_inner_into_update_token_stream(
@@ -10041,7 +10031,7 @@ enum WrapIntoOptional {
         if let Err(error) =
             macro_helpers::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
                 config.tests_write_into_file,
-                constants_str::catalog::GENERATE_PG_TABLE_TESTS,
+                constants_str::GENERATE_PG_TABLE_TESTS,
                 macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
                     tests_token_stream.as_ref(),
                 ),
@@ -10309,7 +10299,7 @@ enum WrapIntoOptional {
         if let Err(error) =
             macro_helpers::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
                 config.common_write_into_file,
-                constants_str::catalog::GENERATE_PG_TABLE_COMMON,
+                constants_str::GENERATE_PG_TABLE_COMMON,
                 macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
                     wrapped_common_token_stream.as_ref(),
                 ),
@@ -10324,7 +10314,7 @@ enum WrapIntoOptional {
         if let Err(error) =
             macro_helpers::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
                 config.whole_write_into_file,
-                constants_str::catalog::GENERATE_PG_TABLE,
+                constants_str::GENERATE_PG_TABLE,
                 macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
                     whole_token_stream.as_ref(),
                 ),

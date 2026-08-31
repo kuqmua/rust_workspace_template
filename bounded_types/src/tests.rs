@@ -56,17 +56,14 @@ fn assert_above_max(
 
 #[test]
 fn string_bounds_are_inclusive() {
-    let value = crate::bounded_string::BoundedString::<1, 3>::try_from(
-        constants_str::catalog::ABC_ALT_3.to_owned(),
-    )
-    .expect("6f09ad52 string_bounds_are_inclusive invariant must hold");
-    assert_eq!(value.as_ref(), constants_str::catalog::ABC_ALT_3);
+    let value =
+        crate::bounded_string::BoundedString::<1, 3>::try_from(constants_str::ABC_ALT_3.to_owned())
+            .expect("6f09ad52 string_bounds_are_inclusive invariant must hold");
+    assert_eq!(value.as_ref(), constants_str::ABC_ALT_3);
     assert_eq!(value.len().get(), 3usize);
     assert_above_max(
-        crate::bounded_string::BoundedString::<1, 2>::try_from(
-            constants_str::catalog::ABC_ALT_3.to_owned(),
-        )
-        .expect_err(constants_str::test_fixtures::VALUE_E4A5AF09),
+        crate::bounded_string::BoundedString::<1, 2>::try_from(constants_str::ABC_ALT_3.to_owned())
+            .expect_err(constants_str::VALUE_E4A5AF09),
         3usize,
         2usize,
     );
@@ -83,10 +80,8 @@ fn string_rejects_below_minimum_and_invalid_bounds() {
         }
     );
     assert_eq!(
-        crate::bounded_string::BoundedString::<2, 1>::try_from(
-            constants_str::catalog::A.to_owned()
-        )
-        .expect_err("2de961c6"),
+        crate::bounded_string::BoundedString::<2, 1>::try_from(constants_str::A.to_owned())
+            .expect_err("2de961c6"),
         crate::bounded_value_error::BoundedValueError::InvalidBounds {
             min: crate::bounded_len::BoundedLen::from(2usize),
             max: crate::bounded_len::BoundedLen::from(constants_usize::ONE),
@@ -100,7 +95,7 @@ fn byte_string_bounds_count_utf8_bytes() {
         .expect("9167aed1 byte_string_bounds_count_utf8_bytes invariant must hold");
     assert_above_max(
         crate::bounded_string::BoundedString::<0, 2>::try_from(unicode)
-            .expect_err(constants_str::test_fixtures::VALUE_311B8C86),
+            .expect_err(constants_str::VALUE_311B8C86),
         4usize,
         2usize,
     );
@@ -117,13 +112,13 @@ fn byte_string_schema_publishes_byte_extensions() {
         .expect("177a114d byte_string_schema_publishes_byte_extensions invariant must hold");
     assert_eq!(
         extensions
-            .get(constants_str::test_fixtures::OPENAPI_MIN_BYTES_EXTENSION)
+            .get(constants_str::OPENAPI_MIN_BYTES_EXTENSION)
             .and_then(utoipa::r#gen::serde_json::value::Value::as_u64),
         Some(1u64)
     );
     assert_eq!(
         extensions
-            .get(constants_str::test_fixtures::OPENAPI_MAX_BYTES_EXTENSION)
+            .get(constants_str::OPENAPI_MAX_BYTES_EXTENSION)
             .and_then(utoipa::r#gen::serde_json::value::Value::as_u64),
         Some(4u64)
     );
@@ -142,8 +137,8 @@ fn unbounded_byte_string_schema_omits_max_bytes_extension() {
     let extensions = object.extensions.expect(
         "803cfa80 unbounded_byte_string_schema_omits_max_bytes_extension invariant must hold",
     );
-    assert!(extensions.contains_key(constants_str::test_fixtures::OPENAPI_MIN_BYTES_EXTENSION));
-    assert!(!extensions.contains_key(constants_str::test_fixtures::OPENAPI_MAX_BYTES_EXTENSION));
+    assert!(extensions.contains_key(constants_str::OPENAPI_MIN_BYTES_EXTENSION));
+    assert!(!extensions.contains_key(constants_str::OPENAPI_MAX_BYTES_EXTENSION));
 }
 
 #[test]
@@ -157,7 +152,7 @@ fn vec_bounds_and_growth_are_enforced() {
     assert_above_max(
         values
             .try_push(2u8)
-            .expect_err(constants_str::test_fixtures::VALUE_F2921AC3),
+            .expect_err(constants_str::VALUE_F2921AC3),
         2usize,
         constants_usize::ONE,
     );
@@ -208,7 +203,7 @@ fn btree_map_replacement_is_allowed_at_capacity() {
     assert_above_max(
         values
             .try_insert(2u8, 4u8)
-            .expect_err(constants_str::test_fixtures::VALUE_0C2A598A),
+            .expect_err(constants_str::VALUE_0C2A598A),
         2usize,
         constants_usize::ONE,
     );
@@ -237,7 +232,7 @@ fn hash_map_capacity_mutation_and_removal_are_enforced() {
     assert_above_max(
         values
             .try_insert(2u8, 5u8)
-            .expect_err(constants_str::test_fixtures::VALUE_9ADBD6D0),
+            .expect_err(constants_str::VALUE_9ADBD6D0),
         2usize,
         constants_usize::ONE,
     );
@@ -283,7 +278,7 @@ fn raw_map_conversions_reject_values_above_capacity() {
         .collect::<std::collections::HashMap<_, _>>();
     assert_above_max(
         crate::bounded_hash_map::BoundedHashMap::<u8, u8, 1>::try_from(hash_values)
-            .expect_err(constants_str::test_fixtures::VALUE_C531636A),
+            .expect_err(constants_str::VALUE_C531636A),
         2usize,
         constants_usize::ONE,
     );
@@ -292,7 +287,7 @@ fn raw_map_conversions_reject_values_above_capacity() {
         .collect::<std::collections::BTreeMap<_, _>>();
     assert_above_max(
         crate::bounded_b_tree_map::BoundedBTreeMap::<u8, u8, 1>::try_from(tree_values)
-            .expect_err(constants_str::test_fixtures::VALUE_9FCB248E),
+            .expect_err(constants_str::VALUE_9FCB248E),
         2usize,
         constants_usize::ONE,
     );
@@ -320,7 +315,7 @@ fn vec_deserialization_reports_lower_and_invalid_bounds() {
             std::iter::empty::<u8>(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_DA49EE30);
+    .expect_err(constants_str::VALUE_DA49EE30);
     assert!(below_min.to_string().contains("below minimum 1"));
 
     let invalid = <crate::bounded_vec::BoundedVec<u8, 2, 1> as serde::Deserialize>::deserialize(
@@ -328,7 +323,7 @@ fn vec_deserialization_reports_lower_and_invalid_bounds() {
             std::iter::empty::<u8>(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_D93AD2D2);
+    .expect_err(constants_str::VALUE_D93AD2D2);
     assert!(invalid.to_string().contains("minimum 2 exceeds maximum 1"));
 }
 
@@ -336,10 +331,10 @@ fn vec_deserialization_reports_lower_and_invalid_bounds() {
 fn zero_capacity_vec_rejects_without_deserializing_item_type() {
     let error = <crate::bounded_vec::BoundedVec<u8, 0, 0> as serde::Deserialize>::deserialize(
         serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
-            [TestDeserializerValue::Text(constants_str::catalog::UNKNOWN)].into_iter(),
+            [TestDeserializerValue::Text(constants_str::UNKNOWN)].into_iter(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_30A3CA27);
+    .expect_err(constants_str::VALUE_30A3CA27);
     assert!(error.to_string().contains("exceeds maximum 0"));
 }
 
@@ -352,7 +347,7 @@ fn vec_deserialization_stops_after_first_excess_item() {
     let result = <crate::bounded_vec::BoundedVec<u8, 0, 1> as serde::Deserialize>::deserialize(
         serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(values),
     );
-    let _error = result.expect_err(constants_str::test_fixtures::VALUE_1FA2F1E3);
+    let _error = result.expect_err(constants_str::VALUE_1FA2F1E3);
     assert_eq!(consumed.get(), 2usize);
 }
 
@@ -362,12 +357,12 @@ fn vec_deserialization_ignores_excess_item_type() {
         serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
             [
                 TestDeserializerValue::Number(1u8),
-                TestDeserializerValue::Text(constants_str::catalog::UNKNOWN),
+                TestDeserializerValue::Text(constants_str::UNKNOWN),
             ]
             .into_iter(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_563E607E);
+    .expect_err(constants_str::VALUE_563E607E);
     assert!(error.to_string().contains("exceeds maximum 1"));
 }
 
@@ -432,7 +427,7 @@ fn map_deserialization_enforces_capacity_and_allows_duplicate_replacement() {
         <crate::bounded_b_tree_map::BoundedBTreeMap<u8, u8, 1> as serde::Deserialize>::deserialize(
             duplicate_above_wire_limit,
         );
-    let _error = duplicate_result.expect_err(constants_str::test_fixtures::VALUE_97CBBD88);
+    let _error = duplicate_result.expect_err(constants_str::VALUE_97CBBD88);
 
     let distinct_map = serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
         [(1u8, 2u8), (2u8, 3u8)].into_iter(),
@@ -448,12 +443,12 @@ fn map_deserialization_enforces_capacity_and_allows_duplicate_replacement() {
 fn map_deserialization_bounds_wire_entries_before_excess_value() {
     let tree_entries = [
         (
-            TestDeserializerValue::Text(constants_str::catalog::A),
+            TestDeserializerValue::Text(constants_str::A),
             TestDeserializerValue::Number(1u8),
         ),
         (
             TestDeserializerValue::Number(2u8),
-            TestDeserializerValue::Text(constants_str::catalog::UNKNOWN),
+            TestDeserializerValue::Text(constants_str::UNKNOWN),
         ),
     ];
     let tree_error = <crate::bounded_b_tree_map::BoundedBTreeMap<String, u8, 1> as serde::Deserialize>::deserialize(
@@ -461,17 +456,17 @@ fn map_deserialization_bounds_wire_entries_before_excess_value() {
             tree_entries.into_iter(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_575CFAD6);
+    .expect_err(constants_str::VALUE_575CFAD6);
     assert!(tree_error.to_string().contains("exceeds maximum 1"));
 
     let hash_entries = [
         (
-            TestDeserializerValue::Text(constants_str::catalog::A),
+            TestDeserializerValue::Text(constants_str::A),
             TestDeserializerValue::Number(1u8),
         ),
         (
             TestDeserializerValue::Number(2u8),
-            TestDeserializerValue::Text(constants_str::catalog::UNKNOWN),
+            TestDeserializerValue::Text(constants_str::UNKNOWN),
         ),
     ];
     let hash_error = <crate::bounded_hash_map::BoundedHashMap<String, u8, 1> as serde::Deserialize>::deserialize(
@@ -479,7 +474,7 @@ fn map_deserialization_bounds_wire_entries_before_excess_value() {
             hash_entries.into_iter(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_1DD35A8D);
+    .expect_err(constants_str::VALUE_1DD35A8D);
     assert!(hash_error.to_string().contains("exceeds maximum 1"));
 }
 
@@ -487,26 +482,26 @@ fn map_deserialization_bounds_wire_entries_before_excess_value() {
 fn zero_capacity_maps_reject_without_deserializing_key_or_value_types() {
     let tree_entries = [(
         TestDeserializerValue::Number(1u8),
-        TestDeserializerValue::Text(constants_str::catalog::UNKNOWN),
+        TestDeserializerValue::Text(constants_str::UNKNOWN),
     )];
     let tree_error = <crate::bounded_b_tree_map::BoundedBTreeMap<String, u8, 0> as serde::Deserialize>::deserialize(
         serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
             tree_entries.into_iter(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_4B9C9667);
+    .expect_err(constants_str::VALUE_4B9C9667);
     assert!(tree_error.to_string().contains("exceeds maximum 0"));
 
     let hash_entries = [(
         TestDeserializerValue::Number(1u8),
-        TestDeserializerValue::Text(constants_str::catalog::UNKNOWN),
+        TestDeserializerValue::Text(constants_str::UNKNOWN),
     )];
     let hash_error = <crate::bounded_hash_map::BoundedHashMap<String, u8, 0> as serde::Deserialize>::deserialize(
         serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
             hash_entries.into_iter(),
         ),
     )
-    .expect_err(constants_str::test_fixtures::VALUE_C189B6DC);
+    .expect_err(constants_str::VALUE_C189B6DC);
     assert!(hash_error.to_string().contains("exceeds maximum 0"));
 }
 
@@ -544,6 +539,6 @@ fn vector_schema_names_include_item_type_and_bounds() {
     let first = <crate::bounded_vec::BoundedVec<u8, 0, 1> as utoipa::ToSchema>::name();
     let second = <crate::bounded_vec::BoundedVec<u16, 1, 2> as utoipa::ToSchema>::name();
     assert_ne!(first, second);
-    assert!(first.contains(constants_str::catalog::BOUNDEDVEC));
-    assert!(second.contains(constants_str::catalog::BOUNDEDVEC));
+    assert!(first.contains(constants_str::BOUNDEDVEC));
+    assert!(second.contains(constants_str::BOUNDEDVEC));
 }

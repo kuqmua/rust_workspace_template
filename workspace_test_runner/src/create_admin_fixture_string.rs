@@ -8,7 +8,7 @@ where
     let bounded_value = value.try_into().map_err(|_error| {
         eprintln!(
             "{}",
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID
+            constants_str::WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID
         );
     })?;
     Value::try_from(String::from(bounded_value)).map_err(|error| {

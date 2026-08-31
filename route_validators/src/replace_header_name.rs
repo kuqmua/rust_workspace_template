@@ -10,7 +10,7 @@ pub(crate) fn replace_header_name<'headers_lt>(
         let exp_id = exp_id.into();
         panic!(
             "{} missing source header while replacing, id={exp_id}",
-            constants_str::catalog::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
+            constants_str::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
         );
     });
     crate::insert_header_no_prev::insert_header_no_prev(&mut **headers, to_name, value);

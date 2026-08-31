@@ -23,7 +23,7 @@ mod tests {
     fn boolean_flags_share_strict_boolean_parsing() {
         let enabled =
             <super::HttpGzipEnabled as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::catalog::TRUE)).expect(
+                crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::TRUE)).expect(
                     "ea35fb71 boolean_flags_share_strict_boolean_parsing invariant must hold",
                 ),
             )
@@ -31,7 +31,7 @@ mod tests {
         assert!(enabled.0);
         let invalid =
             <crate::production_mode::ProductionMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-                crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::catalog::VALUE_1)).expect(
+                crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::VALUE_1)).expect(
                     "ab9ec621 boolean_flags_share_strict_boolean_parsing invariant must hold",
                 ),
             );

@@ -25,7 +25,7 @@ impl From<crate::admin_resource_text::AdminResourceText> for StdAdminString {
                 value.get().to_string()
             }
             crate::admin_resource_text::AdminResourceText::SystemSettings => {
-                constants_str::catalog::VALUE_1.to_owned()
+                constants_str::VALUE_1.to_owned()
             }
             crate::admin_resource_text::AdminResourceText::Uuid(value) => value.get().to_string(),
         })

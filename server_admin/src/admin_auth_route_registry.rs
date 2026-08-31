@@ -4,7 +4,7 @@
 #[frontend_contract_macros::route_registry(
     state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
     family = server_admin_contract::admin_route::AdminAuthenticationRouteFamily;
-    (constants_str::catalog::ADMIN_COOKIE, constants_str::catalog::ADMIN_CSRF);
+    (constants_str::ADMIN_COOKIE, constants_str::ADMIN_CSRF);
     schemas(
         server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,
         server_admin_contract::admin_permission_values::AdminPermissionValues,

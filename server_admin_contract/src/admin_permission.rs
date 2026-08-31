@@ -10,7 +10,7 @@
 )]
 #[wire_enum(
     ref_type = crate::admin_permission_str_ref::AdminPermissionStrRef,
-    error_message = constants_str::catalog::UNKNOWN_ADMINISTRATOR_PERMISSION,
+    error_message = constants_str::UNKNOWN_ADMINISTRATOR_PERMISSION,
 )]
 pub enum AdminPermission {
     #[wire("access_sessions:read")]

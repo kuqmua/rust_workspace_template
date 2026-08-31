@@ -14,12 +14,12 @@ mod tests {
                 if value >= constants_i32::ZERO {
                     Ok(value)
                 } else {
-                    Err(constants_str::test_fixtures::TEST_NEGATIVE)
+                    Err(constants_str::TEST_NEGATIVE)
                 }
             },
             |value| *value,
             |index, error| (index, error),
-            |index, _key| (index, constants_str::test_fixtures::TEST_DUPLICATE),
+            |index, _key| (index, constants_str::TEST_DUPLICATE),
         )
     }
 
@@ -33,10 +33,7 @@ mod tests {
         assert_eq!(report.records_by_key().as_ref().len(), 2usize);
         assert_eq!(
             report.invalid_items(),
-            &[(
-                constants_usize::ONE,
-                constants_str::test_fixtures::TEST_DUPLICATE
-            )]
+            &[(constants_usize::ONE, constants_str::TEST_DUPLICATE)]
         );
         assert_eq!(report.processed_item_count().get(), 3usize);
         assert!(!report.stopped_early().get());
@@ -46,35 +43,35 @@ mod tests {
     fn applies_keep_first_and_keep_last_policies() {
         let first = crate::validate_batch_by_key::validate_batch_by_key(
             [
-                (1i32, constants_str::test_fixtures::TEST_FIRST),
-                (1i32, constants_str::test_fixtures::TEST_LAST),
+                (1i32, constants_str::TEST_FIRST),
+                (1i32, constants_str::TEST_LAST),
             ],
             crate::batch_invalid_item_count::BatchInvalidItemCount::from(constants_usize::ONE),
             crate::batch_duplicate_policy::BatchDuplicatePolicy::KeepFirst,
             Ok::<_, std::convert::Infallible>,
             |record| record.0,
             |_index, error| match error {},
-            |_index, _key| constants_str::test_fixtures::TEST_DUPLICATE,
+            |_index, _key| constants_str::TEST_DUPLICATE,
         );
         let last = crate::validate_batch_by_key::validate_batch_by_key(
             [
-                (1i32, constants_str::test_fixtures::TEST_FIRST),
-                (1i32, constants_str::test_fixtures::TEST_LAST),
+                (1i32, constants_str::TEST_FIRST),
+                (1i32, constants_str::TEST_LAST),
             ],
             crate::batch_invalid_item_count::BatchInvalidItemCount::from(constants_usize::ONE),
             crate::batch_duplicate_policy::BatchDuplicatePolicy::KeepLast,
             Ok::<_, std::convert::Infallible>,
             |record| record.0,
             |_index, error| match error {},
-            |_index, _key| constants_str::test_fixtures::TEST_DUPLICATE,
+            |_index, _key| constants_str::TEST_DUPLICATE,
         );
         assert_eq!(
             first.records_by_key().as_ref().get(&1i32),
-            Some(&(1i32, constants_str::test_fixtures::TEST_FIRST))
+            Some(&(1i32, constants_str::TEST_FIRST))
         );
         assert_eq!(
             last.records_by_key().as_ref().get(&1i32),
-            Some(&(1i32, constants_str::test_fixtures::TEST_LAST))
+            Some(&(1i32, constants_str::TEST_LAST))
         );
     }
 

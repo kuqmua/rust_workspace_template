@@ -57,15 +57,15 @@ mod tests {
     fn deserialization_stops_above_limit() {
         let result = serde_json::from_str::<
             crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<String, u8, 1>,
-        >(constants_str::test_fixtures::TEST_JSON_MAP_WITH_TWO_ENTRIES);
-        let _error = result.expect_err(constants_str::test_fixtures::VALUE_AB603731);
+        >(constants_str::TEST_JSON_MAP_WITH_TWO_ENTRIES);
+        let _error = result.expect_err(constants_str::VALUE_AB603731);
     }
 
     #[test]
     fn map_at_limit_is_accepted() {
         let value = serde_json::from_str::<
             crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<String, u8, 1>,
-        >(constants_str::test_fixtures::TEST_JSON_MAP_WITH_ONE_ENTRY)
+        >(constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY)
         .expect("298b587f map_at_limit_is_accepted invariant must hold");
         assert_eq!(value.get().len(), constants_usize::ONE);
     }

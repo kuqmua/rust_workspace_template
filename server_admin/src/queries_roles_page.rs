@@ -21,27 +21,25 @@ pub(crate) async fn queries_roles_page(
     let role_pool = auth.state.as_ref().pool.as_ref();
     let (roles, total) = async {
         let search = query.0.search().as_ref();
-        let total = sqlx::query_scalar::<_, i64>(
-            constants_str::integration_fixtures::SERVER_ADMIN_COUNT_FILTERED_ROLES_SQL,
-        )
-        .bind(search)
-        .fetch_one(role_pool)
-        .await
-        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-        let rows = sqlx::query_as::<_, (i64, String, bool)>(
-            constants_str::integration_fixtures::SERVER_ADMIN_PAGE_ROLES_SQL,
-        )
-        .bind(search)
-        .bind(query.0.sort().as_ref())
-        .bind(query.0.direction().as_ref())
-        .bind(i64::from(u16::from(query.0.limit())))
-        .bind(i64::from(u32::from(query.0.offset())))
-        .fetch_all(role_pool)
-        .await
-        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+        let total =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_ROLES_SQL)
+                .bind(search)
+                .fetch_one(role_pool)
+                .await
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+        let rows =
+            sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_PAGE_ROLES_SQL)
+                .bind(search)
+                .bind(query.0.sort().as_ref())
+                .bind(query.0.direction().as_ref())
+                .bind(i64::from(u16::from(query.0.limit())))
+                .bind(i64::from(u32::from(query.0.offset())))
+                .fetch_all(role_pool)
+                .await
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let role_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
         let links = sqlx::query_as::<_, (i64, i64)>(
-            constants_str::integration_fixtures::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL,
+            constants_str::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL,
         )
         .bind(role_ids.as_slice())
         .fetch_all(role_pool)
@@ -100,15 +98,14 @@ pub(crate) async fn queries_roles_page(
     .map_err(crate::map_repository_error::map_repository_error)?;
     let permissions = async {
         let permission_pool = auth.state.as_ref().pool.as_ref();
-        let values = sqlx::query_as::<_, (i64, String)>(
-            constants_str::integration_fixtures::SERVER_ADMIN_LIST_PERMISSIONS_SQL,
-        )
-        .fetch_all(permission_pool)
-        .await
-        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?
-        .into_iter()
-        .map(|(id, name)| {
-            Ok(
+        let values =
+            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
+                .fetch_all(permission_pool)
+                .await
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?
+                .into_iter()
+                .map(|(id, name)| {
+                    Ok(
                 server_admin_contract::admin_permission_summary::AdminPermissionSummary::new(
                     server_admin_contract::admin_permission_id::AdminPermissionId::try_from(id)
                         .map_err(|_error| {
@@ -122,8 +119,8 @@ pub(crate) async fn queries_roles_page(
                     })?,
                 ),
             )
-        })
-        .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
+                })
+                .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
         server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
             values,
         )

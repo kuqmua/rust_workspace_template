@@ -7,7 +7,7 @@ pub(crate) fn synchronize_cargo_owned_projection(
 ) -> Result<(), crate::scaffold_error::ScaffoldError> {
     let mut command = macro_helpers::tool_command::ToolCommand::new(
         macro_helpers::tool_program_ref::ToolProgramRef::from(
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
+            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
         ),
     );
     let _arguments = command
@@ -20,9 +20,7 @@ pub(crate) fn synchronize_cargo_owned_projection(
     if bool::from(write_changes) {
         let _environment = command.env(
             macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(update_environment.get()),
-            macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(
-                constants_str::catalog::VALUE_1,
-            ),
+            macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(constants_str::VALUE_1),
         );
     }
     let run_ok = crate::scaffold_run_ok::ScaffoldRunOk::from(command.status()?.success());

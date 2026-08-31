@@ -7,17 +7,16 @@ mod tests {
     )]
     fn validates_and_applies_w3c_trace_context() {
         let trace_parent = crate::http_trace_parent::HttpTraceParent::try_from(
-            constants_str::test_fixtures::TRACEPARENT_TEST_VALUE.to_owned(),
+            constants_str::TRACEPARENT_TEST_VALUE.to_owned(),
         )
         .expect("6b490bf8 validates_and_applies_w3c_trace_context invariant must hold");
         let trace_state = crate::http_trace_state::HttpTraceState::try_from(
-            constants_str::test_fixtures::TRACESTATE_TEST_VALUE.to_owned(),
+            constants_str::TRACESTATE_TEST_VALUE.to_owned(),
         )
         .expect("b82fb9ef validates_and_applies_w3c_trace_context invariant must hold");
-        let request_id = crate::request_id::RequestId::try_from(
-            constants_str::test_fixtures::REQUEST_ID_TEST_VALUE.to_owned(),
-        )
-        .expect("50c01ea8 validates_and_applies_w3c_trace_context invariant must hold");
+        let request_id =
+            crate::request_id::RequestId::try_from(constants_str::REQUEST_ID_TEST_VALUE.to_owned())
+                .expect("50c01ea8 validates_and_applies_w3c_trace_context invariant must hold");
         let client = crate::reqwest_client::ReqwestClient::try_new(
             crate::reqwest_client_policy::ReqwestClientPolicy::new(
                 crate::reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration::try_from(
@@ -39,7 +38,7 @@ mod tests {
             )
             .apply(
                 reqwest::Client::from(client)
-                    .get(constants_str::integration_fixtures::HTTPS_EXAMPLE_COM)
+                    .get(constants_str::HTTPS_EXAMPLE_COM)
                     .into(),
             )
             .into();
@@ -47,12 +46,12 @@ mod tests {
             .build()
             .expect("1574578f validates_and_applies_w3c_trace_context invariant must hold");
         assert_eq!(
-            request.headers()[constants_str::test_fixtures::TRACESTATE],
-            constants_str::test_fixtures::TRACESTATE_TEST_VALUE
+            request.headers()[constants_str::TRACESTATE],
+            constants_str::TRACESTATE_TEST_VALUE
         );
         assert_eq!(
-            request.headers()[constants_str::test_fixtures::X_REQUEST_ID],
-            constants_str::test_fixtures::REQUEST_ID_TEST_VALUE
+            request.headers()[constants_str::X_REQUEST_ID],
+            constants_str::REQUEST_ID_TEST_VALUE
         );
     }
 
@@ -60,7 +59,7 @@ mod tests {
     fn rejects_zero_identifiers() {
         assert_eq!(
             crate::http_trace_parent::HttpTraceParent::try_from(
-                constants_str::test_fixtures::TRACEPARENT_ZERO_TRACE_ID_TEST_VALUE.to_owned(),
+                constants_str::TRACEPARENT_ZERO_TRACE_ID_TEST_VALUE.to_owned(),
             ),
             Err(crate::http_trace_parent_error::HttpTraceParentError::ZeroTraceId)
         );
@@ -73,15 +72,15 @@ mod tests {
         );
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            http::HeaderName::from_static(constants_str::test_fixtures::TRACEPARENT),
-            http::HeaderValue::from_static(constants_str::test_fixtures::TRACEPARENT_TEST_VALUE),
+            http::HeaderName::from_static(constants_str::TRACEPARENT),
+            http::HeaderValue::from_static(constants_str::TRACEPARENT_TEST_VALUE),
         );
         let context = crate::extract_remote_trace_context::extract_remote_trace_context(
             crate::http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef::from(&headers),
         );
         let span = opentelemetry::trace::TraceContextExt::span(&*context);
         assert!(span.span_context().is_remote());
-        let expected_trace_id = constants_str::test_fixtures::TRACEPARENT_TEST_VALUE
+        let expected_trace_id = constants_str::TRACEPARENT_TEST_VALUE
             .get(3usize..35usize)
             .expect("65aa5eca extracts_valid_w3c_parent_context invariant must hold");
         assert_eq!(
@@ -97,14 +96,12 @@ mod tests {
         );
         let headers = http::HeaderMap::from_iter([
             (
-                http::HeaderName::from_static(constants_str::test_fixtures::TRACEPARENT),
-                http::HeaderValue::from_static(
-                    constants_str::test_fixtures::TRACEPARENT_TEST_VALUE,
-                ),
+                http::HeaderName::from_static(constants_str::TRACEPARENT),
+                http::HeaderValue::from_static(constants_str::TRACEPARENT_TEST_VALUE),
             ),
             (
-                http::HeaderName::from_static(constants_str::test_fixtures::TRACESTATE),
-                http::HeaderValue::from_static(constants_str::test_fixtures::TRACESTATE_TEST_VALUE),
+                http::HeaderName::from_static(constants_str::TRACESTATE),
+                http::HeaderValue::from_static(constants_str::TRACESTATE_TEST_VALUE),
             ),
         ]);
         let context = crate::extract_remote_trace_context::extract_remote_trace_context(
@@ -118,15 +115,15 @@ mod tests {
             ),
         );
         assert_eq!(
-            injected_headers.get(constants_str::test_fixtures::TRACEPARENT),
+            injected_headers.get(constants_str::TRACEPARENT),
             Some(&http::HeaderValue::from_static(
-                constants_str::test_fixtures::TRACEPARENT_TEST_VALUE
+                constants_str::TRACEPARENT_TEST_VALUE
             ))
         );
         assert_eq!(
-            injected_headers.get(constants_str::test_fixtures::TRACESTATE),
+            injected_headers.get(constants_str::TRACESTATE),
             Some(&http::HeaderValue::from_static(
-                constants_str::test_fixtures::TRACESTATE_TEST_VALUE
+                constants_str::TRACESTATE_TEST_VALUE
             ))
         );
     }

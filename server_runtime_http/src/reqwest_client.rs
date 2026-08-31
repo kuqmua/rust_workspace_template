@@ -17,21 +17,21 @@ impl ReqwestClient {
                 match self.0.execute(request.into_inner()).await {
                     Ok(response) => {
                         let _client_status_record = tracing::Span::current().record(
-                            constants_str::test_fixtures::OTEL_HTTP_RESPONSE_STATUS_CODE,
+                            constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE,
                             response.status().as_u16(),
                         );
                         if response.status().is_server_error() {
                             let _client_error_record = tracing::Span::current().record(
-                                constants_str::test_fixtures::OTEL_STATUS_CODE,
-                                constants_str::test_fixtures::OTEL_ERROR_STATUS,
+                                constants_str::OTEL_STATUS_CODE,
+                                constants_str::OTEL_ERROR_STATUS,
                             );
                         }
                         Ok(crate::reqwest_response::ReqwestResponse::from(response))
                     }
                     Err(error) => {
                         let _client_error_record = tracing::Span::current().record(
-                            constants_str::test_fixtures::OTEL_STATUS_CODE,
-                            constants_str::test_fixtures::OTEL_ERROR_STATUS,
+                            constants_str::OTEL_STATUS_CODE,
+                            constants_str::OTEL_ERROR_STATUS,
                         );
                         Err(crate::reqwest_error::ReqwestError::from(error))
                     }
@@ -52,9 +52,7 @@ impl ReqwestClient {
         let span = {
             let method = request.method();
             let host = request.host().unwrap_or_else(|| {
-                crate::http_host_ref::HttpHostRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                )
+                crate::http_host_ref::HttpHostRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)
             });
             let span = tracing::info_span!(
                 "http.client",
@@ -65,10 +63,8 @@ impl ReqwestClient {
                 "server.address" = %host,
                 "http.response.status_code" = tracing::field::Empty,
             );
-            let _client_name_record = span.record(
-                constants_str::test_fixtures::OTEL_NAME,
-                format_args!("{method} {host}"),
-            );
+            let _client_name_record =
+                span.record(constants_str::OTEL_NAME, format_args!("{method} {host}"));
             span
         };
         crate::inject_trace_context::inject_trace_context(

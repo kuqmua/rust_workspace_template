@@ -10,7 +10,7 @@ pub(super) fn openapi_schema_references(
         )
     })?;
     let _schemas = document_value
-        .pointer(constants_str::catalog::COMPONENTS_SCHEMAS_ALT)
+        .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
         .ok_or(crate::open_api_validation_error::OpenApiValidationError::MissingSchemas)?;
     let mut references = std::collections::BTreeSet::new();
@@ -20,11 +20,9 @@ pub(super) fn openapi_schema_references(
             serde_json::Value::Array(values) => pending.extend(values),
             serde_json::Value::Object(values) => {
                 if let Some(name) = values
-                    .get(constants_str::catalog::DOLLAR_REF)
+                    .get(constants_str::DOLLAR_REF)
                     .and_then(serde_json::Value::as_str)
-                    .and_then(|reference| {
-                        reference.strip_prefix(constants_str::catalog::COMPONENTS_SCHEMAS)
-                    })
+                    .and_then(|reference| reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS))
                 {
                     let reference = crate::open_api_contract_text::OpenApiContractText::try_from(
                         name.to_owned(),

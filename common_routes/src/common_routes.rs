@@ -12,11 +12,11 @@ pub fn common_routes(
                         .get()
                         .path_and_query()
                         .map_or_else(|| uri.get().path(), |value| value.as_str());
-                    let capacity = constants_str::catalog::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX
+                    let capacity = constants_str::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX
                         .len()
                         .saturating_add(uri_suffix.len());
                     let mut message = String::with_capacity(capacity);
-                    message.push_str(constants_str::catalog::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX);
+                    message.push_str(constants_str::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX);
                     message.push_str(uri_suffix);
                     crate::common_not_found_error::CommonNotFoundError::NotFound(
                         crate::not_found_payload::NotFoundPayload::from_parts(
@@ -26,7 +26,7 @@ pub fn common_routes(
                             to_err_string::error_text::ErrorText::try_from(message)
                                 .unwrap_or_else(to_err_string::error_text::ErrorText::from),
                             crate::open_api_specification_path::OpenApiSpecificationPath::from(
-                                constants_str::catalog::COMMON_ROUTES_SWAGGER_UI,
+                                constants_str::COMMON_ROUTES_SWAGGER_UI,
                             ),
                         ),
                     )

@@ -21,7 +21,7 @@ fn typed_operation(
     metadata: frontend_contract::route_metadata::RouteMetadata,
 ) -> &serde_json::Value {
     document
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(|paths| paths.get(metadata.path().as_ref()))
         .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
         .expect("61b8f042 typed_operation invariant must hold")
@@ -29,19 +29,19 @@ fn typed_operation(
 
 fn parameter_names(operation: &serde_json::Value, location: &str) -> Vec<String> {
     operation
-        .get(constants_str::test_fixtures::VALUE_F528212A)
+        .get(constants_str::VALUE_F528212A)
         .and_then(serde_json::Value::as_array)
         .into_iter()
         .flatten()
         .filter(|parameter| {
             parameter
-                .get(constants_str::test_fixtures::VALUE_58296753)
+                .get(constants_str::VALUE_58296753)
                 .and_then(serde_json::Value::as_str)
                 == Some(location)
         })
         .filter_map(|parameter| {
             parameter
-                .get(constants_str::catalog::NAME)
+                .get(constants_str::NAME)
                 .and_then(serde_json::Value::as_str)
         })
         .map(str::to_owned)
@@ -55,7 +55,7 @@ fn assert_local_references_resolve(document: &serde_json::Value, value: &serde_j
             .for_each(|child| assert_local_references_resolve(document, child)),
         serde_json::Value::Object(values) => {
             if let Some(reference) = values
-                .get(constants_str::catalog::DOLLAR_REF)
+                .get(constants_str::DOLLAR_REF)
                 .and_then(serde_json::Value::as_str)
                 .and_then(|reference| reference.strip_prefix('#'))
             {
@@ -162,10 +162,10 @@ fn every_typed_route_path_and_each_path_parameter_match_open_api() {
                 );
                 let success_status = u16::from(metadata.success_status().transport_status()).to_string();
                 let success_response = operation
-                    .get(constants_str::catalog::RESPONSES)
+                    .get(constants_str::RESPONSES)
                     .and_then(|responses| responses.get(success_status.as_str()))
                     .expect("021e4af7 every_typed_route_path_and_each_path_parameter_match_open_api invariant must hold");
-                if success_status == constants_str::test_fixtures::VALUE_FC56DBC6 {
+                if success_status == constants_str::VALUE_FC56DBC6 {
                     assert!(success_response.get("content").is_none());
                 } else {
                     assert!(success_response.pointer("/content/application~1json/schema").is_some());
@@ -177,15 +177,15 @@ fn every_typed_route_path_and_each_path_parameter_match_open_api() {
                     .skip(1)
                     .filter_map(|suffix| suffix.split_once('}').map(|(name, _suffix)| name.to_owned()))
                     .collect::<Vec<_>>();
-                let actual = parameter_names(operation, constants_str::catalog::PATH_ALT_5);
+                let actual = parameter_names(operation, constants_str::PATH_ALT_5);
                 assert_eq!(actual, expected, "path parameters differ for {}", metadata.path().as_ref());
                 actual.iter().for_each(|name| {
                     let parameter = operation
-                        .get(constants_str::test_fixtures::VALUE_F528212A)
+                        .get(constants_str::VALUE_F528212A)
                         .and_then(serde_json::Value::as_array)
                         .and_then(|parameters| parameters.iter().find(|parameter| {
-                            parameter.get(constants_str::catalog::NAME).and_then(serde_json::Value::as_str) == Some(name)
-                                && parameter.get(constants_str::test_fixtures::VALUE_58296753).and_then(serde_json::Value::as_str) == Some(constants_str::catalog::PATH_ALT_5)
+                            parameter.get(constants_str::NAME).and_then(serde_json::Value::as_str) == Some(name)
+                                && parameter.get(constants_str::VALUE_58296753).and_then(serde_json::Value::as_str) == Some(constants_str::PATH_ALT_5)
                         }))
                         .expect("7e45cd91 every_typed_route_path_and_each_path_parameter_match_open_api invariant must hold");
                     assert_eq!(parameter.get("required").and_then(serde_json::Value::as_bool), Some(true));
@@ -205,13 +205,13 @@ fn every_typed_route_query_parameter_matches_open_api_individually() {
             .copied()
             .for_each(|metadata| {
                 let expected: &[&str] = match metadata.openapi_operation_id().as_ref() {
-                    constants_str::catalog::AUDIT_LOG_ALT | constants_str::test_fixtures::VALUE_6476FE13 => &[constants_str::catalog::ACTION, constants_str::catalog::CREATED_AFTER, constants_str::catalog::CREATED_BEFORE, constants_str::test_fixtures::VALUE_6A0FB903, constants_str::test_fixtures::VALUE_5089D2D4, constants_str::catalog::LIMIT, constants_str::catalog::OFFSET_ALT, constants_str::catalog::RESOURCE, constants_str::catalog::RESOURCE_ID, constants_str::catalog::SUCCEEDED, constants_str::catalog::USER_ID, constants_str::catalog::USER_LOGIN],
-                    constants_str::test_fixtures::VALUE_AF9B619C | constants_str::test_fixtures::VALUE_48ED1531 | constants_str::test_fixtures::VALUE_73CF19F8 | constants_str::catalog::SESSIONS => &[constants_str::catalog::LIMIT, constants_str::catalog::OFFSET_ALT, constants_str::catalog::SEARCH_ALT, constants_str::catalog::SORT_ALT, constants_str::catalog::DIRECTION],
-                    constants_str::test_fixtures::VALUE_21303953 => &[constants_str::test_fixtures::VALUE_2521B522, constants_str::test_fixtures::VALUE_67B4BFF9, constants_str::test_fixtures::VALUE_7316023B, constants_str::test_fixtures::VALUE_5C154525, constants_str::catalog::LIMIT, constants_str::catalog::OFFSET_ALT, constants_str::catalog::SEARCH_ALT, constants_str::catalog::SORT_ALT, constants_str::catalog::DIRECTION],
+                    constants_str::AUDIT_LOG_ALT | constants_str::VALUE_6476FE13 => &[constants_str::ACTION, constants_str::CREATED_AFTER, constants_str::CREATED_BEFORE, constants_str::VALUE_6A0FB903, constants_str::VALUE_5089D2D4, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::RESOURCE, constants_str::RESOURCE_ID, constants_str::SUCCEEDED, constants_str::USER_ID, constants_str::USER_LOGIN],
+                    constants_str::VALUE_AF9B619C | constants_str::VALUE_48ED1531 | constants_str::VALUE_73CF19F8 | constants_str::SESSIONS => &[constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
+                    constants_str::VALUE_21303953 => &[constants_str::VALUE_2521B522, constants_str::VALUE_67B4BFF9, constants_str::VALUE_7316023B, constants_str::VALUE_5C154525, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
                     _ => &[],
                 };
                 let operation = typed_operation(&document, metadata);
-                let actual = parameter_names(operation, constants_str::catalog::SHARED_VALUES_QUERY);
+                let actual = parameter_names(operation, constants_str::SHARED_VALUES_QUERY);
                 assert_eq!(
                     actual.iter().map(String::as_str).collect::<std::collections::BTreeSet<_>>(),
                     expected.iter().copied().collect::<std::collections::BTreeSet<_>>(),
@@ -220,18 +220,18 @@ fn every_typed_route_query_parameter_matches_open_api_individually() {
                 );
                 actual.iter().for_each(|name| {
                     let parameter = operation
-                        .get(constants_str::test_fixtures::VALUE_F528212A)
+                        .get(constants_str::VALUE_F528212A)
                         .and_then(serde_json::Value::as_array)
-                        .and_then(|parameters| parameters.iter().find(|parameter| parameter.get(constants_str::catalog::NAME).and_then(serde_json::Value::as_str) == Some(name)))
+                        .and_then(|parameters| parameters.iter().find(|parameter| parameter.get(constants_str::NAME).and_then(serde_json::Value::as_str) == Some(name)))
                         .expect("ba482f35 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
                     assert!(parameter.get("schema").is_some(), "missing schema for query parameter {name}");
-                    let schema = parameter.get(constants_str::test_fixtures::VALUE_DF0AD6E4).expect("cf18a7d5 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
+                    let schema = parameter.get(constants_str::VALUE_DF0AD6E4).expect("cf18a7d5 every_typed_route_query_parameter_matches_open_api_individually invariant must hold");
                     match name.as_str() {
-                        constants_str::catalog::DIRECTION => assert_eq!(
+                        constants_str::DIRECTION => assert_eq!(
                             schema.get("enum"),
                             Some(&serde_json::json!(["asc", "desc"])),
                         ),
-                        constants_str::catalog::LIMIT => {
+                        constants_str::LIMIT => {
                             assert_eq!(
                                 schema.get("minimum").and_then(serde_json::Value::as_u64),
                                 Some(u64::from(server_admin_contract::admin_page_limit::AdminPageLimit::MIN))
@@ -241,9 +241,9 @@ fn every_typed_route_query_parameter_matches_open_api_individually() {
                                 Some(u64::from(server_admin_contract::admin_page_limit::AdminPageLimit::MAX))
                             );
                         }
-                        constants_str::catalog::OFFSET_ALT => assert_eq!(schema.get("minimum").and_then(serde_json::Value::as_u64), Some(0)),
-                        constants_str::catalog::SEARCH_ALT => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(128)),
-                        constants_str::catalog::SORT_ALT => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(32)),
+                        constants_str::OFFSET_ALT => assert_eq!(schema.get("minimum").and_then(serde_json::Value::as_u64), Some(0)),
+                        constants_str::SEARCH_ALT => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(128)),
+                        constants_str::SORT_ALT => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(32)),
                         _ => {}
                     }
                 });
@@ -265,7 +265,7 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
             .for_each(|contract| {
                 let metadata = contract.metadata();
                 let operation = typed_operation(&document, metadata);
-                let request_body = operation.get(constants_str::test_fixtures::VALUE_FCF523FA);
+                let request_body = operation.get(constants_str::VALUE_FCF523FA);
                 let expected_schema = contract
                     .request_schema()
                     .cloned()
@@ -281,18 +281,18 @@ fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
                     return;
                 }
                 let reference = request_body
-                    .and_then(|body| body.pointer(constants_str::test_fixtures::VALUE_A2D81D06))
+                    .and_then(|body| body.pointer(constants_str::VALUE_A2D81D06))
                     .and_then(serde_json::Value::as_str)
                     .expect("26d0f83b proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
                 let actual_schema = document.pointer(reference.trim_start_matches('#')).expect("3754bca2 proc_macro_generated_request_contracts_match_open_api_and_each_field invariant must hold");
                 assert_eq!(actual_schema, &expected_schema, "request schema differs for {}", metadata.openapi_operation_id().as_ref());
                 expected_schema
-                    .get(constants_str::catalog::PROPERTIES)
+                    .get(constants_str::PROPERTIES)
                     .and_then(serde_json::Value::as_object)
                     .into_iter()
                     .flatten()
                     .for_each(|(property, expected)| {
-                        assert_eq!(actual_schema.get(constants_str::catalog::PROPERTIES).and_then(|properties| properties.get(property)), Some(expected), "request field differs for {}.{property}", metadata.openapi_operation_id().as_ref());
+                        assert_eq!(actual_schema.get(constants_str::PROPERTIES).and_then(|properties| properties.get(property)), Some(expected), "request field differs for {}.{property}", metadata.openapi_operation_id().as_ref());
                     });
             });
 }
@@ -336,7 +336,7 @@ fn generated_admin_open_api_combines_enabled_routes_only() {
     ))
     .expect("87b2e8fb generated_admin_open_api_combines_enabled_routes_only invariant must hold");
     let paths = document
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(
             "274479a7 generated_admin_open_api_combines_enabled_routes_only invariant must hold",
@@ -464,7 +464,7 @@ fn every_admin_open_api_operation_has_a_unique_identifier() {
     ))
     .expect("c731d604 every_admin_open_api_operation_has_a_unique_identifier invariant must hold");
     let operation_ids = document
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect("f9b402ac every_admin_open_api_operation_has_a_unique_identifier invariant must hold")
         .values()
@@ -472,7 +472,7 @@ fn every_admin_open_api_operation_has_a_unique_identifier() {
         .flat_map(|operations| operations.values())
         .map(|operation| {
             operation
-                .get(constants_str::test_fixtures::VALUE_3EFA7ACE)
+                .get(constants_str::VALUE_3EFA7ACE)
                 .and_then(serde_json::Value::as_str)
                 .expect("18f4ae63 every_admin_open_api_operation_has_a_unique_identifier invariant must hold")
         })
@@ -489,16 +489,16 @@ fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
         serde_json::to_value(utoipa::openapi::OpenApi::from(crate::generated_open_api::generated_open_api()))
             .expect("8457a8ca generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     let paths = document
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect("44d17ab0 generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     [
-        constants_str::catalog::ADMIN_USERS_RM,
-        constants_str::catalog::ADMIN_ROLES_RM,
-        constants_str::catalog::ADMIN_PERMISSIONS_RM,
-        constants_str::catalog::ADMIN_ROLE_PERMISSIONS_RM,
-        constants_str::catalog::ADMIN_USER_ROLES_RM,
-        constants_str::catalog::ADMIN_SYSTEM_SETTINGS_RM,
+        constants_str::ADMIN_USERS_RM,
+        constants_str::ADMIN_ROLES_RM,
+        constants_str::ADMIN_PERMISSIONS_RM,
+        constants_str::ADMIN_ROLE_PERMISSIONS_RM,
+        constants_str::ADMIN_USER_ROLES_RM,
+        constants_str::ADMIN_SYSTEM_SETTINGS_RM,
     ]
     .into_iter()
     .for_each(|path| {
@@ -512,29 +512,29 @@ fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
         );
     });
     let schemas = document
-        .pointer(constants_str::catalog::COMPONENTS_SCHEMAS_ALT)
+        .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
         .expect("8dcf412e generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
     [
-        constants_str::catalog::ADMINUSERSRMPAYLOAD,
-        constants_str::catalog::ADMINROLESRMPAYLOAD,
-        constants_str::catalog::ADMINPERMISSIONSRMPAYLOAD,
-        constants_str::catalog::ADMINROLEPERMISSIONSRMPAYLOAD,
-        constants_str::catalog::ADMINUSERROLESRMPAYLOAD,
-        constants_str::catalog::ADMINSYSTEMSETTINGSRMPAYLOAD,
+        constants_str::ADMINUSERSRMPAYLOAD,
+        constants_str::ADMINROLESRMPAYLOAD,
+        constants_str::ADMINPERMISSIONSRMPAYLOAD,
+        constants_str::ADMINROLEPERMISSIONSRMPAYLOAD,
+        constants_str::ADMINUSERROLESRMPAYLOAD,
+        constants_str::ADMINSYSTEMSETTINGSRMPAYLOAD,
     ]
     .into_iter()
     .for_each(|schema_name| {
         let properties = schemas
             .get(schema_name)
-            .and_then(|schema| schema.get(constants_str::catalog::PROPERTIES))
+            .and_then(|schema| schema.get(constants_str::PROPERTIES))
             .and_then(serde_json::Value::as_object)
             .expect("5b8bbdd1 generated_read_routes_expose_filter_sort_and_pagination_contract invariant must hold");
         [
-            constants_str::catalog::WHERE_MANY,
-            constants_str::catalog::SELECT_ALT_3,
-            constants_str::catalog::ORDER_BY,
-            constants_str::catalog::PAGINATION,
+            constants_str::WHERE_MANY,
+            constants_str::SELECT_ALT_3,
+            constants_str::ORDER_BY,
+            constants_str::PAGINATION,
         ]
         .into_iter()
         .for_each(|property| {
@@ -551,7 +551,7 @@ fn generated_frontend_filter_metadata_matches_api_filter_schema() {
     let login = fields
         .as_ref()
         .iter()
-        .find(|field| field.name().as_ref() == constants_str::catalog::LOGIN)
+        .find(|field| field.name().as_ref() == constants_str::LOGIN)
         .expect("c2a69d51 generated_frontend_filter_metadata_matches_api_filter_schema invariant must hold");
     assert_eq!(
         login.filters().to_vec(),
@@ -563,7 +563,7 @@ fn generated_frontend_filter_metadata_matches_api_filter_schema() {
     let schema = <pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();
     let variants = serde_json::to_value(schema)
         .expect("84d658fc generated_frontend_filter_metadata_matches_api_filter_schema invariant must hold")
-        .get(constants_str::test_fixtures::VALUE_780713E0)
+        .get(constants_str::VALUE_780713E0)
         .and_then(serde_json::Value::as_array)
         .map(Vec::len);
     assert_eq!(variants, Some(login.filters().len()));

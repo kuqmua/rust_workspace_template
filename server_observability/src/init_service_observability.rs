@@ -27,7 +27,7 @@ pub fn init_service_observability(
     let tracer = opentelemetry::trace::TracerProvider::tracer(&tracer_provider, service_name.get());
     opentelemetry::global::set_tracer_provider(tracer_provider.clone());
     let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_error| {
-        tracing_subscriber::EnvFilter::new(constants_str::catalog::CONFIG_TRACING_INFO)
+        tracing_subscriber::EnvFilter::new(constants_str::CONFIG_TRACING_INFO)
     });
     let init_result = match format {
         crate::service_tracing_format::ServiceTracingFormat::Json => {
@@ -63,7 +63,7 @@ pub fn init_service_observability(
         if let Err(shutdown_error) = tracer_provider.shutdown() {
             tracing::error!(
                 error = %shutdown_error,
-                "OpenTelemetry cleanup after subscriber initialization failure failed"
+                message = %constants_str::TRACING_OTEL_CLEANUP_FAILED,
             );
         }
         return Err(

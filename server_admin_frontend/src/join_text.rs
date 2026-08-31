@@ -8,7 +8,7 @@ where
     let mut text = String::with_capacity(value_iter.size_hint().0.saturating_mul(16usize));
     value_iter.enumerate().for_each(|(index, value)| {
         if index > constants_usize::ZERO {
-            text.push_str(constants_str::test_fixtures::COMMA_SPACE);
+            text.push_str(constants_str::COMMA_SPACE);
         }
         text.push_str(value);
     });

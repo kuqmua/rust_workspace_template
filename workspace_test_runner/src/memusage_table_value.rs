@@ -9,11 +9,7 @@ pub(crate) fn memusage_table_value(
         .and_then(|line| line.split('|').nth(1))
         .and_then(|tail| tail.split_whitespace().nth(column_idx.get()))
         .map_or_else(
-            || {
-                crate::memusage_value_ref::MemusageValueRef::from(
-                    constants_str::catalog::UNAVAILABLE,
-                )
-            },
+            || crate::memusage_value_ref::MemusageValueRef::from(constants_str::UNAVAILABLE),
             crate::memusage_value_ref::MemusageValueRef::from,
         )
 }

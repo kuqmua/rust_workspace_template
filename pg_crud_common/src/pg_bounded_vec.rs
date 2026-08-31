@@ -69,8 +69,8 @@ impl<T: schemars::JsonSchema, const MIN: usize, const MAX: usize> schemars::Json
 {
     fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
         let mut schema = generator.subschema_for::<Vec<T>>();
-        let _previous_min = schema.insert(constants_str::catalog::MINITEMS.to_owned(), MIN.into());
-        let _previous_max = schema.insert(constants_str::catalog::MAXITEMS.to_owned(), MAX.into());
+        let _previous_min = schema.insert(constants_str::MINITEMS.to_owned(), MIN.into());
+        let _previous_max = schema.insert(constants_str::MAXITEMS.to_owned(), MAX.into());
         schema
     }
 
@@ -100,7 +100,7 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
     for PgBoundedVec<T, MIN, MAX>
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::BOUNDEDVEC)
+        std::borrow::Cow::Borrowed(constants_str::BOUNDEDVEC)
     }
 }
 #[cfg(test)]
@@ -151,14 +151,14 @@ mod tests {
                     std::iter::empty::<u8>(),
                 ),
             );
-        let _error = below_min.expect_err(constants_str::catalog::CBBF6ACF);
+        let _error = below_min.expect_err(constants_str::CBBF6ACF);
         let error =
             <crate::pg_bounded_vec::PgBoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
                 serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
                     [1u8, 2u8, 3u8, 4u8].into_iter(),
                 ),
             );
-        let _above_max_error = error.expect_err(constants_str::catalog::VALUE_91C59B94);
+        let _above_max_error = error.expect_err(constants_str::VALUE_91C59B94);
     }
     #[test]
     fn schemas_match_runtime_bounds() {

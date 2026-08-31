@@ -11,5 +11,5 @@ fn route_contract_policy() {
         constants_usize::ZERO
     );
     let cases = trybuild::TestCases::new();
-    cases.compile_fail(constants_str::catalog::TRYBUILD_ROUTE_CONTRACT_ASTERISK_RS);
+    cases.compile_fail(constants_str::TRYBUILD_ROUTE_CONTRACT_ASTERISK_RS);
 }

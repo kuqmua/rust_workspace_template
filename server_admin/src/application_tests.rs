@@ -10,7 +10,7 @@ fn rate_limit_scopes_are_distinct() {
     .map(crate::admin_rate_limit_scope::AdminRateLimitScope::as_str);
     assert_eq!(
         scopes[0].as_ref(),
-        constants_str::catalog::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT
+        constants_str::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT
     );
     let unique = scopes.into_iter().collect::<std::collections::HashSet<_>>();
     assert_eq!(unique.len(), 5usize);
@@ -47,7 +47,7 @@ fn server_error_response_preserves_http_diagnostic() {
     assert_eq!(
         response.headers().get(http::header::CONTENT_TYPE),
         Some(&http::HeaderValue::from_static(
-            constants_str::catalog::APPLICATION_PROBLEM_PLUS_JSON
+            constants_str::APPLICATION_PROBLEM_PLUS_JSON
         ))
     );
     let body = futures::executor::block_on(axum::body::to_bytes(response.into_body(), 16_384usize))
@@ -62,11 +62,11 @@ fn server_error_response_preserves_http_diagnostic() {
     let problem = serde_json::from_slice::<serde_json::Value>(&body)
         .expect("1e7ec09d server_error_response_preserves_http_diagnostic invariant must hold");
     [
-        constants_str::catalog::LOCATION_ALT,
-        constants_str::test_fixtures::VALUE_31755A3B,
-        constants_str::test_fixtures::VALUE_265EE18A,
-        constants_str::test_fixtures::VALUE_4C133E94,
-        constants_str::test_fixtures::VALUE_86846B4A,
+        constants_str::LOCATION_ALT,
+        constants_str::VALUE_31755A3B,
+        constants_str::VALUE_265EE18A,
+        constants_str::VALUE_4C133E94,
+        constants_str::VALUE_86846B4A,
     ]
     .into_iter()
     .for_each(|private_field| {
@@ -78,10 +78,10 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
     let mut first_headers = http::HeaderMap::new();
     let _previous_user_agent = first_headers.insert(
         http::header::USER_AGENT,
-        http::HeaderValue::from_static(constants_str::catalog::ADMIN_CLIENT_1),
+        http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_1),
     );
     let first_peer = crate::admin_peer_addr::AdminPeerAddr::from(server_admin_core::admin_socket_addr::AdminSocketAddr::from(
-        constants_str::catalog::VALUE_192_0_2_10_443
+        constants_str::VALUE_192_0_2_10_443
             .parse::<std::net::SocketAddr>()
             .expect(
                 "f133a4ca session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
@@ -108,7 +108,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
         repeated_context_hash.expose().as_ref(),
     );
     let other_peer = crate::admin_peer_addr::AdminPeerAddr::from(server_admin_core::admin_socket_addr::AdminSocketAddr::from(
-        constants_str::catalog::VALUE_192_0_2_11_443
+        constants_str::VALUE_192_0_2_11_443
             .parse::<std::net::SocketAddr>()
             .expect(
                 "5a831a2f session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
@@ -129,7 +129,7 @@ fn session_context_hash_is_bound_to_peer_and_user_agent() {
     let mut other_headers = http::HeaderMap::new();
     let _previous_other_user_agent = other_headers.insert(
         http::header::USER_AGENT,
-        http::HeaderValue::from_static(constants_str::catalog::ADMIN_CLIENT_2),
+        http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_2),
     );
     let other_user_agent_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
@@ -184,7 +184,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
     ))
     .expect("869d28d7 open_api_contains_auth_and_user_security_contracts invariant must hold");
     let paths = document
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect("6e15edec open_api_contains_auth_and_user_security_contracts invariant must hold");
     assert_eq!(paths.len(), 22usize);
@@ -203,7 +203,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
                     (
                         method.to_owned(),
                         operation
-                            .get(constants_str::test_fixtures::OPERATION_ID_JSON)
+                            .get(constants_str::OPERATION_ID_JSON)
                             .and_then(serde_json::Value::as_str)
                             .expect("4252acc8 open_api_contains_auth_and_user_security_contracts invariant must hold")
                             .to_owned(),
@@ -235,7 +235,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
     assert!(paths.contains_key("/system_settings"));
     assert_eq!(
         document
-            .pointer(constants_str::test_fixtures::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)
+            .pointer(constants_str::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)
             .and_then(serde_json::Value::as_str),
         Some(
             <server_admin_contract::admin_sign_in_route::AdminSignInRoute as frontend_contract::typed_route::TypedRoute>::metadata()
@@ -245,7 +245,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
     );
     assert_eq!(
         document
-            .pointer(constants_str::test_fixtures::ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER)
+            .pointer(constants_str::ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER)
             .and_then(serde_json::Value::as_str),
         Some(
             <server_admin_contract::admin_refresh_route::AdminRefreshRoute as frontend_contract::typed_route::TypedRoute>::metadata()
@@ -255,7 +255,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
     );
     assert_eq!(
         document
-            .pointer(constants_str::test_fixtures::ADMIN_OPENAPI_ME_OPERATION_ID_POINTER)
+            .pointer(constants_str::ADMIN_OPENAPI_ME_OPERATION_ID_POINTER)
             .and_then(serde_json::Value::as_str),
         Some(
             <server_admin_contract::admin_me_route::AdminMeRoute as frontend_contract::typed_route::TypedRoute>::metadata()
@@ -290,7 +290,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
     );
     let expected_body_limit_description = format!(
             "{}{}",
-            constants_str::test_fixtures::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
+            constants_str::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
             <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::body_limit()
                 .expect("be105d90 open_api_contains_auth_and_user_security_contracts invariant must hold")
                 .get()
@@ -300,8 +300,7 @@ fn open_api_contains_auth_and_user_security_contracts() {
         .filter_map(|path| path.as_object())
         .flat_map(|operations| operations.values())
         .filter_map(|operation| {
-            operation
-                .pointer(constants_str::test_fixtures::OPENAPI_REQUEST_BODY_DESCRIPTION_POINTER)
+            operation.pointer(constants_str::OPENAPI_REQUEST_BODY_DESCRIPTION_POINTER)
         })
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();

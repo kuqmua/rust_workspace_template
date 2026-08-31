@@ -63,17 +63,12 @@ impl<'de, const MIN: usize, const MAX: usize> serde::Deserialize<'de> for Bounde
 }
 impl<const MIN: usize, const MAX: usize> utoipa::PartialSchema for BoundedString<MIN, MAX> {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        let extensions_builder = utoipa::openapi::extensions::ExtensionsBuilder::new().add(
-            constants_str::test_fixtures::OPENAPI_MIN_BYTES_EXTENSION,
-            MIN,
-        );
+        let extensions_builder = utoipa::openapi::extensions::ExtensionsBuilder::new()
+            .add(constants_str::OPENAPI_MIN_BYTES_EXTENSION, MIN);
         let extensions = if MAX == usize::MAX {
             extensions_builder
         } else {
-            extensions_builder.add(
-                constants_str::test_fixtures::OPENAPI_MAX_BYTES_EXTENSION,
-                MAX,
-            )
+            extensions_builder.add(constants_str::OPENAPI_MAX_BYTES_EXTENSION, MAX)
         };
         utoipa::openapi::ObjectBuilder::new()
             .schema_type(utoipa::openapi::schema::Type::String)
@@ -89,7 +84,7 @@ mod tests {
     #[test]
     fn string_validates_inclusive_bounds() {
         let value = crate::bounded_string::BoundedString::<1, 1>::try_from(String::from(
-            constants_str::catalog::A_ALT,
+            constants_str::A_ALT,
         ))
         .expect("3ca72d81 string_validates_inclusive_bounds invariant must hold");
         assert_eq!(value.as_ref(), "a");

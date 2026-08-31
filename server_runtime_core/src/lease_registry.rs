@@ -69,8 +69,8 @@ mod tests {
     #[tokio::test]
     async fn reservation_is_unique_by_key_and_limit() {
         let registry = super::LeaseRegistry::new();
-        let first_id = id(constants_str::test_fixtures::TEST_LEASE_ID_ONE);
-        let first_key = lease_key(constants_str::test_fixtures::TEST_LEASE_KEY_ONE);
+        let first_id = id(constants_str::TEST_LEASE_ID_ONE);
+        let first_key = lease_key(constants_str::TEST_LEASE_KEY_ONE);
         assert_eq!(
             registry
                 .reserve(first_id.clone(), first_key.clone(), maximum())
@@ -79,19 +79,15 @@ mod tests {
         );
         assert_eq!(
             registry
-                .reserve(
-                    id(constants_str::test_fixtures::TEST_LEASE_ID_TWO),
-                    first_key,
-                    maximum()
-                )
+                .reserve(id(constants_str::TEST_LEASE_ID_TWO), first_key, maximum())
                 .await,
             crate::lease_reservation::LeaseReservation::Existing(first_id)
         );
         assert_eq!(
             registry
                 .reserve(
-                    id(constants_str::test_fixtures::TEST_LEASE_ID_TWO),
-                    lease_key(constants_str::test_fixtures::TEST_LEASE_KEY_TWO),
+                    id(constants_str::TEST_LEASE_ID_TWO),
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
                     maximum(),
                 )
                 .await,
@@ -102,11 +98,11 @@ mod tests {
     #[tokio::test(start_paused = true)]
     async fn heartbeat_and_stale_transition_are_observable() {
         let registry = super::LeaseRegistry::new();
-        let lease_id = id(constants_str::test_fixtures::TEST_LEASE_ID_ONE);
+        let lease_id = id(constants_str::TEST_LEASE_ID_ONE);
         let _reservation = registry
             .reserve(
                 lease_id.clone(),
-                lease_key(constants_str::test_fixtures::TEST_LEASE_KEY_ONE),
+                lease_key(constants_str::TEST_LEASE_KEY_ONE),
                 maximum(),
             )
             .await;

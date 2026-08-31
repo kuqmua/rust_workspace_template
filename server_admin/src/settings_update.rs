@@ -32,7 +32,7 @@ pub(crate) async fn settings_update(
         clear,
     ) = request.0.into_parts();
     sqlx::query_scalar::<_, bool>(
-        constants_str::integration_fixtures::SERVER_ADMIN_UPDATE_SETTINGS_SQL,
+        constants_str::SERVER_ADMIN_UPDATE_SETTINGS_SQL,
     )
     .bind(site_name.as_ref().map(AsRef::<str>::as_ref))
     .bind(tab_title.as_ref().map(AsRef::<str>::as_ref))

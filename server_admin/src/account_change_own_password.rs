@@ -28,22 +28,23 @@ pub(crate) async fn account_change_own_password(
     )
     .await?;
     let (current_password, new_password) = request.0.into_parts();
-    let expected_hash = sqlx::query_scalar::<_, String>(
-        constants_str::integration_fixtures::SERVER_ADMIN_READ_PASSWORD_HASH_SQL,
-    )
-    .bind(actor.id.get())
-    .fetch_optional(auth.state.as_ref().pool.as_ref())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map(|value| {
-        value.map(|hash| {
-            crate::admin_password_hash::AdminPasswordHash::new(
-                pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(hash),
-            )
-        })
-    })
-    .map_err(crate::admin_error::AdminError::from)?
-    .ok_or(crate::admin_error::AdminError::Authentication)?;
+    let expected_hash =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_PASSWORD_HASH_SQL)
+            .bind(actor.id.get())
+            .fetch_optional(auth.state.as_ref().pool.as_ref())
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            .map(|value| {
+                value.map(|hash| {
+                    crate::admin_password_hash::AdminPasswordHash::new(
+                        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
+                            hash,
+                        ),
+                    )
+                })
+            })
+            .map_err(crate::admin_error::AdminError::from)?
+            .ok_or(crate::admin_error::AdminError::Authentication)?;
     if !auth
         .state
         .as_ref()
@@ -90,7 +91,7 @@ pub(crate) async fn account_change_own_password(
     .get()
     .then_some(())
     .ok_or(crate::admin_error::AdminError::Conflict)?;
-    sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REVOKE_OTHER_ACCESS_SESSIONS_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_REVOKE_OTHER_ACCESS_SESSIONS_SQL)
         .bind(actor.id.get())
         .bind(actor.session_id.get().get())
         .execute(&mut *tx)
@@ -98,7 +99,7 @@ pub(crate) async fn account_change_own_password(
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_error::AdminError::from)
         .map(drop)?;
-    sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL)
         .bind(actor.id.get())
         .execute(&mut *tx)
         .await

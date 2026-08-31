@@ -6,10 +6,9 @@ pub(crate) async fn load_authenticated_admin_from_db(
     crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
     crate::admin_error::AdminError,
 > {
-    let user_query = sqlx::query_as::<_, (String, String, bool)>(
-        constants_str::integration_fixtures::SERVER_ADMIN_READ_AUTH_USER_SQL,
-    )
-    .bind(user_id.get());
+    let user_query =
+        sqlx::query_as::<_, (String, String, bool)>(constants_str::SERVER_ADMIN_READ_AUTH_USER_SQL)
+            .bind(user_id.get());
     let optional_user = match db {
         crate::admin_db_ref::AdminDbRef::Connection(connection) => {
             user_query.fetch_optional(&mut ***connection).await
@@ -20,10 +19,9 @@ pub(crate) async fn load_authenticated_admin_from_db(
     .map_err(crate::admin_error::AdminError::postgresql)?;
     let (raw_login, raw_display_name, must_change_password) =
         optional_user.ok_or(crate::admin_error::AdminError::Authentication)?;
-    let roles_query = sqlx::query_scalar::<_, String>(
-        constants_str::integration_fixtures::SERVER_ADMIN_READ_AUTH_ROLES_SQL,
-    )
-    .bind(user_id.get());
+    let roles_query =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_ROLES_SQL)
+            .bind(user_id.get());
     let raw_roles = match db {
         crate::admin_db_ref::AdminDbRef::Connection(connection) => {
             roles_query.fetch_all(&mut ***connection).await
@@ -32,10 +30,9 @@ pub(crate) async fn load_authenticated_admin_from_db(
     }
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     .map_err(crate::admin_error::AdminError::postgresql)?;
-    let permissions_query = sqlx::query_scalar::<_, String>(
-        constants_str::integration_fixtures::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL,
-    )
-    .bind(user_id.get());
+    let permissions_query =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL)
+            .bind(user_id.get());
     let raw_permissions = match db {
         crate::admin_db_ref::AdminDbRef::Connection(connection) => {
             permissions_query.fetch_all(&mut ***connection).await

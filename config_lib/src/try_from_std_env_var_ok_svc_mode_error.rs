@@ -9,8 +9,8 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::svc_mode::Svc
     type Error = TryFromStdEnvVarOkSvcModeError;
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
         match v.as_str() {
-            constants_str::catalog::SERVICE_MODE_MIGRATE => Ok(Self::Migrate),
-            constants_str::catalog::SERVICE_MODE_SERVE => Ok(Self::Serve),
+            constants_str::SERVICE_MODE_MIGRATE => Ok(Self::Migrate),
+            constants_str::SERVICE_MODE_SERVE => Ok(Self::Serve),
             _unknown => Err(TryFromStdEnvVarOkSvcModeError::Unknown),
         }
     }

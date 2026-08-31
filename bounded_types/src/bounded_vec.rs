@@ -152,7 +152,7 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
     fn name() -> std::borrow::Cow<'static, str> {
         let mut name = T::name().into_owned();
         name.push('_');
-        name.push_str(constants_str::catalog::BOUNDEDVEC);
+        name.push_str(constants_str::BOUNDEDVEC);
         name.push('_');
         name.push_str(MIN.to_string().as_str());
         name.push('_');

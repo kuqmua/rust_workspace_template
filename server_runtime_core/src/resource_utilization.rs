@@ -118,7 +118,7 @@ mod tests {
     fn percentage_rejects_values_above_one_hundred() {
         let _error =
             crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(101u8)
-                .expect_err(constants_str::test_fixtures::VALUE_F7C27C6F);
+                .expect_err(constants_str::VALUE_F7C27C6F);
         assert_eq!(
             crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(100u8)
                 .expect("f17abeab percentage_rejects_values_above_one_hundred invariant must hold")

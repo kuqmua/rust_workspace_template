@@ -38,52 +38,53 @@ fn contract_struct_api_attributes_are_explicit() {
                 .filter(|attribute| {
                     attribute
                         .path()
-                        .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API)
+                        .is_ident(constants_str::CONTRACT_STRUCT_API)
                 })
                 .try_for_each(|attribute| {
                     attribute.parse_nested_meta(|metadata| {
                         if metadata
                             .path
-                            .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_BORROW)
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_BORROW)
                         {
                             *field_args.get_borrow_mut() = crate::std_bool::StdBool::from(true);
                             Ok(())
                         } else if metadata
                             .path
-                            .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_COPY)
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_COPY)
                         {
                             *field_args.get_copy_mut() = crate::std_bool::StdBool::from(true);
                             Ok(())
                         } else if metadata
                             .path
-                            .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_COPY_REF)
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_COPY_REF)
                         {
                             *field_args.get_copy_ref_mut() = crate::std_bool::StdBool::from(true);
                             Ok(())
                         } else if metadata
                             .path
-                            .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_INTO)
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_INTO)
                         {
                             *field_args.get_into_mut() = crate::std_bool::StdBool::from(true);
                             Ok(())
                         } else if metadata
                             .path
-                            .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_OPTION_BORROW)
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_OPTION_BORROW)
                         {
                             *field_args.get_option_borrow_mut() =
                                 crate::std_bool::StdBool::from(true);
                             Ok(())
                         } else if metadata
                             .path
-                            .is_ident(constants_str::test_fixtures::CONTRACT_STRUCT_API_SLICE)
+                            .is_ident(constants_str::CONTRACT_STRUCT_API_SLICE)
                         {
-                            *field_args.get_slice_mut() = Some(crate::contract_syn_type::ContractSynType::from(
-                                metadata.value()?.parse::<syn::Type>()?,
-                            ));
+                            *field_args.get_slice_mut() =
+                                Some(crate::contract_syn_type::ContractSynType::from(
+                                    metadata.value()?.parse::<syn::Type>()?,
+                                ));
                             Ok(())
                         } else {
                             Err(metadata
-                                .error(constants_str::test_fixtures::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
+                                .error(constants_str::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE))
                         }
                     })
                 })
@@ -125,7 +126,7 @@ fn contract_struct_api_rejects_unknown_attributes() {
     assert!(
         error
             .to_string()
-            .contains(constants_str::test_fixtures::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE)
+            .contains(constants_str::CONTRACT_STRUCT_API_UNSUPPORTED_ATTRIBUTE)
     );
 }
 
@@ -139,8 +140,8 @@ fn typed_route_args(errors: &str) -> String {
 #[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
 fn typed_route_args_require_exactly_one_error_source() {
     [
-        constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-        constants_str::test_fixtures::VALUE_24AF98F3,
+        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+        constants_str::VALUE_24AF98F3,
     ]
     .into_iter()
     .for_each(|errors| {
@@ -151,29 +152,26 @@ fn typed_route_args_require_exactly_one_error_source() {
             panic!("f58d0a31");
         };
         assert!(
-            error.to_string().contains(
-                constants_str::test_fixtures::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES
-            )
+            error
+                .to_string()
+                .contains(constants_str::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
         );
     });
-    [
-        constants_str::test_fixtures::VALUE_5D5703CD,
-        constants_str::test_fixtures::VALUE_240525BC,
-    ]
-    .into_iter()
-    .for_each(|errors| {
-        let Ok(_args) = syn::parse_str::<crate::typed_route_args::TypedRouteArgs>(
-            typed_route_args(errors).as_str(),
-        ) else {
-            panic!("470bf91c");
-        };
-    });
+    [constants_str::VALUE_5D5703CD, constants_str::VALUE_240525BC]
+        .into_iter()
+        .for_each(|errors| {
+            let Ok(_args) = syn::parse_str::<crate::typed_route_args::TypedRouteArgs>(
+                typed_route_args(errors).as_str(),
+            ) else {
+                panic!("470bf91c");
+            };
+        });
 }
 
 #[test]
 fn route_registry_args_require_family_after_state() {
     let result = syn::parse_str::<crate::route_registry_args::RouteRegistryArgs>(
-        constants_str::test_fixtures::VALUE_A19E6154,
+        constants_str::VALUE_A19E6154,
     );
     let Err(error) = result else {
         panic!("da287c44");
@@ -181,14 +179,14 @@ fn route_registry_args_require_family_after_state() {
     assert!(
         error
             .to_string()
-            .contains(constants_str::test_fixtures::ROUTE_REGISTRY_REQUIRES_FAMILY)
+            .contains(constants_str::ROUTE_REGISTRY_REQUIRES_FAMILY)
     );
 }
 
 #[test]
 fn route_registry_args_parse_family_and_bindings() {
     let result = syn::parse_str::<crate::route_registry_args::RouteRegistryArgs>(
-        constants_str::test_fixtures::VALUE_2497DABD,
+        constants_str::VALUE_2497DABD,
     );
     let Ok(args) = result else {
         panic!("6282e207");
@@ -197,6 +195,6 @@ fn route_registry_args_parse_family_and_bindings() {
     assert_eq!(args.get_schemas().as_ref().len(), constants_usize::ONE);
     assert_eq!(
         quote::ToTokens::to_token_stream(args.get_family().as_ref()).to_string(),
-        constants_str::test_fixtures::FAMILY_UPPER_CAMEL_CASE
+        constants_str::FAMILY_UPPER_CAMEL_CASE
     );
 }

@@ -13,7 +13,7 @@ pub async fn lock_pg_relation_resources(
         .iter()
         .map(|resource| resource.0)
         .collect::<Vec<_>>();
-    let _result = sqlx::query(constants_str::catalog::PG_RELATION_RESOURCE_ADVISORY_LOCK_SQL)
+    let _result = sqlx::query(constants_str::PG_RELATION_RESOURCE_ADVISORY_LOCK_SQL)
         .bind(namespace.0.as_str())
         .bind(resource_values)
         .execute(connection.as_mut())

@@ -29,7 +29,7 @@ fn idempotency_text_types_enforce_boundaries_and_protocol_shape() {
         ),
         Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidRoute)
     );
-    let oversized = constants_str::catalog::A_ALT.repeat(
+    let oversized = constants_str::A_ALT.repeat(
         crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES
             .saturating_add(constants_usize::ONE),
     );

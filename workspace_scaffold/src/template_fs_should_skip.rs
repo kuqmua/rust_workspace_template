@@ -5,9 +5,9 @@ pub(crate) fn template_fs_should_skip(
         matches!(
             component.as_os_str().to_str(),
             Some(
-                constants_str::catalog::GIT
-                    | constants_str::catalog::TARGET
-                    | constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NODE_MODULES
+                constants_str::GIT
+                    | constants_str::TARGET
+                    | constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
             )
         )
     }))

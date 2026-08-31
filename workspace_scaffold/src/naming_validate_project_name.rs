@@ -5,7 +5,7 @@ pub(crate) fn naming_validate_project_name(
     if text.is_empty()
         || text.starts_with('_')
         || text.ends_with('_')
-        || text.contains(constants_str::test_fixtures::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
+        || text.contains(constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
         || !text
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')

@@ -19,33 +19,32 @@ pub(crate) async fn query_audit_log(
         i64::try_from(limit.saturating_add(constants_usize::ONE)).map_err(|_error| {
             crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
         })?;
-    let total = sqlx::query_scalar::<_, i64>(
-        constants_str::integration_fixtures::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL,
-    )
-    .bind(
-        parts
-            .get_user_id()
-            .copied()
-            .map(server_admin_core::admin_user_record_id::AdminUserRecordId::get),
-    )
-    .bind(action_text.map(|value| value.as_ref().to_owned()))
-    .bind(resource_text.map(|value| value.as_ref().to_owned()))
-    .bind(
-        parts
-            .get_created_after()
-            .map(|value| value.as_ref().as_str()),
-    )
-    .bind(
-        parts
-            .get_created_before()
-            .map(|value| value.as_ref().as_str()),
-    )
-    .bind(parts.get_user_login().map(|value| value.as_ref().as_str()))
-    .bind(parts.get_resource_id().map(|value| value.as_ref().as_str()))
-    .bind(parts.get_succeeded().copied().map(bool::from))
-    .fetch_one(pool.0)
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+    let total =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
+            .bind(
+                parts
+                    .get_user_id()
+                    .copied()
+                    .map(server_admin_core::admin_user_record_id::AdminUserRecordId::get),
+            )
+            .bind(action_text.map(|value| value.as_ref().to_owned()))
+            .bind(resource_text.map(|value| value.as_ref().to_owned()))
+            .bind(
+                parts
+                    .get_created_after()
+                    .map(|value| value.as_ref().as_str()),
+            )
+            .bind(
+                parts
+                    .get_created_before()
+                    .map(|value| value.as_ref().as_str()),
+            )
+            .bind(parts.get_user_login().map(|value| value.as_ref().as_str()))
+            .bind(parts.get_resource_id().map(|value| value.as_ref().as_str()))
+            .bind(parts.get_succeeded().copied().map(bool::from))
+            .fetch_one(pool.0)
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
     let rows = sqlx::query_as::<
         _,
         (
@@ -59,7 +58,7 @@ pub(crate) async fn query_audit_log(
             Option<serde_json::Value>,
             String,
         ),
-    >(constants_str::integration_fixtures::SERVER_ADMIN_PAGE_AUDIT_LOG_SQL)
+    >(constants_str::SERVER_ADMIN_PAGE_AUDIT_LOG_SQL)
     .bind(
         parts
             .get_user_id()

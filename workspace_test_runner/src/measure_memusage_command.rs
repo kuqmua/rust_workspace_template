@@ -5,10 +5,10 @@ pub(super) fn measure_memusage_command(
     memusage_prog_name: crate::memusage_prog_name_ref::MemusageProgNameRef<'_>,
 ) -> Result<(), ()> {
     let measurement_name_value = measurement_name.get();
-    if !std::path::Path::new(constants_str::catalog::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH).exists() {
+    if !std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH).exists() {
         println!(
             "measurement={measurement_name_value}_allocations status=unavailable reason=libmemusage_not_found path={}",
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH
+            constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH
         );
         return Ok(());
     }
@@ -17,15 +17,13 @@ pub(super) fn measure_memusage_command(
     )
     .args(macro_helpers::tool_args_ref::ToolArgsRef::from(args.get()))
     .env(
-        macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(constants_str::catalog::LD_PRELOAD),
+        macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(constants_str::LD_PRELOAD),
         macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH,
+            constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH,
         ),
     )
     .env(
-        macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(
-            constants_str::catalog::MEMUSAGE_PROG_NAME,
-        ),
+        macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(constants_str::MEMUSAGE_PROG_NAME),
         macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(memusage_prog_name.get()),
     )
     .output();
@@ -46,82 +44,82 @@ pub(super) fn measure_memusage_command(
             );
             let heap_total = crate::memusage_heap_value::memusage_heap_value(
                 &clean,
-                crate::memusage_key::MemusageKey::from(constants_str::catalog::HEAP_TOTAL),
+                crate::memusage_key::MemusageKey::from(constants_str::HEAP_TOTAL),
             )
             .get();
             let heap_peak = crate::memusage_heap_value::memusage_heap_value(
                 &clean,
-                crate::memusage_key::MemusageKey::from(constants_str::catalog::HEAP_PEAK),
+                crate::memusage_key::MemusageKey::from(constants_str::HEAP_PEAK),
             )
             .get();
             let stack_peak = crate::memusage_heap_value::memusage_heap_value(
                 &clean,
-                crate::memusage_key::MemusageKey::from(constants_str::catalog::STACK_PEAK),
+                crate::memusage_key::MemusageKey::from(constants_str::STACK_PEAK),
             )
             .get();
             let malloc_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::MALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(0),
             )
             .get();
             let malloc_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::MALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(1),
             )
             .get();
             let malloc_failed = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::MALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(2),
             )
             .get();
             let realloc_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::REALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::REALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(0),
             )
             .get();
             let realloc_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::REALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::REALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(1),
             )
             .get();
             let realloc_failed = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::REALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::REALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(2),
             )
             .get();
             let calloc_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::CALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::CALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(0),
             )
             .get();
             let calloc_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::CALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::CALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(1),
             )
             .get();
             let calloc_failed = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::CALLOC),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::CALLOC),
                 crate::memusage_column_idx::MemusageColumnIdx::from(2),
             )
             .get();
             let free_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::FREE),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::FREE),
                 crate::memusage_column_idx::MemusageColumnIdx::from(0),
             )
             .get();
             let free_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
-                crate::memusage_row_name::MemusageRowName::from(constants_str::catalog::FREE),
+                crate::memusage_row_name::MemusageRowName::from(constants_str::FREE),
                 crate::memusage_column_idx::MemusageColumnIdx::from(1),
             )
             .get();

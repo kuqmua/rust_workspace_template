@@ -24,11 +24,11 @@ impl From<frontend_contract::input_kind::InputKind> for AdminDataGridInputType {
 impl AsRef<str> for AdminDataGridInputType {
     fn as_ref(&self) -> &str {
         match self {
-            Self::Date => constants_str::test_fixtures::HTML_DATE_INPUT_TYPE,
-            Self::DateTime => constants_str::test_fixtures::HTML_DATETIME_LOCAL_INPUT_TYPE,
-            Self::Number => constants_str::test_fixtures::HTML_NUMBER_INPUT_TYPE,
-            Self::Text => constants_str::test_fixtures::HTML_TEXT_INPUT_TYPE,
-            Self::Time => constants_str::test_fixtures::HTML_TIME_INPUT_TYPE,
+            Self::Date => constants_str::HTML_DATE_INPUT_TYPE,
+            Self::DateTime => constants_str::HTML_DATETIME_LOCAL_INPUT_TYPE,
+            Self::Number => constants_str::HTML_NUMBER_INPUT_TYPE,
+            Self::Text => constants_str::HTML_TEXT_INPUT_TYPE,
+            Self::Time => constants_str::HTML_TIME_INPUT_TYPE,
         }
     }
 }
@@ -40,31 +40,31 @@ mod tests {
         [
             (
                 frontend_contract::input_kind::InputKind::Date,
-                constants_str::test_fixtures::HTML_DATE_INPUT_TYPE,
+                constants_str::HTML_DATE_INPUT_TYPE,
             ),
             (
                 frontend_contract::input_kind::InputKind::DateTime,
-                constants_str::test_fixtures::HTML_DATETIME_LOCAL_INPUT_TYPE,
+                constants_str::HTML_DATETIME_LOCAL_INPUT_TYPE,
             ),
             (
                 frontend_contract::input_kind::InputKind::Number,
-                constants_str::test_fixtures::HTML_NUMBER_INPUT_TYPE,
+                constants_str::HTML_NUMBER_INPUT_TYPE,
             ),
             (
                 frontend_contract::input_kind::InputKind::Time,
-                constants_str::test_fixtures::HTML_TIME_INPUT_TYPE,
+                constants_str::HTML_TIME_INPUT_TYPE,
             ),
             (
                 frontend_contract::input_kind::InputKind::Checkbox,
-                constants_str::test_fixtures::HTML_TEXT_INPUT_TYPE,
+                constants_str::HTML_TEXT_INPUT_TYPE,
             ),
             (
                 frontend_contract::input_kind::InputKind::Text,
-                constants_str::test_fixtures::HTML_TEXT_INPUT_TYPE,
+                constants_str::HTML_TEXT_INPUT_TYPE,
             ),
             (
                 frontend_contract::input_kind::InputKind::Uuid,
-                constants_str::test_fixtures::HTML_TEXT_INPUT_TYPE,
+                constants_str::HTML_TEXT_INPUT_TYPE,
             ),
         ]
         .into_iter()

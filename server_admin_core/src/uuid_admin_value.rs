@@ -17,7 +17,7 @@ impl utoipa::PartialSchema for UuidAdminValue {
         utoipa::openapi::ObjectBuilder::new()
             .schema_type(utoipa::openapi::schema::Type::String)
             .format(Some(utoipa::openapi::SchemaFormat::Custom(
-                constants_str::catalog::PG_CRUD_PG_UUID.to_owned(),
+                constants_str::PG_CRUD_PG_UUID.to_owned(),
             )))
             .into()
     }

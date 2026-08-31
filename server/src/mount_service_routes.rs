@@ -8,7 +8,7 @@ pub(crate) fn mount_service_routes(
         axum::Router::new()
             .merge(axum::Router::from(operational_routes).reset_fallback())
             .nest(
-                constants_str::catalog::V1,
+                constants_str::V1,
                 axum::Router::from(api_routes).layer(axum::extract::DefaultBodyLimit::max(
                     body_maximum_bytes.get(),
                 )),

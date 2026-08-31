@@ -73,18 +73,18 @@ fn main() {
         runner_mode::RunnerMode::try_from(value).unwrap_or_else(runner_mode::RunnerMode::from)
     });
     let result = match mode.as_ref().map(runner_mode::RunnerMode::as_ref) {
-        None | Some(constants_str::catalog::STATIC) => run_commands::run_commands(
+        None | Some(constants_str::STATIC) => run_commands::run_commands(
             commands_ref::CommandsRef::from(&constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS),
         ),
-        Some(constants_str::catalog::DATABASE) => {
-            match std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL) {
+        Some(constants_str::DATABASE) => {
+            match std::env::var(constants_str::ENV_NAMES_DATABASE_URL) {
                 Ok(database_url) => {
                     match macro_helpers::validate_test_database_url::validate_test_database_url(
                         macro_helpers::url_ref::UrlRef::from(database_url.as_str()),
                     ) {
                         Ok(_target) => {
                             run_commands::run_commands(commands_ref::CommandsRef::from(&[(
-                                constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
+                                constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                                 &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS[..],
                             )]))
                         }
@@ -100,7 +100,7 @@ fn main() {
                 }
             }
         }
-        Some(constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD) => {
+        Some(constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD) => {
             let input = generate_pg_table_measure_input_token_stream::generate_pg_table_measure_input_token_stream(
                 &quote::quote! {"False"},
             );
@@ -118,7 +118,7 @@ fn main() {
             );
             Ok(())
         }
-        Some(constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD) => {
+        Some(constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD) => {
             let input = quote::quote! {
                 {
                     "pg_table_cols_write_into_file": "False",
@@ -141,7 +141,7 @@ fn main() {
             );
             Ok(())
         }
-        Some(constants_str::catalog::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE) => (|| {
+        Some(constants_str::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE) => (|| {
             let no_body_schema = serde_json::to_value(
                 <server_admin_contract::admin_no_body::AdminNoBody as utoipa::PartialSchema>::schema(
                 ),
@@ -199,12 +199,12 @@ fn main() {
             let authenticated_admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
                 create_admin_fixture_string::create_admin_fixture_string::<
                     server_admin_contract::admin_display_name::AdminDisplayName,
-                >(String::from(constants_str::catalog::ADMIN))?,
+                >(String::from(constants_str::ADMIN))?,
                 server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
                     .map_err(|error| eprintln!("{error}"))?,
                 create_admin_fixture_string::create_admin_fixture_string::<
                     server_admin_contract::admin_login::AdminLogin,
-                >(String::from(constants_str::catalog::ROOT))?,
+                >(String::from(constants_str::ROOT))?,
                 server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(
                     permission_values.clone(),
                 )
@@ -213,7 +213,7 @@ fn main() {
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_role_name::AdminRoleName,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_ROLE_NAME,
+                        constants_str::ADMIN_FIXTURE_ROLE_NAME,
                     ))?,
                 ])
                 .map_err(|error| eprintln!("{error}"))?,
@@ -233,9 +233,7 @@ fn main() {
                             create_admin_fixture_string::create_admin_fixture_string::<
                                 server_admin_contract::admin_display_name::AdminDisplayName,
                             >(if is_alpha {
-                                String::from(
-                                    constants_str::test_fixtures::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME,
-                                )
+                                String::from(constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME)
                             } else {
                                 format!("User {number:02}")
                             })?,
@@ -247,9 +245,7 @@ fn main() {
                             create_admin_fixture_string::create_admin_fixture_string::<
                                 server_admin_contract::admin_login::AdminLogin,
                             >(if is_alpha {
-                                String::from(
-                                    constants_str::test_fixtures::ADMIN_FIXTURE_ALPHA_LOGIN,
-                                )
+                                String::from(constants_str::ADMIN_FIXTURE_ALPHA_LOGIN)
                             } else {
                                 format!("user_{number:02}")
                             })?,
@@ -289,7 +285,7 @@ fn main() {
                 create_admin_fixture_string::create_admin_fixture_string::<
                     server_admin_contract::admin_role_name::AdminRoleName,
                 >(String::from(
-                    constants_str::test_fixtures::ADMIN_FIXTURE_ROLE_NAME,
+                    constants_str::ADMIN_FIXTURE_ROLE_NAME,
                 ))?,
                 server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(
                     permission_summaries
@@ -303,7 +299,7 @@ fn main() {
             let audit_details =
                 server_admin_contract::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails::try_from(
                     serde_json::json!({
-                        constants_str::catalog::FIELD: constants_str::catalog::DISPLAY_NAME
+                        constants_str::FIELD: constants_str::DISPLAY_NAME
                     }),
                 )
                 .map_err(|error| eprintln!("{error}"))?;
@@ -318,32 +314,30 @@ fn main() {
                 server_admin_contract::admin_audit_view::AdminAuditView::new(
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_text::AdminText,
-                    >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_AUDIT_ACTION,
-                    ))?,
+                    >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_ACTION))?,
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_AUDIT_CREATED_AT,
+                        constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT,
                     ))?,
                     Some(audit_details),
                     audit_log_id,
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_text::AdminText,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_AUDIT_RESOURCE,
+                        constants_str::ADMIN_FIXTURE_AUDIT_RESOURCE,
                     ))?,
                     Some(create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_text::AdminText,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_AUDIT_RESOURCE_ID,
+                        constants_str::ADMIN_FIXTURE_AUDIT_RESOURCE_ID,
                     ))?),
                     server_admin_contract::admin_bool::AdminBool::from(true),
                     Some(audit_user_id),
                     Some(create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_login::AdminLogin,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_ALPHA_LOGIN,
+                        constants_str::ADMIN_FIXTURE_ALPHA_LOGIN,
                     ))?),
                 ),
             ];
@@ -352,35 +346,33 @@ fn main() {
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_session_timestamp::AdminSessionTimestamp,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_SESSION_CREATED_AT,
+                        constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
                     ))?,
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_session_timestamp::AdminSessionTimestamp,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
+                        constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
                     ))?,
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_session_identifier::AdminSessionIdentifier,
-                    >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_SESSION_ID,
-                    ))?,
+                    >(String::from(constants_str::ADMIN_FIXTURE_SESSION_ID))?,
                     server_admin_contract::admin_bool::AdminBool::from(true),
                 ),
                 server_admin_contract::admin_session_view::AdminSessionView::new(
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_session_timestamp::AdminSessionTimestamp,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_SESSION_CREATED_AT,
+                        constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
                     ))?,
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_session_timestamp::AdminSessionTimestamp,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
+                        constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
                     ))?,
                     create_admin_fixture_string::create_admin_fixture_string::<
                         server_admin_contract::admin_session_identifier::AdminSessionIdentifier,
                     >(String::from(
-                        constants_str::test_fixtures::ADMIN_FIXTURE_SECOND_SESSION_ID,
+                        constants_str::ADMIN_FIXTURE_SECOND_SESSION_ID,
                     ))?,
                     server_admin_contract::admin_bool::AdminBool::from(false),
                 ),
@@ -432,9 +424,7 @@ fn main() {
             let audit_cursor = server_admin_contract::admin_audit_cursor::AdminAuditCursor::new(
                 create_admin_fixture_string::create_admin_fixture_string::<
                     server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp,
-                >(String::from(
-                    constants_str::test_fixtures::ADMIN_FIXTURE_AUDIT_CREATED_AT,
-                ))?,
+                >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT))?,
                 server_admin_contract::admin_audit_log_id::AdminAuditLogId::try_from(
                     constants_i64::ONE,
                 )
@@ -485,23 +475,20 @@ fn main() {
             else {
                 return Err(());
             };
-            let target = workspace_root.join(constants_str::catalog::TARGET);
+            let target = workspace_root.join(constants_str::TARGET);
             std::fs::create_dir_all(target.as_path()).map_err(|error| {
                 eprintln!("{error}");
             })?;
             std::fs::write(
-                target.join(
-                    constants_str::catalog::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE_FILE,
-                ),
+                target.join(constants_str::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE_FILE),
                 fixture,
             )
             .map_err(|error| {
                 eprintln!("{error}");
             })
         })(),
-        Some(constants_str::catalog::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => {
-            (|| {
-                let output_bytes = (0..domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)
+        Some(constants_str::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => (|| {
+            let output_bytes = (0..domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)
                                 .try_fold(constants_usize::ZERO, |series_accumulator, _| {
                                     (0..domain_types::MEASURE_REPEAT_COUNT).try_fold(
                                         series_accumulator,
@@ -511,7 +498,7 @@ fn main() {
                                                 &pg_crud_common::pagination_base::PaginationBase::default(),
                                                 &mut increment,
                                                 pg_crud_common::sql_column_ref::SqlColumnRef::from(
-                                                    &constants_str::catalog::COLUMN,
+                                                    &constants_str::COLUMN,
                                                 ),
                                                 pg_crud_common::add_operator::AddOperator::from(false),
                                             ) {
@@ -528,22 +515,19 @@ fn main() {
                                         },
                                     )
                                 })?;
-                println!(
-                    "allocation_workload=pg_crud_common_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
-                    series_count = domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
-                    repeat_count = domain_types::MEASURE_REPEAT_COUNT,
-                );
-                Ok(())
-            })()
-        }
-        Some(constants_str::catalog::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
-            (|| {
-                let where_filters_values = (constants_i32::ZERO..64i32).collect::<Vec<i32>>();
-                let where_filters_bounded_vec = match where_filters::pg_filter_vec::PgFilterVec::<
-                    i32,
-                    64,
-                >::try_from(
-                    where_filters_values
+            println!(
+                "allocation_workload=pg_crud_common_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
+                series_count = domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
+                repeat_count = domain_types::MEASURE_REPEAT_COUNT,
+            );
+            Ok(())
+        })(
+        ),
+        Some(constants_str::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => (|| {
+            let where_filters_values = (constants_i32::ZERO..64i32).collect::<Vec<i32>>();
+            let where_filters_bounded_vec =
+                match where_filters::pg_filter_vec::PgFilterVec::<i32, 64>::try_from(
+                    where_filters_values,
                 ) {
                     Ok(value) => value,
                     Err(error) => {
@@ -553,7 +537,7 @@ fn main() {
                         return Err(());
                     }
                 };
-                let output_bytes = (0..domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)
+            let output_bytes = (0..domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT)
                                 .try_fold(constants_usize::ZERO, |series_accumulator, _| {
                                     (0..domain_types::MEASURE_REPEAT_COUNT).try_fold(
                                         series_accumulator,
@@ -562,7 +546,7 @@ fn main() {
                                             match where_filters_bounded_vec.pg_type_query_part(
                                                 &mut increment,
                                                 pg_crud_common::sql_column_ref::SqlColumnRef::from(
-                                                    &constants_str::catalog::COLUMN,
+                                                    &constants_str::COLUMN,
                                                 ),
                                                 pg_crud_common::add_operator::AddOperator::from(false),
                                             ) {
@@ -579,30 +563,30 @@ fn main() {
                                         },
                                     )
                                 })?;
-                println!(
-                    "allocation_workload=where_filters_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
-                    series_count = domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
-                    repeat_count = domain_types::MEASURE_REPEAT_COUNT,
-                );
-                Ok(())
-            })()
-        }
-        Some(constants_str::catalog::MACRO_GENERATION) => {
+            println!(
+                "allocation_workload=where_filters_query_part series_count={series_count} repeat_count={repeat_count} output_bytes={output_bytes}",
+                series_count = domain_types::SQL_BUILDER_MEASURE_SERIES_COUNT,
+                repeat_count = domain_types::MEASURE_REPEAT_COUNT,
+            );
+            Ok(())
+        })(
+        ),
+        Some(constants_str::MACRO_GENERATION) => {
             macro_generation_measurements::macro_generation_measurements()
                 .iter()
                 .try_fold((), |(), (measurement_name, args)| {
                     measure_cargo_command::measure_cargo_command(*measurement_name, *args)
                 })
         }
-        Some(constants_str::catalog::TESTS_ALT) => run_workspace_tests::run_workspace_tests(),
-        Some(constants_str::catalog::HEAVY_LOAD) => {
+        Some(constants_str::TESTS_ALT) => run_workspace_tests::run_workspace_tests(),
+        Some(constants_str::HEAVY_LOAD) => {
             if cargo_subcommand_available::cargo_subcommand_available(tool_name::ToolName::from(
-                constants_str::catalog::NEXTEST,
+                constants_str::NEXTEST,
             ))
             .get()
             {
                 run_commands::run_commands(commands_ref::CommandsRef::from(&[(
-                    constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                     &constants_str::WORKSPACE_TEST_RUNNER_NEXTEST_HEAVY_ARGS[..],
                 )]))
             } else {
@@ -610,15 +594,15 @@ fn main() {
                 Err(())
             }
         }
-        Some(constants_str::catalog::RELEASE) => {
+        Some(constants_str::RELEASE) => {
             [
-                constants_str::catalog::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
-                constants_str::catalog::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
-                constants_str::catalog::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
-                constants_str::catalog::SEMVER_CHECKS,
-                constants_str::catalog::UDEPS,
-                constants_str::catalog::MACHETE,
-                constants_str::catalog::LLVM_COV,
+                constants_str::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
+                constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
+                constants_str::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
+                constants_str::SEMVER_CHECKS,
+                constants_str::UDEPS,
+                constants_str::MACHETE,
+                constants_str::LLVM_COV,
             ]
             .into_iter()
             .for_each(|tool| {
@@ -633,7 +617,7 @@ fn main() {
             let mut commands =
                 Vec::<(&str, &[&str])>::from(constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS);
             if cargo_subcommand_available::cargo_subcommand_available(tool_name::ToolName::from(
-                constants_str::catalog::NEXTEST,
+                constants_str::NEXTEST,
             ))
             .get()
             {
@@ -643,27 +627,27 @@ fn main() {
             }
             [
                 (
-                    constants_str::catalog::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
+                    constants_str::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO_AUDIT_ARGS.as_slice(),
                 ),
                 (
-                    constants_str::catalog::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
+                    constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO_DENY_ARGS.as_slice(),
                 ),
                 (
-                    constants_str::catalog::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
+                    constants_str::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO_HACK_ARGS.as_slice(),
                 ),
                 (
-                    constants_str::catalog::MACHETE,
+                    constants_str::MACHETE,
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO_MACHETE_ARGS.as_slice(),
                 ),
                 (
-                    constants_str::catalog::SEMVER_CHECKS,
+                    constants_str::SEMVER_CHECKS,
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO_SEMVER_CHECKS_ARGS.as_slice(),
                 ),
                 (
-                    constants_str::catalog::UDEPS,
+                    constants_str::UDEPS,
                     constants_str::WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS.as_slice(),
                 ),
             ]
@@ -675,11 +659,11 @@ fn main() {
                 .get()
             })
             .for_each(|(_subcommand, args)| {
-                commands.push((constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO, args));
+                commands.push((constants_str::WORKSPACE_TEST_RUNNER_CARGO, args));
             });
             run_commands::run_commands(commands_ref::CommandsRef::from(commands.as_slice()))
         }
-        Some(constants_str::catalog::MEASURE) => {
+        Some(constants_str::MEASURE) => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
                 allocation_tools::allocation_tools()
                     .iter()
@@ -698,26 +682,24 @@ fn main() {
                 Ok(()) => {}
                 Err(error) => match error {},
             }
-            if std::path::Path::new(constants_str::catalog::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH)
-                .exists()
-            {
+            if std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH).exists() {
                 println!(
                     "measurement=exact_allocations status=available tool=libmemusage path={}",
-                    constants_str::catalog::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH
+                    constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH
                 );
                 measure_memusage_command::measure_memusage_command(
-                    measurement_name::MeasurementName::from(constants_str::catalog::CODE_STYLE),
+                    measurement_name::MeasurementName::from(constants_str::CODE_STYLE),
                     program_path_ref::ProgramPathRef::from(
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
+                        constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                     ),
                     program_args_ref::ProgramArgsRef::from(&[
-                        constants_str::catalog::TEST_ALT_3,
-                        constants_str::catalog::P,
-                        constants_str::catalog::TESTS_ALT,
-                        constants_str::catalog::CODE_STYLE,
+                        constants_str::TEST_ALT_3,
+                        constants_str::P,
+                        constants_str::TESTS_ALT,
+                        constants_str::CODE_STYLE,
                     ]),
                     memusage_prog_name_ref::MemusageProgNameRef::from(
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
+                        constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                     ),
                 )
                 .unwrap_or_else(|()| std::process::exit(1));
@@ -734,31 +716,31 @@ fn main() {
                 let current_exe_prog_name = current_exe
                     .file_name()
                     .and_then(|value| value.to_str())
-                    .unwrap_or(constants_str::catalog::WORKSPACE_TEST_RUNNER_ALT);
+                    .unwrap_or(constants_str::WORKSPACE_TEST_RUNNER_ALT);
                 [
                     (
                         measurement_name::MeasurementName::from(
-                            constants_str::catalog::GENERATE_PG_TABLE_SRC,
+                            constants_str::GENERATE_PG_TABLE_SRC,
                         ),
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD,
+                        constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD,
                     ),
                     (
                         measurement_name::MeasurementName::from(
-                            constants_str::catalog::GENERATE_PG_TYPES_SRC,
+                            constants_str::GENERATE_PG_TYPES_SRC,
                         ),
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD,
+                        constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD,
                     ),
                     (
                         measurement_name::MeasurementName::from(
-                            constants_str::catalog::PG_CRUD_COMMON_QUERY_PART,
+                            constants_str::PG_CRUD_COMMON_QUERY_PART,
                         ),
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD,
+                        constants_str::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD,
                     ),
                     (
                         measurement_name::MeasurementName::from(
-                            constants_str::catalog::WHERE_FILTERS_QUERY_PART,
+                            constants_str::WHERE_FILTERS_QUERY_PART,
                         ),
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD,
+                        constants_str::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD,
                     ),
                 ]
                 .into_iter()
@@ -777,17 +759,17 @@ fn main() {
                 );
             }
             measure_cargo_command::measure_cargo_command(
-                measurement_name::MeasurementName::from(constants_str::catalog::CODE_STYLE),
+                measurement_name::MeasurementName::from(constants_str::CODE_STYLE),
                 cargo_args::CargoArgs::from(&[
-                    constants_str::catalog::TEST_ALT_3,
-                    constants_str::catalog::P,
-                    constants_str::catalog::TESTS_ALT,
-                    constants_str::catalog::CODE_STYLE,
+                    constants_str::TEST_ALT_3,
+                    constants_str::P,
+                    constants_str::TESTS_ALT,
+                    constants_str::CODE_STYLE,
                 ]),
             )
             .unwrap_or_else(|()| std::process::exit(1));
             measure_cargo_command::measure_cargo_command(
-                measurement_name::MeasurementName::from(constants_str::catalog::CLIPPY),
+                measurement_name::MeasurementName::from(constants_str::CLIPPY),
                 cargo_args::CargoArgs::from(
                     &constants_str::WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS,
                 ),
@@ -864,9 +846,8 @@ fn main() {
                 generate_pg_table_measurement.3,
                 generate_pg_table_measurement.4
             );
-            let generate_pg_table_with_tests_dir = std::path::Path::new(
-                constants_str::catalog::TARGET_MEASURE_GENERATE_PG_TABLE_WITH_TESTS,
-            );
+            let generate_pg_table_with_tests_dir =
+                std::path::Path::new(constants_str::TARGET_MEASURE_GENERATE_PG_TABLE_WITH_TESTS);
             if let Err(error) = std::fs::create_dir_all(generate_pg_table_with_tests_dir) {
                 eprintln!(
                     "measurement=generate_pg_table_src_with_tests status=create_dir_failed error={error}"
@@ -874,8 +855,8 @@ fn main() {
                 std::process::exit(1);
             }
             if let Err(error) = std::fs::write(
-                generate_pg_table_with_tests_dir.join(constants_str::catalog::RUSTFMT_TOML),
-                constants_str::catalog::EDITION_2024_NEWLINE,
+                generate_pg_table_with_tests_dir.join(constants_str::RUSTFMT_TOML),
+                constants_str::EDITION_2024_NEWLINE,
             ) {
                 eprintln!(
                     "measurement=generate_pg_table_src_with_tests status=rustfmt_config_write_failed error={error}"
@@ -929,8 +910,8 @@ fn main() {
                 );
                 std::process::exit(1);
             }
-            let generate_pg_table_tests_stage_output_path = generate_pg_table_with_tests_dir
-                .join(constants_str::catalog::GENERATE_PG_TABLE_TESTS_RS);
+            let generate_pg_table_tests_stage_output_path =
+                generate_pg_table_with_tests_dir.join(constants_str::GENERATE_PG_TABLE_TESTS_RS);
             let generate_pg_table_tests_stage_output =
                 match server_runtime_http::read_bounded_file::read_bounded_file(
                     server_runtime_http::runtime_path_ref::RuntimePathRef::from(
@@ -1147,7 +1128,7 @@ fn main() {
                                 &pg_crud_common::pagination_base::PaginationBase::default(),
                                 &mut increment,
                                 pg_crud_common::sql_column_ref::SqlColumnRef::from(
-                                    &constants_str::catalog::COLUMN,
+                                    &constants_str::COLUMN,
                                 ),
                                 pg_crud_common::add_operator::AddOperator::from(false),
                             ) {
@@ -1214,7 +1195,7 @@ fn main() {
                             match where_filters_bounded_vec.pg_type_query_part(
                                 &mut increment,
                                 pg_crud_common::sql_column_ref::SqlColumnRef::from(
-                                    &constants_str::catalog::COLUMN,
+                                    &constants_str::COLUMN,
                                 ),
                                 pg_crud_common::add_operator::AddOperator::from(false),
                             ) {
@@ -1249,7 +1230,7 @@ fn main() {
                 }
             }
         }
-        Some(constants_str::catalog::ALL_ALT) => run_commands::run_commands(
+        Some(constants_str::ALL_ALT) => run_commands::run_commands(
             commands_ref::CommandsRef::from(&constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS),
         )
         .and_then(|()| run_workspace_tests::run_workspace_tests())

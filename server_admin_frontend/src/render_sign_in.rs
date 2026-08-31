@@ -16,7 +16,7 @@ pub fn render_sign_in(
     let tab_title = branding
         .and_then(server_admin_contract::admin_branding_view::AdminBrandingView::tab_title)
         .map_or_else(
-            || String::from(constants_str::test_fixtures::ADMINISTRATOR_SIGN_IN),
+            || String::from(constants_str::ADMINISTRATOR_SIGN_IN),
             |value| AsRef::<str>::as_ref(value).to_owned(),
         );
     let primary_color = branding

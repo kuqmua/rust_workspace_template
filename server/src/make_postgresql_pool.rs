@@ -26,7 +26,7 @@ pub(crate) async fn make_postgresql_pool(
             Box::pin(async move {
                 sqlx::Executor::execute(
                     &mut *connection,
-                    constants_str::test_fixtures::POSTGRES_STATEMENT_TIMEOUT_SQL,
+                    constants_str::POSTGRES_STATEMENT_TIMEOUT_SQL,
                 )
                 .await
                 .map(drop)

@@ -34,8 +34,8 @@ where
     }
     let cap = crate::git_commit_link_capacity_value::git_commit_link_capacity_value(commit_id_ref);
     let mut output = String::with_capacity(*cap);
-    output.push_str(constants_str::catalog::NAMING_GITHUB_URL);
-    output.push_str(constants_str::catalog::GIT_INFO_TREE_SEGMENT);
+    output.push_str(constants_str::NAMING_GITHUB_URL);
+    output.push_str(constants_str::GIT_INFO_TREE_SEGMENT);
     output.push_str(commit_id_ref.as_ref());
     crate::git_commit_link_cow::GitCommitLinkCow::try_from(std::borrow::Cow::Owned(output))
         .unwrap_or_else(crate::git_commit_link_cow::GitCommitLinkCow::from)

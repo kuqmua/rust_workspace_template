@@ -13,7 +13,7 @@ pub(crate) async fn authorization_validate_csrf(
     let provided = headers
         .get()
         .get(http::HeaderName::from_static(
-            constants_str::catalog::X_CSRF_TOKEN_ALT,
+            constants_str::X_CSRF_TOKEN_ALT,
         ))
         .and_then(|value| value.to_str().ok())
         .ok_or(crate::admin_error::AdminError::Csrf)?;
@@ -24,29 +24,27 @@ pub(crate) async fn authorization_validate_csrf(
             .map_err(crate::admin_error::AdminError::csrf_secret_text)?;
     let provided_hash = crate::hash_opaque_token::hash_opaque_token(&provided_token)
         .map_err(crate::admin_error::AdminError::csrf_secret_text)?;
-    let expected = sqlx::query_scalar::<_, String>(
-        constants_str::integration_fixtures::SERVER_ADMIN_READ_CSRF_HASH_SQL,
-    )
-    .bind(authenticated.session_id.get().get())
-    .bind(authenticated.id.get())
-    .fetch_optional(state.pool.as_ref())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .and_then(|value| {
-        value
-            .map(|hash| {
-                server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(hash)
-                    .map(crate::admin_token_hash::AdminTokenHash::new)
-                    .map_err(|error| {
-                        crate::sqlx_admin_error::SqlxAdminError::from(sqlx::Error::Protocol(
-                            error.to_string(),
-                        ))
-                    })
-            })
-            .transpose()
-    })
-    .map_err(crate::admin_error::AdminError::postgresql)?
-    .ok_or(crate::admin_error::AdminError::Csrf)?;
+    let expected = sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_CSRF_HASH_SQL)
+        .bind(authenticated.session_id.get().get())
+        .bind(authenticated.id.get())
+        .fetch_optional(state.pool.as_ref())
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .and_then(|value| {
+            value
+                .map(|hash| {
+                    server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(hash)
+                        .map(crate::admin_token_hash::AdminTokenHash::new)
+                        .map_err(|error| {
+                            crate::sqlx_admin_error::SqlxAdminError::from(sqlx::Error::Protocol(
+                                error.to_string(),
+                            ))
+                        })
+                })
+                .transpose()
+        })
+        .map_err(crate::admin_error::AdminError::postgresql)?
+        .ok_or(crate::admin_error::AdminError::Csrf)?;
     let provided_text = provided_hash.expose();
     let provided_secret =
         match server_runtime_core::secret_text_ref::SecretTextRef::try_from(provided_text.get()) {

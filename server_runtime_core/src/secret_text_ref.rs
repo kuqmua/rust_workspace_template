@@ -42,6 +42,6 @@ impl<'value_lt> From<&'value_lt crate::bounded_secret_text::BoundedSecretText>
 
 impl std::fmt::Debug for SecretTextRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::catalog::REDACTED_ALT_3)
+        f.write_str(constants_str::REDACTED_ALT_3)
     }
 }

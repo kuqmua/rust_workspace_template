@@ -1,19 +1,15 @@
 pub(crate) fn naming_kebab_case(
     value: crate::project_name_ref::ProjectNameRef<'_>,
 ) -> crate::scaffold_text::ScaffoldText {
-    crate::scaffold_text::ScaffoldText::try_from(
-        value.0.replace('_', constants_str::catalog::HYPHEN),
-    )
-    .unwrap_or_else(crate::scaffold_text::ScaffoldText::from)
+    crate::scaffold_text::ScaffoldText::try_from(value.0.replace('_', constants_str::HYPHEN))
+        .unwrap_or_else(crate::scaffold_text::ScaffoldText::from)
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn project_name_conversions_are_consistent() {
-        let value = crate::project_name_ref::ProjectNameRef::from(
-            constants_str::test_fixtures::VALUE_F9EA74B8,
-        );
+        let value = crate::project_name_ref::ProjectNameRef::from(constants_str::VALUE_F9EA74B8);
         assert_eq!(
             crate::naming_kebab_case::naming_kebab_case(value).as_ref(),
             "order-platform"

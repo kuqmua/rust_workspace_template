@@ -30,9 +30,9 @@ pub fn render_user_manage(
         let login = item.login().to_string();
         let display_name = item.display_name().to_string();
         let status = if bool::from(item.is_banned()) {
-            constants_str::test_fixtures::VALUE_05EB2107
+            constants_str::VALUE_05EB2107
         } else {
-            constants_str::test_fixtures::VALUE_92340695
+            constants_str::VALUE_92340695
         };
         leptos::view! {
             <crate::admin_card::AdminCard><article class="crud-record" id=article_id>

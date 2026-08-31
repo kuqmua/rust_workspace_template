@@ -6,7 +6,7 @@ pub(crate) fn read_commit_header_str(
         super::commit_header_name::COMMIT_HEADER_NAME,
         || crate::commit_error::CommitError::NoCommitHeader {
             no_commit_header: crate::no_commit_header_message::NoCommitHeaderMessage::from(
-                constants_str::catalog::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
+                constants_str::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
             ),
             location: location_macros::location!(),
         },

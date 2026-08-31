@@ -24,7 +24,7 @@ mod tests {
             Serializer: serde::Serializer,
         {
             Err(serde::ser::Error::custom(
-                constants_str::catalog::INTENTIONAL_SERIALIZATION_FAILURE,
+                constants_str::INTENTIONAL_SERIALIZATION_FAILURE,
             ))
         }
     }
@@ -53,7 +53,7 @@ mod tests {
                 Ok(Self)
             } else {
                 Err(serde::de::Error::custom(
-                    constants_str::catalog::ONLY_FIXTURE_VALUE_ONE_IS_ACCEPTED,
+                    constants_str::ONLY_FIXTURE_VALUE_ONE_IS_ACCEPTED,
                 ))
             }
         }
@@ -61,9 +61,7 @@ mod tests {
     #[test]
     fn round_trip_and_fixture_error_phases_are_stable() {
         crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<TestValue>(
-            crate::json_fixture_ref::JsonFixtureRef::from(
-                constants_str::integration_fixtures::VALUE_1_ALT,
-            ),
+            crate::json_fixture_ref::JsonFixtureRef::from(constants_str::VALUE_1_ALT),
         )
         .expect("7557a4b4 round_trip_and_fixture_error_phases_are_stable invariant must hold");
         assert!(matches!(

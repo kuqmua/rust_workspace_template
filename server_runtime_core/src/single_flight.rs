@@ -56,7 +56,7 @@ impl SingleFlight {
 mod tests {
     fn single_flight_key() -> crate::single_flight_key::SingleFlightKey {
         crate::single_flight_key::SingleFlightKey::try_from(String::from(
-            constants_str::test_fixtures::TEST_SINGLE_FLIGHT_KEY,
+            constants_str::TEST_SINGLE_FLIGHT_KEY,
         ))
         .expect("68276323 key invariant must hold")
     }

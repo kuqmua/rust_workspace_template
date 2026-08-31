@@ -25,12 +25,12 @@ fn setting_types_match_database_constraints() {
         panic!("4cfb6820");
     };
     let Err(_blank_site_name_error) =
-        crate::admin_site_name::AdminSiteName::try_from(constants_str::catalog::SPACE.to_owned())
+        crate::admin_site_name::AdminSiteName::try_from(constants_str::SPACE.to_owned())
     else {
         panic!("b5fba19e");
     };
     let _site_name =
-        crate::admin_site_name::AdminSiteName::try_from(constants_str::catalog::ADMIN.to_owned())
+        crate::admin_site_name::AdminSiteName::try_from(constants_str::ADMIN.to_owned())
             .expect("adb58327 setting_types_match_database_constraints invariant must hold");
     let _default_route = crate::admin_default_route::AdminDefaultRoute::try_from(
         crate::admin_frontend_path::AdminFrontendPath::Users
@@ -44,9 +44,9 @@ fn setting_types_match_database_constraints() {
             .to_string(),
     )
     .expect("e3d42017 setting_types_match_database_constraints invariant must hold");
-    let Err(_invalid_route_error) = crate::admin_default_route::AdminDefaultRoute::try_from(
-        constants_str::catalog::ROUTE.to_owned(),
-    ) else {
+    let Err(_invalid_route_error) =
+        crate::admin_default_route::AdminDefaultRoute::try_from(constants_str::ROUTE.to_owned())
+    else {
         panic!("bb0d454a");
     };
 }
@@ -73,10 +73,8 @@ fn update_reports_whether_it_contains_a_field() {
         None,
         None,
         Some(
-            crate::admin_site_name::AdminSiteName::try_from(
-                constants_str::catalog::ADMIN.to_owned(),
-            )
-            .expect("5db76a91 update_reports_whether_it_contains_a_field invariant must hold"),
+            crate::admin_site_name::AdminSiteName::try_from(constants_str::ADMIN.to_owned())
+                .expect("5db76a91 update_reports_whether_it_contains_a_field invariant must hold"),
         ),
         None,
         None,
@@ -130,23 +128,20 @@ fn catalog_covers_read_and_update_wire_fields() {
         .map(|setting| setting.spec().name().as_ref().to_owned())
         .collect::<std::collections::BTreeSet<_>>();
     let mut expected_update_fields = setting_fields.clone();
-    let _inserted =
-        expected_update_fields.insert(String::from(constants_str::test_fixtures::VALUE_913A4CB9));
+    let _inserted = expected_update_fields.insert(String::from(constants_str::VALUE_913A4CB9));
     assert_eq!(update_fields, expected_update_fields);
 
     let view = crate::admin_settings_view::AdminSettingsView::new(
         crate::admin_default_route::AdminDefaultRoute::try_from(String::from(
-            constants_str::test_fixtures::VALUE_074B6E5E,
+            constants_str::VALUE_074B6E5E,
         ))
         .expect("b6831fd4 catalog_covers_read_and_update_wire_fields invariant must hold"),
         None,
         None,
         None,
         None,
-        crate::admin_site_name::AdminSiteName::try_from(String::from(
-            constants_str::catalog::ADMIN,
-        ))
-        .expect("e15c7a93 catalog_covers_read_and_update_wire_fields invariant must hold"),
+        crate::admin_site_name::AdminSiteName::try_from(String::from(constants_str::ADMIN))
+            .expect("e15c7a93 catalog_covers_read_and_update_wire_fields invariant must hold"),
         None,
         None,
     );

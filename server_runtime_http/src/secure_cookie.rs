@@ -9,7 +9,7 @@ mod tests {
             "977f74f0 builder_sets_security_attributes_and_rejects_injection invariant must hold",
         );
         let value = crate::http_cookie_value::HttpCookieValue::try_from(String::from(
-            constants_str::test_fixtures::TEST_COOKIE_VALUE,
+            constants_str::TEST_COOKIE_VALUE,
         ))
         .expect(
             "38fc5531 builder_sets_security_attributes_and_rejects_injection invariant must hold",
@@ -28,11 +28,11 @@ mod tests {
         let text = header_value.to_str().expect(
             "3176fb72 builder_sets_security_attributes_and_rejects_injection invariant must hold",
         );
-        assert!(text.contains(constants_str::catalog::HTTPONLY));
-        assert!(text.contains(constants_str::catalog::SECURE));
+        assert!(text.contains(constants_str::HTTPONLY));
+        assert!(text.contains(constants_str::SECURE));
         assert_eq!(
             crate::http_cookie_value::HttpCookieValue::try_from(String::from(
-                constants_str::test_fixtures::TEST_COOKIE_INJECTION
+                constants_str::TEST_COOKIE_INJECTION
             )),
             Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue),
         );
@@ -53,7 +53,7 @@ mod tests {
         ))
         .expect("3dde3ff2 builder_preserves_unsigned_maximum_age_range invariant must hold");
         let value = crate::http_cookie_value::HttpCookieValue::try_from(String::from(
-            constants_str::test_fixtures::TEST_COOKIE_VALUE,
+            constants_str::TEST_COOKIE_VALUE,
         ))
         .expect("7b47e5b5 builder_preserves_unsigned_maximum_age_range invariant must hold");
         let header = crate::build_secure_strict_cookie::build_secure_strict_cookie(

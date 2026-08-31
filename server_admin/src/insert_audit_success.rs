@@ -8,7 +8,7 @@ pub(crate) async fn insert_audit_success(
     request_id: server_admin_core::uuid_admin_value::UuidAdminValue,
     details: &server_admin_contract::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails,
 ) -> Result<(), crate::sqlx_admin_error::SqlxAdminError> {
-    sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL)
         .bind(user_id.get())
         .bind(login.as_ref())
         .bind(action.as_str().as_ref())

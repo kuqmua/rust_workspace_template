@@ -3,21 +3,18 @@ async fn html_form_auth_rejects_cookie_without_trusted_origin() {
     let mut headers = http::HeaderMap::new();
     let _cookie = headers.insert(
         http::header::COOKIE,
-        http::HeaderValue::from_static(constants_str::test_fixtures::VALUE_BF7FDCFF),
+        http::HeaderValue::from_static(constants_str::VALUE_BF7FDCFF),
     );
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(
-            constants_str::catalog::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
-        )
+        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("1c2a7f54 HTML form authentication pool invariant must hold");
-    let state =
-        crate::application_tests_helper::auth_state(pool, constants_str::catalog::HTTP_LOCALHOST)
-            .expect("adf9c06e HTML form authentication state invariant must hold");
+    let state = crate::application_tests_helper::auth_state(pool, constants_str::HTTP_LOCALHOST)
+        .expect("adf9c06e HTML form authentication state invariant must hold");
     let request = crate::admin_auth_req::AdminAuthReq {
         headers: crate::http_admin_header_map::HttpAdminHeaderMap::from(headers),
         peer: crate::admin_peer_addr::AdminPeerAddr::from(
             server_admin_core::admin_socket_addr::AdminSocketAddr::from(
-                constants_str::catalog::VALUE_127_0_0_1_43210
+                constants_str::VALUE_127_0_0_1_43210
                     .parse::<std::net::SocketAddr>()
                     .expect("0ce8ff47 HTML form authentication peer invariant must hold"),
             ),
@@ -68,7 +65,7 @@ fn assignment_id_lists_reject_empty_entries() {
     ));
 
     let malformed = crate::admin_html_form_text::AdminHtmlFormText::try_from(String::from(
-        constants_str::test_fixtures::VALUE_A2688517,
+        constants_str::VALUE_A2688517,
     ))
     .expect("c2d76f19 assignment_id_lists_reject_empty_entries invariant must hold");
     assert!(matches!(
@@ -87,11 +84,9 @@ async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
         .method(http::Method::POST)
         .header(
             http::header::CONTENT_TYPE,
-            constants_str::test_fixtures::APPLICATION_X_WWW_FORM_URLENCODED,
+            constants_str::APPLICATION_X_WWW_FORM_URLENCODED,
         )
-        .body(axum::body::Body::from(
-            constants_str::test_fixtures::VALUE_08400B3F,
-        ));
+        .body(axum::body::Body::from(constants_str::VALUE_08400B3F));
     let Ok(request) = request else {
         panic!("6f44bd85");
     };

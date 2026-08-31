@@ -34,15 +34,15 @@ pub fn build_attachment_content_disposition(
     )
     .to_string();
     let mut header = String::with_capacity(
-        constants_str::test_fixtures::CONTENT_DISPOSITION_ATTACHMENT_PREFIX
+        constants_str::CONTENT_DISPOSITION_ATTACHMENT_PREFIX
             .len()
             .saturating_add(fallback.len())
-            .saturating_add(constants_str::test_fixtures::CONTENT_DISPOSITION_UTF8_DELIMITER.len())
+            .saturating_add(constants_str::CONTENT_DISPOSITION_UTF8_DELIMITER.len())
             .saturating_add(encoded.len()),
     );
-    header.push_str(constants_str::test_fixtures::CONTENT_DISPOSITION_ATTACHMENT_PREFIX);
+    header.push_str(constants_str::CONTENT_DISPOSITION_ATTACHMENT_PREFIX);
     header.push_str(fallback.as_str());
-    header.push_str(constants_str::test_fixtures::CONTENT_DISPOSITION_UTF8_DELIMITER);
+    header.push_str(constants_str::CONTENT_DISPOSITION_UTF8_DELIMITER);
     header.push_str(encoded.as_str());
     http::HeaderValue::try_from(header)
         .map(crate::http_content_disposition::HttpContentDisposition::from)

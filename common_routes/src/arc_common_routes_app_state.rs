@@ -9,7 +9,7 @@ impl ArcCommonRoutesAppState {
 }
 impl std::fmt::Debug for ArcCommonRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(constants_str::catalog::STDARCCOMMONROUTESAPPSTATE)
+        f.debug_tuple(constants_str::STDARCCOMMONROUTESAPPSTATE)
             .finish()
     }
 }

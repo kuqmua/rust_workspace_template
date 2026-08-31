@@ -1,6 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminHtmlFormKeyError {
-    #[error("{message}", message = constants_str::test_fixtures::ADMIN_HTML_FORM_KEY_TOO_LONG)]
+    #[error("{message}", message = constants_str::ADMIN_HTML_FORM_KEY_TOO_LONG)]
     TooLong,
 }
 impl From<bounded_types::bounded_value_error::BoundedValueError> for AdminHtmlFormKeyError {

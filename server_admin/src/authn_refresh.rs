@@ -64,20 +64,19 @@ pub(crate) async fn authn_refresh(
         .begin()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    let optional_user_id = sqlx::query_scalar::<_, i64>(
-        constants_str::integration_fixtures::SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL,
-    )
-    .bind(token_hash.expose().as_ref())
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .and_then(|value| {
-        value
-            .map(server_admin_core::admin_user_record_id::AdminUserRecordId::try_from)
-            .transpose()
+    let optional_user_id =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL)
+            .bind(token_hash.expose().as_ref())
+            .fetch_optional(&mut *tx)
+            .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    })
-    .map_err(crate::admin_error::AdminError::from)?;
+            .and_then(|value| {
+                value
+                    .map(server_admin_core::admin_user_record_id::AdminUserRecordId::try_from)
+                    .transpose()
+                    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            })
+            .map_err(crate::admin_error::AdminError::from)?;
     let Some(user_id) = optional_user_id else {
         tx.commit()
             .await
@@ -108,18 +107,17 @@ pub(crate) async fn authn_refresh(
     )
     .await
     .map_err(crate::admin_error::AdminError::session)?;
-    let login = sqlx::query_scalar::<_, String>(
-        constants_str::integration_fixtures::SERVER_ADMIN_READ_ACTIVE_USER_LOGIN_SQL,
-    )
-    .bind(admin_user_id.get())
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map_err(crate::admin_error::AdminError::from)?
-    .map(server_admin_contract::admin_login::AdminLogin::try_from)
-    .transpose()
-    .map_err(|_error| crate::admin_error::AdminError::Validation)?
-    .ok_or(crate::admin_error::AdminError::Authentication)?;
+    let login =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_ACTIVE_USER_LOGIN_SQL)
+            .bind(admin_user_id.get())
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            .map_err(crate::admin_error::AdminError::from)?
+            .map(server_admin_contract::admin_login::AdminLogin::try_from)
+            .transpose()
+            .map_err(|_error| crate::admin_error::AdminError::Validation)?
+            .ok_or(crate::admin_error::AdminError::Authentication)?;
     crate::record_audit_success_in_connection::record_audit_success_in_connection(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,

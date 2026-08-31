@@ -37,17 +37,14 @@ pub struct AdminUsers {
 #[allow(clippy::missing_fields_in_debug)] // password_hash is intentionally represented by a redacted constant
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::catalog::ADMINUSERS)
-            .field(constants_str::catalog::SQL_NAMES_ID, &self.id)
-            .field(constants_str::catalog::LOGIN, &self.login)
-            .field(constants_str::catalog::DISPLAY_NAME, &self.display_name)
-            .field(
-                constants_str::catalog::PASSWORD_HASH,
-                &constants_str::catalog::REDACTED_ALT_3,
-            )
-            .field(constants_str::catalog::IS_BANNED, &self.is_banned)
-            .field(constants_str::catalog::CREATED_AT, &self.created_at)
-            .field(constants_str::catalog::UPDATED_AT, &self.updated_at)
+        f.debug_struct(constants_str::ADMINUSERS)
+            .field(constants_str::SQL_NAMES_ID, &self.id)
+            .field(constants_str::LOGIN, &self.login)
+            .field(constants_str::DISPLAY_NAME, &self.display_name)
+            .field(constants_str::PASSWORD_HASH, &constants_str::REDACTED_ALT_3)
+            .field(constants_str::IS_BANNED, &self.is_banned)
+            .field(constants_str::CREATED_AT, &self.created_at)
+            .field(constants_str::UPDATED_AT, &self.updated_at)
             .finish()
     }
 }

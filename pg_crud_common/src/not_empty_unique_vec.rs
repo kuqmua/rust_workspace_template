@@ -33,7 +33,7 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVe
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for NotEmptyUniqueVec<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
     }
 }
 impl<T> NotEmptyUniqueVec<T> {
@@ -119,7 +119,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     std::fmt::Formatter::write_str(
                         __f,
-                        constants_str::catalog::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
+                        constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
                 #[inline]
@@ -144,7 +144,7 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ZERO,
-                            &constants_str::catalog::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
+                            &constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
                     match NotEmptyUniqueVec::try_from(
@@ -157,7 +157,7 @@ const _: () = {
             }
             serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                constants_str::catalog::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+                constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
                     lt: _serde::__private229::PhantomData,
@@ -204,7 +204,7 @@ mod tests_not_empty_unique_vec {
         let error = crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(
             vec![NonClone(1), NonClone(2), NonClone(1)].into(),
         )
-        .expect_err(constants_str::catalog::ADF2B8C1);
+        .expect_err(constants_str::ADF2B8C1);
         match error {
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::NotUnique { v, .. } => {
                 assert_eq!(v, NonClone(1));
@@ -227,15 +227,15 @@ mod tests_not_empty_unique_vec {
             )
         ));
         let _error = serde_json::from_str::<crate::not_empty_unique_vec::NotEmptyUniqueVec<u8>>(
-            constants_str::test_fixtures::VALUE_4F53CDA1,
+            constants_str::VALUE_4F53CDA1,
         )
-        .expect_err(constants_str::test_fixtures::VALUE_7C1A5E41);
+        .expect_err(constants_str::VALUE_7C1A5E41);
     }
     #[test]
     fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {
         let error =
             crate::not_empty_unique_vec::NotEmptyUniqueVec::<u8>::try_new(Vec::new().into())
-                .expect_err(constants_str::catalog::VALUE_3B41DE7F);
+                .expect_err(constants_str::VALUE_3B41DE7F);
         assert!(matches!(
             error,
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
@@ -306,7 +306,7 @@ mod tests_not_empty_unique_vec {
         let error = crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new_by_hash(
             vec![1u8, 2u8, 1u8].into(),
         )
-        .expect_err(constants_str::catalog::VALUE_59C80912);
+        .expect_err(constants_str::VALUE_59C80912);
         assert!(matches!(
             error,
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::NotUnique {

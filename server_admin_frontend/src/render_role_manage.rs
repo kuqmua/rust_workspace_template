@@ -30,9 +30,9 @@ pub fn render_role_manage(
         let name = item.name().to_string();
         let is_system = bool::from(item.is_system());
         let status = if is_system {
-            constants_str::test_fixtures::VALUE_91C86A3E
+            constants_str::VALUE_91C86A3E
         } else {
-            constants_str::test_fixtures::VALUE_5B58E07E
+            constants_str::VALUE_5B58E07E
         };
         leptos::view! {
             <crate::admin_card::AdminCard><article class="crud-record" id=article_id>

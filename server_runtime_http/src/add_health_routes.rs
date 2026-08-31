@@ -7,7 +7,7 @@ pub fn add_health_routes(
     crate::axum_router::AxumRouter::from(
         axum::Router::from(router)
             .route(
-                constants_str::catalog::LIVE_PATH,
+                constants_str::LIVE_PATH,
                 axum::routing::get(async || {
                     axum::Json(
                         crate::service_liveness_snapshot::ServiceLivenessSnapshot::new(
@@ -17,7 +17,7 @@ pub fn add_health_routes(
                 }),
             )
             .route(
-                constants_str::catalog::READY_PATH,
+                constants_str::READY_PATH,
                 axum::routing::get(move || {
                     let route_readiness = readiness_for_route.clone();
                     async move {

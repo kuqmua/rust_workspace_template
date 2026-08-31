@@ -11,7 +11,7 @@ mod tests {
                     constants_str::TEST_SERVICE_PREFIX
                 ),
                 crate::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef::from(
-                    constants_str::catalog::METRICS
+                    constants_str::METRICS
                 ),
                 crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef::from(None),
                 crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes::from(
@@ -34,7 +34,7 @@ mod tests {
                     constants_str::TEST_SERVICE_PREFIX
                 ),
                 crate::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef::from(
-                    constants_str::catalog::METRICS
+                    constants_str::METRICS
                 ),
                 crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef::from(Some(
                     &accept

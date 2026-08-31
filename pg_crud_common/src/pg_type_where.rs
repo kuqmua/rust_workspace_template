@@ -19,22 +19,22 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::catalog::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_V_FIELD,
                 <crate::not_empty_unique_vec::NotEmptyUniqueVec<T> as utoipa::PartialSchema>::schema(),
             )
             .property(
-                constants_str::catalog::PG_CRUD_OPERATOR_FIELD,
+                constants_str::PG_CRUD_OPERATOR_FIELD,
                 <crate::operator::Operator as utoipa::PartialSchema>::schema(),
             )
-            .required(constants_str::catalog::PG_CRUD_V_FIELD)
-            .required(constants_str::catalog::PG_CRUD_OPERATOR_FIELD)
+            .required(constants_str::PG_CRUD_V_FIELD)
+            .required(constants_str::PG_CRUD_OPERATOR_FIELD)
             .build()
             .into()
     }
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeWhere<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME)
     }
 }
 impl<T: PartialEq + Clone> PgTypeWhere<T> {
@@ -98,7 +98,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        constants_str::catalog::PG_CRUD_FIELD_IDENTIFIER,
+                        constants_str::PG_CRUD_FIELD_IDENTIFIER,
                     )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
@@ -116,8 +116,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        constants_str::catalog::PG_CRUD_OPERATOR_FIELD => Ok(__Field::f0),
-                        constants_str::catalog::PG_CRUD_V_FIELD => Ok(__Field::f1),
+                        constants_str::PG_CRUD_OPERATOR_FIELD => Ok(__Field::f0),
+                        constants_str::PG_CRUD_V_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -157,7 +157,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     std::fmt::Formatter::write_str(
                         __f,
-                        constants_str::catalog::PG_CRUD_PG_TYPE_WHERE_STRUCT_NAME,
+                        constants_str::PG_CRUD_PG_TYPE_WHERE_STRUCT_NAME,
                     )
                 }
                 #[inline]
@@ -171,14 +171,14 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ZERO,
-                            &constants_str::catalog::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
+                            &constants_str::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ONE,
-                            &constants_str::catalog::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
+                            &constants_str::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     match PgTypeWhere::try_new(f0, f1.into()) {
@@ -199,7 +199,7 @@ const _: () = {
                                 if Option::is_some(&f0) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            constants_str::catalog::PG_CRUD_OPERATOR_FIELD,
+                                            constants_str::PG_CRUD_OPERATOR_FIELD,
                                         ),
                                     );
                                 }
@@ -211,7 +211,7 @@ const _: () = {
                                 if Option::is_some(&f1) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            constants_str::catalog::PG_CRUD_V_FIELD,
+                                            constants_str::PG_CRUD_V_FIELD,
                                         ),
                                     );
                                 }
@@ -228,14 +228,14 @@ const _: () = {
                     let f0_v = match f0 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            constants_str::catalog::PG_CRUD_OPERATOR_FIELD,
+                            constants_str::PG_CRUD_OPERATOR_FIELD,
                         )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
-                        None => _serde::__private229::de::missing_field(
-                            constants_str::catalog::PG_CRUD_V_FIELD,
-                        )?,
+                        None => {
+                            _serde::__private229::de::missing_field(constants_str::PG_CRUD_V_FIELD)?
+                        }
                     };
                     match PgTypeWhere::try_new(f0_v, f1_v.into()) {
                         Ok(v) => Ok(v),
@@ -245,7 +245,7 @@ const _: () = {
             }
             serde::Deserializer::deserialize_struct(
                 __deserializer,
-                constants_str::catalog::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME,
+                constants_str::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME,
                 constants_str::PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<T>,

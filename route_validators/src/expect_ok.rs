@@ -5,9 +5,9 @@ pub(crate) fn expect_ok<T, E>(
 ) -> T {
     v.unwrap_or_else(|_| {
         crate::panic_unexpected_result::panic_unexpected_result(
-            constants_str::catalog::ROUTE_VALIDATORS_EXPECT_OK_ER_ID,
-            constants_str::catalog::EXPECT_OK,
-            constants_str::catalog::ERR,
+            constants_str::ROUTE_VALIDATORS_EXPECT_OK_ER_ID,
+            constants_str::EXPECT_OK,
+            constants_str::ERR,
             exp_id,
         )
     })

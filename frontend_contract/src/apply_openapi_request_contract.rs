@@ -9,7 +9,7 @@ where
                 utoipa::openapi::request_body::RequestBodyBuilder::new()
                     .required(Some(utoipa::openapi::Required::True))
                     .content(
-                        constants_str::catalog::APPLICATION_JSON,
+                        constants_str::APPLICATION_JSON,
                         utoipa::openapi::Content::new(Some(utoipa::openapi::RefOr::<
                             utoipa::openapi::Schema,
                         >::from(schema))),

@@ -82,16 +82,16 @@ mod tests {
             <crate::notification_message::NotificationMessage as serde::Deserialize>::deserialize(
                 serde::de::value::StringDeserializer::<serde::de::value::Error>::new(String::new()),
             )
-            .expect_err(constants_str::test_fixtures::VALUE_61A01611);
+            .expect_err(constants_str::VALUE_61A01611);
         let _too_long_error =
             <crate::notification_message::NotificationMessage as serde::Deserialize>::deserialize(
                 serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-                    constants_str::catalog::X.repeat(
+                    constants_str::X.repeat(
                         crate::notification_message_max_len::NOTIFICATION_MESSAGE_MAX_LEN
                             + constants_usize::ONE,
                     ),
                 ),
             )
-            .expect_err(constants_str::test_fixtures::VALUE_F2CF39E2);
+            .expect_err(constants_str::VALUE_F2CF39E2);
     }
 }

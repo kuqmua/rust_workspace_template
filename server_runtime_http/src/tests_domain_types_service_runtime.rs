@@ -25,7 +25,7 @@ async fn status_route_and_parts_are_stable() {
     let response = tower::ServiceExt::oneshot(
         axum::Router::from(router),
         axum::extract::Request::builder()
-            .uri(constants_str::catalog::STATUS)
+            .uri(constants_str::STATUS)
             .body(axum::body::Body::empty())
             .expect("8e9c3da1 status_route_and_parts_are_stable invariant must hold"),
     )

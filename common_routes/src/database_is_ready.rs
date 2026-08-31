@@ -3,7 +3,7 @@ pub(super) async fn database_is_ready(
 ) -> crate::health_check_succeeded::HealthCheckSucceeded {
     let pool = app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider::sqlx_pg_pool(app_state.get());
     let probe = async {
-        sqlx::query(constants_str::catalog::COMMON_ROUTES_HEALTH_CHECK_SQL)
+        sqlx::query(constants_str::COMMON_ROUTES_HEALTH_CHECK_SQL)
             .execute(pool.as_ref())
             .await
             .is_ok()

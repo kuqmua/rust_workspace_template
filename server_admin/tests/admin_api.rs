@@ -9,13 +9,13 @@ mod data_tables {
     async fn postgresql_data_table_api_reads_every_public_field_from_every_table() {
         let fixture = crate::admin_html_test_fixture().await;
         let _cleanup_status = sqlx::query(
-        constants_str::test_fixtures::VALUE_6E1CBD4B,
+        constants_str::VALUE_6E1CBD4B,
     )
     .execute(&fixture.pool.0)
     .await
     .expect("70dfa001 postgresql_data_table_api_reads_every_public_field_from_every_table invariant must hold");
         let _rate_limit = sqlx::query(
-        constants_str::test_fixtures::VALUE_91A1975C,
+        constants_str::VALUE_91A1975C,
     )
     .execute(&fixture.pool.0)
     .await
@@ -31,7 +31,7 @@ mod data_tables {
                 crate::request_with_peer(
                     super::HttpAdminApiTestMethod::from(http::Method::GET),
                     super::StdAdminApiTestStrRef::from(uri.as_str()),
-                    super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                     Some(super::StdAdminApiTestStrRef::from(fixture_ref.cookie.0.as_str())),
                     None,
                 )
@@ -84,7 +84,7 @@ mod data_tables {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn postgresql_generated_mutation_idempotency_contract() {
-        let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL).expect(
+        let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "40c1e398 postgresql_generated_mutation_idempotency_contract invariant must hold",
         );
         let pool = sqlx::postgres::PgPoolOptions::new()
@@ -102,7 +102,7 @@ mod data_tables {
                 &mut *idempotency_test_isolation,
             ),
             &pg_crud_common::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(
-                constants_str::catalog::ACTOR_ATOMIC.to_owned(),
+                constants_str::ACTOR_ATOMIC.to_owned(),
             )
             .expect(
                 "136c5acc postgresql_generated_mutation_idempotency_contract invariant must hold",
@@ -121,7 +121,7 @@ mod data_tables {
         )
         .await
         .expect("6c338824 postgresql_generated_mutation_idempotency_contract invariant must hold");
-        let _truncate_result = sqlx::query(constants_str::catalog::TRUNCATE_PG_TABLE_IDEMPOTENCY)
+        let _truncate_result = sqlx::query(constants_str::TRUNCATE_PG_TABLE_IDEMPOTENCY)
             .execute(&pool)
             .await
             .expect(
@@ -135,7 +135,7 @@ mod data_tables {
                 pg_table::pg_table_idempotency_request::PgTableIdempotencyRequest::new(
             pg_table::pg_table_idempotency_scope::PgTableIdempotencyScope::new(
                 pg_table::pg_table_idempotency_actor::PgTableIdempotencyActor::try_from(actor.0.to_owned()).expect("e6640036 postgresql_generated_mutation_idempotency_contract invariant must hold"),
-                pg_table::pg_table_idempotency_method::PgTableIdempotencyMethod::try_from(constants_str::catalog::POST.to_owned())
+                pg_table::pg_table_idempotency_method::PgTableIdempotencyMethod::try_from(constants_str::POST.to_owned())
                     .expect("94bc0508 postgresql_generated_mutation_idempotency_contract invariant must hold"),
                 pg_table::pg_table_idempotency_route::PgTableIdempotencyRoute::try_from(route.0.to_owned()).expect("4e8c040f postgresql_generated_mutation_idempotency_contract invariant must hold"),
                 pg_table::pg_table_idempotency_key::PgTableIdempotencyKey::try_from(key.0.to_owned()).expect("2028024d postgresql_generated_mutation_idempotency_contract invariant must hold"),
@@ -144,9 +144,9 @@ mod data_tables {
         )
             };
         let first_request = make_request(
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ACTOR_A),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ITEMS_CM),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::KEY_A),
+            super::StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::KEY_A),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":1}"#.as_slice(),
             ),
@@ -172,9 +172,9 @@ mod data_tables {
             pg_table::pg_table_idempotency_begin::PgTableIdempotencyBegin::InProgress
         );
         let conflicting_request = make_request(
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ACTOR_A),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ITEMS_CM),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::KEY_A),
+            super::StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::KEY_A),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":2}"#.as_slice(),
             ),
@@ -223,9 +223,9 @@ mod data_tables {
         )
     );
         let other_actor = make_request(
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ACTOR_B),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ITEMS_CM),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::KEY_A),
+            super::StdAdminApiTestStrRef::from(constants_str::ACTOR_B),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::KEY_A),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":1}"#.as_slice(),
             ),
@@ -259,9 +259,9 @@ mod data_tables {
             pg_table::pg_table_idempotency_begin::PgTableIdempotencyBegin::Acquired
         );
         let concurrent = make_request(
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ACTOR_CONCURRENT),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ITEMS_CM),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::KEY_CONCURRENT),
+            super::StdAdminApiTestStrRef::from(constants_str::ACTOR_CONCURRENT),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::KEY_CONCURRENT),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":3}"#.as_slice(),
             ),
@@ -301,21 +301,21 @@ mod data_tables {
             constants_usize::ONE
         );
         let _atomic_table = sqlx::query(
-            constants_str::catalog::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_BIGINT,
+            constants_str::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_BIGINT,
         )
         .execute(&pool)
         .await
         .expect("af066e8b postgresql_generated_mutation_idempotency_contract invariant must hold");
-        let _atomic_clear = sqlx::query(
-            constants_str::catalog::TRUNCATE_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST,
-        )
-        .execute(&pool)
-        .await
-        .expect("3130e593 postgresql_generated_mutation_idempotency_contract invariant must hold");
+        let _atomic_clear = sqlx::query(constants_str::TRUNCATE_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST)
+            .execute(&pool)
+            .await
+            .expect(
+                "3130e593 postgresql_generated_mutation_idempotency_contract invariant must hold",
+            );
         let atomic = make_request(
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ACTOR_ATOMIC),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ITEMS_CO),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::KEY_ATOMIC),
+            super::StdAdminApiTestStrRef::from(constants_str::ACTOR_ATOMIC),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CO),
+            super::StdAdminApiTestStrRef::from(constants_str::KEY_ATOMIC),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"id":1}"#.as_slice(),
             ),
@@ -335,7 +335,7 @@ mod data_tables {
             "fcba80e1 postgresql_generated_mutation_idempotency_contract invariant must hold",
         );
         let _mutation = sqlx::query(
-            constants_str::catalog::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_VALUES_1,
+            constants_str::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_VALUES_1,
         )
         .execute(&mut *rollback_tx)
         .await
@@ -354,7 +354,7 @@ mod data_tables {
             "11cfcb27 postgresql_generated_mutation_idempotency_contract invariant must hold",
         );
         let mutation_count = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST,
+            constants_str::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST,
         )
         .fetch_one(&pool)
         .await
@@ -378,13 +378,13 @@ mod data_tables {
         .await
         .expect("67973e68 postgresql_generated_mutation_idempotency_contract invariant must hold");
         let _age_records = sqlx::query(
-            constants_str::catalog::UPDATE_PG_TABLE_IDEMPOTENCY_SET_CREATED_AT_TIMESTAMPTZ_2000_01_01_00,
+            constants_str::UPDATE_PG_TABLE_IDEMPOTENCY_SET_CREATED_AT_TIMESTAMPTZ_2000_01_01_00,
         )
         .execute(&pool)
         .await
         .expect("a46f7336 postgresql_generated_mutation_idempotency_contract invariant must hold");
         let before_cleanup = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
+            constants_str::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
         )
         .fetch_one(&pool)
         .await
@@ -405,7 +405,7 @@ mod data_tables {
         .expect("b1ba49cc postgresql_generated_mutation_idempotency_contract invariant must hold");
         assert_eq!(u64::from(cleaned), 2u64);
         let after_cleanup = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
+            constants_str::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
         )
         .fetch_one(&pool)
         .await
@@ -422,7 +422,7 @@ mod flow {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn flow() {
-        let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL).expect(
+        let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "ac0cb9e3 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
         );
         let pool = super::SqlxAdminApiTestPool::from(
@@ -437,12 +437,12 @@ mod flow {
         let mut admin_db_test_lock = pool.0.begin().await.expect(
             "4dfb6865 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
         );
-        let _locked = sqlx::query(
-            constants_str::integration_fixtures::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS,
-        )
-        .execute(&mut *admin_db_test_lock)
-        .await
-        .expect("693b147f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+        let _locked = sqlx::query(constants_str::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+            .execute(&mut *admin_db_test_lock)
+            .await
+            .expect(
+                "693b147f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+            );
         server_admin::prepare_postgresql::prepare_postgresql(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
         )
@@ -455,14 +455,12 @@ mod flow {
         .expect("676c00f1 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         server_admin::validate_catalog_schema::validate_catalog_schema(
             pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
-            pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
-                constants_str::catalog::PUBLIC,
-            ),
+            pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::PUBLIC),
         )
         .await
         .expect("65ce07e9 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let observed_permissions = sqlx::query_scalar::<_, String>(
-            constants_str::test_fixtures::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+            constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
         )
         .fetch_all(&pool.0)
         .await
@@ -473,7 +471,7 @@ mod flow {
             .collect::<Vec<_>>();
         assert_eq!(observed_permissions, expected_permissions);
         let _deleted_permission = sqlx::query(
-            constants_str::test_fixtures::DELETE_ADMIN_PERMISSION_BY_NAME,
+            constants_str::DELETE_ADMIN_PERMISSION_BY_NAME,
         )
         .bind(
             server_admin_contract::admin_permission::AdminPermission::ALL
@@ -493,21 +491,21 @@ mod flow {
         .await
         .expect("ea3f641d postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let reconciled_permissions = sqlx::query_scalar::<_, String>(
-            constants_str::test_fixtures::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+            constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
         )
         .fetch_all(&pool.0)
         .await
         .expect("458ab19e postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert_eq!(reconciled_permissions, expected_permissions);
         let _truncate_result = sqlx::query(
-        constants_str::catalog::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
+        constants_str::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )
     .execute(&pool.0)
     .await
     .expect("97b5ad2f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let password = serde_json::from_str::<
             server_admin_contract::admin_new_password::AdminNewPassword,
-        >(constants_str::catalog::CORRECT_PASSWORD)
+        >(constants_str::CORRECT_PASSWORD)
         .expect("703a8df2 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let hasher = server_admin::admin_password_hasher::AdminPasswordHasher::new(
             server_admin::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
@@ -519,13 +517,13 @@ mod flow {
         let _admin_id = server_admin::create_initial_administrator::create_initial_administrator(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
             server_admin_contract::admin_login::AdminLogin::try_from(
-                constants_str::catalog::ADMIN_ALT.to_owned(),
+                constants_str::ADMIN_ALT.to_owned(),
             )
             .expect(
                 "98c7e04a postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
             ),
             server_admin_contract::admin_display_name::AdminDisplayName::try_from(
-                constants_str::catalog::ADMIN.to_owned(),
+                constants_str::ADMIN.to_owned(),
             )
             .expect(
                 "48efed01 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
@@ -536,21 +534,21 @@ mod flow {
         .await
         .expect("e2c94d67 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let password_change_required = sqlx::query_scalar::<_, bool>(
-            constants_str::integration_fixtures::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+            constants_str::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
         )
         .fetch_one(&pool.0)
         .await
         .expect("81f3c9d2 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert!(password_change_required);
         let original_password_hash = sqlx::query_scalar::<_, String>(
-            constants_str::catalog::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+            constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
         )
         .fetch_one(&pool.0)
         .await
         .expect("1282b56e postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let repeated_password = serde_json::from_str::<
             server_admin_contract::admin_new_password::AdminNewPassword,
-        >(constants_str::catalog::DIFFERENT_PASSWORD)
+        >(constants_str::DIFFERENT_PASSWORD)
         .expect("e411f376 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert!(matches!(
         server_admin::create_initial_administrator::create_initial_administrator(
@@ -569,34 +567,35 @@ mod flow {
         Err(server_admin::initial_administrator_creation_error::InitialAdministratorCreationError::AlreadyInitialized)
     ));
         let preserved_password_hash = sqlx::query_scalar::<_, String>(
-            constants_str::catalog::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+            constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
         )
         .fetch_one(&pool.0)
         .await
         .expect("65ff827e postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert_eq!(preserved_password_hash, original_password_hash);
-        let administrator_count = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS,
-        )
-        .fetch_one(&pool.0)
-        .await
-        .expect("ae89c3bd postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+        let administrator_count =
+            sqlx::query_scalar::<_, i64>(constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS)
+                .fetch_one(&pool.0)
+                .await
+                .expect(
+                    "ae89c3bd postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+                );
         assert_eq!(administrator_count, constants_i64::ONE);
         let admin_id = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+            constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
         )
         .fetch_one(&pool.0)
         .await
         .expect("a61329bf postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         let dangling_role_links = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_COUNT_ASTERISK_FROM_ADMIN_USER_ROLES_LINK_LEFT_JOIN_ADMIN_USERS,
+            constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_USER_ROLES_LINK_LEFT_JOIN_ADMIN_USERS,
         )
         .fetch_one(&pool.0)
         .await
         .expect("08ef120f postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert_eq!(dangling_role_links, constants_i64::ZERO);
         let dangling_permission_links = sqlx::query_scalar::<_, i64>(
-        constants_str::catalog::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES,
+        constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES,
     )
     .fetch_one(&pool.0)
     .await
@@ -613,7 +612,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::LOGIN_ADMIN_PASSWORD_WRONG_PASSWORD,
+                    constants_str::LOGIN_ADMIN_PASSWORD_WRONG_PASSWORD,
                 ),
                 None,
                 None,
@@ -634,7 +633,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD,
+                    constants_str::LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD,
                 ),
                 None,
                 None,
@@ -646,15 +645,15 @@ mod flow {
         assert_eq!(sign_in_response.status(), http::StatusCode::OK);
         let access = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&sign_in_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_ACCESS_TOKEN),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
         );
         let refresh = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&sign_in_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_REFRESH_TOKEN_ALT),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN_ALT),
         );
         let csrf = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&sign_in_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_CSRF_TOKEN_ALT),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
         );
         let cookie = format!(
             "admin_access_token={access}; admin_refresh_token={refresh}; admin_csrf_token={csrf}"
@@ -669,9 +668,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(cookie.as_str())),
                 None,
             )
@@ -690,12 +687,10 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(cookie.as_str())),
                 None,
-                super::StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_127_0_0_2_43210),
+                super::StdAdminApiTestStrRef::from(constants_str::VALUE_127_0_0_2_43210),
             )
             .0,
         )
@@ -716,9 +711,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(
                     first_refresh_cookie.as_str(),
                 )),
@@ -731,7 +724,7 @@ mod flow {
         assert_eq!(refresh_response.status(), http::StatusCode::OK);
         let refreshed_access = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&refresh_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_ACCESS_TOKEN),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
         );
         assert!(
             refresh_response
@@ -743,11 +736,11 @@ mod flow {
         );
         let rotated_refresh = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&refresh_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_REFRESH_TOKEN),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN),
         );
         let refreshed_csrf = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&refresh_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_CSRF_TOKEN_ALT),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
         );
         let active_cookie = format!(
             "admin_access_token={refreshed_access}; admin_refresh_token={rotated_refresh}; admin_csrf_token={refreshed_csrf}"
@@ -762,9 +755,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(
                     first_refresh_cookie.as_str(),
                 )),
@@ -789,7 +780,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD,
+                    constants_str::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD,
                 ),
                 None,
                 None,
@@ -813,7 +804,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD,
+                    constants_str::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD,
                 ),
                 None,
                 None,
@@ -837,7 +828,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD,
+                    constants_str::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD,
                 ),
                 None,
                 None,
@@ -855,7 +846,7 @@ mod flow {
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_list_users_route::AdminListUsersRoute>().as_ref()),
-            super::StdAdminApiTestStrRef::from(constants_str::integration_fixtures::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(super::StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -878,7 +869,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::CURRENT_PASSWORD_CORRECT_NEW_PASSWORD_CHANGED,
+                    constants_str::CURRENT_PASSWORD_CORRECT_NEW_PASSWORD_CHANGED,
                 ),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
@@ -898,7 +889,7 @@ mod flow {
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_list_users_route::AdminListUsersRoute>().as_ref()),
-            super::StdAdminApiTestStrRef::from(constants_str::integration_fixtures::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -912,7 +903,7 @@ mod flow {
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_list_users_route::AdminListUsersRoute>().as_ref()),
-            super::StdAdminApiTestStrRef::from(constants_str::integration_fixtures::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(super::StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -932,7 +923,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
+                    constants_str::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
                 ),
                 None,
                 None,
@@ -944,15 +935,15 @@ mod flow {
         assert_eq!(limited_sign_in_response.status(), http::StatusCode::OK);
         let limited_access = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&limited_sign_in_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_ACCESS_TOKEN),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
         );
         let limited_refresh = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&limited_sign_in_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_REFRESH_TOKEN_ALT),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN_ALT),
         );
         let limited_csrf = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&limited_sign_in_response),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_CSRF_TOKEN_ALT),
+            super::StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
         );
         let limited_cookie = format!(
             "admin_access_token={limited_access}; admin_refresh_token={limited_refresh}; admin_csrf_token={limited_csrf}"
@@ -967,9 +958,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(limited_cookie.as_str())),
                 None,
             )
@@ -988,9 +977,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(limited_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(limited_csrf.0.as_str())),
             )
@@ -1009,9 +996,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(limited_cookie.as_str())),
                 None,
             )
@@ -1024,7 +1009,7 @@ mod flow {
             http::StatusCode::UNAUTHORIZED
         );
         let limited_id = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_LIMITED_USER,
+            constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_LIMITED_USER,
         )
         .fetch_one(&pool.0)
         .await
@@ -1034,9 +1019,7 @@ mod flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::PATCH),
                 super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::DISPLAY_NAME_UPDATED_USER,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::DISPLAY_NAME_UPDATED_USER),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1052,9 +1035,7 @@ mod flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::POST),
                 super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}/ban").as_str()),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::IS_BANNED_TRUE,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::IS_BANNED_TRUE),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1075,9 +1056,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(limited_cookie.as_str())),
                 None,
             )
@@ -1097,7 +1076,7 @@ mod flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
+                    constants_str::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
                 ),
                 None,
                 None,
@@ -1120,9 +1099,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1141,9 +1118,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1162,9 +1137,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::NAME_TEMPORARY_ROLE,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::NAME_TEMPORARY_ROLE),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1176,7 +1149,7 @@ mod flow {
         .expect("6d9384fe postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert_eq!(create_role_response.status(), http::StatusCode::CREATED);
         let role_id = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_TEMPORARY_ROLE,
+            constants_str::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_TEMPORARY_ROLE,
         )
         .fetch_one(&pool.0)
         .await
@@ -1263,9 +1236,7 @@ mod flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::PATCH),
                 super::StdAdminApiTestStrRef::from(format!("/roles/{role_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::integration_fixtures::NAME_RENAMED_ROLE,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::NAME_RENAMED_ROLE),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1281,9 +1252,7 @@ mod flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
                 super::StdAdminApiTestStrRef::from(format!("/roles/{role_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1299,9 +1268,7 @@ mod flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
                 super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1312,12 +1279,13 @@ mod flow {
         .await
         .expect("c19be784 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert_eq!(delete_user_response.status(), http::StatusCode::NO_CONTENT);
-        let admin_role_id = sqlx::query_scalar::<_, i64>(
-            constants_str::integration_fixtures::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL,
-        )
-        .fetch_one(&pool.0)
-        .await
-        .expect("20b5fb03 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
+        let admin_role_id =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+                .fetch_one(&pool.0)
+                .await
+                .expect(
+                    "20b5fb03 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold",
+                );
         let remove_last_admin_role_body = serde_json::to_string(
         &server_admin_contract::admin_set_user_roles_req::AdminSetUserRolesReq::new(
             crate::one_admin_role_id(
@@ -1353,9 +1321,7 @@ mod flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
                 super::StdAdminApiTestStrRef::from(format!("/users/{admin_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1379,9 +1345,7 @@ mod flow {
                     )
                     .as_str(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1426,7 +1390,7 @@ mod flow {
                             )
                             .as_str(),
                         ),
-                        super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+                        super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                         Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                         None,
                     )
@@ -1445,10 +1409,8 @@ mod flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_9B6938A5),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::VALUE_9B6938A5),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1481,10 +1443,8 @@ mod flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_8F292E26),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::VALUE_8F292E26),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1521,11 +1481,11 @@ mod flow {
             super::StdAdminApiTestStrRef::from(
                 format!(
                     "/tables/users?filter_field=login&filter_operation=eq&filter_value={}&limit=20&offset=0",
-                    constants_str::catalog::ADMIN_ALT
+                    constants_str::ADMIN_ALT
                 )
                 .as_str(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -1559,16 +1519,14 @@ mod flow {
                 )
                 .values()
                 .iter()
-                .any(|value| value.as_ref() == constants_str::catalog::ADMIN_ALT)
+                .any(|value| value.as_ref() == constants_str::ADMIN_ALT)
         );
         let empty_data_table_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_2C93E406),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::VALUE_2C93E406),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1597,10 +1555,8 @@ mod flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_946CA218),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::VALUE_946CA218),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1616,10 +1572,8 @@ mod flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_5E6D79D4),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::VALUE_5E6D79D4),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1641,9 +1595,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1664,9 +1616,7 @@ mod flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -1675,7 +1625,7 @@ mod flow {
         .await
         .expect("54b9dc03 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
         assert_eq!(revoked_response.status(), http::StatusCode::UNAUTHORIZED);
-        let audit_outcomes = sqlx::query_as::<_, (bool, i64)>(constants_str::catalog::SELECT_SUCCEEDED_COUNT_ASTERISK_FROM_ADMIN_AUDIT_LOG_GROUP_BY_SUCCEEDED_ORDER)
+        let audit_outcomes = sqlx::query_as::<_, (bool, i64)>(constants_str::SELECT_SUCCEEDED_COUNT_ASTERISK_FROM_ADMIN_AUDIT_LOG_GROUP_BY_SUCCEEDED_ORDER)
         .fetch_all(&pool.0)
         .await
         .expect("3de105a4 postgresql_auth_rbac_csrf_session_and_audit_flow invariant must hold");
@@ -1697,12 +1647,12 @@ mod html {
     async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
         let fixture = crate::admin_html_test_fixture().await;
         assert!(fixture.cookie.0.contains(fixture.csrf.0.as_str()));
-        let login = constants_str::test_fixtures::VALUE_2562E0C2;
-        let updated_login = constants_str::test_fixtures::VALUE_A582339C;
-        let display_name = constants_str::test_fixtures::VALUE_79B22AC4;
-        let updated_display_name = constants_str::test_fixtures::VALUE_8AE21450;
-        let password = constants_str::test_fixtures::VALUE_4EDBB68D;
-        let updated_password = constants_str::test_fixtures::VALUE_B6F4A0C4;
+        let login = constants_str::VALUE_2562E0C2;
+        let updated_login = constants_str::VALUE_A582339C;
+        let display_name = constants_str::VALUE_79B22AC4;
+        let updated_display_name = constants_str::VALUE_8AE21450;
+        let password = constants_str::VALUE_4EDBB68D;
+        let updated_password = constants_str::VALUE_B6F4A0C4;
         let create_body = super::AdminHtmlTestFormBody::try_from(format!(
         "login={login}&display_name=HTML+CRUD+User&password={password}"
     ))
@@ -1718,7 +1668,7 @@ mod html {
         .await;
         assert_eq!(create_response.status(), http::StatusCode::SEE_OTHER);
         let created = sqlx::query_as::<_, (i64, String, String, bool)>(
-        constants_str::test_fixtures::VALUE_1B03D1AA,
+        constants_str::VALUE_1B03D1AA,
     )
     .bind(login)
     .fetch_one(&fixture.pool.0)
@@ -1733,7 +1683,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(users_response.status(), http::StatusCode::OK);
@@ -1756,7 +1706,7 @@ mod html {
         .await;
         assert_eq!(login_update_response.status(), http::StatusCode::SEE_OTHER);
         let login_update = sqlx::query_as::<_, (String, String)>(
-        constants_str::test_fixtures::VALUE_56386809,
+        constants_str::VALUE_56386809,
     )
     .bind(created.0)
     .fetch_one(&fixture.pool.0)
@@ -1786,7 +1736,7 @@ mod html {
             http::StatusCode::SEE_OTHER
         );
         let display_update = sqlx::query_as::<_, (String, String)>(
-        constants_str::test_fixtures::VALUE_56386809,
+        constants_str::VALUE_56386809,
     )
     .bind(created.0)
     .fetch_one(&fixture.pool.0)
@@ -1852,7 +1802,7 @@ mod html {
     .expect("b9306c2e postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
         assert_eq!(new_sign_in_response.status(), http::StatusCode::SEE_OTHER);
 
-        let role_id = sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+        let role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)
         .await
         .expect("f1674ab9 postgresql_html_users_crud_covers_every_frontend_field_separately invariant must hold");
@@ -1872,7 +1822,7 @@ mod html {
         .await;
         assert_eq!(roles_update_response.status(), http::StatusCode::SEE_OTHER);
         let assigned_roles =
-        sqlx::query_scalar::<_, i64>(constants_str::test_fixtures::VALUE_4616DD96)
+        sqlx::query_scalar::<_, i64>(constants_str::VALUE_4616DD96)
             .bind(created.0)
             .fetch_all(&fixture.pool.0)
             .await
@@ -1897,7 +1847,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         let final_users_html = crate::admin_html_body(final_users_response).await;
@@ -1915,7 +1865,7 @@ mod html {
         )
         .await;
         assert_eq!(unban_response.status(), http::StatusCode::SEE_OTHER);
-        let is_banned = sqlx::query_scalar::<_, bool>(constants_str::test_fixtures::VALUE_A65908E0)
+        let is_banned = sqlx::query_scalar::<_, bool>(constants_str::VALUE_A65908E0)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -1950,7 +1900,7 @@ mod html {
         )
         .await;
         assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
-        let deleted_count = sqlx::query_scalar::<_, i64>(constants_str::test_fixtures::VALUE_ED81ED3A)
+        let deleted_count = sqlx::query_scalar::<_, i64>(constants_str::VALUE_ED81ED3A)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -1962,7 +1912,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         let deleted_users_html = crate::admin_html_body(deleted_users_response).await;
@@ -1973,8 +1923,8 @@ mod html {
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
         let fixture = crate::admin_html_test_fixture().await;
-        let role_name = constants_str::test_fixtures::VALUE_B20522BC;
-        let updated_role_name = constants_str::test_fixtures::VALUE_C940BA4C;
+        let role_name = constants_str::VALUE_B20522BC;
+        let updated_role_name = constants_str::VALUE_C940BA4C;
         let create_body =
         super::AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("c593e840 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
         let create_response = crate::admin_html_response(
@@ -1988,7 +1938,7 @@ mod html {
         .await;
         assert_eq!(create_response.status(), http::StatusCode::SEE_OTHER);
         let created = sqlx::query_as::<_, (i64, String, bool)>(
-        constants_str::test_fixtures::VALUE_96DFAB96,
+        constants_str::VALUE_96DFAB96,
     )
     .bind(role_name)
     .fetch_one(&fixture.pool.0)
@@ -2002,7 +1952,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(roles_response.status(), http::StatusCode::OK);
@@ -2022,7 +1972,7 @@ mod html {
         )
         .await;
         assert_eq!(update_response.status(), http::StatusCode::SEE_OTHER);
-        let updated = sqlx::query_scalar::<_, String>(constants_str::test_fixtures::VALUE_59A3D59A)
+        let updated = sqlx::query_scalar::<_, String>(constants_str::VALUE_59A3D59A)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -2030,7 +1980,7 @@ mod html {
         assert_eq!(updated, updated_role_name);
 
         let permission =
-        sqlx::query_as::<_, (i64, String)>(constants_str::test_fixtures::VALUE_F3C2734E)
+        sqlx::query_as::<_, (i64, String)>(constants_str::VALUE_F3C2734E)
             .fetch_one(&fixture.pool.0)
             .await
             .expect("ba920f54 postgresql_html_roles_crud_covers_every_frontend_field_separately invariant must hold");
@@ -2050,7 +2000,7 @@ mod html {
         .await;
         assert_eq!(permissions_response.status(), http::StatusCode::SEE_OTHER);
         let assigned_permissions = sqlx::query_scalar::<_, i64>(
-        constants_str::test_fixtures::VALUE_5FE3480D,
+        constants_str::VALUE_5FE3480D,
     )
     .bind(created.0)
     .fetch_all(&fixture.pool.0)
@@ -2063,7 +2013,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         let final_roles_html = crate::admin_html_body(final_roles_response).await;
@@ -2082,7 +2032,7 @@ mod html {
         )
         .await;
         assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
-        let deleted_count = sqlx::query_scalar::<_, i64>(constants_str::test_fixtures::VALUE_D4A7F1E9)
+        let deleted_count = sqlx::query_scalar::<_, i64>(constants_str::VALUE_D4A7F1E9)
         .bind(created.0)
         .fetch_one(&fixture.pool.0)
         .await
@@ -2094,7 +2044,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         let deleted_roles_html = crate::admin_html_body(deleted_roles_response).await;
@@ -2105,39 +2055,26 @@ mod html {
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
         let fixture = crate::admin_html_test_fixture().await;
-        let site_name_a =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_98A13EB2);
-        let site_name_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_ABCC7908);
+        let site_name_a = super::StdAdminApiTestStrRef::from(constants_str::VALUE_98A13EB2);
+        let site_name_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_ABCC7908);
         let route_a = super::StdAdminApiTestStrRef::from(
             server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
         );
-        let route_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_DB2C56E6);
-        let tab_title_a =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_F7D2459A);
-        let tab_title_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_74AF8A89);
-        let main_logo_a =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_2C8B94AD);
-        let main_logo_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_91EAC748);
-        let primary_color_a =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_CD527CD2);
-        let primary_color_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_3CFDA7DC);
-        let organization_name_a =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_DA7C4DC3);
-        let organization_name_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_4918294B);
+        let route_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_DB2C56E6);
+        let tab_title_a = super::StdAdminApiTestStrRef::from(constants_str::VALUE_F7D2459A);
+        let tab_title_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_74AF8A89);
+        let main_logo_a = super::StdAdminApiTestStrRef::from(constants_str::VALUE_2C8B94AD);
+        let main_logo_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_91EAC748);
+        let primary_color_a = super::StdAdminApiTestStrRef::from(constants_str::VALUE_CD527CD2);
+        let primary_color_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_3CFDA7DC);
+        let organization_name_a = super::StdAdminApiTestStrRef::from(constants_str::VALUE_DA7C4DC3);
+        let organization_name_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_4918294B);
         let organization_contacts_a =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_2AFAD82D);
+            super::StdAdminApiTestStrRef::from(constants_str::VALUE_2AFAD82D);
         let organization_contacts_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_E7FDD028);
-        let support_url_a =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_AB22006C);
-        let support_url_b =
-            super::StdAdminApiTestStrRef::from(constants_str::test_fixtures::VALUE_4D525EFD);
+            super::StdAdminApiTestStrRef::from(constants_str::VALUE_E7FDD028);
+        let support_url_a = super::StdAdminApiTestStrRef::from(constants_str::VALUE_AB22006C);
+        let support_url_b = super::StdAdminApiTestStrRef::from(constants_str::VALUE_4D525EFD);
         let states = [
             super::AdminHtmlSettingsTestValues {
                 default_admin_route: route_a,
@@ -2255,9 +2192,7 @@ mod html {
                 super::StdAdminApiTestStrRef::from(
                     server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings.get(),
                 ),
-                super::StdAdminApiTestStrRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             )
             .await;
             assert_eq!(read_response.status(), http::StatusCode::OK);
@@ -2278,7 +2213,7 @@ mod html {
             String,
         ),
     >(
-        constants_str::test_fixtures::VALUE_F1866337,
+        constants_str::VALUE_F1866337,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -2291,8 +2226,7 @@ mod html {
         assert_eq!(stored.5, organization_name_b.0);
         assert_eq!(stored.6, organization_contacts_b.0);
         assert_eq!(stored.7, support_url_b.0);
-        let empty =
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX);
+        let empty = super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
         let clear_states = [
             (
                 super::AdminHtmlSettingsTestValues {
@@ -2399,7 +2333,7 @@ mod html {
                     String,
                 ),
             >(
-                constants_str::test_fixtures::VALUE_8CB85C2C,
+                constants_str::VALUE_8CB85C2C,
             )
             .fetch_one(&fixture_ref.pool.0)
             .await
@@ -2408,27 +2342,27 @@ mod html {
                 [
                     (
                         optional_values.0.as_str(),
-                        constants_str::catalog::ADMIN,
+                        constants_str::ADMIN,
                     ),
                     (
                         optional_values.1.as_str(),
-                        constants_str::catalog::ADMIN_DEFAULT_MAIN_LOGO,
+                        constants_str::ADMIN_DEFAULT_MAIN_LOGO,
                     ),
                     (
                         optional_values.2.as_str(),
-                        constants_str::catalog::PRIMARY_COLOR_DEFAULT,
+                        constants_str::PRIMARY_COLOR_DEFAULT,
                     ),
                     (
                         optional_values.3.as_str(),
-                        constants_str::catalog::ADMIN,
+                        constants_str::ADMIN,
                     ),
                     (
                         optional_values.4.as_str(),
-                        constants_str::catalog::ADMIN_DEFAULT_ORGANIZATION_CONTACTS,
+                        constants_str::ADMIN_DEFAULT_ORGANIZATION_CONTACTS,
                     ),
                     (
                         optional_values.5.as_str(),
-                        constants_str::catalog::ADMIN_DEFAULT_SUPPORT_URL,
+                        constants_str::ADMIN_DEFAULT_SUPPORT_URL,
                     ),
                 ]
                 .iter()
@@ -2454,7 +2388,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(users_response.status(), http::StatusCode::SEE_OTHER);
@@ -2470,12 +2404,12 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(profile_response.status(), http::StatusCode::OK);
         let correct_password =
-        serde_json::from_str::<String>(constants_str::catalog::CORRECT_PASSWORD).expect("e20a72a8 postgresql_initial_administrator_password_must_change_before_admin_access invariant must hold");
+        serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect("e20a72a8 postgresql_initial_administrator_password_must_change_before_admin_access invariant must hold");
         let change_password_body = super::AdminHtmlTestFormBody::try_from(format!(
         "current_password={correct_password}&new_password=Initial-administrator-changed-pass2",
     ))
@@ -2494,7 +2428,7 @@ mod html {
             http::StatusCode::SEE_OTHER
         );
         let password_change_required = sqlx::query_scalar::<_, bool>(
-        constants_str::integration_fixtures::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_MUST_CHANGE_PASSWORD_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -2506,7 +2440,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(post_change_users_response.status(), http::StatusCode::OK);
@@ -2523,7 +2457,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(profile_response.status(), http::StatusCode::OK);
@@ -2531,20 +2465,20 @@ mod html {
         crate::assert_admin_csr_shell(&profile_html);
 
         let original_password_hash = sqlx::query_scalar::<_, String>(
-        constants_str::catalog::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
     .expect("c09b5e4e postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         let (current_session_id, user_id) = sqlx::query_as::<_, (uuid::Uuid, i64)>(
-        constants_str::test_fixtures::VALUE_9605FF41,
+        constants_str::VALUE_9605FF41,
     )
     .fetch_one(&fixture.pool.0)
     .await
     .expect("ae46b7c1 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         let other_session_id = uuid::Uuid::from_u128(2u128);
         let _inserted_other_session = sqlx::query(
-        constants_str::test_fixtures::VALUE_324717BB,
+        constants_str::VALUE_324717BB,
     )
     .bind(other_session_id)
     .bind(user_id)
@@ -2552,7 +2486,7 @@ mod html {
     .await
     .expect("3e216ecd postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         let _inserted_other_refresh_token = sqlx::query(
-        constants_str::test_fixtures::VALUE_0FCC992D,
+        constants_str::VALUE_0FCC992D,
     )
     .bind(uuid::Uuid::from_u128(3u128))
     .bind(user_id)
@@ -2560,7 +2494,7 @@ mod html {
     .await
     .expect("d61fc342 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         let correct_password =
-        serde_json::from_str::<String>(constants_str::catalog::CORRECT_PASSWORD).expect("c59b011a postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
+        serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect("c59b011a postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         let change_password_body = super::AdminHtmlTestFormBody::try_from(format!(
         "current_password={correct_password}&new_password=Html-profile-pass2",
     ))
@@ -2579,14 +2513,14 @@ mod html {
             http::StatusCode::SEE_OTHER
         );
         let changed_password_hash = sqlx::query_scalar::<_, String>(
-        constants_str::catalog::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
     .expect("696330ca postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         assert_ne!(changed_password_hash, original_password_hash);
         let current_session_revoked = sqlx::query_scalar::<_, bool>(
-        constants_str::test_fixtures::VALUE_26E35E53,
+        constants_str::VALUE_26E35E53,
     )
     .bind(current_session_id)
     .fetch_one(&fixture.pool.0)
@@ -2594,7 +2528,7 @@ mod html {
     .expect("38923e84 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         assert!(!current_session_revoked);
         let other_session_revoked = sqlx::query_scalar::<_, bool>(
-        constants_str::test_fixtures::VALUE_26E35E53,
+        constants_str::VALUE_26E35E53,
     )
     .bind(other_session_id)
     .fetch_one(&fixture.pool.0)
@@ -2602,7 +2536,7 @@ mod html {
     .expect("f0168dc5 postgresql_html_profile_reads_every_field_and_changes_own_password invariant must hold");
         assert!(other_session_revoked);
         let active_refresh_token_count = sqlx::query_scalar::<_, i64>(
-        constants_str::test_fixtures::VALUE_52BB5B18,
+        constants_str::VALUE_52BB5B18,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -2614,7 +2548,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(authenticated_response.status(), http::StatusCode::OK);
@@ -2625,12 +2559,12 @@ mod html {
     async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
         let fixture = crate::admin_html_test_fixture().await;
         let admin_id =
-        sqlx::query_scalar::<_, i64>(constants_str::catalog::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
+        sqlx::query_scalar::<_, i64>(constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
             .fetch_one(&fixture.pool.0)
             .await
             .expect("7f0a7c64 postgresql_html_sessions_reads_every_field_and_revokes_session invariant must hold");
         let (session_id, _created_at, _expires_at) = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
-        constants_str::integration_fixtures::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
+        constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
     .bind(admin_id)
     .bind(100i64)
@@ -2644,7 +2578,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(sessions_response.status(), http::StatusCode::OK);
@@ -2665,7 +2599,7 @@ mod html {
         .await;
         assert_eq!(revoke_response.status(), http::StatusCode::SEE_OTHER);
         let revoked = sqlx::query_scalar::<_, bool>(
-        constants_str::test_fixtures::VALUE_26E35E53,
+        constants_str::VALUE_26E35E53,
     )
     .bind(session_id)
     .fetch_one(&fixture.pool.0)
@@ -2678,7 +2612,7 @@ mod html {
             super::StdAdminApiTestStrRef::from(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions.get(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(rejected_response.status(), http::StatusCode::SEE_OTHER);
@@ -2711,7 +2645,7 @@ mod html {
                     fixture_ref,
                     super::HttpAdminApiTestMethod::from(http::Method::GET),
                     super::StdAdminApiTestStrRef::from(path.get()),
-                    super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 )
                 .await;
                 assert!(
@@ -2746,9 +2680,7 @@ mod html {
                     fixture_ref,
                     super::HttpAdminApiTestMethod::from(http::Method::GET),
                     super::StdAdminApiTestStrRef::from(uri.as_ref()),
-                    super::StdAdminApiTestStrRef::from(
-                        constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
-                    ),
+                    super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 )
                 .await;
                 assert_eq!(
@@ -2770,7 +2702,7 @@ mod html {
                 crate::html_request_with_peer(
                     super::HttpAdminApiTestMethod::from(http::Method::POST),
                     super::StdAdminApiTestStrRef::from(action.get()),
-                    super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                     None,
                 )
                 .0,
@@ -2804,7 +2736,7 @@ mod html {
         crate::html_request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::GET),
             super::StdAdminApiTestStrRef::from(server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get()),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             None,
         )
         .0,
@@ -2824,7 +2756,7 @@ mod html {
             )),
         );
 
-        let login = constants_str::test_fixtures::VALUE_0E3DA187;
+        let login = constants_str::VALUE_0E3DA187;
         let valid_body = super::AdminHtmlTestFormBody::try_from(format!(
         "login={login}&display_name=HTML+Form+Contract+User&password=Html-form-pass1"
     ))
@@ -2878,7 +2810,7 @@ mod html {
         )
         .await;
         assert_eq!(duplicate_response.status(), http::StatusCode::CONFLICT);
-        let created_id = sqlx::query_scalar::<_, i64>(constants_str::test_fixtures::VALUE_A2A63B95)
+        let created_id = sqlx::query_scalar::<_, i64>(constants_str::VALUE_A2A63B95)
         .bind(login)
         .fetch_one(&fixture.pool.0)
         .await
@@ -2892,14 +2824,14 @@ mod html {
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::GET),
             super::StdAdminApiTestStrRef::from(filtered_path.0.as_str()),
-            super::StdAdminApiTestStrRef::from(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
         assert_eq!(filtered_response.status(), http::StatusCode::OK);
         let filtered_html = crate::admin_html_body(filtered_response).await;
         crate::assert_admin_csr_shell(&filtered_html);
 
-        let role_id = sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+        let role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)
         .await
         .expect("bc10a764 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
@@ -2918,7 +2850,7 @@ mod html {
         .await;
         assert_eq!(stale_roles_response.status(), http::StatusCode::CONFLICT);
 
-        let role_name = constants_str::test_fixtures::VALUE_F9B1D97F;
+        let role_name = constants_str::VALUE_F9B1D97F;
         let create_role_body =
         super::AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("8cf4260d postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
         let create_role_response = crate::admin_html_response(
@@ -2941,13 +2873,13 @@ mod html {
         )
         .await;
         assert_eq!(duplicate_role_response.status(), http::StatusCode::CONFLICT);
-        let created_role_id = sqlx::query_scalar::<_, i64>(constants_str::test_fixtures::VALUE_44E1D290)
+        let created_role_id = sqlx::query_scalar::<_, i64>(constants_str::VALUE_44E1D290)
         .bind(role_name)
         .fetch_one(&fixture.pool.0)
         .await
         .expect("2643be19 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
         let permission_id =
-        sqlx::query_scalar::<_, i64>(constants_str::test_fixtures::VALUE_1491D3FA)
+        sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
             .fetch_one(&fixture.pool.0)
             .await
             .expect("d8134c5b postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
@@ -2983,7 +2915,7 @@ mod html {
         assert_eq!(delete_role_response.status(), http::StatusCode::SEE_OTHER);
 
         let unknown_delete_body = super::AdminHtmlTestFormBody::try_from(String::from(
-        constants_str::test_fixtures::VALUE_8F942A25,
+        constants_str::VALUE_8F942A25,
     ))
     .expect("d96b20e4 postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering invariant must hold");
         let unknown_delete_response = crate::admin_html_response(
@@ -3017,7 +2949,7 @@ mod maintenance {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
-        let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL).expect(
+        let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
         "63a09eec postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold",
     );
         let pool = sqlx::postgres::PgPoolOptions::new()
@@ -3026,38 +2958,38 @@ mod maintenance {
         .await
         .expect("2480f8c4 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
         let _drop_before = sqlx::query(
-        constants_str::catalog::DROP_TABLE_IF_EXISTS_PG_TABLE_OPTIMISTIC_REVISION_TEST,
+        constants_str::DROP_TABLE_IF_EXISTS_PG_TABLE_OPTIMISTIC_REVISION_TEST,
     )
     .execute(&pool)
     .await
     .expect(
         "e5e1f7cb postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold",
     );
-        let _create = sqlx::query(constants_str::catalog::CREATE_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_BIGINT_PRIMARY_KEY_REVISION)
+        let _create = sqlx::query(constants_str::CREATE_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_BIGINT_PRIMARY_KEY_REVISION)
         .execute(&pool)
         .await
         .expect("a75bc224 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
         let _insert = sqlx::query(
-        constants_str::catalog::INSERT_INTO_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_REVISION_VALUE_VALUES_1,
+        constants_str::INSERT_INTO_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_REVISION_VALUE_VALUES_1,
     )
     .execute(&pool)
     .await
     .expect(
         "da271038 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold",
     );
-        let update = constants_str::catalog::UPDATE_PG_TABLE_OPTIMISTIC_REVISION_TEST_SET_VALUE_DOLLAR_1_REVISION_REVISION;
+        let update = constants_str::UPDATE_PG_TABLE_OPTIMISTIC_REVISION_TEST_SET_VALUE_DOLLAR_1_REVISION_REVISION;
         let (left, right) = tokio::join!(
         sqlx::query_scalar::<_, i64>(update)
             .bind(constants_i64::ONE)
             .bind(
-                pg_table::pg_table_revision::PgTableRevision::try_from(constants_str::catalog::VALUE_0.to_owned())
+                pg_table::pg_table_revision::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                     .expect("979fa4b2 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
         sqlx::query_scalar::<_, i64>(update)
             .bind(2i64)
             .bind(
-                pg_table::pg_table_revision::PgTableRevision::try_from(constants_str::catalog::VALUE_0.to_owned())
+                pg_table::pg_table_revision::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                     .expect("589ea31d postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold")
             )
             .fetch_optional(&pool),
@@ -3079,14 +3011,14 @@ mod maintenance {
         let stale = sqlx::query_scalar::<_, i64>(update)
         .bind(3i64)
         .bind(
-            pg_table::pg_table_revision::PgTableRevision::try_from(constants_str::catalog::VALUE_0.to_owned())
+            pg_table::pg_table_revision::PgTableRevision::try_from(constants_str::VALUE_0.to_owned())
                 .expect("a3a08aeb postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold"),
         )
         .fetch_optional(&pool)
         .await
         .expect("964e3ef4 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
         assert_eq!(stale, None);
-        let _drop_after = sqlx::query(constants_str::catalog::DROP_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST)
+        let _drop_after = sqlx::query(constants_str::DROP_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST)
         .execute(&pool)
         .await
         .expect("a4d77f54 postgresql_optimistic_revision_allows_one_concurrent_writer invariant must hold");
@@ -3094,21 +3026,21 @@ mod maintenance {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
-        let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL).expect("7316cf4d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
+        let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect("7316cf4d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(3u32)
         .connect(database_url.as_str())
         .await
         .expect("f6a51733 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         let mut admin_db_test_lock = pool.begin().await.expect("847caf57 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-        let _locked = sqlx::query(constants_str::integration_fixtures::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+        let _locked = sqlx::query(constants_str::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
         .execute(&mut *admin_db_test_lock)
         .await
         .expect("8c298fef postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         let mut idempotency_test_isolation = pool.begin().await.expect("f56c4c85 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         pg_crud_common::lock_pg_relation_resources::lock_pg_relation_resources(
         pg_crud_common::sqlx_pg_relation_lock_connection_ref::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
-        &pg_crud_common::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(constants_str::catalog::ACTOR_ATOMIC.to_owned())
+        &pg_crud_common::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(constants_str::ACTOR_ATOMIC.to_owned())
             .expect("861fe23d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold"),
         &pg_crud_common::pg_relation_resource_ids::PgRelationResourceIds::try_from(vec![
             pg_crud_common::pg_relation_resource_id::PgRelationResourceId::from(constants_i64::ONE),
@@ -3123,20 +3055,20 @@ mod maintenance {
         pg_table::ensure_pg_table_idempotency_schema::ensure_pg_table_idempotency_schema(app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool))
         .await
         .expect("eb08dffc postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-        let _clear = sqlx::query(constants_str::integration_fixtures::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
+        let _clear = sqlx::query(constants_str::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
         .execute(&pool)
         .await
         .expect("e1b22572 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-        let _attempts = sqlx::query(constants_str::catalog::INSERT_INTO_ADMIN_LOGIN_ATTEMPTS_LOGIN_SUCCEEDED_ATTEMPTED_AT_SELECT_OLD_VALUE)
+        let _attempts = sqlx::query(constants_str::INSERT_INTO_ADMIN_LOGIN_ATTEMPTS_LOGIN_SUCCEEDED_ATTEMPTED_AT_SELECT_OLD_VALUE)
         .execute(&pool)
         .await
         .expect("480b06eb postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
-        let _limits = sqlx::query(constants_str::catalog::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT_ALT)
+        let _limits = sqlx::query(constants_str::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT_ALT)
         .execute(&pool)
         .await
         .expect("0375574d postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         let _audit = sqlx::query(
-        constants_str::catalog::INSERT_INTO_ADMIN_AUDIT_LOG_ACTION_RESOURCE_SUCCEEDED_CREATED_AT_SELECT_TEST,
+        constants_str::INSERT_INTO_ADMIN_AUDIT_LOG_ACTION_RESOURCE_SUCCEEDED_CREATED_AT_SELECT_TEST,
     )
     .execute(&pool)
     .await
@@ -3155,7 +3087,7 @@ mod maintenance {
         .await
         .expect("a422e8d4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
         assert_eq!(report.total_rows().to_string(), "6");
-        let remaining = sqlx::query_as::<_, (i64, i64, i64)>(constants_str::catalog::SELECT_SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_SELECT_COUNT_ASTERISK_FROM)
+        let remaining = sqlx::query_as::<_, (i64, i64, i64)>(constants_str::SELECT_SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_SELECT_COUNT_ASTERISK_FROM)
         .fetch_one(&pool)
         .await
         .expect("f37a3ab4 postgresql_cleanup_is_batched_and_preserves_append_only_policy invariant must hold");
@@ -3163,7 +3095,7 @@ mod maintenance {
             remaining,
             (constants_i64::ONE, constants_i64::ONE, constants_i64::ONE)
         );
-        let ordinary_delete = sqlx::query(constants_str::catalog::DELETE_FROM_ADMIN_AUDIT_LOG)
+        let ordinary_delete = sqlx::query(constants_str::DELETE_FROM_ADMIN_AUDIT_LOG)
             .execute(&pool)
             .await;
         assert!(matches!(ordinary_delete, Err(_error)));
@@ -3171,37 +3103,36 @@ mod maintenance {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn postgresql_migration_creates_complete_schema() {
-        let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL)
+        let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
             .expect("b65d1786 postgresql_migration_creates_complete_schema invariant must hold");
         let base_pool = sqlx::postgres::PgPoolOptions::new()
             .max_connections(1u32)
             .connect(database_url.as_str())
             .await
             .expect("0047f74e postgresql_migration_creates_complete_schema invariant must hold");
-        let _drop_schema = sqlx::raw_sql(
-            constants_str::catalog::DROP_SCHEMA_IF_EXISTS_ADMIN_MIGRATION_FRESH_TEST_CASCADE,
-        )
-        .execute(&base_pool)
-        .await
-        .expect("df91b04d postgresql_migration_creates_complete_schema invariant must hold");
-        let _create_schema = sqlx::raw_sql(
-            constants_str::integration_fixtures::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST,
-        )
-        .execute(&base_pool)
-        .await
-        .expect("02bcd1c2 postgresql_migration_creates_complete_schema invariant must hold");
+        let _drop_schema =
+            sqlx::raw_sql(constants_str::DROP_SCHEMA_IF_EXISTS_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
+                .execute(&base_pool)
+                .await
+                .expect(
+                    "df91b04d postgresql_migration_creates_complete_schema invariant must hold",
+                );
+        let _create_schema = sqlx::raw_sql(constants_str::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST)
+            .execute(&base_pool)
+            .await
+            .expect("02bcd1c2 postgresql_migration_creates_complete_schema invariant must hold");
         let connect = |schema: super::StdAdminApiTestStrRef<'static>| {
             let options = <sqlx::postgres::PgConnectOptions as std::str::FromStr>::from_str(
                 database_url.as_str(),
             )
             .expect("aa7735db postgresql_migration_creates_complete_schema invariant must hold")
-            .options([(constants_str::catalog::SEARCH_PATH, schema.0)]);
+            .options([(constants_str::SEARCH_PATH, schema.0)]);
             sqlx::postgres::PgPoolOptions::new()
                 .max_connections(1u32)
                 .connect_lazy_with(options)
         };
         let fresh_pool = connect(super::StdAdminApiTestStrRef::from(
-            constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST,
+            constants_str::ADMIN_MIGRATION_FRESH_TEST,
         ));
         let full = sqlx::migrate!("../server_admin_migrations");
         full.run(&fresh_pool)
@@ -3210,7 +3141,7 @@ mod maintenance {
         server_admin::validate_catalog_schema::validate_catalog_schema(
             pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
             pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
-                constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST,
+                constants_str::ADMIN_MIGRATION_FRESH_TEST,
             ),
         )
         .await
@@ -3218,7 +3149,7 @@ mod maintenance {
         let catalog_snapshot = pg_crud_common::inspect_postgres_catalog::inspect_postgres_catalog(
             pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
             pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
-                constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST,
+                constants_str::ADMIN_MIGRATION_FRESH_TEST,
             ),
         )
         .await
@@ -3233,7 +3164,7 @@ mod maintenance {
                             fresh_pool_ref,
                         ),
                         pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
-                            constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST,
+                            constants_str::ADMIN_MIGRATION_FRESH_TEST,
                         ),
                         pg_crud_common::db_table_name_ref::DbTableNameRef::from(
                             table.as_str().get(),
@@ -3255,10 +3186,8 @@ mod maintenance {
         },
     );
         let current_schema_snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(constants_str::test_fixtures::ADMIN_CURRENT_SCHEMA_SNAPSHOT_PATH);
-        if std::env::var_os(constants_str::test_fixtures::UPDATE_ADMIN_CURRENT_SCHEMA_SNAPSHOT)
-            .is_some()
-        {
+            .join(constants_str::ADMIN_CURRENT_SCHEMA_SNAPSHOT_PATH);
+        if std::env::var_os(constants_str::UPDATE_ADMIN_CURRENT_SCHEMA_SNAPSHOT).is_some() {
             std::fs::write(
                 current_schema_snapshot_path.as_path(),
                 current_schema_snapshot.as_bytes(),
@@ -3274,7 +3203,7 @@ mod maintenance {
             "cb6ce4a9 migration-derived PostgreSQL schema snapshot changed"
         );
         let version = sqlx::query_scalar::<_, i64>(
-            constants_str::catalog::SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE,
+            constants_str::SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE,
         )
         .fetch_one(&base_pool)
         .await
@@ -3285,9 +3214,9 @@ mod maintenance {
             .into_iter()
             .collect::<std::collections::BTreeSet<String>>();
         let fresh_tables = sqlx::query_scalar::<_, String>(
-            constants_str::catalog::SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA,
+            constants_str::SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA,
         )
-        .bind(constants_str::catalog::ADMIN_MIGRATION_FRESH_TEST)
+        .bind(constants_str::ADMIN_MIGRATION_FRESH_TEST)
         .fetch_all(&base_pool)
         .await
         .expect("ab254ff4 postgresql_migration_creates_complete_schema invariant must hold")
@@ -3296,7 +3225,7 @@ mod maintenance {
         assert_eq!(fresh_tables, expected_tables);
         fresh_pool.close().await;
         let _drop_after =
-            sqlx::raw_sql(constants_str::catalog::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
+            sqlx::raw_sql(constants_str::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
                 .execute(&base_pool)
                 .await
                 .expect(
@@ -3311,13 +3240,13 @@ mod policy {
         assert!(
             read_excluded
                 .iter()
-                .any(|field| field.as_ref() == constants_str::catalog::PASSWORD_HASH)
+                .any(|field| field.as_ref() == constants_str::PASSWORD_HASH)
         );
         let create_excluded = <server_admin::admin_users::AdminUsers as pg_crud_common::db_table_schema::DbTableSchema>::create_excluded_columns();
         assert!(
             create_excluded
                 .iter()
-                .any(|field| field.as_ref() == constants_str::catalog::PASSWORD_HASH)
+                .any(|field| field.as_ref() == constants_str::PASSWORD_HASH)
         );
     }
 }
@@ -3364,7 +3293,7 @@ mod routing {
             "71599514 runtime_auth_router_contains_every_open_api_operation invariant must hold",
         );
         let paths = document
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(
             "d908872f runtime_auth_router_contains_every_open_api_operation invariant must hold",
@@ -3383,16 +3312,16 @@ mod routing {
             .map(|(documented_path, documented_method)| {
                 let runtime_path = documented_path
                     .replace(
-                        constants_str::test_fixtures::ADMIN_SESSION_ID_PLACEHOLDER,
-                        constants_str::catalog::VALUE_1,
+                        constants_str::ADMIN_SESSION_ID_PLACEHOLDER,
+                        constants_str::VALUE_1,
                     )
                     .replace(
-                        constants_str::test_fixtures::ADMIN_USER_ID_PLACEHOLDER,
-                        constants_str::catalog::VALUE_1,
+                        constants_str::ADMIN_USER_ID_PLACEHOLDER,
+                        constants_str::VALUE_1,
                     )
                     .replace(
-                        constants_str::test_fixtures::ADMIN_ROLE_ID_PLACEHOLDER,
-                        constants_str::catalog::VALUE_1,
+                        constants_str::ADMIN_ROLE_ID_PLACEHOLDER,
+                        constants_str::VALUE_1,
                     );
                 let method =
                     http::Method::from_bytes(documented_method.to_ascii_uppercase().as_bytes())
@@ -3436,7 +3365,7 @@ mod routing {
             )
             .header(
                 http::header::COOKIE,
-                constants_str::catalog::ADMIN_ACCESS_TOKEN_INVALID_JWT_TOKEN,
+                constants_str::ADMIN_ACCESS_TOKEN_INVALID_JWT_TOKEN,
             )
             .body(axum::body::Body::empty())
             .expect(
@@ -3452,7 +3381,7 @@ mod routing {
         let response = tower::ServiceExt::oneshot(
         crate::admin_api_test_router().0,
         http::Request::builder()
-            .uri(constants_str::catalog::NOT_AN_API_ROUTE)
+            .uri(constants_str::NOT_AN_API_ROUTE)
             .body(axum::body::Body::empty())
             .expect("1ca76f8d unknown_admin_api_route_is_not_captured_by_spa_fallback invariant must hold"),
     )
@@ -3491,7 +3420,7 @@ mod routing {
                 frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_sign_in_route::AdminSignInRoute>()
                     .as_ref(),
             ),
-            super::StdAdminApiTestStrRef::from(constants_str::integration_fixtures::LOGIN_ALT),
+            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_ALT),
             None,
             None,
         )
@@ -3511,7 +3440,7 @@ mod routing {
         .expect("a60751db invalid_admin_json_uses_problem_details_and_body_limit_contract invariant must hold")
         .get();
         let oversized_password =
-            constants_str::catalog::X.repeat(body_limit.saturating_add(constants_usize::ONE));
+            constants_str::X.repeat(body_limit.saturating_add(constants_usize::ONE));
         let oversized_body = format!(r#"{{"login":"admin","password":"{oversized_password}"}}"#);
         let oversized_response = tower::ServiceExt::oneshot(
         crate::admin_api_test_router().0,
@@ -3549,10 +3478,7 @@ mod routing {
                     >()
                     .as_ref(),
                 )
-                .header(
-                    http::header::CONTENT_TYPE,
-                    constants_str::catalog::APPLICATION_JSON,
-                );
+                .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON);
             if let Some(value) = origin {
                 builder = builder.header(http::header::ORIGIN, value);
             }
@@ -3561,13 +3487,13 @@ mod routing {
             }
             let mut request = builder
             .body(axum::body::Body::from(
-                constants_str::integration_fixtures::LOGIN_ADMIN_PASSWORD_PASSWORD,
+                constants_str::LOGIN_ADMIN_PASSWORD_PASSWORD,
             ))
             .expect(
                 "168060a3 sign_in_requires_trusted_origin_without_database_io invariant must hold",
             );
             let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-            constants_str::catalog::VALUE_127_0_0_1_43210
+            constants_str::VALUE_127_0_0_1_43210
                 .parse::<std::net::SocketAddr>()
                 .expect("c90cba14 sign_in_requires_trusted_origin_without_database_io invariant must hold"),
         ));
@@ -3586,8 +3512,8 @@ mod routing {
         let blocked_origin_response = tower::ServiceExt::oneshot(
             crate::admin_api_test_router().0,
             make_request(
-                Some(constants_str::catalog::HTTP_BLOCKED_EXAMPLE),
-                Some(constants_str::catalog::HTTP_LOCALHOST_ADMIN_SIGN_IN),
+                Some(constants_str::HTTP_BLOCKED_EXAMPLE),
+                Some(constants_str::HTTP_LOCALHOST_ADMIN_SIGN_IN),
             ),
         )
         .await
@@ -3602,7 +3528,7 @@ mod schema {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn generated_admin_descriptors_match_applied_migrations() {
-        let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL).expect(
+        let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "7e62af41 generated_admin_descriptors_match_applied_migrations invariant must hold",
         );
         let pool = super::SqlxAdminApiTestPool::from(
@@ -3617,14 +3543,12 @@ mod schema {
         let mut admin_db_test_lock = pool.0.begin().await.expect(
             "50eb5d64 generated_admin_descriptors_match_applied_migrations invariant must hold",
         );
-        let _locked = sqlx::query(
-            constants_str::integration_fixtures::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS,
-        )
-        .execute(&mut *admin_db_test_lock)
-        .await
-        .expect(
-            "77883cf4 generated_admin_descriptors_match_applied_migrations invariant must hold",
-        );
+        let _locked = sqlx::query(constants_str::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+            .execute(&mut *admin_db_test_lock)
+            .await
+            .expect(
+                "77883cf4 generated_admin_descriptors_match_applied_migrations invariant must hold",
+            );
         server_admin::prepare_postgresql::prepare_postgresql(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
         )
@@ -3634,9 +3558,7 @@ mod schema {
         );
         server_admin::validate_catalog_schema::validate_catalog_schema(
             pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
-            pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
-                constants_str::catalog::PUBLIC,
-            ),
+            pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::PUBLIC),
         )
         .await
         .expect(
@@ -3646,7 +3568,7 @@ mod schema {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn admin_string_policies_match_postgresql_constraints() {
-        let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL).expect(
+        let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL).expect(
             "93fcb3de admin_string_policies_match_postgresql_constraints invariant must hold",
         );
         let pool = super::SqlxAdminApiTestPool::from(
@@ -3661,80 +3583,78 @@ mod schema {
         let mut admin_db_test_lock = pool.0.begin().await.expect(
             "99ced936 admin_string_policies_match_postgresql_constraints invariant must hold",
         );
-        let _locked = sqlx::query(
-            constants_str::integration_fixtures::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS,
-        )
-        .execute(&mut *admin_db_test_lock)
-        .await
-        .expect("168b689c admin_string_policies_match_postgresql_constraints invariant must hold");
+        let _locked = sqlx::query(constants_str::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+            .execute(&mut *admin_db_test_lock)
+            .await
+            .expect(
+                "168b689c admin_string_policies_match_postgresql_constraints invariant must hold",
+            );
         server_admin::prepare_postgresql::prepare_postgresql(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
         )
         .await
         .expect("a453b862 admin_string_policies_match_postgresql_constraints invariant must hold");
         let valid_login = server_admin_contract::admin_login::AdminLogin::try_from(
-            constants_str::test_fixtures::SSOT_LOGIN_VALID.to_owned(),
+            constants_str::SSOT_LOGIN_VALID.to_owned(),
         )
         .is_ok();
         assert_eq!(
             server_admin_contract::admin_bool::AdminBool::from(valid_login),
             crate::postgres_accepts_admin_user_policy_values(
                 &pool,
-                super::StdAdminApiTestStrRef(constants_str::test_fixtures::SSOT_DISPLAY_NAME_VALID),
-                super::StdAdminApiTestStrRef(constants_str::test_fixtures::SSOT_LOGIN_VALID),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_DISPLAY_NAME_VALID),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_LOGIN_VALID),
             )
             .await
         );
         let invalid_login = server_admin_contract::admin_login::AdminLogin::try_from(
-            constants_str::test_fixtures::SSOT_LOGIN_INVALID_CASE.to_owned(),
+            constants_str::SSOT_LOGIN_INVALID_CASE.to_owned(),
         )
         .is_ok();
         assert_eq!(
             server_admin_contract::admin_bool::AdminBool::from(invalid_login),
             crate::postgres_accepts_admin_user_policy_values(
                 &pool,
-                super::StdAdminApiTestStrRef(constants_str::test_fixtures::SSOT_DISPLAY_NAME_VALID),
-                super::StdAdminApiTestStrRef(constants_str::test_fixtures::SSOT_LOGIN_INVALID_CASE),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_DISPLAY_NAME_VALID),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_LOGIN_INVALID_CASE),
             )
             .await
         );
         let invalid_display =
             server_admin_contract::admin_display_name::AdminDisplayName::try_from(
-                constants_str::test_fixtures::SSOT_DISPLAY_NAME_PADDED.to_owned(),
+                constants_str::SSOT_DISPLAY_NAME_PADDED.to_owned(),
             )
             .is_ok();
         assert_eq!(
             server_admin_contract::admin_bool::AdminBool::from(invalid_display),
             crate::postgres_accepts_admin_user_policy_values(
                 &pool,
-                super::StdAdminApiTestStrRef(
-                    constants_str::test_fixtures::SSOT_DISPLAY_NAME_PADDED
-                ),
-                super::StdAdminApiTestStrRef(constants_str::test_fixtures::SSOT_LOGIN_VALID),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_DISPLAY_NAME_PADDED),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_LOGIN_VALID),
             )
             .await
         );
         let valid_role = server_admin_contract::admin_role_name::AdminRoleName::try_from(
-            constants_str::test_fixtures::SSOT_ROLE_VALID.to_owned(),
+            constants_str::SSOT_ROLE_VALID.to_owned(),
         )
         .is_ok();
         assert_eq!(
             server_admin_contract::admin_bool::AdminBool::from(valid_role),
             crate::postgres_accepts_admin_role_policy_value(
                 &pool,
-                super::StdAdminApiTestStrRef(constants_str::test_fixtures::SSOT_ROLE_VALID),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_ROLE_VALID),
             )
             .await
         );
         let invalid_role = server_admin_contract::admin_role_name::AdminRoleName::try_from(
-            constants_str::test_fixtures::SSOT_ROLE_INVALID_CASE.to_owned(),
+            constants_str::SSOT_ROLE_INVALID_CASE.to_owned(),
         )
         .is_ok();
         assert_eq!(
             server_admin_contract::admin_bool::AdminBool::from(invalid_role),
             crate::postgres_accepts_admin_role_policy_value(
                 &pool,
-                super::StdAdminApiTestStrRef(constants_str::test_fixtures::SSOT_ROLE_INVALID_CASE),
+                super::StdAdminApiTestStrRef(constants_str::SSOT_ROLE_INVALID_CASE),
             )
             .await
         );
@@ -3827,45 +3747,41 @@ where
 }
 fn admin_api_test_router() -> AxumAdminApiTestRouter {
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(
-            constants_str::catalog::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
-        )
+        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("27db915c router invariant must hold");
     let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(pool),
         &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_900),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_900),
         ),
         &env::<config_lib::admin_refresh_token_ttl_seconds::AdminRefreshTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_3600),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_3600),
         ),
         &env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::VALUE_20,
+            constants_str::VALUE_20,
         )),
         &env::<config_lib::admin_sign_in_rate_limit::AdminSignInRateLimit>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_2),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_2),
         ),
         &env::<config_lib::admin_login_failure_limit::AdminLoginFailureLimit>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_10),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_10),
         ),
         &env::<config_lib::admin_password_hash_concurrency::AdminPasswordHashConcurrency>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_1),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_1),
         ),
         &env::<config_lib::admin_cookie_secure::AdminCookieSecure>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::FALSE,
+            constants_str::FALSE,
         )),
         &env::<config_lib::admin_token_issuer::AdminTokenIssuer>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST,
+            constants_str::INTEGRATION_TEST,
         )),
         &env::<config_lib::admin_token_audience::AdminTokenAudience>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST_ADMIN,
+            constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::domain_types::CorsAllowOrigin(
-            constants_str::catalog::HTTP_LOCALHOST.to_owned(),
-        ),
+        &config_lib::domain_types::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
     )
     .expect("f7d8c961 router invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(
@@ -3880,38 +3796,36 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_900),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_900),
         ),
         &env::<config_lib::admin_refresh_token_ttl_seconds::AdminRefreshTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_3600),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_3600),
         ),
         &env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::VALUE_20,
+            constants_str::VALUE_20,
         )),
         &env::<config_lib::admin_sign_in_rate_limit::AdminSignInRateLimit>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_2),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_2),
         ),
         &env::<config_lib::admin_login_failure_limit::AdminLoginFailureLimit>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_10),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_10),
         ),
         &env::<config_lib::admin_password_hash_concurrency::AdminPasswordHashConcurrency>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_1),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_1),
         ),
         &env::<config_lib::admin_cookie_secure::AdminCookieSecure>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::FALSE,
+            constants_str::FALSE,
         )),
         &env::<config_lib::admin_token_issuer::AdminTokenIssuer>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST,
+            constants_str::INTEGRATION_TEST,
         )),
         &env::<config_lib::admin_token_audience::AdminTokenAudience>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST_ADMIN,
+            constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::domain_types::CorsAllowOrigin(
-            constants_str::catalog::HTTP_LOCALHOST.to_owned(),
-        ),
+        &config_lib::domain_types::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
     )
     .expect("a59d73c1 router_with_pool invariant must hold");
     AxumAdminApiTestRouter::from(axum::Router::from(
@@ -3935,7 +3849,7 @@ fn request_with_peer(
         body,
         cookie,
         csrf,
-        StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_127_0_0_1_43210),
+        StdAdminApiTestStrRef::from(constants_str::VALUE_127_0_0_1_43210),
     )
 }
 fn request_with_peer_at(
@@ -3949,16 +3863,13 @@ fn request_with_peer_at(
     let mut builder = http::Request::builder()
         .method(method.0)
         .uri(uri.0)
-        .header(
-            http::header::CONTENT_TYPE,
-            constants_str::catalog::APPLICATION_JSON,
-        )
-        .header(http::header::ORIGIN, constants_str::catalog::HTTP_LOCALHOST);
+        .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
+        .header(http::header::ORIGIN, constants_str::HTTP_LOCALHOST);
     if let Some(value) = cookie {
         builder = builder.header(http::header::COOKIE, value.0);
     }
     if let Some(value) = csrf {
-        builder = builder.header(constants_str::catalog::X_CSRF_TOKEN_ALT, value.0);
+        builder = builder.header(constants_str::X_CSRF_TOKEN_ALT, value.0);
     }
     let mut request = builder
         .body(axum::body::Body::from(body.0.to_owned()))
@@ -3981,9 +3892,9 @@ fn html_request_with_peer(
         .uri(uri.0)
         .header(
             http::header::CONTENT_TYPE,
-            constants_str::test_fixtures::APPLICATION_X_WWW_FORM_URLENCODED,
+            constants_str::APPLICATION_X_WWW_FORM_URLENCODED,
         )
-        .header(http::header::ORIGIN, constants_str::catalog::HTTP_LOCALHOST);
+        .header(http::header::ORIGIN, constants_str::HTTP_LOCALHOST);
     if let Some(value) = cookie {
         builder = builder.header(http::header::COOKIE, value.0);
     }
@@ -3991,7 +3902,7 @@ fn html_request_with_peer(
         .body(axum::body::Body::from(body.0.to_owned()))
         .expect("9f211b84 html_request_with_peer invariant must hold");
     let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-        constants_str::catalog::VALUE_127_0_0_1_43210
+        constants_str::VALUE_127_0_0_1_43210
             .parse::<std::net::SocketAddr>()
             .expect("bcd41a67 html_request_with_peer invariant must hold"),
     ));
@@ -4071,7 +3982,7 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
 async fn admin_html_test_fixture_with_password_change(
     password_change_required: server_admin_contract::admin_bool::AdminBool,
 ) -> AdminHtmlTestFixture {
-    let database_url = std::env::var(constants_str::catalog::ENV_NAMES_DATABASE_URL)
+    let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
         .expect("fbe54d19 admin_html_test_fixture_with_password_change invariant must hold");
     let pool = SqlxAdminApiTestPool::from(
         sqlx::postgres::PgPoolOptions::new()
@@ -4085,29 +3996,28 @@ async fn admin_html_test_fixture_with_password_change(
         .begin()
         .await
         .expect("37480e56 admin_html_test_fixture_with_password_change invariant must hold");
-    let _locked =
-        sqlx::query(constants_str::integration_fixtures::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
-            .execute(&mut *lock)
-            .await
-            .expect("a6b7c8d9 admin_html_test_fixture_with_password_change invariant must hold");
+    let _locked = sqlx::query(constants_str::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+        .execute(&mut *lock)
+        .await
+        .expect("a6b7c8d9 admin_html_test_fixture_with_password_change invariant must hold");
     server_admin::prepare_postgresql::prepare_postgresql(
         app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
     )
     .await
     .expect("45de3a61 admin_html_test_fixture_with_password_change invariant must hold");
     let _truncated = sqlx::query(
-        constants_str::catalog::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
+        constants_str::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )
     .execute(&pool.0)
     .await
     .expect("cf37a9e2 admin_html_test_fixture_with_password_change invariant must hold");
-    let _deleted_non_system_roles = sqlx::query(constants_str::test_fixtures::VALUE_4BCE193A)
+    let _deleted_non_system_roles = sqlx::query(constants_str::VALUE_4BCE193A)
         .execute(&pool.0)
         .await
         .expect("b267a647 admin_html_test_fixture_with_password_change invariant must hold");
     let password = serde_json::from_str::<
         server_admin_contract::admin_new_password::AdminNewPassword,
-    >(constants_str::catalog::CORRECT_PASSWORD)
+    >(constants_str::CORRECT_PASSWORD)
     .expect("d20a35e4 admin_html_test_fixture_with_password_change invariant must hold");
     let hasher = server_admin::admin_password_hasher::AdminPasswordHasher::new(
         server_admin::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
@@ -4120,11 +4030,11 @@ async fn admin_html_test_fixture_with_password_change(
         server_admin::create_initial_administrator::create_initial_administrator(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
             server_admin_contract::admin_login::AdminLogin::try_from(
-                constants_str::catalog::ADMIN_ALT.to_owned(),
+                constants_str::ADMIN_ALT.to_owned(),
             )
             .expect("6a417bde admin_html_test_fixture_with_password_change invariant must hold"),
             server_admin_contract::admin_display_name::AdminDisplayName::try_from(
-                constants_str::catalog::ADMIN.to_owned(),
+                constants_str::ADMIN.to_owned(),
             )
             .expect("703fc568 admin_html_test_fixture_with_password_change invariant must hold"),
             password,
@@ -4133,48 +4043,47 @@ async fn admin_html_test_fixture_with_password_change(
         .await
         .expect("1e29c87f admin_html_test_fixture_with_password_change invariant must hold");
     if !bool::from(password_change_required) {
-        let _updated = sqlx::query(
-            constants_str::integration_fixtures::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE,
-        )
-        .execute(&pool.0)
-        .await
-        .expect("a37042f1 admin_html_test_fixture_with_password_change invariant must hold");
+        let _updated =
+            sqlx::query(constants_str::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE)
+                .execute(&pool.0)
+                .await
+                .expect(
+                    "a37042f1 admin_html_test_fixture_with_password_change invariant must hold",
+                );
     }
     let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_900),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_900),
         ),
         &env::<config_lib::admin_refresh_token_ttl_seconds::AdminRefreshTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_3600),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_3600),
         ),
         &env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::VALUE_20,
+            constants_str::VALUE_20,
         )),
         &env::<config_lib::admin_sign_in_rate_limit::AdminSignInRateLimit>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_20),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_20),
         ),
         &env::<config_lib::admin_login_failure_limit::AdminLoginFailureLimit>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_10),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_10),
         ),
         &env::<config_lib::admin_password_hash_concurrency::AdminPasswordHashConcurrency>(
-            StdAdminApiTestStrRef::from(constants_str::catalog::VALUE_1),
+            StdAdminApiTestStrRef::from(constants_str::VALUE_1),
         ),
         &env::<config_lib::admin_cookie_secure::AdminCookieSecure>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::FALSE,
+            constants_str::FALSE,
         )),
         &env::<config_lib::admin_token_issuer::AdminTokenIssuer>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST,
+            constants_str::INTEGRATION_TEST,
         )),
         &env::<config_lib::admin_token_audience::AdminTokenAudience>(StdAdminApiTestStrRef::from(
-            constants_str::catalog::INTEGRATION_TEST_ADMIN,
+            constants_str::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::domain_types::CorsAllowOrigin(
-            constants_str::catalog::HTTP_LOCALHOST.to_owned(),
-        ),
+        &config_lib::domain_types::CorsAllowOrigin(constants_str::HTTP_LOCALHOST.to_owned()),
     )
     .expect("ec39b61d admin_html_test_fixture_with_password_change invariant must hold");
     let router = AxumAdminApiTestRouter::from(axum::Router::from(
@@ -4185,11 +4094,11 @@ async fn admin_html_test_fixture_with_password_change(
             server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled::from(true),
         ),
     ));
-    let correct_password = serde_json::from_str::<String>(constants_str::catalog::CORRECT_PASSWORD)
+    let correct_password = serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
         .expect("825e50c7 admin_html_test_fixture_with_password_change invariant must hold");
     let sign_in_body = AdminHtmlTestFormBody::try_from(format!(
         "login={}&password={correct_password}",
-        constants_str::catalog::ADMIN_ALT,
+        constants_str::ADMIN_ALT,
     ))
     .expect("9df2164c admin_html_test_fixture_with_password_change invariant must hold");
     let sign_in_response = tower::ServiceExt::oneshot(
@@ -4209,22 +4118,22 @@ async fn admin_html_test_fixture_with_password_change(
     assert_eq!(sign_in_response.status(), http::StatusCode::SEE_OTHER);
     let access = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
     );
     let refresh = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_REFRESH_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_REFRESH_TOKEN_ALT),
     );
     let csrf = cookie_value(
         HttpAdminApiTestResponseRef::from(&sign_in_response),
-        StdAdminApiTestStrRef::from(constants_str::catalog::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
     );
     AdminHtmlTestFixture {
         cookie: StdAdminApiTestCookie::try_from(format!(
             "{}{access}; {}{refresh}; {}{csrf}",
-            constants_str::catalog::ADMIN_ACCESS_TOKEN,
-            constants_str::catalog::ADMIN_REFRESH_TOKEN_ALT,
-            constants_str::catalog::ADMIN_CSRF_TOKEN_ALT,
+            constants_str::ADMIN_ACCESS_TOKEN,
+            constants_str::ADMIN_REFRESH_TOKEN_ALT,
+            constants_str::ADMIN_CSRF_TOKEN_ALT,
         ))
         .expect("a4df94d1 admin_html_test_fixture_with_password_change invariant must hold"),
         csrf,
@@ -4249,10 +4158,10 @@ async fn postgres_accepts_admin_user_policy_values(
         .begin()
         .await
         .expect("e6f2cdf7 postgres_accepts_admin_user_policy_values invariant must hold");
-    let accepted = sqlx::query(constants_str::test_fixtures::INSERT_ADMIN_USER_POLICY_PROBE)
+    let accepted = sqlx::query(constants_str::INSERT_ADMIN_USER_POLICY_PROBE)
         .bind(login.0)
         .bind(display_name.0)
-        .bind(constants_str::catalog::X)
+        .bind(constants_str::X)
         .execute(&mut *transaction)
         .await
         .is_ok();
@@ -4271,7 +4180,7 @@ async fn postgres_accepts_admin_role_policy_value(
         .begin()
         .await
         .expect("77c2db82 postgres_accepts_admin_role_policy_value invariant must hold");
-    let accepted = sqlx::query(constants_str::test_fixtures::INSERT_ADMIN_ROLE_POLICY_PROBE)
+    let accepted = sqlx::query(constants_str::INSERT_ADMIN_ROLE_POLICY_PROBE)
         .bind(name.0)
         .execute(&mut *transaction)
         .await

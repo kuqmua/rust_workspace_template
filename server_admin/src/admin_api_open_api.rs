@@ -6,7 +6,7 @@ pub fn admin_api_open_api() -> crate::utoipa_admin_auth_open_api::UtoipaAdminAut
             .map(|limit| {
                 format!(
                     "{}{}",
-                    constants_str::test_fixtures::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
+                    constants_str::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
                     limit.get()
                 )
             });
@@ -38,23 +38,23 @@ pub fn admin_api_open_api() -> crate::utoipa_admin_auth_open_api::UtoipaAdminAut
         });
     if let Some(components) = document.components.as_mut() {
         components.add_security_scheme(
-            constants_str::catalog::ADMIN_COOKIE,
+            constants_str::ADMIN_COOKIE,
             utoipa::openapi::security::SecurityScheme::ApiKey(
                 utoipa::openapi::security::ApiKey::Cookie(
                     utoipa::openapi::security::ApiKeyValue::with_description(
-                        constants_str::catalog::SERVER_ADMIN_ACCESS_COOKIE_NAME,
-                        constants_str::catalog::HTTPONLY_ADMINISTRATOR_ACCESS_TOKEN_COOKIE,
+                        constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
+                        constants_str::HTTPONLY_ADMINISTRATOR_ACCESS_TOKEN_COOKIE,
                     ),
                 ),
             ),
         );
         components.add_security_scheme(
-            constants_str::catalog::ADMIN_CSRF,
+            constants_str::ADMIN_CSRF,
             utoipa::openapi::security::SecurityScheme::ApiKey(
                 utoipa::openapi::security::ApiKey::Header(
                     utoipa::openapi::security::ApiKeyValue::with_description(
-                        constants_str::catalog::X_CSRF_TOKEN,
-                        constants_str::catalog::CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION,
+                        constants_str::X_CSRF_TOKEN,
+                        constants_str::CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION,
                     ),
                 ),
             ),

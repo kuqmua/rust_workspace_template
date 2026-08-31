@@ -42,19 +42,17 @@ pub(crate) async fn mutations_set_ban(
             return Err(crate::admin_error::AdminError::Conflict);
         }
     }
-    sqlx::query_scalar::<_, bool>(
-        constants_str::integration_fixtures::SERVER_ADMIN_UPDATE_USER_BAN_SQL,
-    )
-    .bind(path.0.get())
-    .bind(is_banned)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map(|value| server_admin_core::std_admin_bool::StdAdminBool::from(value.is_some()))
-    .map_err(crate::admin_error::AdminError::from)?
-    .get()
-    .then_some(())
-    .ok_or(crate::admin_error::AdminError::Conflict)?;
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_USER_BAN_SQL)
+        .bind(path.0.get())
+        .bind(is_banned)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map(|value| server_admin_core::std_admin_bool::StdAdminBool::from(value.is_some()))
+        .map_err(crate::admin_error::AdminError::from)?
+        .get()
+        .then_some(())
+        .ok_or(crate::admin_error::AdminError::Conflict)?;
     if is_banned {
         crate::revoke_user_sessions::revoke_user_sessions(
             crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),

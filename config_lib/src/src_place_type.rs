@@ -25,16 +25,16 @@ impl SrcPlaceType {
         if let Err(error) = dotenv::dotenv() {
             tracing::warn!(
                 error = %error,
-                "dotenv initialization failed while resolving the source place type"
+                message = %constants_str::TRACING_DOTENV_INITIALIZATION_FAILED,
             );
         }
         let parsed = crate::env_var_result_var_error::EnvVarResultVarError::try_from(
-            std::env::var(constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE),
+            std::env::var(constants_str::ENV_NAMES_SRC_PLACE_TYPE),
         )
         .map_err(crate::env_parse_error::EnvParseError::from)
         .and_then(|env_v| {
             let env_var_name = crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
-                constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
+                constants_str::ENV_NAMES_SRC_PLACE_TYPE,
             );
             let raw_v = Result::<String, std::env::VarError>::from(env_v).map_err(|source| {
                 crate::env_parse_error::EnvParseError::Read {
@@ -49,7 +49,7 @@ impl SrcPlaceType {
                 .parse::<Self>()
                 .map_err(|error| crate::env_parse_error::EnvParseError::Parse {
                     context: crate::parse_ctx_ref::ParseCtxRef::from(
-                        constants_str::catalog::CONFIG_SRC_PLACE_TYPE_PARSE_CTX,
+                        constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX,
                     ),
                     detail: to_err_string::error_text::ErrorText::try_from(error)
                         .unwrap_or_else(to_err_string::error_text::ErrorText::from),
@@ -61,8 +61,8 @@ impl SrcPlaceType {
                 tracing::warn!(
                     error = %message,
                     default = ?default,
-                    fix = constants_str::catalog::CONFIG_SRC_PLACE_TYPE_FIX_MSG,
-                    "using the default source place type"
+                    fix = constants_str::CONFIG_SRC_PLACE_TYPE_FIX_MSG,
+                    message = %constants_str::TRACING_SOURCE_PLACE_DEFAULT_USED,
                 );
                 default
             }
@@ -76,11 +76,9 @@ impl SrcPlaceType {
         crate::parse_from_env_var_from_str_tests::parse_from_env_var_from_str(
             v,
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
-                constants_str::catalog::ENV_NAMES_SRC_PLACE_TYPE,
+                constants_str::ENV_NAMES_SRC_PLACE_TYPE,
             ),
-            crate::parse_ctx_ref::ParseCtxRef::from(
-                constants_str::catalog::CONFIG_SRC_PLACE_TYPE_PARSE_CTX,
-            ),
+            crate::parse_ctx_ref::ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
         )
     }
 }

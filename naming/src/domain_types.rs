@@ -504,7 +504,7 @@ mod tests {
     #[test]
     fn parameterized_names_preserve_display_token_and_type_path_context() {
         let display = crate::parameter::SelfPayloadUpperCamelCase::from_display(
-            &constants_str::test_fixtures::VALUE_BCB2F337,
+            &constants_str::VALUE_BCB2F337,
         );
         assert_eq!(display.to_string(), "TableExamplePayload");
         let tokens =
@@ -521,16 +521,16 @@ mod tests {
 
     #[test]
     fn swagger_path_helpers_quote_snake_case_paths() {
-        let name = String::from(constants_str::test_fixtures::VALUE_DECD817E);
+        let name = String::from(constants_str::VALUE_DECD817E);
         let path = crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
             &name,
-            crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::catalog::SERVICE),
+            crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
         );
         assert_eq!(path.as_ref(), "\"/service/table_example\"");
         let tokens =
             crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
                 &name,
-                crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::catalog::SERVICE),
+                crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
             );
         assert_eq!(
             quote::quote!(#tokens).to_string(),

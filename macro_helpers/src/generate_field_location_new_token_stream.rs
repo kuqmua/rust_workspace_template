@@ -45,10 +45,10 @@ mod tests {
     fn coordinates_reject_zero_and_accept_positive_values() {
         let _line_error =
             crate::field_location_line::FieldLocationLine::try_from(constants_u32::ZERO)
-                .expect_err(constants_str::test_fixtures::VALUE_A7ABF9D9);
+                .expect_err(constants_str::VALUE_A7ABF9D9);
         let _column_error =
             crate::field_location_column::FieldLocationColumn::try_from(constants_u32::ZERO)
-                .expect_err(constants_str::test_fixtures::VALUE_B430FE14);
+                .expect_err(constants_str::VALUE_B430FE14);
         let _line = crate::field_location_line::FieldLocationLine::try_from(7u32).expect(
             "070dbee8 coordinates_reject_zero_and_accept_positive_values invariant must hold",
         );
@@ -59,7 +59,7 @@ mod tests {
     #[test]
     fn first_coordinates_generate_complete_location_field() {
         let generated = crate::generate_field_location_new_token_stream::generate_field_location_new_token_stream(
-            crate::field_location_file::FieldLocationFile::from(constants_str::test_fixtures::VALUE_E1CEB1AF),
+            crate::field_location_file::FieldLocationFile::from(constants_str::VALUE_E1CEB1AF),
             crate::field_location_line::FieldLocationLine::first(),
             crate::field_location_column::FieldLocationColumn::first(),
         )

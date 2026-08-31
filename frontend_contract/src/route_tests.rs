@@ -40,8 +40,8 @@ mod tests {
         fn metadata() -> crate::route_metadata::RouteMetadata {
             crate::route_metadata::RouteMetadata::new(
                 crate::route_method::RouteMethod::Get,
-                crate::contract_str::ContractStr::from(constants_str::catalog::ROUTE_READ),
-                crate::contract_str::ContractStr::from(constants_str::catalog::ROUTE),
+                crate::contract_str::ContractStr::from(constants_str::ROUTE_READ),
+                crate::contract_str::ContractStr::from(constants_str::ROUTE),
             )
         }
     }

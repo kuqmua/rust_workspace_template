@@ -9,7 +9,7 @@ mod tests {
             router,
             axum::extract::Request::builder()
                 .method(method)
-                .uri(constants_str::test_fixtures::VALUE_C53B39B2)
+                .uri(constants_str::VALUE_C53B39B2)
                 .body(axum::body::Body::empty())
                 .expect("49ef0e86 call_method invariant must hold"),
         )
@@ -35,7 +35,7 @@ mod tests {
             ])
             .expect("329fb604 metrics_response_body_is_bounded invariant must hold"),
         )
-        .expect_err(constants_str::catalog::F0FC293DD);
+        .expect_err(constants_str::F0FC293DD);
     }
 
     #[test]
@@ -49,7 +49,7 @@ mod tests {
             Err(crate::http_metrics_path_text_error::HttpMetricsPathTextError)
         );
         let _path = crate::http_metrics_path_text::HttpMetricsPathText::try_from(
-            constants_str::catalog::A_ALT.repeat(constants_usize::VALUE_8_192),
+            constants_str::A_ALT.repeat(constants_usize::VALUE_8_192),
         )
         .expect(
             "c1b07056 cache_configuration_and_path_text_validate_boundaries invariant must hold",
@@ -71,31 +71,31 @@ mod tests {
             cache
                 .label(
                     crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(
-                        constants_str::catalog::ROOT
+                        constants_str::ROOT
                     )
                 )
                 .as_str(),
-            constants_str::catalog::ROOT
+            constants_str::ROOT
         );
         assert_eq!(
             cache
                 .label(
                     crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(
-                        constants_str::catalog::ROOT
+                        constants_str::ROOT
                     )
                 )
                 .as_str(),
-            constants_str::catalog::ROOT
+            constants_str::ROOT
         );
         assert_eq!(
             cache
                 .label(
                     crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(
-                        constants_str::catalog::V1
+                        constants_str::V1
                     )
                 )
                 .as_str(),
-            constants_str::catalog::HTTP_METRICS_UNMATCHED_PATH
+            constants_str::HTTP_METRICS_UNMATCHED_PATH
         );
     }
 
@@ -110,21 +110,21 @@ mod tests {
             cache
                 .label(
                     crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(
-                        constants_str::test_fixtures::EMPTY
+                        constants_str::EMPTY
                     )
                 )
                 .as_str(),
-            constants_str::catalog::HTTP_METRICS_UNMATCHED_PATH
+            constants_str::HTTP_METRICS_UNMATCHED_PATH
         );
         assert_eq!(
             cache
                 .label(
                     crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(
-                        constants_str::catalog::ROOT
+                        constants_str::ROOT
                     )
                 )
                 .as_str(),
-            constants_str::catalog::ROOT
+            constants_str::ROOT
         );
     }
 
@@ -133,7 +133,7 @@ mod tests {
         let router = axum::Router::from(
             crate::http_metrics_layer::HttpMetricsLayer::default().apply(
                 crate::axum_router::AxumRouter::from(axum::Router::new().route(
-                    constants_str::test_fixtures::VALUE_B56291E9,
+                    constants_str::VALUE_B56291E9,
                     axum::routing::any(async || http::StatusCode::INTERNAL_SERVER_ERROR),
                 )),
             ),

@@ -11,7 +11,7 @@ pub(super) async fn create_notification(
 > {
     let id = uuid::Uuid::new_v4();
     let message = request.into_inner().into_message();
-    let insert_sql = constants_str::test_fixtures::VALUE_1A78C1E1;
+    let insert_sql = constants_str::VALUE_1A78C1E1;
     let _created = sqlx::query(insert_sql)
         .bind(id)
         .bind(message.as_ref())

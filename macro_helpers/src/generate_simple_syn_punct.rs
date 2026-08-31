@@ -32,9 +32,9 @@ mod tests {
     #[test]
     fn generate_simple_syn_punct_builds_three_segment_path() {
         let punct = crate::generate_simple_syn_punct::generate_simple_syn_punct([
-            constants_str::catalog::STD,
-            constants_str::catalog::STRING_ALT,
-            constants_str::catalog::STRING,
+            constants_str::STD,
+            constants_str::STRING_ALT,
+            constants_str::STRING,
         ]);
         assert_eq!(
             quote::quote! {#punct}.to_string(),
@@ -43,9 +43,8 @@ mod tests {
     }
     #[test]
     fn generate_simple_syn_punct_builds_single_segment_path() {
-        let punct = crate::generate_simple_syn_punct::generate_simple_syn_punct([
-            constants_str::catalog::ONLY,
-        ]);
+        let punct =
+            crate::generate_simple_syn_punct::generate_simple_syn_punct([constants_str::ONLY]);
         assert_eq!(quote::quote! {#punct}.to_string(), "Only");
     }
     #[test]

@@ -15,34 +15,34 @@ mod tests {
     fn generated_accessors_return_expected_refs_and_values() {
         let mut cfg =
             crate::server_config::ServerConfig {
-                cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(constants_str::catalog::ASTERISK.to_owned()),
-                content_security_policy: server_config_test_env(constants_str::test_fixtures::TEST_CONTENT_SECURITY_POLICY),
-                database_url: server_config_test_env(constants_str::catalog::POSTGRES_DB),
-                admin_jwt_secret: server_config_test_env(constants_str::catalog::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
-                admin_token_audience: server_config_test_env(constants_str::catalog::TEST_AUDIENCE),
-                admin_token_issuer: server_config_test_env(constants_str::catalog::TEST_ISSUER),
-                admin_access_token_ttl_seconds: server_config_test_env(constants_str::catalog::VALUE_900),
-                admin_login_failure_limit: server_config_test_env(constants_str::catalog::VALUE_10),
-                admin_password_hash_concurrency: server_config_test_env(constants_str::catalog::VALUE_4),
-                admin_refresh_token_ttl_seconds: server_config_test_env(constants_str::catalog::VALUE_2592000),
-                admin_session_limit: server_config_test_env(constants_str::catalog::VALUE_20),
-                admin_sign_in_rate_limit: server_config_test_env(constants_str::catalog::VALUE_10),
-                admin_swagger_enabled: server_config_test_env(constants_str::catalog::TRUE),
-                http_gzip_enabled: server_config_test_env(constants_str::catalog::TRUE),
+                cors_allow_origin: config_lib::domain_types::CorsAllowOrigin(constants_str::ASTERISK.to_owned()),
+                content_security_policy: server_config_test_env(constants_str::TEST_CONTENT_SECURITY_POLICY),
+                database_url: server_config_test_env(constants_str::POSTGRES_DB),
+                admin_jwt_secret: server_config_test_env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
+                admin_token_audience: server_config_test_env(constants_str::TEST_AUDIENCE),
+                admin_token_issuer: server_config_test_env(constants_str::TEST_ISSUER),
+                admin_access_token_ttl_seconds: server_config_test_env(constants_str::VALUE_900),
+                admin_login_failure_limit: server_config_test_env(constants_str::VALUE_10),
+                admin_password_hash_concurrency: server_config_test_env(constants_str::VALUE_4),
+                admin_refresh_token_ttl_seconds: server_config_test_env(constants_str::VALUE_2592000),
+                admin_session_limit: server_config_test_env(constants_str::VALUE_20),
+                admin_sign_in_rate_limit: server_config_test_env(constants_str::VALUE_10),
+                admin_swagger_enabled: server_config_test_env(constants_str::TRUE),
+                http_gzip_enabled: server_config_test_env(constants_str::TRUE),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("0d9e4b7a generated_getters_return_expected_refs_and_values invariant must hold"),
                 service_socket_address: config_lib::domain_types::ServiceSocketAddress(
-                    constants_str::catalog::VALUE_127_0_0_1_8080
+                    constants_str::VALUE_127_0_0_1_8080
                         .parse()
                         .expect("e7a3d5c1 generated_getters_return_expected_refs_and_values invariant must hold"),
                 ),
                 pg_pool_max_connections: config_lib::pg_pool_max_connections::PgPoolMaxConnections::try_from(8)
                     .expect("39a84c10 generated_getters_return_expected_refs_and_values invariant must hold"),
-                pg_pool_min_connections: server_config_test_env(constants_str::catalog::VALUE_0),
-                pg_pool_acquire_timeout_seconds: server_config_test_env(constants_str::test_fixtures::TEST_VALUE_30),
-                pg_pool_idle_timeout_seconds: server_config_test_env(constants_str::test_fixtures::TEST_VALUE_30),
-                pg_pool_max_lifetime_seconds: server_config_test_env(constants_str::test_fixtures::TEST_VALUE_30),
-                request_timeout_seconds: server_config_test_env(constants_str::test_fixtures::TEST_VALUE_30),
+                pg_pool_min_connections: server_config_test_env(constants_str::VALUE_0),
+                pg_pool_acquire_timeout_seconds: server_config_test_env(constants_str::TEST_VALUE_30),
+                pg_pool_idle_timeout_seconds: server_config_test_env(constants_str::TEST_VALUE_30),
+                pg_pool_max_lifetime_seconds: server_config_test_env(constants_str::TEST_VALUE_30),
+                request_timeout_seconds: server_config_test_env(constants_str::TEST_VALUE_30),
                 timezone: config_lib::chrono_timezone::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2 generated_getters_return_expected_refs_and_values invariant must hold"),
                 )
@@ -51,11 +51,11 @@ mod tests {
                 tracing_level: config_lib::domain_types::TracingLevel(config_lib::tracing_level::TracingLevel::Info),
                 tracing_format: config_lib::tracing_format::TracingFormat::Text,
                 trusted_proxy_ranges_text: config_lib::domain_types::TrustedProxyRangesText(
-                    constants_str::catalog::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
+                    constants_str::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
                 ),
                 enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck(true),
-                admin_cookie_secure: server_config_test_env(constants_str::catalog::FALSE),
-                production_mode: server_config_test_env(constants_str::catalog::FALSE),
+                admin_cookie_secure: server_config_test_env(constants_str::FALSE),
+                production_mode: server_config_test_env(constants_str::FALSE),
                 svc_mode: config_lib::svc_mode::SvcMode::Serve,
             };
         assert_eq!(
@@ -119,18 +119,15 @@ mod tests {
             cfg.validate_for_startup(),
             Err(crate::production_config_error::ProductionConfigError::CorsOriginInsecure)
         );
-        cfg.cors_allow_origin = config_lib::domain_types::CorsAllowOrigin(
-            constants_str::integration_fixtures::HTTPS_EXAMPLE_COM.to_owned(),
-        );
-        cfg.admin_jwt_secret =
-            server_config_test_env(constants_str::test_fixtures::ADMIN_DEVELOPMENT_JWT_SECRET);
+        cfg.cors_allow_origin =
+            config_lib::domain_types::CorsAllowOrigin(constants_str::HTTPS_EXAMPLE_COM.to_owned());
+        cfg.admin_jwt_secret = server_config_test_env(constants_str::ADMIN_DEVELOPMENT_JWT_SECRET);
         assert_eq!(
             cfg.validate_for_startup(),
             Err(crate::production_config_error::ProductionConfigError::DevelopmentJwtSecret)
         );
-        cfg.admin_jwt_secret = server_config_test_env(
-            constants_str::catalog::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES,
-        );
+        cfg.admin_jwt_secret =
+            server_config_test_env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES);
         assert_eq!(cfg.validate_for_startup(), Ok(()));
     }
 }

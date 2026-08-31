@@ -28,7 +28,7 @@ pub(crate) fn TableCell(
     let class = class.map_or_else(
         || {
             std::borrow::Cow::Borrowed(
-                constants_str::test_fixtures::VALUE_19AB4EBD,
+                constants_str::VALUE_19AB4EBD,
             )
         },
         |class| {

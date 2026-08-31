@@ -11,22 +11,18 @@ impl OutboundTraceContext {
         &self,
         request: crate::reqwest_request_builder::ReqwestRequestBuilder,
     ) -> crate::reqwest_request_builder::ReqwestRequestBuilder {
-        let request_with_parent = reqwest::RequestBuilder::from(request).header(
-            constants_str::test_fixtures::TRACEPARENT,
-            self.trace_parent.as_ref(),
-        );
+        let request_with_parent = reqwest::RequestBuilder::from(request)
+            .header(constants_str::TRACEPARENT, self.trace_parent.as_ref());
         let request_with_state = match self.trace_state.as_ref() {
-            Some(trace_state) => request_with_parent.header(
-                constants_str::test_fixtures::TRACESTATE,
-                trace_state.as_ref(),
-            ),
+            Some(trace_state) => {
+                request_with_parent.header(constants_str::TRACESTATE, trace_state.as_ref())
+            }
             None => request_with_parent,
         };
         match self.request_id.as_ref() {
-            Some(request_id) => request_with_state.header(
-                constants_str::test_fixtures::X_REQUEST_ID,
-                request_id.to_string(),
-            ),
+            Some(request_id) => {
+                request_with_state.header(constants_str::X_REQUEST_ID, request_id.to_string())
+            }
             None => request_with_state,
         }
         .into()

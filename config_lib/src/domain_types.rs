@@ -47,13 +47,11 @@ config_lib_macros::impl_try_from_non_empty_string!(
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::tracing_format::TracingFormat {
     type Error = std::convert::Infallible;
     fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        Ok(
-            if v.eq_ignore_ascii_case(constants_str::integration_fixtures::JSON) {
-                Self::Json
-            } else {
-                Self::Text
-            },
-        )
+        Ok(if v.eq_ignore_ascii_case(constants_str::JSON) {
+            Self::Json
+        } else {
+            Self::Text
+        })
     }
 }
 config_lib_macros::impl_try_from_parse_string_error!(

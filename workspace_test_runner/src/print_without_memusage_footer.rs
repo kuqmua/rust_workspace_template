@@ -5,7 +5,7 @@ pub(crate) fn print_without_memusage_footer(stderr: crate::stderr_text_ref::Stde
     clean
         .as_ref()
         .lines()
-        .take_while(|line| !line.contains(constants_str::catalog::MEMORY_USAGE_SUMMARY))
+        .take_while(|line| !line.contains(constants_str::MEMORY_USAGE_SUMMARY))
         .filter(|line| !line.trim().is_empty())
         .for_each(|line| eprintln!("{line}"));
 }

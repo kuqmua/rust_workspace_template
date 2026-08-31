@@ -9,7 +9,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
     type Value = crate::bounded_unique_vec::BoundedUniqueVec<T, MIN, MAX>;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(constants_str::catalog::BOUNDED_UNIQUE_VEC_EXPECTING)
+        formatter.write_str(constants_str::BOUNDED_UNIQUE_VEC_EXPECTING)
     }
 
     fn visit_seq<Access>(self, mut seq: Access) -> Result<Self::Value, Access::Error>

@@ -47,34 +47,32 @@ pub(crate) async fn authn_sign_in(
         state.as_ref().policy.sign_in_window,
     )
     .await?;
-    let recent_failures = sqlx::query_scalar::<_, i64>(
-        constants_str::integration_fixtures::SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL,
-    )
-    .bind(login.as_ref())
-    .fetch_one(state.as_ref().pool.as_ref())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map(crate::admin_recent_login_failure_count::AdminRecentLoginFailureCount::from)
-    .map_err(crate::admin_error::AdminError::from)?;
+    let recent_failures =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL)
+            .bind(login.as_ref())
+            .fetch_one(state.as_ref().pool.as_ref())
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            .map(crate::admin_recent_login_failure_count::AdminRecentLoginFailureCount::from)
+            .map_err(crate::admin_error::AdminError::from)?;
     if recent_failures
         .reached(state.as_ref().policy.failure_threshold)
         .get()
     {
         return Err(crate::admin_error::AdminError::RateLimited);
     }
-    let optional_user = sqlx::query_as::<_, (i64, String, bool)>(
-        constants_str::integration_fixtures::SERVER_ADMIN_SIGN_IN_USER_SQL,
-    )
-    .bind(login.as_ref())
-    .fetch_optional(state.as_ref().pool.as_ref())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .and_then(|value| {
-        value
-            .map(crate::admin_sign_in_user::AdminSignInUser::try_from)
-            .transpose()
-    })
-    .map_err(crate::admin_error::AdminError::from)?;
+    let optional_user =
+        sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_SIGN_IN_USER_SQL)
+            .bind(login.as_ref())
+            .fetch_optional(state.as_ref().pool.as_ref())
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            .and_then(|value| {
+                value
+                    .map(crate::admin_sign_in_user::AdminSignInUser::try_from)
+                    .transpose()
+            })
+            .map_err(crate::admin_error::AdminError::from)?;
     let Some(sign_in_user) = optional_user else {
         drop(
             state

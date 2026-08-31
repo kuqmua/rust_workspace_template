@@ -6,11 +6,11 @@ pub(super) fn failed_test_names(
         .as_ref()
         .lines()
         .filter_map(|line| {
-            line.strip_prefix(constants_str::catalog::TEST_ALT)
-                .and_then(|tail| tail.strip_suffix(constants_str::catalog::FAILED_ALT))
+            line.strip_prefix(constants_str::TEST_ALT)
+                .and_then(|tail| tail.strip_suffix(constants_str::FAILED_ALT))
                 .or_else(|| {
-                    let tail = line.strip_prefix(constants_str::catalog::FOUR_SPACES)?;
-                    tail.strip_suffix(constants_str::catalog::FAILED)
+                    let tail = line.strip_prefix(constants_str::FOUR_SPACES)?;
+                    tail.strip_suffix(constants_str::FAILED)
                 })
                 .map(|name| {
                     crate::command_text::CommandText::try_from(name.to_owned())

@@ -29,7 +29,7 @@ mod tests {
     fn namespace_rejects_sql_syntax() {
         assert_eq!(
             crate::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(String::from(
-                constants_str::catalog::TEST_SQL_INJECTION
+                constants_str::TEST_SQL_INJECTION
             )),
             Err(crate::pg_relation_lock_error::PgRelationLockError::InvalidNamespace)
         );

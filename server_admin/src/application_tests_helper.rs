@@ -19,16 +19,16 @@ pub(crate) fn auth_state(
 > {
     crate::admin_auth_svc_state::AdminAuthSvcState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(pool),
-        &admin_app_test_env(constants_str::catalog::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
-        &admin_app_test_env(constants_str::catalog::VALUE_900),
-        &admin_app_test_env(constants_str::catalog::VALUE_3600),
-        &admin_app_test_env(constants_str::catalog::VALUE_20),
-        &admin_app_test_env(constants_str::catalog::VALUE_2),
-        &admin_app_test_env(constants_str::catalog::VALUE_10),
-        &admin_app_test_env(constants_str::catalog::VALUE_1),
-        &admin_app_test_env(constants_str::catalog::FALSE),
-        &admin_app_test_env(constants_str::catalog::INTEGRATION_TEST),
-        &admin_app_test_env(constants_str::catalog::INTEGRATION_TEST_ADMIN),
+        &admin_app_test_env(constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES),
+        &admin_app_test_env(constants_str::VALUE_900),
+        &admin_app_test_env(constants_str::VALUE_3600),
+        &admin_app_test_env(constants_str::VALUE_20),
+        &admin_app_test_env(constants_str::VALUE_2),
+        &admin_app_test_env(constants_str::VALUE_10),
+        &admin_app_test_env(constants_str::VALUE_1),
+        &admin_app_test_env(constants_str::FALSE),
+        &admin_app_test_env(constants_str::INTEGRATION_TEST),
+        &admin_app_test_env(constants_str::INTEGRATION_TEST_ADMIN),
         &config_lib::domain_types::CorsAllowOrigin(allowed_origin.to_owned()),
     )
 }

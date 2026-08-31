@@ -72,7 +72,7 @@ fn main() {
         let result = (|| {
             let mut arguments = std::env::args().skip(constants_usize::ONE);
             match arguments.next().as_deref() {
-                Some(constants_str::test_fixtures::WORKSPACE_SCAFFOLD_PROJECT_COMMAND) => {
+                Some(constants_str::WORKSPACE_SCAFFOLD_PROJECT_COMMAND) => {
                     let name = arguments
                         .next()
                         .ok_or(scaffold_error::ScaffoldError::Arguments)?;
@@ -96,24 +96,24 @@ fn main() {
                     let root = workspace_root()?;
                     let replacements = [
                         (
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL,
+                            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_REPOSITORY_URL,
                             repository_url_ref.get().to_owned(),
                         ),
                         (
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_SNAKE,
+                            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_SNAKE,
                             name_ref.get().to_owned(),
                         ),
                         (
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
+                            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
                             naming_kebab_case::naming_kebab_case(name_ref)
                                 .as_ref()
                                 .to_owned(),
                         ),
                         (
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE,
+                            constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_TITLE,
                             naming_capitalized_parts::naming_capitalized_parts(
                                 name_ref,
-                                scaffold_text_ref::ScaffoldTextRef::from(constants_str::catalog::SPACE),
+                                scaffold_text_ref::ScaffoldTextRef::from(constants_str::SPACE),
                             )
                             .as_ref()
                             .to_owned(),
@@ -125,9 +125,9 @@ fn main() {
                             matches!(
                                 component.as_os_str().to_str(),
                                 Some(
-                                    constants_str::catalog::GIT
-                                        | constants_str::catalog::TARGET
-                                        | constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NODE_MODULES
+                                    constants_str::GIT
+                                        | constants_str::TARGET
+                                        | constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
                                 )
                             )
                         }) {
@@ -147,7 +147,7 @@ fn main() {
                     }
                     Ok(())
                 }
-                Some(constants_str::catalog::SERVICE) => {
+                Some(constants_str::SERVICE) => {
                     let name = arguments
                         .next()
                         .ok_or(scaffold_error::ScaffoldError::Arguments)?;
@@ -182,39 +182,39 @@ fn main() {
                         let upper_snake = service.to_ascii_uppercase();
                         let replacements = [
                             (
-                                constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE,
+                                constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE,
                                 service.to_owned(),
                             ),
                             (
-                                constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE_KEBAB,
+                                constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE_KEBAB,
                                 kebab.as_ref().to_owned(),
                             ),
                             (
-                                constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_UPPER,
+                                constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_UPPER,
                                 upper_snake.clone(),
                             ),
                             (
-                                constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE,
+                                constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE,
                                 naming_capitalized_parts::naming_capitalized_parts(
                                     service_name,
-                                    scaffold_text_ref::ScaffoldTextRef::from(constants_str::test_fixtures::EMPTY),
+                                    scaffold_text_ref::ScaffoldTextRef::from(constants_str::EMPTY),
                                 )
                                 .as_ref()
                                 .to_owned(),
                             ),
                             (
-                                constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_LOWER,
+                                constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_LOWER,
                                 service.to_owned(),
                             ),
                             (
-                                constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_PORT,
+                                constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_PORT,
                                 port.0.to_string(),
                             ),
                         ];
                         template_fs_copy_template_tree::template_fs_copy_template_tree(
                             scaffold_path_ref::ScaffoldPathRef::from(
                                 root.0
-                                    .join(constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
+                                    .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE)
                                     .as_path(),
                             ),
                             scaffold_path_ref::ScaffoldPathRef::from(
@@ -225,7 +225,7 @@ fn main() {
                         template_fs_copy_template_tree::template_fs_copy_template_tree(
                             scaffold_path_ref::ScaffoldPathRef::from(
                                 root.0
-                                    .join(constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
+                                    .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
                                     .as_path(),
                             ),
                             scaffold_path_ref::ScaffoldPathRef::from(
@@ -236,7 +236,7 @@ fn main() {
                         template_fs_copy_template_tree::template_fs_copy_template_tree(
                             scaffold_path_ref::ScaffoldPathRef::from(
                                 root.0
-                                    .join(constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
+                                    .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONTRACT)
                                     .as_path(),
                             ),
                             scaffold_path_ref::ScaffoldPathRef::from(
@@ -245,10 +245,10 @@ fn main() {
                             replacements_ref::ReplacementsRef::from(replacements.as_slice()),
                         )?;
 
-                        let manifest = root.0.join(constants_str::catalog::CARGO_TOML);
+                        let manifest = root.0.join(constants_str::CARGO_TOML);
                         template_fs_insert_once::template_fs_insert_once(
                                 scaffold_path_ref::ScaffoldPathRef::from(manifest.as_path()),
-                                scaffold_text_ref::ScaffoldTextRef::from(constants_str::test_fixtures::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
+                                scaffold_text_ref::ScaffoldTextRef::from(constants_str::WORKSPACE_SCAFFOLD_MANIFEST_MEMBER_MARKER),
                                 scaffold_text_ref::ScaffoldTextRef::from(
                                     format!(
                                         "  \"notification_service_contract\",\n  \"{service}\",\n  \"{config}\",\n  \"{contract}\","
@@ -257,7 +257,7 @@ fn main() {
                                 ),
                             )?;
                         let dependency_marker =
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
+                            constants_str::WORKSPACE_SCAFFOLD_MANIFEST_DEPENDENCY_MARKER;
                         template_fs_insert_once::template_fs_insert_once(
                                 scaffold_path_ref::ScaffoldPathRef::from(manifest.as_path()),
                                 scaffold_text_ref::ScaffoldTextRef::from(dependency_marker),
@@ -269,13 +269,13 @@ fn main() {
                                 ),
                             )?;
 
-                        let k8s_source = root.0.join(
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH,
-                        );
+                        let k8s_source = root
+                            .0
+                            .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_K8S_PATH);
                         let k8s_file_name = format!("{kebab}.yaml");
                         let k8s_destination = root
                             .0
-                            .join(constants_str::test_fixtures::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
+                            .join(constants_str::WORKSPACE_SCAFFOLD_K8S_BASE_PATH)
                             .join(k8s_file_name.as_str());
                         let _copied_bytes =
                             std::fs::copy(k8s_source.as_path(), k8s_destination.as_path())?;
@@ -300,13 +300,13 @@ fn main() {
                             scaffold_path_ref::ScaffoldPathRef::from(k8s_destination.as_path()),
                             scaffold_text_ref::ScaffoldTextRef::from(k8s_contents.as_str()),
                         )?;
-                        let kustomization = root.0.join(
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH,
-                        );
+                        let kustomization = root
+                            .0
+                            .join(constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_PATH);
                         template_fs_insert_once::template_fs_insert_once(
                             scaffold_path_ref::ScaffoldPathRef::from(kustomization.as_path()),
                             scaffold_text_ref::ScaffoldTextRef::from(
-                                constants_str::test_fixtures::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER,
+                                constants_str::WORKSPACE_SCAFFOLD_KUSTOMIZATION_MARKER,
                             ),
                             scaffold_text_ref::ScaffoldTextRef::from(
                                 format!("  - notification-service.yaml\n  - {k8s_file_name}")
@@ -317,7 +317,7 @@ fn main() {
                         let config_example_path = root
                             .0
                             .join(config.as_str())
-                            .join(constants_str::catalog::ENV_EXAMPLE);
+                            .join(constants_str::ENV_EXAMPLE);
                         let config_example =
                             template_fs_read_bounded_text::template_fs_read_bounded_text(
                                 scaffold_path_ref::ScaffoldPathRef::from(
@@ -363,9 +363,9 @@ fn main() {
                             scaffold_text_ref::ScaffoldTextRef::from(compose.as_str()),
                         )?;
 
-                        let service_catalog = root.0.join(
-                            constants_str::test_fixtures::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH,
-                        );
+                        let service_catalog = root
+                            .0
+                            .join(constants_str::WORKSPACE_SCAFFOLD_SERVICE_CATALOG_PATH);
                         let mut service_catalog_contents =
                             template_fs_read_bounded_text::template_fs_read_bounded_text(
                                 scaffold_path_ref::ScaffoldPathRef::from(service_catalog.as_path()),
@@ -388,12 +388,10 @@ fn main() {
                         Ok(())
                     }
                 }
-                Some(constants_str::test_fixtures::VALUE_24CACF50) => {
+                Some(constants_str::VALUE_24CACF50) => {
                     let write_changes = match arguments.next().as_deref() {
-                        Some(constants_str::catalog::SYNC) => should_write::ShouldWrite::from(true),
-                        Some(constants_str::test_fixtures::CHECK) => {
-                            should_write::ShouldWrite::from(false)
-                        }
+                        Some(constants_str::SYNC) => should_write::ShouldWrite::from(true),
+                        Some(constants_str::CHECK) => should_write::ShouldWrite::from(false),
                         Some(_) | None => {
                             return Err(scaffold_error::ScaffoldError::Arguments);
                         }
@@ -410,16 +408,16 @@ fn main() {
                         root,
                         cargo_args_ref::CargoArgsRef::from(
                             &[
-                                constants_str::catalog::TEST_ALT_3,
-                                constants_str::catalog::P,
-                                constants_str::test_fixtures::VALUE_B2F5A0ED,
-                                constants_str::catalog::P,
-                                constants_str::test_fixtures::VALUE_8B9F9090,
-                                constants_str::test_fixtures::VALUE_B43DA2C2,
+                                constants_str::TEST_ALT_3,
+                                constants_str::P,
+                                constants_str::VALUE_B2F5A0ED,
+                                constants_str::P,
+                                constants_str::VALUE_8B9F9090,
+                                constants_str::VALUE_B43DA2C2,
                             ][..],
                         ),
                         update_env_name::UpdateEnvName::from(
-                            constants_str::test_fixtures::UPDATE_CONFIG_PROJECTIONS,
+                            constants_str::UPDATE_CONFIG_PROJECTIONS,
                         ),
                         generated_projection::GeneratedProjection::Config,
                         write_changes,
@@ -428,25 +426,23 @@ fn main() {
                         root,
                         cargo_args_ref::CargoArgsRef::from(
                             &[
-                                constants_str::catalog::TEST_ALT_3,
-                                constants_str::catalog::P,
-                                constants_str::catalog::TESTS_ALT,
-                                constants_str::catalog::CODE_STYLE,
+                                constants_str::TEST_ALT_3,
+                                constants_str::P,
+                                constants_str::TESTS_ALT,
+                                constants_str::CODE_STYLE,
                             ][..],
                         ),
                         update_env_name::UpdateEnvName::from(
-                            constants_str::test_fixtures::UPDATE_CODE_STYLE_SNAPSHOTS,
+                            constants_str::UPDATE_CODE_STYLE_SNAPSHOTS,
                         ),
                         generated_projection::GeneratedProjection::CodeStyle,
                         write_changes,
                     )
                 }
-                Some(constants_str::test_fixtures::VALUE_AEE50B18) => {
+                Some(constants_str::VALUE_AEE50B18) => {
                     let write_changes = match arguments.next().as_deref() {
-                        Some(constants_str::catalog::SYNC) => should_write::ShouldWrite::from(true),
-                        Some(constants_str::test_fixtures::CHECK) => {
-                            should_write::ShouldWrite::from(false)
-                        }
+                        Some(constants_str::SYNC) => should_write::ShouldWrite::from(true),
+                        Some(constants_str::CHECK) => should_write::ShouldWrite::from(false),
                         Some(_) | None => {
                             return Err(scaffold_error::ScaffoldError::Arguments);
                         }
@@ -465,7 +461,10 @@ fn main() {
         match result {
             Ok(()) => scaffold_run_ok::ScaffoldRunOk::from(true),
             Err(error) => {
-                tracing::error!(error = %error, "workspace scaffolding failed");
+                tracing::error!(
+                    error = %error,
+                    message = %constants_str::TRACING_WORKSPACE_SCAFFOLDING_FAILED,
+                );
                 scaffold_run_ok::ScaffoldRunOk::from(false)
             }
         }

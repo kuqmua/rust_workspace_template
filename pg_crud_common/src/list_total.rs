@@ -148,14 +148,10 @@ mod tests {
     fn run_list_propagates_list_and_count_errors() {
         let list_error = block_on(crate::run_list_with_total::run_list_with_total(
             crate::pagination_offset::PaginationOffset::from(constants_i32::ZERO).into(),
-            async || {
-                Err::<crate::list_rows::ListRows<u8>, _>(
-                    constants_str::test_fixtures::VALUE_A330395C,
-                )
-            },
+            async || Err::<crate::list_rows::ListRows<u8>, _>(constants_str::VALUE_A330395C),
             async || Ok::<_, &str>(crate::list_total::ListTotal::from(constants_u32::ZERO)),
         ))
-        .expect_err(constants_str::test_fixtures::VALUE_09221460);
+        .expect_err(constants_str::VALUE_09221460);
         assert_eq!(list_error, "list");
         let count_error = block_on(crate::run_list_with_total::run_list_with_total(
             crate::pagination_offset::PaginationOffset::from(1i32).into(),
@@ -165,11 +161,9 @@ mod tests {
                     None,
                 ))
             },
-            async || {
-                Err::<crate::list_total::ListTotal, _>(constants_str::test_fixtures::VALUE_6C35493A)
-            },
+            async || Err::<crate::list_total::ListTotal, _>(constants_str::VALUE_6C35493A),
         ))
-        .expect_err(constants_str::test_fixtures::VALUE_20016253);
+        .expect_err(constants_str::VALUE_20016253);
         assert_eq!(count_error, "count");
     }
 

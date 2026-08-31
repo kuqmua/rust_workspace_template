@@ -13,7 +13,7 @@ where
         && let Some(schema) = Route::openapi_response_schema()
     {
         let _previous_content = response.content.insert(
-            constants_str::catalog::APPLICATION_JSON.to_owned(),
+            constants_str::APPLICATION_JSON.to_owned(),
             utoipa::openapi::Content::new(Some(
                 utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from(schema),
             )),

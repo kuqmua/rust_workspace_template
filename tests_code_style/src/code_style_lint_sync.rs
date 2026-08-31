@@ -6,7 +6,7 @@ enum LintProbeDisposition {
 }
 
 fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
-    let lint_arg = if tool == constants_str::catalog::CLIPPY_DRIVER {
+    let lint_arg = if tool == constants_str::CLIPPY_DRIVER {
         format!("clippy::{lint}")
     } else {
         lint.to_owned()
@@ -18,20 +18,20 @@ fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
     ));
     let output_path_text = output_path.to_string_lossy();
     let args = [
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_CRATE_NAME_ARG,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_CRATE_NAME,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_CRATE_TYPE_ARG,
-        constants_str::catalog::LIB,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_EDITION_ARG,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_EDITION,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_EMIT_METADATA_ARG,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_OUTPUT_ARG,
+        constants_str::CODE_STYLE_LINT_PROBE_CRATE_NAME_ARG,
+        constants_str::CODE_STYLE_LINT_PROBE_CRATE_NAME,
+        constants_str::CODE_STYLE_LINT_PROBE_CRATE_TYPE_ARG,
+        constants_str::LIB,
+        constants_str::CODE_STYLE_LINT_PROBE_EDITION_ARG,
+        constants_str::CODE_STYLE_LINT_PROBE_EDITION,
+        constants_str::CODE_STYLE_LINT_PROBE_EMIT_METADATA_ARG,
+        constants_str::CODE_STYLE_LINT_PROBE_OUTPUT_ARG,
         output_path_text.as_ref(),
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_DENY_ARG,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_UNKNOWN_LINTS,
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_DENY_ARG,
+        constants_str::CODE_STYLE_LINT_PROBE_DENY_ARG,
+        constants_str::CODE_STYLE_LINT_PROBE_UNKNOWN_LINTS,
+        constants_str::CODE_STYLE_LINT_PROBE_DENY_ARG,
         lint_arg.as_str(),
-        constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_INPUT_PATH,
+        constants_str::CODE_STYLE_LINT_PROBE_INPUT_PATH,
     ];
     let output = macro_helpers::tool_command::ToolCommand::new(
         macro_helpers::tool_program_ref::ToolProgramRef::from(tool),
@@ -50,7 +50,7 @@ fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
         return LintProbeDisposition::Supported;
     }
     let stderr = String::from_utf8_lossy(&output.as_ref().stderr);
-    if stderr.contains(constants_str::test_fixtures::CODE_STYLE_LINT_PROBE_UNSTABLE_DIAGNOSTIC) {
+    if stderr.contains(constants_str::CODE_STYLE_LINT_PROBE_UNSTABLE_DIAGNOSTIC) {
         LintProbeDisposition::Unstable
     } else {
         LintProbeDisposition::Unknown
@@ -65,9 +65,9 @@ fn check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lint
     );
     crate::code_style::assert_workspace_lints_match(
         crate::code_style::RustOrClippy::Clippy,
-        crate::types::StaticStr::from(constants_str::catalog::CLIPPY_DRIVER),
+        crate::types::StaticStr::from(constants_str::CLIPPY_DRIVER),
         crate::types::AnalyzerBool::from(true),
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_8895CA50),
+        crate::types::StaticStr::from(constants_str::VALUE_8895CA50),
         crate::types::StaticStrSliceRef::from(
             constants_str::CODE_STYLE_CLIPPY_LINT_EXCEPTIONS.as_slice(),
         ),
@@ -77,48 +77,48 @@ fn check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lint
 fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() {
     let reviewed_exceptions = [
         (
-            constants_str::catalog::IMPLICIT_PROVENANCE_CASTS,
-            constants_str::test_fixtures::VALUE_2642B498,
+            constants_str::IMPLICIT_PROVENANCE_CASTS,
+            constants_str::VALUE_2642B498,
         ),
         (
-            constants_str::catalog::MULTIPLE_SUPERTRAIT_UPCASTABLE,
-            constants_str::test_fixtures::VALUE_5CA1A822,
+            constants_str::MULTIPLE_SUPERTRAIT_UPCASTABLE,
+            constants_str::VALUE_5CA1A822,
         ),
         (
-            constants_str::catalog::MUST_NOT_SUSPEND,
-            constants_str::test_fixtures::VALUE_8B5456A9,
+            constants_str::MUST_NOT_SUSPEND,
+            constants_str::VALUE_8B5456A9,
         ),
         (
-            constants_str::catalog::NON_EXHAUSTIVE_OMITTED_PATTERNS,
-            constants_str::test_fixtures::VALUE_C14A18CA,
+            constants_str::NON_EXHAUSTIVE_OMITTED_PATTERNS,
+            constants_str::VALUE_C14A18CA,
         ),
         (
-            constants_str::catalog::DEFAULT_OVERRIDES_DEFAULT_FIELDS,
-            constants_str::test_fixtures::VALUE_8C3E05BE,
+            constants_str::DEFAULT_OVERRIDES_DEFAULT_FIELDS,
+            constants_str::VALUE_8C3E05BE,
         ),
         (
-            constants_str::catalog::TEST_UNSTABLE_LINT,
-            constants_str::test_fixtures::VALUE_25E2DA35,
+            constants_str::TEST_UNSTABLE_LINT,
+            constants_str::VALUE_25E2DA35,
         ),
         (
-            constants_str::catalog::RESOLVING_TO_ITEMS_SHADOWING_SUPERTRAIT_ITEMS,
-            constants_str::test_fixtures::VALUE_9201B73E,
+            constants_str::RESOLVING_TO_ITEMS_SHADOWING_SUPERTRAIT_ITEMS,
+            constants_str::VALUE_9201B73E,
         ),
         (
-            constants_str::catalog::SHADOWING_SUPERTRAIT_ITEMS,
-            constants_str::test_fixtures::VALUE_9201B73E,
+            constants_str::SHADOWING_SUPERTRAIT_ITEMS,
+            constants_str::VALUE_9201B73E,
         ),
         (
-            constants_str::catalog::UNQUALIFIED_LOCAL_IMPORTS,
-            constants_str::test_fixtures::VALUE_8EA48DC5,
+            constants_str::UNQUALIFIED_LOCAL_IMPORTS,
+            constants_str::VALUE_8EA48DC5,
         ),
         (
-            constants_str::catalog::DEPRECATED_LLVM_INTRINSIC,
-            constants_str::test_fixtures::VALUE_837349B6,
+            constants_str::DEPRECATED_LLVM_INTRINSIC,
+            constants_str::VALUE_837349B6,
         ),
         (
-            constants_str::catalog::TAIL_CALL_TRACK_CALLER,
-            constants_str::test_fixtures::VALUE_94F20D79,
+            constants_str::TAIL_CALL_TRACK_CALLER,
+            constants_str::VALUE_94F20D79,
         ),
     ];
     let _validated_exceptions = reviewed_exceptions
@@ -126,7 +126,7 @@ fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() 
         .map(|(lint, reason)| {
             assert!(!reason.is_empty(), "829d6e1f");
             assert_eq!(
-                probe_lint(constants_str::catalog::RUSTC, lint),
+                probe_lint(constants_str::RUSTC, lint),
                 LintProbeDisposition::Unstable,
                 "f70c3b82: `{lint}` is no longer an unsupported unstable lint; remove the exception or update the reviewed reason"
             );
@@ -146,9 +146,9 @@ fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() 
     );
     crate::code_style::assert_workspace_lints_match(
         crate::code_style::RustOrClippy::Rust,
-        crate::types::StaticStr::from(constants_str::catalog::RUSTC),
+        crate::types::StaticStr::from(constants_str::RUSTC),
         crate::types::AnalyzerBool::default(),
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_3C20B457),
+        crate::types::StaticStr::from(constants_str::VALUE_3C20B457),
         //todo on commit momment seems like this lints still not added to rustc, but in the list of rustc -W help
         crate::types::StaticStrSliceRef::from(exceptions.as_slice()),
     );
@@ -168,20 +168,20 @@ fn clippy_lint_exceptions_are_unique() {
 #[test]
 fn lint_probe_distinguishes_supported_unstable_and_unknown_lints() {
     assert_eq!(
-        probe_lint(constants_str::catalog::CLIPPY_DRIVER, "disallowed_fields"),
+        probe_lint(constants_str::CLIPPY_DRIVER, "disallowed_fields"),
         LintProbeDisposition::Supported,
         "6bc218de"
     );
     assert_eq!(
         probe_lint(
-            constants_str::catalog::RUSTC,
-            constants_str::catalog::IMPLICIT_PROVENANCE_CASTS
+            constants_str::RUSTC,
+            constants_str::IMPLICIT_PROVENANCE_CASTS
         ),
         LintProbeDisposition::Unstable,
         "e1437af9"
     );
     assert_eq!(
-        probe_lint(constants_str::catalog::RUSTC, "code_style_nonexistent_lint"),
+        probe_lint(constants_str::RUSTC, "code_style_nonexistent_lint"),
         LintProbeDisposition::Unknown,
         "907ca5d3"
     );

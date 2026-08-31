@@ -9,7 +9,7 @@ pub(super) fn reset() {
                 .to_owned(),
         ),
         server_admin_contract::admin_site_name::AdminSiteName::try_from(
-            constants_str::catalog::ADMIN.to_owned(),
+            constants_str::ADMIN.to_owned(),
         ),
         clear,
         crate::http::url::admin_api_url(

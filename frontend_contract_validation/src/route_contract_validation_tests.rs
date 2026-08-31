@@ -10,8 +10,8 @@ mod tests {
         fn metadata() -> frontend_contract::route_metadata::RouteMetadata {
             route_validation_metadata(
                 frontend_contract::route_method::RouteMethod::Get,
-                constants_str::catalog::ROUTE_READ,
-                constants_str::catalog::ROUTE,
+                constants_str::ROUTE_READ,
+                constants_str::ROUTE,
             )
         }
     }
@@ -32,8 +32,8 @@ mod tests {
     fn equal_metadata_satisfies_contract() {
         let metadata = route_validation_metadata(
             frontend_contract::route_method::RouteMethod::Get,
-            constants_str::catalog::ROUTE_READ,
-            constants_str::catalog::ROUTE,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
         );
         assert_eq!(
             crate::validate_route_contract_metadata::validate_route_contract_metadata(
@@ -49,8 +49,8 @@ mod tests {
             crate::validate_typed_route_contract::validate_typed_route_contract::<ReadRoute>(
                 route_validation_metadata(
                     frontend_contract::route_method::RouteMethod::Get,
-                    constants_str::catalog::ROUTE_READ,
-                    constants_str::catalog::ROUTE
+                    constants_str::ROUTE_READ,
+                    constants_str::ROUTE
                 )
             ),
             Ok(())
@@ -61,8 +61,8 @@ mod tests {
     fn http_fixture_checks_status_and_json_body() {
         let metadata = route_validation_metadata(
             frontend_contract::route_method::RouteMethod::Get,
-            constants_str::catalog::ROUTE_READ,
-            constants_str::catalog::ROUTE,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
         );
         let expectation = crate::http_contract_expectation::HttpContractExpectation::new(
             metadata,
@@ -104,18 +104,18 @@ mod tests {
     fn every_metadata_difference_is_reported() {
         let expected = route_validation_metadata(
             frontend_contract::route_method::RouteMethod::Get,
-            constants_str::catalog::ROUTE_READ,
-            constants_str::catalog::ROUTE,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
         );
         let observed = route_validation_metadata(
             frontend_contract::route_method::RouteMethod::Post,
-            constants_str::catalog::ADMIN_ALT,
-            constants_str::catalog::NOT_AN_API_ROUTE,
+            constants_str::ADMIN_ALT,
+            constants_str::NOT_AN_API_ROUTE,
         );
         let mismatches = crate::validate_route_contract_metadata::validate_route_contract_metadata(
             expected, observed,
         )
-        .expect_err(constants_str::catalog::VALUE_5067F83C);
+        .expect_err(constants_str::VALUE_5067F83C);
         assert_eq!(mismatches.as_ref().len(), 3usize);
         assert!(matches!(
             mismatches.as_ref().first(),

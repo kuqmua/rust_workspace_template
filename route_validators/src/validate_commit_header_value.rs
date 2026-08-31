@@ -10,7 +10,7 @@ pub(crate) fn validate_commit_header_value(
         .map_err(
             |commit_to_use| crate::commit_error::CommitError::CommitNotEq {
                 commit_not_eq: crate::commit_not_eq_message::CommitNotEqMessage::from(
-                    constants_str::catalog::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG,
+                    constants_str::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG,
                 ),
                 commit_to_use,
                 location: location_macros::location!(),

@@ -17,7 +17,7 @@ fn owned_singlestage_context_renders_without_an_external_owner() {
 #[test]
 fn primitives_render_semantic_accessible_markup() {
     let owned_label = crate::admin_field_label::AdminFieldLabel::from(String::from(
-        constants_str::test_fixtures::VALUE_9E41A9D1,
+        constants_str::VALUE_9E41A9D1,
     ));
     assert_eq!(owned_label.as_ref(), "Owned label");
     let html = render_owned_view(leptos::view! {
@@ -171,14 +171,10 @@ fn bound_form_controls_render_signal_values() {
     let owner = leptos::prelude::Owner::new();
     let html = owner.with(|| {
         let input = crate::leptos_admin_input_signal::LeptosAdminInputSignal::from(
-            leptos::prelude::RwSignal::new(String::from(
-                constants_str::test_fixtures::VALUE_14527724,
-            )),
+            leptos::prelude::RwSignal::new(String::from(constants_str::VALUE_14527724)),
         );
         let textarea = crate::leptos_admin_input_signal::LeptosAdminInputSignal::from(
-            leptos::prelude::RwSignal::new(String::from(
-                constants_str::test_fixtures::VALUE_F013164D,
-            )),
+            leptos::prelude::RwSignal::new(String::from(constants_str::VALUE_F013164D)),
         );
         render_owned_view(leptos::view! {
             <crate::admin_input::AdminInput name="bound_input" bind_value=input />

@@ -5,7 +5,7 @@ mod tests {
         let value =
             crate::build_attachment_content_disposition::build_attachment_content_disposition(
                 crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef::from(
-                    constants_str::test_fixtures::TEST_UNSAFE_UNICODE_ATTACHMENT_FILE_NAME,
+                    constants_str::TEST_UNSAFE_UNICODE_ATTACHMENT_FILE_NAME,
                 ),
             )
             .expect(
@@ -15,7 +15,7 @@ mod tests {
         assert_eq!(
             header,
             http::HeaderValue::from_static(
-                constants_str::test_fixtures::TEST_SAFE_UNICODE_ATTACHMENT_CONTENT_DISPOSITION
+                constants_str::TEST_SAFE_UNICODE_ATTACHMENT_CONTENT_DISPOSITION
             )
         );
     }
@@ -23,7 +23,7 @@ mod tests {
     #[test]
     fn content_length_accepts_u64_maximum() {
         let value = crate::http_content_length::HttpContentLength::try_from(
-            constants_str::test_fixtures::TEST_U64_MAXIMUM_TEXT.to_owned(),
+            constants_str::TEST_U64_MAXIMUM_TEXT.to_owned(),
         )
         .expect("f87ab266 content_length_accepts_u64_maximum invariant must hold");
         assert_eq!(u64::try_from(value), Ok(u64::MAX));

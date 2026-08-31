@@ -10,9 +10,7 @@ pub(super) fn should_write_string_into_file(
     match std::fs::metadata(path_ref) {
         Ok(v) => {
             let new_len_u64 = u64::try_from(string_cnt_ref.len()).map_err(|_error| {
-                std::io::Error::other(
-                    constants_str::catalog::VALUE_2F4D7A8C_FAILED_CONVERTING_STRING_LENGTH,
-                )
+                std::io::Error::other(constants_str::VALUE_2F4D7A8C_FAILED_CONVERTING_STRING_LENGTH)
             })?;
             if v.len() != new_len_u64 {
                 return Ok(crate::should_write_string::ShouldWriteString::from(true));
@@ -36,7 +34,7 @@ pub(super) fn should_write_string_into_file(
                 }
                 let end = offset.checked_add(read_len).ok_or_else(|| {
                     std::io::Error::other(
-                        constants_str::catalog::VALUE_5F28D14C_GENERATED_FILE_COMPARISON_OFFSET_OVERFLOW,
+                        constants_str::VALUE_5F28D14C_GENERATED_FILE_COMPARISON_OFFSET_OVERFLOW,
                     )
                 })?;
                 let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
@@ -49,7 +47,7 @@ pub(super) fn should_write_string_into_file(
                     return Ok(crate::should_write_string::ShouldWriteString::from(true));
                 };
                 let Some(old_chunk_read) = old_chunk.get(..read_len) else {
-                    return Err(std::io::Error::other(constants_str::catalog::F83D470A_GENERATED_FILE_COMPARISON_READ_LENGTH_EXCEEDS_BUFFER));
+                    return Err(std::io::Error::other(constants_str::F83D470A_GENERATED_FILE_COMPARISON_READ_LENGTH_EXCEEDS_BUFFER));
                 };
                 if old_chunk_read != new_chunk {
                     crate::validate_existing_file_text::validate_existing_file_text(

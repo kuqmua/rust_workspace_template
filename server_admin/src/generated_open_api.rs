@@ -9,9 +9,9 @@ pub fn generated_open_api() -> crate::utoipa_admin_open_api::UtoipaAdminOpenApi 
                 .iter()
                 .for_each(|child| collect_schema_refs(child, refs)),
             serde_json::Value::Object(values) => values.iter().for_each(|(key, child)| {
-                if key == constants_str::catalog::DOLLAR_REF
+                if key == constants_str::DOLLAR_REF
                     && let Some(name) = child.as_str().and_then(|reference| {
-                        reference.strip_prefix(constants_str::catalog::COMPONENTS_SCHEMAS)
+                        reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS)
                     })
                 {
                     let _inserted = refs.insert(name.to_owned());

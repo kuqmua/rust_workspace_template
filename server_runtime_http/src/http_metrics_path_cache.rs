@@ -58,9 +58,7 @@ impl From<crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum>
             ),
             maximum,
             unmatched: crate::metrics_shared_string::MetricsSharedString::from(
-                metrics::SharedString::const_str(
-                    constants_str::catalog::HTTP_METRICS_UNMATCHED_PATH,
-                ),
+                metrics::SharedString::const_str(constants_str::HTTP_METRICS_UNMATCHED_PATH),
             ),
         }
     }

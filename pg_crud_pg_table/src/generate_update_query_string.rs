@@ -24,18 +24,18 @@ pub(super) fn generate_update_query_string(
             .saturating_add(cols_to_return.as_ref().len())
             .saturating_add(selector_len),
     );
-    query.push_str(constants_str::catalog::UPDATE_ALT);
+    query.push_str(constants_str::UPDATE_ALT);
     query.push_str(table.as_ref());
-    query.push_str(constants_str::catalog::SET);
+    query.push_str(constants_str::SET);
     query.push_str(cols_or_els.as_ref());
-    query.push_str(constants_str::catalog::WHERE);
+    query.push_str(constants_str::WHERE);
     query.push_str(primary_key_field_name.as_ref());
     match update_selector_fmt {
         crate::update_selector_fmt::UpdateSelectorFmt::Eq => {
-            query.push_str(constants_str::catalog::TEXT_ALT);
+            query.push_str(constants_str::TEXT_ALT);
         }
         crate::update_selector_fmt::UpdateSelectorFmt::InList => {
-            query.push_str(constants_str::catalog::IN);
+            query.push_str(constants_str::IN);
         }
     }
     query.push_str(primary_key_selector.as_ref());
@@ -45,7 +45,7 @@ pub(super) fn generate_update_query_string(
     ) {
         query.push(')');
     }
-    query.push_str(constants_str::catalog::RETURNING);
+    query.push_str(constants_str::RETURNING);
     query.push_str(cols_to_return.as_ref());
     crate::pg_table_query_string::PgTableQueryString::try_from(query)
         .unwrap_or_else(crate::pg_table_query_string::PgTableQueryString::from)

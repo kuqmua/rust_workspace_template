@@ -11,7 +11,7 @@ impl axum::response::IntoResponse for RequestTimeoutError {
                 http::StatusCode::SERVICE_UNAVAILABLE,
                 axum::Json(crate::request_timeout_body::RequestTimeoutBody::new(
                     crate::std_request_timeout_message::StdRequestTimeoutMessage::from(
-                        constants_str::catalog::REQUEST_TIMEOUT,
+                        constants_str::REQUEST_TIMEOUT,
                     ),
                 )),
             )),

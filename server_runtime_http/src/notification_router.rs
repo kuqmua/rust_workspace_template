@@ -7,7 +7,7 @@ where
     crate::axum_notification_router::AxumNotificationRouter::from(
         axum::Router::new()
             .route(
-                constants_str::catalog::NOTIFICATIONS_PATH,
+                constants_str::NOTIFICATIONS_PATH,
                 axum::routing::post(crate::send_notification::send_notification::<Sender>),
             )
             .with_state(state),

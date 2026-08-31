@@ -62,6 +62,6 @@ mod tests {
         assert_eq!(*tuple.get_inner(), 21);
     }
 
-    const _: usize = constants_str::catalog::DOT.len();
+    const _: usize = constants_str::DOT.len();
     const _: usize = constants_usize::ZERO;
 }

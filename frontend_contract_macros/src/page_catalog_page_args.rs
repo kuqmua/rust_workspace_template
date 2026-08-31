@@ -20,28 +20,27 @@ impl syn::parse::Parse for PageCatalogPageArgs {
             let _equals = input.parse::<syn::Token![=]>()?;
             let value =
                 crate::contract_syn_expr::ContractSynExpr::from(input.parse::<syn::Expr>()?);
-            if name == constants_str::test_fixtures::PAGE_CATALOG_CAPABILITY {
+            if name == constants_str::PAGE_CATALOG_CAPABILITY {
                 capability = Some(value);
-            } else if name == constants_str::test_fixtures::PAGE_CATALOG_METADATA {
+            } else if name == constants_str::PAGE_CATALOG_METADATA {
                 metadata = Some(value);
-            } else if name == constants_str::test_fixtures::ROUTE_CATALOG_PATH {
+            } else if name == constants_str::ROUTE_CATALOG_PATH {
                 path = Some(value);
-            } else if name == constants_str::test_fixtures::PAGE_CATALOG_ROUTE {
+            } else if name == constants_str::PAGE_CATALOG_ROUTE {
                 route = Some(value);
-            } else if name == constants_str::test_fixtures::PAGE_CATALOG_TITLE {
+            } else if name == constants_str::PAGE_CATALOG_TITLE {
                 title = Some(value);
             } else {
                 return Err(syn::Error::new_spanned(
                     name,
-                    constants_str::test_fixtures::PAGE_CATALOG_PAGE_REQUIRES_FIELDS,
+                    constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS,
                 ));
             }
             if !input.is_empty() {
                 let _comma = input.parse::<syn::Token![,]>()?;
             }
         }
-        let missing =
-            || input.error(constants_str::test_fixtures::PAGE_CATALOG_PAGE_REQUIRES_FIELDS);
+        let missing = || input.error(constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS);
         Ok(Self {
             capability: capability.ok_or_else(&missing)?,
             metadata: metadata.ok_or_else(&missing)?,

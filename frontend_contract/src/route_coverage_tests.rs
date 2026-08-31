@@ -3,8 +3,8 @@ mod tests {
     fn route_coverage_metadata() -> crate::route_metadata::RouteMetadata {
         crate::route_metadata::RouteMetadata::new(
             crate::route_method::RouteMethod::Post,
-            constants_str::catalog::ROUTE_READ.into(),
-            constants_str::catalog::ROUTE.into(),
+            constants_str::ROUTE_READ.into(),
+            constants_str::ROUTE.into(),
         )
     }
 

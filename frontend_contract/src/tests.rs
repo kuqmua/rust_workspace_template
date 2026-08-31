@@ -79,8 +79,8 @@ fn contracts_preserve_typed_metadata() {
     ))
     .with_step(crate::input_step::InputStep::Integer);
     let field = crate::field_contract::FieldContract::new(
-        crate::contract_str::ContractStr::from(constants_str::catalog::SQL_NAMES_ID),
-        crate::contract_str::ContractStr::from(constants_str::catalog::ID),
+        crate::contract_str::ContractStr::from(constants_str::SQL_NAMES_ID),
+        crate::contract_str::ContractStr::from(constants_str::ID),
         type_contract,
     )
     .with_primary_key(crate::primary_key_kind::PrimaryKeyKind::Primary)
@@ -153,17 +153,17 @@ fn route_test_categories_reject_oversized_vec() {
             + constants_usize::ONE
     ];
     let _error = crate::route_test_categories::RouteTestCategories::try_from(categories)
-        .expect_err(constants_str::test_fixtures::VALUE_64271BEF);
+        .expect_err(constants_str::VALUE_64271BEF);
 }
 #[test]
 fn route_contract_keeps_transport_policy_together() {
     let route = crate::route_contract::RouteContract::new(
         crate::authentication_requirement::AuthenticationRequirement::Permission(
-            crate::contract_str::ContractStr::from(constants_str::catalog::PERMISSION),
+            crate::contract_str::ContractStr::from(constants_str::PERMISSION),
         ),
         crate::route_method::RouteMethod::Patch,
         crate::mutation_kind::MutationKind::Mutating,
-        crate::contract_str::ContractStr::from(constants_str::catalog::USERS_ID),
+        crate::contract_str::ContractStr::from(constants_str::USERS_ID),
         crate::success_status::SuccessStatus::Code204,
     );
     assert_eq!(
@@ -176,7 +176,7 @@ fn route_contract_keeps_transport_policy_together() {
 #[test]
 fn route_error_policy_derives_statuses_from_access_and_mutation() {
     let permission = crate::authentication_requirement::AuthenticationRequirement::Permission(
-        crate::contract_str::ContractStr::from(constants_str::catalog::PERMISSION),
+        crate::contract_str::ContractStr::from(constants_str::PERMISSION),
     );
     assert_eq!(
         crate::route_error_policy::RouteErrorPolicy::Default.statuses(
@@ -226,7 +226,7 @@ fn response_interpretation_uses_shared_success_and_problem_contract() {
     );
     let error = response
         .success_body(crate::success_status::SuccessStatus::Code200.transport_status())
-        .expect_err(constants_str::catalog::VALUE_5EEA7F90);
+        .expect_err(constants_str::VALUE_5EEA7F90);
     assert!(matches!(
         error,
         crate::client_error::ClientError::Problem(value)
@@ -247,19 +247,19 @@ fn transport_response_preserves_retry_after() {
     )
     .with_retry_after(Some(
         crate::transport_retry_after::TransportRetryAfter::try_from(
-            constants_str::test_fixtures::TEST_VALUE_30.to_owned(),
+            constants_str::TEST_VALUE_30.to_owned(),
         )
         .expect("9b6750d4 transport_response_preserves_retry_after invariant must hold"),
     ));
     assert_eq!(
         response.retry_after().map(AsRef::as_ref),
-        Some(constants_str::test_fixtures::TEST_VALUE_30)
+        Some(constants_str::TEST_VALUE_30)
     );
 }
 #[test]
 fn http_status_wrappers_reject_values_below_protocol_range() {
     let _transport_error = crate::transport_status::TransportStatus::try_from(99u16)
-        .expect_err(constants_str::test_fixtures::VALUE_0A8708C8);
+        .expect_err(constants_str::VALUE_0A8708C8);
     let _problem_error = crate::api_problem_status::ApiProblemStatus::try_from(99u16)
-        .expect_err(constants_str::test_fixtures::VALUE_766AAE46);
+        .expect_err(constants_str::VALUE_766AAE46);
 }

@@ -20,14 +20,14 @@ where
     request
         .headers()
         .set(
-            constants_str::catalog::CONTENT_TYPE,
-            constants_str::test_fixtures::HTTP_APPLICATION_JSON,
+            constants_str::CONTENT_TYPE,
+            constants_str::HTTP_APPLICATION_JSON,
         )
         .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
     request
         .headers()
         .set(
-            constants_str::catalog::X_CSRF_TOKEN,
+            constants_str::X_CSRF_TOKEN,
             crate::domain_types::start::http::mutation::csrf_token::csrf_token()?.as_ref(),
         )
         .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;

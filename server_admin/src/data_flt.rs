@@ -44,7 +44,7 @@ impl DataFlt {
         pg_crud_common::query_part_fragment::QueryPartFragment,
         pg_crud_common::query_part_error::QueryPartError,
     > {
-        let column = constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX;
+        let column = constants_str::PG_CRUD_EMPTY_SQL_SUFFIX;
         match self {
             Self::Permissions(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(

@@ -12,7 +12,7 @@
 #[serde(try_from = "String")]
 #[wire_enum(
     ref_type = crate::admin_data_table_str_ref::AdminDataTableStrRef,
-    error_message = constants_str::catalog::UNKNOWN_ADMINISTRATOR_DATA_TABLE,
+    error_message = constants_str::UNKNOWN_ADMINISTRATOR_DATA_TABLE,
 )]
 pub enum AdminDataTable {
     #[wire("access_sessions")]
@@ -91,121 +91,109 @@ impl AdminDataTable {
         match self {
             Self::AccessSessions => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_SESSION_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_SESSION_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
                 crate::admin_permission::AdminPermission::AccessSessionsRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::AuditLog => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
                 crate::admin_permission::AdminPermission::AuditLogRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::CleanupStatus => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ORDER_SINGLETON,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_SINGLETON,
                 ),
                 crate::admin_permission::AdminPermission::CleanupStatusRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::LoginAttempts => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT,
                 ),
                 crate::admin_permission::AdminPermission::LoginAttemptsRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::Permissions => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS,
                 ),
-                crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::catalog::SQL_NAMES_ID,
-                ),
+                crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::PermissionsRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::RateLimits => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ORDER_WINDOW,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_WINDOW,
                 ),
                 crate::admin_permission::AdminPermission::RateLimitsRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::RefreshTokens => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_SESSION_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_SESSION_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
                 crate::admin_permission::AdminPermission::RefreshTokensRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::RolePermissions => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS,
                 ),
-                crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::catalog::SQL_NAMES_ID,
-                ),
+                crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::RolePermissionsRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::Roles => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_ROLES_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_ROLES_COLUMNS,
                 ),
-                crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::catalog::SQL_NAMES_ID,
-                ),
+                crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::RolesRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::SystemSettings => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
                 ),
-                crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::catalog::SQL_NAMES_ID,
-                ),
+                crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::SystemSettingsRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::UserRoles => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS,
                 ),
-                crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::catalog::SQL_NAMES_ID,
-                ),
+                crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::UserRolesRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::Users => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::integration_fixtures::SERVER_ADMIN_DATA_USERS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_USERS_COLUMNS,
                 ),
-                crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::catalog::SQL_NAMES_ID,
-                ),
+                crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::UsersRead,
                 crate::admin_bool::AdminBool::from(false),
             ),

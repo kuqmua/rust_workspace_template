@@ -7,23 +7,23 @@ pub fn build_date_sql_filter(
     let mut bind_index = bind_start.get_inner().get();
     let candidates = [
         (
-            constants_str::catalog::CREATED_AT,
-            constants_str::test_fixtures::GREATER_OR_EQUAL,
+            constants_str::CREATED_AT,
+            constants_str::GREATER_OR_EQUAL,
             bounds.get_created_at_from().copied(),
         ),
         (
-            constants_str::catalog::CREATED_AT,
-            constants_str::test_fixtures::LESS_OR_EQUAL,
+            constants_str::CREATED_AT,
+            constants_str::LESS_OR_EQUAL,
             bounds.get_created_at_to().copied(),
         ),
         (
-            constants_str::catalog::UPDATED_AT,
-            constants_str::test_fixtures::GREATER_OR_EQUAL,
+            constants_str::UPDATED_AT,
+            constants_str::GREATER_OR_EQUAL,
             bounds.get_updated_at_from().copied(),
         ),
         (
-            constants_str::catalog::UPDATED_AT,
-            constants_str::test_fixtures::LESS_OR_EQUAL,
+            constants_str::UPDATED_AT,
+            constants_str::LESS_OR_EQUAL,
             bounds.get_updated_at_to().copied(),
         ),
     ];
@@ -43,14 +43,14 @@ pub fn build_date_sql_filter(
                 .saturating_add(column.len())
                 .saturating_add(constants_usize::ONE)
                 .saturating_add(comparator.len())
-                .saturating_add(constants_str::test_fixtures::DOLLAR_SIGN.len())
+                .saturating_add(constants_str::DOLLAR_SIGN.len())
                 .saturating_add(10usize)
         })
         .sum::<usize>()
         .saturating_add(
             active_count
                 .saturating_sub(constants_usize::ONE)
-                .saturating_mul(constants_str::catalog::AND.len()),
+                .saturating_mul(constants_str::AND.len()),
         );
     let mut fragment = String::with_capacity(fragment_capacity);
     candidates
@@ -60,7 +60,7 @@ pub fn build_date_sql_filter(
                 return Ok(());
             };
             if !fragment.is_empty() {
-                fragment.push_str(constants_str::catalog::AND);
+                fragment.push_str(constants_str::AND);
             }
             if let Some(table_alias) = optional_table_alias {
                 fragment.push_str(table_alias.as_ref());
@@ -69,7 +69,7 @@ pub fn build_date_sql_filter(
             fragment.push_str(column);
             fragment.push(' ');
             fragment.push_str(comparator);
-            fragment.push_str(constants_str::test_fixtures::DOLLAR_SIGN);
+            fragment.push_str(constants_str::DOLLAR_SIGN);
             std::fmt::Write::write_fmt(&mut fragment, format_args!("{bind_index}")).map_err(
                 |_error| crate::date_sql_filter_error::DateSqlFilterError::FragmentTooLong,
             )?;
@@ -91,18 +91,12 @@ pub fn build_date_sql_filter(
 mod tests {
     #[test]
     fn date_bounds_have_ordered_bind_indices_and_values() {
-        let from =
-            chrono::DateTime::parse_from_rfc3339(constants_str::test_fixtures::TEST_DATE_SQL_FROM)
-                .expect(
-                    "69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold",
-                )
-                .to_utc();
-        let to =
-            chrono::DateTime::parse_from_rfc3339(constants_str::test_fixtures::TEST_DATE_SQL_TO)
-                .expect(
-                    "91eae791 date_bounds_have_ordered_bind_indices_and_values invariant must hold",
-                )
-                .to_utc();
+        let from = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_FROM)
+            .expect("69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
+            .to_utc();
+        let to = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_TO)
+            .expect("91eae791 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
+            .to_utc();
         let filter = crate::build_date_sql_filter::build_date_sql_filter(
             None,
             crate::date_filter_bounds::DateFilterBounds::new(
@@ -115,10 +109,7 @@ mod tests {
         )
         .expect("512fa2fb date_bounds_have_ordered_bind_indices_and_values invariant must hold");
         let (fragment, values) = filter.into_parts();
-        assert_eq!(
-            fragment.into_inner(),
-            constants_str::test_fixtures::TEST_DATE_SQL_FILTER
-        );
+        assert_eq!(fragment.into_inner(), constants_str::TEST_DATE_SQL_FILTER);
         assert_eq!(values.as_ref(), &[from, to]);
     }
 }

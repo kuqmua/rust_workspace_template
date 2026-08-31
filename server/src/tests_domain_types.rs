@@ -4,7 +4,7 @@ mod tests {
     async fn administrator_asset_route_preserves_static_file_serving() {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(server_admin_frontend::admin_frontend_routes::admin_frontend_routes()),
-            axum::http::Request::get(constants_str::test_fixtures::VALUE_688DB289)
+            axum::http::Request::get(constants_str::VALUE_688DB289)
                 .body(axum::body::Body::empty())
                 .expect("d694b6f6 administrator_asset_route_preserves_static_file_serving invariant must hold"),
         )
@@ -26,8 +26,8 @@ mod tests {
                     .fallback(async || axum::http::StatusCode::IM_A_TEAPOT),
             ),
             crate::axum_api_routes::AxumApiRoutes::from(axum::Router::new().route(
-                constants_str::test_fixtures::VALUE_87D0B7F8,
-                axum::routing::get(async || constants_str::test_fixtures::VALUE_14C2529E),
+                constants_str::VALUE_87D0B7F8,
+                axum::routing::get(async || constants_str::VALUE_14C2529E),
             )),
             crate::http_body_maximum_bytes::HttpBodyMaximumBytes::from(1_024usize),
         ))
@@ -69,7 +69,7 @@ mod tests {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(crate::frontend_fallback_routes::frontend_fallback_routes()),
             axum::http::Request::builder()
-                .uri(constants_str::test_fixtures::VALUE_10D40EF4)
+                .uri(constants_str::VALUE_10D40EF4)
                 .body(axum::body::Body::empty())
                 .expect("cfe228d8 missing_page_redirects_to_default_authentication_page invariant must hold"),
         )
@@ -85,6 +85,6 @@ mod tests {
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(constants_str::catalog::CONFIG_TRACING_INFO, "info");
+        assert_eq!(constants_str::CONFIG_TRACING_INFO, "info");
     }
 }

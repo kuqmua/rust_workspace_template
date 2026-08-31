@@ -50,24 +50,24 @@ mod tests {
     fn match_modes_place_wildcards_at_the_requested_edges() {
         assert!(matches!(
             crate::build_sql_like_pattern::build_sql_like_pattern(
-                constants_str::test_fixtures::TEST_SQL_LIKE_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_INPUT.into(),
                 crate::sql_like_match_mode::SqlLikeMatchMode::Contains,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_CONTAINS_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_CONTAINS_PATTERN
         ));
         assert!(matches!(
             crate::build_sql_like_pattern::build_sql_like_pattern(
-                constants_str::test_fixtures::TEST_SQL_LIKE_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_INPUT.into(),
                 crate::sql_like_match_mode::SqlLikeMatchMode::StartsWith,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_STARTS_WITH_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_STARTS_WITH_PATTERN
         ));
         assert!(matches!(
             crate::build_sql_like_pattern::build_sql_like_pattern(
-                constants_str::test_fixtures::TEST_SQL_LIKE_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_INPUT.into(),
                 crate::sql_like_match_mode::SqlLikeMatchMode::EndsWith,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_ENDS_WITH_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_ENDS_WITH_PATTERN
         ));
     }
 
@@ -75,10 +75,10 @@ mod tests {
     fn reserved_symbols_are_escaped_as_literals() {
         assert!(matches!(
             crate::build_sql_like_pattern::build_sql_like_pattern(
-                constants_str::test_fixtures::TEST_SQL_LIKE_RESERVED_INPUT.into(),
+                constants_str::TEST_SQL_LIKE_RESERVED_INPUT.into(),
                 crate::sql_like_match_mode::SqlLikeMatchMode::Contains,
             ),
-            Ok(pattern) if pattern.as_ref() == constants_str::test_fixtures::TEST_SQL_LIKE_RESERVED_PATTERN
+            Ok(pattern) if pattern.as_ref() == constants_str::TEST_SQL_LIKE_RESERVED_PATTERN
         ));
     }
 }

@@ -23,31 +23,31 @@ mod tests {
             "d8124a6f user_roles_render_only_matching_names_in_catalog_order invariant must hold",
         );
         let item = server_admin_contract::admin_user_summary::AdminUserSummary::new(
-            server_admin_contract::admin_display_name::AdminDisplayName::try_from(String::from(constants_str::test_fixtures::VALUE_3BC51062))
+            server_admin_contract::admin_display_name::AdminDisplayName::try_from(String::from(constants_str::VALUE_3BC51062))
                 .expect("63f1b9e4 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE).expect("9ac2e751 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::admin_bool::AdminBool::from(false),
-            server_admin_contract::admin_login::AdminLogin::try_from(String::from(constants_str::test_fixtures::VALUE_2BD806C9)).expect("4e70c31d user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
+            server_admin_contract::admin_login::AdminLogin::try_from(String::from(constants_str::VALUE_2BD806C9)).expect("4e70c31d user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::admin_role_ids::AdminRoleIds::try_from(vec![assigned_role]).expect("5b38d0a2 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
         );
         let page = server_admin_contract::admin_users_page::AdminUsersPage::new(
             server_admin_contract::admin_user_summaries::AdminUserSummaries::try_from(vec![item]).expect("7f294cb8 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
             server_admin_contract::admin_role_summaries::AdminRoleSummaries::try_from(vec![
                 server_admin_contract::admin_role_summary::AdminRoleSummary::new(
-                    server_admin_contract::admin_role_id::AdminRoleId::try_from(constants_i64::ONE).expect(constants_str::test_fixtures::VALUE_8B745867),
+                    server_admin_contract::admin_role_id::AdminRoleId::try_from(constants_i64::ONE).expect(constants_str::VALUE_8B745867),
                     server_admin_contract::admin_bool::AdminBool::from(false),
-                    server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(constants_str::test_fixtures::VALUE_3D094196))
-                        .expect(constants_str::test_fixtures::VALUE_E6FE267E),
+                    server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(constants_str::VALUE_3D094196))
+                        .expect(constants_str::VALUE_E6FE267E),
                     server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(Vec::new())
-                        .expect(constants_str::test_fixtures::VALUE_6FA51050),
+                        .expect(constants_str::VALUE_6FA51050),
                 ),
                 server_admin_contract::admin_role_summary::AdminRoleSummary::new(
                     assigned_role,
                     server_admin_contract::admin_bool::AdminBool::from(false),
-                    server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(constants_str::test_fixtures::VALUE_1553CC62))
-                        .expect(constants_str::test_fixtures::VALUE_591027EA),
+                    server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(constants_str::VALUE_1553CC62))
+                        .expect(constants_str::VALUE_591027EA),
                     server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(Vec::new())
-                        .expect(constants_str::test_fixtures::VALUE_EA24866B),
+                        .expect(constants_str::VALUE_EA24866B),
                 ),
             ])
             .expect("b670de23 user_roles_render_only_matching_names_in_catalog_order invariant must hold"),
@@ -69,7 +69,7 @@ mod tests {
         let item = server_admin_contract::admin_role_summary::AdminRoleSummary::new(
             server_admin_contract::admin_role_id::AdminRoleId::try_from(constants_i64::ONE).expect("392bd170 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
             server_admin_contract::admin_bool::AdminBool::from(false),
-            server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(constants_str::catalog::PG_CRUD_OPERATOR_FIELD))
+            server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(constants_str::PG_CRUD_OPERATOR_FIELD))
                 .expect("d5a91f28 role_permissions_render_matching_names_with_stable_separator invariant must hold"),
             server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(vec![
                 first_permission,
@@ -83,16 +83,16 @@ mod tests {
                 server_admin_contract::admin_permission_summary::AdminPermissionSummary::new(
                     first_permission,
                     server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(String::from(
-                        constants_str::test_fixtures::VALUE_C6919F81,
+                        constants_str::VALUE_C6919F81,
                     ))
-                    .expect(constants_str::test_fixtures::VALUE_286F37C4),
+                    .expect(constants_str::VALUE_286F37C4),
                 ),
                 server_admin_contract::admin_permission_summary::AdminPermissionSummary::new(
                     second_permission,
                     server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(String::from(
-                        constants_str::test_fixtures::VALUE_8B8674FD,
+                        constants_str::VALUE_8B8674FD,
                     ))
-                    .expect(constants_str::test_fixtures::VALUE_CD09FF18),
+                    .expect(constants_str::VALUE_CD09FF18),
                 ),
             ])
             .expect("349ca278 role_permissions_render_matching_names_with_stable_separator invariant must hold"),

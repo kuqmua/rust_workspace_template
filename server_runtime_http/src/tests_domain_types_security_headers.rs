@@ -2,17 +2,14 @@
 async fn only_trusts_forwarded_proto_when_configured() {
     let make_request = || {
         axum::extract::Request::builder()
-            .uri(constants_str::catalog::V1_TEST)
-            .header(
-                constants_str::catalog::X_FORWARDED_PROTO,
-                constants_str::catalog::HTTPS,
-            )
+            .uri(constants_str::V1_TEST)
+            .header(constants_str::X_FORWARDED_PROTO, constants_str::HTTPS)
             .body(axum::body::Body::empty())
             .expect("94149bdd only_trusts_forwarded_proto_when_configured invariant must hold")
     };
     let make_router = |trust| {
         let policy = crate::http_content_security_policy::HttpContentSecurityPolicy::try_from(
-            constants_str::test_fixtures::TEST_CONTENT_SECURITY_POLICY.to_owned(),
+            constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
         )
         .expect("abf8cd24 only_trusts_forwarded_proto_when_configured invariant must hold");
         axum::Router::from(
@@ -20,7 +17,7 @@ async fn only_trusts_forwarded_proto_when_configured() {
                 .with_content_security_policy(policy)
                 .apply(crate::axum_router::AxumRouter::from(
                     axum::Router::new().route(
-                        constants_str::catalog::V1_TEST,
+                        constants_str::V1_TEST,
                         axum::routing::get(async || http::StatusCode::OK),
                     ),
                 )),
@@ -35,7 +32,7 @@ async fn only_trusts_forwarded_proto_when_configured() {
     assert!(
         ignored_response
             .headers()
-            .get(constants_str::catalog::STRICT_TRANSPORT_SECURITY)
+            .get(constants_str::STRICT_TRANSPORT_SECURITY)
             .is_none()
     );
     let trusted_response = tower::ServiceExt::oneshot(
@@ -47,37 +44,31 @@ async fn only_trusts_forwarded_proto_when_configured() {
     assert!(
         trusted_response
             .headers()
-            .get(constants_str::catalog::STRICT_TRANSPORT_SECURITY)
+            .get(constants_str::STRICT_TRANSPORT_SECURITY)
             .is_some()
     );
     assert_eq!(
         trusted_response.headers().get(http::header::CACHE_CONTROL),
-        Some(&http::HeaderValue::from_static(
-            constants_str::catalog::NO_STORE
-        ))
+        Some(&http::HeaderValue::from_static(constants_str::NO_STORE))
     );
     assert_eq!(
         trusted_response
             .headers()
-            .get(constants_str::catalog::X_CONTENT_TYPE_OPTIONS),
-        Some(&http::HeaderValue::from_static(
-            constants_str::catalog::NOSNIFF
-        ))
+            .get(constants_str::X_CONTENT_TYPE_OPTIONS),
+        Some(&http::HeaderValue::from_static(constants_str::NOSNIFF))
     );
     assert_eq!(
         trusted_response
             .headers()
-            .get(constants_str::catalog::REFERRER_POLICY),
-        Some(&http::HeaderValue::from_static(
-            constants_str::catalog::SAME_ORIGIN
-        ))
+            .get(constants_str::REFERRER_POLICY),
+        Some(&http::HeaderValue::from_static(constants_str::SAME_ORIGIN))
     );
     assert_eq!(
         trusted_response
             .headers()
-            .get(constants_str::test_fixtures::CONTENT_SECURITY_POLICY_HEADER),
+            .get(constants_str::CONTENT_SECURITY_POLICY_HEADER),
         Some(&http::HeaderValue::from_static(
-            constants_str::test_fixtures::TEST_CONTENT_SECURITY_POLICY
+            constants_str::TEST_CONTENT_SECURITY_POLICY
         ))
     );
 }
@@ -90,7 +81,7 @@ async fn marks_credentials_as_sensitive() {
         )
         .apply(crate::axum_router::AxumRouter::from(
             axum::Router::new().route(
-                constants_str::catalog::V1_TEST,
+                constants_str::V1_TEST,
                 axum::routing::get(async |headers: http::HeaderMap| {
                     assert!(
                         headers
@@ -100,7 +91,7 @@ async fn marks_credentials_as_sensitive() {
                     (
                         [(
                             http::header::SET_COOKIE,
-                            constants_str::test_fixtures::TEST_SESSION_COOKIE_HEADER_VALUE,
+                            constants_str::TEST_SESSION_COOKIE_HEADER_VALUE,
                         )],
                         http::StatusCode::OK,
                     )
@@ -111,10 +102,10 @@ async fn marks_credentials_as_sensitive() {
     let response = tower::ServiceExt::oneshot(
         router,
         axum::extract::Request::builder()
-            .uri(constants_str::catalog::V1_TEST)
+            .uri(constants_str::V1_TEST)
             .header(
                 http::header::AUTHORIZATION,
-                constants_str::test_fixtures::TEST_BEARER_AUTHORIZATION,
+                constants_str::TEST_BEARER_AUTHORIZATION,
             )
             .body(axum::body::Body::empty())
             .expect("703affc9 marks_credentials_as_sensitive invariant must hold"),

@@ -17,12 +17,12 @@ pub fn panic_location() {
                         panic_line::PanicLine::from(location.line()),
                         panic_column::PanicColumn::from(location.column()),
                     ),
-                    "panic captured"
+                    captured = %constants_str::TRACING_PANIC_CAPTURED
                 );
             } else {
                 tracing::error!(
-                    message = constants_str::catalog::PANIC_LOCATION_NO_LOCATION_MSG,
-                    "panic captured without a source location"
+                    message = constants_str::PANIC_LOCATION_NO_LOCATION_MSG,
+                    captured = %constants_str::TRACING_PANIC_CAPTURED_WITHOUT_LOCATION
                 );
             }
         }));
@@ -40,7 +40,7 @@ mod tests {
     #[test]
     fn panic_no_location_message_is_stable() {
         assert_eq!(
-            constants_str::catalog::PANIC_LOCATION_NO_LOCATION_MSG,
+            constants_str::PANIC_LOCATION_NO_LOCATION_MSG,
             "panic occurred but can't get location information..."
         );
     }

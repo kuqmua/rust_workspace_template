@@ -40,7 +40,7 @@ pub(crate) async fn audit_export_log(
             crate::admin_error::AdminError::postgresql(sqlx_error)
         }
     })?;
-    let mut csv = String::from(constants_str::catalog::AUDIT_CSV_HEADER);
+    let mut csv = String::from(constants_str::AUDIT_CSV_HEADER);
     page.items().iter().for_each(|value| {
         let fields = [
             value.id().to_string(),
@@ -62,7 +62,7 @@ pub(crate) async fn audit_export_log(
         csv.push_str(
             fields
                 .map(|field| format!("\"{}\"", field.replace('"', "\"\"")))
-                .join(constants_str::catalog::TEXT_ALT_7)
+                .join(constants_str::TEXT_ALT_7)
                 .as_str(),
         );
         csv.push('\n');

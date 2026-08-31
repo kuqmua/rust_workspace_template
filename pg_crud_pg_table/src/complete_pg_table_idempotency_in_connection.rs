@@ -13,8 +13,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
         return Err(
             crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
                 sqlx::Error::Protocol(
-                    constants_str::catalog::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT
-                        .to_owned(),
+                    constants_str::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT.to_owned(),
                 ),
             ),
         );
@@ -22,11 +21,11 @@ pub async fn complete_pg_table_idempotency_in_connection(
     let response_status_i16 = i16::try_from(u16::from(response_status)).map_err(|_error| {
         crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
             sqlx::Error::Protocol(
-                constants_str::catalog::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
+                constants_str::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
             ),
         )
     })?;
-    let result = sqlx::query(constants_str::catalog::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
+    let result = sqlx::query(constants_str::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -43,8 +42,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
         Err(
             crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
                 sqlx::Error::Protocol(
-                    constants_str::catalog::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION
-                        .to_owned(),
+                    constants_str::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION.to_owned(),
                 ),
             ),
         )

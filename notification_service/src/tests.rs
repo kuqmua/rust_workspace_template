@@ -30,7 +30,7 @@ async fn boundary_adapters_preserve_status_state_and_exit_code() {
     let state = state(
         sqlx::postgres::PgPoolOptions::new()
             .connect_lazy(
-                constants_str::catalog::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
+                constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
             )
             .expect("75b0f8e4 boundary_adapters_preserve_status_state_and_exit_code invariant must hold"),
     );
@@ -55,9 +55,7 @@ async fn boundary_adapters_preserve_status_state_and_exit_code() {
 )]
 async fn default_service_routes_return_success_statuses() {
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(
-            constants_str::catalog::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
-        )
+        .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("52a25be1 default_service_routes_return_success_statuses invariant must hold");
     let router = crate::build_notification_router::build_notification_router(
         state(pool),
@@ -83,7 +81,7 @@ async fn default_service_routes_return_success_statuses() {
     let open_api_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
-            .uri(constants_str::catalog::OPENAPI_JSON)
+            .uri(constants_str::OPENAPI_JSON)
             .body(axum::body::Body::empty())
             .expect("789db8f3 default_service_routes_return_success_statuses invariant must hold"),
     )
@@ -114,11 +112,8 @@ async fn default_service_routes_return_success_statuses() {
         http::Request::builder()
             .method(create_metadata.method().as_ref())
             .uri(create_metadata.path().as_ref())
-            .header(
-                http::header::CONTENT_TYPE,
-                constants_str::catalog::APPLICATION_JSON,
-            )
-            .body(axum::body::Body::from(constants_str::catalog::TEXT_ALT_13))
+            .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
+            .body(axum::body::Body::from(constants_str::TEXT_ALT_13))
             .expect("4ac710e9 default_service_routes_return_success_statuses invariant must hold"),
     )
     .await
@@ -154,18 +149,18 @@ fn open_api_operation_and_statuses_come_from_the_typed_route() {
         "3d8a056d open_api_operation_and_statuses_come_from_the_typed_route invariant must hold",
     );
     let operation = document
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(|paths| paths.get(metadata.path().as_ref()))
         .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
         .expect("fb8bb06a open_api_operation_and_statuses_come_from_the_typed_route invariant must hold");
     assert_eq!(
         operation
-            .get(constants_str::test_fixtures::OPERATION_ID_JSON)
+            .get(constants_str::OPERATION_ID_JSON)
             .and_then(serde_json::Value::as_str),
         Some(metadata.openapi_operation_id().as_ref()),
     );
     let observed_statuses = operation
-        .get(constants_str::catalog::RESPONSES)
+        .get(constants_str::RESPONSES)
         .and_then(serde_json::Value::as_object)
         .expect("251c95e8 open_api_operation_and_statuses_come_from_the_typed_route invariant must hold")
         .keys()
@@ -252,7 +247,7 @@ fn api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn create_notification_persists_through_http_route() {
     let database_url = config_lib::parse_required_env_var::parse_required_env_var(
-        config_lib::env_var_name_ref::EnvVarNameRef::from(constants_str::catalog::ENV_NAMES_DATABASE_URL),
+        config_lib::env_var_name_ref::EnvVarNameRef::from(constants_str::ENV_NAMES_DATABASE_URL),
         |error, name| format!("{error} {name}"),
         <config_lib::domain_types::DatabaseUrl as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
         |error| error.to_string(),
@@ -275,7 +270,7 @@ async fn create_notification_persists_through_http_route() {
         <sqlx::postgres::PgConnectOptions as std::str::FromStr>::from_str(exposed_database_url)
             .expect("2145d54a create_notification_persists_through_http_route invariant must hold")
             .options([(
-                constants_str::catalog::SEARCH_PATH,
+                constants_str::SEARCH_PATH,
                 constants_str::NOTIFICATION_SERVICE_TEST_SCHEMA,
             )]);
     let pool = sqlx::postgres::PgPoolOptions::new()
@@ -289,7 +284,7 @@ async fn create_notification_persists_through_http_route() {
         .expect("128c46f1 create_notification_persists_through_http_route invariant must hold");
     let message =
         notification_service_contract::notification_message::NotificationMessage::try_from(
-            constants_str::test_fixtures::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
+            constants_str::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("f9605432 create_notification_persists_through_http_route invariant must hold");
     let body = serde_json::to_vec(
@@ -308,7 +303,7 @@ async fn create_notification_persists_through_http_route() {
         )
         .header(
             http::header::CONTENT_TYPE,
-            constants_str::test_fixtures::HTTP_APPLICATION_JSON,
+            constants_str::HTTP_APPLICATION_JSON,
         )
         .body(axum::body::Body::from(body))
         .expect("f8d2ab0b create_notification_persists_through_http_route invariant must hold");

@@ -19,8 +19,8 @@ pub enum AdminSortDirection {
 impl AsRef<str> for AdminSortDirection {
     fn as_ref(&self) -> &str {
         match self {
-            Self::Asc => constants_str::catalog::ASC_ALT,
-            Self::Desc => constants_str::catalog::DESC_ALT,
+            Self::Asc => constants_str::ASC_ALT,
+            Self::Desc => constants_str::DESC_ALT,
         }
     }
 }

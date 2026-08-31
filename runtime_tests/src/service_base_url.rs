@@ -16,16 +16,14 @@ impl TryFrom<String> for ServiceBaseUrl {
         let parsed = match reqwest::Url::parse(value.as_str()) {
             Ok(parsed) => parsed,
             Err(_error)
-                if value.starts_with(constants_str::test_fixtures::VALUE_8C8DAC95)
-                    || value.starts_with(constants_str::test_fixtures::VALUE_66DFEEED) =>
+                if value.starts_with(constants_str::VALUE_8C8DAC95)
+                    || value.starts_with(constants_str::VALUE_66DFEEED) =>
             {
                 return Err(crate::service_base_url_error::ServiceBaseUrlError::Host);
             }
             Err(_error) => return Err(crate::service_base_url_error::ServiceBaseUrlError::Scheme),
         };
-        if parsed.scheme() != constants_str::catalog::HTTP
-            && parsed.scheme() != constants_str::catalog::HTTPS
-        {
+        if parsed.scheme() != constants_str::HTTP && parsed.scheme() != constants_str::HTTPS {
             return Err(crate::service_base_url_error::ServiceBaseUrlError::Scheme);
         }
         if parsed.host().is_none() {

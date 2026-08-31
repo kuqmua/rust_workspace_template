@@ -9,7 +9,7 @@ pub(crate) async fn version(auth: crate::admin_auth_req::AdminAuthReq) -> axum::
         }
         Ok((admin, branding, _password_change_required)) => match (
             server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
-                constants_str::catalog::VERSION_ALT.to_owned(),
+                constants_str::VERSION_ALT.to_owned(),
             ),
             server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
                 git_info::project_git_info_value::project_git_info_value()

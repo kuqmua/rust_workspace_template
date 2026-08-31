@@ -94,11 +94,11 @@ mod tests {
     #[test]
     fn write_does_not_grow_fragment_above_limit() {
         let mut fragment = crate::query_part_fragment::QueryPartFragment::try_from(
-            constants_str::catalog::X
+            constants_str::X
                 .repeat(crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN),
         )
         .expect("63af01f6 write_does_not_grow_fragment_above_limit invariant must hold");
-        let write_result = std::fmt::Write::write_str(&mut fragment, constants_str::catalog::X);
+        let write_result = std::fmt::Write::write_str(&mut fragment, constants_str::X);
         assert_eq!(write_result, Err(std::fmt::Error));
         assert_eq!(
             fragment.as_ref().len(),

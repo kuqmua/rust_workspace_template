@@ -41,7 +41,7 @@ pub(crate) async fn sign_in(
         Err(_error) => {
             let message_result =
                 server_admin_frontend::admin_ssr_error_message::AdminSsrErrorMessage::try_from(
-                    String::from(constants_str::test_fixtures::SIGN_IN_FAILED),
+                    String::from(constants_str::SIGN_IN_FAILED),
                 );
             match message_result {
                 Ok(error_message) => axum::response::IntoResponse::into_response((

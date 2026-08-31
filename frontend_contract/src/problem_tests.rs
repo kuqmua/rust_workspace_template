@@ -99,7 +99,7 @@ mod tests {
             assert_eq!(
                 response.headers().get(axum::http::header::CONTENT_TYPE),
                 Some(&axum::http::HeaderValue::from_static(
-                    constants_str::catalog::APPLICATION_PROBLEM_PLUS_JSON
+                    constants_str::APPLICATION_PROBLEM_PLUS_JSON
                 ))
             );
             assert_eq!(
@@ -122,21 +122,21 @@ mod tests {
 
     #[test]
     fn problem_text_deserialization_uses_bounded_try_from() {
-        let detail = serde_json::to_string(&constants_str::catalog::X.repeat(1_025usize)).expect(
+        let detail = serde_json::to_string(&constants_str::X.repeat(1_025usize)).expect(
             "6e2db8a1 problem_text_deserialization_uses_bounded_try_from invariant must hold",
         );
-        let request_id = serde_json::to_string(&constants_str::catalog::X.repeat(129usize)).expect(
+        let request_id = serde_json::to_string(&constants_str::X.repeat(129usize)).expect(
             "f289a40c problem_text_deserialization_uses_bounded_try_from invariant must hold",
         );
         let _detail_error =
             serde_json::from_str::<crate::api_problem_detail::ApiProblemDetail>(&detail)
-                .expect_err(constants_str::test_fixtures::VALUE_9024021D);
+                .expect_err(constants_str::VALUE_9024021D);
         let _field_error =
             serde_json::from_str::<crate::api_problem_field::ApiProblemField>(&request_id)
-                .expect_err(constants_str::test_fixtures::VALUE_9D9ABF28);
+                .expect_err(constants_str::VALUE_9D9ABF28);
         let _request_id_error =
             serde_json::from_str::<crate::api_problem_request_id::ApiProblemRequestId>(&request_id)
-                .expect_err(constants_str::test_fixtures::VALUE_4DC83C61);
+                .expect_err(constants_str::VALUE_4DC83C61);
     }
 
     #[test]
@@ -148,6 +148,6 @@ mod tests {
         let _error = serde_json::from_str::<crate::api_problem_violations::ApiProblemViolations>(
             &serialized,
         )
-        .expect_err(constants_str::test_fixtures::VALUE_8961C40A);
+        .expect_err(constants_str::VALUE_8961C40A);
     }
 }

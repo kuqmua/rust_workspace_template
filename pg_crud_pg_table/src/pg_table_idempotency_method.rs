@@ -23,9 +23,7 @@ impl TryFrom<String> for PgTableIdempotencyMethod {
         }
         if matches!(
             value.as_str(),
-            constants_str::catalog::POST
-                | constants_str::catalog::PATCH
-                | constants_str::integration_fixtures::DELETE
+            constants_str::POST | constants_str::PATCH | constants_str::DELETE
         ) {
             Ok(Self(value))
         } else {

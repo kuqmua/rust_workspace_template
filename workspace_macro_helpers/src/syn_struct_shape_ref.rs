@@ -10,7 +10,7 @@ impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shap
         let syn::Data::Struct(data) = &value.data else {
             return Err(syn::Error::new_spanned(
                 value,
-                constants_str::catalog::EXPECTED_A_STRUCT,
+                constants_str::EXPECTED_A_STRUCT,
             ));
         };
         Ok(match &data.fields {

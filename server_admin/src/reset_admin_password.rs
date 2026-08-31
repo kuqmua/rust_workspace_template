@@ -28,26 +28,24 @@ pub async fn reset_admin_password(
             crate::sqlx_admin_error::SqlxAdminError::from(error),
         )
     })?;
-    let _lock_result =
-        sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_LOCK_USERS_SQL)
-            .execute(&mut *tx)
+    let _lock_result = sqlx::query(constants_str::SERVER_ADMIN_LOCK_USERS_SQL)
+        .execute(&mut *tx)
+        .await
+        .map_err(|error| {
+            crate::admin_password_reset_error::AdminPasswordResetError::Pg(
+                crate::sqlx_admin_error::SqlxAdminError::from(error),
+            )
+        })?;
+    let optional_user_id =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
+            .bind(login.as_ref())
+            .fetch_optional(&mut *tx)
             .await
             .map_err(|error| {
                 crate::admin_password_reset_error::AdminPasswordResetError::Pg(
                     crate::sqlx_admin_error::SqlxAdminError::from(error),
                 )
             })?;
-    let optional_user_id = sqlx::query_scalar::<_, i64>(
-        constants_str::integration_fixtures::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL,
-    )
-    .bind(login.as_ref())
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(|error| {
-        crate::admin_password_reset_error::AdminPasswordResetError::Pg(
-            crate::sqlx_admin_error::SqlxAdminError::from(error),
-        )
-    })?;
     let user_id = server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(
         optional_user_id
             .ok_or(crate::admin_password_reset_error::AdminPasswordResetError::UnknownLogin)?,

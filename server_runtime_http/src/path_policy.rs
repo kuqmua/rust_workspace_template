@@ -4,7 +4,7 @@ mod tests {
     fn proxy_path_matches_only_segment_prefix() {
         let path = crate::http_proxy_path::HttpProxyPath::try_from(
             crate::http_proxy_path_ref::HttpProxyPathRef::from(
-                constants_str::test_fixtures::TEST_PROXY_USERS_PATH,
+                constants_str::TEST_PROXY_USERS_PATH,
             ),
         )
         .expect("6e90cb42 proxy_path_matches_only_segment_prefix invariant must hold");
@@ -12,7 +12,7 @@ mod tests {
             crate::proxy_path_matches_prefix::proxy_path_matches_prefix(
                 &path,
                 crate::http_allowed_path_prefix_ref::HttpAllowedPathPrefixRef::from(
-                    constants_str::test_fixtures::TEST_PROXY_PREFIX
+                    constants_str::TEST_PROXY_PREFIX
                 )
             )
         ));
@@ -22,7 +22,7 @@ mod tests {
         assert_eq!(
             crate::http_proxy_path::HttpProxyPath::try_from(
                 crate::http_proxy_path_ref::HttpProxyPathRef::from(
-                    constants_str::test_fixtures::TEST_ENCODED_PATH_TRAVERSAL
+                    constants_str::TEST_ENCODED_PATH_TRAVERSAL
                 )
             ),
             Err(crate::http_proxy_path_error::HttpProxyPathError::ForbiddenSyntax)
@@ -32,13 +32,13 @@ mod tests {
     fn identifier_path_normalizes_numbers_and_uuid_v4() {
         let normalized = crate::normalize_identifier_path::normalize_identifier_path(
             crate::http_request_path_ref::HttpRequestPathRef::from(
-                constants_str::catalog::TEST_DYNAMIC_IDENTIFIER_PATH,
+                constants_str::TEST_DYNAMIC_IDENTIFIER_PATH,
             ),
         )
         .expect("a36c01e4 identifier_path_normalizes_numbers_and_uuid_v4 invariant must hold");
         assert_eq!(
             normalized.as_ref(),
-            constants_str::test_fixtures::TEST_NORMALIZED_IDENTIFIER_PATH
+            constants_str::TEST_NORMALIZED_IDENTIFIER_PATH
         );
     }
 }

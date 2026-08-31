@@ -62,22 +62,16 @@ impl AdminPageSpec {
     #[must_use]
     pub fn title(self) -> frontend_contract::contract_str::ContractStr {
         frontend_contract::contract_str::ContractStr::from(match self.title {
-            crate::admin_page_title::AdminPageTitle::Api => constants_str::catalog::API_ALT,
-            crate::admin_page_title::AdminPageTitle::Metrics => constants_str::catalog::METRICS_ALT,
-            crate::admin_page_title::AdminPageTitle::Permissions => {
-                constants_str::catalog::PERMISSIONS
-            }
-            crate::admin_page_title::AdminPageTitle::Profile => {
-                constants_str::test_fixtures::PROFILE
-            }
-            crate::admin_page_title::AdminPageTitle::Roles => constants_str::catalog::ROLES,
-            crate::admin_page_title::AdminPageTitle::Sessions => {
-                constants_str::catalog::SESSIONS_ALT
-            }
-            crate::admin_page_title::AdminPageTitle::Settings => constants_str::catalog::SETTINGS,
-            crate::admin_page_title::AdminPageTitle::Tables => constants_str::catalog::TABLES,
-            crate::admin_page_title::AdminPageTitle::Users => constants_str::catalog::USERS,
-            crate::admin_page_title::AdminPageTitle::Version => constants_str::catalog::VERSION_ALT,
+            crate::admin_page_title::AdminPageTitle::Api => constants_str::API_ALT,
+            crate::admin_page_title::AdminPageTitle::Metrics => constants_str::METRICS_ALT,
+            crate::admin_page_title::AdminPageTitle::Permissions => constants_str::PERMISSIONS,
+            crate::admin_page_title::AdminPageTitle::Profile => constants_str::PROFILE,
+            crate::admin_page_title::AdminPageTitle::Roles => constants_str::ROLES,
+            crate::admin_page_title::AdminPageTitle::Sessions => constants_str::SESSIONS_ALT,
+            crate::admin_page_title::AdminPageTitle::Settings => constants_str::SETTINGS,
+            crate::admin_page_title::AdminPageTitle::Tables => constants_str::TABLES,
+            crate::admin_page_title::AdminPageTitle::Users => constants_str::USERS,
+            crate::admin_page_title::AdminPageTitle::Version => constants_str::VERSION_ALT,
         })
     }
 }

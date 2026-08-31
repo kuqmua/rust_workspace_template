@@ -52,22 +52,20 @@ impl Import {
     #[must_use]
     pub fn sc_str(&self) -> crate::import_snake_case_str::ImportSnakeCaseStr {
         match &self {
-            Self::Crate => crate::import_snake_case_str::ImportSnakeCaseStr::from(
-                constants_str::catalog::CRATE,
-            ),
+            Self::Crate => {
+                crate::import_snake_case_str::ImportSnakeCaseStr::from(constants_str::CRATE)
+            }
             Self::PgCrudCommon => crate::import_snake_case_str::ImportSnakeCaseStr::from(
-                constants_str::catalog::PG_CRUD_COMMON_DOMAIN_TYPES,
+                constants_str::PG_CRUD_COMMON_DOMAIN_TYPES,
             ),
         }
     }
     #[must_use]
     pub fn to_path(&self) -> crate::import_path_str::ImportPathStr {
         match &self {
-            Self::Crate => {
-                crate::import_path_str::ImportPathStr::from(constants_str::catalog::CRATE)
-            }
+            Self::Crate => crate::import_path_str::ImportPathStr::from(constants_str::CRATE),
             Self::PgCrudCommon => crate::import_path_str::ImportPathStr::from(
-                constants_str::catalog::PG_CRUD_COMMON_DOMAIN_TYPES,
+                constants_str::PG_CRUD_COMMON_DOMAIN_TYPES,
             ),
         }
     }

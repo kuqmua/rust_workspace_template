@@ -5,7 +5,7 @@ pub(crate) fn macro_generation_measurements() -> [(
     [
         (
             crate::measurement_name::MeasurementName::from(
-                constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT,
+                constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT,
             ),
             crate::cargo_args::CargoArgs::from(
                 &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TBL_ARGS[..],
@@ -13,7 +13,7 @@ pub(crate) fn macro_generation_measurements() -> [(
         ),
         (
             crate::measurement_name::MeasurementName::from(
-                constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_MEASUREMENT,
+                constants_str::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_MEASUREMENT,
             ),
             crate::cargo_args::CargoArgs::from(
                 &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TYPES_ARGS[..],
@@ -21,7 +21,7 @@ pub(crate) fn macro_generation_measurements() -> [(
         ),
         (
             crate::measurement_name::MeasurementName::from(
-                constants_str::catalog::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT,
+                constants_str::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT,
             ),
             crate::cargo_args::CargoArgs::from(
                 &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_WH_FLTS_ARGS[..],

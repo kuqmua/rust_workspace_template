@@ -22,13 +22,13 @@ pub(crate) async fn queries_users_page(
     let (users, total) = async {
         let search = query.0.search().as_ref();
         let total =
-            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_COUNT_FILTERED_USERS_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_FILTERED_USERS_SQL)
                 .bind(search)
                 .fetch_one(user_pool)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let rows = sqlx::query_as::<_, (i64, String, String, bool)>(
-            constants_str::integration_fixtures::SERVER_ADMIN_PAGE_USERS_SQL,
+            constants_str::SERVER_ADMIN_PAGE_USERS_SQL,
         )
         .bind(search)
         .bind(query.0.sort().as_ref())
@@ -40,7 +40,7 @@ pub(crate) async fn queries_users_page(
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let user_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
         let links =
-            sqlx::query_as::<_, (i64, i64)>(constants_str::integration_fixtures::SERVER_ADMIN_LIST_USER_ROLE_IDS_SQL)
+            sqlx::query_as::<_, (i64, i64)>(constants_str::SERVER_ADMIN_LIST_USER_ROLE_IDS_SQL)
                 .bind(user_ids.as_slice())
                 .fetch_all(user_pool)
                 .await
@@ -95,15 +95,14 @@ pub(crate) async fn queries_users_page(
     .map_err(crate::map_repository_error::map_repository_error)?;
     let roles = async {
         let role_catalog_pool = auth.state.as_ref().pool.as_ref();
-        let rows = sqlx::query_as::<_, (i64, String, bool)>(
-            constants_str::integration_fixtures::SERVER_ADMIN_LIST_ROLES_SQL,
-        )
-        .fetch_all(role_catalog_pool)
-        .await
-        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+        let rows =
+            sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_LIST_ROLES_SQL)
+                .fetch_all(role_catalog_pool)
+                .await
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let role_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
         let links = sqlx::query_as::<_, (i64, i64)>(
-            constants_str::integration_fixtures::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL,
+            constants_str::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL,
         )
         .bind(role_ids.as_slice())
         .fetch_all(role_catalog_pool)

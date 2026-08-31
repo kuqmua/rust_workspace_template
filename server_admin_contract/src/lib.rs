@@ -224,7 +224,7 @@ mod table_sort_tests {
             crate::admin_table_sort_field::AdminTableSortField::UserLogin
                 .key()
                 .as_ref(),
-            constants_str::catalog::LOGIN,
+            constants_str::LOGIN,
         );
     }
 }

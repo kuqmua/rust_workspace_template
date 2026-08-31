@@ -1,6 +1,6 @@
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminCleanupError {
-    #[error("{}", constants_str::catalog::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
+    #[error("{}", constants_str::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
     Count,
     #[error("idempotency cleanup failed: {0}")]
     Idempotency(#[source] pg_table::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError),

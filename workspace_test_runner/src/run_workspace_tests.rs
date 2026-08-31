@@ -1,6 +1,6 @@
 pub(crate) fn run_workspace_tests() -> Result<(), ()> {
     if crate::cargo_subcommand_available::cargo_subcommand_available(
-        crate::tool_name::ToolName::from(constants_str::catalog::NEXTEST),
+        crate::tool_name::ToolName::from(constants_str::NEXTEST),
     )
     .get()
     {

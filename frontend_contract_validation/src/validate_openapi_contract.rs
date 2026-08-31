@@ -13,7 +13,7 @@ where
     let references = crate::openapi_schema_references::openapi_schema_references(&document_value)?;
     references.validate(&document_value)?;
     let schemas = document_value
-        .pointer(constants_str::catalog::COMPONENTS_SCHEMAS_ALT)
+        .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
         .and_then(serde_json::Value::as_object)
         .ok_or(crate::open_api_validation_error::OpenApiValidationError::MissingSchemas)?;
     schemas.keys().try_for_each(|name| {
@@ -32,7 +32,7 @@ where
     })?;
 
     let paths = document_value
-        .get(constants_str::catalog::PATHS)
+        .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .ok_or(crate::open_api_validation_error::OpenApiValidationError::MissingPaths)?;
     let mut documented = std::collections::BTreeMap::new();
@@ -43,21 +43,21 @@ where
             .flatten()
             .filter(|(method, _)| {
                 [
-                    constants_str::integration_fixtures::DELETE,
-                    constants_str::catalog::GET,
-                    constants_str::test_fixtures::HEAD,
-                    constants_str::test_fixtures::OPTIONS,
-                    constants_str::catalog::PATCH,
-                    constants_str::catalog::POST,
-                    constants_str::catalog::PUT,
-                    constants_str::test_fixtures::TRACE,
+                    constants_str::DELETE,
+                    constants_str::GET,
+                    constants_str::HEAD,
+                    constants_str::OPTIONS,
+                    constants_str::PATCH,
+                    constants_str::POST,
+                    constants_str::PUT,
+                    constants_str::TRACE,
                 ]
                 .iter()
                 .any(|candidate| candidate.eq_ignore_ascii_case(method))
             })
             .try_for_each(|(method, operation)| {
                 let Some(operation_id) = operation
-                    .get(constants_str::test_fixtures::OPERATION_ID_JSON)
+                    .get(constants_str::OPERATION_ID_JSON)
                     .and_then(serde_json::Value::as_str)
                 else {
                     return Err(

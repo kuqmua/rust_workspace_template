@@ -20,27 +20,21 @@ impl crate::admin_error::AdminError {
     {
         let value = match code {
             AdminObservedErrorCode::AuthenticationSecretText => {
-                constants_str::catalog::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT
+                constants_str::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT
             }
             AdminObservedErrorCode::CsrfSecretText => {
-                constants_str::catalog::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT
+                constants_str::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT
             }
-            AdminObservedErrorCode::Database => {
-                constants_str::catalog::ADMIN_OBSERVED_ERROR_DATABASE
-            }
-            AdminObservedErrorCode::Header => {
-                constants_str::catalog::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER
-            }
+            AdminObservedErrorCode::Database => constants_str::ADMIN_OBSERVED_ERROR_DATABASE,
+            AdminObservedErrorCode::Header => constants_str::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER,
             AdminObservedErrorCode::PasswordHash => {
-                constants_str::catalog::ADMIN_OBSERVED_ERROR_PASSWORD_HASH
+                constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_HASH
             }
             AdminObservedErrorCode::PasswordText => {
-                constants_str::catalog::ADMIN_OBSERVED_ERROR_PASSWORD_TEXT
+                constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_TEXT
             }
-            AdminObservedErrorCode::SecretText => {
-                constants_str::catalog::ADMIN_OBSERVED_ERROR_SECRET_TEXT
-            }
-            AdminObservedErrorCode::Session => constants_str::catalog::ADMIN_OBSERVED_ERROR_SESSION,
+            AdminObservedErrorCode::SecretText => constants_str::ADMIN_OBSERVED_ERROR_SECRET_TEXT,
+            AdminObservedErrorCode::Session => constants_str::ADMIN_OBSERVED_ERROR_SESSION,
         };
         server_observability::observed_error::ObservedError::capture(
             source,
@@ -157,7 +151,7 @@ impl axum::response::IntoResponse for crate::admin_error::AdminError {
     fn into_response(self) -> axum::response::Response {
         let route_error_status = self.route_error_status();
         let error_type = server_runtime_http::http_error_type::HttpErrorType::from(
-            constants_str::test_fixtures::ADMIN_API_ERROR_TYPE,
+            constants_str::ADMIN_API_ERROR_TYPE,
         );
         let optional_diagnostic = match &self {
             Self::Pg(source) => Some(

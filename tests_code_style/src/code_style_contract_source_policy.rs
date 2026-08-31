@@ -5,7 +5,7 @@ fn publicly_forwards_crate_root(item: &syn::Item) -> bool {
     matches!(item_use.vis, syn::Visibility::Public(_))
         && matches!(
             &item_use.tree,
-            syn::UseTree::Path(path) if path.ident == constants_str::catalog::CRATE
+            syn::UseTree::Path(path) if path.ident == constants_str::CRATE
         )
 }
 #[test]
@@ -16,9 +16,7 @@ fn private_shared_modules_do_not_forward_crate_root_exports() {
             .iter()
             .filter(|source_file| {
                 source_file.path().as_ref().file_name()
-                    == Some(std::ffi::OsStr::new(
-                        constants_str::test_fixtures::VALUE_0544FC95,
-                    ))
+                    == Some(std::ffi::OsStr::new(constants_str::VALUE_0544FC95))
             })
             .flat_map(|crate_root| {
                 crate_root
@@ -40,7 +38,7 @@ fn private_shared_modules_do_not_forward_crate_root_exports() {
                             source_directory.join(format!("{}.rs", module.ident)),
                             source_directory
                                 .join(module.ident.to_string())
-                                .join(constants_str::test_fixtures::VALUE_07642C44),
+                                .join(constants_str::VALUE_07642C44),
                         ]
                         .into_iter()
                         .find_map(|module_path| {
@@ -70,9 +68,9 @@ fn private_shared_modules_do_not_forward_crate_root_exports() {
 }
 #[test]
 fn private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner() {
-    let public_forward = syn::parse_file(constants_str::test_fixtures::VALUE_5C907704).expect("b2d1e940 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
-    let crate_forward = syn::parse_file(constants_str::test_fixtures::VALUE_9388C05D).expect("53f91ac7 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
-    let local_public = syn::parse_file(constants_str::test_fixtures::VALUE_E40DBB0F).expect("9a47e2c6 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let public_forward = syn::parse_file(constants_str::VALUE_5C907704).expect("b2d1e940 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let crate_forward = syn::parse_file(constants_str::VALUE_9388C05D).expect("53f91ac7 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let local_public = syn::parse_file(constants_str::VALUE_E40DBB0F).expect("9a47e2c6 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
     assert!(
         public_forward
             .items
@@ -92,11 +90,11 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
                 file.path()
                     .as_ref()
                     .to_string_lossy()
-                    .contains(constants_str::test_fixtures::VALUE_BC9DA9CE)
+                    .contains(constants_str::VALUE_BC9DA9CE)
             })
             .map(|file| file.content().as_ref())
             .collect::<String>();
-        assert!(!source.contains("constants_str::catalog::V1"), "24e5ceeb");
+        assert!(!source.contains("constants_str::V1"), "24e5ceeb");
         assert!(!source.contains("ADMIN_API_"), "72b66898");
     });
 }
@@ -105,14 +103,8 @@ fn admin_frontend_api_urls_come_from_typed_routes() {
 fn service_route_endpoint_composition_uses_shared_registries() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
-            (
-                constants_str::test_fixtures::VALUE_3EB7B056,
-                constants_usize::EIGHT,
-            ),
-            (
-                constants_str::test_fixtures::VALUE_629EE5ED,
-                constants_usize::ONE,
-            ),
+            (constants_str::VALUE_3EB7B056, constants_usize::EIGHT),
+            (constants_str::VALUE_629EE5ED, constants_usize::ONE),
         ]
         .iter()
         .for_each(|(path_suffix, expected_registry_count)| {
@@ -125,12 +117,12 @@ fn service_route_endpoint_composition_uses_shared_registries() {
                             file.path().as_ref().to_string_lossy().as_ref(),
                             path_suffix,
                         )
-                        || (*path_suffix == constants_str::test_fixtures::VALUE_3EB7B056
+                        || (*path_suffix == constants_str::VALUE_3EB7B056
                             && file
                                 .path()
                                 .as_ref()
                                 .to_string_lossy()
-                                .contains(constants_str::catalog::SERVER_ADMIN_HTML_MODULE_DIR))
+                                .contains(constants_str::SERVER_ADMIN_HTML_MODULE_DIR))
                 })
                 .map(|file| file.content().as_ref())
                 .collect::<String>();
@@ -150,8 +142,8 @@ fn service_route_endpoint_composition_uses_shared_registries() {
 fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
-            constants_str::test_fixtures::VALUE_7BF90B7C,
-            constants_str::test_fixtures::VALUE_629EE5ED,
+            constants_str::VALUE_7BF90B7C,
+            constants_str::VALUE_629EE5ED,
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -165,8 +157,8 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
             assert!(!source.contains("components(schemas"), "94cc9de1");
         });
         [
-            constants_str::test_fixtures::VALUE_0690A45F,
-            constants_str::test_fixtures::VALUE_8E41EC63,
+            constants_str::VALUE_0690A45F,
+            constants_str::VALUE_8E41EC63,
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -180,8 +172,8 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
             assert!(!source.contains("request_body ="), "95cc867b");
         });
         [
-            constants_str::test_fixtures::VALUE_AA6C3BC8,
-            constants_str::test_fixtures::VALUE_4DE86380,
+            constants_str::VALUE_AA6C3BC8,
+            constants_str::VALUE_4DE86380,
         ]
         .iter()
         .for_each(|path_suffix| {
@@ -201,18 +193,9 @@ fn typed_route_registries_own_request_bodies_and_schema_catalogs() {
 fn generated_admin_table_consumers_use_the_shared_catalog() {
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
-            (
-                constants_str::test_fixtures::VALUE_206B48D7,
-                constants_str::test_fixtures::VALUE_41EC3410,
-            ),
-            (
-                constants_str::test_fixtures::VALUE_8E182ED1,
-                constants_str::test_fixtures::VALUE_D6BB9F39,
-            ),
-            (
-                constants_str::test_fixtures::VALUE_8E182ED1,
-                constants_str::test_fixtures::VALUE_78CE6024,
-            ),
+            (constants_str::VALUE_206B48D7, constants_str::VALUE_41EC3410),
+            (constants_str::VALUE_8E182ED1, constants_str::VALUE_D6BB9F39),
+            (constants_str::VALUE_8E182ED1, constants_str::VALUE_78CE6024),
         ]
         .iter()
         .for_each(|(path_suffix, forbidden)| {
@@ -226,7 +209,7 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
                 })
                 .map(|file| file.content().as_ref())
                 .collect::<Vec<&str>>()
-                .join(constants_str::catalog::NEWLINE);
+                .join(constants_str::NEWLINE);
             assert!(!source.is_empty(), "94a2f8c1");
             assert!(!source.contains(forbidden), "8b137dd2");
             assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
@@ -237,18 +220,18 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::catalog::SERVER_SRC_APPLICATION_ADMIN_API_RS)
+                    .ends_with(constants_str::SERVER_SRC_APPLICATION_ADMIN_API_RS)
             })
             .expect("148223ec generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
             .content()
             .as_ref();
         [
-            constants_str::test_fixtures::VALUE_D6456971,
-            constants_str::test_fixtures::VALUE_1788D397,
-            constants_str::test_fixtures::VALUE_F3C1108D,
-            constants_str::test_fixtures::VALUE_1A8BCD41,
-            constants_str::test_fixtures::VALUE_3C94AF87,
-            constants_str::test_fixtures::VALUE_639F76CD,
+            constants_str::VALUE_D6456971,
+            constants_str::VALUE_1788D397,
+            constants_str::VALUE_F3C1108D,
+            constants_str::VALUE_1A8BCD41,
+            constants_str::VALUE_3C94AF87,
+            constants_str::VALUE_639F76CD,
         ]
         .iter()
         .for_each(|forbidden| {
@@ -263,21 +246,18 @@ fn generated_admin_table_consumers_use_the_shared_catalog() {
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
-                path.ends_with(constants_str::test_fixtures::VALUE_88607159)
-                    || path.contains(constants_str::test_fixtures::VALUE_B51C3727)
+                path.ends_with(constants_str::VALUE_88607159)
+                    || path.contains(constants_str::VALUE_B51C3727)
             })
             .map(|file| file.content().as_ref())
             .collect::<Vec<&str>>()
-            .join(constants_str::catalog::NEWLINE);
+            .join(constants_str::NEWLINE);
         assert!(!admin_api.is_empty(), "e26d929b");
-        [
-            constants_str::test_fixtures::VALUE_CEB9FEF2,
-            constants_str::test_fixtures::VALUE_632E5011,
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(!admin_api.contains(forbidden), "535813a1");
-        });
+        [constants_str::VALUE_CEB9FEF2, constants_str::VALUE_632E5011]
+            .iter()
+            .for_each(|forbidden| {
+                assert!(!admin_api.contains(forbidden), "535813a1");
+            });
         assert!(
             admin_api.contains("server_admin::validate_catalog_schema::validate_catalog_schema"),
             "de411cae"
@@ -293,32 +273,32 @@ fn administrator_data_table_queries_come_from_the_typed_spec() {
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
-                path.ends_with(constants_str::test_fixtures::VALUE_8E182ED1)
+                path.ends_with(constants_str::VALUE_8E182ED1)
                     || crate::code_style::declared_child_matches(
                         path.as_ref(),
-                        constants_str::test_fixtures::VALUE_8E182ED1,
+                        constants_str::VALUE_8E182ED1,
                     )
             })
             .map(|file| file.content().as_ref())
             .collect::<Vec<&str>>()
-            .join(constants_str::catalog::NEWLINE);
+            .join(constants_str::NEWLINE);
         assert!(!repository.is_empty(), "3ac24886");
         let admin_api = snapshot
             .rs_files()
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
-                path.ends_with(constants_str::test_fixtures::VALUE_88607159)
-                    || path.contains(constants_str::test_fixtures::VALUE_B51C3727)
+                path.ends_with(constants_str::VALUE_88607159)
+                    || path.contains(constants_str::VALUE_B51C3727)
             })
             .map(|file| file.content().as_ref())
             .collect::<Vec<&str>>()
-            .join(constants_str::catalog::NEWLINE);
+            .join(constants_str::NEWLINE);
         assert!(!admin_api.is_empty(), "1049d34b");
         [
-            constants_str::test_fixtures::VALUE_F7BEC314,
-            constants_str::test_fixtures::VALUE_73522C89,
-            constants_str::test_fixtures::VALUE_01C2291C,
+            constants_str::VALUE_F7BEC314,
+            constants_str::VALUE_73522C89,
+            constants_str::VALUE_01C2291C,
         ]
         .iter()
         .for_each(|legacy_source| {
@@ -338,7 +318,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_BEBEC57E)
+                    .ends_with(constants_str::VALUE_BEBEC57E)
             })
             .expect("58e2110e administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -349,7 +329,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_27AB06E9)
+                    .ends_with(constants_str::VALUE_27AB06E9)
             })
             .expect("04bb78af administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -364,7 +344,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::catalog::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
+                    .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
             })
             .expect("2f3afe52 administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -375,7 +355,7 @@ fn administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::catalog::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
+                    .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
             })
             .expect("2c589b2b administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
             .content()
@@ -401,7 +381,7 @@ fn config_reference_accessors_use_generated_forwarding() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_D31B3088)
+                    .ends_with(constants_str::VALUE_D31B3088)
             })
             .expect(
                 "e210ffd6 config_reference_getters_use_generated_forwarding invariant must hold",

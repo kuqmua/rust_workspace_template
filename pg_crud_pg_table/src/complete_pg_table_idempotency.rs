@@ -22,7 +22,7 @@ pub async fn complete_pg_table_idempotency(
             .await;
         }
     };
-    let _query_result = sqlx::query(constants_str::catalog::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
+    let _query_result = sqlx::query(constants_str::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())

@@ -4,14 +4,14 @@ fn catalog_snapshot(
     crate::db_catalog_snapshot::DbCatalogSnapshot::new(
         vec![crate::db_object_snapshot::DbObjectSnapshot::new(
             crate::db_schema_text::DbSchemaText::try_from(String::from(
-                constants_str::test_fixtures::TEST_DB_OBJECT_NAME,
+                constants_str::TEST_DB_OBJECT_NAME,
             ))
-            .expect(constants_str::test_fixtures::VALUE_E84FED1B),
+            .expect(constants_str::VALUE_E84FED1B),
             kind,
             crate::db_schema_text::DbSchemaText::try_from(String::from(
-                constants_str::test_fixtures::TEST_DB_OBJECT_DEFINITION,
+                constants_str::TEST_DB_OBJECT_DEFINITION,
             ))
-            .expect(constants_str::test_fixtures::VALUE_A7950FF0),
+            .expect(constants_str::VALUE_A7950FF0),
         )]
         .into(),
     )
@@ -21,27 +21,27 @@ fn snapshot(nullable: bool) -> crate::db_table_snapshot::DbTableSnapshot {
     crate::db_table_snapshot::DbTableSnapshot::new(
         vec![crate::db_column_snapshot::DbColumnSnapshot::new(
             crate::db_schema_text::DbSchemaText::try_from(String::from(
-                constants_str::test_fixtures::TEST_DB_COLUMN_ID,
+                constants_str::TEST_DB_COLUMN_ID,
             ))
-            .expect(constants_str::test_fixtures::VALUE_11F0D7F5),
+            .expect(constants_str::VALUE_11F0D7F5),
             crate::db_schema_text::DbSchemaText::try_from(String::from(
-                constants_str::test_fixtures::TEST_DB_DATA_TYPE_UUID,
+                constants_str::TEST_DB_DATA_TYPE_UUID,
             ))
-            .expect(constants_str::test_fixtures::VALUE_9CB64C93),
+            .expect(constants_str::VALUE_9CB64C93),
             nullable.into(),
             None,
         )]
         .into(),
         vec![crate::db_object_snapshot::DbObjectSnapshot::new(
             crate::db_schema_text::DbSchemaText::try_from(String::from(
-                constants_str::test_fixtures::TEST_DB_CONSTRAINT_NAME,
+                constants_str::TEST_DB_CONSTRAINT_NAME,
             ))
-            .expect(constants_str::test_fixtures::VALUE_61F95647),
+            .expect(constants_str::VALUE_61F95647),
             crate::db_object_kind::DbObjectKind::PrimaryKey,
             crate::db_schema_text::DbSchemaText::try_from(String::from(
-                constants_str::test_fixtures::TEST_DB_CONSTRAINT_DEFINITION,
+                constants_str::TEST_DB_CONSTRAINT_DEFINITION,
             ))
-            .expect(constants_str::test_fixtures::VALUE_A4B28D38),
+            .expect(constants_str::VALUE_A4B28D38),
         )]
         .into(),
     )

@@ -20,26 +20,22 @@ fn page_limit_accepts_only_the_contract_range() {
 
 #[test]
 fn pagination_values_deserialize_from_url_query_strings() {
-    let Err(_zero_error) = serde_json::from_str::<crate::admin_page_limit::AdminPageLimit>(
-        constants_str::catalog::VALUE_0,
-    ) else {
+    let Err(_zero_error) =
+        serde_json::from_str::<crate::admin_page_limit::AdminPageLimit>(constants_str::VALUE_0)
+    else {
         panic!("e8fd3a29");
     };
-    let Err(_above_maximum_error) = serde_json::from_str::<crate::admin_page_limit::AdminPageLimit>(
-        constants_str::catalog::VALUE_101,
-    ) else {
+    let Err(_above_maximum_error) =
+        serde_json::from_str::<crate::admin_page_limit::AdminPageLimit>(constants_str::VALUE_101)
+    else {
         panic!("36f08ad7");
     };
     let limit = <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
-        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(
-            constants_str::catalog::VALUE_100,
-        ),
+        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::VALUE_100),
     )
     .expect("a6aa5b42 pagination_values_deserialize_from_url_query_strings invariant must hold");
     let offset = <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
-        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(
-            constants_str::catalog::VALUE_42,
-        ),
+        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::VALUE_42),
     )
     .expect("799e47b0 pagination_values_deserialize_from_url_query_strings invariant must hold");
     assert_eq!(

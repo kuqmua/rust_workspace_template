@@ -28,7 +28,7 @@ pub(crate) async fn admin_html_open_api(
             match serde_json::to_string_pretty(&document) {
                 Ok(text) => match (
                     server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
-                        constants_str::test_fixtures::OPENAPI_DOCUMENT.to_owned(),
+                        constants_str::OPENAPI_DOCUMENT.to_owned(),
                     ),
                     server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(text),
                 ) {

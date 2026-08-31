@@ -14,8 +14,7 @@ pub(super) struct PgTypeRecordRaw {
 impl TryFrom<PgTypeRecordRaw> for crate::pg_type_record::PgTypeRecord {
     type Error = String;
     fn try_from(v: PgTypeRecordRaw) -> Result<Self, Self::Error> {
-        let cant_supp_nullable_variants_message =
-            constants_str::catalog::CANT_SUPPORT_NULLABLE_VARIANTS;
+        let cant_supp_nullable_variants_message = constants_str::CANT_SUPPORT_NULLABLE_VARIANTS;
         match &v.pg_type.pg_type_can_be_nullable() {
             crate::can_be_nullable::CanBeNullable::False => {
                 if matches!(

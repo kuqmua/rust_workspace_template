@@ -12,20 +12,12 @@ pub fn build_secure_strict_cookie(
     let text = i64::try_from(maximum_age_seconds_u64).map_or_else(
         |_conversion_error| {
             let http_only = match access {
-                crate::http_cookie_access::HttpCookieAccess::HttpOnly => {
-                    constants_str::catalog::HTTPONLY
-                }
-                crate::http_cookie_access::HttpCookieAccess::ScriptReadable => {
-                    constants_str::test_fixtures::EMPTY
-                }
+                crate::http_cookie_access::HttpCookieAccess::HttpOnly => constants_str::HTTPONLY,
+                crate::http_cookie_access::HttpCookieAccess::ScriptReadable => constants_str::EMPTY,
             };
             let secure_attribute = match secure {
-                crate::http_cookie_secure::HttpCookieSecure::Disabled => {
-                    constants_str::test_fixtures::EMPTY
-                }
-                crate::http_cookie_secure::HttpCookieSecure::Enabled => {
-                    constants_str::catalog::SECURE
-                }
+                crate::http_cookie_secure::HttpCookieSecure::Disabled => constants_str::EMPTY,
+                crate::http_cookie_secure::HttpCookieSecure::Enabled => constants_str::SECURE,
             };
             format!(
                 "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attribute}",
@@ -36,7 +28,7 @@ pub fn build_secure_strict_cookie(
         },
         |maximum_age_seconds| {
             cookie::Cookie::build((name.as_str(), value.as_str()))
-                .path(constants_str::catalog::SLASH)
+                .path(constants_str::SLASH)
                 .max_age(cookie::time::Duration::seconds(maximum_age_seconds))
                 .same_site(cookie::SameSite::Strict)
                 .http_only(matches!(

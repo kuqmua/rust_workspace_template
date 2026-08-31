@@ -21,6 +21,10 @@
 - Preserve behavior and semantics unless a change is requested; never change semantics silently.
 - Keep diffs minimal.
 - Keep generated functions and closures inside usage scope.
+- Rewrite a private production function with exactly one non-test call site as a closure inside
+  that call site's function when doing so preserves attributes, async behavior, architecture
+  boundaries, domain wrappers, and direct unit-test coverage. Keep an item-scoped, justified
+  `clippy::single_call_fn` allowance only when a named function is required.
 - Prefer explicit paths at usage sites over `use` imports.
 - `expect()` messages must contain the **first 8 symbols from a random UUID v4**.
 - Use abbreviations when creating names.

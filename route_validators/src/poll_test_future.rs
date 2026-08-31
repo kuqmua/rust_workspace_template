@@ -14,7 +14,7 @@ pub(crate) fn poll_test_future<T>(input_future: impl Future<Output = T>) -> T {
                         poll_count
                     ),
                     "{} super::block_on exceeded poll limit",
-                    constants_str::catalog::ROUTE_VALIDATORS_BLOCK_ON_POLL_LIMIT_ER_ID
+                    constants_str::ROUTE_VALIDATORS_BLOCK_ON_POLL_LIMIT_ER_ID
                 );
                 crate::increment_block_on_poll_count::increment_block_on_poll_count(
                     &mut poll_count,

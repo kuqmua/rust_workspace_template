@@ -41,7 +41,7 @@ where
                 Err(crate::db_schema_conformance_error::DbSchemaConformanceError::DescriptorFieldMismatch(name))
             }
         })?;
-    let rows = sqlx::query(constants_str::test_fixtures::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
+    let rows = sqlx::query(constants_str::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
         .bind(schema.0)
         .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
@@ -55,12 +55,12 @@ where
         .into_iter()
         .map(|row| {
             let nullable: String =
-                sqlx::Row::try_get(&row, constants_str::test_fixtures::IS_NULLABLE).map_err(|error| {
+                sqlx::Row::try_get(&row, constants_str::IS_NULLABLE).map_err(|error| {
                     crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(error))
                 })?;
             Ok(crate::db_column_contract_snapshot::DbColumnContractSnapshot::new(
                 crate::db_schema_text::DbSchemaText::try_from(
-                    sqlx::Row::try_get::<String, _>(&row, constants_str::test_fixtures::COLUMN_NAME).map_err(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::COLUMN_NAME).map_err(
                         |error| {
                             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                                 error,
@@ -70,7 +70,7 @@ where
                 )
                 .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?,
                 crate::db_schema_text::DbSchemaText::try_from(
-                    sqlx::Row::try_get::<String, _>(&row, constants_str::test_fixtures::DATA_TYPE).map_err(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::DATA_TYPE).map_err(
                         |error| {
                             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                                 error,
@@ -79,9 +79,9 @@ where
                     )?,
                 )
                 .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?,
-                crate::db_column_nullable::DbColumnNullable::from(nullable == constants_str::test_fixtures::YES),
+                crate::db_column_nullable::DbColumnNullable::from(nullable == constants_str::YES),
                 crate::db_column_has_server_default::DbColumnHasServerDefault::from(
-                    sqlx::Row::try_get::<bool, _>(&row, constants_str::test_fixtures::HAS_SERVER_DEFAULT)
+                    sqlx::Row::try_get::<bool, _>(&row, constants_str::HAS_SERVER_DEFAULT)
                         .map_err(|error| {
                             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                                 error,
@@ -132,7 +132,7 @@ where
         })
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
         )?;
-    let key_rows = sqlx::query(constants_str::test_fixtures::DB_SCHEMA_KEY_CONTRACT_QUERY)
+    let key_rows = sqlx::query(constants_str::DB_SCHEMA_KEY_CONTRACT_QUERY)
         .bind(schema.0)
         .bind(Table::schema_table_text().0)
         .fetch_all(pool.0)
@@ -145,12 +145,12 @@ where
     let mut observed_keys = key_rows
         .into_iter()
         .map(|row| {
-            let kind = sqlx::Row::try_get::<String, _>(&row, constants_str::test_fixtures::CONSTRAINT_TYPE)
+            let kind = sqlx::Row::try_get::<String, _>(&row, constants_str::CONSTRAINT_TYPE)
                 .map_err(|error| {
                     crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(error))
                 })?;
             let columns = crate::schema_texts::schema_texts(
-                sqlx::Row::try_get::<Vec<String>, _>(&row, constants_str::test_fixtures::COLUMNS).map_err(
+                sqlx::Row::try_get::<Vec<String>, _>(&row, constants_str::COLUMNS).map_err(
                     |error| {
                         crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
                             error,
@@ -159,11 +159,11 @@ where
                 )?,
             )?;
             match kind.as_str() {
-                constants_str::test_fixtures::DB_CONSTRAINT_FOREIGN_KEY_SHORT => {
+                constants_str::DB_CONSTRAINT_FOREIGN_KEY_SHORT => {
                     let referenced_columns = crate::schema_texts::schema_texts(
                         sqlx::Row::try_get::<Vec<String>, _>(
                             &row,
-                            constants_str::test_fixtures::REFERENCED_COLUMNS,
+                            constants_str::REFERENCED_COLUMNS,
                         )
                         .map_err(|error| {
                             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
@@ -172,7 +172,7 @@ where
                         })?,
                     )?;
                     let referenced_table = crate::schema_text::schema_text(
-                        sqlx::Row::try_get::<String, _>(&row, constants_str::test_fixtures::REFERENCED_TABLE)
+                        sqlx::Row::try_get::<String, _>(&row, constants_str::REFERENCED_TABLE)
                             .map_err(|error| {
                                 crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
                                     crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(error),
@@ -185,10 +185,10 @@ where
                         referenced_table,
                     })
                 }
-                constants_str::test_fixtures::DB_CONSTRAINT_PRIMARY_KEY_SHORT => {
+                constants_str::DB_CONSTRAINT_PRIMARY_KEY_SHORT => {
                     Ok(crate::db_key_contract_snapshot::DbKeyContractSnapshot::PrimaryKey(columns.into()))
                 }
-                constants_str::test_fixtures::DB_CONSTRAINT_UNIQUE_SHORT => {
+                constants_str::DB_CONSTRAINT_UNIQUE_SHORT => {
                     Ok(crate::db_key_contract_snapshot::DbKeyContractSnapshot::Unique(columns.into()))
                 }
                 _ => Err(crate::db_schema_conformance_error::DbSchemaConformanceError::UnknownObjectKind),

@@ -67,7 +67,7 @@ fn every_route_has_named_route_and_client_functions() {
 
 #[test]
 fn paths_use_snake_case_segments() {
-    assert!(!constants_str::catalog::COMMON_ROUTES_SWAGGER_UI.contains('-'));
+    assert!(!constants_str::COMMON_ROUTES_SWAGGER_UI.contains('-'));
     crate::common_route::CommonRoute::ALL
         .into_iter()
         .for_each(|route| {

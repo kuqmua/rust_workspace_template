@@ -41,7 +41,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
         Err(error) => {
             tracing::error!(
                 error = %notification_service_error::NotificationServiceError::Config(error),
-                "notification service configuration failed"
+                message = %constants_str::TRACING_NOTIFICATION_CONFIG_FAILED,
             );
             return notification_exit_code::NotificationExitCode::from(
                 std::process::ExitCode::FAILURE,
@@ -63,7 +63,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
             Err(error) => {
                 tracing::error!(
                     error = %notification_service_error::NotificationServiceError::ObservabilityInit(error),
-                    "notification service observability initialization failed"
+                    message = %constants_str::TRACING_NOTIFICATION_OBSERVABILITY_INIT_FAILED,
                 );
                 return notification_exit_code::NotificationExitCode::from(
                     std::process::ExitCode::FAILURE,
@@ -165,7 +165,10 @@ async fn main() -> notification_exit_code::NotificationExitCode {
                     if let Err(error) =
                         server_runtime_http::wait_for_service_shutdown_signal::wait_for_service_shutdown_signal().await
                     {
-                        tracing::error!(error = %error, "notification shutdown signal failed");
+                        tracing::error!(
+                            error = %error,
+                            message = %constants_str::TRACING_NOTIFICATION_SHUTDOWN_SIGNAL_FAILED,
+                        );
                     }
                 },
                 timeout,
@@ -177,7 +180,10 @@ async fn main() -> notification_exit_code::NotificationExitCode {
         }
     };
     if let Err(error) = run_result.as_ref() {
-        tracing::error!(error = %error, "notification service terminated with an error");
+        tracing::error!(
+            error = %error,
+            message = %constants_str::TRACING_NOTIFICATION_SERVICE_TERMINATED,
+        );
     }
     let shutdown_result = observability
         .shutdown()
@@ -189,7 +195,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
         Err(error) => {
             tracing::error!(
                 error = %error,
-                "notification service operation or observability shutdown failed"
+                message = %constants_str::TRACING_NOTIFICATION_OPERATION_OR_SHUTDOWN_FAILED,
             );
             notification_exit_code::NotificationExitCode::from(std::process::ExitCode::FAILURE)
         }

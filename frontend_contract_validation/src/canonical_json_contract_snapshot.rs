@@ -19,7 +19,7 @@ where
                 object.iter_mut().for_each(|(name, field_value)| {
                     if dynamic_fields.iter().any(|field| field.get() == name) {
                         *field_value = serde_json::Value::String(String::from(
-                            constants_str::test_fixtures::JSON_SNAPSHOT_DYNAMIC_VALUE,
+                            constants_str::JSON_SNAPSHOT_DYNAMIC_VALUE,
                         ));
                     } else {
                         pending.push(field_value);
@@ -44,27 +44,19 @@ mod tests {
     fn dynamic_fields_are_normalized_recursively() {
         let snapshot = crate::canonical_json_contract_snapshot::canonical_json_contract_snapshot(
             &serde_json::json!({
-                constants_str::test_fixtures::TEST_JSON_REQUEST_ID: constants_str::test_fixtures::TEST_JSON_FIRST,
-                constants_str::test_fixtures::ITEMS: [{ constants_str::test_fixtures::TEST_JSON_REQUEST_ID: constants_str::test_fixtures::TEST_JSON_SECOND }],
-                constants_str::test_fixtures::TEST_JSON_STATUS: 401i32
+                constants_str::TEST_JSON_REQUEST_ID: constants_str::TEST_JSON_FIRST,
+                constants_str::ITEMS: [{ constants_str::TEST_JSON_REQUEST_ID: constants_str::TEST_JSON_SECOND }],
+                constants_str::TEST_JSON_STATUS: 401i32
             }),
-            &[constants_str::test_fixtures::TEST_JSON_REQUEST_ID.into()],
+            &[constants_str::TEST_JSON_REQUEST_ID.into()],
         )
         .expect("d8ddf580 dynamic_fields_are_normalized_recursively invariant must hold");
-        assert!(
-            !snapshot
-                .as_ref()
-                .contains(constants_str::test_fixtures::TEST_JSON_FIRST)
-        );
-        assert!(
-            !snapshot
-                .as_ref()
-                .contains(constants_str::test_fixtures::TEST_JSON_SECOND)
-        );
+        assert!(!snapshot.as_ref().contains(constants_str::TEST_JSON_FIRST));
+        assert!(!snapshot.as_ref().contains(constants_str::TEST_JSON_SECOND));
         assert_eq!(
             snapshot
                 .as_ref()
-                .matches(constants_str::test_fixtures::JSON_SNAPSHOT_DYNAMIC_VALUE)
+                .matches(constants_str::JSON_SNAPSHOT_DYNAMIC_VALUE)
                 .count(),
             2usize
         );

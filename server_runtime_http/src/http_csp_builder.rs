@@ -35,8 +35,7 @@ impl HttpCspBuilder {
         }
         self.0.reserve(added_bytes);
         if !self.0.is_empty() {
-            self.0
-                .push_str(constants_str::catalog::HTTP_CSP_DIRECTIVE_SEPARATOR);
+            self.0.push_str(constants_str::HTTP_CSP_DIRECTIVE_SEPARATOR);
         }
         self.0.push_str(name.as_str());
         let _text = values.iter().fold(&mut self.0, |text, value| {

@@ -49,7 +49,7 @@ pub(crate) async fn mutations_set_permissions(
         let inlined_expected_permission_ids = expected_permission_ids.as_ref();
         let inlined_permission_ids = contract_permission_ids.as_ref();
         let optional_is_system =
-            sqlx::query_scalar::<_, bool>(constants_str::integration_fixtures::SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL)
+            sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .fetch_optional(&mut *tx)
                 .await
@@ -65,7 +65,7 @@ pub(crate) async fn mutations_set_permissions(
             );
         }
         let current_permission_ids =
-            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .fetch_all(&mut *tx)
                 .await
@@ -87,7 +87,7 @@ pub(crate) async fn mutations_set_permissions(
             .map(i64::from)
             .collect::<Vec<_>>();
         let existing_count =
-            sqlx::query_scalar::<_, i64>(constants_str::integration_fixtures::SERVER_ADMIN_COUNT_PERMISSIONS_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_PERMISSIONS_SQL)
                 .bind(&raw_ids)
                 .fetch_one(&mut *tx)
                 .await
@@ -98,13 +98,13 @@ pub(crate) async fn mutations_set_permissions(
             );
         }
         let _delete_result =
-            sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL)
+            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .execute(&mut *tx)
                 .await
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
         let _insert_result =
-            sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
                 .bind(inlined_role_permission_role_id.get())
                 .bind(&raw_ids)
                 .execute(&mut *tx)

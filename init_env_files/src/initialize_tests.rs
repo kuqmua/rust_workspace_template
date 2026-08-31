@@ -3,16 +3,16 @@ fn fixture() -> std::path::PathBuf {
         "rust-workspace-template-environment-{}",
         uuid::Uuid::new_v4()
     ));
-    std::fs::create_dir_all(root.join(constants_str::catalog::SERVICE))
+    std::fs::create_dir_all(root.join(constants_str::SERVICE))
         .expect("fdbf7411 fixture invariant must hold");
     std::fs::write(
-        root.join(constants_str::catalog::CARGO_TOML),
-        constants_str::catalog::WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE,
+        root.join(constants_str::CARGO_TOML),
+        constants_str::WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE,
     )
     .expect("8e781c83 fixture invariant must hold");
     std::fs::write(
-        root.join(constants_str::catalog::SERVICE_ENV_EXAMPLE),
-        constants_str::catalog::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE,
+        root.join(constants_str::SERVICE_ENV_EXAMPLE),
+        constants_str::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE,
     )
     .expect("f24fca72 fixture invariant must hold");
     root
@@ -47,8 +47,8 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
         crate::initialization_status::InitializationStatus::Created
     );
     std::fs::write(
-        root.join(constants_str::catalog::SERVICE_ENV),
-        constants_str::catalog::SECRET_CUSTOM_NEWLINE,
+        root.join(constants_str::SERVICE_ENV),
+        constants_str::SECRET_CUSTOM_NEWLINE,
     )
     .expect("2d67b058 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     let updated = crate::initialize::initialize(
@@ -64,7 +64,7 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
             .status(),
         crate::initialization_status::InitializationStatus::Updated
     );
-    let updated_content = std::fs::read_to_string(root.join(constants_str::catalog::SERVICE_ENV))
+    let updated_content = std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
         .expect("bd9f5208 dry_run_apply_and_repeat_are_safe_and_idempotent invariant must hold");
     assert!(updated_content.contains("SECRET=custom"));
     assert!(updated_content.contains("PUBLIC=value"));
@@ -88,8 +88,8 @@ fn dry_run_apply_and_repeat_are_safe_and_idempotent() {
 fn escaping_member_is_rejected() {
     let root = fixture();
     std::fs::write(
-        root.join(constants_str::catalog::CARGO_TOML),
-        constants_str::catalog::WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE,
+        root.join(constants_str::CARGO_TOML),
+        constants_str::WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE,
     )
     .expect("350646f2 escaping_member_is_rejected invariant must hold");
     assert!(matches!(
@@ -106,8 +106,8 @@ fn escaping_member_is_rejected() {
 fn oversized_environment_example_is_rejected() {
     let root = fixture();
     std::fs::write(
-        root.join(constants_str::catalog::SERVICE_ENV_EXAMPLE),
-        constants_str::catalog::A_ALT
+        root.join(constants_str::SERVICE_ENV_EXAMPLE),
+        constants_str::A_ALT
             .repeat(constants_usize::VALUE_1_048_576.saturating_add(constants_usize::ONE)),
     )
     .expect("f6290e85 oversized_environment_example_is_rejected invariant must hold");

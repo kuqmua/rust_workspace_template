@@ -25,11 +25,11 @@ pub enum TracingLevel {
 impl TracingLevel {
     fn as_str(self) -> crate::tracing_level_name::TracingLevelName {
         crate::tracing_level_name::TracingLevelName::from(match self {
-            Self::Trace => constants_str::catalog::CONFIG_TRACING_TRACE,
-            Self::Debug => constants_str::catalog::CONFIG_TRACING_DEBUG,
-            Self::Info => constants_str::catalog::CONFIG_TRACING_INFO,
-            Self::Warn => constants_str::catalog::CONFIG_TRACING_WARN,
-            Self::Error => constants_str::catalog::CONFIG_TRACING_ERROR,
+            Self::Trace => constants_str::CONFIG_TRACING_TRACE,
+            Self::Debug => constants_str::CONFIG_TRACING_DEBUG,
+            Self::Info => constants_str::CONFIG_TRACING_INFO,
+            Self::Warn => constants_str::CONFIG_TRACING_WARN,
+            Self::Error => constants_str::CONFIG_TRACING_ERROR,
         })
     }
 }

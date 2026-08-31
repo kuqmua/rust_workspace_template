@@ -2,7 +2,7 @@ pub(crate) fn synchronize_deployment_projections(
     root: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
     write_changes: crate::should_write::ShouldWrite,
 ) -> Result<(), crate::scaffold_error::ScaffoldError> {
-    let catalog_path = root.0.join(constants_str::test_fixtures::VALUE_C1590960);
+    let catalog_path = root.0.join(constants_str::VALUE_C1590960);
     let catalog = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
         crate::scaffold_path_ref::ScaffoldPathRef::from(catalog_path.as_path()),
     )?;
@@ -12,7 +12,7 @@ pub(crate) fn synchronize_deployment_projections(
         let mut current = None;
         source.0.lines().try_for_each(|raw_line| {
             let trimmed_line = raw_line.trim();
-            if trimmed_line == constants_str::test_fixtures::VALUE_484ADD83 {
+            if trimmed_line == constants_str::VALUE_484ADD83 {
                 if let Some(draft) = current.take() {
                     entries.push(crate::service_catalog_draft::ServiceCatalogDraft::finish(
                         draft,
@@ -26,7 +26,7 @@ pub(crate) fn synchronize_deployment_projections(
             };
             if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
                 crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
-                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::catalog::CRATE),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::CRATE),
             )? {
                 draft.crate_name = Some(
                     crate::service_crate::ServiceCrate::try_from(value.as_ref().to_owned())
@@ -36,9 +36,7 @@ pub(crate) fn synchronize_deployment_projections(
             }
             if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
                 crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
-                crate::scaffold_text_ref::ScaffoldTextRef::from(
-                    constants_str::test_fixtures::VALUE_DB669AF6,
-                ),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_DB669AF6),
             )? {
                 draft.compose_name = Some(
                     crate::service_compose_name::ServiceComposeName::try_from(
@@ -50,9 +48,7 @@ pub(crate) fn synchronize_deployment_projections(
             }
             if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
                 crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
-                crate::scaffold_text_ref::ScaffoldTextRef::from(
-                    constants_str::test_fixtures::VALUE_739ED940,
-                ),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_739ED940),
             )? {
                 draft.compose_file = Some(
                     crate::service_compose_file::ServiceComposeFile::try_from(
@@ -64,9 +60,7 @@ pub(crate) fn synchronize_deployment_projections(
             }
             if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
                 crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
-                crate::scaffold_text_ref::ScaffoldTextRef::from(
-                    constants_str::test_fixtures::VALUE_254DB0FB,
-                ),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_254DB0FB),
             )? {
                 draft.dockerfile = Some(
                     crate::service_dockerfile::ServiceDockerfile::try_from(
@@ -78,9 +72,7 @@ pub(crate) fn synchronize_deployment_projections(
             }
             if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
                 crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
-                crate::scaffold_text_ref::ScaffoldTextRef::from(
-                    constants_str::test_fixtures::VALUE_6105D6CC,
-                ),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_6105D6CC),
             )? {
                 draft.image = Some(
                     crate::service_image::ServiceImage::try_from(value.as_ref().to_owned())
@@ -90,9 +82,7 @@ pub(crate) fn synchronize_deployment_projections(
             }
             if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
                 crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
-                crate::scaffold_text_ref::ScaffoldTextRef::from(
-                    constants_str::test_fixtures::VALUE_94ABCB2D,
-                ),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_94ABCB2D),
             )? {
                 draft.kubernetes_manifest = Some(
                     crate::service_kubernetes_manifest::ServiceKubernetesManifest::try_from(
@@ -103,7 +93,7 @@ pub(crate) fn synchronize_deployment_projections(
                 return Ok(());
             }
             if let Some(port) = trimmed_line
-                .strip_prefix(constants_str::test_fixtures::VALUE_F8D397A3)
+                .strip_prefix(constants_str::VALUE_F8D397A3)
                 .and_then(|port_text| port_text.trim().strip_prefix('='))
                 .map(str::trim)
                 .and_then(|port_text| port_text.parse::<u16>().ok())
@@ -113,9 +103,7 @@ pub(crate) fn synchronize_deployment_projections(
             }
             if let Some(value) = crate::service_catalog_string_value::service_catalog_string_value(
                 crate::scaffold_text_ref::ScaffoldTextRef::from(trimmed_line),
-                crate::scaffold_text_ref::ScaffoldTextRef::from(
-                    constants_str::test_fixtures::VALUE_20E49707,
-                ),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_20E49707),
             )? {
                 draft.socket_env = Some(
                     crate::service_socket_env::ServiceSocketEnv::try_from(
@@ -125,15 +113,16 @@ pub(crate) fn synchronize_deployment_projections(
                 );
                 return Ok(());
             }
-            if let Some(release) = trimmed_line
-                .strip_prefix(constants_str::catalog::RELEASE)
-                .and_then(|release_text| {
-                    release_text
-                        .trim()
-                        .strip_prefix('=')
-                        .map(str::trim)
-                        .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
-                })
+            if let Some(release) =
+                trimmed_line
+                    .strip_prefix(constants_str::RELEASE)
+                    .and_then(|release_text| {
+                        release_text
+                            .trim()
+                            .strip_prefix('=')
+                            .map(str::trim)
+                            .and_then(|parsed_text| parsed_text.parse::<bool>().ok())
+                    })
             {
                 draft.release = Some(crate::should_release::ShouldRelease::from(release));
             }
@@ -160,29 +149,19 @@ pub(crate) fn synchronize_deployment_projections(
         crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
             entries_ref,
         );
-    let ci_path = root
-        .0
-        .join(constants_str::catalog::CODE_STYLE_CI_WORKFLOW_PATH);
+    let ci_path = root.0.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
     crate::synchronize_generated_file::synchronize_generated_file(
         crate::scaffold_path_ref::ScaffoldPathRef::from(ci_path.as_path()),
-        crate::scaffold_text_ref::ScaffoldTextRef::from(
-            constants_str::test_fixtures::VALUE_48916059,
-        ),
-        crate::scaffold_text_ref::ScaffoldTextRef::from(
-            constants_str::test_fixtures::VALUE_37E65562,
-        ),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_48916059),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_37E65562),
         crate::scaffold_text_ref::ScaffoldTextRef::from(ci.as_ref()),
         write_changes,
     )?;
-    let release_path = root.0.join(constants_str::test_fixtures::VALUE_87DB21A9);
+    let release_path = root.0.join(constants_str::VALUE_87DB21A9);
     crate::synchronize_generated_file::synchronize_generated_file(
         crate::scaffold_path_ref::ScaffoldPathRef::from(release_path.as_path()),
-        crate::scaffold_text_ref::ScaffoldTextRef::from(
-            constants_str::test_fixtures::VALUE_BF61857A,
-        ),
-        crate::scaffold_text_ref::ScaffoldTextRef::from(
-            constants_str::test_fixtures::VALUE_1BC591D5,
-        ),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_BF61857A),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_1BC591D5),
         crate::scaffold_text_ref::ScaffoldTextRef::from(release.as_ref()),
         write_changes,
     )?;
@@ -410,7 +389,7 @@ pub(crate) fn synchronize_deployment_projections(
         if !root
             .0
             .join(entry.crate_name.as_ref())
-            .join(constants_str::catalog::CARGO_TOML)
+            .join(constants_str::CARGO_TOML)
             .is_file()
             || !root.0.join(entry.dockerfile.as_ref()).is_file()
         {

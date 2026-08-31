@@ -5,7 +5,7 @@ pub async fn begin_pg_table_idempotency(
     crate::pg_table_idempotency_begin::PgTableIdempotencyBegin,
     crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError,
 > {
-    let inserted = sqlx::query_scalar::<_, bool>(constants_str::catalog::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY)
+    let inserted = sqlx::query_scalar::<_, bool>(constants_str::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -18,7 +18,7 @@ pub async fn begin_pg_table_idempotency(
         return Ok(crate::pg_table_idempotency_begin::PgTableIdempotencyBegin::Acquired);
     }
     let existing = sqlx::query_as::<_, (Vec<u8>, String, Option<i16>, Option<Vec<u8>>)>(
-        constants_str::catalog::SELECT_REQUEST_HASH_STATE_RESPONSE_STATUS_RESPONSE_BODY_FROM_PG_TABLE_IDEMPOTENCY,
+        constants_str::SELECT_REQUEST_HASH_STATE_RESPONSE_STATUS_RESPONSE_BODY_FROM_PG_TABLE_IDEMPOTENCY,
     )
     .bind(request.scope.actor.0.as_str())
     .bind(request.scope.method.0.as_str())
@@ -30,7 +30,7 @@ pub async fn begin_pg_table_idempotency(
     if existing.0.as_slice() != request.request_hash.0.as_slice() {
         return Ok(crate::pg_table_idempotency_begin::PgTableIdempotencyBegin::Conflict);
     }
-    if existing.1 == constants_str::catalog::PENDING {
+    if existing.1 == constants_str::PENDING {
         return Ok(crate::pg_table_idempotency_begin::PgTableIdempotencyBegin::InProgress);
     }
     match (existing.2, existing.3) {

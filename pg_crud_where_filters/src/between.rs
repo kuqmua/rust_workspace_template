@@ -27,15 +27,15 @@ where
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::catalog::PG_CRUD_START_FIELD,
+                constants_str::PG_CRUD_START_FIELD,
                 <T as utoipa::PartialSchema>::schema(),
             )
             .property(
-                constants_str::catalog::PG_CRUD_END_FIELD,
+                constants_str::PG_CRUD_END_FIELD,
                 <T as utoipa::PartialSchema>::schema(),
             )
-            .required(constants_str::catalog::PG_CRUD_START_FIELD)
-            .required(constants_str::catalog::PG_CRUD_END_FIELD)
+            .required(constants_str::PG_CRUD_START_FIELD)
+            .required(constants_str::PG_CRUD_END_FIELD)
             .build()
             .into()
     }
@@ -47,7 +47,7 @@ where
         + utoipa::ToSchema,
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::PG_CRUD_BETWEEN_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_BETWEEN_SCHEMA_NAME)
     }
 }
 impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + PartialOrd>
@@ -111,7 +111,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        constants_str::catalog::PG_CRUD_FIELD_IDENTIFIER,
+                        constants_str::PG_CRUD_FIELD_IDENTIFIER,
                     )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
@@ -129,8 +129,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        constants_str::catalog::PG_CRUD_START_FIELD => Ok(__Field::f0),
-                        constants_str::catalog::PG_CRUD_END_FIELD => Ok(__Field::f1),
+                        constants_str::PG_CRUD_START_FIELD => Ok(__Field::f0),
+                        constants_str::PG_CRUD_END_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -180,7 +180,7 @@ const _: () = {
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
                         __f,
-                        constants_str::catalog::PG_CRUD_BETWEEN_STRUCT_NAME,
+                        constants_str::PG_CRUD_BETWEEN_STRUCT_NAME,
                     )
                 }
                 #[inline]
@@ -191,13 +191,13 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ONE,
-                            &constants_str::catalog::PG_CRUD_BETWEEN_EXPECTING,
+                            &constants_str::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             2usize,
-                            &constants_str::catalog::PG_CRUD_BETWEEN_EXPECTING,
+                            &constants_str::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     match Between::try_new(f0, f1) {
@@ -218,7 +218,7 @@ const _: () = {
                                 if Option::is_some(&f0) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            constants_str::catalog::PG_CRUD_START_FIELD,
+                                            constants_str::PG_CRUD_START_FIELD,
                                         ),
                                     );
                                 }
@@ -228,7 +228,7 @@ const _: () = {
                                 if Option::is_some(&f1) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            constants_str::catalog::PG_CRUD_END_FIELD,
+                                            constants_str::PG_CRUD_END_FIELD,
                                         ),
                                     );
                                 }
@@ -245,13 +245,13 @@ const _: () = {
                     let f0_v = match f0 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            constants_str::catalog::PG_CRUD_START_FIELD,
+                            constants_str::PG_CRUD_START_FIELD,
                         )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
                         None => _serde::__private229::de::missing_field(
-                            constants_str::catalog::PG_CRUD_END_FIELD,
+                            constants_str::PG_CRUD_END_FIELD,
                         )?,
                     };
                     match Between::try_new(f0_v, f1_v) {
@@ -262,7 +262,7 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_struct(
                 __deserializer,
-                constants_str::catalog::PG_CRUD_BETWEEN_SCHEMA_NAME,
+                constants_str::PG_CRUD_BETWEEN_SCHEMA_NAME,
                 constants_str::PG_CRUD_SERDE_BETWEEN_FIELDS,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,

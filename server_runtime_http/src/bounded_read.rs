@@ -8,7 +8,7 @@ mod tests {
     }
     #[test]
     fn exact_limit_and_one_byte_over_are_distinguished() {
-        let path = unique_path(constants_str::catalog::LIMIT);
+        let path = unique_path(constants_str::LIMIT);
         std::fs::write(&path, b"abcd")
             .expect("11ddba38 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
         let exact = crate::read_bounded_file::read_bounded_file(
@@ -31,7 +31,7 @@ mod tests {
     }
     #[test]
     fn file_growth_after_metadata_is_rechecked() {
-        let path = unique_path(constants_str::catalog::GROWTH);
+        let path = unique_path(constants_str::GROWTH);
         std::fs::write(&path, b"a")
             .expect("c0745b58 file_growth_after_metadata_is_rechecked invariant must hold");
         let maximum_bytes =
@@ -97,16 +97,14 @@ mod tests {
     #[test]
     fn bounded_json_distinguishes_invalid_document() {
         let valid = crate::bounded_bytes::BoundedBytes::from(
-            constants_str::test_fixtures::TEST_JSON_MAP_WITH_ONE_ENTRY
+            constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY
                 .as_bytes()
                 .to_vec(),
         );
         let _json = crate::parse_bounded_json::parse_bounded_json(&valid)
             .expect("712a0ea9 bounded_json_distinguishes_invalid_document invariant must hold");
         let invalid = crate::bounded_bytes::BoundedBytes::from(
-            constants_str::test_fixtures::TEST_INVALID_JSON
-                .as_bytes()
-                .to_vec(),
+            constants_str::TEST_INVALID_JSON.as_bytes().to_vec(),
         );
         assert!(matches!(
             crate::parse_bounded_json::parse_bounded_json(&invalid),
@@ -116,7 +114,7 @@ mod tests {
     #[test]
     fn bounded_json_formats_pretty_and_compact_text() {
         let json = crate::bounded_json_text::BoundedJsonText::try_from(String::from(
-            constants_str::test_fixtures::TEST_JSON_MAP_WITH_ONE_ENTRY,
+            constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY,
         ))
         .expect("d2d69400 bounded_json_formats_pretty_and_compact_text invariant must hold");
         let pretty = json
@@ -128,12 +126,12 @@ mod tests {
                 .compact()
                 .expect("08123a26 bounded_json_formats_pretty_and_compact_text invariant must hold")
                 .as_ref(),
-            constants_str::test_fixtures::TEST_JSON_MAP_WITH_ONE_ENTRY
+            constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY
         );
     }
     #[tokio::test]
     async fn asynchronous_file_read_obeys_limit() {
-        let path = unique_path(constants_str::catalog::ASYNC);
+        let path = unique_path(constants_str::ASYNC);
         tokio::fs::write(&path, b"abc")
             .await
             .expect("f68e33f3 asynchronous_file_read_obeys_limit invariant must hold");
@@ -151,8 +149,8 @@ mod tests {
     #[tokio::test]
     async fn http_response_stream_obeys_limit_without_external_network() {
         let response = http::Response::builder()
-            .header(http::header::CONTENT_LENGTH, constants_str::catalog::VALUE_4)
-            .body(constants_str::catalog::ABCD_ALT)
+            .header(http::header::CONTENT_LENGTH, constants_str::VALUE_4)
+            .body(constants_str::ABCD_ALT)
             .expect("2306b26a http_response_stream_obeys_limit_without_external_network invariant must hold");
         let bytes = crate::read_bounded_http_response::read_bounded_http_response(
             crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(response)),

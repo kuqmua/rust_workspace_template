@@ -19,14 +19,13 @@ struct ModuleWideSingleCallAllowVisitor {
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for ModuleWideSingleCallAllowVisitor {
     fn visit_attribute(&mut self, i: &'ast_lt syn::Attribute) {
         if matches!(&i.style, syn::AttrStyle::Inner(_))
-            && i.path()
-                .is_ident(constants_str::test_fixtures::VALUE_41008373)
+            && i.path().is_ident(constants_str::VALUE_41008373)
             && matches!(&i.meta, syn::Meta::List(list) if list
                 .tokens
                 .to_string()
                 .split_whitespace()
                 .collect::<String>()
-                .contains(constants_str::catalog::SHARED_VALUES_CLIPPY_SINGLE_CALL_FN))
+                .contains(constants_str::SHARED_VALUES_CLIPPY_SINGLE_CALL_FN))
         {
             self.violations.push(format!(
                 "line {}: clippy::single_call_fn must be allowed only on the exact item",
@@ -49,7 +48,7 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
                         .sig
                         .ident
                         .to_string()
-                        .starts_with(constants_str::test_fixtures::GETTER_PREFIX)
+                        .starts_with(constants_str::GETTER_PREFIX)
                 {
                     self.violations.push(method.sig.ident.to_string());
                 }
@@ -76,7 +75,7 @@ fn single_call_fn_is_never_allowed_for_a_whole_module() {
         crate::code_style::assert_joined_ers_empty(
             crate::types::SourceTextListRef::from(violations.as_slice()),
             crate::types::StaticStr::from(
-                constants_str::test_fixtures::CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON,
+                constants_str::CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON,
             ),
         );
     });
@@ -106,7 +105,7 @@ fn field_getters_are_generated() {
 #[test]
 fn struct_fields_do_not_use_restricted_visibility() {
     let reviewed = std::collections::BTreeMap::from(
-        constants_str::test_fixtures::CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS,
+        constants_str::CODE_STYLE_REVIEWED_RESTRICTED_VISIBLE_FIELD_OWNERS,
     );
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut observed = std::collections::BTreeMap::<&str, usize>::new();
@@ -147,7 +146,7 @@ fn struct_fields_do_not_use_restricted_visibility() {
 
 #[test]
 fn provider_traits_do_not_use_get_prefix() {
-    let pattern = regex::Regex::new(constants_str::test_fixtures::VALUE_B2BAA955)
+    let pattern = regex::Regex::new(constants_str::VALUE_B2BAA955)
         .expect("cbe7bf15 provider trait regex must compile");
     let mut ers = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
@@ -166,7 +165,7 @@ fn provider_traits_do_not_use_get_prefix() {
     ers.sort();
     crate::code_style::assert_joined_ers_empty(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_669E43DB),
+        crate::types::StaticStr::from(constants_str::VALUE_669E43DB),
     );
 }
 
@@ -212,27 +211,27 @@ fn all_files_are_english_only() {
     ers.sort();
     crate::code_style::assert_joined_ers_empty_with_ctx(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_8DB37A2F),
-        crate::types::SourceTextRef::from(constants_str::catalog::NON_ENGLISH_SYMBOLS),
+        crate::types::StaticStr::from(constants_str::VALUE_8DB37A2F),
+        crate::types::SourceTextRef::from(constants_str::NON_ENGLISH_SYMBOLS),
     );
 }
 #[test]
 fn expect_and_panic_messages_start_with_unique_diagnostic_ids() {
     let reviewed_interpolations = [
         (
-            constants_str::test_fixtures::VALUE_7FE2AF02,
-            constants_str::test_fixtures::VALUE_265FF5BA,
-            constants_str::test_fixtures::VALUE_B4F7B36F,
+            constants_str::VALUE_7FE2AF02,
+            constants_str::VALUE_265FF5BA,
+            constants_str::VALUE_B4F7B36F,
         ),
         (
-            constants_str::test_fixtures::VALUE_7FE2AF02,
-            constants_str::test_fixtures::VALUE_A5D61573,
-            constants_str::test_fixtures::VALUE_B4F7B36F,
+            constants_str::VALUE_7FE2AF02,
+            constants_str::VALUE_A5D61573,
+            constants_str::VALUE_B4F7B36F,
         ),
         (
-            constants_str::test_fixtures::VALUE_D405F3E1,
-            constants_str::test_fixtures::VALUE_31DDD380,
-            constants_str::test_fixtures::VALUE_9EB896D7,
+            constants_str::VALUE_D405F3E1,
+            constants_str::VALUE_31DDD380,
+            constants_str::VALUE_9EB896D7,
         ),
     ];
     let mut all_ids = Vec::new();
@@ -255,16 +254,15 @@ fn expect_and_panic_messages_start_with_unique_diagnostic_ids() {
                     .find(|(path_suffix, reviewed_error, reason)| {
                         let path_text = path.to_string_lossy();
                         let split_owner_matches = path_suffix
-                            .strip_suffix(constants_str::test_fixtures::RS_EXTENSION)
+                            .strip_suffix(constants_str::RS_EXTENSION)
                             .and_then(|owner_stem| {
                                 path_text
-                                    .trim_start_matches(constants_str::catalog::TEXT_ALT_9)
+                                    .trim_start_matches(constants_str::TEXT_ALT_9)
                                     .strip_prefix(owner_stem)
                             })
                             .is_some_and(|remainder| {
                                 remainder.starts_with('_')
-                                    && remainder
-                                        .ends_with(constants_str::test_fixtures::RS_EXTENSION)
+                                    && remainder.ends_with(constants_str::RS_EXTENSION)
                             });
                         (path.ends_with(path_suffix)
                             || crate::code_style::declared_child_matches(
@@ -301,7 +299,7 @@ fn expect_and_panic_messages_start_with_unique_diagnostic_ids() {
 }
 #[test]
 fn diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
-    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_D1E0CA47)
+    let ast = syn::parse_file(constants_str::VALUE_D1E0CA47)
         .expect("95d174ac fixture invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -316,7 +314,7 @@ fn diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
         [String::from("1a2b3c4d"), String::from("5e6f7a8b")]
     );
 
-    let invalid_ast = syn::parse_file(constants_str::test_fixtures::VALUE_BFBFB833)
+    let invalid_ast = syn::parse_file(constants_str::VALUE_BFBFB833)
         .expect("6c3a48f1 fixture invariant must hold");
     let invalid_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&invalid_ast),
@@ -329,7 +327,7 @@ fn diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
 }
 #[test]
 fn diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
-    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_38F6372C)
+    let ast = syn::parse_file(constants_str::VALUE_38F6372C)
         .expect("227c291c generate invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -343,7 +341,7 @@ fn diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
 }
 #[test]
 fn check_rs_files_contains_only_unique_uuid_v4() {
-    let regex = regex::Regex::new(constants_str::catalog::B_0_9A_FA_F_8_0_9A_FA_F_4_4)
+    let regex = regex::Regex::new(constants_str::B_0_9A_FA_F_8_0_9A_FA_F_4_4)
         .expect("e098a1ff check_rs_files_contains_only_unique_uuid_v4 invariant must hold");
     let mut seen = std::collections::HashSet::new();
     crate::code_style::for_each_rs_file(|file| {
@@ -359,8 +357,8 @@ fn check_rs_files_contains_only_unique_uuid_v4() {
 #[test]
 fn no_dbg_macro_in_source_code() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::F1C7A4E3),
-        crate::types::SourceTextRef::from(constants_str::catalog::DBG_FOUND),
+        crate::types::StaticStr::from(constants_str::F1C7A4E3),
+        crate::types::SourceTextRef::from(constants_str::DBG_FOUND),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -377,9 +375,9 @@ fn no_dbg_macro_in_source_code() {
 #[test]
 fn no_for_loops_in_source_code() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::F4C2A9E1),
+        crate::types::StaticStr::from(constants_str::F4C2A9E1),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::FOR_LOOPS_FOUND_USE_ITERATOR_METHODS_SUCH_AS_MAP_FILTER_FOLD_TRY,
+            constants_str::FOR_LOOPS_FOUND_USE_ITERATOR_METHODS_SUCH_AS_MAP_FILTER_FOLD_TRY,
         ),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
@@ -392,7 +390,7 @@ fn no_for_loops_in_source_code() {
                 crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(
-                    constants_str::catalog::CONTAINS_FOR_LOOP_USE_ITERATOR_METHODS_INSTEAD,
+                    constants_str::CONTAINS_FOR_LOOP_USE_ITERATOR_METHODS_INSTEAD,
                 ),
                 visitor.found_count,
             );
@@ -466,9 +464,8 @@ fn runtime_struct_fields_do_not_expose_untyped_json_values() {
 
 #[test]
 fn new_runtime_structs_keep_fields_private() {
-    let reviewed_owners = std::collections::BTreeMap::from(
-        constants_str::test_fixtures::CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS,
-    );
+    let reviewed_owners =
+        std::collections::BTreeMap::from(constants_str::CODE_STYLE_REVIEWED_PUBLIC_FIELD_OWNERS);
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         assert_eq!(
             constants_str::CODE_STYLE_REVIEWED_PUBLIC_FIELD_SETS.len(),
@@ -580,9 +577,8 @@ fn new_runtime_structs_keep_fields_private() {
 }
 #[test]
 fn struct_field_visibility_policy_rejects_restricted_visibility() {
-    let ast =
-        syn::parse_file(constants_str::test_fixtures::CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE)
-            .expect("8c99de4e struct field visibility fixture must parse");
+    let ast = syn::parse_file(constants_str::CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE)
+        .expect("8c99de4e struct field visibility fixture must parse");
     let mut visitor = super::source_analysis::PublicStructFieldVisitor::default();
     syn::visit::Visit::visit_file(&mut visitor, &ast);
     assert_eq!(
@@ -610,8 +606,8 @@ fn struct_field_visibility_policy_rejects_restricted_visibility() {
 #[test]
 fn spawned_tasks_must_retain_an_owner() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_5D0D5BF0),
-        crate::types::SourceTextRef::from(constants_str::catalog::SPAWNED_TASKS_ARE_DISCARDED),
+        crate::types::StaticStr::from(constants_str::VALUE_5D0D5BF0),
+        crate::types::SourceTextRef::from(constants_str::SPAWNED_TASKS_ARE_DISCARDED),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -630,7 +626,7 @@ fn spawned_tasks_must_retain_an_owner() {
 }
 #[test]
 fn spawned_task_policy_rejects_bare_wildcard_and_ignored_bindings() {
-    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_EBB24851)
+    let ast = syn::parse_file(constants_str::VALUE_EBB24851)
         .expect("94b344d7 spawn_tasks invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -643,16 +639,16 @@ fn spawned_task_policy_rejects_bare_wildcard_and_ignored_bindings() {
 #[test]
 fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_321360D4),
-        crate::types::SourceTextRef::from(constants_str::catalog::DIRECT_ENVIRONMENT_OR_FILESYSTEM_ACCESS_EXISTS_OUTSIDE_APPROVED_CONFIGURATION_TOOLING_TEST_AND),
+        crate::types::StaticStr::from(constants_str::VALUE_321360D4),
+        crate::types::SourceTextRef::from(constants_str::DIRECT_ENVIRONMENT_OR_FILESYSTEM_ACCESS_EXISTS_OUTSIDE_APPROVED_CONFIGURATION_TOOLING_TEST_AND),
         |path, ast, ers| {
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
                 || crate::code_style::is_cfg_test_declared_child(path)
                 || crate::code_style::is_direct_fs_owner_source_path(crate::types::PathRef::from(path)).get()
-                || path.ends_with(constants_str::catalog::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
+                || path.ends_with(constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
                 || crate::code_style::declared_child_matches(
                     path.to_string_lossy().as_ref(),
-                    constants_str::catalog::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+                    constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
                 )
             {
                 return;
@@ -664,9 +660,9 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
                 },
             );
             ers.extend(visitor.calls.into_iter().filter_map(|call| {
-                (call.starts_with(constants_str::catalog::STD_PATH_ENV_PATH)
-                    || call.starts_with(constants_str::catalog::STD_PATH_FS_PATH)
-                    || call.starts_with(constants_str::catalog::TOKIO_PATH_FS_PATH))
+                (call.starts_with(constants_str::STD_PATH_ENV_PATH)
+                    || call.starts_with(constants_str::STD_PATH_FS_PATH)
+                    || call.starts_with(constants_str::TOKIO_PATH_FS_PATH))
                 .then(|| format!("{}: direct `{call}`", path.display()))
             }));
         },
@@ -709,9 +705,9 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
                 },
             );
             let has_direct_access = visitor.calls.iter().any(|call| {
-                call.starts_with(constants_str::catalog::STD_PATH_ENV_PATH)
-                    || call.starts_with(constants_str::catalog::STD_PATH_FS_PATH)
-                    || call.starts_with(constants_str::catalog::TOKIO_PATH_FS_PATH)
+                call.starts_with(constants_str::STD_PATH_ENV_PATH)
+                    || call.starts_with(constants_str::STD_PATH_FS_PATH)
+                    || call.starts_with(constants_str::TOKIO_PATH_FS_PATH)
             });
             if !has_direct_access {
                 return;
@@ -754,9 +750,9 @@ fn direct_filesystem_owner_inventory_is_exact_justified_and_current() {
 #[test]
 fn runtime_data_reads_are_bounded() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_37B593CE),
+        crate::types::StaticStr::from(constants_str::VALUE_37B593CE),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::RUNTIME_CODE_PERFORMS_AN_UNBOUNDED_FILE_OR_HTTP_RESPONSE_READ,
+            constants_str::RUNTIME_CODE_PERFORMS_AN_UNBOUNDED_FILE_OR_HTTP_RESPONSE_READ,
         ),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
@@ -764,10 +760,10 @@ fn runtime_data_reads_are_bounded() {
                 || constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
                     .iter()
                     .any(|suffix| path_text.ends_with(suffix))
-                || path_text.ends_with(constants_str::catalog::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
+                || path_text.ends_with(constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
                 || crate::code_style::declared_child_matches(
                     path_text.as_ref(),
-                    constants_str::catalog::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
+                    constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
                 )
             {
                 return;
@@ -792,7 +788,7 @@ fn environment_initializer_is_in_bounded_read_policy_scope() {
     assert!(
         !constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
             .iter()
-            .any(|suffix| suffix.contains(constants_str::catalog::INITIALIZE_ENVIRONMENT_FILES)),
+            .any(|suffix| suffix.contains(constants_str::INITIALIZE_ENVIRONMENT_FILES)),
         "920fde35"
     );
 }
@@ -819,17 +815,16 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         let path_text = path.to_string_lossy();
         if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
             || path_text.ends_with(constants_str::CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX)
-            || path_text
-                .ends_with(constants_str::catalog::PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS)
+            || path_text.ends_with(constants_str::PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS)
             || crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(path))
                 .get()
         {
             return;
         }
         let count = [
-            constants_str::catalog::FROM,
-            constants_str::catalog::INTO,
-            constants_str::catalog::UPDATE,
+            constants_str::FROM,
+            constants_str::INTO,
+            constants_str::UPDATE,
         ]
         .into_iter()
         .map(|pattern| content.matches(pattern).count())
@@ -861,7 +856,7 @@ fn production_pg_error_classification_is_centralized() {
                     source_file.path().as_ref(),
                 ))
                 .get()
-                    && !path.ends_with(constants_str::test_fixtures::PG_CRUD_COMMON_SRC_PG_ERROR_RS)
+                    && !path.ends_with(constants_str::PG_CRUD_COMMON_SRC_PG_ERROR_RS)
                     && !crate::code_style::is_str_constants_source_path(
                         crate::types::PathRef::from(source_file.path().as_ref()),
                     )
@@ -869,11 +864,11 @@ fn production_pg_error_classification_is_centralized() {
                     && (source_file
                         .content()
                         .as_ref()
-                        .contains(constants_str::test_fixtures::IS_UNIQUE_VIOLATION_CALL)
+                        .contains(constants_str::IS_UNIQUE_VIOLATION_CALL)
                         || source_file
                             .content()
                             .as_ref()
-                            .contains(constants_str::test_fixtures::PG_SQLSTATE_PREFIX))
+                            .contains(constants_str::PG_SQLSTATE_PREFIX))
             })
             .map(|source_file| {
                 format!(
@@ -888,10 +883,10 @@ fn production_pg_error_classification_is_centralized() {
 #[test]
 fn direct_process_command_creation_stays_in_shared_tooling() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::F170AA14),
-        crate::types::SourceTextRef::from(constants_str::catalog::DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACRO_HELPERS_PATH_TOOL_COMMAND),
+        crate::types::StaticStr::from(constants_str::F170AA14),
+        crate::types::SourceTextRef::from(constants_str::DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACRO_HELPERS_PATH_TOOL_COMMAND),
         |path, ast, ers| {
-            if path.ends_with(constants_str::catalog::MACRO_HELPERS_SRC_TOOL_COMMAND_RS) {
+            if path.ends_with(constants_str::MACRO_HELPERS_SRC_TOOL_COMMAND_RS) {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
@@ -904,7 +899,7 @@ fn direct_process_command_creation_stays_in_shared_tooling() {
                 visitor
                     .calls
                     .into_iter()
-                    .filter(|call| call == constants_str::catalog::STD_PATH_PROCESS_PATH_COMMAND_PATH_NEW)
+                    .filter(|call| call == constants_str::STD_PATH_PROCESS_PATH_COMMAND_PATH_NEW)
                     .map(|call| format!("{}: direct `{call}`", path.display())),
             );
         },
@@ -923,10 +918,10 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
             },
         );
         visitor.calls.into_iter().for_each(|call| {
-            if call == constants_str::catalog::STD_PATH_PROCESS_PATH_ABORT {
+            if call == constants_str::STD_PATH_PROCESS_PATH_ABORT {
                 observed_abort_paths.push(path.to_string_lossy().to_string());
             }
-            if call.ends_with(constants_str::catalog::PATH_TRANSMUTE) {
+            if call.ends_with(constants_str::PATH_TRANSMUTE) {
                 ers.push(format!("{}: forbidden `{call}`", path.display()));
             }
         });
@@ -939,19 +934,17 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
     }
     crate::code_style::assert_joined_ers_empty_with_ctx(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::catalog::F87F82B6),
-        crate::types::SourceTextRef::from(
-            constants_str::catalog::ABORT_TRANSMUTE_POLICY_VIOLATIONS,
-        ),
+        crate::types::StaticStr::from(constants_str::F87F82B6),
+        crate::types::SourceTextRef::from(constants_str::ABORT_TRANSMUTE_POLICY_VIOLATIONS),
     );
 }
 #[test]
 fn every_workspace_struct_and_enum_derives_optimal_memory_layout() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_71790FED),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_6264CCC9),
+        crate::types::StaticStr::from(constants_str::VALUE_71790FED),
+        crate::types::SourceTextRef::from(constants_str::VALUE_6264CCC9),
         |path, ast, ers| {
-            if path.ends_with(constants_str::test_fixtures::VALUE_30B1AC8C) {
+            if path.ends_with(constants_str::VALUE_30B1AC8C) {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
@@ -970,7 +963,7 @@ fn every_workspace_struct_and_enum_derives_optimal_memory_layout() {
 #[test]
 fn optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
     let ast = syn::parse_file(
-        constants_str::test_fixtures::VALUE_936BA38B,
+        constants_str::VALUE_936BA38B,
     )
     .expect("34fb5a61 optimal_memory_layout_derive_visitor_checks_structs_and_enums invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
@@ -989,20 +982,20 @@ fn optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
 #[test]
 fn unit_tests_use_deterministic_time_and_randomness_patterns() {
     let reviewed_calls = [(
-        constants_str::test_fixtures::VALUE_4B68F077,
-        constants_str::integration_fixtures::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
-        constants_str::test_fixtures::VALUE_14AF303B,
+        constants_str::VALUE_4B68F077,
+        constants_str::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
+        constants_str::VALUE_14AF303B,
     )];
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_821D4A76),
-        crate::types::SourceTextRef::from(constants_str::catalog::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
+        crate::types::StaticStr::from(constants_str::VALUE_821D4A76),
+        crate::types::SourceTextRef::from(constants_str::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
         |path, ast, ers| {
             let scan_entire_file = crate::code_style::is_test_source_path(crate::types::PathRef::from(path))
                 .get()
-                && !path.ends_with(constants_str::test_fixtures::VALUE_4A3D63F7)
+                && !path.ends_with(constants_str::VALUE_4A3D63F7)
                 && !path
                     .components()
-                    .any(|component| component.as_os_str() == constants_str::catalog::CODE_STYLE);
+                    .any(|component| component.as_os_str() == constants_str::CODE_STYLE);
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::TestNondeterminismVisitor {
@@ -1023,7 +1016,7 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
 }
 #[test]
 fn unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness() {
-    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_402DAFF0)
+    let ast = syn::parse_file(constants_str::VALUE_402DAFF0)
         .expect("9354f086 integration_test_helper invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -1035,13 +1028,13 @@ fn unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness() {
     assert_eq!(
         visitor.calls.as_slice(),
         [
-            constants_str::catalog::TOKIO_PATH_TIME_PATH_SLEEP,
-            constants_str::catalog::UUID_PATH_UUID_PATH_NEW_V4,
-            constants_str::integration_fixtures::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW,
-            constants_str::integration_fixtures::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
-            constants_str::integration_fixtures::RAND_PATH_RNG,
-            constants_str::integration_fixtures::GETRANDOM_PATH_FILL,
-            constants_str::integration_fixtures::RAND_PATH_RNGS_PATH_OS_RNG,
+            constants_str::TOKIO_PATH_TIME_PATH_SLEEP,
+            constants_str::UUID_PATH_UUID_PATH_NEW_V4,
+            constants_str::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW,
+            constants_str::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
+            constants_str::RAND_PATH_RNG,
+            constants_str::GETRANDOM_PATH_FILL,
+            constants_str::RAND_PATH_RNGS_PATH_OS_RNG,
         ],
         "fa8d2bb1"
     );
@@ -1057,8 +1050,8 @@ fn unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness() {
 #[test]
 fn generated_source_templates_do_not_embed_random_test_values() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_1491FF0E),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_920FAF03),
+        crate::types::StaticStr::from(constants_str::VALUE_1491FF0E),
+        crate::types::SourceTextRef::from(constants_str::VALUE_920FAF03),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1078,12 +1071,12 @@ fn generated_source_templates_do_not_embed_random_test_values() {
 #[test]
 fn generated_randomness_policy_inspects_quote_token_streams() {
     let source = [
-        constants_str::test_fixtures::VALUE_B04CA9E8,
-        constants_str::test_fixtures::VALUE_C7C4300B,
-        constants_str::test_fixtures::VALUE_2328A0D2,
-        constants_str::test_fixtures::VALUE_D10B36AA,
+        constants_str::VALUE_B04CA9E8,
+        constants_str::VALUE_C7C4300B,
+        constants_str::VALUE_2328A0D2,
+        constants_str::VALUE_D10B36AA,
     ]
-    .join(constants_str::catalog::NEWLINE);
+    .join(constants_str::NEWLINE);
     let ast = syn::parse_file(source.as_str()).expect("04e98f91 generated invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -1103,50 +1096,50 @@ fn process_static_state_matches_reviewed_inventory() {
     }
     let exceptions = [
         StaticStateException {
-            identifier: constants_str::test_fixtures::VALUE_4E9D8B24,
-            path_suffix: constants_str::test_fixtures::VALUE_9DDB2371,
-            reason: constants_str::test_fixtures::VALUE_9B0E1F72,
+            identifier: constants_str::VALUE_4E9D8B24,
+            path_suffix: constants_str::VALUE_9DDB2371,
+            reason: constants_str::VALUE_9B0E1F72,
         },
         StaticStateException {
-            identifier: constants_str::test_fixtures::VALUE_F783DB26,
-            path_suffix: constants_str::test_fixtures::VALUE_865824F9,
-            reason: constants_str::test_fixtures::VALUE_946801A9,
+            identifier: constants_str::VALUE_F783DB26,
+            path_suffix: constants_str::VALUE_865824F9,
+            reason: constants_str::VALUE_946801A9,
         },
         StaticStateException {
-            identifier: constants_str::test_fixtures::VALUE_F783DB26,
-            path_suffix: constants_str::test_fixtures::VALUE_F67EAA19,
-            reason: constants_str::test_fixtures::VALUE_946801A9,
+            identifier: constants_str::VALUE_F783DB26,
+            path_suffix: constants_str::VALUE_F67EAA19,
+            reason: constants_str::VALUE_946801A9,
         },
         StaticStateException {
-            identifier: constants_str::test_fixtures::VALUE_1CA9CD1C,
-            path_suffix: constants_str::test_fixtures::VALUE_959AEDDC,
-            reason: constants_str::test_fixtures::VALUE_C677F169,
+            identifier: constants_str::VALUE_1CA9CD1C,
+            path_suffix: constants_str::VALUE_959AEDDC,
+            reason: constants_str::VALUE_C677F169,
         },
         StaticStateException {
-            identifier: constants_str::test_fixtures::VALUE_5A6DD0A3,
-            path_suffix: constants_str::test_fixtures::VALUE_959AEDDC,
-            reason: constants_str::test_fixtures::VALUE_CAD59B9B,
+            identifier: constants_str::VALUE_5A6DD0A3,
+            path_suffix: constants_str::VALUE_959AEDDC,
+            reason: constants_str::VALUE_CAD59B9B,
         },
         StaticStateException {
-            identifier: constants_str::test_fixtures::VALUE_00B29514,
-            path_suffix: constants_str::test_fixtures::VALUE_96554632,
-            reason: constants_str::test_fixtures::VALUE_FB4C1B30,
+            identifier: constants_str::VALUE_00B29514,
+            path_suffix: constants_str::VALUE_96554632,
+            reason: constants_str::VALUE_FB4C1B30,
         },
         StaticStateException {
-            identifier: constants_str::test_fixtures::VALUE_3623F7E2,
-            path_suffix: constants_str::test_fixtures::VALUE_392D41BA,
-            reason: constants_str::test_fixtures::VALUE_B2FEB0FD,
+            identifier: constants_str::VALUE_3623F7E2,
+            path_suffix: constants_str::VALUE_392D41BA,
+            reason: constants_str::VALUE_B2FEB0FD,
         },
         StaticStateException {
-            identifier: constants_str::catalog::DECLARED_CHILDREN,
-            path_suffix: constants_str::test_fixtures::VALUE_4A3D63F7,
+            identifier: constants_str::DECLARED_CHILDREN,
+            path_suffix: constants_str::VALUE_4A3D63F7,
             reason:
-                constants_str::catalog::MODULE_DECLARATION_GRAPH_IS_CACHED_FOR_REPOSITORY_POLICY_MATCHING,
+                constants_str::MODULE_DECLARATION_GRAPH_IS_CACHED_FOR_REPOSITORY_POLICY_MATCHING,
         },
     ];
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_118C4174),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_9EC9C4B2),
+        crate::types::StaticStr::from(constants_str::VALUE_118C4174),
+        crate::types::SourceTextRef::from(constants_str::VALUE_9EC9C4B2),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1177,19 +1170,19 @@ fn process_static_state_matches_reviewed_inventory() {
 #[test]
 fn library_sources_do_not_use_print_macros() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_776EEBB3),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_9908E138),
+        crate::types::StaticStr::from(constants_str::VALUE_776EEBB3),
+        crate::types::SourceTextRef::from(constants_str::VALUE_9908E138),
         |path, ast, ers| {
             let is_library_source = path
                 .ancestors()
                 .find(|ancestor| {
                     ancestor
                         .file_name()
-                        .is_some_and(|name| name == constants_str::catalog::SRC_ALT)
+                        .is_some_and(|name| name == constants_str::SRC_ALT)
                 })
                 .is_some_and(|source_directory| {
                     source_directory
-                        .join(constants_str::test_fixtures::VALUE_0544FC95)
+                        .join(constants_str::VALUE_0544FC95)
                         .exists()
                 });
             if !is_library_source {
@@ -1210,8 +1203,8 @@ fn library_sources_do_not_use_print_macros() {
 #[test]
 fn production_code_does_not_use_line_print_macros() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_018B0C9F),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_70D9A674),
+        crate::types::StaticStr::from(constants_str::VALUE_018B0C9F),
+        crate::types::SourceTextRef::from(constants_str::VALUE_70D9A674),
         |path, ast, ers| {
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
             {
@@ -1227,7 +1220,7 @@ fn production_code_does_not_use_line_print_macros() {
                 ers.push(format!(
                     "{}: `{call}!`: {}",
                     path.display(),
-                    constants_str::test_fixtures::VALUE_70D9A674
+                    constants_str::VALUE_70D9A674
                 ));
             });
         },
@@ -1236,16 +1229,14 @@ fn production_code_does_not_use_line_print_macros() {
 #[test]
 fn module_and_function_names_use_single_underscores() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_AE652DDA),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_63194000),
+        crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
+        crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
         |path, ast, ers| {
             if path
                 .file_name()
                 .and_then(std::ffi::OsStr::to_str)
                 .is_some_and(|name| {
-                    name.contains(
-                        constants_str::test_fixtures::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE,
-                    )
+                    name.contains(constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
                 })
             {
                 ers.push(format!(
@@ -1271,16 +1262,15 @@ fn module_and_function_names_use_single_underscores() {
 #[test]
 fn module_and_function_names_do_not_use_unclear_short_forms() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_AE652DDA),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_63194000),
+        crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
+        crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
         |path, ast, ers| {
             if path
                 .file_stem()
                 .and_then(std::ffi::OsStr::to_str)
                 .is_some_and(|name| {
-                    name.split('_').any(|part| {
-                        part == constants_str::test_fixtures::WORKSPACE_SHORT_HELPER_TOKEN
-                    })
+                    name.split('_')
+                        .any(|part| part == constants_str::WORKSPACE_SHORT_HELPER_TOKEN)
                 })
             {
                 ers.push(format!(
@@ -1305,7 +1295,7 @@ fn module_and_function_names_do_not_use_unclear_short_forms() {
 }
 #[test]
 fn production_line_print_macro_policy_allows_test_code_and_rejects_production_code() {
-    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_606F2B07)
+    let ast = syn::parse_file(constants_str::VALUE_606F2B07)
         .expect("a508c55d production_line_print_macro_policy fixture must parse");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -1318,15 +1308,15 @@ fn production_line_print_macro_policy_allows_test_code_and_rejects_production_co
         ["println".to_owned(), "eprintln".to_owned()]
     );
     assert_eq!(
-        constants_str::test_fixtures::VALUE_70D9A674,
+        constants_str::VALUE_70D9A674,
         "instead of using println! and eprintln!, use tracing/telemetry"
     );
 }
 #[test]
 fn sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_2E395A49),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_4C5A6F95),
+        crate::types::StaticStr::from(constants_str::VALUE_2E395A49),
+        crate::types::SourceTextRef::from(constants_str::VALUE_4C5A6F95),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1345,7 +1335,7 @@ fn sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
 }
 #[test]
 fn sensitive_text_debug_policy_distinguishes_redacted_derives() {
-    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_BC13B693).expect(
+    let ast = syn::parse_file(constants_str::VALUE_BC13B693).expect(
         "3d72b9e0 sensitive_text_debug_policy_distinguishes_redacted_derives invariant must hold",
     );
     let visitor = crate::code_style::visit_syn_file(
@@ -1377,8 +1367,8 @@ fn sensitive_text_debug_policy_distinguishes_redacted_derives() {
 #[test]
 fn error_formatters_do_not_expose_sensitive_fields() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_10E432C3),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_ED81BDD6),
+        crate::types::StaticStr::from(constants_str::VALUE_10E432C3),
+        crate::types::SourceTextRef::from(constants_str::VALUE_ED81BDD6),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1398,7 +1388,7 @@ fn error_formatters_do_not_expose_sensitive_fields() {
 #[test]
 fn sensitive_error_format_policy_rejects_named_and_tuple_placeholders() {
     let ast = syn::parse_file(
-        constants_str::test_fixtures::VALUE_2CC8E3AF,
+        constants_str::VALUE_2CC8E3AF,
     )
     .expect("d8cc09ca sensitive_error_format_policy_rejects_named_and_tuple_placeholders invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
@@ -1412,8 +1402,8 @@ fn sensitive_error_format_policy_rejects_named_and_tuple_placeholders() {
 #[test]
 fn no_todo_or_unimplemented_macro_in_source_code() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::C4E9A2D7),
-        crate::types::SourceTextRef::from(constants_str::catalog::TODO_UNIMPLEMENTED_FOUND),
+        crate::types::StaticStr::from(constants_str::C4E9A2D7),
+        crate::types::SourceTextRef::from(constants_str::TODO_UNIMPLEMENTED_FOUND),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1425,13 +1415,13 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
             crate::code_style::push_repeated_file_error(
                 crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 crate::types::PathRef::from(path),
-                crate::types::SourceTextRef::from(constants_str::catalog::CONTAINS_TODO),
+                crate::types::SourceTextRef::from(constants_str::CONTAINS_TODO),
                 visitor.todo_found,
             );
             crate::code_style::push_repeated_file_error(
                 crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 crate::types::PathRef::from(path),
-                crate::types::SourceTextRef::from(constants_str::catalog::CONTAINS_UNIMPLEMENTED),
+                crate::types::SourceTextRef::from(constants_str::CONTAINS_UNIMPLEMENTED),
                 visitor.unimplemented_found,
             );
         },
@@ -1440,8 +1430,8 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
 #[test]
 fn source_lint_suppressions_have_explicit_reasons() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_7410D6B1),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_2DAB1928),
+        crate::types::StaticStr::from(constants_str::VALUE_7410D6B1),
+        crate::types::SourceTextRef::from(constants_str::VALUE_2DAB1928),
         |path, ast, ers| {
             let source = std::fs::read_to_string(path).expect(
                 "8d3bca08 source_lint_suppressions_have_explicit_reasons invariant must hold",
@@ -1466,7 +1456,7 @@ fn source_lint_suppressions_have_explicit_reasons() {
 }
 #[test]
 fn source_lint_reason_policy_accepts_argument_and_comment_reasons() {
-    let source = constants_str::test_fixtures::VALUE_1D86D8F2;
+    let source = constants_str::VALUE_1D86D8F2;
     let ast = syn::parse_file(source).expect("ec218827 argument_reason invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -1481,11 +1471,8 @@ fn source_lint_reason_policy_accepts_argument_and_comment_reasons() {
 }
 #[test]
 fn route_operation_error_policy_rejects_shared_types() {
-    let ast =
-        syn::parse_file(constants_str::catalog::CODE_STYLE_ROUTE_ENDPOINT_OPERATION_ERROR_FIXTURE)
-            .expect(
-                "752fbb70 route_operation_error_policy_rejects_shared_types invariant must hold",
-            );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_ROUTE_ENDPOINT_OPERATION_ERROR_FIXTURE)
+        .expect("752fbb70 route_operation_error_policy_rejects_shared_types invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
@@ -1502,7 +1489,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
         let auth = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with(constants_str::test_fixtures::VALUE_0690A45F))
+            .find(|file| file.path().as_ref().ends_with(constants_str::VALUE_0690A45F))
             .expect("9585d60c admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
             .content()
             .as_ref();
@@ -1512,7 +1499,7 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::test_fixtures::VALUE_00ABFB22)
+                    .ends_with(constants_str::VALUE_00ABFB22)
             })
             .expect("890b3180 admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
             .content()
@@ -1524,18 +1511,18 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
         );
         assert!(macros.contains("pub fn api_operation_error"), "259e7ebd");
         [
-            constants_str::test_fixtures::VALUE_D7A45F10,
-            constants_str::test_fixtures::VALUE_1467E095,
-            constants_str::test_fixtures::VALUE_C2E67087,
-            constants_str::test_fixtures::VALUE_71657339,
-            constants_str::test_fixtures::VALUE_DB71AF6A,
-            constants_str::test_fixtures::VALUE_B9AFDC8D,
-            constants_str::test_fixtures::VALUE_00E5A912,
-            constants_str::test_fixtures::VALUE_EAB76571,
-            constants_str::test_fixtures::VALUE_91F980AF,
-            constants_str::test_fixtures::VALUE_0D833D68,
-            constants_str::test_fixtures::VALUE_682B824C,
-            constants_str::test_fixtures::VALUE_075F10C0,
+            constants_str::VALUE_D7A45F10,
+            constants_str::VALUE_1467E095,
+            constants_str::VALUE_C2E67087,
+            constants_str::VALUE_71657339,
+            constants_str::VALUE_DB71AF6A,
+            constants_str::VALUE_B9AFDC8D,
+            constants_str::VALUE_00E5A912,
+            constants_str::VALUE_EAB76571,
+            constants_str::VALUE_91F980AF,
+            constants_str::VALUE_0D833D68,
+            constants_str::VALUE_682B824C,
+            constants_str::VALUE_075F10C0,
         ]
         .iter()
         .for_each(|variant| {
@@ -1549,8 +1536,8 @@ fn admin_route_errors_do_not_wrap_a_shared_operation_error() {
 #[test]
 fn source_does_not_retain_commented_debug_statements() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_16B3BD74),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_353E0299),
+        crate::types::StaticStr::from(constants_str::VALUE_16B3BD74),
+        crate::types::SourceTextRef::from(constants_str::VALUE_353E0299),
         |path, _, ers| {
             let source = std::fs::read_to_string(path).expect(
                 "2b06297b source_does_not_retain_commented_debug_statements invariant must hold",
@@ -1571,9 +1558,9 @@ fn commented_debug_statement_policy_rejects_debug_macros_only() {
         concat!("/", "/", " println!(\"debug\");"),
         concat!("/", "/", " dbg!(value);"),
         concat!("/", "/", " explanation of println usage"),
-        constants_str::test_fixtures::VALUE_F7D8E121,
+        constants_str::VALUE_F7D8E121,
     ]
-    .join(constants_str::catalog::NEWLINE);
+    .join(constants_str::NEWLINE);
     let violations = crate::code_style::commented_debug_statements(
         crate::types::SourceTextRef::from(source.as_str()),
     );
@@ -1622,11 +1609,11 @@ fn project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
 }
 #[test]
 fn text_content_hygiene_policy_rejects_all_line_ending_violations() {
-    let mut source = String::from(constants_str::catalog::FIRST_ALT);
+    let mut source = String::from(constants_str::FIRST_ALT);
     source.push(' ');
     source.push('\r');
     source.push('\n');
-    source.push_str(constants_str::test_fixtures::VALUE_3547CB11);
+    source.push_str(constants_str::VALUE_3547CB11);
     let violations = crate::code_style::text_content_hygiene_ers(
         crate::types::SourceTextRef::from(source.as_str()),
     );
@@ -1634,7 +1621,7 @@ fn text_content_hygiene_policy_rejects_all_line_ending_violations() {
 }
 #[test]
 fn no_macro_rules_in_source_code() {
-    let macro_name = constants_str::catalog::MACRO_RULES;
+    let macro_name = constants_str::MACRO_RULES;
     let forbidden = format!("{macro_name}!");
     let mut ers = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
@@ -1648,17 +1635,17 @@ fn no_macro_rules_in_source_code() {
     });
     crate::code_style::assert_joined_ers_empty_with_ctx(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::catalog::B6E2A9F4),
+        crate::types::StaticStr::from(constants_str::B6E2A9F4),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD,
+            constants_str::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD,
         ),
     );
 }
 #[test]
 fn no_include_asset_macros_outside_allowlist() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::A6D4F2C9),
-        crate::types::SourceTextRef::from(constants_str::integration_fixtures::INCLUDE_STR_OR_INCLUDE_BYTES_FOUND_OUTSIDE_EXPLICIT_GENERATED_TEST_FIXTURE_ALLOWLIST),
+        crate::types::StaticStr::from(constants_str::A6D4F2C9),
+        crate::types::SourceTextRef::from(constants_str::INCLUDE_STR_OR_INCLUDE_BYTES_FOUND_OUTSIDE_EXPLICIT_GENERATED_TEST_FIXTURE_ALLOWLIST),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1704,9 +1691,9 @@ fn append_public_use_import_ers(
 #[allow(clippy::wildcard_enum_match_arm)] // syn::Item is non-exhaustive; only modules are relevant
 fn public_reexports_are_forbidden_and_private_imports_are_restricted() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::B4E7C2A9),
+        crate::types::StaticStr::from(constants_str::B4E7C2A9),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::FORBIDDEN_PUBLIC_REEXPORTS_OR_PRIVATE_IMPORTS_FOUND_PREFER_EXPLICIT_PATHS,
+            constants_str::FORBIDDEN_PUBLIC_REEXPORTS_OR_PRIVATE_IMPORTS_FOUND_PREFER_EXPLICIT_PATHS,
         ),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
@@ -1734,7 +1721,7 @@ fn public_reexports_are_forbidden_and_private_imports_are_restricted() {
 }
 #[test]
 fn declared_child_does_not_bypass_non_public_use_import_policy() {
-    let ast = syn::parse_file(constants_str::test_fixtures::CODE_STYLE_DECLARED_CHILD_USE_FIXTURE).expect(
+    let ast = syn::parse_file(constants_str::CODE_STYLE_DECLARED_CHILD_USE_FIXTURE).expect(
         "b67d5cf1 declared_child_does_not_bypass_non_public_use_import_policy invariant must hold",
     );
     let visitor = crate::code_style::visit_syn_file(
@@ -1747,14 +1734,12 @@ fn declared_child_does_not_bypass_non_public_use_import_policy() {
     );
     let mut ers = Vec::<String>::new();
     append_non_public_use_import_er(
-        std::path::Path::new(constants_str::test_fixtures::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
+        std::path::Path::new(constants_str::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
         visitor.found_non_public_use_import,
         &mut ers,
     );
     append_non_public_use_import_er(
-        std::path::Path::new(
-            constants_str::test_fixtures::CODE_STYLE_NESTED_OWNER_USE_FIXTURE_PATH,
-        ),
+        std::path::Path::new(constants_str::CODE_STYLE_NESTED_OWNER_USE_FIXTURE_PATH),
         visitor.found_non_public_use_import,
         &mut ers,
     );
@@ -1762,7 +1747,7 @@ fn declared_child_does_not_bypass_non_public_use_import_policy() {
 }
 #[test]
 fn use_import_policy_detects_private_imports_and_public_reexports() {
-    let ast = syn::parse_file(constants_str::test_fixtures::VALUE_B2B1AD10).expect(
+    let ast = syn::parse_file(constants_str::VALUE_B2B1AD10).expect(
         "7b9e6f31 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
     );
     let visitor = crate::code_style::visit_syn_file(
@@ -1781,7 +1766,7 @@ fn use_import_policy_detects_private_imports_and_public_reexports() {
         "3f4798c8"
     );
 
-    let leptos_ast = syn::parse_file(constants_str::test_fixtures::VALUE_444213A9).expect(
+    let leptos_ast = syn::parse_file(constants_str::VALUE_444213A9).expect(
         "56f86b52 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
     );
     let leptos_visitor = crate::code_style::visit_syn_file(
@@ -1799,7 +1784,7 @@ fn use_import_policy_detects_private_imports_and_public_reexports() {
 }
 #[test]
 fn cfg_test_modules_do_not_hide_forbidden_public_reexports() {
-    let ast = syn::parse_file(constants_str::test_fixtures::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
+    let ast = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
         .expect("12d3ea75 public re-export fixture must parse");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -1811,7 +1796,7 @@ fn cfg_test_modules_do_not_hide_forbidden_public_reexports() {
     );
     let mut ers = Vec::<String>::new();
     append_public_use_import_ers(
-        std::path::Path::new(constants_str::test_fixtures::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
+        std::path::Path::new(constants_str::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
         &visitor.public_use_roots,
         &mut ers,
     );
@@ -1820,9 +1805,9 @@ fn cfg_test_modules_do_not_hide_forbidden_public_reexports() {
 #[test]
 fn no_type_aliases_in_rust_sources() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::C6E4F7A1),
+        crate::types::StaticStr::from(constants_str::C6E4F7A1),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::TYPE_ALIASES_FOUND_USE_EXPLICIT_TYPES_AT_USAGE_SITES,
+            constants_str::TYPE_ALIASES_FOUND_USE_EXPLICIT_TYPES_AT_USAGE_SITES,
         ),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
@@ -1843,8 +1828,8 @@ fn no_type_aliases_in_rust_sources() {
 #[test]
 fn no_empty_enums_in_rust_sources() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_19A18AE4),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_721EDC25),
+        crate::types::StaticStr::from(constants_str::VALUE_19A18AE4),
+        crate::types::SourceTextRef::from(constants_str::VALUE_721EDC25),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1864,14 +1849,14 @@ fn no_empty_enums_in_rust_sources() {
 #[test]
 fn empty_enum_policy_checks_items_and_attribute_payloads() {
     let source = [
-        constants_str::test_fixtures::VALUE_BFF335C4,
-        constants_str::test_fixtures::VALUE_D10B36AA,
-        constants_str::test_fixtures::VALUE_68E5AB24,
-        constants_str::test_fixtures::VALUE_1A46177C,
-        constants_str::test_fixtures::VALUE_9DC6533C,
-        constants_str::test_fixtures::VALUE_1A9A6650,
+        constants_str::VALUE_BFF335C4,
+        constants_str::VALUE_D10B36AA,
+        constants_str::VALUE_68E5AB24,
+        constants_str::VALUE_1A46177C,
+        constants_str::VALUE_9DC6533C,
+        constants_str::VALUE_1A9A6650,
     ]
-    .join(constants_str::catalog::NEWLINE);
+    .join(constants_str::NEWLINE);
     let ast = syn::parse_file(&source).expect(
         "e52f247c empty_enum_policy_checks_items_and_attribute_payloads invariant must hold",
     );
@@ -1898,8 +1883,8 @@ fn empty_enum_policy_checks_items_and_attribute_payloads() {
 #[test]
 fn infallible_functions_return_concrete_types() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_6E60D726),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_4BAB9A8D),
+        crate::types::StaticStr::from(constants_str::VALUE_6E60D726),
+        crate::types::SourceTextRef::from(constants_str::VALUE_4BAB9A8D),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -1919,13 +1904,13 @@ fn infallible_functions_return_concrete_types() {
 #[test]
 fn infallible_result_policy_rejects_wrappers_and_free_function_results() {
     let source = [
-        constants_str::test_fixtures::VALUE_117099FD,
-        constants_str::test_fixtures::VALUE_35B13C3B,
-        constants_str::test_fixtures::VALUE_356A6CFB,
-        constants_str::test_fixtures::VALUE_73D6360C,
-        constants_str::test_fixtures::VALUE_41324880,
+        constants_str::VALUE_117099FD,
+        constants_str::VALUE_35B13C3B,
+        constants_str::VALUE_356A6CFB,
+        constants_str::VALUE_73D6360C,
+        constants_str::VALUE_41324880,
     ]
-    .join(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX);
+    .join(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
     let ast = syn::parse_file(&source).expect("aa0bacf7 concrete invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -1938,9 +1923,9 @@ fn infallible_result_policy_rejects_wrappers_and_free_function_results() {
 #[test]
 fn no_simple_constant_aliases_in_rust_sources() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::A51F0D3B),
+        crate::types::StaticStr::from(constants_str::A51F0D3B),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::SIMPLE_CONSTANT_ALIASES_FOUND_USE_THE_SOURCE_CONSTANT_DIRECTLY,
+            constants_str::SIMPLE_CONSTANT_ALIASES_FOUND_USE_THE_SOURCE_CONSTANT_DIRECTLY,
         ),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
@@ -1961,43 +1946,37 @@ fn no_simple_constant_aliases_in_rust_sources() {
 #[test]
 fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_CF47C890),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_43AA05FB),
+        crate::types::StaticStr::from(constants_str::VALUE_CF47C890),
+        crate::types::SourceTextRef::from(constants_str::VALUE_43AA05FB),
         |path, ast, ers| {
             let is_required_foundation_impl = [
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_E24F0FD4),
-                    constants_str::test_fixtures::VALUE_403B3BAE,
+                    std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                    constants_str::VALUE_403B3BAE,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_C809930D),
-                    constants_str::test_fixtures::VALUE_D0D0184F,
+                    std::path::Path::new(constants_str::VALUE_C809930D),
+                    constants_str::VALUE_D0D0184F,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_2900052A),
-                    constants_str::test_fixtures::VALUE_E5996CB1,
+                    std::path::Path::new(constants_str::VALUE_2900052A),
+                    constants_str::VALUE_E5996CB1,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_1354D9A9),
-                    constants_str::test_fixtures::VALUE_2A080280,
+                    std::path::Path::new(constants_str::VALUE_1354D9A9),
+                    constants_str::VALUE_2A080280,
                 ),
                 (
-                    std::path::Path::new(
-                        constants_str::test_fixtures::CONSTANTS_STR_MACROS_SYN_IDENT_PATH,
-                    ),
-                    constants_str::test_fixtures::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
+                    std::path::Path::new(constants_str::CONSTANTS_STR_MACROS_SYN_IDENT_PATH),
+                    constants_str::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
                 ),
                 (
-                    std::path::Path::new(
-                        constants_str::test_fixtures::CONSTANTS_STR_MACROS_SYN_LIT_STR_PATH,
-                    ),
-                    constants_str::test_fixtures::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
+                    std::path::Path::new(constants_str::CONSTANTS_STR_MACROS_SYN_LIT_STR_PATH),
+                    constants_str::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
                 ),
                 (
-                    std::path::Path::new(
-                        constants_str::test_fixtures::CONSTANTS_STR_MACROS_SYN_VISIBILITY_PATH,
-                    ),
-                    constants_str::test_fixtures::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
+                    std::path::Path::new(constants_str::CONSTANTS_STR_MACROS_SYN_VISIBILITY_PATH),
+                    constants_str::CONSTANTS_STR_MACROS_BOOTSTRAP_FROM_REASON,
                 ),
             ]
             .iter()
@@ -2010,11 +1989,10 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
                         ))
             });
             if is_required_foundation_impl
-                || path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+                || path.starts_with(constants_str::WORKSPACE_MACRO_HELPERS_SRC_PATH)
             {
                 assert!(
-                    !constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_BOOTSTRAP_NEWTYPE_REASON
-                        .is_empty(),
+                    !constants_str::WORKSPACE_MACRO_HELPERS_BOOTSTRAP_NEWTYPE_REASON.is_empty(),
                     "43534db2 workspace_macro_helpers bootstrap exception requires a reason"
                 );
                 return;
@@ -2038,25 +2016,25 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
 #[test]
 fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_from() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_A1DD158B),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_E8DA133A),
+        crate::types::StaticStr::from(constants_str::VALUE_A1DD158B),
+        crate::types::SourceTextRef::from(constants_str::VALUE_E8DA133A),
         |path, ast, ers| {
             let is_required_foundation_impl = [
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_E24F0FD4),
-                    constants_str::test_fixtures::VALUE_403B3BAE,
+                    std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                    constants_str::VALUE_403B3BAE,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_C809930D),
-                    constants_str::test_fixtures::VALUE_D0D0184F,
+                    std::path::Path::new(constants_str::VALUE_C809930D),
+                    constants_str::VALUE_D0D0184F,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_2900052A),
-                    constants_str::test_fixtures::VALUE_E5996CB1,
+                    std::path::Path::new(constants_str::VALUE_2900052A),
+                    constants_str::VALUE_E5996CB1,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_1354D9A9),
-                    constants_str::test_fixtures::VALUE_2A080280,
+                    std::path::Path::new(constants_str::VALUE_1354D9A9),
+                    constants_str::VALUE_2A080280,
                 ),
             ]
             .iter()
@@ -2090,14 +2068,14 @@ fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_fro
 #[test]
 fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_37F4CEF1),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_7B891FFF),
+        crate::types::StaticStr::from(constants_str::VALUE_37F4CEF1),
+        crate::types::SourceTextRef::from(constants_str::VALUE_7B891FFF),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new(constants_str::test_fixtures::VALUE_2900052A),
-                constants_str::test_fixtures::VALUE_E5996CB1,
+                std::path::Path::new(constants_str::VALUE_2900052A),
+                constants_str::VALUE_E5996CB1,
             );
-            if path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+            if path.starts_with(constants_str::WORKSPACE_MACRO_HELPERS_SRC_PATH)
                 || !required_foundation_impl.1.is_empty()
                     && (path.ends_with(required_foundation_impl.0)
                         || crate::code_style::declared_child_matches(
@@ -2125,21 +2103,21 @@ fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
 #[test]
 fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_DBD6E9F5),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_C333E174),
+        crate::types::StaticStr::from(constants_str::VALUE_DBD6E9F5),
+        crate::types::SourceTextRef::from(constants_str::VALUE_C333E174),
         |path, ast, ers| {
             let is_required_foundation_impl = [
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_E24F0FD4),
-                    constants_str::test_fixtures::VALUE_403B3BAE,
+                    std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                    constants_str::VALUE_403B3BAE,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_C809930D),
-                    constants_str::test_fixtures::VALUE_D0D0184F,
+                    std::path::Path::new(constants_str::VALUE_C809930D),
+                    constants_str::VALUE_D0D0184F,
                 ),
                 (
-                    std::path::Path::new(constants_str::test_fixtures::VALUE_2900052A),
-                    constants_str::test_fixtures::VALUE_E5996CB1,
+                    std::path::Path::new(constants_str::VALUE_2900052A),
+                    constants_str::VALUE_E5996CB1,
                 ),
             ]
             .iter()
@@ -2152,7 +2130,7 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
                         ))
             });
             if is_required_foundation_impl
-                || path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+                || path.starts_with(constants_str::WORKSPACE_MACRO_HELPERS_SRC_PATH)
             {
                 return;
             }
@@ -2174,8 +2152,8 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
 #[test]
 fn error_implementations_derive_thiserror_error() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_3FCD79E4),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_18D7D5AB),
+        crate::types::StaticStr::from(constants_str::VALUE_3FCD79E4),
+        crate::types::SourceTextRef::from(constants_str::VALUE_18D7D5AB),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -2195,8 +2173,8 @@ fn error_implementations_derive_thiserror_error() {
 #[test]
 fn json_api_error_responses_originate_from_thiserror_enums() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_1800EA0D),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_FBB3C40C),
+        crate::types::StaticStr::from(constants_str::VALUE_1800EA0D),
+        crate::types::SourceTextRef::from(constants_str::VALUE_FBB3C40C),
         |path, ast, ers| {
             let thiserror_enums = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -2221,7 +2199,7 @@ fn json_api_error_responses_originate_from_thiserror_enums() {
 #[test]
 fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() {
     let ast =
-        syn::parse_file(constants_str::catalog::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("e45c8f09 json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums invariant must hold");
+        syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("e45c8f09 json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums invariant must hold");
     let thiserror_enums = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -2238,8 +2216,8 @@ fn json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() 
 #[test]
 fn api_response_errors_keep_source_locations_out_of_public_error_enums() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_0B0251B3),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_9DE68BBD),
+        crate::types::StaticStr::from(constants_str::VALUE_0B0251B3),
+        crate::types::SourceTextRef::from(constants_str::VALUE_9DE68BBD),
         |path, ast, ers| {
             let thiserror_enums = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -2263,10 +2241,9 @@ fn api_response_errors_keep_source_locations_out_of_public_error_enums() {
 }
 #[test]
 fn api_response_location_policy_rejects_location_fields() {
-    let ast = syn::parse_file(constants_str::catalog::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE)
-        .expect(
-            "6d8c50f1 api_response_location_policy_rejects_location_fields invariant must hold",
-        );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect(
+        "6d8c50f1 api_response_location_policy_rejects_location_fields invariant must hold",
+    );
     let thiserror_enums = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -2283,8 +2260,8 @@ fn api_response_location_policy_rejects_location_fields() {
 #[test]
 fn api_response_error_sources_use_observed_error() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_44E97EA0),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_7CB245E4),
+        crate::types::StaticStr::from(constants_str::VALUE_44E97EA0),
+        crate::types::SourceTextRef::from(constants_str::VALUE_7CB245E4),
         |path, ast, ers| {
             let response_types = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -2308,10 +2285,9 @@ fn api_response_error_sources_use_observed_error() {
 }
 #[test]
 fn api_response_error_source_policy_rejects_raw_sources() {
-    let ast = syn::parse_file(constants_str::catalog::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE)
-        .expect(
-            "b26f4527 api_response_error_source_policy_rejects_raw_sources invariant must hold",
-        );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect(
+        "b26f4527 api_response_error_source_policy_rejects_raw_sources invariant must hold",
+    );
     let response_types = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::IntoResponseTypeVisitor::default(),
@@ -2342,7 +2318,7 @@ fn every_fallible_typed_route_operation_has_its_own_error_type() {
             );
             let path_text = path.to_string_lossy();
             let normalized_path = path_text
-                .trim_start_matches(constants_str::catalog::TEXT_ALT_9)
+                .trim_start_matches(constants_str::TEXT_ALT_9)
                 .trim_start_matches('/');
             let declared_owner = crate::code_style::declared_children()
                 .iter()
@@ -2384,17 +2360,16 @@ fn every_fallible_typed_route_operation_has_its_own_error_type() {
         });
         crate::code_style::assert_joined_ers_empty_with_ctx(
             crate::types::SourceTextListRef::from(ers.as_slice()),
-            crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_D1557BA1),
-            crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_50C1CC72),
+            crate::types::StaticStr::from(constants_str::VALUE_D1557BA1),
+            crate::types::SourceTextRef::from(constants_str::VALUE_50C1CC72),
         );
     });
 }
 #[test]
 fn typed_route_operation_error_policy_rejects_shared_types() {
-    let ast = syn::parse_file(constants_str::catalog::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE)
-        .expect(
-            "60ff98c7 typed_route_operation_error_policy_rejects_shared_types invariant must hold",
-        );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE).expect(
+        "60ff98c7 typed_route_operation_error_policy_rejects_shared_types invariant must hold",
+    );
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
@@ -2420,18 +2395,18 @@ fn error_implementation_source_uses_only_thiserror_derive() {
     });
     crate::code_style::assert_joined_ers_empty_with_ctx(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_7729AA39),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_2B539A50),
+        crate::types::StaticStr::from(constants_str::VALUE_7729AA39),
+        crate::types::SourceTextRef::from(constants_str::VALUE_2B539A50),
     );
 }
 #[test]
 fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_0E9309F2),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_00F4142B),
+        crate::types::StaticStr::from(constants_str::VALUE_0E9309F2),
+        crate::types::SourceTextRef::from(constants_str::VALUE_00F4142B),
         |path, ast, ers| {
-            let foundation_owner = constants_str::test_fixtures::VALUE_2900052A;
-            if path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+            let foundation_owner = constants_str::VALUE_2900052A;
+            if path.starts_with(constants_str::WORKSPACE_MACRO_HELPERS_SRC_PATH)
                 || path.ends_with(std::path::Path::new(foundation_owner))
                 || crate::code_style::declared_child_matches(
                     path.to_string_lossy().as_ref(),
@@ -2458,8 +2433,8 @@ fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
 #[test]
 fn constant_display_implementations_derive_display_const() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_2D6FAA55),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_A788CCC5),
+        crate::types::StaticStr::from(constants_str::VALUE_2D6FAA55),
+        crate::types::SourceTextRef::from(constants_str::VALUE_A788CCC5),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -2479,14 +2454,14 @@ fn constant_display_implementations_derive_display_const() {
 #[test]
 fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_24B5ACA8),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_801C5785),
+        crate::types::StaticStr::from(constants_str::VALUE_24B5ACA8),
+        crate::types::SourceTextRef::from(constants_str::VALUE_801C5785),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new(constants_str::test_fixtures::VALUE_2900052A),
-                constants_str::test_fixtures::VALUE_E5996CB1,
+                std::path::Path::new(constants_str::VALUE_2900052A),
+                constants_str::VALUE_E5996CB1,
             );
-            if path.starts_with(constants_str::test_fixtures::WORKSPACE_MACRO_HELPERS_SRC_PATH)
+            if path.starts_with(constants_str::WORKSPACE_MACRO_HELPERS_SRC_PATH)
                 || !required_foundation_impl.1.is_empty()
                     && (path.ends_with(required_foundation_impl.0)
                         || crate::code_style::declared_child_matches(
@@ -2515,12 +2490,12 @@ fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() 
 #[test]
 fn tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_1259718C),
-        crate::types::SourceTextRef::from(constants_str::test_fixtures::VALUE_38822A0E),
+        crate::types::StaticStr::from(constants_str::VALUE_1259718C),
+        crate::types::SourceTextRef::from(constants_str::VALUE_38822A0E),
         |path, ast, ers| {
             let required_foundation_impl = (
-                std::path::Path::new(constants_str::test_fixtures::VALUE_E24F0FD4),
-                constants_str::test_fixtures::VALUE_403B3BAE,
+                std::path::Path::new(constants_str::VALUE_E24F0FD4),
+                constants_str::VALUE_403B3BAE,
             );
             if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
             {
@@ -2578,9 +2553,9 @@ fn no_duplicated_string_literals_in_non_policy_test_code() {
         .collect::<Vec<String>>();
     crate::code_style::assert_joined_ers_empty_with_ctx(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::catalog::DE729A31),
+        crate::types::StaticStr::from(constants_str::DE729A31),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::DUPLICATED_STRING_LITERALS_FOUND_IN_NON_POLICY_TEST_CODE,
+            constants_str::DUPLICATED_STRING_LITERALS_FOUND_IN_NON_POLICY_TEST_CODE,
         ),
     );
 }
@@ -2595,7 +2570,7 @@ fn ordinary_test_fixture_is_in_duplicate_string_policy_scope() {
     );
     assert!(
         !crate::code_style::is_non_policy_test_source_path(crate::types::PathRef::from(
-            std::path::Path::new(constants_str::catalog::TESTS_SRC_CODE_STYLE)
+            std::path::Path::new(constants_str::TESTS_SRC_CODE_STYLE)
         ))
         .get(),
         "8df61a91"
@@ -2643,9 +2618,9 @@ fn production_string_literals_are_reused() {
         .collect::<Vec<String>>();
     crate::code_style::assert_joined_ers_empty_with_ctx(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::catalog::VALUE_9D1C7E4A),
+        crate::types::StaticStr::from(constants_str::VALUE_9D1C7E4A),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::PRODUCTION_STRING_LITERALS_MUST_BE_DEFINED_ONCE_AND_REUSED,
+            constants_str::PRODUCTION_STRING_LITERALS_MUST_BE_DEFINED_ONCE_AND_REUSED,
         ),
     );
 }
@@ -2656,7 +2631,7 @@ fn production_string_literals_are_reused() {
     reason = "the negative ownership policy must construct forbidden identifiers without declaring them in constants_str"
 )]
 fn domain_owned_string_catalogs_do_not_return_to_str_constants() {
-    let source = std::fs::read_to_string(constants_str::catalog::STR_CONSTANTS_SRC_LIB_RS).expect(
+    let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS).expect(
         "84c15a0e domain_owned_string_catalogs_do_not_return_to_str_constants invariant must hold",
     );
     [
@@ -2671,14 +2646,14 @@ fn domain_owned_string_catalogs_do_not_return_to_str_constants() {
 
 #[test]
 fn server_admin_string_constants_reuse_macro_fragments() {
-    let source = std::fs::read_to_string(constants_str::catalog::STR_CONSTANTS_SRC_LIB_RS)
+    let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
         .expect("4629edbb server_admin_string_constants_reuse_macro_fragments invariant must hold");
     assert!(!source.contains("pub const SERVER_ADMIN_"));
 }
 
 #[test]
 fn str_constants_does_not_own_typed_domain_values() {
-    let source = std::fs::read_to_string(constants_str::catalog::STR_CONSTANTS_SRC_LIB_RS)
+    let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
         .expect("3caa56a9 str_constants_does_not_own_typed_domain_values invariant must hold");
     let ers = [
         concat!("ADMIN_API_", "PATHS_"),
@@ -2692,15 +2667,15 @@ fn str_constants_does_not_own_typed_domain_values() {
     .collect::<Vec<_>>();
     crate::code_style::assert_joined_ers_empty_with_ctx(
         crate::types::SourceTextListRef::from(ers.as_slice()),
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_6B7E02A4),
+        crate::types::StaticStr::from(constants_str::VALUE_6B7E02A4),
         crate::types::SourceTextRef::from(
-            constants_str::test_fixtures::DOMAIN_VALUES_MUST_BE_DECLARED_BY_THEIR_OWNING_TYPED_API,
+            constants_str::DOMAIN_VALUES_MUST_BE_DECLARED_BY_THEIR_OWNING_TYPED_API,
         ),
     );
 }
 #[test]
 fn string_constant_visitor_checks_test_code_and_allows_reviewed_syntax_boundaries() {
-    let ast = syn::parse_file(constants_str::catalog::CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE)
+    let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE)
         .expect("87c9a142 string_constant_visitor_allows_only_reviewed_syntax_boundaries invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -2712,7 +2687,7 @@ fn string_constant_visitor_checks_test_code_and_allows_reviewed_syntax_boundarie
 }
 #[test]
 fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
-    let ast = syn::parse_file(constants_str::catalog::CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE)
+    let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE)
         .expect("bc91574f string_constant_visitor_detects_expression_and_nested_macro_literals invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -2723,11 +2698,47 @@ fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
     assert_eq!(visitor.ers.len(), 2usize);
 }
 #[test]
+fn tracing_message_visitor_checks_every_event_macro_and_test_module() {
+    let ast = syn::parse_file(constants_str::CODE_STYLE_TRACING_MESSAGE_FIXTURE)
+        .expect("5d7c4e2a tracing message fixture must parse");
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::source_analysis::TracingMessageLiteralVisitor::default(),
+    );
+    assert_eq!(visitor.values.len(), 7usize);
+}
+#[test]
+fn all_tracing_messages_are_declared_in_constants_str() {
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::VALUE_6C2711FA),
+        crate::types::SourceTextRef::from(
+            constants_str::TRACING_MESSAGES_FOUND_OUTSIDE_CONSTANTS_STR,
+        ),
+        |path, ast, ers| {
+            if crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(path))
+                .get()
+            {
+                return;
+            }
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                super::source_analysis::TracingMessageLiteralVisitor::default(),
+            );
+            ers.extend(
+                visitor
+                    .values
+                    .into_iter()
+                    .map(|message| format!("{}: {message:?}", path.display())),
+            );
+        },
+    );
+}
+#[test]
 fn all_string_constants_are_declared_in_str_constants() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::test_fixtures::VALUE_6C2711FA),
+        crate::types::StaticStr::from(constants_str::VALUE_6C2711FA),
         crate::types::SourceTextRef::from(
-            constants_str::catalog::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
+            constants_str::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
         ),
         |path, ast, ers| {
             if crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(path))
@@ -2752,7 +2763,7 @@ fn all_string_constants_are_declared_in_str_constants() {
                 super::source_analysis::StringConstantDeclarationVisitor {
                     allow_generated_string_constants: crate::types::AnalyzerBool::from(
                         path.ends_with(
-                            constants_str::catalog::CONSTANTS_STR_MACROS_SRC_DEFINE_STR_CONSTANTS_INPUT_RS,
+                            constants_str::CONSTANTS_STR_MACROS_SRC_DEFINE_STR_CONSTANTS_INPUT_RS,
                         ),
                     ),
                     ers: crate::types::DiagnosticMsgs::default(),
@@ -2771,7 +2782,7 @@ fn all_string_constants_are_declared_in_str_constants() {
 fn string_constant_policy_has_only_the_constants_crate_source_directory_exception() {
     assert!(
         crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(
-            std::path::Path::new(constants_str::catalog::STR_CONSTANTS_SRC_LIB_RS,)
+            std::path::Path::new(constants_str::STR_CONSTANTS_SRC_LIB_RS,)
         ))
         .get()
     );
@@ -2797,7 +2808,7 @@ fn string_constant_policy_has_only_the_constants_crate_source_directory_exceptio
 }
 #[test]
 fn string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_const_forms() {
-    let ast = syn::parse_file(constants_str::catalog::CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE)
+    let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE)
         .expect("02ec1d16 string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_const_forms invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -2811,7 +2822,7 @@ fn string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_c
 #[test]
 fn string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
     let ast =
-        syn::parse_file(constants_str::catalog::CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE).expect("56f8e2c1 string_constant_declaration_policy_rejects_aliases_to_exported_constants invariant must hold");
+        syn::parse_file(constants_str::CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE).expect("56f8e2c1 string_constant_declaration_policy_rejects_aliases_to_exported_constants invariant must hold");
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantDeclarationVisitor {
@@ -2824,8 +2835,8 @@ fn string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
 #[test]
 fn no_unwrap_in_source_code() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::catalog::E8B3A6D2),
-        crate::types::SourceTextRef::from(constants_str::catalog::UNWRAP_FOUND),
+        crate::types::StaticStr::from(constants_str::E8B3A6D2),
+        crate::types::SourceTextRef::from(constants_str::UNWRAP_FOUND),
         |path, ast, ers| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
@@ -2836,7 +2847,7 @@ fn no_unwrap_in_source_code() {
             crate::code_style::push_repeated_file_error(
                 crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 crate::types::PathRef::from(path),
-                crate::types::SourceTextRef::from(constants_str::catalog::UNWRAP_CALL_ALT),
+                crate::types::SourceTextRef::from(constants_str::UNWRAP_CALL_ALT),
                 visitor.found_count,
             );
         },

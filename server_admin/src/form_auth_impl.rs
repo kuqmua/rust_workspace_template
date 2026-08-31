@@ -20,7 +20,7 @@ pub(crate) fn form_auth_impl(
         )
     })?;
     let _previous = auth.headers.0.insert(
-        http::HeaderName::from_static(constants_str::catalog::X_CSRF_TOKEN_ALT),
+        http::HeaderName::from_static(constants_str::X_CSRF_TOKEN_ALT),
         value,
     );
     Ok(auth)

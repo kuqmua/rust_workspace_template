@@ -33,17 +33,16 @@ pub(crate) async fn authorization_authenticate(
             headers, peer,
         )
         .map_err(crate::admin_error::AdminError::secret_text)?;
-    let active = sqlx::query_scalar::<_, bool>(
-        constants_str::integration_fixtures::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL,
-    )
-    .bind(claims.session_id().get().get())
-    .bind(claims.user_id().get())
-    .bind(context_hash.expose().as_ref())
-    .fetch_one(state.pool.as_ref())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map(server_admin_core::std_admin_bool::StdAdminBool::from)
-    .map_err(crate::admin_error::AdminError::postgresql)?;
+    let active =
+        sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL)
+            .bind(claims.session_id().get().get())
+            .bind(claims.user_id().get())
+            .bind(context_hash.expose().as_ref())
+            .fetch_one(state.pool.as_ref())
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            .map(server_admin_core::std_admin_bool::StdAdminBool::from)
+            .map_err(crate::admin_error::AdminError::postgresql)?;
     if !active.get() {
         return Err(crate::admin_error::AdminError::Authentication);
     }

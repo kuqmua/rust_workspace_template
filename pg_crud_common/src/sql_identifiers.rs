@@ -27,11 +27,11 @@ impl TryFrom<Vec<crate::sql_identifier::SqlIdentifier>> for SqlIdentifiers {
         let separators_len = value
             .len()
             .saturating_sub(constants_usize::ONE)
-            .saturating_mul(constants_str::catalog::TEXT_ALT_6.len());
+            .saturating_mul(constants_str::TEXT_ALT_6.len());
         let mut text = String::with_capacity(identifiers_len.saturating_add(separators_len));
         value.iter().enumerate().for_each(|(idx, identifier)| {
             if idx != constants_usize::ZERO {
-                text.push_str(constants_str::catalog::TEXT_ALT_6);
+                text.push_str(constants_str::TEXT_ALT_6);
             }
             text.push_str(identifier.as_ref());
         });

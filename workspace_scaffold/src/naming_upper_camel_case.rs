@@ -3,6 +3,6 @@ pub(super) fn naming_upper_camel_case(
 ) -> crate::scaffold_text::ScaffoldText {
     crate::naming_capitalized_parts::naming_capitalized_parts(
         value,
-        crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::test_fixtures::EMPTY),
+        crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::EMPTY),
     )
 }

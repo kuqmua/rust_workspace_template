@@ -7,23 +7,23 @@ pub(crate) fn measure_cargo_command(
     let command_output = {
         let measurement_format = format!(
             "{}%M\n{}%R\n{}%F",
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX,
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
+            constants_str::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX,
+            constants_str::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
+            constants_str::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
         );
         macro_helpers::tool_command::ToolCommand::new(
             macro_helpers::tool_program_ref::ToolProgramRef::from(
-                constants_str::catalog::WORKSPACE_TEST_RUNNER_TIME_PATH,
+                constants_str::WORKSPACE_TEST_RUNNER_TIME_PATH,
             ),
         )
         .arg(macro_helpers::tool_arg_ref::ToolArgRef::from(
-            constants_str::catalog::F,
+            constants_str::F,
         ))
         .arg(macro_helpers::tool_arg_ref::ToolArgRef::from(
             measurement_format.as_str(),
         ))
         .arg(macro_helpers::tool_arg_ref::ToolArgRef::from(
-            constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
+            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
         ))
         .args(macro_helpers::tool_args_ref::ToolArgsRef::from(args.get()))
         .output()
@@ -36,25 +36,23 @@ pub(crate) fn measure_cargo_command(
                 .lines()
                 .find_map(|line| {
                     line.trim()
-                        .strip_prefix(constants_str::catalog::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX)
+                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX)
                 })
-                .unwrap_or(constants_str::catalog::UNAVAILABLE);
+                .unwrap_or(constants_str::UNAVAILABLE);
             let minor_page_faults = stderr
                 .lines()
                 .find_map(|line| {
-                    line.trim().strip_prefix(
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
-                    )
+                    line.trim()
+                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX)
                 })
-                .unwrap_or(constants_str::catalog::UNAVAILABLE);
+                .unwrap_or(constants_str::UNAVAILABLE);
             let major_page_faults = stderr
                 .lines()
                 .find_map(|line| {
-                    line.trim().strip_prefix(
-                        constants_str::catalog::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX,
-                    )
+                    line.trim()
+                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX)
                 })
-                .unwrap_or(constants_str::catalog::UNAVAILABLE);
+                .unwrap_or(constants_str::UNAVAILABLE);
             {
                 let stdout = String::from_utf8_lossy(output.stdout.as_slice());
                 if !stdout.is_empty() {

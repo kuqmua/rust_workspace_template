@@ -4,12 +4,9 @@ pub(super) fn request_origin_value_is_allowed(
     allowed_origins: &crate::allowed_origins::AllowedOrigins,
 ) -> crate::request_origin_allowed::RequestOriginAllowed {
     let Some(parsed) = (|| {
-        let (scheme, remainder) = value
-            .get()
-            .trim()
-            .split_once(constants_str::catalog::TEXT_ALT_10)?;
-        if !scheme.eq_ignore_ascii_case(constants_str::catalog::HTTP)
-            && !scheme.eq_ignore_ascii_case(constants_str::catalog::HTTPS)
+        let (scheme, remainder) = value.get().trim().split_once(constants_str::TEXT_ALT_10)?;
+        if !scheme.eq_ignore_ascii_case(constants_str::HTTP)
+            && !scheme.eq_ignore_ascii_case(constants_str::HTTPS)
         {
             return None;
         }

@@ -10,7 +10,7 @@ pub mod remove_dir_on_drop;
 #[cfg(feature = "test-utils")]
 impl Drop for remove_dir_on_drop::RemoveDirOnDrop {
     fn drop(&mut self) {
-        remove_dir_all_if_exists(self.get_path(), constants_str::catalog::E28698F2);
+        remove_dir_all_if_exists(self.get_path(), constants_str::E28698F2);
         if let Some(parent) = self.get_path().parent()
             && let Err(error) = std::fs::remove_dir(parent)
             && error.kind() != std::io::ErrorKind::NotFound
@@ -34,10 +34,10 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
         .parent()
         .map_or_else(|| panic!("2d592b13"), std::path::Path::to_path_buf);
     let crate_path = root
-        .join(constants_str::catalog::TARGET_MACRO_CHECK)
+        .join(constants_str::TARGET_MACRO_CHECK)
         .join(crate_name);
-    remove_dir_all_if_exists(&crate_path, constants_str::catalog::E28698F2);
-    std::fs::create_dir_all(crate_path.join(constants_str::catalog::SRC_ALT))
+    remove_dir_all_if_exists(&crate_path, constants_str::E28698F2);
+    std::fs::create_dir_all(crate_path.join(constants_str::SRC_ALT))
         .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
     let _remove_dir_on_drop = remove_dir_on_drop::RemoveDirOnDrop::new(crate_path.clone());
     let cargo_toml_cnt = format!(
@@ -54,9 +54,9 @@ keywords = ["keyword"]
 categories = ["category"]
 [workspace]"#
     );
-    let path_lib_rs = crate_path.join(constants_str::catalog::SRC_LIB_RS);
-    let path_cargo_toml = crate_path.join(constants_str::catalog::CARGO_TOML);
-    let workspace_manifest_path = root.join(constants_str::catalog::CARGO_TOML);
+    let path_lib_rs = crate_path.join(constants_str::SRC_LIB_RS);
+    let path_cargo_toml = crate_path.join(constants_str::CARGO_TOML);
+    let workspace_manifest_path = root.join(constants_str::CARGO_TOML);
     let workspace_cargo_toml = server_runtime_http::read_bounded_file::read_bounded_file(
         server_runtime_http::runtime_path_ref::RuntimePathRef::from(
             workspace_manifest_path.as_path(),
@@ -72,10 +72,10 @@ categories = ["category"]
         String::with_capacity(extra_cnt.len()),
         |mut output, line| {
             let transform_line = || -> std::borrow::Cow<'_, str> {
-                if !line.contains(constants_str::catalog::WORKSPACE_TRUE) {
+                if !line.contains(constants_str::WORKSPACE_TRUE) {
                     return std::borrow::Cow::Borrowed(line);
                 }
-                let Some((dep_name, _)) = line.split_once(constants_str::catalog::TEXT_ALT) else {
+                let Some((dep_name, _)) = line.split_once(constants_str::TEXT_ALT) else {
                     return std::borrow::Cow::Borrowed(line);
                 };
                 let prefix = format!("{dep_name} = ");
@@ -98,7 +98,7 @@ categories = ["category"]
                     let Some(workspace_line) = workspace_lines.next() else {
                         panic!("1bb3996c");
                     };
-                    if workspace_line == constants_str::catalog::WORKSPACE_DEPENDENCIES {
+                    if workspace_line == constants_str::WORKSPACE_DEPENDENCIES {
                         in_workspace_deps = true;
                         continue;
                     }
@@ -121,33 +121,30 @@ categories = ["category"]
                         break out;
                     }
                 };
-                let feature_list =
-                    line.split_once(constants_str::catalog::FEATURES)
-                        .map(|(_, tail)| {
-                            tail.chars()
-                                .scan(false, |done, ch| {
-                                    if *done {
-                                        None
-                                    } else {
-                                        if ch == ']' {
-                                            *done = true;
-                                        }
-                                        Some(ch)
-                                    }
-                                })
-                                .collect::<String>()
-                        });
-                if !dep_entry.contains(constants_str::catalog::FEATURES)
+                let feature_list = line.split_once(constants_str::FEATURES).map(|(_, tail)| {
+                    tail.chars()
+                        .scan(false, |done, ch| {
+                            if *done {
+                                None
+                            } else {
+                                if ch == ']' {
+                                    *done = true;
+                                }
+                                Some(ch)
+                            }
+                        })
+                        .collect::<String>()
+                });
+                if !dep_entry.contains(constants_str::FEATURES)
                     && let Some(features) = feature_list
                     && let Some(idx) = dep_entry.rfind('}')
                 {
                     dep_entry.insert_str(idx, &format!(", features = {features}"));
                 }
-                if let Some(path_prefix_idx) = dep_entry.find(constants_str::catalog::PATH_ALT_4) {
-                    let dot_idx =
-                        path_prefix_idx.saturating_add(constants_str::catalog::PATH_ALT_3.len());
+                if let Some(path_prefix_idx) = dep_entry.find(constants_str::PATH_ALT_4) {
+                    let dot_idx = path_prefix_idx.saturating_add(constants_str::PATH_ALT_3.len());
                     if dep_entry.get(dot_idx..dot_idx.saturating_add(constants_usize::ONE))
-                        == Some(constants_str::catalog::DOT)
+                        == Some(constants_str::DOT)
                     {
                         dep_entry.replace_range(
                             dot_idx..dot_idx.saturating_add(constants_usize::ONE),
@@ -174,8 +171,8 @@ categories = ["category"]
     std::fs::write(path_lib_rs, content_to_generate)
         .unwrap_or_else(|error| panic!("55124f90: {error}"));
     let _copied_lock_bytes = std::fs::copy(
-        root.join(constants_str::catalog::CARGO_LOCK),
-        crate_path.join(constants_str::catalog::CARGO_LOCK),
+        root.join(constants_str::CARGO_LOCK),
+        crate_path.join(constants_str::CARGO_LOCK),
     )
     .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
     generated_crate_steps_tests::GENERATED_CRATE_STEPS
@@ -183,7 +180,7 @@ categories = ["category"]
         .fold((), |(), step| {
             let status = macro_helpers::tool_command::ToolCommand::new(
                 macro_helpers::tool_program_ref::ToolProgramRef::from(
-                    constants_str::catalog::WORKSPACE_TEST_RUNNER_CARGO,
+                    constants_str::WORKSPACE_TEST_RUNNER_CARGO,
                 ),
             )
             .current_dir(macro_helpers::macro_path_ref::MacroPathRef::from(
@@ -240,7 +237,7 @@ mod tests {
     #[test]
     fn remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = TmpDirPathBuf::new();
-        let path = dir.path().join(constants_str::catalog::CRATE_DIR);
+        let path = dir.path().join(constants_str::CRATE_DIR);
         std::fs::create_dir_all(&path)
             .expect("9b0e24f1 remove_dir_on_drop_removes_temp_crate_dir invariant must hold");
         let guard = super::remove_dir_on_drop::RemoveDirOnDrop::new(path.clone());
@@ -250,8 +247,8 @@ mod tests {
     #[test]
     fn remove_dir_all_if_exists_accepts_missing_dir() {
         let dir = TmpDirPathBuf::new();
-        let path = dir.path().join(constants_str::catalog::MISSING_DIR);
-        crate::remove_dir_all_if_exists(&path, constants_str::catalog::F39C05AA);
+        let path = dir.path().join(constants_str::MISSING_DIR);
+        crate::remove_dir_all_if_exists(&path, constants_str::F39C05AA);
         assert!(!path.exists());
     }
     #[test]
@@ -278,7 +275,7 @@ mod tests {
             constants_str::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS.as_slice(),
         ]
         .into_iter()
-        .all(|args| args.contains(&constants_str::catalog::SHARED_VALUES_LOCKED) && args.contains(&constants_str::catalog::SHARED_VALUES_OFFLINE))
+        .all(|args| args.contains(&constants_str::SHARED_VALUES_LOCKED) && args.contains(&constants_str::SHARED_VALUES_OFFLINE))
         .then_some(())
         .expect("3f63f262 generated_crate_compilation_is_offline_and_follow_up_steps_are_locked invariant must hold");
     }

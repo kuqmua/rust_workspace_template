@@ -11,7 +11,7 @@ mod tests {
                         std::task::Poll::<u8>::Pending
                     }));
             },
-            constants_str::catalog::VALUE_1FC8C9F0,
+            constants_str::VALUE_1FC8C9F0,
         );
     }
     #[test]
@@ -37,31 +37,23 @@ mod tests {
     }
     #[test]
     fn expect_ok_returns_inner_value() {
-        let v =
-            crate::expect_ok::expect_ok::<u8, u16>(Ok(7), constants_str::catalog::VALUE_4F607799);
+        let v = crate::expect_ok::expect_ok::<u8, u16>(Ok(7), constants_str::VALUE_4F607799);
         assert_eq!(v, 7);
     }
     #[test]
     fn assert_ok_eq_checks_ok_result_value() {
-        crate::assert_ok_eq::assert_ok_eq::<u8, u16>(
-            Ok(7),
-            constants_str::catalog::VALUE_9665F80A,
-            &7,
-        );
+        crate::assert_ok_eq::assert_ok_eq::<u8, u16>(Ok(7), constants_str::VALUE_9665F80A, &7);
     }
     #[test]
     fn expect_error_returns_inner_error() {
-        let v = crate::expect_error::expect_error::<u8, u16>(
-            Err(9),
-            constants_str::catalog::VALUE_5CD39E4B,
-        );
+        let v = crate::expect_error::expect_error::<u8, u16>(Err(9), constants_str::VALUE_5CD39E4B);
         assert_eq!(v, 9);
     }
     #[test]
     fn expect_error_mapped_passes_error_and_exp_id_to_mapper() {
         let v = crate::expect_error_mapped::expect_error_mapped::<u8, u16, (u16, &'static str)>(
             Err(9),
-            constants_str::catalog::VALUE_8CE7A316,
+            constants_str::VALUE_8CE7A316,
             |error, exp_id| (error, exp_id),
         );
         assert_eq!(v, (9, "8ce7a316"));
@@ -69,31 +61,21 @@ mod tests {
     #[test]
     fn panic_unexpected_variant_always_panics() {
         crate::assert_panics::assert_panics(
-            || {
-                crate::panic_unexpected_variant::panic_unexpected_variant(
-                    constants_str::catalog::F66647AB,
-                )
-            },
-            constants_str::catalog::B6DBA95D,
+            || crate::panic_unexpected_variant::panic_unexpected_variant(constants_str::F66647AB),
+            constants_str::B6DBA95D,
         );
     }
     #[test]
     fn expect_variant_returns_mapped_value_for_matching_variant() {
-        let v = crate::expect_variant::expect_variant(
-            Some(7u8),
-            |v| v,
-            constants_str::catalog::VALUE_0DFD9A91,
-        );
+        let v =
+            crate::expect_variant::expect_variant(Some(7u8), |v| v, constants_str::VALUE_0DFD9A91);
         assert_eq!(v, 7);
     }
     #[test]
     fn expect_variant_ref_returns_mapped_value_for_matching_variant() {
         let value = Some(7u8);
-        let v = crate::expect_variant_ref::expect_variant_ref(
-            &value,
-            |v| *v,
-            constants_str::catalog::A2FCBAD4,
-        );
+        let v =
+            crate::expect_variant_ref::expect_variant_ref(&value, |v| *v, constants_str::A2FCBAD4);
         assert_eq!(v, 7);
     }
     #[test]
@@ -103,10 +85,10 @@ mod tests {
                 let _: u8 = crate::expect_variant::expect_variant::<Option<u8>, u8>(
                     None,
                     |v| v,
-                    constants_str::catalog::DBA097B9,
+                    constants_str::DBA097B9,
                 );
             },
-            constants_str::catalog::A9651F69,
+            constants_str::A9651F69,
         );
     }
     #[test]
@@ -117,7 +99,7 @@ mod tests {
         }
         let v = crate::expect_error_mapped::expect_error_mapped::<(), TestError, u8>(
             Err(TestError::A(3)),
-            constants_str::catalog::VALUE_9BF4CE17,
+            constants_str::VALUE_9BF4CE17,
             |error, mapped_exp_id| {
                 crate::expect_variant::expect_variant(
                     error,
@@ -138,7 +120,7 @@ mod tests {
         }
         let v = crate::expect_error_variant_ref::expect_error_variant_ref::<(), TestError, u8>(
             Err(TestError::A(3)),
-            constants_str::catalog::VALUE_8DFC4389,
+            constants_str::VALUE_8DFC4389,
             |error| match error {
                 TestError::A(v) => Some(*v),
             },
@@ -159,7 +141,7 @@ mod tests {
         let _: () =
             crate::map_err_after_status_check::map_err_after_status_check::<(), TestError, ()>(
                 Err(TestError::A),
-                constants_str::catalog::C1D74A8E,
+                constants_str::C1D74A8E,
                 crate::axum_http_status_code::AxumHttpStatusCode::bad_request(),
                 |error, mapped_exp_id| {
                     crate::expect_variant::expect_variant(
@@ -189,7 +171,7 @@ mod tests {
             u8,
         >(
             Err(TestError::A(7)),
-            constants_str::catalog::VALUE_8AFB4FFD,
+            constants_str::VALUE_8AFB4FFD,
             crate::axum_http_status_code::AxumHttpStatusCode::bad_request(),
             |error| match error {
                 TestError::A(v) => Some(*v),
@@ -200,10 +182,10 @@ mod tests {
     #[test]
     fn make_headers_with_entry_inserts_value_for_case_insensitive_name() {
         let headers = crate::make_headers_with_entry::make_headers_with_entry(
-            constants_str::catalog::COMMIT,
-            axum::http::HeaderValue::from_static(constants_str::catalog::TEST_VALUES_WRONG_COMMIT),
+            constants_str::COMMIT,
+            axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
         );
-        let actual = headers.get(constants_str::catalog::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
+        let actual = headers.get(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
         assert_eq!(
             actual,
             Some(&axum::http::HeaderValue::from_static("deadbeef"))
@@ -212,16 +194,14 @@ mod tests {
     #[test]
     fn replace_header_name_moves_value_to_new_key() {
         let mut headers = crate::make_headers_with_entry::make_headers_with_entry(
-            constants_str::catalog::X_COMMIT,
-            axum::http::HeaderValue::from_static(constants_str::catalog::TEST_VALUES_WRONG_COMMIT),
+            constants_str::X_COMMIT,
+            axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
         );
         crate::replace_header_name::replace_header_name(
             &mut headers,
-            constants_str::catalog::X_COMMIT,
-            axum::http::HeaderName::from_static(
-                constants_str::catalog::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
-            ),
-            constants_str::catalog::VALUE_348C0E57,
+            constants_str::X_COMMIT,
+            axum::http::HeaderName::from_static(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
+            constants_str::VALUE_348C0E57,
         );
         assert!(headers.get("x-commit").is_none());
         assert_eq!(
@@ -250,12 +230,12 @@ mod tests {
         }
         let _err = crate::assert_err_status_code::assert_err_status_code::<(), TestErr>(
             Err(TestErr),
-            constants_str::catalog::VALUE_4A1791D2,
+            constants_str::VALUE_4A1791D2,
             crate::axum_http_status_code::AxumHttpStatusCode::bad_request(),
         );
         crate::assert_err_status_code_only::assert_err_status_code_only::<(), TestErr>(
             Err(TestErr),
-            constants_str::catalog::VALUE_773C5AF2,
+            constants_str::VALUE_773C5AF2,
             crate::axum_http_status_code::AxumHttpStatusCode::bad_request(),
         );
     }

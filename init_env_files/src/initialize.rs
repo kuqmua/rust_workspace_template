@@ -7,7 +7,7 @@ pub(crate) fn initialize(
     root: crate::workspace_root_path_ref::WorkspaceRootPathRef<'_>,
     mode: crate::run_mode::RunMode,
 ) -> Result<crate::init_entries::InitEntries, crate::initialize_error::InitializeError> {
-    let manifest_path = root.as_ref().join(constants_str::catalog::CARGO_TOML);
+    let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
     let manifest = crate::read_bounded_content::read_bounded_content(
         crate::init_path_ref::InitPathRef::from(manifest_path.as_path()),
         crate::init_max_bytes::InitMaxBytes::from(constants_usize::VALUE_1_048_576),
@@ -19,8 +19,8 @@ pub(crate) fn initialize(
         }
     })?;
     let members = value
-        .get(constants_str::catalog::WORKSPACE)
-        .and_then(|workspace| workspace.get(constants_str::catalog::MEMBERS))
+        .get(constants_str::WORKSPACE)
+        .and_then(|workspace| workspace.get(constants_str::MEMBERS))
         .and_then(toml::Value::as_array)
         .ok_or(crate::initialize_error::InitializeError::MembersMissing)?
         .iter()
@@ -49,7 +49,7 @@ pub(crate) fn initialize(
             let example_path = root
                 .as_ref()
                 .join(member.as_ref())
-                .join(constants_str::catalog::ENV_EXAMPLE);
+                .join(constants_str::ENV_EXAMPLE);
             if !bool::from(crate::path_exists::path_exists(
                 crate::init_path_ref::InitPathRef::from(example_path.as_path()),
             )) {
@@ -60,10 +60,7 @@ pub(crate) fn initialize(
                 crate::init_max_bytes::InitMaxBytes::from(constants_usize::VALUE_1_048_576),
             )
             .map_err(|source| crate::initialize_error::InitializeError::ReadExample { source })?;
-            let environment_path = root
-                .as_ref()
-                .join(member.as_ref())
-                .join(constants_str::catalog::ENV);
+            let environment_path = root.as_ref().join(member.as_ref()).join(constants_str::ENV);
             let status = if bool::from(crate::path_exists::path_exists(
                 crate::init_path_ref::InitPathRef::from(environment_path.as_path()),
             )) {

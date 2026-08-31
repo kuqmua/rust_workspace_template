@@ -21,7 +21,10 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
     {
         Ok(runtime) => runtime,
         Err(error) => {
-            tracing::error!(error = %error, "failed to create initial administrator creation runtime");
+            tracing::error!(
+                error = %error,
+                message = %constants_str::TRACING_ADMIN_RUNTIME_CREATION_FAILED,
+            );
             return administrator_account_command_exit_code::AdministratorAccountCommandExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
@@ -30,7 +33,7 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
             let mut args = std::env::args_os().skip(constants_usize::ONE);
             let login_arg = args.next().ok_or(administrator_command_args_error::AdministratorCommandArgsError::Usage)?;
             Ok(
-                if login_arg == std::ffi::OsStr::new(constants_str::test_fixtures::VALUE_01BE30BB) {
+                if login_arg == std::ffi::OsStr::new(constants_str::VALUE_01BE30BB) {
                     let reset_login_arg =
                         args.next().ok_or(administrator_command_args_error::AdministratorCommandArgsError::Usage)?;
                     let password_file = args.next().ok_or(administrator_command_args_error::AdministratorCommandArgsError::Usage)?;
@@ -147,13 +150,19 @@ fn main() -> administrator_account_command_exit_code::AdministratorAccountComman
     });
     match run_result {
         Ok(user_id) => {
-            tracing::info!(user_id = %user_id, "administrator operation completed");
+            tracing::info!(
+                user_id = %user_id,
+                message = %constants_str::TRACING_ADMIN_OPERATION_COMPLETED,
+            );
             administrator_account_command_exit_code::AdministratorAccountCommandExitCode::from(
                 std::process::ExitCode::SUCCESS,
             )
         }
         Err(error) => {
-            tracing::error!(error = %error, "administrator operation failed");
+            tracing::error!(
+                error = %error,
+                message = %constants_str::TRACING_ADMIN_OPERATION_FAILED,
+            );
             let status = administrator_account_command_status::AdministratorAccountCommandStatus::from(match error {
                 administrator_account_command_error::AdministratorAccountCommandError::Args(_)
                 | administrator_account_command_error::AdministratorAccountCommandError::PasswordFileValue => 2u8,

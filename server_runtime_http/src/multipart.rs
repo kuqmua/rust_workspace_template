@@ -2,7 +2,7 @@
 mod tests {
     fn field_name() -> crate::multipart_field_name::MultipartFieldName {
         crate::multipart_field_name::MultipartFieldName::try_from(String::from(
-            constants_str::catalog::FIELD,
+            constants_str::FIELD,
         ))
         .expect("0f4b54a3 field_name invariant must hold")
     }
@@ -20,7 +20,7 @@ mod tests {
             Err(crate::multipart_value_error::MultipartValueError::EmptyFieldName)
         );
         let _field_name = crate::multipart_field_name::MultipartFieldName::try_from(
-            constants_str::catalog::A_ALT.repeat(256usize),
+            constants_str::A_ALT.repeat(256usize),
         )
         .expect("1d3de882 multipart_value_wrappers_enforce_each_boundary invariant must hold");
         assert_eq!(
@@ -39,7 +39,7 @@ mod tests {
             Err(crate::multipart_value_error::MultipartValueError::EmptyFileName)
         );
         let _file_name = crate::multipart_file_name::MultipartFileName::try_from(
-            constants_str::catalog::A_ALT.repeat(1024usize),
+            constants_str::A_ALT.repeat(1024usize),
         )
         .expect("7b3ca38e multipart_value_wrappers_enforce_each_boundary invariant must hold");
         assert_eq!(
@@ -64,7 +64,7 @@ mod tests {
         );
 
         let _text = crate::multipart_text_value::MultipartTextValue::try_from(
-            constants_str::catalog::A_ALT.repeat(65_536usize),
+            constants_str::A_ALT.repeat(65_536usize),
         )
         .expect("c2dd1657 multipart_value_wrappers_enforce_each_boundary invariant must hold");
         assert_eq!(
@@ -80,12 +80,12 @@ mod tests {
     }
     #[test]
     fn multipart_parts_preserve_names_values_and_file_names() {
-        let text = text_part(constants_str::test_fixtures::VALUE_CD42404D);
+        let text = text_part(constants_str::VALUE_CD42404D);
         assert_eq!(text.name().as_ref(), "field");
         assert_eq!(text.value().as_ref(), "value");
 
         let file_name = crate::multipart_file_name::MultipartFileName::try_from(String::from(
-            constants_str::test_fixtures::VALUE_EAFB4AFF,
+            constants_str::VALUE_EAFB4AFF,
         ))
         .expect(
             "b76ab3ce multipart_parts_preserve_names_values_and_file_names invariant must hold",
@@ -106,7 +106,7 @@ mod tests {
     fn request_enforces_combined_payload_and_part_count() {
         let limited_request = crate::multipart_upload_request::MultipartUploadRequest::new()
             .with_text_part(
-                text_part(constants_str::catalog::AB),
+                text_part(constants_str::AB),
                 crate::multipart_payload_maximum::MultipartPayloadMaximum::from(3usize),
             )
             .expect(
@@ -125,7 +125,7 @@ mod tests {
                 crate::multipart_upload_request::MultipartUploadRequest::new(),
                 |accumulator, _idx| {
                     accumulator.with_text_part(
-                        text_part(constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX),
+                        text_part(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                         crate::multipart_payload_maximum::MultipartPayloadMaximum::from(
                             constants_usize::ZERO,
                         ),
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn storage_paths_validate_segments_and_preserve_file_extensions() {
         let _valid =
-            crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::test_fixtures::VALUE_A31BB256)).expect("20b6c6b2 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::VALUE_A31BB256)).expect("20b6c6b2 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
             crate::storage_path_segment::StoragePathSegment::try_from(String::new()),
             Err(crate::storage_path_segment_error::StoragePathSegmentError::Invalid)
@@ -164,10 +164,10 @@ mod tests {
         );
 
         let identifier =
-            crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::test_fixtures::VALUE_BCA3685F)).expect("ec2aa921 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
-        let unique = crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::test_fixtures::VALUE_C2720445)).expect("51bb3e40 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::VALUE_BCA3685F)).expect("ec2aa921 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+        let unique = crate::storage_path_segment::StoragePathSegment::try_from(String::from(constants_str::VALUE_C2720445)).expect("51bb3e40 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         let file_name =
-            crate::multipart_file_name::MultipartFileName::try_from(String::from(constants_str::test_fixtures::VALUE_4A1282F3)).expect("3ea5274e storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            crate::multipart_file_name::MultipartFileName::try_from(String::from(constants_str::VALUE_4A1282F3)).expect("3ea5274e storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
             crate::identifier_file_storage_relative_path::identifier_file_storage_relative_path(
                 &identifier,
@@ -178,7 +178,7 @@ mod tests {
             std::path::Path::new("entity/unique.gz")
         );
         let no_extension =
-            crate::multipart_file_name::MultipartFileName::try_from(String::from(constants_str::test_fixtures::VALUE_2B7814D3)).expect("b7a900a5 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
+            crate::multipart_file_name::MultipartFileName::try_from(String::from(constants_str::VALUE_2B7814D3)).expect("b7a900a5 storage_paths_validate_segments_and_preserve_file_extensions invariant must hold");
         assert_eq!(
             crate::identifier_file_storage_relative_path::identifier_file_storage_relative_path(
                 &identifier,

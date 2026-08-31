@@ -24,19 +24,17 @@ pub(crate) async fn role_mutations_update(
         .begin()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    sqlx::query_scalar::<_, bool>(
-        constants_str::integration_fixtures::SERVER_ADMIN_UPDATE_ROLE_SQL,
-    )
-    .bind(path.0.get())
-    .bind(name.as_ref())
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map(|value| server_admin_core::std_admin_bool::StdAdminBool::from(value.is_some()))
-    .map_err(|error| crate::map_unique_violation::map_unique_violation(error.into_inner()))?
-    .get()
-    .then_some(())
-    .ok_or(crate::admin_error::AdminError::Conflict)?;
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_ROLE_SQL)
+        .bind(path.0.get())
+        .bind(name.as_ref())
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map(|value| server_admin_core::std_admin_bool::StdAdminBool::from(value.is_some()))
+        .map_err(|error| crate::map_unique_violation::map_unique_violation(error.into_inner()))?
+        .get()
+        .then_some(())
+        .ok_or(crate::admin_error::AdminError::Conflict)?;
     crate::record_audit_success_in_connection::record_audit_success_in_connection(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,

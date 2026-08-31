@@ -71,25 +71,25 @@ pub(crate) async fn data_tables_get(
             let (base_count_sql, base_sql) = (|| {
                     let base_spec = table.spec();
                     let table_name = table.to_string();
-                    let mut count = constants_str::integration_fixtures::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
+                    let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
                     count.push_str(table_name.as_str());
                     let mut data = base_spec.columns().get().split(',').enumerate().fold(
-                        constants_str::integration_fixtures::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
+                        constants_str::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
                         |mut sql, (index, column)| {
                             if index > constants_usize::ZERO {
-                                sql.push_str(constants_str::catalog::TEXT_ALT_7);
+                                sql.push_str(constants_str::TEXT_ALT_7);
                             }
-                            sql.push_str(constants_str::integration_fixtures::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
+                            sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
                             sql.push_str(column);
-                            sql.push_str(constants_str::integration_fixtures::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
+                            sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
                             sql
                         },
                     );
-                    data.push_str(constants_str::integration_fixtures::SERVER_ADMIN_DATA_SELECT_FROM);
+                    data.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_FROM);
                     data.push_str(table_name.as_str());
-                    data.push_str(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
+                    data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
                     data.push_str(base_spec.order().get());
-                    data.push_str(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
+                    data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
                     Ok::<_, crate::admin_repository_error::AdminRepositoryError>((
                         server_admin_core::std_admin_string::StdAdminString::try_from(count)
                             .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
@@ -140,8 +140,8 @@ pub(crate) async fn data_tables_get(
                             };
                             let mut body = serde_json::Map::new();
                             let _body_operator_replaced = body.insert(
-                                constants_str::catalog::PG_CRUD_OPERATOR_FIELD.to_owned(),
-                                serde_json::Value::String(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
+                                constants_str::PG_CRUD_OPERATOR_FIELD.to_owned(),
+                                serde_json::Value::String(constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
                             );
                             match operation.value_shape() {
                                 frontend_contract::filter_value_shape::FilterValueShape::None => {
@@ -160,11 +160,11 @@ pub(crate) async fn data_tables_get(
                                         .and_then(parse_value)?;
                                     let mut range = serde_json::Map::new();
                                     let _range_start_replaced =
-                                        range.insert(constants_str::catalog::PG_CRUD_START_FIELD.to_owned(), start);
+                                        range.insert(constants_str::PG_CRUD_START_FIELD.to_owned(), start);
                                     let _range_end_replaced =
-                                        range.insert(constants_str::catalog::PG_CRUD_END_FIELD.to_owned(), end);
+                                        range.insert(constants_str::PG_CRUD_END_FIELD.to_owned(), end);
                                     let _body_range_replaced = body.insert(
-                                        constants_str::catalog::PG_CRUD_V_FIELD.to_owned(),
+                                        constants_str::PG_CRUD_V_FIELD.to_owned(),
                                         serde_json::Value::Object(range),
                                     );
                                 }
@@ -176,7 +176,7 @@ pub(crate) async fn data_tables_get(
                                         .value()
                                         .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
                                         .as_ref()
-                                        .split(constants_str::catalog::TEXT_ALT_7)
+                                        .split(constants_str::TEXT_ALT_7)
                                         .map(str::trim)
                                         .map(|raw_value| {
                                             let typed_value =
@@ -188,7 +188,7 @@ pub(crate) async fn data_tables_get(
                                         })
                                         .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
                                     let _body_list_replaced = body.insert(
-                                        constants_str::catalog::PG_CRUD_V_FIELD.to_owned(),
+                                        constants_str::PG_CRUD_V_FIELD.to_owned(),
                                         serde_json::Value::Array(values),
                                     );
                                 }
@@ -201,13 +201,13 @@ pub(crate) async fn data_tables_get(
                                         .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                                         .and_then(parse_value)?;
                                     let _body_regex_case_replaced = body.insert(
-                                        constants_str::integration_fixtures::SERVER_ADMIN_FILTER_REGEX_CASE_FIELD.to_owned(),
+                                        constants_str::SERVER_ADMIN_FILTER_REGEX_CASE_FIELD.to_owned(),
                                         serde_json::Value::String(
-                                            constants_str::integration_fixtures::SERVER_ADMIN_FILTER_REGEX_SENSITIVE.to_owned(),
+                                            constants_str::SERVER_ADMIN_FILTER_REGEX_SENSITIVE.to_owned(),
                                         ),
                                     );
                                     let _body_regex_value_replaced =
-                                        body.insert(constants_str::catalog::PG_CRUD_V_FIELD.to_owned(), value);
+                                        body.insert(constants_str::PG_CRUD_V_FIELD.to_owned(), value);
                                 }
                                 frontend_contract::filter_value_shape::FilterValueShape::EncodedText => {
                                     if query.end().is_some() {
@@ -217,13 +217,13 @@ pub(crate) async fn data_tables_get(
                                         .value()
                                         .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
                                     let _body_encode_format_replaced = body.insert(
-                                        constants_str::integration_fixtures::SERVER_ADMIN_FILTER_ENCODE_FORMAT_FIELD.to_owned(),
+                                        constants_str::SERVER_ADMIN_FILTER_ENCODE_FORMAT_FIELD.to_owned(),
                                         serde_json::Value::String(
-                                            constants_str::integration_fixtures::SERVER_ADMIN_FILTER_ENCODE_BASE64.to_owned(),
+                                            constants_str::SERVER_ADMIN_FILTER_ENCODE_BASE64.to_owned(),
                                         ),
                                     );
                                     let _body_encoded_value_replaced = body.insert(
-                                        constants_str::integration_fixtures::SERVER_ADMIN_FILTER_ENCODED_VALUE_FIELD.to_owned(),
+                                        constants_str::SERVER_ADMIN_FILTER_ENCODED_VALUE_FIELD.to_owned(),
                                         serde_json::Value::String(value.as_ref().to_owned()),
                                     );
                                 }
@@ -236,7 +236,7 @@ pub(crate) async fn data_tables_get(
                                         .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                                         .and_then(parse_value)?;
                                     let _body_scalar_replaced =
-                                        body.insert(constants_str::catalog::PG_CRUD_V_FIELD.to_owned(), value);
+                                        body.insert(constants_str::PG_CRUD_V_FIELD.to_owned(), value);
                                 }
                             }
                             let mut operation_entry = serde_json::Map::new();
@@ -244,12 +244,12 @@ pub(crate) async fn data_tables_get(
                                 operation_entry.insert(format!("{operation:?}"), serde_json::Value::Object(body));
                             let mut field_filters = serde_json::Map::new();
                             let _field_values_replaced = field_filters.insert(
-                                constants_str::catalog::PG_CRUD_V_FIELD.to_owned(),
+                                constants_str::PG_CRUD_V_FIELD.to_owned(),
                                 serde_json::Value::Array(vec![serde_json::Value::Object(operation_entry)]),
                             );
                             let _field_operator_replaced = field_filters.insert(
-                                constants_str::catalog::PG_CRUD_OPERATOR_FIELD.to_owned(),
-                                serde_json::Value::String(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
+                                constants_str::PG_CRUD_OPERATOR_FIELD.to_owned(),
+                                serde_json::Value::String(constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND.to_owned()),
                             );
                             let mut where_many = serde_json::Map::new();
                             let _field_replaced = where_many.insert(
@@ -302,21 +302,21 @@ pub(crate) async fn data_tables_get(
                             filtered_count.push_str(filter_fragment.as_ref());
                             let (data_prefix, ordered_suffix) = data_sql
                                 .get()
-                                .split_once(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
+                                .split_once(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
                                 .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
                             let order = ordered_suffix
-                                .strip_suffix(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
+                                .strip_suffix(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
                                 .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
                             let limit_index = bind_count.get().saturating_add(1u64);
                             let offset_index = limit_index.saturating_add(1u64);
                             let mut filtered_data = data_prefix.to_owned();
                             filtered_data.push(' ');
                             filtered_data.push_str(filter_fragment.as_ref());
-                            filtered_data.push_str(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
+                            filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
                             filtered_data.push_str(order);
-                            filtered_data.push_str(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_LIMIT_PREFIX);
+                            filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX);
                             filtered_data.push_str(limit_index.to_string().as_str());
-                            filtered_data.push_str(constants_str::integration_fixtures::SERVER_ADMIN_FILTER_OFFSET_PREFIX);
+                            filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_OFFSET_PREFIX);
                             filtered_data.push_str(offset_index.to_string().as_str());
                             let count = server_admin_core::std_admin_string::StdAdminString::try_from(filtered_count)
                                 .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
@@ -378,7 +378,7 @@ pub(crate) async fn data_tables_get(
                         .into_iter()
                         .map(|value| {
                             server_admin_contract::admin_text::AdminText::try_from(
-                                value.unwrap_or_else(|| constants_str::integration_fixtures::SERVER_ADMIN_DATA_NULL.to_owned()),
+                                value.unwrap_or_else(|| constants_str::SERVER_ADMIN_DATA_NULL.to_owned()),
                             )
                             .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                         })

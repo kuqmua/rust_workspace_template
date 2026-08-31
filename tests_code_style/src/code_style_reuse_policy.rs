@@ -60,7 +60,7 @@ fn function_body_hash(
 ) -> crate::types::FunctionBodyHash {
     let body = format!("{block:?}");
     let normalized_body =
-        identifier_pattern.replace_all(&body, constants_str::catalog::NORMALIZED_IDENTIFIER);
+        identifier_pattern.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
     let mut hasher = std::hash::DefaultHasher::new();
     std::hash::Hash::hash(&normalized_body, &mut hasher);
     crate::types::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))
@@ -73,13 +73,12 @@ fn substantial_function_bodies_have_one_source_of_truth() {
         locations
             .lines()
             .map(|location| {
-                let Some((path, function)) =
-                    location.rsplit_once(constants_str::catalog::PATH_SEPARATOR)
+                let Some((path, function)) = location.rsplit_once(constants_str::PATH_SEPARATOR)
                 else {
                     return location.to_owned();
                 };
                 let normalized_path = path
-                    .trim_start_matches(constants_str::catalog::TEXT_ALT_9)
+                    .trim_start_matches(constants_str::TEXT_ALT_9)
                     .trim_start_matches('/');
                 let immediate_owner =
                     crate::code_style::declared_children()
@@ -89,9 +88,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
                                 .then_some(crate::types::SourceTextRef::from(owner.as_str()))
                         });
                 let split_owner = immediate_owner.and_then(|candidate| {
-                    let owner_stem = candidate
-                        .get()
-                        .strip_suffix(constants_str::test_fixtures::RS_EXTENSION)?;
+                    let owner_stem = candidate.get().strip_suffix(constants_str::RS_EXTENSION)?;
                     normalized_path
                         .strip_prefix(owner_stem)
                         .is_some_and(|remainder| remainder.starts_with('/'))
@@ -102,20 +99,19 @@ fn substantial_function_bodies_have_one_source_of_truth() {
                     |candidate| {
                         format!(
                             "{}{}::{function}",
-                            constants_str::catalog::TEXT_ALT_9,
+                            constants_str::TEXT_ALT_9,
                             candidate.get()
                         )
                     },
                 )
             })
             .collect::<Vec<String>>()
-            .join(constants_str::catalog::NEWLINE)
+            .join(constants_str::NEWLINE)
     };
     let mut bodies = crate::types::FunctionBodyLocationsBTreeMap::default();
-    let identifier_pattern = regex::Regex::new(constants_str::test_fixtures::VALUE_58523C42)
-        .expect(
-            "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
-        );
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
+        "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
+    );
     super::code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(|file| {
             let mut visitor = FunctionBodyVisitor {
@@ -128,73 +124,72 @@ fn substantial_function_bodies_have_one_source_of_truth() {
     });
     let mut reviewed_groups = vec![
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS,
-            reason:
-                constants_str::test_fixtures::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
+            locations: constants_str::STRING_CONSTANT_SOURCE_VISITOR_LOCATIONS,
+            reason: constants_str::STRING_CONSTANT_MIGRATION_NORMALIZES_DISTINCT_FIXTURES,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_082A5401,
-            reason: constants_str::test_fixtures::VALUE_61609B06,
+            locations: constants_str::VALUE_082A5401,
+            reason: constants_str::VALUE_61609B06,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_3AE4AA02,
-            reason: constants_str::test_fixtures::VALUE_9DA4CB90,
+            locations: constants_str::VALUE_3AE4AA02,
+            reason: constants_str::VALUE_9DA4CB90,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_4FDDA503,
-            reason: constants_str::test_fixtures::VALUE_BBB02CF4,
+            locations: constants_str::VALUE_4FDDA503,
+            reason: constants_str::VALUE_BBB02CF4,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_4793A5FE,
-            reason: constants_str::test_fixtures::VALUE_95569DAB,
+            locations: constants_str::VALUE_4793A5FE,
+            reason: constants_str::VALUE_95569DAB,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_287FCBEB,
-            reason: constants_str::test_fixtures::VALUE_A6A100E2,
+            locations: constants_str::VALUE_287FCBEB,
+            reason: constants_str::VALUE_A6A100E2,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_292E1A7F,
-            reason: constants_str::test_fixtures::VALUE_F311E43F,
+            locations: constants_str::VALUE_292E1A7F,
+            reason: constants_str::VALUE_F311E43F,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS,
-            reason: constants_str::test_fixtures::VALUE_FE253AFB,
+            locations: constants_str::HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS,
+            reason: constants_str::VALUE_FE253AFB,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_599796F1,
-            reason: constants_str::test_fixtures::VALUE_8A3C621C,
+            locations: constants_str::VALUE_599796F1,
+            reason: constants_str::VALUE_8A3C621C,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_224F7450,
-            reason: constants_str::test_fixtures::VALUE_BD024C4B,
+            locations: constants_str::VALUE_224F7450,
+            reason: constants_str::VALUE_BD024C4B,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_11C1DCC5,
-            reason: constants_str::test_fixtures::VALUE_D0150024,
+            locations: constants_str::VALUE_11C1DCC5,
+            reason: constants_str::VALUE_D0150024,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_AE96131E,
-            reason: constants_str::test_fixtures::VALUE_879AE029,
+            locations: constants_str::VALUE_AE96131E,
+            reason: constants_str::VALUE_879AE029,
         },
         ReviewedDuplicateGroup {
-            locations: constants_str::test_fixtures::VALUE_51DBE253,
-            reason: constants_str::test_fixtures::VALUE_91B4F7EC,
+            locations: constants_str::VALUE_51DBE253,
+            reason: constants_str::VALUE_91B4F7EC,
         },
     ];
     reviewed_groups.extend(
-        constants_str::test_fixtures::CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS
+        constants_str::CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS
             .into_iter()
             .map(|locations| ReviewedDuplicateGroup {
                 locations,
-                reason: constants_str::test_fixtures::CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON,
+                reason: constants_str::CODE_STYLE_SPLIT_OWNER_DUPLICATE_REASON,
             }),
     );
     reviewed_groups.extend(
-        constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026
+        constants_str::CODE_STYLE_REVIEWED_DUPLICATE_GROUPS_2026
             .into_iter()
             .map(|locations| ReviewedDuplicateGroup {
                 locations,
-                reason: constants_str::test_fixtures::CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026,
+                reason: constants_str::CODE_STYLE_REVIEWED_DUPLICATE_REASON_2026,
             }),
     );
     let reviewed = reviewed_groups.into_iter().fold(
@@ -218,7 +213,7 @@ fn substantial_function_bodies_have_one_source_of_truth() {
     .filter(|locations| locations.len() > constants_usize::ONE)
     .filter_map(|mut locations| {
         locations.sort_unstable();
-        let location_signature = locations.join(constants_str::catalog::NEWLINE);
+        let location_signature = locations.join(constants_str::NEWLINE);
         let canonical = canonicalize_locations(location_signature.as_str());
         let actual_lines = canonical
             .lines()
@@ -254,11 +249,11 @@ fn substantial_function_bodies_have_one_source_of_truth() {
 
 #[test]
 fn function_body_similarity_ignores_identifier_names() {
-    let first = syn::parse_str::<syn::ItemFn>(constants_str::test_fixtures::VALUE_55C24F35)
+    let first = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_55C24F35)
         .expect("ca632fad first invariant must hold");
-    let second = syn::parse_str::<syn::ItemFn>(constants_str::test_fixtures::VALUE_A4EA5826)
+    let second = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_A4EA5826)
         .expect("b608f7e1 second invariant must hold");
-    let identifier_pattern = regex::Regex::new(constants_str::test_fixtures::VALUE_58523C42)
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
         .expect("9658f225 second invariant must hold");
     let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
     assert_eq!(
@@ -269,11 +264,11 @@ fn function_body_similarity_ignores_identifier_names() {
 
 #[test]
 fn function_body_similarity_preserves_behavioral_structure() {
-    let addition = syn::parse_str::<syn::ItemFn>(constants_str::test_fixtures::VALUE_F3BCDB38)
+    let addition = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_F3BCDB38)
         .expect("cb1d077f value invariant must hold");
-    let subtraction = syn::parse_str::<syn::ItemFn>(constants_str::test_fixtures::VALUE_B28E8E9F)
+    let subtraction = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_B28E8E9F)
         .expect("ae9313cb value invariant must hold");
-    let identifier_pattern = regex::Regex::new(constants_str::test_fixtures::VALUE_58523C42)
+    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
         .expect("fdf7075b value invariant must hold");
     let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
     assert_ne!(
@@ -284,7 +279,7 @@ fn function_body_similarity_preserves_behavioral_structure() {
 
 #[test]
 fn short_mechanical_adapters_are_not_substantial() {
-    let adapter = syn::parse_str::<syn::ItemFn>(constants_str::test_fixtures::VALUE_EC742D93)
+    let adapter = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_EC742D93)
         .expect("9dc062d1 value invariant must hold");
     assert!(!function_body_is_substantial(&adapter.block));
 }

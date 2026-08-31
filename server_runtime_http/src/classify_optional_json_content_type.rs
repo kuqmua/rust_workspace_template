@@ -8,9 +8,10 @@ pub fn classify_optional_json_content_type(
     if text.len() > constants_usize::VALUE_4_096 {
         return crate::optional_json_content_type::OptionalJsonContentType::NonJson;
     }
-    if text.parse::<mime::Mime>().is_ok_and(|media_type| {
-        media_type.essence_str() == constants_str::catalog::APPLICATION_JSON
-    }) {
+    if text
+        .parse::<mime::Mime>()
+        .is_ok_and(|media_type| media_type.essence_str() == constants_str::APPLICATION_JSON)
+    {
         crate::optional_json_content_type::OptionalJsonContentType::ApplicationJson
     } else {
         crate::optional_json_content_type::OptionalJsonContentType::NonJson

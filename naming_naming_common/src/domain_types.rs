@@ -113,24 +113,22 @@ mod tests {
     #[test]
     fn as_ref_case_conversions_are_expected() {
         assert_case_triplet(
-            super::AsRefStrToUpperCamelCaseStr::case(&constants_str::catalog::HELLO_WORLD_ALT),
-            super::AsRefStrToSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD),
-            super::AsRefStrToUpperSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD_ALT),
+            super::AsRefStrToUpperCamelCaseStr::case(&constants_str::HELLO_WORLD_ALT),
+            super::AsRefStrToSnakeCaseStr::case(&constants_str::HELLOWORLD),
+            super::AsRefStrToUpperSnakeCaseStr::case(&constants_str::HELLOWORLD_ALT),
         );
     }
     #[test]
     fn ts_case_conversions_are_expected() {
         assert_case_triplet(
             super::AsRefStrToUpperCamelCaseTokenStream::case_or_panic(
-                &constants_str::catalog::HELLO_WORLD_ALT,
+                &constants_str::HELLO_WORLD_ALT,
             )
             .to_string(),
-            super::AsRefStrToSnakeCaseTokenStream::case_or_panic(
-                &constants_str::catalog::HELLOWORLD,
-            )
-            .to_string(),
+            super::AsRefStrToSnakeCaseTokenStream::case_or_panic(&constants_str::HELLOWORLD)
+                .to_string(),
             super::AsRefStrToUpperSnakeCaseTokenStream::case_or_panic(
-                &constants_str::catalog::HELLOWORLD_ALT,
+                &constants_str::HELLOWORLD_ALT,
             )
             .to_string(),
         );
@@ -138,9 +136,9 @@ mod tests {
     #[test]
     fn display_and_tokens_conversion_are_expected() {
         assert_case_triplet(
-            super::DisplayToUpperCamelCaseStr::case(&constants_str::catalog::HELLO_WORLD_ALT),
-            super::DisplayToSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD),
-            super::DisplayToUpperSnakeCaseStr::case(&constants_str::catalog::HELLOWORLD_ALT),
+            super::DisplayToUpperCamelCaseStr::case(&constants_str::HELLO_WORLD_ALT),
+            super::DisplayToSnakeCaseStr::case(&constants_str::HELLOWORLD),
+            super::DisplayToUpperSnakeCaseStr::case(&constants_str::HELLOWORLD_ALT),
         );
         assert_case_triplet(
             super::ToTokensToUpperCamelCaseStr::case(&quote::quote! {hello_world}),
@@ -152,15 +150,13 @@ mod tests {
     fn display_and_tokens_token_stream_conversion_are_expected() {
         assert_case_triplet(
             super::DisplayToUpperCamelCaseTokenStream::case_or_panic(
-                &constants_str::catalog::HELLO_WORLD_ALT,
+                &constants_str::HELLO_WORLD_ALT,
             )
             .to_string(),
-            super::DisplayToSnakeCaseTokenStream::case_or_panic(
-                &constants_str::catalog::HELLOWORLD,
-            )
-            .to_string(),
+            super::DisplayToSnakeCaseTokenStream::case_or_panic(&constants_str::HELLOWORLD)
+                .to_string(),
             super::DisplayToUpperSnakeCaseTokenStream::case_or_panic(
-                &constants_str::catalog::HELLOWORLD_ALT,
+                &constants_str::HELLOWORLD_ALT,
             )
             .to_string(),
         );

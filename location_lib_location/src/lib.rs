@@ -7,7 +7,7 @@ pub fn errors_with_location(
     if !attr_token_stream.is_empty() {
         return syn::Error::new(
             proc_macro2::Span::call_site(),
-            constants_str::catalog::ERRORS_WITH_LOCATION_DOES_NOT_ACCEPT_ARGUMENTS,
+            constants_str::ERRORS_WITH_LOCATION_DOES_NOT_ACCEPT_ARGUMENTS,
         )
         .into_compile_error()
         .into();
@@ -22,18 +22,18 @@ pub fn errors_with_location(
             let syn::Fields::Named(fields) = &mut variant.fields else {
                 return Err(syn::Error::new_spanned(
                     variant,
-                    constants_str::catalog::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS,
+                    constants_str::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS,
                 ));
             };
             if fields.named.iter().any(|field| {
                 field
                     .ident
                     .as_ref()
-                    .is_some_and(|identifier| identifier == constants_str::catalog::LOCATION_ALT)
+                    .is_some_and(|identifier| identifier == constants_str::LOCATION_ALT)
             }) {
                 return Err(syn::Error::new_spanned(
                     variant,
-                    constants_str::catalog::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD,
+                    constants_str::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD,
                 ));
             }
             fields
@@ -55,18 +55,18 @@ fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> sy
         let syn::Fields::Named(fields) = &mut variant.fields else {
             return Err(syn::Error::new_spanned(
                 variant,
-                constants_str::catalog::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS,
+                constants_str::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS,
             ));
         };
         if fields.named.iter().any(|field| {
             field
                 .ident
                 .as_ref()
-                .is_some_and(|identifier| identifier == constants_str::catalog::LOCATION_ALT)
+                .is_some_and(|identifier| identifier == constants_str::LOCATION_ALT)
         }) {
             return Err(syn::Error::new_spanned(
                 variant,
-                constants_str::catalog::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD,
+                constants_str::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD,
             ));
         }
         fields
@@ -101,10 +101,7 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let utoipa_to_schema_token_stream = di
         .attrs
         .iter()
-        .any(|attr| {
-            attr.path()
-                .is_ident(constants_str::catalog::LOCATION_TO_SCHEMA)
-        })
+        .any(|attr| attr.path().is_ident(constants_str::LOCATION_TO_SCHEMA))
         .then(|| quote::quote! {utoipa::ToSchema,});
     let identifier = &di.ident;
     let string_token_stream = token_patterns::StringTokenStream;
@@ -612,7 +609,7 @@ mod tests {
         let error = super::add_location_fields(
             super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item),
         )
-        .expect_err(constants_str::catalog::VALUE_371082FA);
+        .expect_err(constants_str::VALUE_371082FA);
         assert_eq!(
             error.to_string(),
             "errors_with_location variant already has a location field"
@@ -626,7 +623,7 @@ mod tests {
         let error = super::add_location_fields(
             super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item),
         )
-        .expect_err(constants_str::catalog::VALUE_982F4D17);
+        .expect_err(constants_str::VALUE_982F4D17);
         assert_eq!(
             error.to_string(),
             "errors_with_location supports only variants with named fields"

@@ -26,7 +26,7 @@ impl HttpErrorDiagnostic {
     ) -> Self {
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
-            || constants_str::test_fixtures::HTTP_SPAN_UNAVAILABLE.to_owned(),
+            || constants_str::HTTP_SPAN_UNAVAILABLE.to_owned(),
             |metadata| format!("{current_span:?} [{}]", metadata.name()),
         );
         Self {
@@ -57,7 +57,7 @@ impl HttpErrorDiagnostic {
                 let mut current = Some(self.0);
                 while let Some(error) = current {
                     if !is_first {
-                        f.write_str(constants_str::test_fixtures::HTTP_ERROR_CHAIN_SEPARATOR)?;
+                        f.write_str(constants_str::HTTP_ERROR_CHAIN_SEPARATOR)?;
                     }
                     std::fmt::Display::fmt(error, f)?;
                     is_first = false;
@@ -120,12 +120,8 @@ mod tests {
     #[test]
     fn fallback_diagnostic_keeps_telemetry() {
         let telemetry = crate::http_error_telemetry::HttpErrorTelemetry::new(
-            crate::http_error_type::HttpErrorType::from(
-                constants_str::test_fixtures::VALUE_AF7C24A2,
-            ),
-            crate::http_error_code::HttpErrorCode::from(
-                constants_str::test_fixtures::VALUE_CF4DCEBB,
-            ),
+            crate::http_error_type::HttpErrorType::from(constants_str::VALUE_AF7C24A2),
+            crate::http_error_code::HttpErrorCode::from(constants_str::VALUE_CF4DCEBB),
         );
         let diagnostic = super::HttpErrorDiagnostic::capture(
             telemetry,

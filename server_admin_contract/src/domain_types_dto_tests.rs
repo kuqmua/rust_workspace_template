@@ -1,13 +1,11 @@
 #[test]
 fn authenticated_admin_checks_owned_permissions() {
     let admin = crate::authenticated_admin::AuthenticatedAdmin::new(
-        crate::admin_display_name::AdminDisplayName::try_from(
-            constants_str::catalog::ADMIN.to_owned(),
-        )
-        .expect("68e94b2f authenticated_admin_checks_owned_permissions invariant must hold"),
+        crate::admin_display_name::AdminDisplayName::try_from(constants_str::ADMIN.to_owned())
+            .expect("68e94b2f authenticated_admin_checks_owned_permissions invariant must hold"),
         crate::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
             .expect("134f7a9c authenticated_admin_checks_owned_permissions invariant must hold"),
-        crate::admin_login::AdminLogin::try_from(constants_str::catalog::ROOT.to_owned())
+        crate::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
             .expect("971c5e42 authenticated_admin_checks_owned_permissions invariant must hold"),
         crate::admin_permission_values::AdminPermissionValues::try_from(vec![
             crate::admin_permission_value::AdminPermissionValue::try_from(
@@ -16,7 +14,7 @@ fn authenticated_admin_checks_owned_permissions() {
                     .get()
                     .to_owned(),
             )
-            .expect(constants_str::test_fixtures::VALUE_785335E9),
+            .expect(constants_str::VALUE_785335E9),
         ])
         .expect("bd2806f1 authenticated_admin_checks_owned_permissions invariant must hold"),
         crate::admin_role_names::AdminRoleNames::try_from(Vec::new())
@@ -42,14 +40,12 @@ fn authenticated_admin_checks_owned_permissions() {
 #[test]
 fn change_own_password_has_no_session_revocation_choice() {
     let request = crate::admin_change_own_password_req::AdminChangeOwnPasswordReq::new(
-        crate::admin_password::AdminPassword::try_from(String::from(
-            constants_str::test_fixtures::VALUE_A1AB879D,
-        ))
-        .expect(
-            "c10e4db7 change_own_password_has_no_session_revocation_choice invariant must hold",
-        ),
+        crate::admin_password::AdminPassword::try_from(String::from(constants_str::VALUE_A1AB879D))
+            .expect(
+                "c10e4db7 change_own_password_has_no_session_revocation_choice invariant must hold",
+            ),
         crate::admin_new_password::AdminNewPassword::try_from(String::from(
-            constants_str::test_fixtures::VALUE_05A7131F,
+            constants_str::VALUE_05A7131F,
         ))
         .expect(
             "5932a1fe change_own_password_has_no_session_revocation_choice invariant must hold",
@@ -67,25 +63,24 @@ fn change_own_password_has_no_session_revocation_choice() {
     );
     let Err(_unknown_field_error) = serde_json::from_str::<
         crate::admin_change_own_password_req::AdminChangeOwnPasswordReq,
-    >(constants_str::test_fixtures::VALUE_4A4AAF28) else {
+    >(constants_str::VALUE_4A4AAF28) else {
         panic!("abaa9cdf");
     };
 }
 
 #[test]
 fn passwords_are_redacted_and_share_policy() {
-    let password = crate::admin_password::AdminPassword::try_from(String::from(
-        constants_str::catalog::SECRET,
-    ))
-    .expect("9f3f5164 passwords_are_redacted_and_share_policy invariant must hold");
+    let password =
+        crate::admin_password::AdminPassword::try_from(String::from(constants_str::SECRET))
+            .expect("9f3f5164 passwords_are_redacted_and_share_policy invariant must hold");
     assert!(!format!("{password:?}").contains("secret"));
     let _new_password = crate::admin_new_password::AdminNewPassword::try_from(
-        constants_str::test_fixtures::TEST_STRONG_PASSWORD.to_owned(),
+        constants_str::TEST_STRONG_PASSWORD.to_owned(),
     )
     .expect("da19950b passwords_are_redacted_and_share_policy invariant must hold");
-    let Err(_weak_password_error) = crate::admin_new_password::AdminNewPassword::try_from(
-        constants_str::catalog::PASSWORD.to_owned(),
-    ) else {
+    let Err(_weak_password_error) =
+        crate::admin_new_password::AdminNewPassword::try_from(constants_str::PASSWORD.to_owned())
+    else {
         panic!("24900f2f");
     };
 }
@@ -115,36 +110,37 @@ fn sign_in_accepts_only_login_and_password() {
 
 #[test]
 fn domain_values_follow_database_compatible_policies() {
-    let _valid_login =
-        crate::admin_login::AdminLogin::try_from(constants_str::catalog::ADMIN_USER_1.to_owned())
-            .expect(
-                "e1cddebc domain_values_follow_database_compatible_policies invariant must hold",
-            );
+    let _valid_login = crate::admin_login::AdminLogin::try_from(
+        constants_str::ADMIN_USER_1.to_owned(),
+    )
+    .expect("e1cddebc domain_values_follow_database_compatible_policies invariant must hold");
     let Err(_reserved_login_error) =
-        crate::admin_login::AdminLogin::try_from(constants_str::catalog::ADMIN.to_owned())
+        crate::admin_login::AdminLogin::try_from(constants_str::ADMIN.to_owned())
     else {
         panic!("ab23c76e");
     };
     let Err(_short_login_error) =
-        crate::admin_login::AdminLogin::try_from(constants_str::catalog::AB.to_owned())
+        crate::admin_login::AdminLogin::try_from(constants_str::AB.to_owned())
     else {
         panic!("ce5b9e72");
     };
-    let _valid_display_name = crate::admin_display_name::AdminDisplayName::try_from(
-        constants_str::catalog::ADMIN.to_owned(),
-    )
-    .expect("d315b74f domain_values_follow_database_compatible_policies invariant must hold");
-    let Err(_blank_display_name_error) = crate::admin_display_name::AdminDisplayName::try_from(
-        constants_str::catalog::SPACE.to_owned(),
-    ) else {
+    let _valid_display_name =
+        crate::admin_display_name::AdminDisplayName::try_from(constants_str::ADMIN.to_owned())
+            .expect(
+                "d315b74f domain_values_follow_database_compatible_policies invariant must hold",
+            );
+    let Err(_blank_display_name_error) =
+        crate::admin_display_name::AdminDisplayName::try_from(constants_str::SPACE.to_owned())
+    else {
         panic!("1ccd43aa");
     };
-    let _valid_role_name = crate::admin_role_name::AdminRoleName::try_from(
-        constants_str::catalog::ADMIN_ALT.to_owned(),
-    )
-    .expect("713890e9 domain_values_follow_database_compatible_policies invariant must hold");
+    let _valid_role_name =
+        crate::admin_role_name::AdminRoleName::try_from(constants_str::ADMIN_ALT.to_owned())
+            .expect(
+                "713890e9 domain_values_follow_database_compatible_policies invariant must hold",
+            );
     let Err(_reserved_role_name_error) =
-        crate::admin_role_name::AdminRoleName::try_from(constants_str::catalog::ADMIN.to_owned())
+        crate::admin_role_name::AdminRoleName::try_from(constants_str::ADMIN.to_owned())
     else {
         panic!("147fe35a");
     };

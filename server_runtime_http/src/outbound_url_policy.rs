@@ -28,9 +28,9 @@ impl OutboundUrlPolicy {
         let value_text = value.get();
         if value_text.contains(['\0', '\r', '\n'])
             || value_text.as_bytes().windows(3usize).any(|window| {
-                window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_NUL)
-                    || window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_CR)
-                    || window.eq_ignore_ascii_case(constants_str::test_fixtures::PERCENT_ENCODED_LF)
+                window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_NUL)
+                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_CR)
+                    || window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_LF)
             })
         {
             return Err(crate::outbound_url_error::OutboundUrlError::ControlCharacter);
@@ -42,16 +42,16 @@ impl OutboundUrlPolicy {
         }
         if !self.schemes.iter().any(|scheme| match scheme {
             crate::outbound_url_scheme::OutboundUrlScheme::Http => {
-                url.scheme() == constants_str::catalog::HTTP
+                url.scheme() == constants_str::HTTP
             }
             crate::outbound_url_scheme::OutboundUrlScheme::Https => {
-                url.scheme() == constants_str::catalog::HTTPS
+                url.scheme() == constants_str::HTTPS
             }
             crate::outbound_url_scheme::OutboundUrlScheme::Rtsp => {
-                url.scheme() == constants_str::test_fixtures::RTSP
+                url.scheme() == constants_str::RTSP
             }
             crate::outbound_url_scheme::OutboundUrlScheme::Rtsps => {
-                url.scheme() == constants_str::test_fixtures::RTSPS
+                url.scheme() == constants_str::RTSPS
             }
         }) {
             return Err(crate::outbound_url_error::OutboundUrlError::Scheme);
@@ -60,10 +60,10 @@ impl OutboundUrlPolicy {
             .host_str()
             .ok_or(crate::outbound_url_error::OutboundUrlError::MissingHost)?;
         if self.host_policy == crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate
-            && (host.eq_ignore_ascii_case(constants_str::integration_fixtures::LOCALHOST)
+            && (host.eq_ignore_ascii_case(constants_str::LOCALHOST)
                 || host
                     .to_ascii_lowercase()
-                    .ends_with(constants_str::test_fixtures::DOT_LOCALHOST))
+                    .ends_with(constants_str::DOT_LOCALHOST))
         {
             return Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost);
         }

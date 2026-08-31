@@ -13,7 +13,7 @@ impl axum::response::IntoResponse for MetricsError {
         match self {
             Self::Render(error) => {
                 let error_type = server_runtime_http::http_error_type::HttpErrorType::from(
-                    constants_str::test_fixtures::NOTIFICATION_API_ERROR_TYPE,
+                    constants_str::NOTIFICATION_API_ERROR_TYPE,
                 );
                 let mut response = axum::response::IntoResponse::into_response(
                     frontend_contract::api_problem_error::ApiProblemError::Internal(

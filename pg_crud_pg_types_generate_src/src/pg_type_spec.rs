@@ -16,7 +16,7 @@ mod tests {
             can_be_nullable: true,
             can_be_primary_key: false,
             filter_kind: 7u8,
-            pg_name: constants_str::catalog::PG_CRUD_PG_INT4,
+            pg_name: constants_str::PG_CRUD_PG_INT4,
             wire_kind: 32u8,
         };
         assert!(crate::pg_type_can_be_nullable::pg_type_can_be_nullable(

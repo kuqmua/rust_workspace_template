@@ -25,7 +25,7 @@ async fn notification_provider_records_messages_through_runtime_contract() {
     let (provider, mut inbox) =
         crate::create_mock_notification_provider::create_mock_notification_provider();
     let message = server_runtime_http::runtime_notification_message::RuntimeNotificationMessage::try_from(
-            constants_str::test_fixtures::TEST_NOTIFICATION_MESSAGE.to_owned(),
+            constants_str::TEST_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("6ef25d4a notification_provider_records_messages_through_runtime_contract invariant must hold");
     let result =

@@ -40,11 +40,11 @@ impl Operator {
                     Err(error) => crate::query_part_fragment::QueryPartFragment::from(error),
                 };
             }
-            (false, Self::AndNot | Self::OrNot) => constants_str::catalog::NOT,
-            (true, Self::And) => constants_str::catalog::AND_ALT,
-            (true, Self::AndNot) => constants_str::catalog::AND_NOT,
-            (true, Self::Or) => constants_str::catalog::OR,
-            (true, Self::OrNot) => constants_str::catalog::OR_NOT,
+            (false, Self::AndNot | Self::OrNot) => constants_str::NOT,
+            (true, Self::And) => constants_str::AND_ALT,
+            (true, Self::AndNot) => constants_str::AND_NOT,
+            (true, Self::Or) => constants_str::OR,
+            (true, Self::OrNot) => constants_str::OR_NOT,
         };
         match crate::query_part_fragment::QueryPartFragment::try_from(String::from(fragment)) {
             Ok(value) => value,

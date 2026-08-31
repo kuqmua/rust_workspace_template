@@ -14,7 +14,7 @@ where
             let mut attr_segments = attr.attr().path().segments.iter();
             let mut expected_segments = attr_path
                 .as_ref()
-                .split(constants_str::catalog::PATH_SEPARATOR)
+                .split(constants_str::PATH_SEPARATOR)
                 .map(str::trim)
                 .filter(|element| !element.is_empty());
             loop {

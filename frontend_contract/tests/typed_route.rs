@@ -60,8 +60,8 @@ mod tests {
             frontend_contract::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
             frontend_contract::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
         ],
-        openapi_operation_id = constants_str::catalog::ROUTE_READ,
-        path = constants_str::catalog::ROUTE,
+        openapi_operation_id = constants_str::ROUTE_READ,
+        path = constants_str::ROUTE,
         request = TestRequest,
         request_body = frontend_contract::route_request_body::RouteRequestBody::Json,
         response = TestResponse,
@@ -90,10 +90,10 @@ mod tests {
                 frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
                 frontend_contract::route_method::RouteMethod::Get,
                 frontend_contract::mutation_kind::MutationKind::ReadOnly,
-                frontend_contract::contract_str::ContractStr::from(constants_str::catalog::ROUTE),
+                frontend_contract::contract_str::ContractStr::from(constants_str::ROUTE),
                 frontend_contract::success_status::SuccessStatus::Code200,
             ),
-            path = constants_str::catalog::ROUTE,
+            path = constants_str::ROUTE,
             exclude_from_family,
         )]
         Custom,
@@ -105,8 +105,8 @@ mod tests {
     fn derive_uses_one_declaration_for_types_and_metadata() {
         let metadata =
             frontend_contract::client_route_metadata::client_route_metadata::<TestRoute>();
-        assert_eq!(metadata.method().as_ref(), constants_str::catalog::GET);
-        assert_eq!(metadata.path().as_ref(), constants_str::catalog::ROUTE);
+        assert_eq!(metadata.method().as_ref(), constants_str::GET);
+        assert_eq!(metadata.path().as_ref(), constants_str::ROUTE);
         assert_eq!(
             <TestRoute as frontend_contract::typed_route::TypedRoute>::request_body(),
             frontend_contract::route_request_body::RouteRequestBody::Json
@@ -116,7 +116,7 @@ mod tests {
             frontend_contract::server_response::server_response::<TestRoute>(TestResponse);
         assert_eq!(
             test_route(),
-            frontend_contract::contract_str::ContractStr::from(constants_str::catalog::ROUTE)
+            frontend_contract::contract_str::ContractStr::from(constants_str::ROUTE)
         );
         assert_eq!(
             size_of_val(&test_client::<TestTransport>),
@@ -149,7 +149,7 @@ mod tests {
             match response_ref {
                 utoipa::openapi::RefOr::T(response_value) => response_value
                     .content
-                    .contains_key(constants_str::catalog::APPLICATION_JSON),
+                    .contains_key(constants_str::APPLICATION_JSON),
                 utoipa::openapi::RefOr::Ref(_reference) => false,
             }
         }));
@@ -171,7 +171,7 @@ mod tests {
         assert!(
             request_body
                 .content
-                .contains_key(constants_str::catalog::APPLICATION_JSON)
+                .contains_key(constants_str::APPLICATION_JSON)
         );
     }
 
@@ -210,7 +210,7 @@ mod tests {
         assert_eq!(TestCatalog::ALL, [TestCatalog::Custom, TestCatalog::Read]);
         assert_eq!(
             custom_route(),
-            frontend_contract::contract_str::ContractStr::from(constants_str::catalog::ROUTE)
+            frontend_contract::contract_str::ContractStr::from(constants_str::ROUTE)
         );
         assert_eq!(
             size_of_val(&custom_client::<TestTransport>),
@@ -223,7 +223,7 @@ mod tests {
         );
         assert_eq!(
             String::from(TestCatalog::Custom.catalog_path()),
-            constants_str::catalog::ROUTE
+            constants_str::ROUTE
         );
         assert_eq!(
             <TestCatalogFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors()

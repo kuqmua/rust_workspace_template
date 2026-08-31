@@ -28,7 +28,7 @@ where
     let (auth, expected, selected) = match (|| {
         let auth = crate::form_auth_impl::form_auth_impl(auth)?;
         let expected = parse(expected)?;
-        let separator = constants_str::test_fixtures::COMMA_SPACE.trim();
+        let separator = constants_str::COMMA_SPACE.trim();
         let selected = bounded_types::bounded_b_tree_map::BoundedBTreeMap::<
             crate::admin_html_form_key::AdminHtmlFormKey,
             crate::admin_html_form_text::AdminHtmlFormText,

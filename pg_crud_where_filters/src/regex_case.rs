@@ -25,11 +25,11 @@ impl RegexCase {
         match &self {
             Self::Insensitive => {
                 crate::regex_case_postgreql_syntax::RegexCasePostgreqlSyntax::from(
-                    constants_str::integration_fixtures::ASTERISK_ALT,
+                    constants_str::ASTERISK_ALT,
                 )
             }
             Self::Sensitive => crate::regex_case_postgreql_syntax::RegexCasePostgreqlSyntax::from(
-                constants_str::integration_fixtures::TEXT_ALT_15,
+                constants_str::TEXT_ALT_15,
             ),
         }
     }

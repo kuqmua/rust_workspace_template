@@ -11,15 +11,12 @@ pub struct ConfigFieldDescriptor {
 }
 impl std::fmt::Debug for ConfigFieldDescriptor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::test_fixtures::CONFIG_FIELD_DESCRIPTOR)
-            .field(constants_str::test_fixtures::ENV_NAME, &self.env_name)
-            .field(constants_str::catalog::EXAMPLE, &self.example)
-            .field(constants_str::test_fixtures::REQUIRED, &self.requirement)
-            .field(
-                constants_str::test_fixtures::RUST_TYPE_NAME,
-                &self.rust_type_name,
-            )
-            .field(constants_str::test_fixtures::SENSITIVITY, &self.sensitivity)
+        f.debug_struct(constants_str::CONFIG_FIELD_DESCRIPTOR)
+            .field(constants_str::ENV_NAME, &self.env_name)
+            .field(constants_str::EXAMPLE, &self.example)
+            .field(constants_str::REQUIRED, &self.requirement)
+            .field(constants_str::RUST_TYPE_NAME, &self.rust_type_name)
+            .field(constants_str::SENSITIVITY, &self.sensitivity)
             .finish_non_exhaustive()
     }
 }

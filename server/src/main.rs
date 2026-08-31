@@ -20,14 +20,17 @@ fn main() -> server_exit_code::ServerExitCode {
         Ok(config) => config,
         Err(config_error) => {
             let startup_error = run_server_error::RunServerError::Config(config_error);
-            tracing::error!(error = %startup_error, "server configuration failed");
+            tracing::error!(
+                error = %startup_error,
+                message = %constants_str::TRACING_SERVER_CONFIG_FAILED,
+            );
             return server_exit_code::ServerExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
     if let Err(error) = config.validate_for_startup() {
         tracing::error!(
             error = %run_server_error::RunServerError::ConfigProduction(error),
-            "server production configuration validation failed"
+            message = %constants_str::TRACING_SERVER_PRODUCTION_CONFIG_FAILED,
         );
         return server_exit_code::ServerExitCode::from(std::process::ExitCode::FAILURE);
     }
@@ -46,7 +49,7 @@ fn main() -> server_exit_code::ServerExitCode {
             Err(error) => {
                 tracing::error!(
                     error = %run_server_error::RunServerError::ObservabilityInit(error),
-                    "server observability initialization failed"
+                    message = %constants_str::TRACING_SERVER_OBSERVABILITY_INIT_FAILED,
                 );
                 return server_exit_code::ServerExitCode::from(std::process::ExitCode::FAILURE);
             }
@@ -105,10 +108,13 @@ fn main() -> server_exit_code::ServerExitCode {
                                     {
                                         Ok(report) => tracing::info!(
                                             deleted_rows = %report.total_rows(),
-                                            "administrator operational tables cleaned"
+                                            message = %constants_str::TRACING_ADMIN_TABLES_CLEANED,
                                         ),
                                         Err(error) => {
-                                            tracing::error!(error = %error, "administrator operational table cleanup failed");
+                                            tracing::error!(
+                                                error = %error,
+                                                message = %constants_str::TRACING_ADMIN_TABLE_CLEANUP_FAILED,
+                                            );
                                         }
                                     }
                                 }
@@ -228,7 +234,7 @@ fn main() -> server_exit_code::ServerExitCode {
                                         |body| {
                                             let title_result =
                                                 server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
-                                                    constants_str::catalog::METRICS_ALT.to_owned(),
+                                                    constants_str::METRICS_ALT.to_owned(),
                                                 );
                                             let text_result =
                                                 server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
@@ -384,16 +390,16 @@ fn main() -> server_exit_code::ServerExitCode {
                                                         .allow_headers([
                                                             axum::http::header::CONTENT_TYPE,
                                                             axum::http::HeaderName::from_static(
-                                                                constants_str::catalog::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+                                                                constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
                                                             ),
                                                             axum::http::HeaderName::from_static(
-                                                                constants_str::catalog::IDEMPOTENCY_KEY_ALT,
+                                                                constants_str::IDEMPOTENCY_KEY_ALT,
                                                             ),
                                                             axum::http::HeaderName::from_static(
-                                                                constants_str::catalog::IF_MATCH_ALT,
+                                                                constants_str::IF_MATCH_ALT,
                                                             ),
                                                             axum::http::HeaderName::from_static(
-                                                                constants_str::catalog::X_CSRF_TOKEN_ALT,
+                                                                constants_str::X_CSRF_TOKEN_ALT,
                                                             ),
                                                         ])
                                                         .allow_methods([
@@ -416,7 +422,10 @@ fn main() -> server_exit_code::ServerExitCode {
                                 if let Err(error) =
                                     server_runtime_http::wait_for_service_shutdown_signal::wait_for_service_shutdown_signal().await
                                 {
-                                    tracing::error!(error = %error, "failed to wait for shutdown signal");
+                                    tracing::error!(
+                                        error = %error,
+                                        message = %constants_str::TRACING_SERVER_SHUTDOWN_SIGNAL_FAILED,
+                                    );
                                 }
                             },
                             request_timeout,
@@ -432,7 +441,10 @@ fn main() -> server_exit_code::ServerExitCode {
             }
         });
     if let Err(error) = run_result.as_ref() {
-        tracing::error!(error = %error, "server terminated with an error");
+        tracing::error!(
+            error = %error,
+            message = %constants_str::TRACING_SERVER_TERMINATED,
+        );
     }
     let shutdown_result = observability
         .shutdown()
@@ -440,7 +452,10 @@ fn main() -> server_exit_code::ServerExitCode {
     match run_result.and(shutdown_result) {
         Ok(()) => server_exit_code::ServerExitCode::from(std::process::ExitCode::SUCCESS),
         Err(error) => {
-            tracing::error!(error = %error, "server operation or observability shutdown failed");
+            tracing::error!(
+                error = %error,
+                message = %constants_str::TRACING_SERVER_OPERATION_OR_SHUTDOWN_FAILED,
+            );
             server_exit_code::ServerExitCode::from(std::process::ExitCode::FAILURE)
         }
     }

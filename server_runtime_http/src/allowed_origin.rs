@@ -22,10 +22,10 @@ impl TryFrom<String> for AllowedOrigin {
     fn try_from(mut value: String) -> Result<Self, Self::Error> {
         let (scheme, authority_start) = {
             let (scheme, remainder) = value
-                .split_once(constants_str::catalog::TEXT_ALT_10)
+                .split_once(constants_str::TEXT_ALT_10)
                 .ok_or(crate::allowed_origin_error::AllowedOriginError::Invalid)?;
-            if (!scheme.eq_ignore_ascii_case(constants_str::catalog::HTTP)
-                && !scheme.eq_ignore_ascii_case(constants_str::catalog::HTTPS))
+            if (!scheme.eq_ignore_ascii_case(constants_str::HTTP)
+                && !scheme.eq_ignore_ascii_case(constants_str::HTTPS))
                 || remainder.is_empty()
                 || remainder.contains(['/', '?', '#'])
             {
@@ -35,7 +35,7 @@ impl TryFrom<String> for AllowedOrigin {
                 scheme.to_owned(),
                 scheme
                     .len()
-                    .saturating_add(constants_str::catalog::TEXT_ALT_10.len()),
+                    .saturating_add(constants_str::TEXT_ALT_10.len()),
             )
         };
         drop(value.drain(..authority_start));

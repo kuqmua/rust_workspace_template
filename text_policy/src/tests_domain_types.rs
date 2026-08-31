@@ -4,7 +4,7 @@ mod tests {
     fn required_bounded_text_rejects_nul() {
         assert_eq!(
             crate::required_nul_free_bounded_text::RequiredNulFreeBoundedText::try_from(
-                constants_str::test_fixtures::TEST_TEXT_WITH_NUL.to_owned()
+                constants_str::TEST_TEXT_WITH_NUL.to_owned()
             ),
             Err(crate::bounded_text_policy_error::BoundedTextPolicyError::ContainsNul)
         );
@@ -13,12 +13,12 @@ mod tests {
     #[test]
     fn fixed_hex_requires_lowercase_and_exact_length() {
         let _value = crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText::try_from(
-            constants_str::test_fixtures::TEST_GIT_COMMIT_HASH.to_owned(),
+            constants_str::TEST_GIT_COMMIT_HASH.to_owned(),
         )
         .expect("fdb4f77c fixed_hex_requires_lowercase_and_exact_length invariant must hold");
         assert_eq!(
             crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText::try_from(
-                constants_str::test_fixtures::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
+                constants_str::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
             ),
             Err(crate::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError::InvalidSymbol)
         );
@@ -28,8 +28,8 @@ mod tests {
     fn url_safe_token_policy_is_table_driven() {
         assert_eq!(
             [
-                constants_str::catalog::ABC_ALT_3,
-                constants_str::test_fixtures::TEST_URL_TOKEN_WITH_SEPARATOR,
+                constants_str::ABC_ALT_3,
+                constants_str::TEST_URL_TOKEN_WITH_SEPARATOR,
                 "",
             ]
             .map(|value| {
@@ -50,9 +50,7 @@ mod tests {
         );
         assert_eq!(
             crate::validate_url_safe_token_part::validate_url_safe_token_part(
-                crate::url_safe_token_part_ref::UrlSafeTokenPartRef::from(
-                    constants_str::catalog::ABC_ALT_3
-                ),
+                crate::url_safe_token_part_ref::UrlSafeTokenPartRef::from(constants_str::ABC_ALT_3),
                 crate::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes::from(
                     2usize
                 ),
@@ -69,9 +67,9 @@ mod tests {
         );
         assert_eq!(
             [
-                constants_str::test_fixtures::TEST_STRONG_PASSWORD,
-                constants_str::catalog::PASSWORD,
-                constants_str::test_fixtures::TEST_PASSWORD_WITH_WHITESPACE,
+                constants_str::TEST_STRONG_PASSWORD,
+                constants_str::PASSWORD,
+                constants_str::TEST_PASSWORD_WITH_WHITESPACE,
             ]
             .map(|value| {
                 crate::validate_password_policy::validate_password_policy(
@@ -85,7 +83,7 @@ mod tests {
                 Err(crate::password_policy_violation::PasswordPolicyViolation::ContainsWhitespace),
             ]
         );
-        let secret = constants_str::catalog::NEVER_PRINT_THIS_VALUE;
+        let secret = constants_str::NEVER_PRINT_THIS_VALUE;
         assert!(
             !format!(
                 "{:?}",

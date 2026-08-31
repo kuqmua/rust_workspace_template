@@ -108,7 +108,7 @@ impl ServerConfig {
             .iter()
             .any(|secret| {
                 secrecy::ExposeSecret::expose_secret(secret.as_ref()).as_ref()
-                    == constants_str::test_fixtures::ADMIN_DEVELOPMENT_JWT_SECRET
+                    == constants_str::ADMIN_DEVELOPMENT_JWT_SECRET
             })
         {
             return Err(

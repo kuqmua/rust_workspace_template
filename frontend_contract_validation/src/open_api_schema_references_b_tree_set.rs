@@ -21,7 +21,7 @@ impl OpenApiSchemaReferencesBTreeSet {
             )
         })?;
         let schemas = document_value
-            .pointer(constants_str::catalog::COMPONENTS_SCHEMAS_ALT)
+            .pointer(constants_str::COMPONENTS_SCHEMAS_ALT)
             .and_then(serde_json::Value::as_object)
             .ok_or(crate::open_api_validation_error::OpenApiValidationError::MissingSchemas)?;
         self.0.iter().try_for_each(|reference| {

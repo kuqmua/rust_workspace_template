@@ -22,11 +22,11 @@ pub(super) fn generate_insert_query_string(
             .saturating_add(cols_to_return.as_ref().len())
             .saturating_add(wrapper_len),
     );
-    query.push_str(constants_str::catalog::INSERT_INTO);
+    query.push_str(constants_str::INSERT_INTO);
     query.push_str(table.as_ref());
-    query.push_str(constants_str::catalog::TEXT);
+    query.push_str(constants_str::TEXT);
     query.push_str(cols.as_ref());
-    query.push_str(constants_str::catalog::VALUES);
+    query.push_str(constants_str::VALUES);
     if matches!(
         insert_values_fmt,
         crate::insert_values_fmt::InsertValuesFmt::Wrapped
@@ -40,7 +40,7 @@ pub(super) fn generate_insert_query_string(
     ) {
         query.push(')');
     }
-    query.push_str(constants_str::catalog::RETURNING);
+    query.push_str(constants_str::RETURNING);
     query.push_str(cols_to_return.as_ref());
     crate::pg_table_query_string::PgTableQueryString::try_from(query)
         .unwrap_or_else(crate::pg_table_query_string::PgTableQueryString::from)

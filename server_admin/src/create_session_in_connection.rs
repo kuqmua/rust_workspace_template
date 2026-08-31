@@ -71,25 +71,21 @@ pub(crate) async fn create_session_in_connection(
             .saturating_sub(constants_usize::ONE),
     )
     .unwrap_or(i64::MAX);
-    let _access_result = sqlx::query(
-        constants_str::integration_fixtures::SERVER_ADMIN_REVOKE_EXCESS_ACCESS_SESSIONS_SQL,
-    )
-    .bind(user_id.get())
-    .bind(session_offset)
-    .execute(connection.as_mut())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map_err(crate::admin_session_error::AdminSessionError::Pg)?;
-    let _refresh_result = sqlx::query(
-        constants_str::integration_fixtures::SERVER_ADMIN_REVOKE_EXCESS_REFRESH_TOKENS_SQL,
-    )
-    .bind(user_id.get())
-    .bind(session_offset)
-    .execute(connection.as_mut())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map_err(crate::admin_session_error::AdminSessionError::Pg)?;
-    sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL)
+    let _access_result = sqlx::query(constants_str::SERVER_ADMIN_REVOKE_EXCESS_ACCESS_SESSIONS_SQL)
+        .bind(user_id.get())
+        .bind(session_offset)
+        .execute(connection.as_mut())
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map_err(crate::admin_session_error::AdminSessionError::Pg)?;
+    let _refresh_result = sqlx::query(constants_str::SERVER_ADMIN_REVOKE_EXCESS_REFRESH_TOKENS_SQL)
+        .bind(user_id.get())
+        .bind(session_offset)
+        .execute(connection.as_mut())
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map_err(crate::admin_session_error::AdminSessionError::Pg)?;
+    sqlx::query(constants_str::SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL)
         .bind(session_id.get().get())
         .bind(user_id.get())
         .bind(token_identifier_hash.expose().as_ref())
@@ -101,7 +97,7 @@ pub(crate) async fn create_session_in_connection(
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_session_error::AdminSessionError::Pg)
         .map(drop)?;
-    sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
         .bind(server_admin_core::uuid_admin_value::UuidAdminValue::from(uuid::Uuid::new_v4()).get())
         .bind(user_id.get())
         .bind(refresh_hash.expose().as_ref())

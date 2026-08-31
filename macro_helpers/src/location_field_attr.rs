@@ -41,33 +41,28 @@ impl TryFrom<&syn::Field> for LocationFieldAttr {
         });
         let optional_attr = supported_attrs.next();
         if supported_attrs.next().is_some() {
-            return Err(constants_str::catalog::TWO_OR_MORE_SUPPORTED_ATTRS.to_owned());
+            return Err(constants_str::TWO_OR_MORE_SUPPORTED_ATTRS.to_owned());
         }
-        optional_attr.map_or_else(
-            || Err(constants_str::catalog::OPT_ATTR_IS_NONE.to_owned()),
-            Ok,
-        )
+        optional_attr.map_or_else(|| Err(constants_str::OPT_ATTR_IS_NONE.to_owned()), Ok)
     }
 }
 
 impl crate::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
     fn attribute_identifier_string(&self) -> crate::attr_identifier_name::AttrIdentifierName<'_> {
         crate::attr_identifier_name::AttrIdentifierName::from(match *self {
-            Self::EoToErrString => constants_str::catalog::EO_TO_ERR_STRING,
-            Self::EoToErrStringSerde => constants_str::catalog::EO_TO_ERR_STRING_SERDE,
-            Self::EoLocation => constants_str::catalog::EO_LOCATION,
-            Self::EoVecToErrString => constants_str::catalog::EO_VEC_TO_ERR_STRING,
-            Self::EoVecToErrStringSerde => constants_str::catalog::EO_VEC_TO_ERR_STRING_SERDE,
-            Self::EoVecLocation => constants_str::catalog::EO_VEC_LOCATION,
+            Self::EoToErrString => constants_str::EO_TO_ERR_STRING,
+            Self::EoToErrStringSerde => constants_str::EO_TO_ERR_STRING_SERDE,
+            Self::EoLocation => constants_str::EO_LOCATION,
+            Self::EoVecToErrString => constants_str::EO_VEC_TO_ERR_STRING,
+            Self::EoVecToErrStringSerde => constants_str::EO_VEC_TO_ERR_STRING_SERDE,
+            Self::EoVecLocation => constants_str::EO_VEC_LOCATION,
             Self::EoHashMapKStringVToErrString => {
-                constants_str::catalog::EO_HASHMAP_K_STRING_V_TO_ERR_STRING
+                constants_str::EO_HASHMAP_K_STRING_V_TO_ERR_STRING
             }
             Self::EoHashMapKStringVToErrStringSerde => {
-                constants_str::catalog::EO_HASHMAP_K_STRING_V_TO_ERR_STRING_SERDE
+                constants_str::EO_HASHMAP_K_STRING_V_TO_ERR_STRING_SERDE
             }
-            Self::EoHashMapKStringVLocation => {
-                constants_str::catalog::EO_HASHMAP_K_STRING_V_LOCATION
-            }
+            Self::EoHashMapKStringVLocation => constants_str::EO_HASHMAP_K_STRING_V_LOCATION,
         })
     }
 }

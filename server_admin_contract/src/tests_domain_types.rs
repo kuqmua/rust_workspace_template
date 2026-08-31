@@ -117,7 +117,7 @@ where
 fn administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
     let maximum_values = vec![
         crate::admin_role_id::AdminRoleId::try_from(constants_i64::ONE)
-            .expect(constants_str::test_fixtures::VALUE_E535AB72);
+            .expect(constants_str::VALUE_E535AB72);
         crate::admin_collection_max_items::ADMIN_COLLECTION_MAX_ITEMS
     ];
     let Ok(maximum_role_ids) = crate::admin_role_ids::AdminRoleIds::try_from(maximum_values) else {
@@ -129,7 +129,7 @@ fn administrator_collections_enforce_item_limit_for_construction_and_deserializa
     );
     let oversized = vec![
         crate::admin_role_id::AdminRoleId::try_from(constants_i64::ONE)
-            .expect(constants_str::test_fixtures::VALUE_36ED0D08);
+            .expect(constants_str::VALUE_36ED0D08);
         crate::admin_collection_max_items::ADMIN_COLLECTION_MAX_ITEMS
             .saturating_add(constants_usize::ONE)
     ];
@@ -164,34 +164,34 @@ fn authentication_route_family_has_valid_coverage() {
 #[test]
 fn request_payloads_reject_unknown_fields() {
     assert_rejects_unknown_field::<crate::admin_sign_in_req::AdminSignInReq>(
-        constants_str::integration_fixtures::LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
+        constants_str::LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_create_user_req::AdminCreateUserReq>(
-        constants_str::catalog::DISPLAY_NAME_ADMIN_LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
+        constants_str::DISPLAY_NAME_ADMIN_LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_update_user_req::AdminUpdateUserReq>(
-        constants_str::catalog::DISPLAY_NAME_ADMIN_UNKNOWN_TRUE,
+        constants_str::DISPLAY_NAME_ADMIN_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_set_user_password_req::AdminSetUserPasswordReq>(
-        constants_str::integration_fixtures::PASSWORD_SECRET_UNKNOWN_TRUE,
+        constants_str::PASSWORD_SECRET_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_set_user_ban_req::AdminSetUserBanReq>(
-        constants_str::integration_fixtures::IS_BANNED_TRUE_UNKNOWN_TRUE,
+        constants_str::IS_BANNED_TRUE_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_create_role_req::AdminCreateRoleReq>(
-        constants_str::integration_fixtures::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
+        constants_str::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_update_role_req::AdminUpdateRoleReq>(
-        constants_str::integration_fixtures::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
+        constants_str::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_set_user_roles_req::AdminSetUserRolesReq>(
-        constants_str::integration_fixtures::ROLE_IDS_1_UNKNOWN_TRUE,
+        constants_str::ROLE_IDS_1_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_set_role_permissions_req::AdminSetRolePermissionsReq>(
-        constants_str::integration_fixtures::PERMISSION_IDS_1_UNKNOWN_TRUE,
+        constants_str::PERMISSION_IDS_1_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_update_settings_req::AdminUpdateSettingsReq>(
-        constants_str::integration_fixtures::SITE_NAME_ADMIN_UNKNOWN_TRUE,
+        constants_str::SITE_NAME_ADMIN_UNKNOWN_TRUE,
     );
 }
 #[test]
@@ -222,7 +222,7 @@ fn route_contract_keeps_custom_action_policy_and_path_together() {
 #[test]
 fn parameterized_admin_route_path_uses_typed_route_metadata() {
     let session_id = crate::admin_session_identifier::AdminSessionIdentifier::try_from(
-        String::from(constants_str::test_fixtures::VALUE_4943E43B),
+        String::from(constants_str::VALUE_4943E43B),
     )
     .expect(
         "84d51132 parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
@@ -333,7 +333,7 @@ fn removed_audit_log_page_is_not_a_frontend_route() {
         None
     );
     let Err(_error) = crate::admin_default_route::AdminDefaultRoute::try_from(String::from(
-        constants_str::test_fixtures::VALUE_FF160115,
+        constants_str::VALUE_FF160115,
     )) else {
         panic!("61f0ab3e");
     };
@@ -406,7 +406,7 @@ fn audit_details_enforce_serialized_byte_limit() {
         accepted.expect("20697dc1 audit_details_enforce_serialized_byte_limit invariant must hold");
     let oversized = crate::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails::try_from(
         serde_json::Value::String(
-            constants_str::catalog::A_ALT
+            constants_str::A_ALT
                 .repeat(crate::admin_audit_details_max_bytes::ADMIN_AUDIT_DETAILS_MAX_BYTES),
         ),
     );
@@ -427,9 +427,7 @@ fn table_sort_fields_reject_unknown_and_wrong_table_keys() {
     assert_eq!(
         crate::admin_table_sort_field::AdminTableSortField::try_from_key(
             &crate::admin_table_sort_field::AdminTableSortField::USER,
-            crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(
-                constants_str::catalog::LOGIN
-            ),
+            crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(constants_str::LOGIN),
         ),
         Ok(crate::admin_table_sort_field::AdminTableSortField::UserLogin)
     );
@@ -437,7 +435,7 @@ fn table_sort_fields_reject_unknown_and_wrong_table_keys() {
         crate::admin_table_sort_field::AdminTableSortField::try_from_key(
             &crate::admin_table_sort_field::AdminTableSortField::USER,
             crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(
-                constants_str::catalog::CREATED_AT
+                constants_str::CREATED_AT
             ),
         ),
         Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)
@@ -629,12 +627,12 @@ fn data_tables_round_trip_and_require_read_permissions() {
 #[test]
 fn administrator_identifiers_require_positive_database_values() {
     let _user_error = crate::admin_user_id::AdminUserId::try_from(constants_i64::ZERO)
-        .expect_err(constants_str::test_fixtures::VALUE_C3B46626);
+        .expect_err(constants_str::VALUE_C3B46626);
     let _role_error = crate::admin_role_id::AdminRoleId::try_from(-constants_i64::ONE)
-        .expect_err(constants_str::test_fixtures::VALUE_4D8B8679);
+        .expect_err(constants_str::VALUE_4D8B8679);
     let _permission_error =
         crate::admin_permission_id::AdminPermissionId::try_from(constants_i64::ZERO)
-            .expect_err(constants_str::test_fixtures::VALUE_4556AA65);
+            .expect_err(constants_str::VALUE_4556AA65);
     let _audit_error = crate::admin_audit_log_id::AdminAuditLogId::try_from(-constants_i64::ONE)
-        .expect_err(constants_str::test_fixtures::VALUE_18E48FFC);
+        .expect_err(constants_str::VALUE_18E48FFC);
 }

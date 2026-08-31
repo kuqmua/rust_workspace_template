@@ -14,12 +14,8 @@ pub mod tests_domain_types;
 pub fn local_config()
 -> Result<runtime_test_config::RuntimeTestConfig, service_base_url_error::ServiceBaseUrlError> {
     Ok(runtime_test_config::RuntimeTestConfig::new(
-        service_base_url::ServiceBaseUrl::try_from(String::from(
-            constants_str::test_fixtures::VALUE_D30A576C,
-        ))?,
-        service_base_url::ServiceBaseUrl::try_from(String::from(
-            constants_str::test_fixtures::VALUE_08D5F409,
-        ))?,
+        service_base_url::ServiceBaseUrl::try_from(String::from(constants_str::VALUE_D30A576C))?,
+        service_base_url::ServiceBaseUrl::try_from(String::from(constants_str::VALUE_08D5F409))?,
     ))
 }
 
@@ -66,7 +62,7 @@ pub fn run(
     let test = runtime_test_kind::RuntimeTestKind::NotificationCreation;
     let message =
         notification_service_contract::notification_message::NotificationMessage::try_from(
-            String::from(constants_str::test_fixtures::VALUE_FB13A725),
+            String::from(constants_str::VALUE_FB13A725),
         )
         .map_err(runtime_test_error::RuntimeTestError::NotificationMessage)?;
     let request =
@@ -145,7 +141,7 @@ mod tests {
     #[test]
     fn route_url_uses_contract_path() {
         let base_url = crate::service_base_url::ServiceBaseUrl::try_from(String::from(
-            constants_str::test_fixtures::VALUE_FF79C6DD,
+            constants_str::VALUE_FF79C6DD,
         ))
         .expect("6cde5062 route_url_uses_contract_path invariant must hold");
         assert_eq!(

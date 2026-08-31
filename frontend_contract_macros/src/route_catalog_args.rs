@@ -16,18 +16,18 @@ impl syn::parse::Parse for RouteCatalogArgs {
         while !input.is_empty() {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
-            if name == constants_str::test_fixtures::ROUTE_CATALOG_FAMILY {
+            if name == constants_str::ROUTE_CATALOG_FAMILY {
                 family = Some(crate::contract_syn_ident::ContractSynIdent::from(
                     input.parse::<syn::Ident>()?,
                 ));
-            } else if name == constants_str::test_fixtures::ROUTE_CATALOG_BODY_LIMIT {
+            } else if name == constants_str::ROUTE_CATALOG_BODY_LIMIT {
                 body_limit = Some(crate::contract_syn_expr::ContractSynExpr::from(
                     input.parse::<syn::Expr>()?,
                 ));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,
-                    constants_str::test_fixtures::UNSUPPORTED_TYPED_ROUTE_FIELD,
+                    constants_str::UNSUPPORTED_TYPED_ROUTE_FIELD,
                 ));
             }
             if !input.is_empty() {
@@ -35,12 +35,10 @@ impl syn::parse::Parse for RouteCatalogArgs {
             }
         }
         Ok(Self {
-            body_limit: body_limit.ok_or_else(|| {
-                input.error(constants_str::test_fixtures::ROUTE_CATALOG_REQUIRES_BODY_LIMIT)
-            })?,
-            family: family.ok_or_else(|| {
-                input.error(constants_str::test_fixtures::ROUTE_CATALOG_REQUIRES_FAMILY)
-            })?,
+            body_limit: body_limit
+                .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_BODY_LIMIT))?,
+            family: family
+                .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_FAMILY))?,
         })
     }
 }

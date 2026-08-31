@@ -4,7 +4,7 @@ fn validates_string_and_header_boundaries() {
         crate::request_id::RequestId::try_from(String::new()),
         Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError::Invalid)
     );
-    let maximum = constants_str::catalog::A_ALT.repeat(128usize);
+    let maximum = constants_str::A_ALT.repeat(128usize);
     let request_id = crate::request_id::RequestId::try_from(maximum.clone())
         .expect("3ff39236 validates_string_and_header_boundaries invariant must hold");
     assert_eq!(request_id.to_string(), maximum);
@@ -39,18 +39,18 @@ async fn layer_propagates_existing_and_generated_values() {
     let make_router = || {
         axum::Router::from(crate::request_id_layer::RequestIdLayer::default().apply(
             crate::axum_router::AxumRouter::from(axum::Router::new().route(
-                constants_str::catalog::SLASH,
+                constants_str::SLASH,
                 axum::routing::get(async || http::StatusCode::OK),
             )),
         ))
     };
-    let existing = http::HeaderValue::from_static(constants_str::catalog::EXISTING_REQUEST_ID);
+    let existing = http::HeaderValue::from_static(constants_str::EXISTING_REQUEST_ID);
     let existing_response = tower::ServiceExt::oneshot(
         make_router(),
         axum::extract::Request::builder()
-            .uri(constants_str::catalog::SLASH)
+            .uri(constants_str::SLASH)
             .header(
-                constants_str::catalog::HTTP_HEADER_NAMES_X_REQUEST_ID,
+                constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID,
                 existing.clone(),
             )
             .body(axum::body::Body::empty())
@@ -61,19 +61,19 @@ async fn layer_propagates_existing_and_generated_values() {
     assert_eq!(
         existing_response
             .headers()
-            .get(constants_str::catalog::HTTP_HEADER_NAMES_X_REQUEST_ID),
+            .get(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID),
         Some(&existing)
     );
     assert_eq!(
         existing_response
             .headers()
-            .get(constants_str::catalog::RUNTIME_CORRELATION_ID_HEADER_NAME),
+            .get(constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME),
         Some(&existing)
     );
     let generated_response = tower::ServiceExt::oneshot(
         make_router(),
         axum::extract::Request::builder()
-            .uri(constants_str::catalog::SLASH)
+            .uri(constants_str::SLASH)
             .body(axum::body::Body::empty())
             .expect("27ce5fbd layer_propagates_existing_and_generated_values invariant must hold"),
     )
@@ -81,13 +81,13 @@ async fn layer_propagates_existing_and_generated_values() {
     .expect("4cd32371 layer_propagates_existing_and_generated_values invariant must hold");
     let generated = generated_response
         .headers()
-        .get(constants_str::catalog::HTTP_HEADER_NAMES_X_REQUEST_ID)
+        .get(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID)
         .expect("12ed6f85 layer_propagates_existing_and_generated_values invariant must hold");
     assert_eq!(generated.as_bytes().len(), 36usize);
     assert_eq!(
         generated_response
             .headers()
-            .get(constants_str::catalog::RUNTIME_CORRELATION_ID_HEADER_NAME),
+            .get(constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME),
         Some(generated)
     );
 }

@@ -5,7 +5,7 @@ mod tests {
         let parsed = Vec::<http::HeaderValue>::from(
             crate::parse_cors_allow_origin::parse_cors_allow_origin(
                 crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(
-                    constants_str::test_fixtures::VALUE_BCE3AE6B,
+                    constants_str::VALUE_BCE3AE6B,
                 ),
             )
             .expect("d8a0e140 parser_trims_valid_origins invariant must hold"),
@@ -23,7 +23,7 @@ mod tests {
         let parsed = Vec::<http::HeaderValue>::from(
             crate::parse_cors_allow_origin::parse_cors_allow_origin(
                 crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(
-                    constants_str::catalog::PG_CRUD_EMPTY_SQL_SUFFIX,
+                    constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
                 ),
             )
             .expect("3b681d57 parser_preserves_empty_configuration_behavior invariant must hold"),
@@ -34,8 +34,8 @@ mod tests {
     fn parser_rejects_invalid_wildcard_and_opaque_origins() {
         assert!(
             [
-                constants_str::catalog::HTTPS_A_EXAMPLE_BAD_NEWLINE_VALUE_HTTPS_B_EXAMPLE,
-                constants_str::catalog::ASTERISK,
+                constants_str::HTTPS_A_EXAMPLE_BAD_NEWLINE_VALUE_HTTPS_B_EXAMPLE,
+                constants_str::ASTERISK,
                 "null",
                 "https://a.example/path",
                 "https://a.example,,https://b.example",
@@ -50,11 +50,11 @@ mod tests {
     #[test]
     fn parser_rejects_too_many_origins() {
         let value = std::iter::repeat_n(
-            constants_str::test_fixtures::VALUE_38612C96,
+            constants_str::VALUE_38612C96,
             crate::cors_allow_origin_max_items::CORS_ALLOW_ORIGIN_MAX_ITEMS + 1,
         )
         .collect::<Vec<_>>()
-        .join(constants_str::catalog::TEXT_ALT_7);
+        .join(constants_str::TEXT_ALT_7);
         assert!(matches!(
             crate::parse_cors_allow_origin::parse_cors_allow_origin(
                 crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(value.as_str(),)

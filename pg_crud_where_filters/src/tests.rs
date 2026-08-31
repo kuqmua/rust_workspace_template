@@ -89,15 +89,12 @@ fn encode_format_display_is_stable() {
 
 #[test]
 fn regex_regex_eq_compares_pattern_content() {
-    let left =
-        crate::regex_regex::RegexRegex::try_from(String::from(constants_str::catalog::D_PLUS))
-            .expect("8342ad27 regex_regex_eq_compares_pattern_content invariant must hold");
-    let right =
-        crate::regex_regex::RegexRegex::try_from(String::from(constants_str::catalog::D_PLUS))
-            .expect("4d0fa8e3 regex_regex_eq_compares_pattern_content invariant must hold");
-    let other =
-        crate::regex_regex::RegexRegex::try_from(String::from(constants_str::catalog::A_Z_PLUS))
-            .expect("abcc9a72 regex_regex_eq_compares_pattern_content invariant must hold");
+    let left = crate::regex_regex::RegexRegex::try_from(String::from(constants_str::D_PLUS))
+        .expect("8342ad27 regex_regex_eq_compares_pattern_content invariant must hold");
+    let right = crate::regex_regex::RegexRegex::try_from(String::from(constants_str::D_PLUS))
+        .expect("4d0fa8e3 regex_regex_eq_compares_pattern_content invariant must hold");
+    let other = crate::regex_regex::RegexRegex::try_from(String::from(constants_str::A_Z_PLUS))
+        .expect("abcc9a72 regex_regex_eq_compares_pattern_content invariant must hold");
     assert_eq!(left, right);
     assert_ne!(left, other);
 }

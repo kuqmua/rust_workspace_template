@@ -17,7 +17,7 @@ impl axum::response::IntoResponse for CreateNotificationError {
             Self::Validation => http::StatusCode::UNPROCESSABLE_ENTITY,
         };
         let error_type = server_runtime_http::http_error_type::HttpErrorType::from(
-            constants_str::test_fixtures::NOTIFICATION_API_ERROR_TYPE,
+            constants_str::NOTIFICATION_API_ERROR_TYPE,
         );
         let optional_diagnostic = match &self {
             Self::Persistence(error) => Some(

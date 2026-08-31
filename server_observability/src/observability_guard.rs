@@ -35,7 +35,10 @@ impl Drop for ObservabilityGuard {
             return;
         };
         if let Err(error) = tracer_provider.shutdown() {
-            tracing::error!(error = %error, "OpenTelemetry tracer provider shutdown failed");
+            tracing::error!(
+                error = %error,
+                message = %constants_str::TRACING_OTEL_TRACER_SHUTDOWN_FAILED,
+            );
         }
     }
 }

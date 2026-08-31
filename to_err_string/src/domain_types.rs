@@ -31,8 +31,8 @@ to_err_string_macros::impl_to_err_string_with!(
 );
 to_err_string_macros::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
 to_err_string_macros::impl_to_err_string_const!(
-    tracing::dispatcher::SetGlobalDefaultError => constants_str::integration_fixtures::TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR,
-    tracing::log::SetLoggerError => constants_str::integration_fixtures::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
+    tracing::dispatcher::SetGlobalDefaultError => constants_str::TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR,
+    tracing::log::SetLoggerError => constants_str::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
 );
 #[cfg(test)]
 mod tests {
@@ -41,40 +41,40 @@ mod tests {
     }
     #[test]
     fn to_err_string_for_primitives_and_options() {
-        assert_to_err_string(42i32, constants_str::catalog::VALUE_42);
-        assert_to_err_string(42i128, constants_str::catalog::VALUE_42);
-        assert_to_err_string(42isize, constants_str::catalog::VALUE_42);
-        assert_to_err_string(42u128, constants_str::catalog::VALUE_42);
-        assert_to_err_string(Some(7u8), constants_str::catalog::SOME_7);
-        assert_to_err_string(None::<u16>, constants_str::catalog::NONE);
-        assert_to_err_string(true, constants_str::catalog::TRUE);
-        assert_to_err_string('x', constants_str::catalog::X);
+        assert_to_err_string(42i32, constants_str::VALUE_42);
+        assert_to_err_string(42i128, constants_str::VALUE_42);
+        assert_to_err_string(42isize, constants_str::VALUE_42);
+        assert_to_err_string(42u128, constants_str::VALUE_42);
+        assert_to_err_string(Some(7u8), constants_str::SOME_7);
+        assert_to_err_string(None::<u16>, constants_str::NONE);
+        assert_to_err_string(true, constants_str::TRUE);
+        assert_to_err_string('x', constants_str::X);
         assert_to_err_string(
-            Some(String::from(constants_str::catalog::ABC_ALT_3)),
-            constants_str::catalog::SOME_ABC,
+            Some(String::from(constants_str::ABC_ALT_3)),
+            constants_str::SOME_ABC,
         );
     }
     #[test]
     fn to_err_string_for_strings_and_str_refs() {
-        let owned = String::from(constants_str::catalog::ABC_ALT_3);
-        let borrowed = constants_str::catalog::XYZ;
-        assert_to_err_string(owned, constants_str::catalog::ABC_ALT_3);
-        assert_to_err_string(borrowed, constants_str::catalog::XYZ);
+        let owned = String::from(constants_str::ABC_ALT_3);
+        let borrowed = constants_str::XYZ;
+        assert_to_err_string(owned, constants_str::ABC_ALT_3);
+        assert_to_err_string(borrowed, constants_str::XYZ);
         assert_to_err_string(
-            std::borrow::Cow::Borrowed(constants_str::catalog::QWE),
-            constants_str::catalog::QWE,
+            std::borrow::Cow::Borrowed(constants_str::QWE),
+            constants_str::QWE,
         );
         assert_to_err_string(
-            std::borrow::Cow::<'_, str>::Owned(String::from(constants_str::catalog::RTY)),
-            constants_str::catalog::RTY,
+            std::borrow::Cow::<'_, str>::Owned(String::from(constants_str::RTY)),
+            constants_str::RTY,
         );
     }
     #[test]
     fn to_err_string_for_result_values() {
-        assert_to_err_string(Result::<u8, u16>::Ok(5), constants_str::catalog::OK_5);
+        assert_to_err_string(Result::<u8, u16>::Ok(5), constants_str::OK_5);
         assert_to_err_string(
-            Result::<u8, &'static str>::Err(constants_str::catalog::CONFIG_TRACING_ERROR),
-            constants_str::catalog::ERR_ERROR,
+            Result::<u8, &'static str>::Err(constants_str::CONFIG_TRACING_ERROR),
+            constants_str::ERR_ERROR,
         );
     }
     #[test]
@@ -83,20 +83,19 @@ mod tests {
         ignore = "oversized JSON serialization is covered natively and is prohibitively slow under interpretation"
     )]
     fn error_text_owns_the_shared_length_invariant() {
-        let valid =
-            crate::error_text::ErrorText::try_from(String::from(constants_str::catalog::ERROR))
-                .expect("11a745a8 error_text_owns_the_shared_length_invariant invariant must hold");
-        assert_eq!(valid.as_ref(), constants_str::catalog::ERROR);
+        let valid = crate::error_text::ErrorText::try_from(String::from(constants_str::ERROR))
+            .expect("11a745a8 error_text_owns_the_shared_length_invariant invariant must hold");
+        assert_eq!(valid.as_ref(), constants_str::ERROR);
 
-        let oversized = constants_str::catalog::X.repeat(
+        let oversized = constants_str::X.repeat(
             crate::error_text_max_len::ERROR_TEXT_MAX_LEN.saturating_add(constants_usize::ONE),
         );
         let _conversion_error = crate::error_text::ErrorText::try_from(oversized.clone())
-            .expect_err(constants_str::test_fixtures::VALUE_DFA2D703);
+            .expect_err(constants_str::VALUE_DFA2D703);
         let serialized = serde_json::to_string(&oversized)
             .expect("fe92c1a6 error_text_owns_the_shared_length_invariant invariant must hold");
         let _deserialization_error =
             serde_json::from_str::<crate::error_text::ErrorText>(serialized.as_str())
-                .expect_err(constants_str::test_fixtures::VALUE_2377E790);
+                .expect_err(constants_str::VALUE_2377E790);
     }
 }

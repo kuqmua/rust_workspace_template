@@ -11,16 +11,14 @@ pub(crate) async fn sessions(
         auth.peer,
     )
     .await?;
-    let total = sqlx::query_scalar::<_, i64>(
-        constants_str::integration_fixtures::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL,
-    )
-    .bind(authenticated.id.get())
-    .fetch_one(auth.state.as_ref().pool.as_ref())
-    .await
-    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-    .map_err(crate::admin_error::AdminError::from)?;
+    let total = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
+        .bind(authenticated.id.get())
+        .fetch_one(auth.state.as_ref().pool.as_ref())
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map_err(crate::admin_error::AdminError::from)?;
     let items = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
-        constants_str::integration_fixtures::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
+        constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
     .bind(authenticated.id.get())
     .bind(i64::from(u16::from(query.0.limit())))

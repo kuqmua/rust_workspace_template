@@ -28,11 +28,11 @@ mod tests {
     fn import_paths_match_their_owners() {
         assert_eq!(
             crate::import::Import::Crate.to_path().to_string(),
-            constants_str::catalog::CRATE
+            constants_str::CRATE
         );
         assert_eq!(
             crate::import::Import::PgCrudCommon.to_path().to_string(),
-            constants_str::catalog::PG_CRUD_COMMON_DOMAIN_TYPES
+            constants_str::PG_CRUD_COMMON_DOMAIN_TYPES
         );
     }
 }

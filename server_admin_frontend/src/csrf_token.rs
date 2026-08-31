@@ -12,7 +12,7 @@ pub(crate) fn csrf_token() -> Result<
         .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?
         .split(';')
         .map(str::trim)
-        .find_map(|cookie| cookie.strip_prefix(constants_str::catalog::ADMIN_CSRF_TOKEN_ALT))
+        .find_map(|cookie| cookie.strip_prefix(constants_str::ADMIN_CSRF_TOKEN_ALT))
         .map(str::to_owned)
         .map(crate::admin_csrf_token::AdminCsrfToken::try_from)
         .transpose()

@@ -48,7 +48,7 @@ fn derive_newtype_option(
     if let Err(error) = attrs.get_options_mut().try_insert_with(option, || {
         syn::Error::new(
             proc_macro2::Span::call_site(),
-            constants_str::catalog::DUPLICATE_NEWTYPE_OPTION,
+            constants_str::DUPLICATE_NEWTYPE_OPTION,
         )
     }) {
         return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
@@ -182,7 +182,7 @@ pub fn clone_fields(input_token_stream: proc_macro::TokenStream) -> proc_macro::
     let syn::Data::Struct(data) = &input.data else {
         return syn::Error::new_spanned(
             &input.ident,
-            constants_str::test_fixtures::CLONE_FIELDS_SUPPORTS_ONLY_STRUCTS,
+            constants_str::CLONE_FIELDS_SUPPORTS_ONLY_STRUCTS,
         )
         .into_compile_error()
         .into();
@@ -326,11 +326,7 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
     let mut values = input
         .attrs
         .iter()
-        .filter(|attribute| {
-            attribute
-                .path()
-                .is_ident(constants_str::test_fixtures::DISPLAY_CONST)
-        })
+        .filter(|attribute| attribute.path().is_ident(constants_str::DISPLAY_CONST))
         .map(syn::Attribute::parse_args::<syn::Expr>);
     let value = match values.next() {
         Some(Ok(value)) => value,
@@ -338,7 +334,7 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
         None => {
             return syn::Error::new_spanned(
                 &input.ident,
-                constants_str::test_fixtures::DISPLAY_CONST_REQUIRES_ATTRIBUTE,
+                constants_str::DISPLAY_CONST_REQUIRES_ATTRIBUTE,
             )
             .into_compile_error()
             .into();
@@ -347,7 +343,7 @@ pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro:
     if values.next().is_some() {
         return syn::Error::new_spanned(
             &input.ident,
-            constants_str::test_fixtures::DISPLAY_CONST_REQUIRES_ONE_ATTRIBUTE,
+            constants_str::DISPLAY_CONST_REQUIRES_ONE_ATTRIBUTE,
         )
         .into_compile_error()
         .into();
@@ -496,20 +492,12 @@ pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::Toke
         let parse_result = input
             .attrs
             .iter()
-            .filter(|attr| {
-                attr.path()
-                    .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM)
-            })
+            .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
             .try_for_each(|attr| {
                 attr.parse_nested_meta(|meta| {
-                    if meta
-                        .path
-                        .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_ERROR)
-                    {
+                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
                         if error_opt.is_some() {
-                            return Err(meta.error(
-                                constants_str::test_fixtures::NEWTYPE_TRY_FROM_ERROR_DUPLICATE,
-                            ));
+                            return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
                         }
                         error_opt =
                             Some(syn_type::SynType::from(meta.value()?.parse::<syn::Type>()?));
@@ -517,18 +505,18 @@ pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::Toke
                     }
                     if meta
                         .path
-                        .is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR)
+                        .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
                     {
                         if validator_opt.is_some() {
-                            return Err(meta.error(
-                                constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE,
-                            ));
+                            return Err(
+                                meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
+                            );
                         }
                         validator_opt =
                             Some(syn_expr::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
-                    Err(meta.error(constants_str::test_fixtures::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
+                    Err(meta.error(constants_str::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
                 })
             });
         if let Err(error) = parse_result {
@@ -538,11 +526,8 @@ pub fn try_from(input_token_stream: proc_macro::TokenStream) -> proc_macro::Toke
         }
         let Some(validator) = validator_opt else {
             return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
-                syn::Error::new_spanned(
-                    &input,
-                    constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED,
-                )
-                .into_compile_error(),
+                syn::Error::new_spanned(&input, constants_str::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
+                    .into_compile_error(),
             );
         };
         let mut attrs = newtype_attrs::NewtypeAttrs::default();
@@ -575,7 +560,7 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
             syn::Data::Struct(_) | syn::Data::Union(_) => {
                 return Err(syn::Error::new_spanned(
                     input_ref,
-                    constants_str::catalog::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
+                    constants_str::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
                 ));
             }
         };
@@ -586,7 +571,7 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
                 if !matches!(variant.fields, syn::Fields::Unit) {
                     return Err(syn::Error::new_spanned(
                         variant,
-                        constants_str::catalog::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
+                        constants_str::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
                     ));
                 }
                 Ok((
@@ -603,13 +588,13 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
                 variants
                     .len()
                     .saturating_sub(constants_usize::ONE)
-                    .saturating_mul(constants_str::catalog::TEXT_ALT_6.len()),
+                    .saturating_mul(constants_str::TEXT_ALT_6.len()),
             );
         let allowed_values = variants.iter().enumerate().fold(
             String::with_capacity(allowed_values_capacity),
             |mut values, (index, (_identifier, name))| {
                 if index > constants_usize::ZERO {
-                    values.push_str(constants_str::catalog::TEXT_ALT_6);
+                    values.push_str(constants_str::TEXT_ALT_6);
                 }
                 values.push_str(name.as_ref());
                 values
@@ -648,17 +633,14 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let Some(attribute) = input.attrs.iter().find(|attribute| {
-        attribute
-            .path()
-            .is_ident(constants_str::test_fixtures::WIRE_ENUM)
-    }) else {
-        return syn::Error::new_spanned(
-            input.ident,
-            constants_str::test_fixtures::WIRE_ENUM_REQUIRES_ATTRIBUTE,
-        )
-        .to_compile_error()
-        .into();
+    let Some(attribute) = input
+        .attrs
+        .iter()
+        .find(|attribute| attribute.path().is_ident(constants_str::WIRE_ENUM))
+    else {
+        return syn::Error::new_spanned(input.ident, constants_str::WIRE_ENUM_REQUIRES_ATTRIBUTE)
+            .to_compile_error()
+            .into();
     };
     let attrs = match attribute.parse_args::<wire_enum_attrs::WireEnumAttrs>() {
         Ok(value) => value,
@@ -667,7 +649,7 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
     let syn::Data::Enum(data_enum) = &input.data else {
         return syn::Error::new_spanned(
             &input.ident,
-            constants_str::test_fixtures::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
+            constants_str::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
         )
         .to_compile_error()
         .into();
@@ -681,28 +663,24 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
             if !matches!(variant.fields, syn::Fields::Unit) {
                 return Err(syn::Error::new_spanned(
                     &variant.ident,
-                    constants_str::test_fixtures::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
+                    constants_str::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
                 ));
             }
             let wire_attribute = variant
                 .attrs
                 .iter()
-                .find(|candidate| {
-                    candidate
-                        .path()
-                        .is_ident(constants_str::test_fixtures::WIRE_ENUM_WIRE)
-                })
+                .find(|candidate| candidate.path().is_ident(constants_str::WIRE_ENUM_WIRE))
                 .ok_or_else(|| {
                     syn::Error::new_spanned(
                         &variant.ident,
-                        constants_str::test_fixtures::WIRE_ENUM_VARIANT_REQUIRES_WIRE,
+                        constants_str::WIRE_ENUM_VARIANT_REQUIRES_WIRE,
                     )
                 })?;
             let value = wire_attribute.parse_args::<syn::LitStr>()?;
             if !unique_values.insert(value.value()) {
                 return Err(syn::Error::new_spanned(
                     value,
-                    constants_str::test_fixtures::WIRE_ENUM_DUPLICATE_VALUE,
+                    constants_str::WIRE_ENUM_DUPLICATE_VALUE,
                 ));
             }
             parsed.push((&variant.ident, value));
@@ -786,33 +764,33 @@ fn generate_bounded_string_token_stream(
     let attrs = input_ref
         .attrs
         .iter()
-        .filter(|attr| attr.path().is_ident(constants_str::catalog::BOUNDED_STRING))
+        .filter(|attr| attr.path().is_ident(constants_str::BOUNDED_STRING))
         .try_fold(
             bounded_string_attrs::BoundedStringAttrs::default(),
             |mut parsed, attr| {
                 attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(constants_str::catalog::MAX) {
+                    if meta.path.is_ident(constants_str::MAX) {
                         *parsed.get_max_mut() = Some(syn_expr::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::catalog::MIN) {
+                    if meta.path.is_ident(constants_str::MIN) {
                         *parsed.get_min_mut() = Some(syn_expr::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::catalog::DESCRIPTION) {
+                    if meta.path.is_ident(constants_str::DESCRIPTION) {
                         *parsed.get_description_mut() = Some(syn_expr::SynExpr::from(
                             meta.value()?.parse::<syn::Expr>()?,
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR) {
+                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR) {
                         if parsed.get_validator().is_some() {
                             return Err(
-                                meta.error(constants_str::test_fixtures::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
+                                meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
                             );
                         }
                         *parsed.get_validator_mut() = Some(syn_expr::SynExpr::from(
@@ -820,43 +798,43 @@ fn generate_bounded_string_token_stream(
                         ));
                         return Ok(());
                     }
-                    if meta.path.is_ident(constants_str::catalog::CHARS) {
+                    if meta.path.is_ident(constants_str::CHARS) {
                         return parsed.get_options_mut().try_insert_with(
                             bounded_string_option::BoundedStringOption::Chars,
-                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::catalog::NUL_FREE) {
+                    if meta.path.is_ident(constants_str::NUL_FREE) {
                         return parsed.get_options_mut().try_insert_with(
                             bounded_string_option::BoundedStringOption::NulFree,
-                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::catalog::SERDE) {
+                    if meta.path.is_ident(constants_str::SERDE) {
                         return parsed.get_options_mut().try_insert_with(
                             bounded_string_option::BoundedStringOption::Serde,
-                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::catalog::TRIM) {
+                    if meta.path.is_ident(constants_str::TRIM) {
                         return parsed.get_options_mut().try_insert_with(
                             bounded_string_option::BoundedStringOption::Trim,
-                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::catalog::UTOIPA) {
+                    if meta.path.is_ident(constants_str::UTOIPA) {
                         return parsed.get_options_mut().try_insert_with(
                             bounded_string_option::BoundedStringOption::Utoipa,
-                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    if meta.path.is_ident(constants_str::catalog::WRITE_ONLY) {
+                    if meta.path.is_ident(constants_str::WRITE_ONLY) {
                         return parsed.get_options_mut().try_insert_with(
                             bounded_string_option::BoundedStringOption::WriteOnly,
-                            || meta.error(constants_str::catalog::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
-                    Err(meta.error(constants_str::catalog::UNKNOWN_BOUNDED_STRING_OPTION))
+                    Err(meta.error(constants_str::UNKNOWN_BOUNDED_STRING_OPTION))
                 })?;
                 Ok::<bounded_string_attrs::BoundedStringAttrs, syn::Error>(parsed)
             },
@@ -864,20 +842,20 @@ fn generate_bounded_string_token_stream(
     if attrs.get_max().is_none() {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            constants_str::catalog::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
+            constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         ));
     }
     let inner_ty = tuple_struct_one_field_ty(input)?;
     if !type_path_ends_with_string_identifier(inner_ty).get() {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::catalog::BOUNDEDSTRING_SUPPORTS_ONLY_STRING_TUPLE_STRUCTS,
+            constants_str::BOUNDEDSTRING_SUPPORTS_ONLY_STRING_TUPLE_STRUCTS,
         ));
     }
     if !input_ref.generics.params.is_empty() {
         return Err(syn::Error::new_spanned(
             &input_ref.generics,
-            constants_str::catalog::BOUNDEDSTRING_DOES_NOT_SUPPORT_GENERICS,
+            constants_str::BOUNDEDSTRING_DOES_NOT_SUPPORT_GENERICS,
         ));
     }
     let identifier = &input_ref.ident;
@@ -887,7 +865,7 @@ fn generate_bounded_string_token_stream(
     let max = attrs.get_max().ok_or_else(|| {
         syn::Error::new(
             proc_macro2::Span::call_site(),
-            constants_str::catalog::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
+            constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         )
     })?;
     let min = attrs.get_min();
@@ -915,7 +893,7 @@ fn generate_bounded_string_token_stream(
     if utoipa && !chars {
         return Err(syn::Error::new_spanned(
             input_ref,
-            constants_str::catalog::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME,
+            constants_str::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME,
         ));
     }
     let min_token_stream =
@@ -982,7 +960,7 @@ fn generate_bounded_string_token_stream(
         || {
             let value = identifier_to_snake(syn_identifier_ref::SynIdentifierRef::from(identifier))
                 .as_ref()
-                .replace('_', constants_str::catalog::SPACE);
+                .replace('_', constants_str::SPACE);
             quote::quote! {#value}
         },
         |value| quote::quote! {#value},
@@ -1066,7 +1044,7 @@ fn generate_newtype_token_stream_with_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::catalog::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+            constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
         ));
     }
     if attrs
@@ -1076,7 +1054,7 @@ fn generate_newtype_token_stream_with_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::catalog::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
+            constants_str::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
         ));
     }
     if attrs.contains(newtype_option::NewtypeOption::From).get()
@@ -1084,7 +1062,7 @@ fn generate_newtype_token_stream_with_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            constants_str::catalog::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
+            constants_str::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
         ));
     }
     let inner_ty_ref = inner_ty.as_ref();
@@ -1112,7 +1090,7 @@ fn generate_newtype_token_stream_with_attrs(
         .contains(newtype_option::NewtypeOption::DebugRedacted)
         .get()
         .then(|| {
-            let redacted = constants_str::catalog::REDACTED_ALT_3;
+            let redacted = constants_str::REDACTED_ALT_3;
             quote::quote! {
                 // The owner module retains lint-sensitive semantics from the original implementation.
                 #[allow(single_use_lifetimes)]
@@ -1211,13 +1189,13 @@ fn generate_newtype_token_stream_with_attrs(
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::catalog::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
+                constants_str::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
             ));
         };
         if inner_ref_ty.mutability.is_none() {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::catalog::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
+                constants_str::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
             ));
         }
         let target_ty = &inner_ref_ty.elem;
@@ -1267,7 +1245,7 @@ fn generate_newtype_token_stream_with_attrs(
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::catalog::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+                constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
             ));
         };
         let target_ty = &inner_ref_ty.elem;
@@ -1338,7 +1316,7 @@ fn generate_newtype_token_stream_with_attrs(
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                constants_str::catalog::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+                constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
             ));
         };
         let target_ty = &inner_ref_ty.elem;
@@ -1651,7 +1629,7 @@ fn tuple_struct_one_field_ty(
             .map_err(|_error| {
                 syn::Error::new_spanned(
                     input_ref,
-                    constants_str::catalog::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
+                    constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
                 )
             })?;
     let unnamed = match shape {
@@ -1662,22 +1640,20 @@ fn tuple_struct_one_field_ty(
         | workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Unit => {
             return Err(syn::Error::new_spanned(
                 input_ref,
-                constants_str::catalog::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
+                constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
             ));
         }
     };
     if unnamed.len() != 1 {
         return Err(syn::Error::new_spanned(
             input_ref,
-            constants_str::catalog::NEWTYPE_SUPPORTS_ONLY_ONE_FIELD_TUPLE_STRUCTS,
+            constants_str::NEWTYPE_SUPPORTS_ONLY_ONE_FIELD_TUPLE_STRUCTS,
         ));
     }
     unnamed
         .first()
         .map(|field| syn_type_ref::SynTypeRef::from(&field.ty))
-        .ok_or_else(|| {
-            syn::Error::new_spanned(input_ref, constants_str::catalog::NEWTYPE_FIELD_NOT_FOUND)
-        })
+        .ok_or_else(|| syn::Error::new_spanned(input_ref, constants_str::NEWTYPE_FIELD_NOT_FOUND))
 }
 fn type_path_ends_with_string_identifier(
     ty: syn_type_ref::SynTypeRef<'_>,
@@ -1687,7 +1663,7 @@ fn type_path_ends_with_string_identifier(
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == constants_str::catalog::STRING),
+            .is_some_and(|segment| segment.ident == constants_str::STRING),
         syn::Type::Path(_) | _ => false,
     })
 }

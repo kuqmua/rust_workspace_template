@@ -46,7 +46,7 @@ mod tests {
         ));
         let live_response = tower::ServiceExt::oneshot(
             router.clone(),
-            http::Request::get(constants_str::catalog::LIVE_PATH)
+            http::Request::get(constants_str::LIVE_PATH)
                 .body(axum::body::Body::empty())
                 .expect("a943ebaa health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
@@ -55,7 +55,7 @@ mod tests {
         assert_eq!(live_response.status(), http::StatusCode::OK);
         let unavailable_response = tower::ServiceExt::oneshot(
             router.clone(),
-            http::Request::get(constants_str::catalog::READY_PATH)
+            http::Request::get(constants_str::READY_PATH)
                 .body(axum::body::Body::empty())
                 .expect("341e303a health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )
@@ -70,7 +70,7 @@ mod tests {
         ));
         let ready_response = tower::ServiceExt::oneshot(
             router,
-            http::Request::get(constants_str::catalog::READY_PATH)
+            http::Request::get(constants_str::READY_PATH)
                 .body(axum::body::Body::empty())
                 .expect("67247299 health_routes_distinguish_live_and_ready_statuses invariant must hold"),
         )

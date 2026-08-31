@@ -57,7 +57,7 @@ fn permission_serializes_as_public_contract_value() {
 fn unknown_permission_is_rejected() {
     assert_eq!(
         server_admin_contract::admin_permission::AdminPermission::try_from(
-            constants_str::catalog::UNKNOWN_READ
+            constants_str::UNKNOWN_READ
         )
         .err(),
         Some(server_admin_contract::admin_permission::AdminPermissionTryFromStrError)
@@ -98,7 +98,7 @@ async fn password_hash_verifies_only_matching_password() {
         ),
     );
     let hash = hasher
-        .hash(password(constants_str::catalog::CORRECT_PASSWORD_ALT))
+        .hash(password(constants_str::CORRECT_PASSWORD_ALT))
         .await
         .expect("174a5d2f password_hash_verifies_only_matching_password invariant must hold");
     assert!(
@@ -109,7 +109,7 @@ async fn password_hash_verifies_only_matching_password() {
             .get()
     );
     let other_hash = hasher
-        .hash(password(constants_str::catalog::CORRECT_PASSWORD_ALT))
+        .hash(password(constants_str::CORRECT_PASSWORD_ALT))
         .await
         .expect("38819b94 password_hash_verifies_only_matching_password invariant must hold");
     assert!(
@@ -122,7 +122,7 @@ async fn password_hash_verifies_only_matching_password() {
 }
 #[test]
 fn secrets_are_redacted_in_debug_output() {
-    let raw_secret = constants_str::catalog::NEVER_PRINT_THIS_VALUE;
+    let raw_secret = constants_str::NEVER_PRINT_THIS_VALUE;
     let password = password(raw_secret);
     let jwt_secret =
         crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret::new(admin_secret(raw_secret));
@@ -136,7 +136,7 @@ fn secrets_are_redacted_in_debug_output() {
 #[test]
 fn generated_token_hash_is_stable_and_does_not_expose_token() {
     let token = crate::admin_opaque_token::AdminOpaqueToken::new(admin_secret(
-        constants_str::catalog::FIXED_TEST_TOKEN,
+        constants_str::FIXED_TEST_TOKEN,
     ));
     let hash = crate::hash_opaque_token::hash_opaque_token(&token).expect(
         "3af32394 generated_token_hash_is_stable_and_does_not_expose_token invariant must hold",
@@ -151,13 +151,13 @@ fn generated_token_hash_is_stable_and_does_not_expose_token() {
 fn cookie_policy_marks_only_secret_tokens_http_only() {
     let access = crate::build_admin_cookie::build_admin_cookie(
         crate::admin_cookie_kind::AdminCookieKind::Access,
-        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(constants_str::catalog::ACCESS),
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(constants_str::ACCESS),
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(60),
         crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(true),
     );
     let csrf = crate::build_admin_cookie::build_admin_cookie(
         crate::admin_cookie_kind::AdminCookieKind::Csrf,
-        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(constants_str::catalog::CSRF),
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(constants_str::CSRF),
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(60),
         crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(true),
     );
@@ -173,7 +173,7 @@ fn cookie_parser_matches_complete_cookie_name() {
     let _previous = headers.insert(
         http::header::COOKIE,
         http::HeaderValue::from_static(
-            constants_str::catalog::OTHER_1_ADMIN_ACCESS_TOKEN_EXPECTED_ADMIN_ACCESS_TOKEN_SUFFIX_WRONG,
+            constants_str::OTHER_1_ADMIN_ACCESS_TOKEN_EXPECTED_ADMIN_ACCESS_TOKEN_SUFFIX_WRONG,
         ),
     );
     assert_eq!(
@@ -189,16 +189,14 @@ fn cookie_parser_matches_complete_cookie_name() {
 #[test]
 fn administrator_login_format_accepts_only_database_compatible_values() {
     let valid =
-        server_admin_contract::admin_login::AdminLogin::try_from(constants_str::catalog::ADMIN_USER_1.to_owned()).expect("078c759d administrator_login_format_accepts_only_database_compatible_values invariant must hold");
-    assert_eq!(valid.as_ref(), constants_str::catalog::ADMIN_USER_1);
-    let _uppercase_error = server_admin_contract::admin_login::AdminLogin::try_from(
-        constants_str::catalog::ADMIN.to_owned(),
-    )
-    .expect_err(constants_str::test_fixtures::VALUE_5FA1C6E2);
-    let _short_error = server_admin_contract::admin_login::AdminLogin::try_from(
-        constants_str::catalog::AB.to_owned(),
-    )
-    .expect_err(constants_str::test_fixtures::VALUE_B78D42A9);
+        server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ADMIN_USER_1.to_owned()).expect("078c759d administrator_login_format_accepts_only_database_compatible_values invariant must hold");
+    assert_eq!(valid.as_ref(), constants_str::ADMIN_USER_1);
+    let _uppercase_error =
+        server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ADMIN.to_owned())
+            .expect_err(constants_str::VALUE_5FA1C6E2);
+    let _short_error =
+        server_admin_contract::admin_login::AdminLogin::try_from(constants_str::AB.to_owned())
+            .expect_err(constants_str::VALUE_B78D42A9);
 }
 #[test]
 fn access_token_round_trip_checks_issuer_and_audience() {
@@ -207,32 +205,32 @@ fn access_token_round_trip_checks_issuer_and_audience() {
             "d6d3da8a access_token_round_trip_checks_issuer_and_audience invariant must hold",
         ),
         crate::admin_session_id::AdminSessionId::from(server_admin_core::uuid_admin_value::UuidAdminValue::from(
-            uuid::Uuid::parse_str(constants_str::catalog::B871BD8F_7810_4D4B_94A1_5458D3016907).expect(
+            uuid::Uuid::parse_str(constants_str::B871BD8F_7810_4D4B_94A1_5458D3016907).expect(
                 "05562da0 access_token_round_trip_checks_issuer_and_audience invariant must hold",
             ),
         )),
         crate::admin_unix_token_stream::AdminUnixTokenStream::from(1),
         crate::admin_unix_token_stream::AdminUnixTokenStream::from(4_102_444_800),
-        config_lib::admin_token_issuer::AdminTokenIssuer::try_from(constants_str::catalog::TEST_ISSUER.to_owned())
+        config_lib::admin_token_issuer::AdminTokenIssuer::try_from(constants_str::TEST_ISSUER.to_owned())
             .expect(
                 "fd6a65b0 access_token_round_trip_checks_issuer_and_audience invariant must hold",
             ),
         config_lib::admin_token_audience::AdminTokenAudience::try_from(
-            constants_str::catalog::TEST_AUDIENCE.to_owned(),
+            constants_str::TEST_AUDIENCE.to_owned(),
         )
         .expect("6e423e16 access_token_round_trip_checks_issuer_and_audience invariant must hold"),
     );
     let secret = crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret::new(admin_secret(
-        constants_str::catalog::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
+        constants_str::TEST_ONLY_SECRET_WITH_SUFFICIENT_ENTROPY,
     ));
     let token = crate::encode_access_token::encode_access_token(&claims, &secret)
         .expect("b41052bc access_token_round_trip_checks_issuer_and_audience invariant must hold");
     let issuer = config_lib::admin_token_issuer::AdminTokenIssuer::try_from(
-        constants_str::catalog::TEST_ISSUER.to_owned(),
+        constants_str::TEST_ISSUER.to_owned(),
     )
     .expect("5edc807f access_token_round_trip_checks_issuer_and_audience invariant must hold");
     let audience = config_lib::admin_token_audience::AdminTokenAudience::try_from(
-        constants_str::catalog::TEST_AUDIENCE.to_owned(),
+        constants_str::TEST_AUDIENCE.to_owned(),
     )
     .expect("0c3975a1 access_token_round_trip_checks_issuer_and_audience invariant must hold");
     let decoded =
@@ -253,12 +251,12 @@ fn access_token_round_trip_checks_issuer_and_audience() {
             &secret,
             &issuer,
             &config_lib::admin_token_audience::AdminTokenAudience::try_from(
-                constants_str::catalog::WRONG_AUDIENCE.to_owned(),
+                constants_str::WRONG_AUDIENCE.to_owned(),
             )
             .expect(
                 "92f9c5ec access_token_round_trip_checks_issuer_and_audience invariant must hold",
             ),
         )
-        .expect_err(constants_str::catalog::A82438CC),
+        .expect_err(constants_str::A82438CC),
     );
 }

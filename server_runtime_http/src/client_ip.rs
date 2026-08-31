@@ -27,7 +27,7 @@ mod tests {
     }
     #[test]
     fn trusted_proxy_ranges_reject_oversized_lists() {
-        let item = range(constants_str::integration_fixtures::VALUE_127_0_0_1_32);
+        let item = range(constants_str::VALUE_127_0_0_1_32);
         let values = vec![item; constants_usize::VALUE_128.saturating_add(constants_usize::ONE)];
         assert_eq!(
             crate::trusted_proxy_ranges::TrustedProxyRanges::try_from(values),
@@ -38,7 +38,7 @@ mod tests {
     fn trusted_proxy_ranges_text_parses_comma_separated_ranges() {
         let ranges = crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(
             crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
-                constants_str::catalog::VALUE_127_0_0_1_32_PATH_1_128,
+                constants_str::VALUE_127_0_0_1_32_PATH_1_128,
             ),
         )
         .expect(
@@ -70,7 +70,7 @@ mod tests {
         ));
         let empty = crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(
             crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
-                constants_str::catalog::SPACE,
+                constants_str::SPACE,
             ),
         )
         .expect(
@@ -85,8 +85,8 @@ mod tests {
     fn untrusted_peer_cannot_spoof_forwarded_header() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(constants_str::catalog::VALUE_203_0_113_1),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
         );
         assert_eq!(
             resolved(&headers, "198.51.100.2:80", Vec::new()),
@@ -97,10 +97,8 @@ mod tests {
     fn trusted_chain_resolves_first_untrusted_address_from_right() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(
-                constants_str::catalog::VALUE_203_0_113_7_10_0_0_8_10_0_0,
-            ),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_7_10_0_0_8_10_0_0),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -111,8 +109,8 @@ mod tests {
     fn ipv4_range_does_not_trust_ipv6_peer() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(constants_str::catalog::VALUE_203_0_113_7),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_7),
         );
         assert_eq!(
             resolved(&headers, "[::1]:80", vec![range("127.0.0.0/8")]),
@@ -123,8 +121,8 @@ mod tests {
     fn malformed_and_multiple_headers_fall_back_to_peer() {
         let mut malformed_headers = http::HeaderMap::new();
         let _inserted_malformed = malformed_headers.append(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(constants_str::catalog::NOT_AN_IP),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::NOT_AN_IP),
         );
         assert_eq!(
             resolved(
@@ -136,8 +134,8 @@ mod tests {
         );
         let mut mixed_headers = http::HeaderMap::new();
         let _inserted_mixed = mixed_headers.append(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(constants_str::catalog::VALUE_203_0_113_1_NOT_AN_IP),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1_NOT_AN_IP),
         );
         assert_eq!(
             resolved(&mixed_headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -145,12 +143,12 @@ mod tests {
         );
         let mut headers = http::HeaderMap::new();
         let _inserted_first = headers.append(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(constants_str::catalog::VALUE_203_0_113_1),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
         );
         let _inserted_second = headers.append(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(constants_str::catalog::VALUE_203_0_113_2),
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_2),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -159,11 +157,11 @@ mod tests {
     }
     #[test]
     fn oversized_header_falls_back_without_reflecting_input() {
-        let oversized = constants_str::catalog::VALUE_1
+        let oversized = constants_str::VALUE_1
             .repeat(constants_usize::VALUE_4_096.saturating_add(constants_usize::ONE));
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            constants_str::catalog::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_str(oversized.as_str()).expect(
                 "6353255d oversized_header_falls_back_without_reflecting_input invariant must hold",
             ),

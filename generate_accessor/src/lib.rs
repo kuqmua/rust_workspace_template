@@ -17,7 +17,7 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         let syn::Data::Struct(data) = &parsed_input_ref.data else {
             return Err(syn::Error::new_spanned(
                 parsed_input_ref,
-                constants_str::test_fixtures::GETTERS_REQUIRES_STRUCT,
+                constants_str::GETTERS_REQUIRES_STRUCT,
             ));
         };
         let identifier = &parsed_input_ref.ident;
@@ -28,23 +28,16 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 .attrs
                 .iter()
                 .try_fold(false, |found, attribute| {
-                    if !attribute
-                        .path()
-                        .is_ident(constants_str::test_fixtures::GETTERS_ATTRIBUTE)
-                    {
+                    if !attribute.path().is_ident(constants_str::GETTERS_ATTRIBUTE) {
                         return Ok(found);
                     }
                     let mut attribute_get_mut = false;
                     attribute.parse_nested_meta(|metadata| {
-                        if metadata
-                            .path
-                            .is_ident(constants_str::test_fixtures::GETTERS_GET_MUT)
-                        {
+                        if metadata.path.is_ident(constants_str::GETTERS_GET_MUT) {
                             attribute_get_mut = true;
                             Ok(())
                         } else {
-                            Err(metadata
-                                .error(constants_str::test_fixtures::GETTERS_UNSUPPORTED_ATTRIBUTE))
+                            Err(metadata.error(constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE))
                         }
                     })?;
                     Ok::<bool, syn::Error>(found || attribute_get_mut)
@@ -55,23 +48,16 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             .enumerate()
             .map(|(index, field)| {
                 let get_mut = field.attrs.iter().try_fold(false, |found, attribute| {
-                    if !attribute
-                        .path()
-                        .is_ident(constants_str::test_fixtures::GETTERS_ATTRIBUTE)
-                    {
+                    if !attribute.path().is_ident(constants_str::GETTERS_ATTRIBUTE) {
                         return Ok(found);
                     }
                     let mut attribute_get_mut = false;
                     attribute.parse_nested_meta(|metadata| {
-                        if metadata
-                            .path
-                            .is_ident(constants_str::test_fixtures::GETTERS_GET_MUT)
-                        {
+                        if metadata.path.is_ident(constants_str::GETTERS_GET_MUT) {
                             attribute_get_mut = true;
                             Ok(())
                         } else {
-                            Err(metadata
-                                .error(constants_str::test_fixtures::GETTERS_UNSUPPORTED_ATTRIBUTE))
+                            Err(metadata.error(constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE))
                         }
                     })?;
                     Ok::<bool, syn::Error>(found || attribute_get_mut)
@@ -104,7 +90,7 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     None => {
                         return Err(syn::Error::new_spanned(
                             field,
-                            constants_str::test_fixtures::GETTERS_REQUIRES_NAMED_OR_SINGLE_FIELD,
+                            constants_str::GETTERS_REQUIRES_NAMED_OR_SINGLE_FIELD,
                         ));
                     }
                 };
@@ -113,7 +99,7 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     && type_path.qself.is_none()
                     && type_path.path.segments.len() == constants_usize::ONE
                     && let Some(option_segment) = type_path.path.segments.first()
-                    && option_segment.ident == constants_str::test_fixtures::OPTION_TYPE
+                    && option_segment.ident == constants_str::OPTION_TYPE
                     && let syn::PathArguments::AngleBracketed(arguments) = &option_segment.arguments
                     && let Some(syn::GenericArgument::Type(inner_type)) = arguments.args.first()
                 {

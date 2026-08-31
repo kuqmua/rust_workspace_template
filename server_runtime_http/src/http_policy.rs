@@ -5,12 +5,12 @@ mod tests {
         assert!(matches!(
             crate::resolve_bearer_authorization::resolve_bearer_authorization(
                 crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(
-                    Some(constants_str::test_fixtures::TEST_BEARER_AUTHORIZATION)
+                    Some(constants_str::TEST_BEARER_AUTHORIZATION)
                 )
             ),
             crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(_)
         ));
-        let secret = constants_str::catalog::NEVER_PRINT_THIS_VALUE;
+        let secret = constants_str::NEVER_PRINT_THIS_VALUE;
         assert!(
             !format!(
                 "{:?}",

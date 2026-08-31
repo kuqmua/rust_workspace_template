@@ -14,7 +14,7 @@
 pub struct RegexRegex(String);
 impl From<crate::default_regex_pattern::DefaultRegexPattern> for RegexRegex {
     fn from(_value: crate::default_regex_pattern::DefaultRegexPattern) -> Self {
-        Self(String::from(constants_str::catalog::A_Z_PLUS))
+        Self(String::from(constants_str::A_Z_PLUS))
     }
 }
 impl utoipa::PartialSchema for RegexRegex {
@@ -26,7 +26,7 @@ impl utoipa::PartialSchema for RegexRegex {
 }
 impl utoipa::ToSchema for RegexRegex {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::catalog::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
+        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
     }
 }
 impl TryFrom<String> for RegexRegex {
@@ -55,12 +55,12 @@ const _: () = {
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                constants_str::catalog::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
+                constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
             )
         }
         fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                constants_str::catalog::PG_CRUD_REGEX_REGEX_SCHEMA_ID,
+                constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_ID,
             )
         }
         fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {

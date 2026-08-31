@@ -4,13 +4,11 @@ pub(super) struct RuntimePanicExpectUnwrapVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == constants_str::catalog::CODE_STYLE_EXPECT_METHOD_NAME {
-            self.ers
-                .push(constants_str::catalog::EXPECT_CALL.to_owned());
+        if i.method == constants_str::CODE_STYLE_EXPECT_METHOD_NAME {
+            self.ers.push(constants_str::EXPECT_CALL.to_owned());
         }
-        if i.method == constants_str::catalog::UNWRAP {
-            self.ers
-                .push(constants_str::catalog::UNWRAP_CALL.to_owned());
+        if i.method == constants_str::UNWRAP {
+            self.ers.push(constants_str::UNWRAP_CALL.to_owned());
         }
         syn::visit::visit_expr_method_call(self, i);
     }
@@ -21,10 +19,12 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
         syn::visit::visit_item(self, i);
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
-        if i.path.segments.last().is_some_and(|segment| {
-            segment.ident == constants_str::catalog::CODE_STYLE_PANIC_METHOD_NAME
-        }) {
-            self.ers.push(constants_str::catalog::PANIC_CALL.to_owned());
+        if i.path
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == constants_str::CODE_STYLE_PANIC_METHOD_NAME)
+        {
+            self.ers.push(constants_str::PANIC_CALL.to_owned());
         }
         syn::visit::visit_macro(self, i);
     }
@@ -43,7 +43,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
     fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
         if crate::code_style::path_has_segment(
             crate::types::SynPathRef::from(&i.path),
-            crate::types::SourceTextRef::from(constants_str::catalog::MUTEX),
+            crate::types::SourceTextRef::from(constants_str::MUTEX),
         )
         .get()
         {
@@ -66,7 +66,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
                 crate::code_style::path_ends_with(
                     path,
                     crate::types::StaticStrSliceRef::from(
-                        [constants_str::catalog::ARC, constants_str::catalog::NEW].as_slice(),
+                        [constants_str::ARC, constants_str::NEW].as_slice(),
                     ),
                 )
                 .get()
@@ -74,7 +74,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
         ) && !self.allow_arc_value_usage.get()
         {
             self.ers.push(
-                constants_str::catalog::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION
+                constants_str::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION
                     .to_owned(),
             );
         }
@@ -90,7 +90,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
         let contains_arc = match i.ty.as_ref() {
             syn::Type::Path(path) => crate::code_style::path_has_segment(
                 crate::types::SynPathRef::from(&path.path),
-                crate::types::SourceTextRef::from(constants_str::catalog::ARC),
+                crate::types::SourceTextRef::from(constants_str::ARC),
             )
             .get(),
             syn::Type::Array(_)
@@ -111,9 +111,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
         };
         if contains_arc {
             let name = i.ident.to_string();
-            if !name.contains(constants_str::catalog::SHARED)
-                && !name.contains(constants_str::catalog::DYNARC)
-            {
+            if !name.contains(constants_str::SHARED) && !name.contains(constants_str::DYNARC) {
                 self.ers.push(format!(
                     "Arc type alias `{name}` must be explicitly named as shared cross-thread state"
                 ));
@@ -142,9 +140,9 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                         path,
                         crate::types::StaticStrSliceRef::from(
                             [
-                                constants_str::catalog::FUTURES,
-                                constants_str::catalog::EXECUTOR,
-                                constants_str::catalog::BLOCK_ON,
+                                constants_str::FUTURES,
+                                constants_str::EXECUTOR,
+                                constants_str::BLOCK_ON,
                             ]
                             .as_slice(),
                         ),
@@ -154,9 +152,9 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                             path,
                             crate::types::StaticStrSliceRef::from(
                                 [
-                                    constants_str::catalog::TOKIO,
-                                    constants_str::catalog::TASK,
-                                    constants_str::catalog::BLOCK_IN_PLACE,
+                                    constants_str::TOKIO,
+                                    constants_str::TASK,
+                                    constants_str::BLOCK_IN_PLACE,
                                 ]
                                 .as_slice(),
                             ),
@@ -166,9 +164,9 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                             path,
                             crate::types::StaticStrSliceRef::from(
                                 [
-                                    constants_str::catalog::STD,
-                                    constants_str::catalog::THREAD,
-                                    constants_str::catalog::SLEEP,
+                                    constants_str::STD,
+                                    constants_str::THREAD,
+                                    constants_str::SLEEP,
                                 ]
                                 .as_slice(),
                             ),
@@ -180,7 +178,7 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
             )
         {
             self.ers
-                .push(constants_str::catalog::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
+                .push(constants_str::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
         }
         syn::visit::visit_expr_call(self, i);
     }
@@ -199,10 +197,10 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
         if self.async_fn_depth.get() != 0
             && matches!(
                 method.as_str(),
-                constants_str::catalog::BLOCK_ON
-                    | constants_str::catalog::BLOCK_IN_PLACE
-                    | constants_str::integration_fixtures::BLOCKING_RECV
-                    | constants_str::integration_fixtures::BLOCKING_SEND
+                constants_str::BLOCK_ON
+                    | constants_str::BLOCK_IN_PLACE
+                    | constants_str::BLOCKING_RECV
+                    | constants_str::BLOCKING_SEND
             )
         {
             self.ers.push(format!(
@@ -259,7 +257,7 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
         if self.test_depth.get() != 0
             && matches!(
                 i.method.to_string().as_str(),
-                constants_str::catalog::CONNECT | constants_str::test_fixtures::VALUE_3DFFA238
+                constants_str::CONNECT | constants_str::VALUE_3DFFA238
             )
         {
             self.ers.push(format!(
@@ -274,51 +272,51 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
         let path_text = crate::code_style::path_to_string(path);
         let is_external_service_client = [
             [
-                constants_str::catalog::REQWEST,
-                constants_str::catalog::CLIENT,
-                constants_str::catalog::NEW,
+                constants_str::REQWEST,
+                constants_str::CLIENT,
+                constants_str::NEW,
             ]
             .as_slice(),
             [
-                constants_str::catalog::STD,
-                constants_str::catalog::NET,
-                constants_str::catalog::TCPSTREAM,
-                constants_str::catalog::CONNECT,
+                constants_str::STD,
+                constants_str::NET,
+                constants_str::TCPSTREAM,
+                constants_str::CONNECT,
             ]
             .as_slice(),
             [
-                constants_str::catalog::STD,
-                constants_str::catalog::NET,
-                constants_str::catalog::TCPLISTENER,
-                constants_str::catalog::BIND,
+                constants_str::STD,
+                constants_str::NET,
+                constants_str::TCPLISTENER,
+                constants_str::BIND,
             ]
             .as_slice(),
             [
-                constants_str::catalog::STD,
-                constants_str::catalog::NET,
-                constants_str::catalog::UDPSOCKET,
-                constants_str::catalog::BIND,
+                constants_str::STD,
+                constants_str::NET,
+                constants_str::UDPSOCKET,
+                constants_str::BIND,
             ]
             .as_slice(),
             [
-                constants_str::catalog::TOKIO,
-                constants_str::catalog::NET,
-                constants_str::catalog::TCPSTREAM,
-                constants_str::catalog::CONNECT,
+                constants_str::TOKIO,
+                constants_str::NET,
+                constants_str::TCPSTREAM,
+                constants_str::CONNECT,
             ]
             .as_slice(),
             [
-                constants_str::catalog::TOKIO,
-                constants_str::catalog::NET,
-                constants_str::catalog::TCPLISTENER,
-                constants_str::catalog::BIND,
+                constants_str::TOKIO,
+                constants_str::NET,
+                constants_str::TCPLISTENER,
+                constants_str::BIND,
             ]
             .as_slice(),
             [
-                constants_str::catalog::TOKIO,
-                constants_str::catalog::NET,
-                constants_str::catalog::UDPSOCKET,
-                constants_str::catalog::BIND,
+                constants_str::TOKIO,
+                constants_str::NET,
+                constants_str::UDPSOCKET,
+                constants_str::BIND,
             ]
             .as_slice(),
         ]
@@ -327,10 +325,10 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
             crate::code_style::path_ends_with(path, crate::types::StaticStrSliceRef::from(segments))
                 .get()
         }) || [
-            constants_str::test_fixtures::VALUE_364F9D39,
-            constants_str::test_fixtures::VALUE_BDB563EC,
-            constants_str::test_fixtures::VALUE_FE4D84FC,
-            constants_str::test_fixtures::VALUE_2FCCA7C7,
+            constants_str::VALUE_364F9D39,
+            constants_str::VALUE_BDB563EC,
+            constants_str::VALUE_FE4D84FC,
+            constants_str::VALUE_2FCCA7C7,
         ]
         .contains(&path_text.as_ref());
         if self.test_depth.get() != 0 && is_external_service_client {
@@ -343,9 +341,7 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
     }
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
         if i.attrs.iter().any(|attribute| {
-            attribute
-                .path()
-                .is_ident(constants_str::test_fixtures::VALUE_5F0AF516)
+            attribute.path().is_ident(constants_str::VALUE_5F0AF516)
                 && matches!(
                     &attribute.meta,
                     syn::Meta::NameValue(name_value)

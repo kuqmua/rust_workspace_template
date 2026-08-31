@@ -4,7 +4,7 @@ pub(crate) async fn record_login_attempt(
     peer: crate::admin_peer_addr::AdminPeerAddr,
     succeeded: server_admin_core::std_admin_bool::StdAdminBool,
 ) -> Result<(), crate::admin_error::AdminError> {
-    sqlx::query(constants_str::integration_fixtures::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
+    sqlx::query(constants_str::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
         .bind(login.as_ref())
         .bind(peer.socket_addr().get().ip())
         .bind(succeeded.get())

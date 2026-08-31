@@ -35,7 +35,7 @@ mod tests {
 
     #[tokio::test]
     async fn apply_propagates_mutation_error() {
-        let error = constants_str::test_fixtures::VALUE_E5B04B63;
+        let error = constants_str::VALUE_E5B04B63;
         let report = crate::execute_plan::execute_plan(
             crate::execution_mode::ExecutionMode::Apply,
             4u8,

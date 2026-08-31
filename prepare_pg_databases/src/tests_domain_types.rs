@@ -2,11 +2,10 @@
 mod tests {
     #[test]
     fn builds_one_migration_command_per_database() {
-        let url = crate::database_url::DatabaseUrl::try_from(
-            constants_str::test_fixtures::TEST_DATABASE_URL.to_owned(),
-        );
+        let url =
+            crate::database_url::DatabaseUrl::try_from(constants_str::TEST_DATABASE_URL.to_owned());
         let source = crate::migrations_source::MigrationsSource::try_from(
-            constants_str::test_fixtures::TEST_MIGRATIONS_PATH.to_owned(),
+            constants_str::TEST_MIGRATIONS_PATH.to_owned(),
         );
         assert!(url.is_ok());
         assert!(source.is_ok());
@@ -24,7 +23,7 @@ mod tests {
             .as_ref()
             .first()
             .expect("989c8d37 builds_one_migration_command_per_database invariant must hold");
-        assert_eq!(command.program().as_ref(), constants_str::catalog::SQLX);
+        assert_eq!(command.program().as_ref(), constants_str::SQLX);
         assert_eq!(command.arguments().as_ref().len(), 5usize);
     }
 

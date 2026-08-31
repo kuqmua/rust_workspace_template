@@ -42,5 +42,5 @@ fn generated_type_list_deserialization_rejects_too_many_entries() {
         "7cd2e0af generated_type_list_deserialization_rejects_too_many_entries invariant must hold",
     );
     let _error = serde_json::from_str::<crate::generate_pg_types::GeneratePgTypes>(&serialized)
-        .expect_err(constants_str::test_fixtures::VALUE_28B750CB);
+        .expect_err(constants_str::VALUE_28B750CB);
 }

@@ -24,60 +24,60 @@ impl ApiProblem {
         let (kind, detail) = match error {
             crate::api_problem_error::ApiProblemError::Authentication => (
                 crate::api_problem_kind::ApiProblemKind::Authentication,
-                constants_str::catalog::AUTHENTICATION_REQUIRED,
+                constants_str::AUTHENTICATION_REQUIRED,
             ),
             crate::api_problem_error::ApiProblemError::Authorization => (
                 crate::api_problem_kind::ApiProblemKind::Authorization,
-                constants_str::catalog::AUTHORIZATION_FAILED,
+                constants_str::AUTHORIZATION_FAILED,
             ),
             crate::api_problem_error::ApiProblemError::Conflict => (
                 crate::api_problem_kind::ApiProblemKind::Conflict,
-                constants_str::catalog::RESOURCE_STATE_CONFLICT,
+                constants_str::RESOURCE_STATE_CONFLICT,
             ),
             crate::api_problem_error::ApiProblemError::InProgress => (
                 crate::api_problem_kind::ApiProblemKind::InProgress,
-                constants_str::catalog::MATCHING_REQUEST_IS_STILL_IN_PROGRESS,
+                constants_str::MATCHING_REQUEST_IS_STILL_IN_PROGRESS,
             ),
             crate::api_problem_error::ApiProblemError::Internal(_)
             | crate::api_problem_error::ApiProblemError::ServiceUnavailable => (
                 crate::api_problem_kind::ApiProblemKind::Internal,
-                constants_str::catalog::INTERNAL_SERVER_ERROR,
+                constants_str::INTERNAL_SERVER_ERROR,
             ),
             crate::api_problem_error::ApiProblemError::InvalidRequest => (
                 crate::api_problem_kind::ApiProblemKind::InvalidRequest,
-                constants_str::catalog::INVALID_REQUEST,
+                constants_str::INVALID_REQUEST,
             ),
             crate::api_problem_error::ApiProblemError::MethodNotAllowed => (
                 crate::api_problem_kind::ApiProblemKind::MethodNotAllowed,
-                constants_str::catalog::METHOD_NOT_ALLOWED,
+                constants_str::METHOD_NOT_ALLOWED,
             ),
             crate::api_problem_error::ApiProblemError::NotFound => (
                 crate::api_problem_kind::ApiProblemKind::NotFound,
-                constants_str::catalog::RESOURCE_NOT_FOUND,
+                constants_str::RESOURCE_NOT_FOUND,
             ),
             crate::api_problem_error::ApiProblemError::PayloadTooLarge => (
                 crate::api_problem_kind::ApiProblemKind::PayloadTooLarge,
-                constants_str::catalog::REQUEST_BODY_IS_TOO_LARGE,
+                constants_str::REQUEST_BODY_IS_TOO_LARGE,
             ),
             crate::api_problem_error::ApiProblemError::Precondition => (
                 crate::api_problem_kind::ApiProblemKind::Precondition,
-                constants_str::catalog::RESOURCE_PRECONDITION_FAILED,
+                constants_str::RESOURCE_PRECONDITION_FAILED,
             ),
             crate::api_problem_error::ApiProblemError::PreconditionRequired => (
                 crate::api_problem_kind::ApiProblemKind::PreconditionRequired,
-                constants_str::catalog::REQUEST_PRECONDITION_IS_REQUIRED,
+                constants_str::REQUEST_PRECONDITION_IS_REQUIRED,
             ),
             crate::api_problem_error::ApiProblemError::RateLimited => (
                 crate::api_problem_kind::ApiProblemKind::RateLimited,
-                constants_str::catalog::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
+                constants_str::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
             ),
             crate::api_problem_error::ApiProblemError::RequestFailed(_) => (
                 crate::api_problem_kind::ApiProblemKind::RequestFailed,
-                constants_str::catalog::REQUEST_FAILED,
+                constants_str::REQUEST_FAILED,
             ),
             crate::api_problem_error::ApiProblemError::Validation => (
                 crate::api_problem_kind::ApiProblemKind::Validation,
-                constants_str::catalog::REQUEST_VALIDATION_FAILED,
+                constants_str::REQUEST_VALIDATION_FAILED,
             ),
         };
         Self {

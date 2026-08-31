@@ -12,11 +12,7 @@ pub fn redact_url_userinfo(
                 .ok(),
             );
         }
-        if url
-            .set_username(constants_str::catalog::REDACTED_ALT)
-            .is_ok()
-            && url.set_password(None).is_ok()
-        {
+        if url.set_username(constants_str::REDACTED_ALT).is_ok() && url.set_password(None).is_ok() {
             return crate::redacted_url::RedactedUrl::from(
                 text_policy::required_nul_free_bounded_text::RequiredNulFreeBoundedText::try_from(
                     url.to_string(),
@@ -25,10 +21,10 @@ pub fn redact_url_userinfo(
             );
         }
     }
-    let Some((scheme, remainder)) = input.split_once(constants_str::catalog::TEXT_ALT_10) else {
+    let Some((scheme, remainder)) = input.split_once(constants_str::TEXT_ALT_10) else {
         return crate::redacted_url::RedactedUrl::from(
             text_policy::required_nul_free_bounded_text::RequiredNulFreeBoundedText::try_from(
-                constants_str::catalog::REDACTED_ALT_3.to_owned(),
+                constants_str::REDACTED_ALT_3.to_owned(),
             )
             .ok(),
         );
@@ -37,7 +33,7 @@ pub fn redact_url_userinfo(
     let Some(authority) = remainder.get(..authority_end) else {
         return crate::redacted_url::RedactedUrl::from(
             text_policy::required_nul_free_bounded_text::RequiredNulFreeBoundedText::try_from(
-                constants_str::catalog::REDACTED_ALT_3.to_owned(),
+                constants_str::REDACTED_ALT_3.to_owned(),
             )
             .ok(),
         );
@@ -52,12 +48,12 @@ pub fn redact_url_userinfo(
     };
     let host = authority
         .get(userinfo_end.saturating_add(constants_usize::ONE)..)
-        .unwrap_or(constants_str::catalog::REDACTED_ALT_3);
+        .unwrap_or(constants_str::REDACTED_ALT_3);
     let suffix = remainder.get(authority_end..).unwrap_or_default();
     let mut output = String::with_capacity(input.len());
     output.push_str(scheme);
-    output.push_str(constants_str::catalog::TEXT_ALT_10);
-    output.push_str(constants_str::catalog::REDACTED_ALT);
+    output.push_str(constants_str::TEXT_ALT_10);
+    output.push_str(constants_str::REDACTED_ALT);
     output.push('@');
     output.push_str(host);
     output.push_str(suffix);

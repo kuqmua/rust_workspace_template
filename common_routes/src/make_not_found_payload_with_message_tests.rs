@@ -7,7 +7,7 @@ pub(super) fn make_not_found_payload_with_message(
         commit,
         message,
         crate::open_api_specification_path::OpenApiSpecificationPath::from(
-            constants_str::catalog::COMMON_ROUTES_SWAGGER_UI,
+            constants_str::COMMON_ROUTES_SWAGGER_UI,
         ),
     )
 }
