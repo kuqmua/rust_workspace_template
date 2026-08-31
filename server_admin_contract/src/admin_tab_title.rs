@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefStr,
 )]
 #[bounded_string(
@@ -14,4 +14,10 @@
     validator = |value: &String| !value.trim().is_empty(),
     description = "administrator tab title"
 )]
-pub struct AdminTabTitle(String);
+pub struct AdminTabTitle(
+    bounded_types::bounded_string::BoundedString<
+        { constants_usize::ONE },
+        { constants_usize::VALUE_8_192 },
+        true,
+    >,
+);

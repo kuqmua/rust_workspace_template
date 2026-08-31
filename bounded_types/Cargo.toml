@@ -11,6 +11,7 @@ edition.workspace = true
 constants_usize = { workspace = true }
 optimal_memory_layout = { workspace = true }
 newtype = { workspace = true }
+schemars = { workspace = true }
 serde = { workspace = true }
 constants_str = { workspace = true }
 thiserror = { workspace = true }

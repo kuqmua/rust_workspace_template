@@ -8,9 +8,9 @@
     Clone,
     PartialEq,
     Eq,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefOwned,
     newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator cookie")]
-pub struct StdAdminCookie(pub(crate) String);
+pub struct StdAdminCookie(bounded_types::bounded_string::BoundedString<0usize, 8192, false>);

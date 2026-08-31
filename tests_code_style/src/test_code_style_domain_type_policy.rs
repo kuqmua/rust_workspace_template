@@ -122,6 +122,48 @@ fn test_bounded_string_derive_satisfies_string_wrapper_policy() {
     );
 }
 #[test]
+fn test_bounded_string_wrappers_store_bounded_string() {
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::E2A6B9C4),
+        crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+        |path, ast, ers| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                super::domain_analysis::BoundedStringStorageVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                ),
+            );
+            ers.extend(
+                visitor
+                    .get_ers()
+                    .clone()
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn test_bounded_string_storage_visitor_rejects_raw_string_and_old_derive() {
+    let ast: syn::File = syn::parse_quote! {
+        #[derive(newtype::BoundedString)]
+        #[bounded_string(max = 8usize)]
+        struct Value(String);
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::domain_analysis::BoundedStringStorageVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+        ),
+    );
+    assert_eq!(
+        visitor.get_ers().len(),
+        2,
+        "9301b84f {:#?}",
+        visitor.get_ers()
+    );
+}
+#[test]
 fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
     let ast: syn::File = syn::parse_quote! {
             #[derive(newtype::TryFrom)]

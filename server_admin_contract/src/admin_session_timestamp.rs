@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::Display,
 )]
 #[bounded_string(
@@ -12,4 +12,4 @@
     utoipa,
     description = "administrator session timestamp"
 )]
-pub struct AdminSessionTimestamp(String);
+pub struct AdminSessionTimestamp(bounded_types::bounded_string::BoundedString<0usize, 64, true>);

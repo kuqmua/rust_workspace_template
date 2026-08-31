@@ -3,7 +3,13 @@
     Clone,
     Debug,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
 )]
 #[bounded_string(max = constants_usize::VALUE_16_777_216)]
-pub(super) struct ServiceImage(String);
+pub(super) struct ServiceImage(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { constants_usize::VALUE_16_777_216 },
+        false,
+    >,
+);

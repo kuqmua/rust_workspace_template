@@ -5,7 +5,9 @@
     PartialEq,
     Eq,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
 )]
 #[bounded_string(max = 128usize, min = constants_usize::ONE)]
-pub struct TransportRetryAfter(String);
+pub struct TransportRetryAfter(
+    bounded_types::bounded_string::BoundedString<{ constants_usize::ONE }, 128usize, false>,
+);

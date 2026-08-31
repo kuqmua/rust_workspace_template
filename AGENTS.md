@@ -10,6 +10,8 @@
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
 - Use repository domain wrapper types in struct fields, enum fields, function parameters, method parameters, and return values; initialize raw values through `From` or `TryFrom`.
+- Store bounded text in `bounded_types::bounded_string::BoundedString`; a struct using
+  `#[bounded_string]` must not store a raw `String` or derive the removed `newtype::BoundedString`.
 - Use a single async runtime across workspace; do not mix async runtimes.
 - Keep trait bounds explicit.
 - Use trait objects only when dynamic dispatch is required.
@@ -22,6 +24,12 @@
 - Preserve behavior and semantics unless a change is requested; never change semantics silently.
 - Keep diffs minimal.
 - Keep generated functions and closures inside usage scope.
+- Define every repeated ASCII word in `constants_str` exactly once in a macro fragment block and
+  compose constants from those word fragments. Every declared fragment must contain one word and
+  be referenced at least twice.
+- Keep constants containing Rust source in the shared `rust_constants` block. Extract every
+  repeated Rust syntax substring into the shared `rust_fragments` block and reference each Rust
+  fragment at least twice.
 - Keep every struct field private, including tuple-struct fields. Expose required reads through
   generated getters such as `generate_accessor::Getters` or `newtype::GetInner`, and expose
   construction through validated conversions or generated constructors.

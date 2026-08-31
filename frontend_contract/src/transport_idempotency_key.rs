@@ -5,7 +5,9 @@
     PartialEq,
     Eq,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
 )]
 #[bounded_string(max = 255usize, min = constants_usize::ONE)]
-pub struct TransportIdempotencyKey(String);
+pub struct TransportIdempotencyKey(
+    bounded_types::bounded_string::BoundedString<{ constants_usize::ONE }, 255usize, false>,
+);

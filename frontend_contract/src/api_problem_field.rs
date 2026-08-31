@@ -5,11 +5,11 @@
     Default,
     PartialEq,
     Eq,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
 )]
 #[bounded_string(max = 128usize)]
 #[serde(try_from = "String")]
-pub struct ApiProblemField(String);
+pub struct ApiProblemField(bounded_types::bounded_string::BoundedString<0usize, 128usize, false>);

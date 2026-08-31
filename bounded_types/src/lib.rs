@@ -16,7 +16,6 @@ pub mod bounded_vec;
 pub mod bounded_vec_visitor_phantom_data;
 pub mod collection_max_len;
 pub mod deserialize_bounded_map;
-pub(crate) mod deserialize_bounded_owned_string;
 pub mod serde_prealloc_max_items;
 pub mod validate_len;
 

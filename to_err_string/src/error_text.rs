@@ -5,7 +5,7 @@
     Default,
     PartialEq,
     Eq,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefStr,
     newtype::DerefTarget,
     newtype::Display,
@@ -16,4 +16,10 @@
     serde,
     description = "error text"
 )]
-pub struct ErrorText(String);
+pub struct ErrorText(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { crate::error_text_max_len::ERROR_TEXT_MAX_LEN },
+        false,
+    >,
+);

@@ -101,7 +101,7 @@ async fn test_role_assignment_form_accepts_dynamic_checkbox_fields() {
     let form = form.into_inner();
 
     assert_eq!(i64::from(*form.get_user_id()), 7i64);
-    assert_eq!(form.get_expected_role_ids().as_ref(), "1,2");
+    assert_eq!(form.get_expected_role_ids().as_str(), "1,2");
     assert_eq!(form.get_selected().len().get(), 2usize);
 }
 

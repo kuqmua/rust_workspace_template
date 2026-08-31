@@ -4,8 +4,10 @@
     Debug,
     Eq,
     PartialEq,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::Display,
 )]
 #[bounded_string(max = constants_usize::VALUE_4_096)]
-pub struct SanitizedDatabaseTarget(String);
+pub struct SanitizedDatabaseTarget(
+    bounded_types::bounded_string::BoundedString<0usize, { constants_usize::VALUE_4_096 }, false>,
+);

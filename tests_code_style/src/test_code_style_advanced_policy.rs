@@ -910,10 +910,6 @@ fn test_allocations_inside_loops_match_reviewed_inventory() {
             constants_str::VALUE_94FCEDB7,
             (constants_usize::ONE, constants_str::VALUE_855EA4C0),
         ),
-        (
-            constants_str::VALUE_63BD6017,
-            (constants_usize::ONE, constants_str::VALUE_A2531714),
-        ),
     ]);
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let observed = snapshot

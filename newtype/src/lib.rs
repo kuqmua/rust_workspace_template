@@ -19,6 +19,9 @@ mod to_err_string_mode;
 mod wire_enum_attrs;
 
 #[cfg(test)]
+extern crate bounded_types as _;
+
+#[cfg(test)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(dead_code)] // dev dependencies are exercised by integration test_tests, not proc-macro unit code
 fn newtype_dependency_markers<Value>(
@@ -366,6 +369,94 @@ pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         newtype_option::NewtypeOption::From,
         None,
     )
+    .into()
+}
+#[proc_macro_derive(FromGetter, attributes(from_getter))]
+pub fn from_getter(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    let mut attributes = input
+        .attrs
+        .iter()
+        .filter(|attribute| attribute.path().is_ident(constants_str::FROM_GETTER));
+    let Some(attribute) = attributes.next() else {
+        return syn::Error::new_spanned(
+            &input.ident,
+            constants_str::FROM_GETTER_REQUIRES_ATTRIBUTE,
+        )
+        .into_compile_error()
+        .into();
+    };
+    if attributes.next().is_some() {
+        return syn::Error::new_spanned(
+            &input.ident,
+            constants_str::FROM_GETTER_REQUIRES_ONE_ATTRIBUTE,
+        )
+        .into_compile_error()
+        .into();
+    }
+    let mut source_option = None;
+    let mut getter_option = None;
+    if let Err(error) = attribute.parse_nested_meta(|meta| {
+        if meta.path.is_ident(constants_str::SOURCE) {
+            source_option = Some(meta.value()?.parse::<syn::Type>()?);
+            return Ok(());
+        }
+        if meta.path.is_ident(constants_str::GETTER) {
+            getter_option = Some(meta.value()?.parse::<syn::Ident>()?);
+            return Ok(());
+        }
+        Err(meta.error(constants_str::FROM_GETTER_REQUIRES_ATTRIBUTE))
+    }) {
+        return error.into_compile_error().into();
+    }
+    let Some(source) = source_option else {
+        return syn::Error::new_spanned(
+            attribute,
+            constants_str::MACRO_DIAGNOSTICS_FROM_GETTER_SOURCE_ERROR,
+        )
+        .into_compile_error()
+        .into();
+    };
+    let Some(getter) = getter_option else {
+        return syn::Error::new_spanned(
+            attribute,
+            constants_str::MACRO_DIAGNOSTICS_FROM_GETTER_GETTER_ERROR,
+        )
+        .into_compile_error()
+        .into();
+    };
+    let syn::Data::Struct(syn::DataStruct {
+        fields: syn::Fields::Unnamed(fields),
+        ..
+    }) = &input.data
+    else {
+        return syn::Error::new_spanned(
+            &input.ident,
+            constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
+        )
+        .into_compile_error()
+        .into();
+    };
+    if fields.unnamed.len() != constants_usize::ONE {
+        return syn::Error::new_spanned(
+            &input.ident,
+            constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
+        )
+        .into_compile_error()
+        .into();
+    }
+    let identifier = &input.ident;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    quote::quote! {
+        impl #impl_generics From<#source> for #identifier #ty_generics #where_clause {
+            fn from(value: #source) -> Self {
+                Self(value.#getter())
+            }
+        }
+    }
     .into()
 }
 #[proc_macro_derive(Accessor)]
@@ -740,8 +831,10 @@ pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::Tok
     }
     .into()
 }
-#[proc_macro_derive(BoundedString, attributes(bounded_string))]
-pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+#[proc_macro_derive(BoundedStringWrapper, attributes(bounded_string))]
+pub fn bounded_string_wrapper(
+    input_token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
@@ -846,7 +939,7 @@ fn generate_bounded_string_token_stream(
         ));
     }
     let inner_ty = tuple_struct_one_field_ty(input)?;
-    if !type_path_ends_with_string_identifier(inner_ty).get() {
+    if !type_path_ends_with_bounded_string_identifier(inner_ty).get() {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
             constants_str::BOUNDEDSTRING_SUPPORTS_ONLY_STRING_TUPLE_STRUCTS,
@@ -859,6 +952,7 @@ fn generate_bounded_string_token_stream(
         ));
     }
     let identifier = &input_ref.ident;
+    let inner_ty_ref = inner_ty.as_ref();
     let vis = &input_ref.vis;
     let error_identifier = quote::format_ident!("{identifier}TryFromStringError");
     let description = attrs.get_description();
@@ -890,6 +984,15 @@ fn generate_bounded_string_token_stream(
         .contains(bounded_string_option::BoundedStringOption::WriteOnly)
         .get()
         .then(|| quote::quote! {.write_only(Some(true))});
+    let error_from_token_stream = min.is_none().then(|| {
+        quote::quote! {
+            impl From<#error_identifier> for #identifier {
+                fn from(value: #error_identifier) -> Self {
+                    Self(<#inner_ty_ref>::from_truncated(value.to_string()))
+                }
+            }
+        }
+    });
     if utoipa && !chars {
         return Err(syn::Error::new_spanned(
             input_ref,
@@ -992,11 +1095,7 @@ fn generate_bounded_string_token_stream(
                     }
                 }
             }
-            impl From<#error_identifier> for #identifier {
-                fn from(value: #error_identifier) -> Self {
-                    Self(value.to_string())
-                }
-            }
+            #error_from_token_stream
             impl TryFrom<String> for #identifier {
                 type Error = #error_identifier;
                 fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -1016,7 +1115,23 @@ fn generate_bounded_string_token_stream(
                         });
                     }
                     #validator_check_token_stream
-                    Ok(Self(value))
+                    match <#inner_ty_ref>::try_from(value) {
+                        Ok(value) => Ok(Self(value)),
+                        Err(bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                            actual_length,
+                            minimum_length,
+                        }) => Err(Self::Error::TooShort {
+                            len: actual_length.get(),
+                            min: minimum_length.get(),
+                        }),
+                        Err(bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                            actual_length,
+                            maximum_length,
+                        }) => Err(Self::Error::TooLong {
+                            len: actual_length.get(),
+                            max: maximum_length.get(),
+                        }),
+                    }
                 }
             }
             #serde_token_stream
@@ -1057,15 +1172,24 @@ fn generate_newtype_token_stream_with_attrs(
             constants_str::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
         ));
     }
-    if attrs.contains(newtype_option::NewtypeOption::From).get()
-        && type_path_ends_with_string_identifier(inner_ty).get()
-    {
+    let inner_is_string = || {
+        newtype_bool::NewtypeBool::from(match inner_ty.as_ref() {
+            syn::Type::Path(value) if value.qself.is_none() => value
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == constants_str::STRING),
+            syn::Type::Path(_) | _ => false,
+        })
+    };
+    if attrs.contains(newtype_option::NewtypeOption::From).get() && inner_is_string().get() {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
             constants_str::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
         ));
     }
     let inner_ty_ref = inner_ty.as_ref();
+    let inner_is_bounded_string = type_path_ends_with_bounded_string_identifier(inner_ty).get();
     let identifier = &input_ref.ident;
     let (impl_generics, ty_generics, where_clause) = input_ref.generics.split_for_impl();
     let debug_transparent_token_stream = attrs
@@ -1261,15 +1385,28 @@ fn generate_newtype_token_stream_with_attrs(
     } else {
         None
     };
-    let as_ref_owned_token_stream = attrs.contains(newtype_option::NewtypeOption::AsRefOwned).get().then(|| {
-        quote::quote! {
-            impl #impl_generics AsRef<#inner_ty_ref> for #identifier #ty_generics #where_clause {
-                fn as_ref(&self) -> &#inner_ty_ref {
-                    &self.0
+    let as_ref_owned_token_stream = attrs
+        .contains(newtype_option::NewtypeOption::AsRefOwned)
+        .get()
+        .then(|| {
+            if inner_is_bounded_string {
+                quote::quote! {
+                    impl #impl_generics AsRef<String> for #identifier #ty_generics #where_clause {
+                        fn as_ref(&self) -> &String {
+                            self.0.as_string()
+                        }
+                    }
+                }
+            } else {
+                quote::quote! {
+                    impl #impl_generics AsRef<#inner_ty_ref> for #identifier #ty_generics #where_clause {
+                        fn as_ref(&self) -> &#inner_ty_ref {
+                            &self.0
+                        }
+                    }
                 }
             }
-        }
-    });
+        });
     let as_ref_target_token_stream = attrs.contains(newtype_option::NewtypeOption::AsRefTarget).get().then(|| {
         quote::quote! {
             impl #impl_generics AsRef<<#inner_ty_ref as std::ops::Deref>::Target> for #identifier #ty_generics #where_clause
@@ -1361,13 +1498,24 @@ fn generate_newtype_token_stream_with_attrs(
         .contains(newtype_option::NewtypeOption::DerefInner)
         .get()
         .then(|| {
-            quote::quote! {
-                // The owner module retains lint-sensitive semantics from the original implementation.
-                #[allow(single_use_lifetimes)]
-                impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
-                    type Target = #inner_ty_ref;
-                    fn deref(&self) -> &Self::Target {
-                        &self.0
+            if inner_is_bounded_string {
+                quote::quote! {
+                    impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
+                        type Target = String;
+                        fn deref(&self) -> &Self::Target {
+                            self.0.as_string()
+                        }
+                    }
+                }
+            } else {
+                quote::quote! {
+                    // The owner module retains lint-sensitive semantics from the original implementation.
+                    #[allow(single_use_lifetimes)]
+                    impl #impl_generics std::ops::Deref for #identifier #ty_generics #where_clause {
+                        type Target = #inner_ty_ref;
+                        fn deref(&self) -> &Self::Target {
+                            &self.0
+                        }
                     }
                 }
             }
@@ -1455,18 +1603,36 @@ fn generate_newtype_token_stream_with_attrs(
             let fn_name =
                 identifier_to_snake(syn_identifier_ref::SynIdentifierRef::from(identifier));
             let fn_identifier = quote::format_ident!("{}", fn_name.as_ref());
-            quote::quote! {
-                pub trait #trait_identifier {
-                    fn #fn_identifier(&self) -> &#inner_ty_ref;
-                }
-                impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
-                    fn #fn_identifier(&self) -> &#inner_ty_ref {
-                        &self.0
+            if inner_is_bounded_string {
+                quote::quote! {
+                    pub trait #trait_identifier {
+                        fn #fn_identifier(&self) -> &String;
+                    }
+                    impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
+                        fn #fn_identifier(&self) -> &String {
+                            self.0.as_string()
+                        }
+                    }
+                    impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
+                        fn #fn_identifier(&self) -> &String {
+                            self.0.as_string()
+                        }
                     }
                 }
-                impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
-                    fn #fn_identifier(&self) -> &#inner_ty_ref {
-                        &self.0
+            } else {
+                quote::quote! {
+                    pub trait #trait_identifier {
+                        fn #fn_identifier(&self) -> &#inner_ty_ref;
+                    }
+                    impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
+                        fn #fn_identifier(&self) -> &#inner_ty_ref {
+                            &self.0
+                        }
+                    }
+                    impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
+                        fn #fn_identifier(&self) -> &#inner_ty_ref {
+                            &self.0
+                        }
                     }
                 }
             }
@@ -1488,11 +1654,22 @@ fn generate_newtype_token_stream_with_attrs(
         .contains(newtype_option::NewtypeOption::IntoInner)
         .get()
         .then(|| {
-            quote::quote! {
-                impl #impl_generics #identifier #ty_generics #where_clause {
-                    #[must_use]
-                    pub fn into_inner(self) -> #inner_ty_ref {
-                        self.0
+            if inner_is_bounded_string {
+                quote::quote! {
+                    impl #impl_generics #identifier #ty_generics #where_clause {
+                        #[must_use]
+                        pub fn into_inner(self) -> String {
+                            self.0.into_string()
+                        }
+                    }
+                }
+            } else {
+                quote::quote! {
+                    impl #impl_generics #identifier #ty_generics #where_clause {
+                        #[must_use]
+                        pub fn into_inner(self) -> #inner_ty_ref {
+                            self.0
+                        }
                     }
                 }
             }
@@ -1501,10 +1678,20 @@ fn generate_newtype_token_stream_with_attrs(
         .contains(newtype_option::NewtypeOption::IntoInnerFrom)
         .get()
         .then(|| {
-            quote::quote! {
-                impl #impl_generics From<#identifier #ty_generics> for #inner_ty_ref #where_clause {
-                    fn from(value: #identifier #ty_generics) -> Self {
-                        value.0
+            if inner_is_bounded_string {
+                quote::quote! {
+                    impl #impl_generics From<#identifier #ty_generics> for String #where_clause {
+                        fn from(value: #identifier #ty_generics) -> Self {
+                            value.0.into_string()
+                        }
+                    }
+                }
+            } else {
+                quote::quote! {
+                    impl #impl_generics From<#identifier #ty_generics> for #inner_ty_ref #where_clause {
+                        fn from(value: #identifier #ty_generics) -> Self {
+                            value.0
+                        }
                     }
                 }
             }
@@ -1655,7 +1842,7 @@ fn tuple_struct_one_field_ty(
         .map(|field| syn_type_ref::SynTypeRef::from(&field.ty))
         .ok_or_else(|| syn::Error::new_spanned(input_ref, constants_str::NEWTYPE_FIELD_NOT_FOUND))
 }
-fn type_path_ends_with_string_identifier(
+fn type_path_ends_with_bounded_string_identifier(
     ty: syn_type_ref::SynTypeRef<'_>,
 ) -> newtype_bool::NewtypeBool {
     newtype_bool::NewtypeBool::from(match ty.as_ref() {
@@ -1663,7 +1850,7 @@ fn type_path_ends_with_string_identifier(
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == constants_str::STRING),
+            .is_some_and(|segment| segment.ident == constants_str::BOUNDEDSTRING),
         syn::Type::Path(_) | _ => false,
     })
 }

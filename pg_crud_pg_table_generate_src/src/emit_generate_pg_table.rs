@@ -425,20 +425,32 @@ pub fn emit_generate_pg_table(
         Clone,
         newtype::AsRefStr,
         newtype::Display,
-        newtype::BoundedString,
+        newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, serde)]
-    struct GeneratePgTableDbColumn(String);
+    struct GeneratePgTableDbColumn(
+        bounded_types::bounded_string::BoundedString<
+            0usize,
+            { GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN },
+            false,
+        >,
+    );
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         newtype::AsRefStr,
         newtype::Display,
-        newtype::BoundedString,
+        newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, min = constants_usize::ONE, serde)]
-    struct GeneratePgTableExcludeField(String);
+    struct GeneratePgTableExcludeField(
+        bounded_types::bounded_string::BoundedString<
+            { constants_usize::ONE },
+            { GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN },
+            false,
+        >,
+    );
     impl std::ops::Deref for UsizeGeneratePgTableDbColumns {
         type Target = [GeneratePgTableDbColumn];
         fn deref(&self) -> &Self::Target {
@@ -480,7 +492,7 @@ pub fn emit_generate_pg_table(
     struct UsizeGeneratePgTableDbColumns(
         pg_crud_common::pg_bounded_vec::PgBoundedVec<
             GeneratePgTableDbColumn,
-            { constants_usize::ZERO },
+            0usize,
             { usize::MAX },
         >,
     );
@@ -489,7 +501,7 @@ pub fn emit_generate_pg_table(
     struct UsizeCreateExcludeFields(
         pg_crud_common::pg_bounded_vec::PgBoundedVec<
             GeneratePgTableExcludeField,
-            { constants_usize::ZERO },
+            0usize,
             { usize::MAX },
         >,
     );
@@ -498,7 +510,7 @@ pub fn emit_generate_pg_table(
     struct UsizeReadExcludeFields(
         pg_crud_common::pg_bounded_vec::PgBoundedVec<
             GeneratePgTableExcludeField,
-            { constants_usize::ZERO },
+            0usize,
             { usize::MAX },
         >,
     );
@@ -6544,7 +6556,7 @@ enum WrapIntoOptional {
                                     where
                                         Deserializer: serde::Deserializer<'de>,
                                     {
-                                        let bounded = <pg_crud_common::pg_bounded_vec::PgBoundedVec<#identifier_create_upper_camel_case, { constants_usize::ZERO }, #limit_value> as serde::Deserialize>::deserialize(deserializer)?;
+                                        let bounded = <pg_crud_common::pg_bounded_vec::PgBoundedVec<#identifier_create_upper_camel_case, 0usize, #limit_value> as serde::Deserialize>::deserialize(deserializer)?;
                                         Ok(Self(Vec::from(bounded)))
                                     }
                                 }
@@ -6676,7 +6688,7 @@ enum WrapIntoOptional {
                             |limit| {
                                 let limit_value = limit.0;
                                 quote::quote! {
-                                    Vec::from(<pg_crud_common::pg_bounded_vec::PgBoundedVec<#identifier_update_upper_camel_case, { constants_usize::ZERO }, #limit_value> as _serde::Deserialize>::deserialize(__deserializer)?)
+                                    Vec::from(<pg_crud_common::pg_bounded_vec::PgBoundedVec<#identifier_update_upper_camel_case, 0usize, #limit_value> as _serde::Deserialize>::deserialize(__deserializer)?)
                                 }
                             },
                         );

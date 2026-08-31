@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::Display,
 )]
 #[bounded_string(
@@ -12,4 +12,4 @@
     utoipa,
     description = "administrator session identifier"
 )]
-pub struct AdminSessionIdentifier(String);
+pub struct AdminSessionIdentifier(bounded_types::bounded_string::BoundedString<0usize, 64, true>);

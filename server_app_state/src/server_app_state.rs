@@ -82,12 +82,12 @@ server_app_state_macros::impl_cfg_accessor!(
 server_app_state_macros::impl_cfg_accessor!(
     config_lib::admin_token_audience::AdminTokenAudienceProvider,
     admin_token_audience,
-    String
+    bounded_types::bounded_string::BoundedString<0usize, 256, false>
 );
 server_app_state_macros::impl_cfg_accessor!(
     config_lib::admin_token_issuer::AdminTokenIssuerProvider,
     admin_token_issuer,
-    String
+    bounded_types::bounded_string::BoundedString<0usize, 256, false>
 );
 impl app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider for ServerAppState<'_> {
     fn sqlx_pg_pool(&self) -> app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_> {

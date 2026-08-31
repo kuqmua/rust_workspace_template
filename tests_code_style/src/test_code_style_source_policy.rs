@@ -2564,10 +2564,182 @@ fn test_domain_owned_string_catalogs_do_not_return_to_str_constants() {
 }
 
 #[test]
-fn test_server_admin_string_constants_reuse_macro_fragments() {
+#[allow(
+    clippy::chunks_exact_to_as_chunks,
+    clippy::indexing_slicing,
+    clippy::missing_asserts_for_indexing,
+    clippy::needless_collect,
+    clippy::needless_for_each,
+    clippy::shadow_reuse,
+    clippy::wildcard_enum_match_arm,
+    reason = "the policy test mirrors the small fixed token grammar of define_str_constants and mutates two independent inventories during one traversal"
+)]
+fn test_string_constants_reuse_every_repeated_word() {
     let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
         .expect("4629edbb server_admin_string_constants_reuse_macro_fragments invariant must hold");
-    assert!(!source.contains("pub const SERVER_ADMIN_"));
+    let ast = syn::parse_file(&source).expect("8b13948d constants_str source must parse");
+    let macro_tokens = ast
+        .items
+        .iter()
+        .find_map(|item| match item {
+            syn::Item::Macro(item_macro)
+                if item_macro.mac.path.segments.last().is_some_and(|segment| {
+                    segment.ident == constants_str::SHARED_VALUES_DEFINE_STR_CONSTANTS
+                }) =>
+            {
+                Some(item_macro.mac.tokens.clone())
+            }
+            _ => None,
+        })
+        .expect("9350ba36 string constants macro must exist");
+    let top_tokens = macro_tokens.into_iter().collect::<Vec<_>>();
+    let fragment_group = top_tokens
+        .get(constants_usize::ONE)
+        .and_then(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group),
+            _ => None,
+        })
+        .expect("65052205 string fragment group must exist");
+    let fragments = fragment_group
+        .stream()
+        .into_iter()
+        .collect::<Vec<_>>()
+        .chunks_exact(4usize)
+        .filter_map(|tokens| match (&tokens[0], &tokens[2]) {
+            (proc_macro2::TokenTree::Ident(name), proc_macro2::TokenTree::Literal(value)) => {
+                syn::parse_str::<syn::LitStr>(&value.to_string())
+                    .ok()
+                    .map(|value| (name.to_string(), value.value()))
+            }
+            _ => None,
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let rust_fragment_group = top_tokens
+        .get(3usize)
+        .and_then(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group),
+            _ => None,
+        })
+        .expect("e402ace1 Rust fragment group must exist");
+    let rust_fragments = rust_fragment_group
+        .stream()
+        .into_iter()
+        .collect::<Vec<_>>()
+        .chunks_exact(4usize)
+        .filter_map(|tokens| match (&tokens[0], &tokens[2]) {
+            (proc_macro2::TokenTree::Ident(name), proc_macro2::TokenTree::Group(parts)) => {
+                Some((name.to_string(), parts.stream()))
+            }
+            _ => None,
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let rust_constant_part_tokens = top_tokens
+        .get(5usize)
+        .and_then(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group.stream()),
+            _ => None,
+        })
+        .into_iter()
+        .flatten()
+        .filter_map(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group.stream()),
+            _ => None,
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    let constant_part_tokens = [3usize, 5usize, 7usize]
+        .into_iter()
+        .filter_map(|index| top_tokens.get(index))
+        .filter_map(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group.stream()),
+            _ => None,
+        })
+        .flatten()
+        .filter_map(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group.stream()),
+            _ => None,
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    let mut fragment_use_counts = fragments
+        .keys()
+        .map(|name| (name.clone(), 0usize))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let mut literal_word_counts = std::collections::BTreeMap::<String, usize>::new();
+    let mut rust_fragment_use_counts = rust_fragments
+        .keys()
+        .map(|name| (name.clone(), 0usize))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let mut rust_literal_counts = std::collections::BTreeMap::<String, usize>::new();
+    rust_constant_part_tokens
+        .into_iter()
+        .for_each(|token| match token {
+            proc_macro2::TokenTree::Ident(name) => {
+                if let Some(use_count) = rust_fragment_use_counts.get_mut(&name.to_string()) {
+                    *use_count = use_count.saturating_add(constants_usize::ONE);
+                }
+            }
+            proc_macro2::TokenTree::Literal(value) => {
+                if let Ok(value) = syn::parse_str::<syn::LitStr>(&value.to_string()) {
+                    let count = rust_literal_counts.entry(value.value()).or_default();
+                    *count = count.saturating_add(constants_usize::ONE);
+                }
+            }
+            _ => {}
+        });
+    constant_part_tokens
+        .into_iter()
+        .for_each(|token| match token {
+            proc_macro2::TokenTree::Ident(name) => {
+                if let Some(use_count) = fragment_use_counts.get_mut(&name.to_string()) {
+                    *use_count = use_count.saturating_add(constants_usize::ONE);
+                }
+            }
+            proc_macro2::TokenTree::Literal(value) => {
+                if let Ok(value) = syn::parse_str::<syn::LitStr>(&value.to_string()) {
+                    value
+                        .value()
+                        .split(|char: char| !char.is_ascii_alphanumeric() && char != '_')
+                        .filter(|word| !word.is_empty())
+                        .for_each(|word| {
+                            let count = literal_word_counts.entry(word.to_owned()).or_default();
+                            *count = count.saturating_add(constants_usize::ONE);
+                        });
+                }
+            }
+            _ => {}
+        });
+    assert!(!fragments.is_empty());
+    assert!(!rust_fragments.is_empty());
+    assert!(!literal_word_counts.is_empty());
+    assert!(rust_fragments.values().all(|parts| parts.clone().into_iter().all(
+        |token| !matches!(token, proc_macro2::TokenTree::Literal(value) if syn::parse_str::<syn::LitStr>(&value.to_string()).is_ok_and(|value| value.value().chars().any(|char| char.is_ascii_alphanumeric() || char == '_')))
+    )));
+    assert!(
+        rust_fragment_use_counts
+            .values()
+            .all(|use_count| *use_count >= 2usize)
+    );
+    assert!(
+        rust_literal_counts
+            .values()
+            .all(|use_count| *use_count == 1usize)
+    );
+    assert!(
+        fragment_use_counts
+            .values()
+            .all(|use_count| *use_count >= 2usize)
+    );
+    assert!(
+        literal_word_counts
+            .values()
+            .all(|use_count| *use_count == 1usize)
+    );
+    assert!(
+        literal_word_counts
+            .keys()
+            .all(|word| !fragments.values().any(|fragment| fragment == word))
+    );
 }
 
 #[test]

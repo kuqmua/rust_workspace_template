@@ -773,11 +773,15 @@ pub(crate) fn item_struct_is_single_string_wrapper(
     crate::types::AnalyzerBool::from(match &item.as_ref().fields {
         syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
             fields.unnamed.first().is_some_and(|field| {
-                type_path_ends_with_identifier(
-                    crate::types::SynTypeRef::from(&field.ty),
-                    crate::types::SourceTextRef::from(constants_str::STRING),
-                )
-                .get()
+                [constants_str::STRING, constants_str::BOUNDEDSTRING]
+                    .iter()
+                    .any(|identifier| {
+                        type_path_ends_with_identifier(
+                            crate::types::SynTypeRef::from(&field.ty),
+                            crate::types::SourceTextRef::from(*identifier),
+                        )
+                        .get()
+                    })
             })
         }
         syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,

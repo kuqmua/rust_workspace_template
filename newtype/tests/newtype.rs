@@ -68,7 +68,7 @@ mod tests {
         PartialEq,
         Eq,
         newtype::AsRefStr,
-        newtype::BoundedString,
+        newtype::BoundedStringWrapper,
         newtype::BorrowStr,
         newtype::DerefTarget,
         newtype::Display,
@@ -76,7 +76,9 @@ mod tests {
         newtype::ToErrStringAsRefStr,
     )]
     #[bounded_string(max = STRING_VALUE_MAX_LEN)]
-    struct StringValue(String);
+    struct StringValue(
+        bounded_types::bounded_string::BoundedString<0usize, { STRING_VALUE_MAX_LEN }, false>,
+    );
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
@@ -111,6 +113,16 @@ mod tests {
         newtype::IntoInner,
     )]
     struct InnerValue(u16);
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromGetter, PartialEq, Debug)]
+    #[from_getter(source = GetterSource, getter = get)]
+    struct FromGetterValue(u16);
+    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+    struct GetterSource(u16);
+    impl GetterSource {
+        fn get(self) -> u16 {
+            self.0
+        }
+    }
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Clone,
@@ -168,40 +180,44 @@ mod tests {
         Clone,
         PartialEq,
         Eq,
-        newtype::BoundedString,
+        newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = DESCRIBED_VALUE_MAX_LEN, description = "described value")]
-    struct DescribedValue(String);
+    struct DescribedValue(
+        bounded_types::bounded_string::BoundedString<0usize, { DESCRIBED_VALUE_MAX_LEN }, false>,
+    );
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
         Eq,
-        newtype::BoundedString,
+        newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = 3usize, min = constants_usize::ONE, chars, nul_free, serde, trim, utoipa)]
-    struct RichValue(String);
+    struct RichValue(
+        bounded_types::bounded_string::BoundedString<{ constants_usize::ONE }, 3usize, true>,
+    );
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
         Eq,
-        newtype::BoundedString,
+        newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = 3usize, chars, utoipa, write_only)]
-    struct WriteOnlyValue(String);
+    struct WriteOnlyValue(bounded_types::bounded_string::BoundedString<0usize, 3usize, true>);
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
         Eq,
-        newtype::BoundedString,
+        newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = 3usize, validator = VALIDATE_LOWERCASE_ASCII)]
-    struct ValidatedValue(String);
+    struct ValidatedValue(bounded_types::bounded_string::BoundedString<0usize, 3usize, false>);
     #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
@@ -414,6 +430,13 @@ mod tests {
         assert_eq!(v.into_inner(), 7);
     }
     #[test]
+    fn test_from_getter_converts_source_through_getter() {
+        assert_eq!(
+            FromGetterValue::from(GetterSource(429u16)),
+            FromGetterValue(429u16)
+        );
+    }
+    #[test]
     fn test_direct_inner_accessors_are_generated() {
         let text = GetInnerValueRef::from(constants_str::ABC_ALT_3).get();
         let flag = GetInnerBool::from(true).get();
@@ -470,10 +493,21 @@ mod tests {
     }
     #[test]
     fn test_bounded_string_rich_policies_share_runtime_and_serde_validation() {
-        assert_eq!(
-            RichValue::try_from(String::from("  \u{430}\u{431}  ")),
-            Ok(RichValue(String::from("\u{430}\u{431}")))
+        let bounded_value = [
+            ' ',
+            ' ',
+            char::from_u32(0x430).expect("a4fc1902 valid character invariant must hold"),
+            char::from_u32(0x431).expect("b9e21c73 valid character invariant must hold"),
+            ' ',
+            ' ',
+        ]
+        .into_iter()
+        .collect::<String>();
+        let expected = bounded_value.trim().to_owned();
+        let value = RichValue::try_from(bounded_value.clone()).expect(
+            "a091b772 bounded_string_rich_policies_share_runtime_and_serde_validation invariant must hold",
         );
+        assert_eq!(value.0.as_ref(), &expected);
         assert!(matches!(
             RichValue::try_from(String::from("   ")),
             Err(RichValueTryFromStringError::TooShort { len: 0, min: 1 })
@@ -486,10 +520,10 @@ mod tests {
             RichValue::try_from(String::from("a\0b")),
             Err(RichValueTryFromStringError::ContainsNul)
         ));
-        assert_eq!(
-            serde_json::from_str::<RichValue>("\"  \\u0430\\u0431  \"").expect("1d3222b1 bounded_string_rich_policies_share_runtime_and_serde_validation invariant must hold"),
-            RichValue(String::from("\u{430}\u{431}"))
-        );
+        let serialized = serde_json::to_string(&bounded_value)
+            .expect("7c3a9d21 bounded value serialization invariant must hold");
+        let deserialized = serde_json::from_str::<RichValue>(&serialized).expect("1d3222b1 bounded_string_rich_policies_share_runtime_and_serde_validation invariant must hold");
+        assert_eq!(deserialized.0.as_ref(), &expected);
         let _error = serde_json::from_str::<RichValue>(constants_str::ABCD)
             .expect_err(constants_str::C0E03C6D);
     }
@@ -536,10 +570,9 @@ mod tests {
     }
     #[test]
     fn test_bounded_string_custom_validator_is_applied() {
-        assert_eq!(
-            ValidatedValue::try_from(String::from(constants_str::ABC_ALT_3)),
-            Ok(ValidatedValue(String::from(constants_str::ABC_ALT_3)))
-        );
+        let value = ValidatedValue::try_from(String::from(constants_str::ABC_ALT_3))
+            .expect("fcadf793 bounded_string_custom_validator_is_applied invariant must hold");
+        assert_eq!(value.0.as_ref(), constants_str::ABC_ALT_3);
         assert!(matches!(
             ValidatedValue::try_from(String::from(constants_str::GET)),
             Err(ValidatedValueTryFromStringError::InvalidValue)

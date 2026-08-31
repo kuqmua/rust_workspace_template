@@ -31,7 +31,7 @@ where
         let separator = constants_str::COMMA_SPACE.trim();
         let capacity = selected
             .iter()
-            .map(|(_key, value)| value.len().get())
+            .map(|(_key, value)| value.len())
             .sum::<usize>()
             .saturating_add(
                 selected

@@ -3,8 +3,10 @@
     Clone,
     Debug,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::Display,
 )]
 #[bounded_string(max = 16_384usize, chars)]
-pub(crate) struct AdminCsrApiUrl(String);
+pub(crate) struct AdminCsrApiUrl(
+    bounded_types::bounded_string::BoundedString<0usize, 16_384usize, true>,
+);

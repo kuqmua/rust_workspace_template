@@ -5,7 +5,9 @@
     PartialEq,
     Eq,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
 )]
 #[bounded_string(max = 20usize, min = constants_usize::ONE)]
-pub struct TransportIfMatch(String);
+pub struct TransportIfMatch(
+    bounded_types::bounded_string::BoundedString<{ constants_usize::ONE }, 20usize, false>,
+);

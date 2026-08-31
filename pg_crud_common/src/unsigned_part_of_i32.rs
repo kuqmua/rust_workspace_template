@@ -10,19 +10,15 @@
     serde::Deserialize,
     schemars::JsonSchema,
     optimal_memory_layout::OptimalMemoryLayout,
+    newtype::FromGetter,
 )]
+#[from_getter(source = std::num::NonZeroI32, getter = get)]
 #[serde(try_from = "i32")]
 pub struct UnsignedPartOfI32(i32);
 
 impl From<u16> for UnsignedPartOfI32 {
     fn from(value: u16) -> Self {
         Self(i32::from(value))
-    }
-}
-
-impl From<std::num::NonZeroI32> for UnsignedPartOfI32 {
-    fn from(value: std::num::NonZeroI32) -> Self {
-        Self(value.get())
     }
 }
 
@@ -91,6 +87,13 @@ mod tests {
         assert_eq!(
             crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(7i32).expect(
                 "ea8c2d71 unsigned_database_value_rejects_negative_input invariant must hold"
+            ),
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
+        );
+        assert_eq!(
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::from(
+                std::num::NonZeroI32::new(7i32)
+                    .expect("dd53fc4d nonzero test fixture must remain nonzero"),
             ),
             crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
         );

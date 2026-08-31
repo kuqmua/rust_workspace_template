@@ -7,9 +7,9 @@
     Clone,
     PartialEq,
     Eq,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefOwned,
     newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator access token")]
-pub struct StdAdminAccessToken(pub(crate) String);
+pub struct StdAdminAccessToken(bounded_types::bounded_string::BoundedString<0usize, 8192, false>);

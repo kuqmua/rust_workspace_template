@@ -191,12 +191,16 @@ impl config_lib::admin_jwt_secret::AdminJwtSecretProvider for ServerConfig {
     }
 }
 impl config_lib::admin_token_audience::AdminTokenAudienceProvider for ServerConfig {
-    fn admin_token_audience(&self) -> &String {
-        self.admin_token_audience.as_ref()
+    fn admin_token_audience(
+        &self,
+    ) -> &bounded_types::bounded_string::BoundedString<0usize, 256, false> {
+        self.admin_token_audience.as_bounded_string()
     }
 }
 impl config_lib::admin_token_issuer::AdminTokenIssuerProvider for ServerConfig {
-    fn admin_token_issuer(&self) -> &String {
-        self.admin_token_issuer.as_ref()
+    fn admin_token_issuer(
+        &self,
+    ) -> &bounded_types::bounded_string::BoundedString<0usize, 256, false> {
+        self.admin_token_issuer.as_bounded_string()
     }
 }

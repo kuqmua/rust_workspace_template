@@ -68,7 +68,8 @@ impl<'de, const MIN: usize, const MAX: usize> serde::Deserialize<'de>
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        crate::deserialize_bounded_owned_string::deserialize_bounded_owned_string(deserializer)
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 

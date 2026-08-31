@@ -7,7 +7,13 @@
     PartialEq,
     PartialOrd,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
 )]
 #[bounded_string(max = constants_usize::VALUE_1_048_576)]
-pub struct OpenApiContractText(String);
+pub struct OpenApiContractText(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { constants_usize::VALUE_1_048_576 },
+        false,
+    >,
+);

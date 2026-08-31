@@ -3677,16 +3677,16 @@ struct HttpAdminApiTestRequest(http::Request<axum::body::Body>);
 struct HttpAdminHtmlTestResponse(http::Response<axum::body::Body>);
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
 struct HttpAdminApiTestResponseRef<'value_lt>(&'value_lt http::Response<axum::body::Body>);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedStringWrapper)]
 #[bounded_string(max = 16384)]
 #[derive(newtype::Display)]
-struct StdAdminApiTestCookie(String);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
+struct StdAdminApiTestCookie(bounded_types::bounded_string::BoundedString<0usize, 16384, false>);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedStringWrapper)]
 #[bounded_string(max = 1_048_576)]
-struct AdminHtmlTestBody(String);
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedString)]
+struct AdminHtmlTestBody(bounded_types::bounded_string::BoundedString<0usize, 1_048_576, false>);
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::BoundedStringWrapper)]
 #[bounded_string(max = 65_536)]
-struct AdminHtmlTestFormBody(String);
+struct AdminHtmlTestFormBody(bounded_types::bounded_string::BoundedString<0usize, 65_536, false>);
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminHtmlTestFixture {
     cookie: StdAdminApiTestCookie,

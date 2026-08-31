@@ -6,7 +6,7 @@
     PartialEq,
     Eq,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::Display,
 )]
 #[bounded_string(
@@ -16,4 +16,4 @@
     utoipa,
     description = "administrator filter value"
 )]
-pub struct AdminFilterValue(String);
+pub struct AdminFilterValue(bounded_types::bounded_string::BoundedString<0usize, 4096usize, true>);

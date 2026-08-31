@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefStr,
     newtype::Display,
 )]
@@ -13,4 +13,6 @@
     utoipa,
     description = "bounded administrator audit CSV export"
 )]
-pub struct AdminAuditExportCsv(String);
+pub struct AdminAuditExportCsv(
+    bounded_types::bounded_string::BoundedString<0usize, 262_144usize, true>,
+);

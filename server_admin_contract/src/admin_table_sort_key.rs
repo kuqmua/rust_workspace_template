@@ -3,7 +3,7 @@
     Clone,
     Debug,
     Default,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefStr,
 )]
 #[bounded_string(
@@ -13,4 +13,4 @@
     utoipa,
     description = "administrator table sort key"
 )]
-pub struct AdminTableSortKey(String);
+pub struct AdminTableSortKey(bounded_types::bounded_string::BoundedString<0usize, 32usize, true>);

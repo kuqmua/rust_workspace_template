@@ -4,7 +4,7 @@
     Debug,
     PartialEq,
     Eq,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefOwned,
     newtype::Display,
     newtype::IntoInner,
@@ -16,4 +16,4 @@
     utoipa,
     description = "administrator API text"
 )]
-pub struct AdminText(String);
+pub struct AdminText(bounded_types::bounded_string::BoundedString<0usize, 8192, true>);

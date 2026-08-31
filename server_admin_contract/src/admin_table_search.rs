@@ -3,7 +3,7 @@
     Clone,
     Debug,
     Default,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefStr,
 )]
 #[bounded_string(
@@ -13,4 +13,4 @@
     utoipa,
     description = "administrator table search"
 )]
-pub struct AdminTableSearch(String);
+pub struct AdminTableSearch(bounded_types::bounded_string::BoundedString<0usize, 128usize, true>);

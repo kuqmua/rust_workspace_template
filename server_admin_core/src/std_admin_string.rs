@@ -6,21 +6,22 @@
     Eq,
     serde::Serialize,
     utoipa::ToSchema,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefOwned,
     newtype::DerefInner,
     newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator internal text")]
-pub struct StdAdminString(String);
+pub struct StdAdminString(bounded_types::bounded_string::BoundedString<0usize, 8192, false>);
 impl secrecy::zeroize::Zeroize for StdAdminString {
     fn zeroize(&mut self) {
-        secrecy::zeroize::Zeroize::zeroize(&mut self.0);
+        let mut value = std::mem::take(&mut self.0).into_string();
+        secrecy::zeroize::Zeroize::zeroize(&mut value);
     }
 }
 impl From<crate::admin_resource_text::AdminResourceText> for StdAdminString {
     fn from(resource: crate::admin_resource_text::AdminResourceText) -> Self {
-        Self(match resource {
+        let value = match resource {
             crate::admin_resource_text::AdminResourceText::PositiveI64(value) => {
                 value.get().to_string()
             }
@@ -28,7 +29,8 @@ impl From<crate::admin_resource_text::AdminResourceText> for StdAdminString {
                 constants_str::VALUE_1.to_owned()
             }
             crate::admin_resource_text::AdminResourceText::Uuid(value) => value.get().to_string(),
-        })
+        };
+        Self::try_from(value).unwrap_or_else(Self::from)
     }
 }
 impl StdAdminString {

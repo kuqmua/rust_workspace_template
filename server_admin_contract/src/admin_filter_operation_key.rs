@@ -6,11 +6,13 @@
     PartialEq,
     Eq,
     newtype::AsRefStr,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::Display,
 )]
 #[bounded_string(max = 63usize)]
-pub struct AdminFilterOperationKey(String);
+pub struct AdminFilterOperationKey(
+    bounded_types::bounded_string::BoundedString<0usize, 63usize, false>,
+);
 impl From<frontend_contract::filter_operation::FilterOperation> for AdminFilterOperationKey {
     fn from(value: frontend_contract::filter_operation::FilterOperation) -> Self {
         let formatted = format!("{value:?}");

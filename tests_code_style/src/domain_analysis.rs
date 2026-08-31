@@ -23,6 +23,70 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
     generate_constructor::New,
     optimal_memory_layout::OptimalMemoryLayout,
 )]
+pub(super) struct BoundedStringStorageVisitor {
+    ers: crate::types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        let has_bounded_string_attr = i
+            .attrs
+            .iter()
+            .any(|attr| attr.path().is_ident(constants_str::BOUNDED_STRING));
+        let derives_old_bounded_string = i.attrs.iter().any(|attr| {
+            if !attr.path().is_ident(constants_str::DERIVE) {
+                return false;
+            }
+            let Ok(derive_paths) = attr.parse_args_with(
+                syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+            ) else {
+                return false;
+            };
+            derive_paths.iter().any(|path| {
+                path.segments.len() == 2
+                    && path
+                        .segments
+                        .first()
+                        .is_some_and(|segment| segment.ident == stringify!(newtype))
+                    && path
+                        .segments
+                        .last()
+                        .is_some_and(|segment| segment.ident == constants_str::BOUNDEDSTRING)
+            })
+        });
+        if derives_old_bounded_string {
+            self.ers.push(format!(
+                "`{}` derives removed `newtype::BoundedString`; store `bounded_types::bounded_string::BoundedString` instead",
+                i.ident
+            ));
+        }
+        if has_bounded_string_attr {
+            let stores_bounded_string = match &i.fields {
+                syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
+                    fields.unnamed.first().is_some_and(|field| {
+                        crate::code_style::type_path_ends_with_identifier(
+                            crate::types::SynTypeRef::from(&field.ty),
+                            crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+                        )
+                        .get()
+                    })
+                }
+                syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
+            };
+            if !stores_bounded_string {
+                self.ers.push(format!(
+                    "`{}` uses `#[bounded_string]` but does not store `bounded_types::bounded_string::BoundedString`",
+                    i.ident
+                ));
+            }
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub(super) struct StringWrapperFromVisitor<'names_lt> {
     ers: crate::types::DiagnosticMsgs,
     len_checked_function_names: &'names_lt crate::types::SourceTextBTreeSet,
@@ -35,6 +99,21 @@ impl StringWrapperFromVisitor<'_> {
         let item_ref = item.as_ref();
         if !crate::code_style::item_struct_is_single_string_wrapper(item).get() {
             return;
+        }
+        let stores_bounded_string = match &item_ref.fields {
+            syn::Fields::Unnamed(fields) => fields.unnamed.first().is_some_and(|field| {
+                crate::code_style::type_path_ends_with_identifier(
+                    crate::types::SynTypeRef::from(&field.ty),
+                    crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+                )
+                .get()
+            }),
+            syn::Fields::Named(_) | syn::Fields::Unit => false,
+        };
+        if stores_bounded_string {
+            let _: bool = self
+                .try_from_string_len_checked_names
+                .insert(item_ref.ident.to_string());
         }
         let has_derive = item_ref.attrs.iter().any(|attr| {
             attr.path().is_ident(constants_str::DERIVE)
@@ -579,6 +658,21 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 let _: bool = self.from_names.insert(name.clone());
                 let _: bool = self.from_inner_names.insert(name.clone());
             }
+            let derives_from_getter = i.attrs.iter().any(|attr| {
+                if !attr.path().is_ident(constants_str::DERIVE) {
+                    return false;
+                }
+                match &attr.meta {
+                    syn::Meta::List(list) => list
+                        .tokens
+                        .to_string()
+                        .contains(constants_str::NEWTYPE_FROM_GETTER_DERIVE_NAME),
+                    syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+                }
+            });
+            if derives_from_getter {
+                let _: bool = self.from_names.insert(name.clone());
+            }
             let derives_try_from = i.attrs.iter().any(|attr| {
                 if !attr.path().is_ident(constants_str::DERIVE) {
                     return false;
@@ -605,6 +699,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                     syn::Meta::List(list) => {
                         let tokens = list.tokens.to_string();
                         tokens.contains(constants_str::NEWTYPE_FROM_INNER_DERIVE_NAME)
+                            || tokens.contains(constants_str::NEWTYPE_FROM_GETTER_DERIVE_NAME)
                             || tokens.contains(constants_str::BOUNDEDSTRING)
                             || tokens.contains(constants_str::TRYFROM)
                     }

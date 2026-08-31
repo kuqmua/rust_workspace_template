@@ -6,11 +6,16 @@
     Debug,
     Eq,
     PartialEq,
+    newtype::FromGetter,
 )]
+#[from_getter(source = crate::pagination_offset::PaginationOffset, getter = get)]
 pub struct ListOffset(i64);
 
-impl From<crate::pagination_offset::PaginationOffset> for ListOffset {
-    fn from(value: crate::pagination_offset::PaginationOffset) -> Self {
-        Self(value.get())
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_pagination_offset_converts_through_getter() {
+        let offset = crate::pagination_offset::PaginationOffset::from(11i32);
+        assert_eq!(super::ListOffset::from(offset), super::ListOffset(11i64));
     }
 }

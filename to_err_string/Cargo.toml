@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+bounded_types = { workspace = true }
 optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
 tracing = { workspace = true }

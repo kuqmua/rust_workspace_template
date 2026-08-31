@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefStr,
 )]
 #[bounded_string(
@@ -14,4 +14,10 @@
     validator = |value: &String| value.strip_prefix("https://").is_some_and(|remainder| { let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default(); !authority.is_empty() && !authority.contains('@') && !authority.starts_with('.') && !authority.ends_with('.') && authority.contains('.') }),
     description = "administrator support URL"
 )]
-pub struct AdminSupportUrl(String);
+pub struct AdminSupportUrl(
+    bounded_types::bounded_string::BoundedString<
+        { constants_usize::ONE },
+        { constants_usize::VALUE_8_192 },
+        true,
+    >,
+);

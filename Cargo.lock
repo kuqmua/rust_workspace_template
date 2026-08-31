@@ -455,6 +455,7 @@ dependencies = [
  "constants_usize",
  "newtype",
  "optimal_memory_layout",
+ "schemars",
  "serde",
  "thiserror 2.0.20",
  "utoipa",
@@ -1668,6 +1669,7 @@ dependencies = [
 name = "generate_quotes"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "newtype",
  "optimal_memory_layout",
@@ -2911,6 +2913,7 @@ dependencies = [
 name = "naming_common"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "convert_case 0.12.0",
  "naming_common_macros",
@@ -2970,6 +2973,7 @@ dependencies = [
 name = "newtype"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "constants_usize",
  "generate_accessor",
@@ -5620,6 +5624,7 @@ name = "to_err_string"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "bounded_types",
  "constants_str",
  "constants_usize",
  "http",

@@ -11,13 +11,26 @@ struct BoundedStringIdentifierVisitor {
 
 impl<'ast> syn::visit::Visit<'ast> for BoundedStringIdentifierVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        if i.attrs.iter().any(|attribute| {
+        let derives_bounded_string = i.attrs.iter().any(|attribute| {
             crate::code_style::derive_attr_has_terminal(
                 crate::types::SynAttributeRef::from(attribute),
                 crate::types::SourceTextRef::from(stringify!(BoundedString)),
             )
             .get()
-        }) {
+        });
+        let stores_bounded_string = match &i.fields {
+            syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
+                fields.unnamed.first().is_some_and(|field| {
+                    crate::code_style::type_path_ends_with_identifier(
+                        crate::types::SynTypeRef::from(&field.ty),
+                        crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+                    )
+                    .get()
+                })
+            }
+            syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
+        };
+        if derives_bounded_string || stores_bounded_string {
             let _: bool = self.identifiers.insert(i.ident.to_string());
         }
         syn::visit::visit_item_struct(self, i);

@@ -4,7 +4,7 @@
     Debug,
     PartialEq,
     Eq,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefOwned,
     newtype::Display,
     newtype::IntoInner,
@@ -16,4 +16,4 @@
     utoipa,
     description = "administrator audit timestamp"
 )]
-pub struct AdminAuditTimestamp(String);
+pub struct AdminAuditTimestamp(bounded_types::bounded_string::BoundedString<0usize, 64, true>);

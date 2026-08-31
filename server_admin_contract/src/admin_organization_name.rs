@@ -2,7 +2,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::BoundedString,
+    newtype::BoundedStringWrapper,
     newtype::AsRefStr,
 )]
 #[bounded_string(
@@ -12,4 +12,6 @@
     utoipa,
     description = "administrator organization name"
 )]
-pub struct AdminOrganizationName(String);
+pub struct AdminOrganizationName(
+    bounded_types::bounded_string::BoundedString<0usize, { constants_usize::VALUE_8_192 }, true>,
+);

@@ -10,11 +10,13 @@ mod tests {
                 constants_str::TEST_API_URL_SEGMENT,
             )
             .expect("c013abc7 path_and_query_components_are_encoded invariant must hold"),
-        );
+        )
+        .expect("8ddc23d4 path segment must fit bounded API URL");
         url.push_query_pair(
             constants_str::TEST_API_URL_QUERY_NAME.into(),
             constants_str::TEST_API_URL_QUERY_VALUE.into(),
-        );
+        )
+        .expect("0e672d91 query pair must fit bounded API URL");
         assert_eq!(url.as_ref(), constants_str::TEST_API_URL_EXPECTED);
     }
 
