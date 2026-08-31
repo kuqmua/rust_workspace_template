@@ -1,5 +1,4 @@
 #[cfg(test)]
-#[cfg(test)]
 mod tests {
     #[test]
     fn test_fixture_text_enforces_the_owned_bound() {

@@ -48,9 +48,3 @@ pub(crate) fn test_branding() -> server_admin_contract::admin_branding_view::Adm
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod crud {}
-pub(crate) mod data_grid {}
-pub(crate) mod document {}
-pub(crate) mod navigation {}
-pub(crate) mod settings {}
-pub(crate) mod static_pages {}

@@ -401,9 +401,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
         syn::visit::visit_item_impl(self, i);
     }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        syn::visit::visit_item_struct(self, i);
         self.check_bounded_string_attr(crate::types::SynItemStructRef::from(i));
         self.check_newtype_attr(crate::types::SynItemStructRef::from(i));
-        syn::visit::visit_item_struct(self, i);
     }
 }
 #[derive(

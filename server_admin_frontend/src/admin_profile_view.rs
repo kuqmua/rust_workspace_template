@@ -17,5 +17,3 @@ pub(crate) fn AdminProfileView(
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod admin_change_password {}
-pub(crate) mod admin_profile_account {}

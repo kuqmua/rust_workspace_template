@@ -5,7 +5,6 @@
 )]
 
 pub mod cargo_args_ref;
-pub mod domain_types;
 pub mod generated_projection;
 pub mod naming_capitalized_parts;
 pub mod naming_kebab_case;

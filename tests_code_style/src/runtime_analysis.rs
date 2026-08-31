@@ -23,11 +23,11 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
         syn::visit::visit_item(self, i);
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
-        if i.path
-            .segments
-            .last()
-            .is_some_and(|segment| segment.ident == constants_str::CODE_STYLE_PANIC_METHOD_NAME)
-        {
+        let is_panic =
+            i.path.segments.last().is_some_and(|segment| {
+                segment.ident == constants_str::CODE_STYLE_PANIC_METHOD_NAME
+            });
+        if is_panic {
             self.ers.push(constants_str::PANIC_CALL.to_owned());
         }
         syn::visit::visit_macro(self, i);

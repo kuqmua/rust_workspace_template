@@ -13,8 +13,6 @@ pub mod account_change_own_password;
 pub mod account_me;
 pub mod account_me_context_view_ref;
 pub mod action_result_impl;
-pub mod adapters_repository_data_tables;
-pub mod adapters_repository_roles;
 pub mod admin_access_claims;
 pub mod admin_access_token_error;
 pub mod admin_active_administrator_count;
@@ -135,18 +133,8 @@ pub mod api_update_user;
 pub mod append_cleared_session_cookies;
 pub mod append_session_cookies;
 pub mod application_auth;
-pub mod application_html_actions;
-pub mod application_html_actions_auth;
-pub mod application_html_actions_roles;
-pub mod application_html_actions_sessions;
-pub mod application_html_actions_settings;
-pub mod application_html_actions_users;
-pub mod application_html_forms;
-pub mod application_html_pages;
-pub mod application_roles;
 #[cfg(test)]
 pub mod application_tests_helper;
-pub mod application_users;
 pub mod argon2_admin_password_hash_error;
 pub mod assignment_action;
 pub mod assignment_form_action;
@@ -214,12 +202,9 @@ pub mod enforce_rate_limit;
 pub mod extractors;
 pub mod find_admin_cookie;
 pub mod form_auth_impl;
-pub mod generated_auth;
 pub mod generated_open_api;
 pub mod generated_routes;
-pub mod generated_tables;
 pub mod hash_opaque_token;
-pub mod html;
 pub mod html_page_error_impl;
 pub mod html_response_impl;
 pub mod html_routes;
@@ -238,10 +223,8 @@ pub mod last_admin_state;
 pub mod load_authenticated_admin;
 pub mod load_authenticated_admin_from_db;
 pub mod lock_last_admin;
-pub mod maintenance;
 pub mod map_repository_error;
 pub mod map_unique_violation;
-pub mod migrations;
 pub mod migrator;
 pub mod mutations_set_ban;
 pub mod mutations_set_password;
@@ -252,14 +235,12 @@ pub mod page_context_impl;
 pub mod page_total;
 pub mod permission_ids_impl;
 pub mod permissions;
-pub mod persistence;
 pub mod prepare_postgresql;
 pub mod profile;
 pub mod queries_list_permissions;
 pub mod queries_roles_page;
 pub mod queries_users_page;
 pub mod query_audit_log;
-pub mod rate_limit;
 pub mod rbac;
 pub mod read_last_admin_state;
 pub mod read_settings;
@@ -267,7 +248,6 @@ pub mod record_audit_success_in_connection;
 pub mod record_login_attempt;
 pub mod replace_role_permissions_outcome;
 pub mod replace_user_roles_outcome;
-pub mod repository;
 pub mod repository_page_total;
 pub mod reset_admin_password;
 pub mod revoke_access_session;
@@ -305,7 +285,6 @@ pub mod settings_branding_view_ref;
 pub mod settings_form;
 pub mod settings_get;
 pub mod settings_update;
-pub mod shared;
 pub mod shared_admin_auth_svc_state_arc;
 pub mod shared_admin_generated_table_state_arc;
 pub mod sign_in;
@@ -333,11 +312,17 @@ pub mod success_redirect_impl;
 #[cfg(test)]
 pub mod test_adapters_repository_data_tables_tests;
 #[cfg(test)]
+pub mod test_adapters_repository_roles_tests;
+#[cfg(test)]
 pub mod test_application_html_tests;
 #[cfg(test)]
 pub mod test_application_tests;
 #[cfg(test)]
 pub mod test_domain_types_generated_tables_tests;
+#[cfg(test)]
+pub mod test_maintenance_tests;
+#[cfg(test)]
+pub mod test_shared_tests;
 #[cfg(test)]
 pub mod test_tests;
 #[cfg(test)]
@@ -374,5 +359,3 @@ pub mod utoipa_admin_open_api;
 pub mod validate_catalog_schema;
 pub mod validate_table_sort;
 pub mod version;
-
-pub mod domain_types;

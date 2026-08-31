@@ -4,7 +4,6 @@
 )]
 
 pub mod build_generate_pg_table;
-pub mod domain_types;
 pub mod emit_generate_pg_table;
 pub mod generate_pg_table;
 pub mod generate_pg_table_field_count;
@@ -18,7 +17,6 @@ pub mod pg_table_compile_error_message;
 pub mod pg_table_compile_error_tokens;
 pub mod route_http_method;
 pub mod route_success_status;
-pub mod sql;
 pub mod struct_shape;
 pub mod success_status;
 pub mod syn_built_generate_pg_table_input;
@@ -27,7 +25,6 @@ pub mod syn_generate_pg_table_model_input;
 pub mod syn_generate_pg_table_pipeline_error;
 pub mod syn_parsed_generate_pg_table_input;
 pub mod syn_validated_generate_pg_table_input;
-pub mod table;
 pub mod table_test_names;
 #[cfg(test)]
 pub mod test_tests;

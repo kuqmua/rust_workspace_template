@@ -92,6 +92,22 @@ struct RustFragment {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+struct RustFragments(Vec<RustFragment>);
+
+impl TryFrom<Vec<RustFragment>> for RustFragments {
+    type Error = syn::Error;
+    fn try_from(value: Vec<RustFragment>) -> Result<Self, Self::Error> {
+        if value.len() <= COLLECTION_MAX_LEN {
+            return Ok(Self(value));
+        }
+        Err(syn::Error::new(
+            proc_macro2::Span::call_site(),
+            stringify!(c31f6dd7 too many Rust fragments),
+        ))
+    }
+}
+
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct Fragments(Vec<Fragment>);
 
 #[allow(
@@ -162,7 +178,7 @@ pub(crate) struct DefineStrConstantsInput {
     constants: Constants,
     fragments: Fragments,
     rust_constants: Constants,
-    rust_fragments: Vec<RustFragment>,
+    rust_fragments: RustFragments,
 }
 
 impl syn::parse::Parse for DefineStrConstantsInput {
@@ -185,7 +201,7 @@ impl syn::parse::Parse for DefineStrConstantsInput {
         let _: keyword::rust_fragments = input.parse()?;
         let rust_fragment_content;
         let _ = syn::braced!(rust_fragment_content in input);
-        let mut rust_fragments = Vec::new();
+        let mut raw_rust_fragments = Vec::new();
         while !rust_fragment_content.is_empty() {
             let name = rust_fragment_content.parse()?;
             let _: syn::Token![=] = rust_fragment_content.parse()?;
@@ -193,14 +209,9 @@ impl syn::parse::Parse for DefineStrConstantsInput {
             let _ = syn::bracketed!(part_content in rust_fragment_content);
             let parts = part_content.parse()?;
             let _: syn::Token![;] = rust_fragment_content.parse()?;
-            rust_fragments.push(RustFragment { name, parts });
+            raw_rust_fragments.push(RustFragment { name, parts });
         }
-        if rust_fragments.len() > COLLECTION_MAX_LEN {
-            return Err(syn::Error::new(
-                proc_macro2::Span::call_site(),
-                stringify!(c31f6dd7 too many Rust fragments),
-            ));
-        }
+        let rust_fragments = RustFragments::try_from(raw_rust_fragments)?;
 
         let parse_constants = |content: syn::parse::ParseStream<'_>| {
             let mut constants = Vec::new();
@@ -296,14 +307,14 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                         let _: Option<usize> = use_counts.insert(name.clone(), 0usize);
                         use_counts
                     });
-            let mut rust_fragment_use_counts = parsed.rust_fragments.iter().fold(
+            let mut rust_fragment_use_counts = parsed.rust_fragments.0.iter().fold(
                 std::collections::BTreeMap::new(),
                 |mut use_counts, fragment| {
                     let _: Option<usize> = use_counts.insert(fragment.name.0.to_string(), 0usize);
                     use_counts
                 },
             );
-            let rust_fragments = parsed.rust_fragments.into_iter().try_fold(
+            let rust_fragments = parsed.rust_fragments.0.into_iter().try_fold(
                 std::collections::BTreeMap::new(),
                 |mut rust_fragments, fragment| {
                     let name = fragment.name.0.to_string();

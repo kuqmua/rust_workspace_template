@@ -38,4 +38,3 @@ pub(crate) fn AdminUsersView(
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod csr_admin_user_row {}

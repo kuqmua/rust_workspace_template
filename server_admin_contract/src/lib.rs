@@ -204,12 +204,9 @@ pub mod serde_json_admin_audit_details;
 #[cfg(test)]
 pub mod test_domain_types_dto_tests;
 #[cfg(test)]
-#[cfg(test)]
 pub mod test_domain_types_query_tests;
 #[cfg(test)]
-#[cfg(test)]
 pub mod test_domain_types_routes_tests;
-#[cfg(test)]
 #[cfg(test)]
 pub mod test_domain_types_sessions_tests;
 #[cfg(test)]
@@ -228,5 +225,3 @@ mod test_table_sort_tests {
         );
     }
 }
-
-pub mod domain_types;

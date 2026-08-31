@@ -313,4 +313,3 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod helper {}

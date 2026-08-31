@@ -156,11 +156,7 @@ fn test_typed_route_registries_own_request_bodies_and_schema_catalogs() {
                 .as_ref();
             assert!(!source.contains("components(schemas"), "94cc9de1");
         });
-        [
-            constants_str::VALUE_0690A45F,
-            constants_str::VALUE_8E41EC63,
-        ]
-        .iter()
+        std::iter::once(&constants_str::VALUE_0690A45F)
         .for_each(|path_suffix| {
             let source = snapshot
                 .rs_files()

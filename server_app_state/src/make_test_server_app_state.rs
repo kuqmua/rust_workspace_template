@@ -1,5 +1,4 @@
 #[cfg(feature = "test-utils")]
-#[cfg(feature = "test-utils")]
 #[must_use]
 pub fn make_test_server_app_state() -> crate::server_app_state::ServerAppState<'static> {
     crate::server_app_state::ServerAppState::new(

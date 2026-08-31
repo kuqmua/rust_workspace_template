@@ -491,7 +491,3 @@ fn test_observed_client_preparation_injects_context_and_creates_child_span() {
 }
 
 // Root-owned module compatibility wrappers.
-mod request_id {}
-mod resource_budget {}
-mod security_headers {}
-mod service_runtime {}

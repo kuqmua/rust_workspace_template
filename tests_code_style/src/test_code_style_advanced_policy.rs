@@ -1388,7 +1388,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_WORKSPACE_TEST_RUNNER_OWNER,
-            (1usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (2usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::VALUE_AC7A6F68,
@@ -1556,6 +1556,7 @@ fn test_raw_vec_tuple_wrappers_match_reviewed_inventory() {
         (constants_str::VALUE_FAB1545F, constants_str::VALUE_64EA6158),
         (constants_str::VALUE_9FB992E8, constants_str::VALUE_3F51E18F),
         (constants_str::VALUE_D200D86F, constants_str::VALUE_352F4313),
+        (constants_str::VALUE_0F3C7A91, constants_str::VALUE_352F4313),
         (constants_str::VALUE_413BDF99, constants_str::VALUE_28A55761),
         (constants_str::VALUE_EA3B0668, constants_str::VALUE_82F6C375),
     ]);

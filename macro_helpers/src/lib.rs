@@ -18,7 +18,6 @@ pub mod compile_error_message;
 #[cfg(feature = "test-utils")]
 pub mod contract_error;
 pub mod derive_token_stream_builder;
-pub mod domain_types;
 #[cfg(feature = "test-utils")]
 pub mod ensure_json_contract_round_trip;
 #[cfg(test)]

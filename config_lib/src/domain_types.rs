@@ -1,5 +1,4 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-pub mod types {}
 
 config_lib_macros::impl_try_from_non_empty_string!(
     CorsAllowOrigin,

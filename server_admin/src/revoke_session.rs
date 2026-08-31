@@ -39,4 +39,3 @@ pub(crate) async fn revoke_session(
 }
 
 // Root-owned module compatibility wrappers.
-mod admin_html_session_action_route_registry {}

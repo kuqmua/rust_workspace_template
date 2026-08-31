@@ -1,6 +1,4 @@
 #[cfg(test)]
-#[cfg(test)]
-#[cfg(test)]
 mod tests {
     fn file_content(v: &str) -> crate::string_file_content_ref::StringFileContentRef<'_> {
         crate::string_file_content_ref::StringFileContentRef::from(v)

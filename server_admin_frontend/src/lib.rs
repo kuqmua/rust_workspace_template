@@ -107,7 +107,6 @@ pub mod admin_ssr_text;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_ssr_text_try_from_string_error;
 #[cfg(test)]
-#[cfg(test)]
 pub mod admin_ssr_view_ext_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_table_load_error;
@@ -132,33 +131,13 @@ pub mod csr_page_from_location;
 pub mod csrf_token;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod data_table_grid;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod data_tables;
-pub mod domain_types;
-pub mod domain_types_shared_settings;
 pub mod domain_types_shared_settings_input;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod domain_types_ssr_document;
 #[cfg(test)]
 pub mod domain_types_ssr_tests;
-#[cfg(target_arch = "wasm32")]
-pub mod domain_types_start_http_mutation;
-#[cfg(target_arch = "wasm32")]
-pub mod domain_types_start_mutation;
-pub mod domain_types_with_owner_alert;
-pub mod domain_types_with_owner_badge;
-pub mod domain_types_with_owner_button;
-pub mod domain_types_with_owner_card;
-pub mod domain_types_with_owner_field;
-pub mod domain_types_with_owner_input;
-pub mod domain_types_with_owner_navigation;
-pub mod domain_types_with_owner_table;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_json;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_page;
-#[cfg(target_arch = "wasm32")]
-pub mod http;
 pub mod join_text;
 pub mod leptos_admin_filter_operation_signal;
 pub mod leptos_admin_input_signal;
@@ -168,7 +147,6 @@ pub mod location;
 pub mod page_render_with_access;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod page_render_with_table_access;
-pub mod pagination;
 #[cfg(target_arch = "wasm32")]
 pub mod reload_after;
 #[cfg(not(target_arch = "wasm32"))]
@@ -219,20 +197,14 @@ pub mod reset;
 pub mod save;
 #[cfg(target_arch = "wasm32")]
 pub mod send_json;
-pub mod shared;
 #[cfg(target_arch = "wasm32")]
 pub mod show_mutation_error;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod ssr;
 #[cfg(target_arch = "wasm32")]
 pub mod start;
-#[cfg(target_arch = "wasm32")]
-pub mod state;
 pub mod table;
 pub mod table_body;
 pub mod table_caption;
 pub mod table_cell;
-pub mod table_filters;
 pub mod table_footer;
 pub mod table_head;
 pub mod table_header;
@@ -254,12 +226,6 @@ pub mod test_domain_types_ssr_tests_settings;
 pub mod test_domain_types_with_owner_tests;
 #[cfg(all(not(target_arch = "wasm32"), test))]
 pub mod test_static_pages_tests;
-pub mod text;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod text_page;
-#[cfg(target_arch = "wasm32")]
-pub mod url;
-pub mod values;
 pub mod with_owner;
 
 const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =

@@ -8,6 +8,54 @@ struct ModuleWideSingleCallAllowVisitor {
     violations: crate::types::SourceTextList,
 }
 
+#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+struct DuplicateCfgTestVisitor {
+    violations: crate::types::DiagnosticMsgs,
+}
+
+#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+struct EmptyModuleVisitor {
+    violations: crate::types::DiagnosticMsgs,
+}
+
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for DuplicateCfgTestVisitor {
+    fn visit_item(&mut self, i: &'ast_lt syn::Item) {
+        if crate::code_style::cfg_test_attr_count(crate::types::SynItemRef::from(i))
+            > constants_usize::ONE
+        {
+            self.violations.push(format!(
+                "line {}: duplicate #[cfg(test)] attributes",
+                syn::spanned::Spanned::span(i).start().line
+            ));
+        }
+        syn::visit::visit_item(self, i);
+    }
+}
+
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for EmptyModuleVisitor {
+    fn visit_file(&mut self, i: &'ast_lt syn::File) {
+        if i.items.is_empty() {
+            self.violations
+                .push(String::from(constants_str::EMPTY_MODULE_SOURCE_FILE));
+        }
+        syn::visit::visit_file(self, i);
+    }
+
+    fn visit_item_mod(&mut self, i: &'ast_lt syn::ItemMod) {
+        if i.content
+            .as_ref()
+            .is_some_and(|(_brace, items)| items.is_empty())
+        {
+            self.violations.push(format!(
+                "line {}: empty module `{}`",
+                syn::spanned::Spanned::span(i).start().line,
+                i.ident
+            ));
+        }
+        syn::visit::visit_item_mod(self, i);
+    }
+}
+
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for ModuleWideSingleCallAllowVisitor {
     fn visit_attribute(&mut self, i: &'ast_lt syn::Attribute) {
         if matches!(&i.style, syn::AttrStyle::Inner(_))
@@ -48,6 +96,93 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
         }
         syn::visit::visit_item_impl(self, i);
     }
+}
+
+#[test]
+fn test_cfg_test_attribute_is_not_duplicated() {
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::F4ECA965),
+        crate::types::SourceTextRef::from(constants_str::DUPLICATE_CFG_TEST_ATTRIBUTES),
+        |path, ast, ers| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                DuplicateCfgTestVisitor::default(),
+            );
+            ers.extend(
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| format!("{}: {violation}", path.display())),
+            );
+        },
+    );
+}
+
+#[test]
+fn test_cfg_test_attribute_policy_rejects_a_duplicate() {
+    let ast: syn::File = syn::parse_quote! {
+        #[cfg(test)]
+        #[cfg(test)]
+        mod test_example {}
+    };
+    assert_eq!(
+        crate::code_style::cfg_test_attr_count(crate::types::SynItemRef::from(
+            ast.items
+                .first()
+                .expect("ed9caf91 duplicate cfg fixture must contain an item"),
+        )),
+        constants_usize::TWO
+    );
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        DuplicateCfgTestVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), constants_usize::ONE);
+}
+
+#[test]
+fn test_empty_modules_are_forbidden() {
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::A7C19E42),
+        crate::types::SourceTextRef::from(constants_str::EMPTY_MODULES_ARE_FORBIDDEN),
+        |path, ast, ers| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                EmptyModuleVisitor::default(),
+            );
+            ers.extend(
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| format!("{}: {violation}", path.display())),
+            );
+        },
+    );
+}
+
+#[test]
+fn test_empty_module_policy_rejects_an_inline_module_without_items() {
+    let ast: syn::File = syn::parse_quote! {
+        mod test_example {}
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        EmptyModuleVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), constants_usize::ONE);
+}
+
+#[test]
+fn test_empty_module_policy_rejects_a_source_file_without_items() {
+    let ast = syn::parse_file(constants_str::EMPTY)
+        .expect("ae2e1c74 empty module source fixture must parse");
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        EmptyModuleVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), constants_usize::ONE);
 }
 
 #[test]
@@ -524,11 +659,9 @@ fn test_direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
                 || crate::code_style::is_cfg_test_declared_child(path)
                 || crate::code_style::is_direct_fs_owner_source_path(crate::types::PathRef::from(path)).get()
-                || path.ends_with(constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
-                || crate::code_style::declared_child_matches(
-                    path.to_string_lossy().as_ref(),
-                    constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
-                )
+                || constants_str::CODE_STYLE_BOUNDED_READ_OWNER_SUFFIXES
+                    .iter()
+                    .any(|suffix| path.ends_with(suffix))
             {
                 return;
             }
@@ -637,11 +770,9 @@ fn test_runtime_data_reads_are_bounded() {
                 || constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
                     .iter()
                     .any(|suffix| path_text.ends_with(suffix))
-                || path_text.ends_with(constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
-                || crate::code_style::declared_child_matches(
-                    path_text.as_ref(),
-                    constants_str::SERVER_RUNTIME_SRC_BOUNDED_READ_RS,
-                )
+                || constants_str::CODE_STYLE_BOUNDED_READ_OWNER_SUFFIXES
+                    .iter()
+                    .any(|suffix| path_text.ends_with(suffix))
             {
                 return;
             }

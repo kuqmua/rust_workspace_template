@@ -21,7 +21,7 @@ fn test_bounded_string_utoipa_byte_length_returns_compile_error() {
     let input = syn::parse_quote! {
         #[derive(BoundedString)]
         #[bounded_string(max = 4, utoipa)]
-        struct Value(String);
+        struct Value(bounded_types::bounded_string::BoundedString<0usize, 4usize, false>);
     };
     let result = crate::generate_bounded_string_token_stream(
         crate::newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),

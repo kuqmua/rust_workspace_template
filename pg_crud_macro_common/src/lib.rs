@@ -92,7 +92,5 @@ pub mod test_tests_domain_types;
 pub mod wrap_into_braces;
 pub mod wrap_into_scopes_token_stream;
 
-pub mod domain_types;
-
 const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

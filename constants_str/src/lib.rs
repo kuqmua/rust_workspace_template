@@ -77,6 +77,10 @@ pub const CODE_STYLE_DIRECT_FS_OWNER_REASONS: [&str; 16] = [
 ];
 
 pub const CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES: [&str; 0] = [];
+pub const CODE_STYLE_BOUNDED_READ_OWNER_SUFFIXES: [&str; 2] = [
+    SERVER_RUNTIME_SRC_READ_BOUNDED_FILE_RS,
+    SERVER_RUNTIME_SRC_READ_BOUNDED_FILE_ASYNC_RS,
+];
 
 pub const CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES: &[&str] = &[
     SHARED_VALUES_ASSERT,
@@ -1196,6 +1200,8 @@ constants_str_macros::define_str_constants! {
         W_GENERATE_IMPL_PG_CRUD_DEFAULT_SOME_ONE_ELEMENT_T = "generate_impl_pg_crud_default_some_one_element_token_stream";
         W_GENERATE_NEW_OR_TRY_NEW = "generate_new_or_try_new";
         W_GENERATE_PG_TABLE = "generate_pg_table";
+        W_GENERATE_ACCESSOR = "generate_accessor";
+        W_GENERATE_CONSTRUCTOR = "generate_constructor";
         W_GENERATE_PG_TABLE_TESTS = "generate_pg_table_Tests";
         W_GENERATE_PG_TABLE_FRONTEND = "generate_pg_table_frontend";
         W_GENERATE_PG_TABLE_TEST = "generate_pg_table_test";
@@ -1667,6 +1673,7 @@ constants_str_macros::define_str_constants! {
         W_RAW = "raw";
         W_RBAC = "rbac";
         W_READ = "read";
+        W_READ_BOUNDED_FILE = "read_bounded_file";
         W_READ_EXACT = "read_exact";
         W_READ_TO_STRING = "read_to_string";
         W_READER = "reader";
@@ -2839,7 +2846,7 @@ constants_str_macros::define_str_constants! {
         pub SERVER_ADMIN_SRC_MIGRATIONS_RS = ["../", W_SERVER_ADMIN, "/", W_SRC, "/", W_MIGRATIONS, ".", W_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP = ["../", W_SERVER_ADMIN_FRONTEND, "/", W_SRC, "/", W_DOMAIN_TYPES, "/", W_START, "/"];
         pub STR_CONSTANTS_SRC_LIB_RS = ["../", W_CONSTANTS_STR, "/", W_SRC, "/", W_LIB, ".", W_RS];
-        pub CONSTANTS_STR_MACROS_SRC_DEFINE_STR_CONSTANTS_INPUT_RS = [W_CONSTANTS_STR_MACROS, "/", W_SRC, "/", "define_str_constants_input", ".", W_RS];
+        pub CONSTANTS_STR_MACROS_SRC_DEFINE_STR_CONSTANTS_INPUT_RS = [W_CONSTANTS_STR_MACROS, "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub TESTS_SRC_CODE_STYLE = ["../", W_TESTS_CODE_STYLE, "/", W_SRC, "/", W_CODE_STYLE];
         pub WORKSPACE_TEST_RUNNER_SRC = ["../", W_WORKSPACE_TEST_RUNNER, "/", W_SRC, "/"];
         pub ENV = [".", W_ENV];
@@ -3589,9 +3596,9 @@ constants_str_macros::define_str_constants! {
         pub X_CSRF_TOKEN = ["X", "-", W_CSRF, "-", "Token"];
         pub REDACTED_ALT_3 = ["[", W_REDACTED, "]"];
         pub A_Z_PLUS = ["[", W_A_CA978112, "-", W_Z, "]+"];
-        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[", W_DEPENDENCIES, "]\n", W_APP_STATE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_AXUM_AF7119DC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FUTURES, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FRONTEND_CONTRACT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", "generate_accessor", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", "generate_constructor", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_HTTP_E0603C49, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_REQWEST, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE_JSON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TRACING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GIT_INFO, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_METRICS_177A7EA3, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", "pg_table", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_NUMERIC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_TEXT_MISC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_PG_TABLE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_OPTIMAL_MEMORY_LAYOUT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_ROUTE_VALIDATORS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_CORE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_HTTP, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n"];
+        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[", W_DEPENDENCIES, "]\n", W_APP_STATE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_AXUM_AF7119DC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FUTURES, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FRONTEND_CONTRACT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_ACCESSOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_CONSTRUCTOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_HTTP_E0603C49, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_REQWEST, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE_JSON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TRACING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GIT_INFO, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_METRICS_177A7EA3, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", "pg_table", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_NUMERIC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_TEXT_MISC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_PG_TABLE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_OPTIMAL_MEMORY_LAYOUT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_ROUTE_VALIDATORS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_CORE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_HTTP, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n"];
         pub DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE = ["[", W_DEPENDENCIES, "]\n", "chrono", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UUID_75666699, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE_JSON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FRONTEND_CONTRACT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_OPTIMAL_MEMORY_LAYOUT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SCHEMARS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n[", W_FEATURES, "]\n", W_TEST, "-", W_UTILS, " = []"];
-        pub DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE = ["[", W_DEPENDENCIES, "]\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SCHEMARS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_NEWTYPE_CF0021B1, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n[", W_FEATURES, "]\n", W_TEST, "-", W_UTILS, " = []"];
+        pub DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE = ["[", W_DEPENDENCIES, "]\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_ACCESSOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_CONSTRUCTOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SCHEMARS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_NEWTYPE_CF0021B1, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n[", W_FEATURES, "]\n", W_TEST, "-", W_UTILS, " = []"];
         pub WORKSPACE_DEPENDENCIES = ["[", W_WORKSPACE, ".", W_DEPENDENCIES, "]"];
         pub WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE = ["[", W_WORKSPACE, "]\n", W_MEMBERS, " = [\"../", W_OUTSIDE, "\"]\n"];
         pub WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE = ["[", W_WORKSPACE, "]\n", W_MEMBERS, " = [\"", W_SERVICE_9DF6B026, "\"]\n"];
@@ -3636,6 +3643,7 @@ constants_str_macros::define_str_constants! {
         pub A6413C9D = ["a6413c9d"];
         pub A6D4F2C9 = ["a6d4f2c9"];
         pub A75BC224 = ["a75bc224"];
+        pub A7C19E42 = ["a7c19e42"];
         pub A7F9C3E1 = ["a7f9c3e1"];
         pub A82438CC = ["a82438cc"];
         pub A8E1C6F3 = ["a8e1c6f3"];
@@ -3949,6 +3957,7 @@ constants_str_macros::define_str_constants! {
         pub DUPLICATE = [W_DUPLICATE];
         pub DUPLICATE_A = [W_DUPLICATE, "-", W_A_CA978112];
         pub DUPLICATE_B = [W_DUPLICATE, "-", W_B];
+        pub DUPLICATE_CFG_TEST_ATTRIBUTES = [W_DUPLICATE, " #[", W_CFG, "(", W_TEST, ")] ", W_ATTRIBUTES];
         pub DUPLICATE_FEATURES = ["duplicate_features"];
         pub DUPLICATED_STRING_LITERALS_FOUND_IN_NON_POLICY_TEST_CODE = ["duplicated", " ", W_STRING_473287F8, " ", W_LITERALS, " ", W_FOUND, " ", W_IN_58296753, " ", W_NON, "-", W_POLICY_823412D1, " ", W_TEST, " ", W_CODE, ":"];
         pub E098A1FF = ["e098a1ff"];
@@ -4030,6 +4039,7 @@ constants_str_macros::define_str_constants! {
         pub F4C2A9E1 = ["f4c2a9e1"];
         pub F4CAB210 = ["f4cab210"];
         pub F4E61B29 = ["f4e61b29"];
+        pub F4ECA965 = ["f4eca965"];
         pub F50EF817 = ["f50ef817"];
         pub F542A3CB = ["f542a3cb"];
         pub F5C41DD8 = ["f5c41dd8"];
@@ -4584,6 +4594,8 @@ constants_str_macros::define_str_constants! {
         pub SERVER_ADMIN_FRONTEND_SRC_SSR_USERS_ROW_RS = [W_SERVER_ADMIN_FRONTEND, "/", W_SRC, "/", "ssr_admin_user_row", ".", W_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_LIB_RS = [W_SERVER_ADMIN_FRONTEND, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS];
         pub SERVER_RUNTIME_SRC_BOUNDED_READ_RS = [W_SERVER_RUNTIME_HTTP, "/", W_SRC, "/", "bounded_read", ".", W_RS];
+        pub SERVER_RUNTIME_SRC_READ_BOUNDED_FILE_RS = [W_SERVER_RUNTIME_HTTP, "/", W_SRC, "/", W_READ_BOUNDED_FILE, ".", W_RS];
+        pub SERVER_RUNTIME_SRC_READ_BOUNDED_FILE_ASYNC_RS = [W_SERVER_RUNTIME_HTTP, "/", W_SRC, "/", W_READ_BOUNDED_FILE, "_async", ".", W_RS];
         pub SERVER_RUNTIME_SRC_HEALTH_RS = [W_SERVER_RUNTIME, "/", W_SRC, "/", W_HEALTH_62484E22, ".", W_RS];
         pub SERVER_RUNTIME_SRC_LIB_RS = [W_SERVER_RUNTIME, "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub SERVICE = [W_SERVICE_9DF6B026];
@@ -5346,6 +5358,8 @@ constants_str_macros::define_str_constants! {
         pub TRACE = [W_TRACE];
         pub YES = [W_YES];
         pub EMPTY = [""];
+        pub EMPTY_MODULE_SOURCE_FILE = [W_EMPTY, " ", W_MODULE, " ", W_SOURCE_41CF6794, " ", W_FILE];
+        pub EMPTY_MODULES_ARE_FORBIDDEN = [W_EMPTY, " ", W_MODULES, " ", W_ARE, " ", W_FORBIDDEN];
         pub ADMIN_CSR_ROOT_ID = [W_ADMIN_8C6976E5, "-", W_CSR, "-", W_ROOT];
         pub ADMIN_ACTION_QUERY_KEY = [W_ACTION];
         pub ADMIN_FILTER_END_QUERY_KEY = [W_FILTER_END];
@@ -5706,6 +5720,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_FAB1545F = ["../", W_CONSTANTS_STR_MACROS, "/", W_SRC, "/", W_LIB, ".", W_RS, ":", "ConstantParts"];
         pub VALUE_9FB992E8 = ["../", W_CONSTANTS_STR_MACROS, "/", W_SRC, "/", W_LIB, ".", W_RS, ":", "Constants"];
         pub VALUE_D200D86F = ["../", W_CONSTANTS_STR_MACROS, "/", W_SRC, "/", W_LIB, ".", W_RS, ":", "Fragments"];
+        pub VALUE_0F3C7A91 = ["../", W_CONSTANTS_STR_MACROS, "/", W_SRC, "/", W_LIB, ".", W_RS, ":", "RustFragments"];
         pub VALUE_63BD6017 = ["../", W_CONSTANTS_STR_MACROS, "/", W_SRC, "/", W_LIB, ".", W_RS, ":", W_COLLECT];
         pub VALUE_6C761A40 = ["../", "dev_identity_creation_planner", "/", W_SRC, "/", "development_identity_specs", ".", W_RS, ":", "DevelopmentIdentitySpecs"];
         pub VALUE_EEF4AEDA = ["../", W_FILE_STORAGE, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS];
@@ -6657,7 +6672,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_C7C4300B = [W_QUOTE, "::", W_QUOTE, "! { ", W_UUID_75666699, "::", W_UUID, "::", W_NEW_V4, "() };"];
         pub VALUE_3EC967E9 = [W_RATE, "-", W_LIMIT_55EA09E5, " ", W_ROW, " ", W_CONVERSIONS, " ", W_MAP, " ", W_TO, " ", W_TYPED, " ", W_REPOSITORY, " ", W_ERRORS];
         pub VALUE_69F67A0D = [W_RATE, "-", W_LIMIT_55EA09E5, " ", W_WRAPPERS, " ", W_HAVE, " ", W_SEPARATE, " ", W_DOMAIN, " ", "meanings", " ", W_AND_6201111B, " ", W_VALIDATION, " ", W_ERROR_CA00FCCF, " ", W_VARIANTS];
-        pub VALUE_3349907E = ["read_bounded_file", "("];
+        pub VALUE_3349907E = [W_READ_BOUNDED_FILE, "("];
         pub VALUE_21303953 = ["read_data_table"];
         pub VALUE_574C97CF = [W_READ_EXACT];
         pub VALUE_35D47C1A = ["read_owned"];

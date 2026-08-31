@@ -16,5 +16,3 @@ pub fn admin_auth_routes(
 }
 
 // Root-owned module compatibility wrappers.
-mod admin_api_open_api {}
-mod admin_auth_route_registry {}

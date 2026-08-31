@@ -4,7 +4,6 @@ pub mod administrator_account_command_exit_code;
 pub mod administrator_account_command_status;
 pub mod administrator_command_args_error;
 pub mod administrator_password_file_path_buf;
-pub mod domain_types;
 #[cfg(test)]
 pub mod error_status;
 pub mod initial_administrator_creation_args;

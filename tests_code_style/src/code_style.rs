@@ -1614,68 +1614,43 @@ pub(crate) fn is_direct_fs_owner_source_path(
 pub(crate) fn has_test_only_cfg_attr(
     i: crate::types::SynItemRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(match i.as_ref() {
-        syn::Item::Const(item) => item
-            .attrs
+    crate::types::AnalyzerBool::from(item_attrs(i.as_ref()).is_some_and(|attrs| {
+        attrs
             .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Enum(item) => item
-            .attrs
+            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get())
+    }))
+}
+pub(crate) fn cfg_test_attr_count(i: crate::types::SynItemRef<'_>) -> usize {
+    item_attrs(i.as_ref()).map_or(constants_usize::ZERO, |attrs| {
+        attrs
             .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::ExternCrate(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Fn(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::ForeignMod(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Impl(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Macro(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Mod(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Static(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Struct(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Trait(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::TraitAlias(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Type(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Union(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Use(item) => item
-            .attrs
-            .iter()
-            .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
-        syn::Item::Verbatim(_) | _ => false,
+            .filter(|attr| {
+                attr.path().is_ident(constants_str::CFG_ALT)
+                    && attr
+                        .parse_args::<syn::Ident>()
+                        .is_ok_and(|identifier| identifier == constants_str::TEST_ALT_3)
+            })
+            .count()
+    })
+}
+fn item_attrs(i: &syn::Item) -> Option<&[syn::Attribute]> {
+    Some(match i {
+        syn::Item::Const(item) => item.attrs.as_slice(),
+        syn::Item::Enum(item) => item.attrs.as_slice(),
+        syn::Item::ExternCrate(item) => item.attrs.as_slice(),
+        syn::Item::Fn(item) => item.attrs.as_slice(),
+        syn::Item::ForeignMod(item) => item.attrs.as_slice(),
+        syn::Item::Impl(item) => item.attrs.as_slice(),
+        syn::Item::Macro(item) => item.attrs.as_slice(),
+        syn::Item::Mod(item) => item.attrs.as_slice(),
+        syn::Item::Static(item) => item.attrs.as_slice(),
+        syn::Item::Struct(item) => item.attrs.as_slice(),
+        syn::Item::Trait(item) => item.attrs.as_slice(),
+        syn::Item::TraitAlias(item) => item.attrs.as_slice(),
+        syn::Item::Type(item) => item.attrs.as_slice(),
+        syn::Item::Union(item) => item.attrs.as_slice(),
+        syn::Item::Use(item) => item.attrs.as_slice(),
+        syn::Item::Verbatim(_) | _ => return None,
     })
 }
 pub(crate) fn attr_is_test_only_cfg(

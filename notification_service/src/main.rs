@@ -7,7 +7,6 @@ pub mod axum_notification_response;
 pub mod build_notification_router;
 pub mod create_notification;
 pub mod create_notification_error;
-pub mod domain_types;
 pub mod http_notification_status_code;
 pub mod metrics;
 pub mod metrics_error;

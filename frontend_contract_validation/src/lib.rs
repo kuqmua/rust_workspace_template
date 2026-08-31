@@ -1,6 +1,4 @@
-pub mod artifact;
 pub mod canonical_json_contract_snapshot;
-pub mod domain_types;
 pub mod http_contract_body;
 pub mod http_contract_body_kind;
 pub mod http_contract_expectation;

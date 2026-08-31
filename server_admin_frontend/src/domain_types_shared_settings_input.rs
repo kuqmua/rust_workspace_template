@@ -8,6 +8,3 @@ impl crate::leptos_admin_input_signal::LeptosAdminInputSignal {
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod admin_setting_disabled {}
-pub(crate) mod admin_setting_inputs {}
-pub(crate) mod admin_setting_required {}

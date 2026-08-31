@@ -879,8 +879,12 @@ fn test_production_modules_contain_at_most_one_named_owner() {
         );
     });
 }
-fn large_module_exceptions() -> [&'static str; 2] {
-    [constants_str::VALUE_7FE2AF02, constants_str::VALUE_D405F3E1]
+fn large_module_exceptions() -> [&'static str; 3] {
+    [
+        constants_str::VALUE_7FE2AF02,
+        constants_str::VALUE_D405F3E1,
+        constants_str::VALUE_B278317D,
+    ]
 }
 
 fn is_test_source(path: &std::path::Path) -> bool {
@@ -982,122 +986,6 @@ fn test_large_module_exceptions_are_exact_and_still_needed() {
     clippy::needless_for_each,
     reason = "the iterator form follows the workspace no-for-loop policy"
 )]
-fn test_notification_service_domain_types_exclude_application_and_adapter_workflows() {
-    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let source_with_tests = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(constants_str::VALUE_8E41EC63)
-            })
-            .expect("2a6298c3 notification service domain types source must exist")
-            .content()
-            .as_ref();
-        let source = source_with_tests
-            .split(constants_str::VALUE_3BA26FB4)
-            .next()
-            .expect("3ae48239 split always returns the production source prefix");
-        [
-            constants_str::VALUE_18A392BE,
-            constants_str::VALUE_99D94433,
-            constants_str::VALUE_96E8A555,
-            constants_str::VALUE_5015C549,
-            constants_str::VALUE_9B877603,
-            constants_str::VALUE_8B0F112C,
-            constants_str::VALUE_3A4EDC2D,
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(
-                !source.contains(forbidden),
-                "8e620507 notification service domain_types contains adapter or application workflow `{forbidden}`"
-            );
-        });
-    });
-}
-
-#[test]
-#[allow(
-    clippy::needless_for_each,
-    reason = "the iterator form follows the workspace no-for-loop policy"
-)]
-fn test_administrator_account_initialization_and_password_reset_domain_types_exclude_application_workflows()
- {
-    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let source = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(constants_str::VALUE_2C978AB0)
-            })
-            .expect("f49a25d6 initial administrator creation domain types source must exist")
-            .content()
-            .as_ref();
-        [
-            constants_str::VALUE_E7118A3C,
-            constants_str::VALUE_3349907E,
-            constants_str::VALUE_FF3A4973,
-            constants_str::VALUE_EB9EA192,
-            constants_str::VALUE_9B877603,
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(
-                !source.contains(forbidden),
-                "2f5b1520 initial administrator creation domain_types contains application workflow `{forbidden}`"
-            );
-        });
-    });
-}
-
-#[test]
-#[allow(
-    clippy::needless_for_each,
-    reason = "the iterator form follows the workspace no-for-loop policy"
-)]
-fn test_common_route_domain_types_exclude_http_and_database_workflows() {
-    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let source_with_tests = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(constants_str::VALUE_30296F9B)
-            })
-            .expect("1ef73397 common route domain types source must exist")
-            .content()
-            .as_ref();
-        let source = source_with_tests
-            .split(constants_str::VALUE_3BA26FB4)
-            .next()
-            .expect("90fc214f split always returns the production source prefix");
-        [
-            constants_str::VALUE_99D94433,
-            constants_str::VALUE_2E84067B,
-            constants_str::VALUE_C5EAB055,
-            constants_str::VALUE_0E48D7B1,
-            constants_str::VALUE_1812E35F,
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(
-                !source.contains(forbidden),
-                "6e3c94a8 common route domain_types contains HTTP or database workflow `{forbidden}`"
-            );
-        });
-    });
-}
-
-#[test]
-#[allow(
-    clippy::needless_for_each,
-    reason = "the iterator form follows the workspace no-for-loop policy"
-)]
 fn test_server_domain_types_exclude_application_and_adapter_workflows() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let source_with_tests = snapshot
@@ -1152,46 +1040,6 @@ fn test_server_admin_domain_types_exclude_repository_workflows() {
             violations.is_empty(),
             "5aee4dc0 server admin domain_types contains application or persistence workflows: {violations:?}"
         );
-    });
-}
-
-#[test]
-#[allow(
-    clippy::needless_for_each,
-    reason = "the iterator form follows the workspace no-for-loop policy"
-)]
-fn test_workspace_scaffold_domain_types_exclude_entrypoint_and_template_filesystem_workflows() {
-    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let source_with_tests = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(constants_str::VALUE_1A456B0D)
-            })
-            .expect("3119b009 workspace scaffold domain types source must exist")
-            .content()
-            .as_ref();
-        let source = source_with_tests
-            .split(constants_str::VALUE_3BA26FB4)
-            .next()
-            .expect("1e5e6186 split always returns the production source prefix");
-        [
-            constants_str::VALUE_59CAD555,
-            constants_str::VALUE_E72B634A,
-            constants_str::VALUE_731FDA74,
-            constants_str::VALUE_522C24E5,
-            constants_str::VALUE_C36F32EE,
-            constants_str::VALUE_BCDC0F38,
-        ]
-        .iter()
-        .for_each(|forbidden| {
-            assert!(
-                !source.contains(forbidden),
-                "762cf3b3 workspace scaffold domain_types contains entrypoint or template filesystem workflow `{forbidden}`"
-            );
-        });
     });
 }
 

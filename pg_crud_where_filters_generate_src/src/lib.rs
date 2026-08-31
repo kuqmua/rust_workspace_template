@@ -3,7 +3,6 @@ pub mod bind_count_matches;
 pub mod build_generate_where_filters;
 pub mod built_generate_where_filters_model;
 pub mod client_uses_text_value;
-pub mod domain_types;
 pub mod emit_generate_where_filters;
 pub mod filter_placeholder_count;
 pub mod filter_spec;

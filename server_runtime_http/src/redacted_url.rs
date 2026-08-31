@@ -89,6 +89,3 @@ mod tests {
 }
 
 // Root-owned module compatibility wrappers.
-mod redact_rtsp_url_userinfo {}
-mod redact_url_userinfo {}
-mod redacted_url_text_ref {}

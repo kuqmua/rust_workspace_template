@@ -24,18 +24,3 @@ pub(crate) fn start() {
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod admin_app {}
-pub(crate) mod admin_csr_query {}
-pub(crate) mod admin_data_grid {}
-pub(crate) mod admin_pagination {}
-pub(crate) mod admin_permissions_view {}
-pub(crate) mod admin_profile_view {}
-pub(crate) mod admin_roles_view {}
-pub(crate) mod admin_sessions_view {}
-pub(crate) mod admin_settings_view {}
-pub(crate) mod admin_users_view {}
-pub(crate) mod csr_admin_nav {}
-pub(crate) mod fetch_page {}
-pub(crate) mod http {}
-pub(crate) mod mutation {}
-pub(crate) mod state {}

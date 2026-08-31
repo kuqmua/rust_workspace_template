@@ -20,7 +20,6 @@ pub mod common_routes;
 pub mod common_routes_open_api;
 pub mod common_routes_parameters;
 pub mod database_is_ready;
-pub mod domain_types;
 pub mod git_info;
 pub mod git_info_response;
 pub mod git_info_route;
@@ -47,22 +46,16 @@ pub mod health_route;
 pub mod health_status;
 pub mod json_res;
 #[cfg(test)]
-#[cfg(test)]
 pub mod make_git_info_payload_tests;
 pub mod make_json_response;
 #[cfg(test)]
-#[cfg(test)]
 pub mod make_no_route_message_for_suffix_tests;
-#[cfg(test)]
 #[cfg(test)]
 pub mod make_no_route_message_tests;
 #[cfg(test)]
-#[cfg(test)]
 pub mod make_not_found_payload_tests;
 #[cfg(test)]
-#[cfg(test)]
 pub mod make_not_found_payload_with_message_tests;
-#[cfg(test)]
 #[cfg(test)]
 pub mod map_health_check_status_tests;
 #[cfg(test)]
@@ -80,7 +73,6 @@ pub mod test_tests_domain_types_health;
 pub mod test_tests_domain_types_route_contract;
 #[cfg(test)]
 pub mod uri_suffix_ref;
-#[cfg(test)]
 #[cfg(test)]
 pub mod uri_suffix_tests;
 pub mod utoipa_common_routes_open_api_document;

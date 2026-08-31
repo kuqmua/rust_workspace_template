@@ -31,5 +31,3 @@ pub(crate) fn AdminSettingsView(
 }
 
 // Root-owned module compatibility wrappers.
-pub(crate) mod reset {}
-pub(crate) mod save {}

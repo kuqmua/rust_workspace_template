@@ -11,7 +11,6 @@ pub mod built_generate_pg_types_model;
 pub mod can_be_nullable;
 pub mod can_be_primary_key;
 pub mod contract_tests;
-pub mod domain_types;
 pub mod emit_generate_pg_types;
 pub mod filter_kind;
 pub mod generate_pg_type_records;
@@ -44,7 +43,6 @@ pub mod rust_type_name;
 pub mod rust_type_wire_kind;
 pub mod schema_wire_kind;
 pub mod serde_json_generate_pg_types_error;
-pub mod sqlx;
 #[cfg(test)]
 pub mod test_tests;
 pub mod validate_generate_pg_types;

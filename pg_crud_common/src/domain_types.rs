@@ -1,6 +1,3 @@
-pub mod bounded_btree_map {}
-pub mod bounded_unique_vec {}
-pub mod bounded_vec {}
 pg_crud_common_macros::trait_alias!(DebugClonePartialEqAlias = std::fmt::Debug + Clone + PartialEq);
 pg_crud_common_macros::trait_alias!(
     DebugClonePartialEqSerializeAlias =
