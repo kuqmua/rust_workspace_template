@@ -24,7 +24,8 @@ impl<T> AdminBoundedVec<T> {
     }
 }
 impl<T> From<[T; 0]> for AdminBoundedVec<T> {
-    fn from(_value: [T; 0]) -> Self {
+    fn from(value: [T; 0]) -> Self {
+        let _: [T; 0] = value;
         Self(bounded_types::bounded_vec::BoundedVec::from([]))
     }
 }

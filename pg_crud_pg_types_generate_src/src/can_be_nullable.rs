@@ -9,8 +9,8 @@ impl quote::ToTokens for crate::pg_type_catalog_kind::PgTypeCatalogKind {
     }
 }
 impl From<&crate::range::Range> for crate::pg_type_catalog_kind::PgTypeCatalogKind {
-    fn from(v: &crate::range::Range) -> Self {
-        match v {
+    fn from(value: &crate::range::Range) -> Self {
+        match value {
             crate::range::Range::I32AsInt4 => Self::I32AsInt4,
             crate::range::Range::I64AsInt8 => Self::I64AsInt8,
             crate::range::Range::SqlxTypesChronoNaiveDateAsDate => {

@@ -6,7 +6,8 @@ pub fn generate_impl_from_token_stream(
     let v_snake_case = naming::domain_types::VSnakeCase;
     quote::quote! {
         impl From<#from_type_token_stream> for #for_type_token_stream {
-            fn from(#v_snake_case: #from_type_token_stream) -> Self {
+            fn from(value: #from_type_token_stream) -> Self {
+                let #v_snake_case = value;
                 #ts
             }
         }

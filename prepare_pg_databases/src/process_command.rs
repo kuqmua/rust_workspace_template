@@ -10,11 +10,12 @@ impl
     )> for ProcessCommand
 {
     fn from(
-        (program, arguments): (
+        value: (
             crate::process_program::ProcessProgram,
             crate::process_arguments::ProcessArguments,
         ),
     ) -> Self {
+        let (program, arguments) = value;
         Self { arguments, program }
     }
 }

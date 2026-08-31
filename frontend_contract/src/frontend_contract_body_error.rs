@@ -7,7 +7,8 @@ pub enum FrontendContractBodyError {
 }
 
 impl From<bounded_types::bounded_value_error::BoundedValueError> for FrontendContractBodyError {
-    fn from(_value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+    fn from(value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+        let _: bounded_types::bounded_value_error::BoundedValueError = value;
         Self::TooLarge
     }
 }

@@ -35,15 +35,15 @@ impl utoipa::ToSchema for NotZeroUnsignedPartOfI32 {}
 impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
     type Error = crate::not_zero_unsigned_part_of_i32_try_from_i32_error::NotZeroUnsignedPartOfI32TryFromI32Error;
 
-    fn try_from(v: i32) -> Result<Self, Self::Error> {
-        let value =
-            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(v).map_err(|error| {
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        let unsigned =
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(value).map_err(|error| {
                 Self::Error::UnsignedPartOfI32TryFromI32Error {
                     v: error,
                     location: location_macros::location!(),
                 }
             })?;
-        std::num::NonZeroI32::new(*value.get_inner())
+        std::num::NonZeroI32::new(*unsigned.get_inner())
             .map(Self)
             .ok_or_else(|| Self::Error::IsZero {
                 location: location_macros::location!(),

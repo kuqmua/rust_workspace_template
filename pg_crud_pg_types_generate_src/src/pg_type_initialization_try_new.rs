@@ -17,8 +17,10 @@ pub(super) enum PgTypeInitializationTryNew {
 }
 impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeInitializationTryNew {
     type Error = ();
-    fn try_from(v: &crate::pg_type_catalog_kind::PgTypeCatalogKind) -> Result<Self, Self::Error> {
-        match v {
+    fn try_from(
+        value: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
+    ) -> Result<Self, Self::Error> {
+        match value {
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
@@ -50,8 +52,8 @@ impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeInitiali
     }
 }
 impl From<&PgTypeInitializationTryNew> for crate::pg_type_catalog_kind::PgTypeCatalogKind {
-    fn from(v: &PgTypeInitializationTryNew) -> Self {
-        match v {
+    fn from(value: &PgTypeInitializationTryNew) -> Self {
+        match value {
                 PgTypeInitializationTryNew::F64AsFloat8 => Self::F64AsFloat8,
                 PgTypeInitializationTryNew::StringAsText => Self::StringAsText,
                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime => Self::SqlxTypesChronoNaiveTimeAsTime,

@@ -84,7 +84,8 @@ impl<T, const MAX: usize> Default for BoundedVec<T, 0, MAX> {
     }
 }
 impl<T, const MAX: usize> From<[T; 0]> for BoundedVec<T, 0, MAX> {
-    fn from(_value: [T; 0]) -> Self {
+    fn from(value: [T; 0]) -> Self {
+        let _: [T; 0] = value;
         Self(Vec::new())
     }
 }

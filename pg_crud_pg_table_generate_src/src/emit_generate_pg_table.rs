@@ -180,8 +180,8 @@ pub fn emit_generate_pg_table(
         }
     }
     impl From<&CreateOrUpdateOrDm> for Operation {
-        fn from(v: &CreateOrUpdateOrDm) -> Self {
-            match &v {
+        fn from(value: &CreateOrUpdateOrDm) -> Self {
+            match &value {
                 CreateOrUpdateOrDm::Create => Self::Cm,
                 CreateOrUpdateOrDm::Update => Self::Um,
                 CreateOrUpdateOrDm::Delete => Self::Dm,
@@ -189,24 +189,24 @@ pub fn emit_generate_pg_table(
         }
     }
     impl From<&RmOrDm> for Operation {
-        fn from(v: &RmOrDm) -> Self {
-            match &v {
+        fn from(value: &RmOrDm) -> Self {
+            match &value {
                 RmOrDm::Rm => Self::Rm,
                 RmOrDm::Dm => Self::Dm,
             }
         }
     }
     impl From<&RmOrRo> for Operation {
-        fn from(v: &RmOrRo) -> Self {
-            match &v {
+        fn from(value: &RmOrRo) -> Self {
+            match &value {
                 RmOrRo::Rm => Self::Rm,
                 RmOrRo::Ro => Self::Ro,
             }
         }
     }
     impl From<&CreateOrUpdateOrDlo> for Operation {
-        fn from(v: &CreateOrUpdateOrDlo) -> Self {
-            match &v {
+        fn from(value: &CreateOrUpdateOrDlo) -> Self {
+            match &value {
                 CreateOrUpdateOrDlo::Create => Self::Co,
                 CreateOrUpdateOrDlo::Update => Self::Uo,
                 CreateOrUpdateOrDlo::Delete => Self::Dlo,

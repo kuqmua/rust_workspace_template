@@ -68,7 +68,8 @@ impl TryFrom<Vec<server_admin_contract::admin_role_name::AdminRoleName>>
 impl From<bounded_types::bounded_value_error::BoundedValueError>
     for crate::admin_auth_collection_error::AdminAuthCollectionError
 {
-    fn from(_value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+    fn from(value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+        let _: bounded_types::bounded_value_error::BoundedValueError = value;
         Self::TooLarge
     }
 }

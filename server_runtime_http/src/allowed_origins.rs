@@ -14,8 +14,8 @@ impl AllowedOrigins {
 impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = crate::allowed_origins_error::AllowedOriginsError;
 
-    fn try_from(values: Vec<String>) -> Result<Self, Self::Error> {
-        let parsed = values
+    fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
+        let parsed = value
             .into_iter()
             .map(crate::allowed_origin::AllowedOrigin::try_from)
             .collect::<Result<

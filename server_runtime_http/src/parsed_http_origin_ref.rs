@@ -21,11 +21,12 @@ impl<'text>
     )> for ParsedHttpOriginRef<'text>
 {
     fn from(
-        (authority, scheme): (
+        value: (
             crate::http_origin_text_ref::HttpOriginTextRef<'text>,
             crate::http_origin_text_ref::HttpOriginTextRef<'text>,
         ),
     ) -> Self {
+        let (authority, scheme) = value;
         Self { authority, scheme }
     }
 }

@@ -20,17 +20,17 @@ impl secrecy::zeroize::Zeroize for StdAdminString {
     }
 }
 impl From<crate::admin_resource_text::AdminResourceText> for StdAdminString {
-    fn from(resource: crate::admin_resource_text::AdminResourceText) -> Self {
-        let value = match resource {
-            crate::admin_resource_text::AdminResourceText::PositiveI64(value) => {
-                value.get().to_string()
+    fn from(value: crate::admin_resource_text::AdminResourceText) -> Self {
+        let text = match value {
+            crate::admin_resource_text::AdminResourceText::PositiveI64(positive_i64) => {
+                positive_i64.get().to_string()
             }
             crate::admin_resource_text::AdminResourceText::SystemSettings => {
                 constants_str::VALUE_1.to_owned()
             }
-            crate::admin_resource_text::AdminResourceText::Uuid(value) => value.get().to_string(),
+            crate::admin_resource_text::AdminResourceText::Uuid(uuid) => uuid.get().to_string(),
         };
-        Self::try_from(value).unwrap_or_else(Self::from)
+        Self::try_from(text).unwrap_or_else(Self::from)
     }
 }
 impl StdAdminString {

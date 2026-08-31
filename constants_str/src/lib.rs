@@ -3645,6 +3645,7 @@ constants_str_macros::define_str_constants! {
         pub A75BC224 = ["a75bc224"];
         pub A7C19E42 = ["a7c19e42"];
         pub A7F9C3E1 = ["a7f9c3e1"];
+        pub B8A461D3 = ["b8a461d3"];
         pub A82438CC = ["a82438cc"];
         pub A8E1C6F3 = ["a8e1c6f3"];
         pub A8F22481 = ["a8f22481"];
@@ -4090,6 +4091,7 @@ constants_str_macros::define_str_constants! {
         pub FOUND_302 = ["found_302"];
         pub FREE = [W_FREE, "|"];
         pub FROM_ALT_4 = [W_FROM_75857A45];
+        pub FROM_AND_TRY_FROM_INPUT_PARAMETERS_MUST_BE_NAMED_VALUE = [W_FROM_21819769, " ", W_AND_6201111B, " ", W_TRYFROM, " ", W_INPUT, " ", W_PARAMETERS, " ", W_MUST, " ", W_BE, " ", W_NAMED, " ", W_VALUE_CD42404D];
         pub FROM_INNER = [W_FROM_INNER];
         pub FRONTEND_CONTRACT_SRC_LIB_RS = [W_FRONTEND_CONTRACT, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS];
         pub FUTURES = [W_FUTURES];

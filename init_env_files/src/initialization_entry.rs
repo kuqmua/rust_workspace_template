@@ -23,12 +23,13 @@ impl
     )> for InitializationEntry
 {
     fn from(
-        (keys, member, status): (
+        value: (
             crate::env_keys::EnvKeys,
             crate::workspace_member::WorkspaceMember,
             crate::initialization_status::InitializationStatus,
         ),
     ) -> Self {
+        let (keys, member, status) = value;
         Self {
             keys,
             member,

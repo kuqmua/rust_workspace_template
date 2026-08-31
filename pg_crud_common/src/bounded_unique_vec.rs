@@ -19,11 +19,10 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
 {
     type Error = crate::unique_vec_error::UniqueVecError;
 
-    fn try_from(values: Vec<T>) -> Result<Self, Self::Error> {
-        let bounded_values =
-            bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(values)
-                .map_err(crate::unique_vec_error::UniqueVecError::from)?
-                .into_inner();
+    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
+        let bounded_values = bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(value)
+            .map_err(crate::unique_vec_error::UniqueVecError::from)?
+            .into_inner();
         if bounded_values.iter().enumerate().any(|(idx, item)| {
             bounded_values
                 .get(..idx)

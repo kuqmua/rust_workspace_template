@@ -6,12 +6,12 @@ pub enum AdminMigrateError {
     Reconciliation(crate::sqlx_admin_error::SqlxAdminError),
 }
 impl From<crate::sqlx_admin_migrate_error::SqlxAdminMigrateError> for AdminMigrateError {
-    fn from(error: crate::sqlx_admin_migrate_error::SqlxAdminMigrateError) -> Self {
-        Self::Migration(error)
+    fn from(value: crate::sqlx_admin_migrate_error::SqlxAdminMigrateError) -> Self {
+        Self::Migration(value)
     }
 }
 impl From<crate::sqlx_admin_error::SqlxAdminError> for AdminMigrateError {
-    fn from(error: crate::sqlx_admin_error::SqlxAdminError) -> Self {
-        Self::Reconciliation(error)
+    fn from(value: crate::sqlx_admin_error::SqlxAdminError) -> Self {
+        Self::Reconciliation(value)
     }
 }

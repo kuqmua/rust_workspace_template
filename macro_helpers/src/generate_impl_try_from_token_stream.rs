@@ -8,7 +8,8 @@ pub fn generate_impl_try_from_token_stream(
     quote::quote! {
         impl TryFrom<#from_type_token_stream> for #for_type_token_stream {
             type Error = #error_type_token_stream;
-            fn try_from(#v_snake_case: #from_type_token_stream) -> Result<Self, Self::Error> {
+            fn try_from(value: #from_type_token_stream) -> Result<Self, Self::Error> {
+                let #v_snake_case = value;
                 #ts
             }
         }

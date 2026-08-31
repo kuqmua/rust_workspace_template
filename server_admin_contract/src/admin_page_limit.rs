@@ -11,7 +11,8 @@
 )]
 pub struct AdminPageLimit(u16);
 impl From<crate::admin_default_page_limit::AdminDefaultPageLimit> for AdminPageLimit {
-    fn from(_value: crate::admin_default_page_limit::AdminDefaultPageLimit) -> Self {
+    fn from(value: crate::admin_default_page_limit::AdminDefaultPageLimit) -> Self {
+        let _: crate::admin_default_page_limit::AdminDefaultPageLimit = value;
         Self(Self::DEFAULT)
     }
 }

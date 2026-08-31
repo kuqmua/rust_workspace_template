@@ -29,11 +29,11 @@ impl
     for QueryPartError
 {
     fn from(
-        error: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
+        value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
     ) -> Self {
         Self::StringWrapperTryFromString {
             location: location_macros::location!(),
-            error,
+            error: value,
         }
     }
 }

@@ -104,7 +104,8 @@ impl<K: Eq + std::hash::Hash, V, const MAX: usize> Default for BoundedHashMap<K,
     }
 }
 impl<K: Eq + std::hash::Hash, V, const MAX: usize> From<[(K, V); 0]> for BoundedHashMap<K, V, MAX> {
-    fn from(_value: [(K, V); 0]) -> Self {
+    fn from(value: [(K, V); 0]) -> Self {
+        let _: [(K, V); 0] = value;
         Self(std::collections::HashMap::new())
     }
 }

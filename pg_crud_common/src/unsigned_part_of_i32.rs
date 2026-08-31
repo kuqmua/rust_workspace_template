@@ -25,12 +25,12 @@ impl From<u16> for UnsignedPartOfI32 {
 impl TryFrom<i32> for UnsignedPartOfI32 {
     type Error = crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error;
 
-    fn try_from(v: i32) -> Result<Self, Self::Error> {
-        if v >= 0 {
-            Ok(Self(v))
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if value >= 0 {
+            Ok(Self(value))
         } else {
             Err(Self::Error::LessThanZero {
-                v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(v),
+                v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(value),
                 location: location_macros::location!(),
             })
         }

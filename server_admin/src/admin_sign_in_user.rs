@@ -11,7 +11,8 @@ pub(crate) struct AdminSignInUser {
 impl TryFrom<(i64, String, bool)> for AdminSignInUser {
     type Error = crate::sqlx_admin_error::SqlxAdminError;
 
-    fn try_from((id, password_hash, is_banned): (i64, String, bool)) -> Result<Self, Self::Error> {
+    fn try_from(value: (i64, String, bool)) -> Result<Self, Self::Error> {
+        let (id, password_hash, is_banned) = value;
         Ok(Self {
             id: server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(id)?,
             password_hash: crate::admin_password_hash::AdminPasswordHash::new(

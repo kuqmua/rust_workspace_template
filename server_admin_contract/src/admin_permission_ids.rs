@@ -38,7 +38,8 @@ impl Default for AdminPermissionIds {
     }
 }
 impl From<crate::admin_empty_collection::AdminEmptyCollection> for AdminPermissionIds {
-    fn from(_value: crate::admin_empty_collection::AdminEmptyCollection) -> Self {
+    fn from(value: crate::admin_empty_collection::AdminEmptyCollection) -> Self {
+        let _: crate::admin_empty_collection::AdminEmptyCollection = value;
         Self(crate::admin_bounded_vec::AdminBoundedVec::from([]))
     }
 }

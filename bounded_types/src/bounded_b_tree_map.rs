@@ -99,7 +99,8 @@ impl<K: Ord, V, const MAX: usize> Default for BoundedBTreeMap<K, V, MAX> {
     }
 }
 impl<K: Ord, V, const MAX: usize> From<[(K, V); 0]> for BoundedBTreeMap<K, V, MAX> {
-    fn from(_value: [(K, V); 0]) -> Self {
+    fn from(value: [(K, V); 0]) -> Self {
+        let _: [(K, V); 0] = value;
         Self(std::collections::BTreeMap::new())
     }
 }

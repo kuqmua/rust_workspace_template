@@ -13,7 +13,8 @@
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRegex(String);
 impl From<crate::default_regex_pattern::DefaultRegexPattern> for RegexRegex {
-    fn from(_value: crate::default_regex_pattern::DefaultRegexPattern) -> Self {
+    fn from(value: crate::default_regex_pattern::DefaultRegexPattern) -> Self {
+        let _: crate::default_regex_pattern::DefaultRegexPattern = value;
         Self(String::from(constants_str::A_Z_PLUS))
     }
 }
@@ -31,15 +32,15 @@ impl utoipa::ToSchema for RegexRegex {
 }
 impl TryFrom<String> for RegexRegex {
     type Error = crate::regex_regex_try_from_string_error::RegexRegexTryFromStringError;
-    fn try_from(v: String) -> Result<Self, Self::Error> {
-        if v.len() > constants_usize::VALUE_1_048_576 {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::VALUE_1_048_576 {
             return Err(
                 crate::regex_regex_try_from_string_error::RegexRegexTryFromStringError::TooLong,
             );
         }
         let _validated_regex =
-            regex::Regex::new(&v).map_err(crate::regex_error::RegexError::from)?;
-        Ok(Self(v))
+            regex::Regex::new(&value).map_err(crate::regex_error::RegexError::from)?;
+        Ok(Self(value))
     }
 }
 // The owner module retains lint-sensitive semantics from the original implementation.

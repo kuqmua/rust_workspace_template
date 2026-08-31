@@ -261,7 +261,8 @@ impl syn::parse::Parse for DefineStrConstantsInput {
 }
 
 impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
-    fn from(parsed: DefineStrConstantsInput) -> Self {
+    fn from(value: DefineStrConstantsInput) -> Self {
+        let parsed = value;
         let generated = (|| {
             let fragments = parsed.fragments.0.into_iter().try_fold(
                 std::collections::BTreeMap::new(),
@@ -278,9 +279,9 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                 },
             )?;
             let mut fragment_values = std::collections::HashSet::with_capacity(fragments.len());
-            fragments.iter().try_for_each(|(name, value)| {
-                if value.is_empty()
-                    || !value
+            fragments.iter().try_for_each(|(name, fragment_value)| {
+                if fragment_value.is_empty()
+                    || !fragment_value
                         .chars()
                         .all(|char| char.is_ascii_alphanumeric() || char == '_')
                 {
@@ -288,11 +289,11 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                         proc_macro2::Span::call_site(),
                         format!("3bc0da90: string fragment {name} must contain exactly one word"),
                     ))
-                } else if !fragment_values.insert(value.clone()) {
+                } else if !fragment_values.insert(fragment_value.clone()) {
                     Err(syn::Error::new(
                         proc_macro2::Span::call_site(),
                         format!(
-                            "0566e947: string fragment value {value} is declared more than once"
+                            "0566e947: string fragment value {fragment_value} is declared more than once"
                         ),
                     ))
                 } else {
@@ -324,9 +325,9 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                             stringify!(750ff794 duplicate Rust string fragment),
                         ));
                     }
-                    let value = fragment.parts.0.into_iter().try_fold(
+                    let fragment_value = fragment.parts.0.into_iter().try_fold(
                         String::new(),
-                        |mut value, part| match part {
+                        |mut accumulated, part| match part {
                             ConstantPart::Fragment(identifier) => {
                                 let identifier_name = identifier.0.to_string();
                                 let Some(fragment_value) = fragments.get(&identifier_name) else {
@@ -340,8 +341,8 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                         "70a6cff0 fragment use count must fit into usize",
                                     );
                                 }
-                                value.push_str(fragment_value);
-                                Ok(value)
+                                accumulated.push_str(fragment_value);
+                                Ok(accumulated)
                             }
                             ConstantPart::Literal(literal) => {
                                 let literal_value = literal.0.value();
@@ -351,18 +352,18 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                         stringify!(9cf0b14e Rust fragment literals must contain syntax only),
                                     ));
                                 }
-                                value.push_str(&literal_value);
-                                Ok(value)
+                                accumulated.push_str(&literal_value);
+                                Ok(accumulated)
                             }
                         },
                     )?;
-                    if value.is_empty() {
+                    if fragment_value.is_empty() {
                         return Err(syn::Error::new(
                             fragment.name.0.span(),
                             stringify!(f9805250 Rust string fragment must not be empty),
                         ));
                     }
-                    drop(rust_fragments.insert(name, value));
+                    drop(rust_fragments.insert(name, fragment_value));
                     Ok(rust_fragments)
                 },
             )?;
@@ -390,9 +391,9 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                             stringify!(ad857256 duplicate string constant name),
                         ));
                     }
-                    let value = constant.parts.0.into_iter().try_fold(
+                    let constant_value = constant.parts.0.into_iter().try_fold(
                         String::new(),
-                        |mut value, part| match part {
+                        |mut accumulated, part| match part {
                             ConstantPart::Fragment(identifier) => {
                                 let identifier_name = identifier.0.to_string();
                                 let fragment = if let Some(fragment) =
@@ -422,8 +423,8 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                         stringify!(bb09ab55 unknown string fragment),
                                     ));
                                 };
-                                value.push_str(fragment);
-                                Ok(value)
+                                accumulated.push_str(fragment);
+                                Ok(accumulated)
                             }
                             ConstantPart::Literal(literal) => {
                                 let literal_value = literal.0.value();
@@ -440,16 +441,16 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                             "52d520cb literal word count must fit into usize",
                                         );
                                     });
-                                value.push_str(&literal_value);
-                                Ok(value)
+                                accumulated.push_str(&literal_value);
+                                Ok(accumulated)
                             }
                         },
                     )?;
-                    let literal = syn::LitStr::new(&value, proc_macro2::Span::call_site());
-                    let rhs = if let Some(previous_name) = values.get(&value) {
+                    let literal = syn::LitStr::new(&constant_value, proc_macro2::Span::call_site());
+                    let rhs = if let Some(previous_name) = values.get(&constant_value) {
                         quote::quote! { #previous_name }
                     } else {
-                        drop(values.insert(value, constant.name.0.clone()));
+                        drop(values.insert(constant_value, constant.name.0.clone()));
                         quote::quote! { #literal }
                     };
                     let name = constant.name.0;

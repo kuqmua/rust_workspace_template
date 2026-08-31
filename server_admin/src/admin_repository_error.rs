@@ -7,7 +7,7 @@ pub(crate) enum AdminRepositoryError {
 }
 
 impl From<crate::sqlx_admin_error::SqlxAdminError> for AdminRepositoryError {
-    fn from(error: crate::sqlx_admin_error::SqlxAdminError) -> Self {
-        Self::Sqlx(error)
+    fn from(value: crate::sqlx_admin_error::SqlxAdminError) -> Self {
+        Self::Sqlx(value)
     }
 }

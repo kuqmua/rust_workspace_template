@@ -18,6 +18,11 @@ struct EmptyModuleVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
 
+#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+struct ConversionInputNameVisitor {
+    violations: crate::types::DiagnosticMsgs,
+}
+
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for DuplicateCfgTestVisitor {
     fn visit_item(&mut self, i: &'ast_lt syn::Item) {
         if crate::code_style::cfg_test_attr_count(crate::types::SynItemRef::from(i))
@@ -53,6 +58,48 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for EmptyModuleVisitor {
             ));
         }
         syn::visit::visit_item_mod(self, i);
+    }
+}
+
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for ConversionInputNameVisitor {
+    fn visit_item_impl(&mut self, i: &'ast_lt syn::ItemImpl) {
+        let Some(trait_identifier) = i
+            .trait_
+            .as_ref()
+            .and_then(|(path, _for)| path.segments.last())
+            .map(|segment| &segment.ident)
+        else {
+            syn::visit::visit_item_impl(self, i);
+            return;
+        };
+        if trait_identifier != constants_str::FROM_ALT_3
+            && trait_identifier != constants_str::TRYFROM
+        {
+            syn::visit::visit_item_impl(self, i);
+            return;
+        }
+        i.items.iter().for_each(|item| {
+            let syn::ImplItem::Fn(function) = item else {
+                return;
+            };
+            if function.sig.ident != constants_str::CODE_STYLE_FROM_FN_IDENTIFIER
+                && function.sig.ident != constants_str::NEWTYPE_TRY_FROM
+            {
+                return;
+            }
+            let Some(syn::FnArg::Typed(argument)) = function.sig.inputs.first() else {
+                return;
+            };
+            if !matches!(argument.pat.as_ref(), syn::Pat::Ident(identifier) if identifier.ident == constants_str::VALUE_CD42404D)
+            {
+                self.violations.push(format!(
+                    "line {}: {} input parameter must be named `value`",
+                    syn::spanned::Spanned::span(argument).start().line,
+                    trait_identifier
+                ));
+            }
+        });
+        syn::visit::visit_item_impl(self, i);
     }
 }
 
@@ -183,6 +230,51 @@ fn test_empty_module_policy_rejects_a_source_file_without_items() {
         EmptyModuleVisitor::default(),
     );
     assert_eq!(visitor.get_violations().len(), constants_usize::ONE);
+}
+
+#[test]
+fn test_from_and_try_from_input_parameters_are_named_value() {
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::B8A461D3),
+        crate::types::SourceTextRef::from(
+            constants_str::FROM_AND_TRY_FROM_INPUT_PARAMETERS_MUST_BE_NAMED_VALUE,
+        ),
+        |path, ast, ers| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                ConversionInputNameVisitor::default(),
+            );
+            ers.extend(
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| format!("{}: {violation}", path.display())),
+            );
+        },
+    );
+}
+
+#[test]
+fn test_from_and_try_from_input_parameter_policy_rejects_nonstandard_names() {
+    let ast: syn::File = syn::parse_quote! {
+        impl From<u8> for Example {
+            fn from(input: u8) -> Self {
+                Self(input)
+            }
+        }
+        impl TryFrom<u16> for Example {
+            type Error = Error;
+            fn try_from(raw: u16) -> Result<Self, Self::Error> {
+                Ok(Self(raw))
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        ConversionInputNameVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), constants_usize::TWO);
 }
 
 #[test]

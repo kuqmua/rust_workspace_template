@@ -11,8 +11,9 @@ impl From<server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64E
     for AdminCleanupCfgError
 {
     fn from(
-        _value: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
+        value: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
     ) -> Self {
+        let _: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error = value;
         Self::RetentionMustBePositive
     }
 }

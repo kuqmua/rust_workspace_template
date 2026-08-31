@@ -4,8 +4,8 @@ pub(super) enum PgTypeDeserialize {
     ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe),
 }
 impl From<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeDeserialize {
-    fn from(v: &crate::pg_type_catalog_kind::PgTypeCatalogKind) -> Self {
-        match v {
+    fn from(value: &crate::pg_type_catalog_kind::PgTypeCatalogKind) -> Self {
+        match value {
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
