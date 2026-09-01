@@ -50,9 +50,8 @@ mod tests {
         );
         assert_eq!(
             i64::from(
-                crate::list_total::ListTotal::try_from(constants_i64::ZERO).expect(
-                    "93f8d6c5 list_total_rejects_negative_and_accepts_zero invariant must hold"
-                )
+                crate::list_total::ListTotal::try_from(constants_i64::ZERO)
+                    .expect(constants_str::DIAGNOSTIC_93F8D6C5)
             ),
             constants_i64::ZERO
         );
@@ -70,7 +69,10 @@ mod tests {
             async || {
                 Ok::<_, ()>(crate::list_rows::ListRows::new(
                     crate::list_items::ListItems::from(vec![7u8]),
-                    Some(crate::list_total::ListTotal::try_from(11i64).expect("8d096c08 run_list_uses_window_total_without_calling_count invariant must hold")),
+                    Some(
+                        crate::list_total::ListTotal::try_from(11i64)
+                            .expect(constants_str::DIAGNOSTIC_8D096C08),
+                    ),
                 ))
             },
             || {
@@ -78,7 +80,7 @@ mod tests {
                 async { Ok::<_, ()>(crate::list_total::ListTotal::from(99u32)) }
             },
         ))
-        .expect("cba64f03 run_list_uses_window_total_without_calling_count invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_CBA64F03);
         assert_eq!(window_page.items(), &[7u8]);
         assert_eq!(i64::from(window_page.total()), 11i64);
         assert!(!count_called.get());
@@ -100,7 +102,7 @@ mod tests {
                 async { Ok::<_, ()>(crate::list_total::ListTotal::from(99u32)) }
             },
         ))
-        .expect("704c4827 run_list_uses_zero_for_empty_first_page_without_calling_count invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_704C4827);
         assert!(page.items().is_empty());
         assert_eq!(i64::from(page.total()), constants_i64::ZERO);
         assert!(!count_called.get());
@@ -122,7 +124,7 @@ mod tests {
                 async { Ok::<_, ()>(crate::list_total::ListTotal::from(17u32)) }
             },
         ))
-        .expect("27f9f3eb run_list_uses_count_for_later_or_windowless_pages invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_27F9F3EB);
         assert_eq!(i64::from(later_page.total()), 17i64);
         assert_eq!(count_calls.get(), constants_usize::ONE);
 
@@ -139,7 +141,7 @@ mod tests {
                 async { Ok::<_, ()>(crate::list_total::ListTotal::from(23u32)) }
             },
         ))
-        .expect("0ff9c45e run_list_uses_count_for_later_or_windowless_pages invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_0FF9C45E);
         assert_eq!(i64::from(windowless_page.total()), 23i64);
         assert_eq!(count_calls.get(), 2usize);
     }

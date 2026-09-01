@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn test_user_identifier_round_trips_i64() {
         let identifier = super::AdminUserId::try_from(constants_i64::ONE)
-            .expect("2c819d47 positive identifier must be valid");
+            .expect(constants_str::DIAGNOSTIC_2C819D47);
         assert_eq!(i64::from(identifier), constants_i64::ONE);
     }
 }

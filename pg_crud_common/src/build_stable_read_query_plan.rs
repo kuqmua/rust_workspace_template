@@ -54,7 +54,7 @@ pub fn build_stable_read_query_plan(
 mod tests {
     fn stable_read_identifier(value: &str) -> crate::sql_identifier::SqlIdentifier {
         crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
-            .expect("cd7c83ed identifier invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_CD7C83ED)
     }
 
     #[test]
@@ -63,22 +63,18 @@ mod tests {
             crate::query_part_fragment::QueryPartFragment::try_from(String::from(
                 constants_str::TEST_READ_QUERY_BASE,
             ))
-            .expect("ef7cd3e2 stable_plan_appends_tie_break_limit_and_offset invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_EF7CD3E2),
             &stable_read_identifier(constants_str::CREATED_AT),
             &stable_read_identifier(constants_str::SQL_NAMES_ID),
             crate::query_sort_order::QuerySortOrder::Descending,
             std::num::NonZeroU32::new(1u32)
-                .expect(
-                    "2c810064 stable_plan_appends_tie_break_limit_and_offset invariant must hold",
-                )
+                .expect(constants_str::DIAGNOSTIC_2C810064)
                 .into(),
             std::num::NonZeroU32::new(2u32)
-                .expect(
-                    "aa77f541 stable_plan_appends_tie_break_limit_and_offset invariant must hold",
-                )
+                .expect(constants_str::DIAGNOSTIC_AA77F541)
                 .into(),
         )
-        .expect("377c56d0 stable_plan_appends_tie_break_limit_and_offset invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_377C56D0);
         let fragment = crate::query_part_fragment::QueryPartFragment::from(plan);
         assert_eq!(fragment.into_inner(), constants_str::TEST_STABLE_READ_QUERY);
     }

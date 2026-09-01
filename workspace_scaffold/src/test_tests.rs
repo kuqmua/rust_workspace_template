@@ -1,21 +1,20 @@
 fn assert_scaffold_file_content(path: &std::path::Path, expected: &str) {
-    let actual =
-        std::fs::read_to_string(path).expect("371dbe92 assert_file_content invariant must hold");
+    let actual = std::fs::read_to_string(path).expect(constants_str::DIAGNOSTIC_371DBE92);
     assert_eq!(actual, expected, "239c17b0: {}", path.display());
 }
 
 fn write(path: &std::path::Path, value: &str) {
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).expect("2f0ad03a write invariant must hold");
+        std::fs::create_dir_all(parent).expect(constants_str::DIAGNOSTIC_2F0AD03A);
     }
-    std::fs::write(path, value).expect("79af6dc8 write invariant must hold");
+    std::fs::write(path, value).expect(constants_str::DIAGNOSTIC_79AF6DC8);
 }
 
 #[test]
 fn test_validates_and_converts_project_names() {
     let valid = crate::project_name_ref::ProjectNameRef::from(constants_str::VALUE_F9EA74B8);
     crate::naming_validate_project_name::naming_validate_project_name(valid)
-        .expect("96de3a80 validates_and_converts_project_names invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_96DE3A80);
     assert_eq!(
         crate::naming_kebab_case::naming_kebab_case(valid).as_ref(),
         "order-platform"
@@ -41,7 +40,7 @@ fn test_requires_https_repository_url() {
     crate::naming_validate_repository_url::naming_validate_repository_url(
         crate::repository_url_ref::RepositoryUrlRef::from(constants_str::VALUE_A680FDEF),
     )
-    .expect("28c1e7a4 requires_https_repository_url invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_28C1E7A4);
     assert!(
         crate::naming_validate_repository_url::naming_validate_repository_url(
             crate::repository_url_ref::RepositoryUrlRef::from(
@@ -79,9 +78,7 @@ fn test_deployment_projection_check_rejects_stale_generated_content() {
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_48AA6CAE),
         crate::should_write::ShouldWrite::from(true),
     )
-    .expect(
-        "5a7e3c91 deployment_projection_check_rejects_stale_generated_content invariant must hold",
-    );
+    .expect(constants_str::DIAGNOSTIC_5A7E3C91);
     crate::synchronize_generated_file::synchronize_generated_file(
         crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
         crate::scaffold_text_ref::ScaffoldTextRef::from(begin),
@@ -89,12 +86,8 @@ fn test_deployment_projection_check_rejects_stale_generated_content() {
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_48AA6CAE),
         crate::should_write::ShouldWrite::from(false),
     )
-    .expect(
-        "d2f8b4a6 deployment_projection_check_rejects_stale_generated_content invariant must hold",
-    );
-    std::fs::remove_file(path).expect(
-        "9c1e6a3f deployment_projection_check_rejects_stale_generated_content invariant must hold",
-    );
+    .expect(constants_str::DIAGNOSTIC_D2F8B4A6);
+    std::fs::remove_file(path).expect(constants_str::DIAGNOSTIC_9C1E6A3F);
 }
 
 #[test]
@@ -102,7 +95,7 @@ fn test_service_catalog_owns_ci_and_release_projection_values() {
     let entries = crate::service_catalog_parse::service_catalog_parse(
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_D4291B4A),
     )
-    .expect("4e8b2d7a service_catalog_owns_ci_and_release_projection_values invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_4E8B2D7A);
     let entries_ref = crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(
         entries.get_inner().as_slice(),
     );
@@ -132,7 +125,7 @@ fn test_rejects_scaffold_text_over_size_limit() {
         path.as_path(),
         vec![b'x'; constants_usize::VALUE_16_777_216.saturating_add(constants_usize::ONE)],
     )
-    .expect("d97e30ac rejects_scaffold_text_over_size_limit invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_D97E30AC);
     let result = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
         crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
     );
@@ -143,16 +136,14 @@ fn test_rejects_scaffold_text_over_size_limit() {
         ),
         "8f32bc16"
     );
-    std::fs::remove_file(path)
-        .expect("51cd7b2e rejects_scaffold_text_over_size_limit invariant must hold");
+    std::fs::remove_file(path).expect(constants_str::DIAGNOSTIC_51CD7B2E);
 }
 
 #[test]
 fn test_service_scaffold_registers_all_artifacts() {
     let root = std::env::temp_dir().join(format!("workspace-scaffold-test-{}", std::process::id()));
     if root.exists() {
-        std::fs::remove_dir_all(root.as_path())
-            .expect("1449608d service_scaffold_registers_all_artifacts invariant must hold");
+        std::fs::remove_dir_all(root.as_path()).expect(constants_str::DIAGNOSTIC_1449608D);
     }
     write(
         root.join(constants_str::CARGO_TOML).as_path(),
@@ -392,7 +383,7 @@ fn test_service_scaffold_registers_all_artifacts() {
         )?;
         Ok(())
     })()
-    .expect("4bff1d79 insert_sql invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_4BFF1D79);
     assert_scaffold_file_content(
         root.join(constants_str::CARGO_TOML).as_path(),
         constants_str::VALUE_ADF1A200,
@@ -425,5 +416,5 @@ fn test_service_scaffold_registers_all_artifacts() {
         root.join(constants_str::VALUE_C1590960).as_path(),
         constants_str::VALUE_142D5AD3,
     );
-    std::fs::remove_dir_all(root).expect("6f608418 insert_sql invariant must hold");
+    std::fs::remove_dir_all(root).expect(constants_str::DIAGNOSTIC_6F608418);
 }

@@ -337,9 +337,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                     ));
                                 };
                                 if let Some(use_count) = fragment_use_counts.get_mut(&identifier_name) {
-                                    *use_count = use_count.checked_add(1usize).expect(
-                                        "70a6cff0 fragment use count must fit into usize",
-                                    );
+                                    *use_count = use_count.saturating_add(1usize);
                                 }
                                 accumulated.push_str(fragment_value);
                                 Ok(accumulated)
@@ -371,8 +369,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                 .constants
                 .0
                 .len()
-                .checked_add(parsed.rust_constants.0.len())
-                .expect("c92fd20a constant count must fit into usize");
+                .saturating_add(parsed.rust_constants.0.len());
             let mut constants = parsed
                 .rust_constants
                 .0
@@ -402,9 +399,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                     if let Some(use_count) =
                                         fragment_use_counts.get_mut(&identifier_name)
                                     {
-                                        *use_count = use_count.checked_add(1usize).expect(
-                                            "8a3f36c7 fragment use count must fit into usize",
-                                        );
+                                        *use_count = use_count.saturating_add(1usize);
                                     }
                                     fragment
                                 } else if let Some(fragment) = rust_fragments.get(&identifier_name)
@@ -412,9 +407,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                     if let Some(use_count) =
                                         rust_fragment_use_counts.get_mut(&identifier_name)
                                     {
-                                        *use_count = use_count.checked_add(1usize).expect(
-                                            "29ffdc5e Rust fragment use count must fit into usize",
-                                        );
+                                        *use_count = use_count.saturating_add(1usize);
                                     }
                                     fragment
                                 } else {
@@ -437,9 +430,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                                         let word_count = literal_word_counts
                                             .entry(word.to_owned())
                                             .or_insert(0usize);
-                                        *word_count = word_count.checked_add(1usize).expect(
-                                            "52d520cb literal word count must fit into usize",
-                                        );
+                                        *word_count = word_count.saturating_add(1usize);
                                     });
                                 accumulated.push_str(&literal_value);
                                 Ok(accumulated)

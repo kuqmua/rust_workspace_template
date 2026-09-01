@@ -66,7 +66,7 @@ mod tests {
         let value = serde_json::from_str::<
             crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<String, u8, 1>,
         >(constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY)
-        .expect("298b587f map_at_limit_is_accepted invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_298B587F);
         assert_eq!(value.get().len(), constants_usize::ONE);
     }
 }

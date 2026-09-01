@@ -6,10 +6,15 @@ fn empty_token_stream() -> proc_macro2::TokenStream {
 }
 #[test]
 fn test_generate_impl_new_for_identifier_token_stream_generates_non_const_new() {
-    let identifier: proc_macro2::TokenStream = constants_str::CFG.parse().expect("48495be4 generate_impl_new_for_identifier_token_stream_generates_non_const_new invariant must hold");
-    let parameters: proc_macro2::TokenStream =
-            constants_str::V_USIZE.parse().expect("db75b4fb generate_impl_new_for_identifier_token_stream_generates_non_const_new invariant must hold");
-    let body: proc_macro2::TokenStream = constants_str::SELF_V.parse().expect("7ad6dd07 generate_impl_new_for_identifier_token_stream_generates_non_const_new invariant must hold");
+    let identifier: proc_macro2::TokenStream = constants_str::CFG
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_48495BE4);
+    let parameters: proc_macro2::TokenStream = constants_str::V_USIZE
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_DB75B4FB);
+    let body: proc_macro2::TokenStream = constants_str::SELF_V
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_7AD6DD07);
     let ts = crate::generate_impl_new_for_identifier_token_stream_impl::generate_impl_new_for_identifier_token_stream_impl(
         &identifier,
         &empty_token_stream(),
@@ -23,10 +28,15 @@ fn test_generate_impl_new_for_identifier_token_stream_generates_non_const_new() 
 }
 #[test]
 fn test_generate_impl_const_new_for_identifier_token_stream_generates_const_new() {
-    let identifier: proc_macro2::TokenStream = constants_str::CFG.parse().expect("7795af9b generate_impl_const_new_for_identifier_token_stream_generates_const_new invariant must hold");
-    let parameters: proc_macro2::TokenStream =
-            constants_str::V_USIZE.parse().expect("28ccdfc4 generate_impl_const_new_for_identifier_token_stream_generates_const_new invariant must hold");
-    let body: proc_macro2::TokenStream = constants_str::SELF_V.parse().expect("46fb1c80 generate_impl_const_new_for_identifier_token_stream_generates_const_new invariant must hold");
+    let identifier: proc_macro2::TokenStream = constants_str::CFG
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_7795AF9B);
+    let parameters: proc_macro2::TokenStream = constants_str::V_USIZE
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_28CCDFC4);
+    let body: proc_macro2::TokenStream = constants_str::SELF_V
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_46FB1C80);
     let ts = crate::generate_impl_const_new_for_identifier_token_stream_impl::generate_impl_const_new_for_identifier_token_stream_impl(
         &identifier,
         &empty_token_stream(),
@@ -40,11 +50,18 @@ fn test_generate_impl_const_new_for_identifier_token_stream_generates_const_new(
 }
 #[test]
 fn test_generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new() {
-    let identifier: proc_macro2::TokenStream = constants_str::CFG.parse().expect("4afbe04b generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new invariant must hold");
-    let attr: proc_macro2::TokenStream = constants_str::INLINE.parse().expect("5cfde4dd generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new invariant must hold");
-    let parameters: proc_macro2::TokenStream =
-            constants_str::V_USIZE.parse().expect("4304ab24 generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new invariant must hold");
-    let body: proc_macro2::TokenStream = constants_str::SELF_V.parse().expect("29ac89d5 generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new invariant must hold");
+    let identifier: proc_macro2::TokenStream = constants_str::CFG
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_4AFBE04B);
+    let attr: proc_macro2::TokenStream = constants_str::INLINE
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_5CFDE4DD);
+    let parameters: proc_macro2::TokenStream = constants_str::V_USIZE
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_4304AB24);
+    let body: proc_macro2::TokenStream = constants_str::SELF_V
+        .parse()
+        .expect(constants_str::DIAGNOSTIC_29AC89D5);
     let ts = crate::generate_impl_pub_const_new_for_identifier_token_stream_impl::generate_impl_pub_const_new_for_identifier_token_stream_impl(
         &identifier,
         &attr,

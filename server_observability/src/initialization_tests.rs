@@ -3,7 +3,7 @@ mod tests {
     #[test]
     fn test_empty_guard_shutdown_is_idempotent_and_service_name_displays() {
         let guard = crate::observability_guard::ObservabilityGuard::from(None);
-        guard.shutdown().expect("599ca192 empty_guard_shutdown_is_idempotent_and_service_name_displays invariant must hold");
+        guard.shutdown().expect(constants_str::DIAGNOSTIC_599CA192);
         assert_eq!(
             crate::service_name::ServiceName::from("notification_service").to_string(),
             "notification_service"
@@ -20,9 +20,7 @@ mod tests {
                 tracer_provider,
             ),
         ));
-        guard
-            .shutdown()
-            .expect("8d66ae8c guard_shuts_down_owned_tracer_provider invariant must hold");
+        guard.shutdown().expect(constants_str::DIAGNOSTIC_8D66AE8C);
         assert!(exporter.is_shutdown_called());
     }
     #[test]

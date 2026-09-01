@@ -11,10 +11,10 @@ mod tests {
                 .method(method)
                 .uri(constants_str::VALUE_C53B39B2)
                 .body(axum::body::Body::empty())
-                .expect("49ef0e86 call_method invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_49EF0E86),
         )
         .await
-        .expect("12a54113 call_method invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_12A54113)
         .status()
     }
 
@@ -22,18 +22,18 @@ mod tests {
     fn test_metrics_response_body_is_bounded() {
         let _empty_body =
             crate::metrics_response_body::MetricsResponseBody::try_from(String::new())
-                .expect("52410ad9 metrics_response_body_is_bounded invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_52410AD9);
         let exact = String::from_utf8(vec![b'x'; constants_usize::VALUE_8_388_608])
-            .expect("560d1f1e metrics_response_body_is_bounded invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_560D1F1E);
         let _exact_body = crate::metrics_response_body::MetricsResponseBody::try_from(exact)
-            .expect("2701b706 metrics_response_body_is_bounded invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_2701B706);
         let _error = crate::metrics_response_body::MetricsResponseBody::try_from(
             String::from_utf8(vec![
                 b'x';
                 constants_usize::VALUE_8_388_608
                     .saturating_add(constants_usize::ONE)
             ])
-            .expect("329fb604 metrics_response_body_is_bounded invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_329FB604),
         )
         .expect_err(constants_str::F0FC293DD);
     }
@@ -51,9 +51,7 @@ mod tests {
         let _path = crate::http_metrics_path_text::HttpMetricsPathText::try_from(
             constants_str::A_ALT.repeat(constants_usize::VALUE_8_192),
         )
-        .expect(
-            "c1b07056 cache_configuration_and_path_text_validate_boundaries invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_C1B07056);
         assert_eq!(
             crate::http_metrics_path_text::HttpMetricsPathText::try_from("a".repeat(8_193usize)),
             Err(crate::http_metrics_path_text_error::HttpMetricsPathTextError)
@@ -138,9 +136,7 @@ mod tests {
                 )),
             ),
         );
-        let custom = http::Method::from_bytes(b"CUSTOM").expect(
-            "6e90dca2 layer_supports_every_standard_and_custom_http_method invariant must hold",
-        );
+        let custom = http::Method::from_bytes(b"CUSTOM").expect(constants_str::DIAGNOSTIC_6E90DCA2);
         let statuses = tokio::join!(
             call_method(router.clone(), http::Method::CONNECT),
             call_method(router.clone(), http::Method::DELETE),

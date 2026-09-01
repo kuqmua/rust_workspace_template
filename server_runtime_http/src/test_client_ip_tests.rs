@@ -6,7 +6,7 @@
 mod tests {
     fn range(value: &str) -> crate::trusted_proxy_range::TrustedProxyRange {
         crate::trusted_proxy_range::TrustedProxyRange::try_from(value.to_owned())
-            .expect("46cc9e0a range invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_46CC9E0A)
     }
     fn resolved(
         headers: &http::HeaderMap,
@@ -18,10 +18,10 @@ mod tests {
             crate::client_socket_addr::ClientSocketAddr::from(
                 peer_value
                     .parse::<std::net::SocketAddr>()
-                    .expect("262819a8 resolved invariant must hold"),
+                    .expect(constants_str::DIAGNOSTIC_262819A8),
             ),
             &crate::trusted_proxy_ranges::TrustedProxyRanges::try_from(ranges)
-                .expect("38546d0b resolved invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_38546D0B),
         )
         .to_string()
     }
@@ -41,16 +41,14 @@ mod tests {
                 constants_str::VALUE_127_0_0_1_32_PATH_1_128,
             ),
         )
-        .expect(
-            "60ad1a64 trusted_proxy_ranges_text_parses_comma_separated_ranges invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_60AD1A64);
         assert_eq!(
             crate::resolve_client_ip::resolve_client_ip(
                 crate::http_header_map_ref::HttpHeaderMapRef::from(&http::HeaderMap::new()),
                 crate::client_socket_addr::ClientSocketAddr::from(
                     "127.0.0.1:8080"
                         .parse::<std::net::SocketAddr>()
-                        .expect("a6f1a8f9 trusted_proxy_ranges_text_parses_comma_separated_ranges invariant must hold")
+                        .expect(constants_str::DIAGNOSTIC_A6F1A8F9)
                 ),
                 &ranges,
             )
@@ -73,9 +71,7 @@ mod tests {
                 constants_str::SPACE,
             ),
         )
-        .expect(
-            "639128ba trusted_proxy_ranges_text_rejects_empty_list_entries invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_639128BA);
         assert_eq!(
             empty,
             crate::trusted_proxy_ranges::TrustedProxyRanges::default()
@@ -162,9 +158,8 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_str(oversized.as_str()).expect(
-                "6353255d oversized_header_falls_back_without_reflecting_input invariant must hold",
-            ),
+            http::HeaderValue::from_str(oversized.as_str())
+                .expect(constants_str::DIAGNOSTIC_6353255D),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),

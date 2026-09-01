@@ -15,10 +15,10 @@ mod tests {
         std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
-                .expect("a884a7d7 repository_file invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_A884A7D7)
                 .join(path),
         )
-        .expect("36a7831b repository_file invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_36A7831B)
     }
 
     #[test]
@@ -31,10 +31,10 @@ mod tests {
                 example_path.as_path(),
                 notification_service_config::notification_service_config::NotificationServiceConfig::env_example(),
             )
-            .expect("49f0c61e env_example_matches_generated_descriptor invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_49F0C61E);
         }
-        let example_source = std::fs::read_to_string(example_path)
-            .expect("8db042aa env_example_matches_generated_descriptor invariant must hold");
+        let example_source =
+            std::fs::read_to_string(example_path).expect(constants_str::DIAGNOSTIC_8DB042AA);
         assert_eq!(
             example_source,
             notification_service_config::notification_service_config::NotificationServiceConfig::env_example()
@@ -46,7 +46,7 @@ mod tests {
             let value = examples
                 .get(descriptor.env_name().as_ref())
                 .cloned()
-                .expect("00960401 env_example_matches_generated_descriptor invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_00960401);
             assert_eq!(value, descriptor.example().as_ref());
             assert_eq!(
                 descriptor.requirement(),
@@ -57,9 +57,8 @@ mod tests {
             {
                 assert_eq!(
                     descriptor.validate_example(
-                        config_lib::std_env_var_ok::StdEnvVarOk::try_from(value).expect(
-                            "51cc2fcf env_example_matches_generated_descriptor invariant must hold"
-                        )
+                        config_lib::std_env_var_ok::StdEnvVarOk::try_from(value)
+                            .expect(constants_str::DIAGNOSTIC_51CC2FCF)
                     ),
                     config_lib::config_example_validity::ConfigExampleValidity::Valid
                 );
@@ -78,15 +77,11 @@ mod tests {
                     .split_once(constants_str::VALUE_A71DB4E8)
                     .map(|(env, _after)| env)
             })
-            .expect(
-                "f30296b7 compose_environment_keys_match_generated_descriptor invariant must hold",
-            );
+            .expect(constants_str::DIAGNOSTIC_F30296B7);
         let environment = service
             .split_once(constants_str::VALUE_22746334)
             .map(|(_before, environment)| environment)
-            .expect(
-                "0a7b014c compose_environment_keys_match_generated_descriptor invariant must hold",
-            );
+            .expect(constants_str::DIAGNOSTIC_0A7B014C);
         let observed = environment
             .lines()
             .filter_map(|line| {
@@ -111,11 +106,11 @@ mod tests {
             .map(|(_name, value)| value);
         let socket_address = socket_addresses
             .next()
-            .expect("6ff25e0d deployment port descriptor must exist");
+            .expect(constants_str::DIAGNOSTIC_6FF25E0D);
         assert!(socket_addresses.next().is_none(), "d11594d2");
         let port = socket_address
             .parse::<std::net::SocketAddr>()
-            .expect("323370cc deployment port descriptor must contain a socket address")
+            .expect(constants_str::DIAGNOSTIC_323370CC)
             .port();
         let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         [
@@ -163,21 +158,21 @@ mod tests {
             .and_then(std::ffi::OsStr::to_str)
             .and_then(|name| name.strip_suffix(constants_str::VALUE_C48F2769))
             .map(str::to_owned)
-            .expect("f53ffbf0 service name invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_F53FFBF0)
             .into_boxed_str();
         let dockerfile =
             std::path::PathBuf::from(service_name.as_ref()).join(constants_str::VALUE_DD2C0EB6);
         assert!(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
-                .expect("85dce7d5 service_image_references_follow_the_config_crate_name invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_85DCE7D5)
                 .join(&dockerfile)
                 .is_file(),
             "add133fd"
         );
-        let dockerfile_text = dockerfile.to_str().expect(
-            "abc73cd7 service_image_references_follow_the_config_crate_name invariant must hold",
-        );
+        let dockerfile_text = dockerfile
+            .to_str()
+            .expect(constants_str::DIAGNOSTIC_ABC73CD7);
         let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         assert!(
             compose_source.contains(format!("dockerfile: {dockerfile_text}").as_str()),

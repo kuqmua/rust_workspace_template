@@ -10,9 +10,9 @@ where
 {
     T::try_from_std_env_var_ok(
         config_lib::std_env_var_ok::StdEnvVarOk::try_from(value.to_owned())
-            .expect("53a63100 env invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_53A63100),
     )
-    .expect("3879e38d env invariant must hold")
+    .expect(constants_str::DIAGNOSTIC_3879E38D)
 }
 fn make_structure(
     project_git_info: git_info::project_git_info::ProjectGitInfo<'_>,
@@ -20,7 +20,7 @@ fn make_structure(
     crate::server_app_state::ServerAppState::new(
         server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(128usize)
-                .expect("837f89a0 make_structure invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_837F89A0),
         ),
         server_config::server_config::ServerConfig::new(
             app_state_test_env(constants_str::ASTERISK),
@@ -43,16 +43,16 @@ fn make_structure(
             config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes::try_from(
                 16_384,
             )
-            .expect("d81f6a42 make_structure invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_D81F6A42),
             app_state_test_env(constants_str::VALUE_127_0_0_1_3000),
             config_lib::pg_pool_max_connections::PgPoolMaxConnections::try_from(7)
-                .expect("f20c4a91 make_structure invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_F20C4A91),
             app_state_test_env(constants_str::VALUE_0),
             config_lib::chrono_timezone::ChronoTimezone::try_from(
                 chrono::FixedOffset::east_opt(3i32 * 3_600i32)
-                    .expect("a95d3c17 make_structure invariant must hold"),
+                    .expect(constants_str::DIAGNOSTIC_A95D3C17),
             )
-            .expect("e8714250 make_structure invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_E8714250),
             app_state_test_env(constants_str::GITHUB_ALT),
             app_state_test_env(constants_str::CONFIG_TRACING_INFO),
             config_lib::tracing_format::TracingFormat::Text,
@@ -67,11 +67,11 @@ fn make_structure(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(
                 constants_usize::VALUE_1_048_576,
             )
-            .expect("926ce310 make_structure invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_926CE310),
         ),
         app_state::sqlx_pg_pool::SqlxPgPool::from(
             sqlx::PgPool::connect_lazy(constants_str::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
-                .expect("4bd3f0a1 make_structure invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_4BD3F0A1),
         ),
         project_git_info,
     )

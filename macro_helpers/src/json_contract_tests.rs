@@ -63,7 +63,7 @@ mod tests {
         crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<TestValue>(
             crate::json_fixture_ref::JsonFixtureRef::from(constants_str::VALUE_1_ALT),
         )
-        .expect("7557a4b4 round_trip_and_fixture_error_phases_are_stable invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_7557A4B4);
         assert!(matches!(
             crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<TestValue>(
                 crate::json_fixture_ref::JsonFixtureRef::from("{")

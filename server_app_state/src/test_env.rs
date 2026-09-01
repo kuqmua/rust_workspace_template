@@ -4,5 +4,5 @@ where
     T: config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk,
     T::Error: std::fmt::Debug,
 {
-    T::try_from_std_env_var_ok(value).expect("3f1c7bb7 test_env invariant must hold")
+    T::try_from_std_env_var_ok(value).expect(constants_str::DIAGNOSTIC_3F1C7BB7)
 }

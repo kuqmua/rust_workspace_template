@@ -19,9 +19,7 @@ fn test_reports_distinguish_liveness_and_dependency_readiness() {
         degraded
             .components()
             .get(constants_usize::ONE)
-            .expect(
-                "16ca1c84 reports_distinguish_liveness_and_dependency_readiness invariant must hold"
-            )
+            .expect(constants_str::DIAGNOSTIC_16CA1C84)
             .status(),
         crate::health_status::HealthStatus::Error
     );
@@ -43,7 +41,7 @@ fn test_components_reject_more_than_supported() {
 fn test_component_schema_matches_runtime_limit() {
     let schema = <crate::health_components::HealthComponents as utoipa::PartialSchema>::schema();
     let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) = schema else {
-        panic!("d0d44742");
+        std::panic::panic_any(constants_str::PANIC_D0D44742);
     };
     assert_eq!(array.min_items, Some(constants_usize::ZERO));
     assert_eq!(
@@ -63,10 +61,9 @@ fn test_component_serde_accepts_exact_runtime_limit() {
         crate::health_status::HealthStatus::Degraded,
     );
     let expected = crate::health_components::HealthComponents::from([first, second]);
-    let encoded = serde_json::to_value(&expected)
-        .expect("60490918 component_serde_accepts_exact_runtime_limit invariant must hold");
+    let encoded = serde_json::to_value(&expected).expect(constants_str::DIAGNOSTIC_60490918);
     let decoded = serde_json::from_value::<crate::health_components::HealthComponents>(encoded)
-        .expect("4363452f component_serde_accepts_exact_runtime_limit invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_4363452F);
     assert_eq!(decoded, expected);
 }
 

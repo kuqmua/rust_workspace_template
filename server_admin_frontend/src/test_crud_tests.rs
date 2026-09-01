@@ -11,28 +11,26 @@ fn test_crud() {
         server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
             permission.as_str().get().to_owned(),
         )
-        .expect("b53ad55d crud_pages_render_dedicated_forms_and_navigation invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_B53AD55D)
     })
     .collect::<Vec<_>>();
     let admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
         server_admin_contract::admin_display_name::AdminDisplayName::try_from(String::from(
             constants_str::VALUE_BC3743C7,
         ))
-        .expect("ee23b99d crud_pages_render_dedicated_forms_and_navigation invariant must hold"),
-        server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE).expect(
-            "f56d7f68 crud_pages_render_dedicated_forms_and_navigation invariant must hold",
-        ),
+        .expect(constants_str::DIAGNOSTIC_EE23B99D),
+        server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
+            .expect(constants_str::DIAGNOSTIC_F56D7F68),
         server_admin_contract::admin_login::AdminLogin::try_from(String::from(
             constants_str::VALUE_09BBF5B6,
         ))
-        .expect("67827f9a crud_pages_render_dedicated_forms_and_navigation invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_67827F9A),
         server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(
             permissions,
         )
-        .expect("9a38c3da crud_pages_render_dedicated_forms_and_navigation invariant must hold"),
-        server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new()).expect(
-            "3bbf55bf crud_pages_render_dedicated_forms_and_navigation invariant must hold",
-        ),
+        .expect(constants_str::DIAGNOSTIC_9A38C3DA),
+        server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
+            .expect(constants_str::DIAGNOSTIC_3BBF55BF),
     );
     let branding = crate::domain_types_ssr_tests::test_branding();
     let users = server_admin_contract::admin_users_page::AdminUsersPage::new(
@@ -53,11 +51,9 @@ fn test_crud() {
                     .expect(constants_str::VALUE_C97DFCA8),
             ),
         ])
-        .expect("53d4cc88 crud_pages_render_dedicated_forms_and_navigation invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_53D4CC88),
         server_admin_contract::admin_role_summaries::AdminRoleSummaries::try_from(Vec::new())
-            .expect(
-                "8de8dbde crud_pages_render_dedicated_forms_and_navigation invariant must hold",
-            ),
+            .expect(constants_str::DIAGNOSTIC_8DE8DBDE),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
     );
     let roles = server_admin_contract::admin_roles_page::AdminRolesPage::new(
@@ -76,11 +72,11 @@ fn test_crud() {
                 .expect(constants_str::VALUE_97520E5E),
             ),
         ])
-        .expect("5ffb690c crud_pages_render_dedicated_forms_and_navigation invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_5FFB690C),
         server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
             Vec::new(),
         )
-        .expect("b1a319f1 crud_pages_render_dedicated_forms_and_navigation invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_B1A319F1),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
     );
 

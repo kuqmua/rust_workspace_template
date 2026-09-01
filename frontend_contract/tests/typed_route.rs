@@ -132,7 +132,10 @@ mod tests {
         frontend_contract::register_openapi_route_schemas::register_openapi_route_schemas::<
             TestRoute,
         >(&mut open_api);
-        let schemas = &document.components.expect("307e6e5f typed_route_registers_request_response_and_problem_schemas invariant must hold").schemas;
+        let schemas = &document
+            .components
+            .expect(constants_str::DIAGNOSTIC_307E6E5F)
+            .schemas;
         assert!(schemas.contains_key("TestRequest"));
         assert!(schemas.contains_key("TestResponse"));
         assert!(schemas.contains_key("TestErrorResponse"));
@@ -163,7 +166,7 @@ mod tests {
         >(&mut operation);
         let request_body = operation
             .request_body
-            .expect("6d9c2d44 typed_route_applies_declared_json_request_body invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_6D9C2D44);
         assert!(matches!(
             request_body.required,
             Some(utoipa::openapi::Required::True)
@@ -238,9 +241,10 @@ mod tests {
         let schema_contracts =
             <TestCatalogFamily as frontend_contract::route_family::RouteFamily>::schema_contracts();
         assert_eq!(schema_contracts.as_ref().len(), constants_usize::ONE);
-        let schema_contract = schema_contracts.as_ref().first().expect(
-            "b4e9f1c3 route_catalog_generates_contract_paths_and_family invariant must hold",
-        );
+        let schema_contract = schema_contracts
+            .as_ref()
+            .first()
+            .expect(constants_str::DIAGNOSTIC_B4E9F1C3);
         assert_eq!(
             schema_contract.metadata(),
             frontend_contract::client_route_metadata::client_route_metadata::<TestRoute>()

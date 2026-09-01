@@ -85,15 +85,13 @@ mod tests {
             Err(crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error::LessThanZero { .. })
         ));
         assert_eq!(
-            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(7i32).expect(
-                "ea8c2d71 unsigned_database_value_rejects_negative_input invariant must hold"
-            ),
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(7i32)
+                .expect(constants_str::DIAGNOSTIC_EA8C2D71),
             crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
         );
         assert_eq!(
             crate::unsigned_part_of_i32::UnsignedPartOfI32::from(
-                std::num::NonZeroI32::new(7i32)
-                    .expect("dd53fc4d nonzero test fixture must remain nonzero"),
+                std::num::NonZeroI32::new(7i32).expect(constants_str::DIAGNOSTIC_DD53FC4D),
             ),
             crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
         );

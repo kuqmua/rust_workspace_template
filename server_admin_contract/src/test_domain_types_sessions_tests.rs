@@ -2,7 +2,7 @@
 fn test_session_contract_tests() {
     let page = crate::admin_sessions_page::AdminSessionsPage::new(
         crate::admin_session_views::AdminSessionViews::try_from(Vec::new())
-            .expect("c31f90a6 session_page_preserves_items_and_total invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_C31F90A6),
         crate::admin_page_total::AdminPageTotal::from(3u64),
     );
     assert!(page.items().is_empty());

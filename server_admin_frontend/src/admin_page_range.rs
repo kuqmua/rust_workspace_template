@@ -84,7 +84,7 @@ mod tests {
     fn page_range(offset: u32, limit: u16, total: u64) -> super::AdminPageRange {
         let Ok(limit) = server_admin_contract::admin_page_limit::AdminPageLimit::try_from(limit)
         else {
-            panic!("1543efb0");
+            std::panic::panic_any(constants_str::PANIC_1543EFB0);
         };
         super::AdminPageRange::new(
             server_admin_contract::admin_page_offset::AdminPageOffset::from(offset),

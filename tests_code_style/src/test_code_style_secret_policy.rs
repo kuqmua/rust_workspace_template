@@ -100,19 +100,20 @@ fn test_secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
 }
 #[test]
 fn test_repository_secret_box_policy_rejects_raw_string_generic_argument() {
-    let raw = syn::parse_str::<syn::Type>(constants_str::VALUE_02D2E24C).expect("35a98aea repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
-    let qualified =
-        syn::parse_str::<syn::Type>(constants_str::VALUE_171D86A4).expect("28cd22e6 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
-    let bounded =
-        syn::parse_str::<syn::Type>(constants_str::VALUE_5BF4FAD8).expect("f7fc1398 repository_secret_box_policy_rejects_raw_string_generic_argument invariant must hold");
+    let raw = syn::parse_str::<syn::Type>(constants_str::VALUE_02D2E24C)
+        .expect(constants_str::DIAGNOSTIC_35A98AEA);
+    let qualified = syn::parse_str::<syn::Type>(constants_str::VALUE_171D86A4)
+        .expect(constants_str::DIAGNOSTIC_28CD22E6);
+    let bounded = syn::parse_str::<syn::Type>(constants_str::VALUE_5BF4FAD8)
+        .expect(constants_str::DIAGNOSTIC_F7FC1398);
     assert!(type_is_secret_box_string(&raw));
     assert!(type_is_secret_box_string(&qualified));
     assert!(!type_is_secret_box_string(&bounded));
 }
 #[test]
 fn test_repository_secret_box_policy_checks_generated_tokens() {
-    let ast = syn::parse_file(constants_str::VALUE_53E9A56F)
-        .expect("47bf1cf6 generated invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_53E9A56F).expect(constants_str::DIAGNOSTIC_47BF1CF6);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         SecretBoxStringVisitor::default(),

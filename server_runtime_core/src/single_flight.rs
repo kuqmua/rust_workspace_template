@@ -58,7 +58,7 @@ mod tests {
         crate::single_flight_key::SingleFlightKey::try_from(String::from(
             constants_str::TEST_SINGLE_FLIGHT_KEY,
         ))
-        .expect("68276323 key invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_68276323)
     }
 
     #[tokio::test]
@@ -71,12 +71,12 @@ mod tests {
         let crate::single_flight_acquire::SingleFlightAcquire::Owner(owner) =
             flights.acquire(single_flight_key())
         else {
-            panic!("7961dd01");
+            std::panic::panic_any(constants_str::PANIC_7961DD01);
         };
         let crate::single_flight_acquire::SingleFlightAcquire::Waiter(waiter) =
             flights.acquire(single_flight_key())
         else {
-            panic!("5b54e5a1");
+            std::panic::panic_any(constants_str::PANIC_5B54E5A1);
         };
         drop(owner);
         assert_eq!(

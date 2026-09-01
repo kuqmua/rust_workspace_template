@@ -7,17 +7,21 @@ pub fn optimal_memory_layout(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let generate_alignments_identifier_token_stream = |i: usize| {
-        format!("alignments_{i}")
-            .parse::<proc_macro2::TokenStream>()
-            .expect("5a0bb723 optimal_memory_layout invariant must hold")
+        proc_macro2::Ident::new(
+            format!("alignments_{i}").as_str(),
+            proc_macro2::Span::call_site(),
+        )
     };
-    let di: syn::DeriveInput =
-        syn::parse(input_token_stream).expect("a1d306de optimal_memory_layout invariant must hold");
+    let di: syn::DeriveInput = match syn::parse(input_token_stream) {
+        Ok(derive_input) => derive_input,
+        Err(error) => return error.to_compile_error().into(),
+    };
     let mut skip = false;
-    di.attrs
+    let attribute_result = di
+        .attrs
         .iter()
         .filter(|attr| attr.path().is_ident(stringify!(optimal_memory_layout)))
-        .for_each(|attr| {
+        .try_for_each(|attr| {
             attr.parse_nested_meta(|metadata| {
                 if metadata.path.is_ident(stringify!(skip)) {
                     skip = true;
@@ -28,8 +32,10 @@ pub fn optimal_memory_layout(
                     )))
                 }
             })
-            .expect("58bd65a7 optimal_memory_layout invariant must hold");
         });
+    if let Err(error) = attribute_result {
+        return error.to_compile_error().into();
+    }
     if skip {
         return proc_macro::TokenStream::new();
     }

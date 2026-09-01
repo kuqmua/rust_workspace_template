@@ -3,15 +3,15 @@ pub(crate) fn test_admin() -> server_admin_contract::authenticated_admin::Authen
         server_admin_contract::admin_display_name::AdminDisplayName::try_from(String::from(
             constants_str::VALUE_A31B31EA,
         ))
-        .expect("21d86f4c test_admin invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_21D86F4C),
         server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
-            .expect("3ac90e75 test_admin invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_3AC90E75),
         server_admin_contract::admin_login::AdminLogin::try_from(String::from(
             constants_str::VALUE_2BD806C9,
         ))
-        .expect("d5810a3f test_admin invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_D5810A3F),
         server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(Vec::new())
-            .expect("8e2c74b1 test_admin invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_8E2C74B1),
         server_admin_contract::admin_role_names::AdminRoleNames::try_from(vec![
             server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(
                 constants_str::PG_CRUD_OPERATOR_FIELD,
@@ -22,7 +22,7 @@ pub(crate) fn test_admin() -> server_admin_contract::authenticated_admin::Authen
             ))
             .expect(constants_str::VALUE_E124D275),
         ])
-        .expect("c72f0d39 test_admin invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_C72F0D39),
     )
 }
 
@@ -32,7 +32,7 @@ pub(crate) fn test_branding() -> server_admin_contract::admin_branding_view::Adm
             server_admin_contract::admin_default_route::AdminDefaultRoute::try_from(String::from(
                 constants_str::VALUE_074B6E5E,
             ))
-            .expect("143ea69b test_branding invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_143EA69B),
             None,
             None,
             None,
@@ -40,7 +40,7 @@ pub(crate) fn test_branding() -> server_admin_contract::admin_branding_view::Adm
             server_admin_contract::admin_site_name::AdminSiteName::try_from(String::from(
                 constants_str::VALUE_B49D7EDE,
             ))
-            .expect("a82f1d63 test_branding invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_A82F1D63),
             None,
             None,
         ),

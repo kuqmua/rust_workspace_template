@@ -23,21 +23,21 @@ fn test_pagination_values_deserialize_from_url_query_strings() {
     let Err(_zero_error) =
         serde_json::from_str::<crate::admin_page_limit::AdminPageLimit>(constants_str::VALUE_0)
     else {
-        panic!("e8fd3a29");
+        std::panic::panic_any(constants_str::PANIC_E8FD3A29);
     };
     let Err(_above_maximum_error) =
         serde_json::from_str::<crate::admin_page_limit::AdminPageLimit>(constants_str::VALUE_101)
     else {
-        panic!("36f08ad7");
+        std::panic::panic_any(constants_str::PANIC_36F08AD7);
     };
     let limit = <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
         serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::VALUE_100),
     )
-    .expect("a6aa5b42 pagination_values_deserialize_from_url_query_strings invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_A6AA5B42);
     let offset = <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
         serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::VALUE_42),
     )
-    .expect("799e47b0 pagination_values_deserialize_from_url_query_strings invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_799E47B0);
     assert_eq!(
         u16::from(limit),
         crate::admin_page_limit::AdminPageLimit::MAX

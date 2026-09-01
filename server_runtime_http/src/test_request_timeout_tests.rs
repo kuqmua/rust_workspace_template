@@ -5,16 +5,17 @@ mod tests {
         let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
             std::time::Duration::from_secs(1u64),
         )
-        .expect("65a8fd30 timeout_layer_preserves_validated_timeout invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_65A8FD30);
         let layer = crate::request_timeout_layer::RequestTimeoutLayer::from(timeout);
         assert_eq!(layer.duration().get(), std::time::Duration::from_secs(1u64));
     }
 
     #[tokio::test(start_paused = true)]
     async fn test_timeout_response_contains_retry_after_without_text_round_trip() {
-        let timeout =
-            crate::request_timeout_duration::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(2u64))
-                .expect("b140ead4 timeout_response_contains_retry_after_without_text_round_trip invariant must hold");
+        let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
+            std::time::Duration::from_secs(2u64),
+        )
+        .expect(constants_str::DIAGNOSTIC_B140EAD4);
         let router = axum::Router::from(
             crate::request_timeout_layer::RequestTimeoutLayer::from(timeout).apply(
                 crate::axum_router::AxumRouter::from(axum::Router::new().route(
@@ -28,10 +29,10 @@ mod tests {
             http::Request::builder()
                 .uri(constants_str::VALUE_971BB40E)
                 .body(axum::body::Body::empty())
-                .expect("9a076c51 timeout_response_contains_retry_after_without_text_round_trip invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_9A076C51),
         )
         .await
-        .expect("57912096 timeout_response_contains_retry_after_without_text_round_trip invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_57912096);
         assert_eq!(response.status(), http::StatusCode::SERVICE_UNAVAILABLE);
         assert_eq!(
             response.headers().get(http::header::RETRY_AFTER),

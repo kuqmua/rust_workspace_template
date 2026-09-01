@@ -13,7 +13,7 @@ mod tests {
             &attrs,
             constants_str::SQLX_PATH_TYPE_NAME,
         )
-        .expect("193fa8d2 get_macro_attr_ignores_spaces_in_lookup_path invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_193FA8D2);
         assert!(
             quote::quote! {#attr}
                 .to_string()
@@ -24,7 +24,7 @@ mod tests {
     fn test_macro_attr_meta_list_token_stream_returns_list_tokens() {
         let attrs = attrs();
         let ts = crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::SERDE)
-            .expect("647b0c3e get_macro_attr_meta_list_token_stream_returns_list_tokens invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_647B0C3E);
         assert_eq!(ts.to_string(), "default");
     }
     #[test]

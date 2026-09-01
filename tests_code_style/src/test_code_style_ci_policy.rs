@@ -2,10 +2,10 @@ fn workflow() -> crate::types::SourceText {
     let source = std::fs::read_to_string(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
-            .expect("c02ae58b workflow invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_C02AE58B)
             .join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH),
     )
-    .expect("da504e54 workflow invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_DA504E54);
     active_workflow_source(crate::types::SourceTextRef::from(source.as_str()))
 }
 fn active_workflow_source(source: crate::types::SourceTextRef<'_>) -> crate::types::SourceText {
@@ -39,16 +39,13 @@ fn active_workflow_source(source: crate::types::SourceTextRef<'_>) -> crate::typ
                     .err();
                 comment_start.map_or_else(
                     || line,
-                    |index| {
-                        line.get(..index)
-                            .expect("1a9e2f84 active YAML line invariant must hold")
-                    },
+                    |index| line.get(..index).expect(constants_str::DIAGNOSTIC_1A9E2F84),
                 )
             })
             .collect::<Vec<&str>>()
             .join(constants_str::NEWLINE),
     )
-    .expect("fd9f7861 active_workflow_source invariant must hold")
+    .expect(constants_str::DIAGNOSTIC_FD9F7861)
 }
 #[test]
 #[allow(
@@ -93,22 +90,19 @@ fn test_continuous_integration_runs_specialized_test_families() {
 fn test_continuous_integration_uses_the_pinned_workspace_toolchain() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("01d2b547 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
-    let toolchain_source = std::fs::read_to_string(
-        repository_root.join(constants_str::VALUE_2B1BDE2C),
-    )
-    .expect(
-        "f6db9220 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
-    );
-    let parsed_toolchain = toolchain_source.parse::<toml::Table>().expect(
-        "874dc8b2 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
-    );
+        .expect(constants_str::DIAGNOSTIC_01D2B547);
+    let toolchain_source =
+        std::fs::read_to_string(repository_root.join(constants_str::VALUE_2B1BDE2C))
+            .expect(constants_str::DIAGNOSTIC_F6DB9220);
+    let parsed_toolchain = toolchain_source
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_874DC8B2);
     let toolchain = parsed_toolchain
         .get(constants_str::VALUE_0DB3DE82)
         .and_then(toml::Value::as_table)
         .and_then(|table| table.get(constants_str::VALUE_69E36568))
         .and_then(toml::Value::as_str)
-        .expect("a43da13b continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_A43DA13B);
     let workflow = workflow();
     assert!(
         !workflow.as_ref().contains(toolchain),
@@ -123,36 +117,26 @@ fn test_continuous_integration_uses_the_pinned_workspace_toolchain() {
             .as_ref()
             .contains("uses: ./.github/actions/setup-rust")
     );
-    let setup_action = std::fs::read_to_string(
-        repository_root.join(constants_str::VALUE_D8346474),
-    )
-    .expect(
-        "830b79a6 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
-    );
+    let setup_action = std::fs::read_to_string(repository_root.join(constants_str::VALUE_D8346474))
+        .expect(constants_str::DIAGNOSTIC_830B79A6);
     assert!(setup_action.contains("rustc --version"));
-    let services = std::fs::read_to_string(
-        repository_root.join(constants_str::VALUE_C1590960),
-    )
-    .expect(
-        "6b2f8d41 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
-    )
-    .parse::<toml::Table>()
-    .expect(
-        "1a7c5e93 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold",
-    );
+    let services = std::fs::read_to_string(repository_root.join(constants_str::VALUE_C1590960))
+        .expect(constants_str::DIAGNOSTIC_6B2F8D41)
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_1A7C5E93);
     services
         .get(constants_str::SERVICE)
         .and_then(toml::Value::as_array)
-        .expect("9d4e2b60 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_9D4E2B60)
         .iter()
         .for_each(|service| {
             let dockerfile = service
                 .as_table()
                 .and_then(|table| table.get(constants_str::VALUE_254DB0FB))
                 .and_then(toml::Value::as_str)
-                .expect("3c8a1f72 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
-            let source =
-                std::fs::read_to_string(repository_root.join(dockerfile)).expect("5e9b4d16 continuous_integration_uses_the_pinned_workspace_toolchain invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_3C8A1F72);
+            let source = std::fs::read_to_string(repository_root.join(dockerfile))
+                .expect(constants_str::DIAGNOSTIC_5E9B4D16);
             assert!(source.contains("rust-toolchain.toml"));
             assert!(!source.contains(toolchain));
         });
@@ -164,7 +148,7 @@ fn test_workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
         .as_ref()
         .split_once(constants_str::JOBS_NEWLINE)
         .map(|(_prefix, jobs)| jobs)
-        .expect("ed8bc4d0 workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_ED8BC4D0);
     let mut inside_job = false;
     let mut current_job_has_timeout = false;
     workflow_jobs.lines().for_each(|line| {

@@ -32,7 +32,7 @@ async fn test_boundary_adapters_preserve_status_state_and_exit_code() {
             .connect_lazy(
                 constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
             )
-            .expect("75b0f8e4 boundary_adapters_preserve_status_state_and_exit_code invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_75B0F8E4),
     );
     let request = http::Request::new(());
     let (mut parts, _body) = request.into_parts();
@@ -40,7 +40,7 @@ async fn test_boundary_adapters_preserve_status_state_and_exit_code() {
         crate::notification_state::NotificationState,
     >>::from_request_parts(&mut parts, &state)
     .await
-    .expect("c12d49a7 boundary_adapters_preserve_status_state_and_exit_code invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_C12D49A7);
     assert_eq!(
         AsRef::<str>::as_ref(extracted.get()),
         AsRef::<str>::as_ref(&state)
@@ -56,7 +56,7 @@ async fn test_boundary_adapters_preserve_status_state_and_exit_code() {
 async fn test_default_service_routes_return_success_statuses() {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
-        .expect("52a25be1 default_service_routes_return_success_statuses invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_52A25BE1);
     let router = crate::build_notification_router::build_notification_router(
         state(pool),
         crate::notification_body_maximum_bytes::NotificationBodyMaximumBytes::from(
@@ -73,20 +73,20 @@ async fn test_default_service_routes_return_success_statuses() {
                     .as_ref(),
             )
             .body(axum::body::Body::empty())
-            .expect("ec467ec0 default_service_routes_return_success_statuses invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_EC467EC0),
     )
     .await
-    .expect("717fb1f4 default_service_routes_return_success_statuses invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_717FB1F4);
     assert_eq!(liveness_response.status(), http::StatusCode::OK);
     let open_api_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
             .uri(constants_str::OPENAPI_JSON)
             .body(axum::body::Body::empty())
-            .expect("789db8f3 default_service_routes_return_success_statuses invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_789DB8F3),
     )
     .await
-    .expect("2d37fbd2 default_service_routes_return_success_statuses invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_2D37FBD2);
     assert_eq!(open_api_response.status(), http::StatusCode::OK);
     let metrics_response = tower::ServiceExt::oneshot(
         router.clone(),
@@ -98,12 +98,10 @@ async fn test_default_service_routes_return_success_statuses() {
                 .get(),
             )
             .body(axum::body::Body::empty())
-            .expect(
-                "f9a73c10 default_service_routes_return_success_statuses invariant must hold",
-            ),
+            .expect(constants_str::DIAGNOSTIC_F9A73C10),
     )
     .await
-    .expect("81c4e6a2 default_service_routes_return_success_statuses invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_81C4E6A2);
     assert_eq!(metrics_response.status(), http::StatusCode::OK);
 
     let create_metadata = <notification_service_contract::create_notification_route::CreateNotificationRoute as frontend_contract::typed_route::TypedRoute>::metadata();
@@ -114,10 +112,10 @@ async fn test_default_service_routes_return_success_statuses() {
             .uri(create_metadata.path().as_ref())
             .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
             .body(axum::body::Body::from(constants_str::TEXT_ALT_13))
-            .expect("4ac710e9 default_service_routes_return_success_statuses invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_4AC710E9),
     )
     .await
-    .expect("d8326f1b default_service_routes_return_success_statuses invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_D8326F1B);
     assert_eq!(
         invalid_request.status(),
         http::StatusCode::UNPROCESSABLE_ENTITY
@@ -139,20 +137,19 @@ fn test_open_api_has_no_unresolved_schema_references() {
         ));
         document
     })
-    .expect("3e63ebd8 open_api_has_no_unresolved_schema_references invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_3E63EBD8);
 }
 
 #[test]
 fn test_open_api_operation_and_statuses_come_from_the_typed_route() {
     let metadata = <notification_service_contract::create_notification_route::CreateNotificationRoute as frontend_contract::typed_route::TypedRoute>::metadata();
-    let document = serde_json::to_value(crate::open_api_document::open_api_document()).expect(
-        "3d8a056d open_api_operation_and_statuses_come_from_the_typed_route invariant must hold",
-    );
+    let document = serde_json::to_value(crate::open_api_document::open_api_document())
+        .expect(constants_str::DIAGNOSTIC_3D8A056D);
     let operation = document
         .get(constants_str::PATHS)
         .and_then(|paths| paths.get(metadata.path().as_ref()))
         .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
-        .expect("fb8bb06a open_api_operation_and_statuses_come_from_the_typed_route invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_FB8BB06A);
     assert_eq!(
         operation
             .get(constants_str::OPERATION_ID_JSON)
@@ -162,7 +159,7 @@ fn test_open_api_operation_and_statuses_come_from_the_typed_route() {
     let observed_statuses = operation
         .get(constants_str::RESPONSES)
         .and_then(serde_json::Value::as_object)
-        .expect("251c95e8 open_api_operation_and_statuses_come_from_the_typed_route invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_251C95E8)
         .keys()
         .cloned()
         .collect::<std::collections::BTreeSet<_>>();
@@ -252,24 +249,24 @@ async fn test_create_notification_persists_through_http_route() {
         <config_lib::domain_types::DatabaseUrl as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
         |error| error.to_string(),
     )
-    .expect("b3aacb7e create_notification_persists_through_http_route invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_B3AACB7E);
     let exposed_database_url =
         secrecy::ExposeSecret::expose_secret(database_url.get_inner()).as_str();
     let setup_pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(1u32)
         .connect(exposed_database_url)
         .await
-        .expect("ceff90ad create_notification_persists_through_http_route invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_CEFF90AD);
     let _schema_result = sqlx::query(sqlx::AssertSqlSafe(
         constants_str::NOTIFICATION_SERVICE_CREATE_TEST_SCHEMA_SQL.concat(),
     ))
     .execute(&setup_pool)
     .await
-    .expect("59114ac3 create_notification_persists_through_http_route invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_59114AC3);
     setup_pool.close().await;
     let connect_options =
         <sqlx::postgres::PgConnectOptions as std::str::FromStr>::from_str(exposed_database_url)
-            .expect("2145d54a create_notification_persists_through_http_route invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_2145D54A)
             .options([(
                 constants_str::SEARCH_PATH,
                 constants_str::NOTIFICATION_SERVICE_TEST_SCHEMA,
@@ -278,22 +275,22 @@ async fn test_create_notification_persists_through_http_route() {
         .max_connections(2u32)
         .connect_with(connect_options)
         .await
-        .expect("5344bc9e create_notification_persists_through_http_route invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_5344BC9E);
     sqlx::migrate!("../notification_service_migrations")
         .run(&pool)
         .await
-        .expect("128c46f1 create_notification_persists_through_http_route invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_128C46F1);
     let message =
         notification_service_contract::notification_message::NotificationMessage::try_from(
             constants_str::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
         )
-        .expect("f9605432 create_notification_persists_through_http_route invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_F9605432);
     let body = serde_json::to_vec(
         &notification_service_contract::create_notification_req::CreateNotificationReq::new(
             message,
         ),
     )
-    .expect("3daa1ab0 create_notification_persists_through_http_route invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_3DAA1AB0);
     let request = http::Request::builder()
         .method(http::Method::POST)
         .uri(
@@ -307,7 +304,7 @@ async fn test_create_notification_persists_through_http_route() {
             constants_str::HTTP_APPLICATION_JSON,
         )
         .body(axum::body::Body::from(body))
-        .expect("f8d2ab0b create_notification_persists_through_http_route invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_F8D2AB0B);
     let response = tower::ServiceExt::oneshot(
         crate::build_notification_router::build_notification_router(
             state(pool),
@@ -319,14 +316,13 @@ async fn test_create_notification_persists_through_http_route() {
         request,
     )
     .await
-    .expect("c46bf92a create_notification_persists_through_http_route invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_C46BF92A);
     assert_eq!(response.status(), http::StatusCode::CREATED);
     let response_body = axum::body::to_bytes(response.into_body(), 16_384usize)
         .await
-        .expect("0aace9dd create_notification_persists_through_http_route invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_0AACE9DD);
     let created: notification_service_contract::create_notification_res::CreateNotificationRes =
-        serde_json::from_slice(response_body.as_ref())
-            .expect("e5352eef create_notification_persists_through_http_route invariant must hold");
+        serde_json::from_slice(response_body.as_ref()).expect(constants_str::DIAGNOSTIC_E5352EEF);
     assert_ne!(
         created.id(),
         notification_service_contract::uuid_notification_id::UuidNotificationId::from(

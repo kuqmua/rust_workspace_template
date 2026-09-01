@@ -4,7 +4,7 @@ mod tests {
         value: Result<String, std::env::VarError>,
     ) -> crate::env_var_result_var_error::EnvVarResultVarError {
         crate::env_var_result_var_error::EnvVarResultVarError::try_from(value)
-            .expect("a4aa0c6f env_result invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_A4AA0C6F)
     }
     #[test]
     fn test_environment_result_rejects_values_above_shared_limit() {
@@ -15,7 +15,7 @@ mod tests {
         let Err(_error) =
             crate::env_var_result_var_error::EnvVarResultVarError::try_from(Ok(value))
         else {
-            panic!("3ee39bcb");
+            std::panic::panic_any(constants_str::PANIC_3EE39BCB);
         };
     }
     fn assert_parse_display_roundtrip_variants<T>()
@@ -131,9 +131,7 @@ mod tests {
         );
         assert_eq!(
             std::error::Error::source(&error)
-                .expect(
-                    "e6fbfe6b parse_from_env_var_with_wraps_missing_var_context invariant must hold"
-                )
+                .expect(constants_str::DIAGNOSTIC_E6FBFE6B)
                 .to_string(),
             "environment variable not found"
         );

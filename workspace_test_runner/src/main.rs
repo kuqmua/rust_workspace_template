@@ -789,19 +789,37 @@ fn main() {
                     generate_pg_table_input_token_stream.as_ref(),
                 ),
             )
-            .unwrap_or_else(|error| panic!("d6399cbf: {error}"));
+            .unwrap_or_else(|error| {
+                std::panic::panic_any(constants_str::PANIC_D6399CBF.replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                ))
+            });
             let parse_us = parse_started.elapsed().as_micros();
             let build_started = std::time::Instant::now();
             let built =
                 generate_pg_table_src::build_generate_pg_table::build_generate_pg_table(parsed)
-                    .unwrap_or_else(|error| panic!("6acb4e92: {error}"));
+                    .unwrap_or_else(|error| {
+                        std::panic::panic_any(constants_str::PANIC_6ACB4E92.replacen(
+                            constants_str::PANIC_PLACEHOLDER_81240055,
+                            error.to_string().as_str(),
+                            1usize,
+                        ))
+                    });
             let build_us = build_started.elapsed().as_micros();
             let validate_started = std::time::Instant::now();
             let validated =
                 generate_pg_table_src::validate_generate_pg_table::validate_generate_pg_table(
                     built,
                 )
-                .unwrap_or_else(|error| panic!("4533a758: {error}"));
+                .unwrap_or_else(|error| {
+                    std::panic::panic_any(constants_str::PANIC_4533A758.replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    ))
+                });
             let validate_us = validate_started.elapsed().as_micros();
             let emit_started = std::time::Instant::now();
             let staged_output =
@@ -974,21 +992,39 @@ fn main() {
                         &generate_pg_types_input_token_stream,
                     ),
                 )
-                .unwrap_or_else(|error| panic!("a19c725e: {error}"));
+                .unwrap_or_else(|error| {
+                    std::panic::panic_any(constants_str::PANIC_A19C725E.replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    ))
+                });
             let pg_types_parse_us = pg_types_parse_started.elapsed().as_micros();
             let pg_types_build_started = std::time::Instant::now();
             let built_pg_types =
                 generate_pg_types_src::build_generate_pg_types::build_generate_pg_types(
                     parsed_pg_types,
                 )
-                .unwrap_or_else(|error| panic!("c47612bd: {error}"));
+                .unwrap_or_else(|error| {
+                    std::panic::panic_any(constants_str::PANIC_C47612BD.replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    ))
+                });
             let pg_types_build_us = pg_types_build_started.elapsed().as_micros();
             let pg_types_validate_started = std::time::Instant::now();
             let validated_pg_types =
                 generate_pg_types_src::validate_generate_pg_types::validate_generate_pg_types(
                     built_pg_types,
                 )
-                .unwrap_or_else(|error| panic!("d3e581a4: {error}"));
+                .unwrap_or_else(|error| {
+                    std::panic::panic_any(constants_str::PANIC_D3E581A4.replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    ))
+                });
             let pg_types_validate_us = pg_types_validate_started.elapsed().as_micros();
             let pg_types_emit_started = std::time::Instant::now();
             let staged_pg_types =
@@ -1048,21 +1084,21 @@ fn main() {
                                     &generate_where_filters_input_token_stream,
                                 ),
                             )
-                            .unwrap_or_else(|error| panic!("8f246dc1: {error}"));
+                            .unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_8F246DC1.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize)));
             let where_filters_parse_us = where_filters_parse_started.elapsed().as_micros();
             let where_filters_build_started = std::time::Instant::now();
             let built_where_filters =
                 generate_where_filters_src::build_generate_where_filters::build_generate_where_filters(
                     parsed_where_filters,
                 )
-                .unwrap_or_else(|error| panic!("912f6bce: {error}"));
+                .unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_912F6BCE.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize)));
             let where_filters_build_us = where_filters_build_started.elapsed().as_micros();
             let where_filters_validate_started = std::time::Instant::now();
             let validated_where_filters =
                 generate_where_filters_src::validate_generate_where_filters::validate_generate_where_filters(
                     built_where_filters,
                 )
-                .unwrap_or_else(|error| panic!("54b73a29: {error}"));
+                .unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_54B73A29.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize)));
             let where_filters_validate_us = where_filters_validate_started.elapsed().as_micros();
             let where_filters_emit_started = std::time::Instant::now();
             let staged_where_filters =

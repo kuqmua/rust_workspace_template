@@ -47,7 +47,7 @@ mod tests {
         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
         struct NotClone;
         let maximum = crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE)
-            .expect("91f5d3a8 history_clone_does_not_require_report_clone invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_91F5D3A8);
         let history = super::AsyncRunHistory::<NotClone>::new(maximum);
         let cloned = history.clone();
         assert_eq!(history.maximum_len, cloned.maximum_len, "f1c763a4");

@@ -52,16 +52,15 @@ fn test_api_problem_status_mapping_is_stable_and_redacted() {
         (503u16, crate::api_problem_kind::ApiProblemKind::Internal),
     ];
     cases.into_iter().for_each(|(status, expected_kind)| {
-        let problem = crate::api_problem::ApiProblem::from_error(crate::api_problem_error::ApiProblemError::from_status(
-            crate::api_problem_status::ApiProblemStatus::try_from(status).expect(
-                "ff774b42 api_problem_status_mapping_is_stable_and_redacted invariant must hold",
+        let problem = crate::api_problem::ApiProblem::from_error(
+            crate::api_problem_error::ApiProblemError::from_status(
+                crate::api_problem_status::ApiProblemStatus::try_from(status)
+                    .expect(constants_str::DIAGNOSTIC_FF774B42),
             ),
-        ));
+        );
         assert_eq!(problem.kind(), expected_kind);
         assert_eq!(u16::from(problem.status()), status);
-        let serialized = serde_json::to_string(&problem).expect(
-            "f459312e api_problem_status_mapping_is_stable_and_redacted invariant must hold",
-        );
+        let serialized = serde_json::to_string(&problem).expect(constants_str::DIAGNOSTIC_F459312E);
         assert!(!serialized.contains("postgres://"));
         assert!(!serialized.contains("sqlx"));
         assert!(!serialized.contains("password"));
@@ -103,33 +102,33 @@ fn test_public_catalog_wrappers_preserve_checked_vec_conversions() {
     let fields = crate::field_contracts::FieldContracts::try_from(Vec::<
         crate::field_contract::FieldContract,
     >::new())
-    .expect("0e62631f empty fields fit collection bound");
+    .expect(constants_str::DIAGNOSTIC_0E62631F);
     let actions = crate::action_contracts::ActionContracts::try_from(Vec::<
         crate::action_contract::ActionContract,
     >::new())
-    .expect("8add9c33 empty actions fit collection bound");
+    .expect(constants_str::DIAGNOSTIC_8ADD9C33);
     let routes = crate::route_contracts::RouteContracts::try_from(Vec::<
         crate::route_contract::RouteContract,
     >::new())
-    .expect("96a2f2a6 empty routes fit collection bound");
+    .expect(constants_str::DIAGNOSTIC_96A2F2A6);
     let coverage = crate::route_coverage_descriptors::RouteCoverageDescriptors::try_from(Vec::<
         crate::route_coverage_descriptor::RouteCoverageDescriptor,
     >::new(
     ))
-    .expect("2ba61bce empty coverage descriptors fit collection bound");
+    .expect(constants_str::DIAGNOSTIC_2BA61BCE);
     let schemas = crate::route_schema_contracts::RouteSchemaContracts::try_from(Vec::<
         crate::route_schema_contract::RouteSchemaContract,
     >::new())
-    .expect("c335f3ea empty schemas fit collection bound");
+    .expect(constants_str::DIAGNOSTIC_C335F3EA);
     let metadata = crate::route_metadata_list::RouteMetadataList::try_from(Vec::<
         crate::route_metadata::RouteMetadata,
     >::new())
-    .expect("207b72cc empty metadata fit collection bound");
+    .expect(constants_str::DIAGNOSTIC_207B72CC);
     let categories = crate::route_test_categories::RouteTestCategories::try_from(vec![
         crate::route_test_category::RouteTestCategory::FixtureHook,
         crate::route_test_category::RouteTestCategory::Metadata,
     ])
-    .expect("76f3e14a categories fit collection bound");
+    .expect(constants_str::DIAGNOSTIC_76F3E14A);
     assert!(fields.as_ref().is_empty());
     assert!(actions.as_ref().is_empty());
     assert!(routes.as_ref().is_empty());
@@ -215,14 +214,20 @@ fn test_route_error_policy_derives_statuses_from_access_and_mutation() {
 }
 #[test]
 fn test_response_interpretation_uses_shared_success_and_problem_contract() {
-    let problem = crate::api_problem::ApiProblem::from_error(crate::api_problem_error::ApiProblemError::from_status(
-        crate::api_problem_status::ApiProblemStatus::try_from(401u16).expect("b8fc4707 response_interpretation_uses_shared_success_and_problem_contract invariant must hold"),
-    ));
-    let body = crate::transport_body::TransportBody::try_from(serde_json::to_vec(&problem).expect("f542a3cb response_interpretation_uses_shared_success_and_problem_contract invariant must hold"))
-        .expect("864276f2 response_interpretation_uses_shared_success_and_problem_contract invariant must hold");
+    let problem = crate::api_problem::ApiProblem::from_error(
+        crate::api_problem_error::ApiProblemError::from_status(
+            crate::api_problem_status::ApiProblemStatus::try_from(401u16)
+                .expect(constants_str::DIAGNOSTIC_B8FC4707),
+        ),
+    );
+    let body = crate::transport_body::TransportBody::try_from(
+        serde_json::to_vec(&problem).expect(constants_str::DIAGNOSTIC_F542A3CB),
+    )
+    .expect(constants_str::DIAGNOSTIC_864276F2);
     let response = crate::transport_response::TransportResponse::new(
         body,
-        crate::transport_status::TransportStatus::try_from(401u16).expect("a05ea02c response_interpretation_uses_shared_success_and_problem_contract invariant must hold"),
+        crate::transport_status::TransportStatus::try_from(401u16)
+            .expect(constants_str::DIAGNOSTIC_A05EA02C),
     );
     let error = response
         .success_body(crate::success_status::SuccessStatus::Code200.transport_status())
@@ -241,15 +246,15 @@ fn test_response_interpretation_uses_shared_success_and_problem_contract() {
 fn test_transport_response_preserves_retry_after() {
     let response = crate::transport_response::TransportResponse::new(
         crate::transport_body::TransportBody::try_from(Vec::new())
-            .expect("da32dc29 transport_response_preserves_retry_after invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_DA32DC29),
         crate::transport_status::TransportStatus::try_from(429u16)
-            .expect("7a783a69 transport_response_preserves_retry_after invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_7A783A69),
     )
     .with_retry_after(Some(
         crate::transport_retry_after::TransportRetryAfter::try_from(
             constants_str::TEST_VALUE_30.to_owned(),
         )
-        .expect("9b6750d4 transport_response_preserves_retry_after invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_9B6750D4),
     ));
     assert_eq!(
         response.retry_after().map(AsRef::as_ref),

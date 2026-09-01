@@ -92,10 +92,10 @@ mod tests {
     #[test]
     fn test_date_bounds_have_ordered_bind_indices_and_values() {
         let from = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_FROM)
-            .expect("69ee8323 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_69EE8323)
             .to_utc();
         let to = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_TO)
-            .expect("91eae791 date_bounds_have_ordered_bind_indices_and_values invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_91EAE791)
             .to_utc();
         let filter = crate::build_date_sql_filter::build_date_sql_filter(
             None,
@@ -107,7 +107,7 @@ mod tests {
             ),
             std::num::NonZeroU32::MIN.into(),
         )
-        .expect("512fa2fb date_bounds_have_ordered_bind_indices_and_values invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_512FA2FB);
         let (fragment, values) = filter.into_parts();
         assert_eq!(fragment.into_inner(), constants_str::TEST_DATE_SQL_FILTER);
         assert_eq!(values.as_ref(), &[from, to]);

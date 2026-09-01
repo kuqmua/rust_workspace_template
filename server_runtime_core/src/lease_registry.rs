@@ -54,11 +54,11 @@ impl LeaseRegistry {
 mod tests {
     fn id(value: &str) -> crate::lease_id::LeaseId {
         crate::lease_id::LeaseId::try_from(value.to_owned())
-            .expect("f1f58adc id invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_F1F58ADC)
     }
     fn lease_key(value: &str) -> crate::lease_key::LeaseKey {
         crate::lease_key::LeaseKey::try_from(value.to_owned())
-            .expect("699f4283 key invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_699F4283)
     }
     fn maximum() -> crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize {
         crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize::from(
@@ -116,9 +116,7 @@ mod tests {
                 crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration::try_from(
                     std::time::Duration::from_secs(1u64),
                 )
-                .expect(
-                    "8cb64054 heartbeat_and_stale_transition_are_observable invariant must hold",
-                ),
+                .expect(constants_str::DIAGNOSTIC_8CB64054),
             )
             .await;
         assert_eq!(stale.as_ref(), std::slice::from_ref(&lease_id));

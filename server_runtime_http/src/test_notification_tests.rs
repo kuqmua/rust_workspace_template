@@ -17,7 +17,7 @@ mod tests {
         let token = crate::notification_api_token::NotificationApiToken::try_from(String::from(
             constants_str::TEST_NOTIFICATION_API_TOKEN,
         ))
-        .expect("9ac320d1 api_token_debug_is_redacted invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_9AC320D1);
         assert!(!format!("{token:?}").contains(constants_str::TEST_NOTIFICATION_API_TOKEN));
         assert!(
             !format!(
@@ -41,7 +41,7 @@ mod tests {
         let Err(_error) = serde_json::from_str::<
             crate::runtime_notification_message::RuntimeNotificationMessage,
         >(&json) else {
-            panic!("ecef8003");
+            std::panic::panic_any(constants_str::PANIC_ECEF8003);
         };
     }
 
@@ -50,7 +50,7 @@ mod tests {
         let token = crate::notification_api_token::NotificationApiToken::try_from(
             constants_str::TEST_NOTIFICATION_API_TOKEN.to_owned(),
         )
-        .expect("cd592f18 router_requires_token_and_delivers_valid_request invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_CD592F18);
         let router: axum::Router = crate::notification_router::notification_router(
             crate::notification_service_state::NotificationServiceState::new(
                 token,
@@ -70,12 +70,10 @@ mod tests {
             .body(axum::body::Body::from(
                 constants_str::TEST_NOTIFICATION_REQUEST_JSON,
             ))
-            .expect(
-                "9e3b810c router_requires_token_and_delivers_valid_request invariant must hold",
-            );
-        let response = tower::ServiceExt::oneshot(router, request).await.expect(
-            "db062fe4 router_requires_token_and_delivers_valid_request invariant must hold",
-        );
+            .expect(constants_str::DIAGNOSTIC_9E3B810C);
+        let response = tower::ServiceExt::oneshot(router, request)
+            .await
+            .expect(constants_str::DIAGNOSTIC_DB062FE4);
         assert_eq!(response.status(), http::StatusCode::NO_CONTENT);
     }
 }

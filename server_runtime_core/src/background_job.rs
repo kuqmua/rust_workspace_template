@@ -47,17 +47,13 @@ mod tests {
     #[tokio::test]
     async fn test_run_records_retry_outcome_in_bounded_history() {
         let history = crate::async_run_history::AsyncRunHistory::new(
-            crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE).expect(
-                "5dc81fa2 run_records_retry_outcome_in_bounded_history invariant must hold",
-            ),
+            crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE).expect(constants_str::DIAGNOSTIC_5DC81FA2),
         );
         let job = super::BackgroundJob::new(
             history,
             crate::retry_policy::RetryPolicy::new(
                 crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(2usize)
-                    .expect(
-                        "4792b3e0 run_records_retry_outcome_in_bounded_history invariant must hold",
-                    ),
+                    .expect(constants_str::DIAGNOSTIC_4792B3E0),
                 None,
             ),
         );

@@ -2,7 +2,9 @@
 mod tests {
     #[test]
     fn test_resolution_distinguishes_missing_invalid_oversized_and_valid_values() {
-        let maximum = crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(5usize).expect("84792c6a resolution_distinguishes_missing_invalid_oversized_and_valid_values invariant must hold");
+        let maximum =
+            crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(5usize)
+                .expect(constants_str::DIAGNOSTIC_84792C6A);
         let name = crate::http_header_name::HttpHeaderName::from(
             http::header::HeaderName::from_static(constants_str::TEST_X_TEST_HEADER),
         );
@@ -17,7 +19,7 @@ mod tests {
         );
         let _invalid_previous = headers.insert(
             name.as_ref(),
-            http::HeaderValue::from_bytes(&[0xffu8]).expect("fd47f469 resolution_distinguishes_missing_invalid_oversized_and_valid_values invariant must hold"),
+            http::HeaderValue::from_bytes(&[0xffu8]).expect(constants_str::DIAGNOSTIC_FD47F469),
         );
         assert_eq!(
             crate::resolve_header_text::resolve_header_text(

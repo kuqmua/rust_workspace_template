@@ -24,14 +24,14 @@ fn test_pagination_preserves_server_side_navigation() {
                 server_admin_contract::admin_filter_field::AdminFilterField::try_from(
                     String::from(constants_str::LOGIN),
                 )
-                .expect("7eb9a214 pagination_preserves_server_side_navigation invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_7EB9A214),
             ),
             Some(frontend_contract::filter_operation::FilterOperation::Eq),
             Some(
                 server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
                     String::from(constants_str::VALUE_2BD806C9),
                 )
-                .expect("2629c095 pagination_preserves_server_side_navigation invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_2629C095),
             ),
             None,
         );
@@ -82,11 +82,11 @@ fn test_navigation_only_contains_accessible_pages() {
         server_admin_contract::admin_display_name::AdminDisplayName::try_from(
             constants_str::ADMIN.to_owned(),
         )
-        .expect("cdae3e58 navigation_only_contains_accessible_pages invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_CDAE3E58),
         server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
-            .expect("4ff30835 navigation_only_contains_accessible_pages invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_4FF30835),
         server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
-            .expect("9ae5b850 navigation_only_contains_accessible_pages invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_9AE5B850),
         server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(vec![
             server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
                 server_admin_contract::admin_permission::AdminPermission::UsersRead
@@ -110,14 +110,14 @@ fn test_navigation_only_contains_accessible_pages() {
             )
             .expect(constants_str::VALUE_9CC34A06),
         ])
-        .expect("e05ce0b9 navigation_only_contains_accessible_pages invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_E05CE0B9),
         server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
-            .expect("f1ec0093 navigation_only_contains_accessible_pages invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_F1EC0093),
     );
     let html = crate::render_admin_page_with_access::render_admin_page_with_access(
         server_admin_contract::admin_page::AdminPage::Users,
         crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
-            .expect("aa3fa21e navigation_only_contains_accessible_pages invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_AA3FA21E),
         Some(&admin),
         None,
     );
@@ -157,23 +157,23 @@ fn test_navigation_only_contains_accessible_pages() {
     let users_table = html
         .as_ref()
         .find(constants_str::VALUE_A6A17075)
-        .expect("7017fe5d navigation_only_contains_accessible_pages invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_7017FE5D);
     let sessions_table = html
         .as_ref()
         .find(constants_str::VALUE_B04C3167)
-        .expect("9510971f navigation_only_contains_accessible_pages invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_9510971F);
     let profile_page = html
         .as_ref()
         .find(constants_str::VALUE_94661A00)
-        .expect("21570a0c navigation_only_contains_accessible_pages invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_21570A0C);
     let sessions_page = html
         .as_ref()
         .find(constants_str::VALUE_21207624)
-        .expect("ba431a21 navigation_only_contains_accessible_pages invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_BA431A21);
     let sign_out = html
         .as_ref()
         .find(server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get())
-        .expect("46d23e89 navigation_only_contains_accessible_pages invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_46D23E89);
     assert!(users_table < sessions_table);
     assert!(sessions_table < profile_page);
     assert!(profile_page < sessions_page);
@@ -196,7 +196,7 @@ fn test_sign_in_uses_server_side_color_without_logo() {
                 .get()
                 .to_owned(),
         )
-        .expect("50ffe2fc sign_in_uses_server_side_color_without_logo invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_50FFE2FC),
         None,
         None,
         None,
@@ -204,12 +204,12 @@ fn test_sign_in_uses_server_side_color_without_logo() {
             server_admin_contract::admin_primary_color::AdminPrimaryColor::try_from(String::from(
                 constants_str::VALUE_55F98A52,
             ))
-            .expect("9c08c954 sign_in_uses_server_side_color_without_logo invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_9C08C954),
         ),
         server_admin_contract::admin_site_name::AdminSiteName::try_from(String::from(
             constants_str::VALUE_EB57AFDB,
         ))
-        .expect("0a28fdd7 sign_in_uses_server_side_color_without_logo invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_0A28FDD7),
         None,
         None,
     );

@@ -147,7 +147,7 @@ mod tests {
             constants_str::GEO_JSON_GEOMETRY: null,
             (properties): {}
         });
-        let _feature = document(&feature).expect("c0bd64d6 feature_and_geometry_collections_validate_children_recursively invariant must hold");
+        let _feature = document(&feature).expect(constants_str::DIAGNOSTIC_C0BD64D6);
         let collection = serde_json::json!({
             constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE_COLLECTION,
             constants_str::GEO_JSON_FEATURES: [{
@@ -159,7 +159,7 @@ mod tests {
                 (properties): {}
             }]
         });
-        let _collection = document(&collection).expect("bc4861b1 feature_and_geometry_collections_validate_children_recursively invariant must hold");
+        let _collection = document(&collection).expect(constants_str::DIAGNOSTIC_BC4861B1);
         let geometry_collection = serde_json::json!({
             constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_GEOMETRY_COLLECTION,
             constants_str::GEO_JSON_GEOMETRIES: [{
@@ -167,7 +167,8 @@ mod tests {
                 constants_str::GEO_JSON_COORDINATES: [180.0f64, -90.0f64]
             }]
         });
-        let _geometry_collection = document(&geometry_collection).expect("ba7f5e93 feature_and_geometry_collections_validate_children_recursively invariant must hold");
+        let _geometry_collection =
+            document(&geometry_collection).expect(constants_str::DIAGNOSTIC_BA7F5E93);
     }
     #[test]
     fn test_coordinate_collections_reject_empty_levels() {
@@ -201,7 +202,7 @@ mod tests {
         let _document = crate::geo_json_document_text::GeoJsonDocumentText::try_from(String::from(
             constants_str::TEST_GEO_JSON_POINT,
         ))
-        .expect("34818d2e point_coordinates_are_range_checked invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_34818D2E);
         assert!(matches!(
             crate::geo_json_document_text::GeoJsonDocumentText::try_from(String::from(
                 constants_str::TEST_GEO_JSON_INVALID_POINT

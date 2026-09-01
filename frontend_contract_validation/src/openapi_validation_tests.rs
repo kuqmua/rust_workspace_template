@@ -68,7 +68,8 @@ mod tests {
                 constants_str::TEST_OPENAPI_OPERATION_ID.into(),
                 constants_str::TEST_OPENAPI_PATH.into(),
             ),
-            crate::open_api_response_status::OpenApiResponseStatus::try_from(200u16).expect("9f6e9528 operation_security_status_and_content_type_are_checked invariant must hold"),
+            crate::open_api_response_status::OpenApiResponseStatus::try_from(200u16)
+                .expect(constants_str::DIAGNOSTIC_9F6E9528),
             constants_str::APPLICATION_JSON.into(),
             crate::open_api_security_expectation::OpenApiSecurityExpectation::Public,
         );

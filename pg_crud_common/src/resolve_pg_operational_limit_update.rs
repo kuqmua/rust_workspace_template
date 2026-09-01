@@ -24,7 +24,7 @@ pub fn resolve_pg_operational_limit_update(
 mod tests {
     fn limit(value: u64) -> crate::pg_operational_limit::PgOperationalLimit {
         crate::pg_operational_limit::PgOperationalLimit::try_from(value)
-            .expect("2710e8b4 limit invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_2710E8B4)
     }
 
     #[test]

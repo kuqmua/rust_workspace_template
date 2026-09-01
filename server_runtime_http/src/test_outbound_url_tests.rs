@@ -13,7 +13,7 @@ mod tests {
     fn test_public_url_and_address_are_accepted() {
         let url = POLICY
             .validate(constants_str::TEST_PUBLIC_HTTPS_URL.into())
-            .expect("a275c7bf public_url_and_address_are_accepted invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_A275C7BF);
         assert_eq!(
             url.scheme(),
             crate::outbound_url_scheme::OutboundUrlScheme::Https
@@ -105,22 +105,17 @@ mod tests {
         let allowed_host = crate::outbound_allowed_host::OutboundAllowedHost::try_from(
             String::from(constants_str::TEST_PUBLIC_HOST),
         )
-        .expect(
-            "3e5decb1 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold",
-        );
-        let allowlist = crate::outbound_host_allowlist::OutboundHostAllowlist::try_from(vec![
-            allowed_host,
-        ])
-        .expect(
-            "920be78f allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_3E5DECB1);
+        let allowlist =
+            crate::outbound_host_allowlist::OutboundHostAllowlist::try_from(vec![allowed_host])
+                .expect(constants_str::DIAGNOSTIC_920BE78F);
         let allowed = POLICY
             .validate(constants_str::TEST_PUBLIC_HTTPS_URL.into())
-            .expect("27a67a96 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_27A67A96);
         assert_eq!(allowlist.validate(&allowed), Ok(()));
         let other = POLICY
             .validate(constants_str::TEST_OTHER_PUBLIC_HTTPS_URL.into())
-            .expect("b3981504 allowlist_requires_exact_host_and_url_rejects_userinfo invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_B3981504);
         assert_eq!(
             allowlist.validate(&other),
             Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::HostNotAllowed)

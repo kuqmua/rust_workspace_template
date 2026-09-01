@@ -8,9 +8,7 @@ mod tests {
                     constants_str::TEST_UNSAFE_UNICODE_ATTACHMENT_FILE_NAME,
                 ),
             )
-            .expect(
-                "ec78ce2e content_disposition_sanitizes_and_encodes_file_name invariant must hold",
-            );
+            .expect(constants_str::DIAGNOSTIC_EC78CE2E);
         let header = http::HeaderValue::from(value);
         assert_eq!(
             header,
@@ -25,7 +23,7 @@ mod tests {
         let value = crate::http_content_length::HttpContentLength::try_from(
             constants_str::TEST_U64_MAXIMUM_TEXT.to_owned(),
         )
-        .expect("f87ab266 content_length_accepts_u64_maximum invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_F87AB266);
         assert_eq!(u64::try_from(value), Ok(u64::MAX));
     }
 }

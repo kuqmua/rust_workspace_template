@@ -312,7 +312,7 @@ pub(crate) fn assert_workspace_lints_match(
             workspace
                 .as_ref()
                 .get(constants_str::LINTS)
-                .expect("82eaea37 workspace lints invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_82EAEA37),
         ),
         crate::types::StaticStr::from(constants_str::CAE226CD),
     );
@@ -321,7 +321,7 @@ pub(crate) fn assert_workspace_lints_match(
             lints
                 .as_ref()
                 .get(rust_or_clippy.name().get())
-                .expect("dbd02f72 workspace lint group invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_DBD02F72),
         ),
         crate::types::StaticStr::from(constants_str::VALUE_6F4580CE),
     );
@@ -335,17 +335,17 @@ pub(crate) fn assert_workspace_lints_match(
         [constants_str::W, constants_str::HELP].as_slice(),
     ))
     .output()
-    .unwrap_or_else(|_| panic!("{}", exp_id.get()));
+    .unwrap_or_else(|_| std::panic::panic_any(exp_id.get().to_owned()));
     assert!(output.status.success(), "95d4595a");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.trim().is_empty(), "cc4670a2");
     let stdout = String::from_utf8_lossy(&output.stdout);
     let pattern = if parse_only_clippy.get() {
         regex::Regex::new(constants_str::QUESTION_M_S_ASTERISK_CLIPPY_PATH_A_Z0_9_A_Z0_9)
-            .expect("fbf14346 lint help pattern invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_FBF14346)
     } else {
         regex::Regex::new(constants_str::QUESTION_M_S_ASTERISK_A_Z0_9_A_Z0_9_PLUS_S)
-            .expect("60d99c87 lint help pattern invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_60D99C87)
     };
     let command_lints = crate::types::SourceTextList::from(
         pattern
@@ -355,7 +355,7 @@ pub(crate) fn assert_workspace_lints_match(
                     crate::types::SourceText::try_from(
                         captures[1].replace('-', constants_str::UNDERSCORE),
                     )
-                    .expect("f3d821a6 normalized lint name invariant must hold"),
+                    .expect(constants_str::DIAGNOSTIC_F3D821A6),
                 )
             })
             .collect::<Vec<String>>(),
@@ -398,16 +398,16 @@ pub(crate) fn validate_workspace_dep_default_features(v_table: crate::types::Tom
     match v_table
         .get()
         .get(constants_str::DEFAULT_FEATURES)
-        .expect("d2a8c4e1 validate_workspace_dep_default_features invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_D2A8C4E1)
     {
         &toml::Value::Boolean(false) => (),
-        &toml::Value::Boolean(true) => panic!("847a138f"),
+        &toml::Value::Boolean(true) => std::panic::panic_any(constants_str::PANIC_847A138F),
         &toml::Value::String(_)
         | &toml::Value::Table(_)
         | &toml::Value::Integer(_)
         | &toml::Value::Float(_)
         | &toml::Value::Datetime(_)
-        | &toml::Value::Array(_) => panic!("e5f7b1c3"),
+        | &toml::Value::Array(_) => std::panic::panic_any(constants_str::PANIC_E5F7B1C3),
     }
 }
 pub(crate) fn workspace_dep_disables_default_features(
@@ -534,7 +534,7 @@ pub(crate) fn macro_rules_ers(
 
 pub(crate) fn env_keys_from_file(path: crate::types::StaticStr) -> crate::types::SourceTextList {
     std::fs::read_to_string(path.get())
-        .expect("b3a7c1e4 env_keys_from_file invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_B3A7C1E4)
         .lines()
         .filter_map(|line| {
             let trimmed = line.trim();
@@ -734,7 +734,7 @@ pub(crate) fn item_impl_self_ty_identifier(
     match item.as_ref().self_ty.as_ref() {
         syn::Type::Path(ty_path) => ty_path.path.segments.last().map(|segment| {
             crate::types::SourceText::try_from(segment.ident.to_string())
-                .expect("6a9f03d2 item_impl_self_ty_identifier invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_6A9F03D2)
         }),
         syn::Type::Array(_)
         | syn::Type::FnPtr(_)
@@ -927,7 +927,7 @@ pub(crate) fn collect_first_macro_identifier_domain_name(
     names: &mut crate::types::SourceTextBTreeSet,
 ) {
     let re = regex::Regex::new(constants_str::S_ASTERISK_A_ZA_Z_A_ZA_Z0_9_ASTERISK_S_ASTERISK)
-        .expect("fc65b7c4 collect_first_macro_identifier_domain_name invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_FC65B7C4);
     if let Some(name) = re
         .captures(tokens.as_ref())
         .and_then(|captures| captures.get(1))
@@ -1493,7 +1493,7 @@ pub(crate) fn path_to_string(path: crate::types::SynPathRef<'_>) -> crate::types
             .collect::<Vec<String>>()
             .join(constants_str::PATH_SEPARATOR),
     )
-    .expect("50c1e4a8 path_to_string invariant must hold")
+    .expect(constants_str::DIAGNOSTIC_50C1E4A8)
 }
 
 pub(crate) fn is_runtime_policy_source_path(
@@ -1543,7 +1543,7 @@ pub(crate) fn is_str_constants_source_path(
 ) -> crate::types::AnalyzerBool {
     let constants_source_directory = std::path::Path::new(constants_str::STR_CONSTANTS_SRC_LIB_RS)
         .parent()
-        .expect("77e3ab42 constants string source path must have a parent directory");
+        .expect(constants_str::DIAGNOSTIC_77E3AB42);
     crate::types::AnalyzerBool::from(path.as_ref().parent() == Some(constants_source_directory))
 }
 pub(crate) fn is_test_crate(parsed: crate::types::TomlTableRef<'_>) -> crate::types::AnalyzerBool {
@@ -1685,12 +1685,12 @@ pub(crate) fn for_each_rs_file(
 }
 pub(crate) fn workspace_table_from_cargo_toml() -> crate::types::TomlTable {
     let mut table = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
-        .expect("39a0d238 workspace_table_from_cargo_toml invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_39A0D238)
         .parse::<toml::Table>()
-        .expect("beb11586 workspace_table_from_cargo_toml invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_BEB11586);
     match table
         .remove(constants_str::WORKSPACE)
-        .expect("f728192d workspace_table_from_cargo_toml invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_F728192D)
     {
         toml::Value::Table(t) => crate::types::TomlTable::from(t),
         toml::Value::String(_)
@@ -1698,7 +1698,7 @@ pub(crate) fn workspace_table_from_cargo_toml() -> crate::types::TomlTable {
         | toml::Value::Float(_)
         | toml::Value::Boolean(_)
         | toml::Value::Datetime(_)
-        | toml::Value::Array(_) => panic!("2bfb0b62"),
+        | toml::Value::Array(_) => std::panic::panic_any(constants_str::PANIC_2BFB0B62),
     }
 }
 pub(crate) fn toml_val_as_table_ref(
@@ -1712,7 +1712,7 @@ pub(crate) fn toml_val_as_table_ref(
         | toml::Value::Float(_)
         | toml::Value::Boolean(_)
         | toml::Value::Datetime(_)
-        | toml::Value::Array(_) => panic!("{}", uuid.get()),
+        | toml::Value::Array(_) => std::panic::panic_any(uuid.get().to_owned()),
     }
 }
 pub(crate) fn collect_non_workspace_dep_ers(
@@ -1797,14 +1797,14 @@ pub(crate) fn workspace_members_as_strs(
         .get(constants_str::MEMBERS)
         .and_then(toml::Value::as_array)
     else {
-        panic!("{}", exp_id.get());
+        std::panic::panic_any(exp_id.get().to_owned());
     };
     members
         .iter()
         .map(|member| {
             member
                 .as_str()
-                .unwrap_or_else(|| panic!("{}", exp_id.get()))
+                .unwrap_or_else(|| std::panic::panic_any(exp_id.get().to_owned()))
                 .to_owned()
         })
         .collect::<Vec<String>>()

@@ -2,7 +2,7 @@
 fn test_pagination_reports_start_and_end() {
     let pagination =
         crate::pagination_starts_with_zero::PaginationStartsWithZero::try_new(20i32, 5i32)
-            .expect("5e74c1a9 pagination_reports_start_and_end invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_5E74C1A9);
     assert_eq!(pagination.start().get(), 5i64);
     assert_eq!(pagination.end().get(), 25i64);
 }

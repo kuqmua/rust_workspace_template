@@ -84,7 +84,7 @@ mod tests {
     )]
     fn test_error_text_owns_the_shared_length_invariant() {
         let valid = crate::error_text::ErrorText::try_from(String::from(constants_str::ERROR))
-            .expect("11a745a8 error_text_owns_the_shared_length_invariant invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_11A745A8);
         assert_eq!(valid.as_ref(), constants_str::ERROR);
 
         let oversized = constants_str::X.repeat(
@@ -92,8 +92,8 @@ mod tests {
         );
         let _conversion_error = crate::error_text::ErrorText::try_from(oversized.clone())
             .expect_err(constants_str::VALUE_DFA2D703);
-        let serialized = serde_json::to_string(&oversized)
-            .expect("fe92c1a6 error_text_owns_the_shared_length_invariant invariant must hold");
+        let serialized =
+            serde_json::to_string(&oversized).expect(constants_str::DIAGNOSTIC_FE92C1A6);
         let _deserialization_error =
             serde_json::from_str::<crate::error_text::ErrorText>(serialized.as_str())
                 .expect_err(constants_str::VALUE_2377E790);

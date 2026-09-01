@@ -39,7 +39,7 @@ pub fn build_pg_scoped_foreign_key_clause(
 mod tests {
     fn scoped_foreign_key_identifier(value: &str) -> crate::sql_identifier::SqlIdentifier {
         crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
-            .expect("2ec15e48 identifier invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_2EC15E48)
     }
 
     #[test]
@@ -61,14 +61,12 @@ mod tests {
             .into(),
             crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Cascade,
         )
-        .expect("21fc516e scoped_foreign_key_uses_validated_composite_columns invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_21FC516E);
         assert_eq!(
             crate::build_pg_scoped_foreign_key_clause::build_pg_scoped_foreign_key_clause(
                 &foreign_key
             )
-            .expect(
-                "594452b0 scoped_foreign_key_uses_validated_composite_columns invariant must hold"
-            )
+            .expect(constants_str::DIAGNOSTIC_594452B0)
             .into_inner(),
             constants_str::TEST_SCOPED_FOREIGN_KEY_CLAUSE
         );

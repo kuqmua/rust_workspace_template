@@ -12,7 +12,7 @@ mod tests {
         let total = crate::page_total::page_total(
             crate::admin_page_total_count::AdminPageTotalCount::from(17i64),
         )
-        .expect("8d31f2a7 page_total_accepts_non_negative_values_and_rejects_negative_values invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_8D31F2A7);
         assert_eq!(u64::from(total), 17u64);
         assert!(matches!(
             crate::page_total::page_total(
@@ -28,28 +28,20 @@ mod tests {
             &server_admin_contract::admin_table_query::AdminTableQuery::default(),
             &server_admin_contract::admin_table_sort_field::AdminTableSortField::USER,
         )
-        .expect(
-            "41d8a6c2 table_sort_validation_accepts_empty_and_known_keys_only invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_41D8A6C2);
         let known = serde_json::from_value::<
             server_admin_contract::admin_table_query::AdminTableQuery,
         >(serde_json::json!({ "sort": "login" }))
-        .expect(
-            "f20a91c6 table_sort_validation_accepts_empty_and_known_keys_only invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_F20A91C6);
         crate::validate_table_sort::validate_table_sort(
             &known,
             &server_admin_contract::admin_table_sort_field::AdminTableSortField::USER,
         )
-        .expect(
-            "b70c35e9 table_sort_validation_accepts_empty_and_known_keys_only invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_B70C35E9);
         let unknown = serde_json::from_value::<
             server_admin_contract::admin_table_query::AdminTableQuery,
         >(serde_json::json!({ "sort": "created_at" }))
-        .expect(
-            "c731d84e table_sort_validation_accepts_empty_and_known_keys_only invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_C731D84E);
         assert!(matches!(
             crate::validate_table_sort::validate_table_sort(
                 &unknown,

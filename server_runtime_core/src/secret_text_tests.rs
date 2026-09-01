@@ -2,7 +2,7 @@
 mod tests {
     fn bounded_secret(value: &str) -> crate::bounded_secret_text::BoundedSecretText {
         crate::bounded_secret_text::BoundedSecretText::try_from(value.to_owned())
-            .expect("2c20f43d secret invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_2C20F43D)
     }
 
     #[test]

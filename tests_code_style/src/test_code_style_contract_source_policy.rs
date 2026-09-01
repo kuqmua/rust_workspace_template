@@ -68,9 +68,12 @@ fn test_private_shared_modules_do_not_forward_crate_root_exports() {
 }
 #[test]
 fn test_private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner() {
-    let public_forward = syn::parse_file(constants_str::VALUE_5C907704).expect("b2d1e940 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
-    let crate_forward = syn::parse_file(constants_str::VALUE_9388C05D).expect("53f91ac7 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
-    let local_public = syn::parse_file(constants_str::VALUE_E40DBB0F).expect("9a47e2c6 private_shared_module_forwarding_policy_distinguishes_public_visibility_and_owner invariant must hold");
+    let public_forward =
+        syn::parse_file(constants_str::VALUE_5C907704).expect(constants_str::DIAGNOSTIC_B2D1E940);
+    let crate_forward =
+        syn::parse_file(constants_str::VALUE_9388C05D).expect(constants_str::DIAGNOSTIC_53F91AC7);
+    let local_public =
+        syn::parse_file(constants_str::VALUE_E40DBB0F).expect(constants_str::DIAGNOSTIC_9A47E2C6);
     assert!(
         public_forward
             .items
@@ -141,47 +144,40 @@ fn test_service_route_endpoint_composition_uses_shared_registries() {
 #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
 fn test_typed_route_registries_own_request_bodies_and_schema_catalogs() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        [
-            constants_str::VALUE_7BF90B7C,
-            constants_str::VALUE_629EE5ED,
-        ]
-        .iter()
-        .for_each(|path_suffix| {
+        [constants_str::VALUE_7BF90B7C, constants_str::VALUE_629EE5ED]
+            .iter()
+            .for_each(|path_suffix| {
+                let source = snapshot
+                    .rs_files()
+                    .iter()
+                    .find(|file| file.path().as_ref().ends_with(path_suffix))
+                    .expect(constants_str::DIAGNOSTIC_A63A8D31)
+                    .content()
+                    .as_ref();
+                assert!(!source.contains("components(schemas"), "94cc9de1");
+            });
+        std::iter::once(&constants_str::VALUE_0690A45F).for_each(|path_suffix| {
             let source = snapshot
                 .rs_files()
                 .iter()
                 .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("a63a8d31 typed_route_registries_own_request_bodies_and_schema_catalogs invariant must hold")
-                .content()
-                .as_ref();
-            assert!(!source.contains("components(schemas"), "94cc9de1");
-        });
-        std::iter::once(&constants_str::VALUE_0690A45F)
-        .for_each(|path_suffix| {
-            let source = snapshot
-                .rs_files()
-                .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("5bde3d5c typed_route_registries_own_request_bodies_and_schema_catalogs invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_5BDE3D5C)
                 .content()
                 .as_ref();
             assert!(!source.contains("request_body ="), "95cc867b");
         });
-        [
-            constants_str::VALUE_AA6C3BC8,
-            constants_str::VALUE_4DE86380,
-        ]
-        .iter()
-        .for_each(|path_suffix| {
-            let source = snapshot
-                .rs_files()
-                .iter()
-                .find(|file| file.path().as_ref().ends_with(path_suffix))
-                .expect("d07be29f typed_route_registries_own_request_bodies_and_schema_catalogs invariant must hold")
-                .content()
-                .as_ref();
-            assert!(!source.contains("error_statuses ="), "5a8ed6cf");
-        });
+        [constants_str::VALUE_AA6C3BC8, constants_str::VALUE_4DE86380]
+            .iter()
+            .for_each(|path_suffix| {
+                let source = snapshot
+                    .rs_files()
+                    .iter()
+                    .find(|file| file.path().as_ref().ends_with(path_suffix))
+                    .expect(constants_str::DIAGNOSTIC_D07BE29F)
+                    .content()
+                    .as_ref();
+                assert!(!source.contains("error_statuses ="), "5a8ed6cf");
+            });
     });
 }
 #[test]
@@ -218,7 +214,7 @@ fn test_generated_admin_table_consumers_use_the_shared_catalog() {
                     .as_ref()
                     .ends_with(constants_str::SERVER_SRC_APPLICATION_ADMIN_API_RS)
             })
-            .expect("148223ec generated_admin_table_consumers_use_the_shared_catalog invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_148223EC)
             .content()
             .as_ref();
         [
@@ -316,7 +312,7 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with(constants_str::VALUE_BEBEC57E)
             })
-            .expect("58e2110e administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_58E2110E)
             .content()
             .as_ref();
         let loader = snapshot
@@ -327,7 +323,7 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with(constants_str::VALUE_27AB06E9)
             })
-            .expect("04bb78af administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_04BB78AF)
             .content()
             .as_ref();
         assert!(!query.contains("AdminCsrPage"), "438888fd");
@@ -342,7 +338,7 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
             })
-            .expect("2f3afe52 administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_2F3AFE52)
             .content()
             .as_ref();
         let ssr = snapshot
@@ -353,7 +349,7 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
                     .as_ref()
                     .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
             })
-            .expect("2c589b2b administrator_csr_page_behavior_comes_from_the_page_catalog invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_2C589B2B)
             .content()
             .as_ref();
         assert!(
@@ -379,9 +375,7 @@ fn test_config_reference_accessors_use_generated_forwarding() {
                     .as_ref()
                     .ends_with(constants_str::VALUE_D31B3088)
             })
-            .expect(
-                "e210ffd6 config_reference_getters_use_generated_forwarding invariant must hold",
-            )
+            .expect(constants_str::DIAGNOSTIC_E210FFD6)
             .content()
             .as_ref();
         assert!(!source.contains(" for &Config"), "c0f0354a");

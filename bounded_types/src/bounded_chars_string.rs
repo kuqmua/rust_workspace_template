@@ -91,7 +91,7 @@ mod tests {
                 .flatten()
                 .collect::<String>(),
         )
-        .expect("ad96c37e unicode_is_measured_in_chars invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_AD96C37E);
         assert_eq!(value.len().get(), 2);
         assert_eq!(value.as_ref().chars().count(), 2);
     }

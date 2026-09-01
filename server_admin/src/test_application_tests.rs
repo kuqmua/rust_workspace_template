@@ -51,16 +51,16 @@ fn test_server_error_response_preserves_http_diagnostic() {
         ))
     );
     let body = futures::executor::block_on(axum::body::to_bytes(response.into_body(), 16_384usize))
-        .expect("8770f4d3 server_error_response_preserves_http_diagnostic invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_8770F4D3);
     let contract_problem =
         serde_json::from_slice::<frontend_contract::api_problem::ApiProblem>(&body)
-            .expect("4f705ab8 server_error_response_preserves_http_diagnostic invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_4F705AB8);
     assert_eq!(
         contract_problem.kind(),
         frontend_contract::api_problem_kind::ApiProblemKind::Internal
     );
     let problem = serde_json::from_slice::<serde_json::Value>(&body)
-        .expect("1e7ec09d server_error_response_preserves_http_diagnostic invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_1E7EC09D);
     [
         constants_str::LOCATION_ALT,
         constants_str::VALUE_31755A3B,
@@ -80,48 +80,42 @@ fn test_session_context_hash_is_bound_to_peer_and_user_agent() {
         http::header::USER_AGENT,
         http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_1),
     );
-    let first_peer = crate::admin_peer_addr::AdminPeerAddr::from(server_admin_core::admin_socket_addr::AdminSocketAddr::from(
-        constants_str::VALUE_192_0_2_10_443
-            .parse::<std::net::SocketAddr>()
-            .expect(
-                "f133a4ca session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
-            ),
-    ));
+    let first_peer = crate::admin_peer_addr::AdminPeerAddr::from(
+        server_admin_core::admin_socket_addr::AdminSocketAddr::from(
+            constants_str::VALUE_192_0_2_10_443
+                .parse::<std::net::SocketAddr>()
+                .expect(constants_str::DIAGNOSTIC_F133A4CA),
+        ),
+    );
     let same_context_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&first_headers),
             first_peer,
         )
-        .expect(
-            "14f0aa2d session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_14F0AA2D);
     let repeated_context_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&first_headers),
             first_peer,
         )
-        .expect(
-            "998805c8 session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_998805C8);
     assert_eq!(
         same_context_hash.expose().as_ref(),
         repeated_context_hash.expose().as_ref(),
     );
-    let other_peer = crate::admin_peer_addr::AdminPeerAddr::from(server_admin_core::admin_socket_addr::AdminSocketAddr::from(
-        constants_str::VALUE_192_0_2_11_443
-            .parse::<std::net::SocketAddr>()
-            .expect(
-                "5a831a2f session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
-            ),
-    ));
+    let other_peer = crate::admin_peer_addr::AdminPeerAddr::from(
+        server_admin_core::admin_socket_addr::AdminSocketAddr::from(
+            constants_str::VALUE_192_0_2_11_443
+                .parse::<std::net::SocketAddr>()
+                .expect(constants_str::DIAGNOSTIC_5A831A2F),
+        ),
+    );
     let other_peer_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&first_headers),
             other_peer,
         )
-        .expect(
-            "0803469a session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_0803469A);
     assert_ne!(
         same_context_hash.expose().as_ref(),
         other_peer_hash.expose().as_ref(),
@@ -136,9 +130,7 @@ fn test_session_context_hash_is_bound_to_peer_and_user_agent() {
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&other_headers),
             first_peer,
         )
-        .expect(
-            "90ce47ee session_context_hash_is_bound_to_peer_and_user_agent invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_90CE47EE);
     assert_ne!(
         same_context_hash.expose().as_ref(),
         other_user_agent_hash.expose().as_ref(),
@@ -148,9 +140,8 @@ fn test_session_context_hash_is_bound_to_peer_and_user_agent() {
 fn test_audit_resource_identifier_uses_target_identifier() {
     assert_eq!(
         crate::admin_audit_resource_id::AdminAuditResourceId::User(
-            server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(42i64).expect(
-                "423b91b9 audit_resource_identifier_uses_target_identifier invariant must hold"
-            ),
+            server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(42i64)
+                .expect(constants_str::DIAGNOSTIC_423B91B9),
         )
         .value()
         .as_ref(),
@@ -158,9 +149,8 @@ fn test_audit_resource_identifier_uses_target_identifier() {
     );
     assert_eq!(
         crate::admin_audit_resource_id::AdminAuditResourceId::Role(
-            server_admin_core::admin_role_record_id::AdminRoleRecordId::try_from(7i64).expect(
-                "af8df9d2 audit_resource_identifier_uses_target_identifier invariant must hold"
-            ),
+            server_admin_core::admin_role_record_id::AdminRoleRecordId::try_from(7i64)
+                .expect(constants_str::DIAGNOSTIC_AF8DF9D2),
         )
         .value()
         .as_ref(),
@@ -178,15 +168,15 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
     frontend_contract_validation::validate_openapi_schema_references::validate_openapi_schema_references(
         &utoipa::openapi::OpenApi::from(crate::admin_api_open_api::admin_api_open_api()),
     )
-    .expect("2151641d open_api_contains_auth_and_user_security_contracts invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_2151641D);
     let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
         crate::admin_api_open_api::admin_api_open_api(),
     ))
-    .expect("869d28d7 open_api_contains_auth_and_user_security_contracts invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_869D28D7);
     let paths = document
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
-        .expect("6e15edec open_api_contains_auth_and_user_security_contracts invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_6E15EDEC);
     assert_eq!(paths.len(), 22usize);
     assert!(!paths.contains_key("/auth/mfa"));
     assert!(!paths.contains_key("/auth/mfa/enroll"));
@@ -205,7 +195,7 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
                         operation
                             .get(constants_str::OPERATION_ID_JSON)
                             .and_then(serde_json::Value::as_str)
-                            .expect("4252acc8 open_api_contains_auth_and_user_security_contracts invariant must hold")
+                            .expect(constants_str::DIAGNOSTIC_4252ACC8)
                             .to_owned(),
                         path.to_owned(),
                     )
@@ -292,7 +282,7 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
             "{}{}",
             constants_str::OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX,
             <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::body_limit()
-                .expect("be105d90 open_api_contains_auth_and_user_security_contracts invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_BE105D90)
                 .get()
         );
     let request_body_descriptions = paths

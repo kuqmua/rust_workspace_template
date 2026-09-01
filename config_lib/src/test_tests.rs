@@ -3,21 +3,21 @@ fn test_svc_mode_accepts_only_documented_values() {
     assert_eq!(
         <crate::svc_mode::SvcMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::SERVICE_MODE_MIGRATE.to_owned())
-                .expect("39a8e94f svc_mode_accepts_only_documented_values invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_39A8E94F),
         ),
         Ok(crate::svc_mode::SvcMode::Migrate)
     );
     assert_eq!(
         <crate::svc_mode::SvcMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::SERVICE_MODE_SERVE.to_owned())
-                .expect("045ca5a1 svc_mode_accepts_only_documented_values invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_045CA5A1),
         ),
         Ok(crate::svc_mode::SvcMode::Serve)
     );
     assert_eq!(
         <crate::svc_mode::SvcMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::INVALID_REQUEST.to_owned())
-                .expect("156cc47b svc_mode_accepts_only_documented_values invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_156CC47B),
         ),
         Err(crate::try_from_std_env_var_ok_svc_mode_error::TryFromStdEnvVarOkSvcModeError::Unknown)
     );
@@ -54,20 +54,20 @@ fn test_administrator_token_text_deserialization_uses_bounded_try_from() {
             issuer_deserializer,
         )
     else {
-        panic!("b286db7c");
+        std::panic::panic_any(constants_str::PANIC_B286DB7C);
     };
     let Err(_audience_error) =
         <crate::admin_token_audience::AdminTokenAudience as serde::Deserialize>::deserialize(
             audience_deserializer,
         )
     else {
-        panic!("70f1e49f");
+        std::panic::panic_any(constants_str::PANIC_70F1E49F);
     };
 }
 #[test]
 fn test_cors_allow_origin_parsing_returns_value() {
     let value = parse_env::<crate::domain_types::CorsAllowOrigin>(constants_str::ASTERISK)
-        .expect("3178aecc CORS origin fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_3178AECC);
     assert_eq!(value.get_inner(), constants_str::ASTERISK);
 }
 #[test]
@@ -81,7 +81,7 @@ fn test_cors_allow_origin_parsing_returns_error_for_empty_string() {
 fn test_database_url_parsing_returns_value_for_non_empty_input() {
     drop(
         parse_env::<crate::domain_types::DatabaseUrl>(constants_str::POSTGRES_DB)
-            .expect("19de9ea2 database URL fixture must parse"),
+            .expect(constants_str::DIAGNOSTIC_19DE9EA2),
     );
 }
 #[test]
@@ -100,7 +100,7 @@ fn test_secret_url_debug_output_redacts_credentials() {
     ]
     .into_iter()
     .all(|raw| {
-        let value = parse_env::<crate::domain_types::DatabaseUrl>(raw).expect("ae91f62c secret_url_debug_output_redacts_credentials invariant must hold");
+        let value = parse_env::<crate::domain_types::DatabaseUrl>(raw).expect(constants_str::DIAGNOSTIC_AE91F62C);
         let debug = format!("{value:?}");
         !debug.contains(raw)
             && !debug.contains(constants_str::USERNAME)
@@ -115,7 +115,7 @@ fn test_secret_url_debug_output_redacts_credentials() {
 fn test_mongo_url_parsing_returns_value_for_non_empty_input() {
     drop(
         parse_env::<crate::domain_types::MongoUrl>(constants_str::MONGODB_DB)
-            .expect("2fd74787 MongoDB URL fixture must parse"),
+            .expect(constants_str::DIAGNOSTIC_2FD74787),
     );
 }
 #[test]
@@ -129,7 +129,7 @@ fn test_mongo_url_parsing_returns_error_for_empty_string() {
 fn test_redis_url_parsing_returns_value_for_non_empty_input() {
     drop(
         parse_env::<crate::domain_types::RedisUrl>(constants_str::REDIS_DB)
-            .expect("a9f87d4f Redis URL fixture must parse"),
+            .expect(constants_str::DIAGNOSTIC_A9F87D4F),
     );
 }
 #[test]
@@ -142,7 +142,7 @@ fn test_redis_url_parsing_returns_error_for_empty_string() {
 #[test]
 fn test_src_place_type_parsing_is_case_insensitive() {
     let value = parse_env::<crate::domain_types::SrcPlaceType>(constants_str::GITHUB_ALT)
-        .expect("f7d20b3a source-place fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_F7D20B3A);
     assert_eq!(
         *value.get_inner(),
         crate::src_place_type::SrcPlaceType::Github
@@ -159,7 +159,7 @@ fn test_src_place_type_parsing_returns_error_for_unknown_value() {
 #[test]
 fn test_tracing_level_parsing_is_case_insensitive() {
     let value = parse_env::<crate::domain_types::TracingLevel>(constants_str::DEBUG)
-        .expect("1209ea21 tracing-level fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_1209EA21);
     assert_eq!(
         *value.get_inner(),
         crate::tracing_level::TracingLevel::Debug
@@ -176,7 +176,7 @@ fn test_tracing_level_parsing_returns_error_for_unknown_value() {
 #[test]
 fn test_enable_api_git_commit_check_parsing_returns_bool() {
     let value = parse_env::<crate::domain_types::EnableApiGitCommitCheck>(constants_str::TRUE)
-        .expect("ea443a2a boolean fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_EA443A2A);
     assert!(*value.get_inner());
 }
 #[test]
@@ -193,9 +193,7 @@ fn test_maximum_size_of_http_body_in_bytes_parsing_returns_usize() {
         parse_env::<crate::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes>(
             constants_str::VALUE_128,
         )
-        .expect(
-            "d5b7a09e maximum_size_of_http_body_in_bytes_parsing_returns_usize invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_D5B7A09E);
     assert_eq!(*parsed, 128usize);
 }
 #[test]
@@ -218,7 +216,7 @@ fn test_maximum_size_of_http_body_in_bytes_parsing_returns_error_for_zero() {
 fn test_pg_pool_max_connections_parsing_returns_u32() {
     let parsed =
         parse_env::<crate::pg_pool_max_connections::PgPoolMaxConnections>(constants_str::VALUE_10)
-            .expect("5d9032ac pg_pool_max_connections_parsing_returns_u32 invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_5D9032AC);
     assert_eq!(*parsed, 10u32);
 }
 #[test]
@@ -248,14 +246,14 @@ fn test_non_empty_string_parser_returns_error_for_empty_value() {
 fn test_non_empty_string_parser_returns_value_for_non_empty_value() {
     let value =
         parse_env::<crate::domain_types::StartingCheckLink>(constants_str::HTTPS_EXAMPLE_COM)
-            .expect("9aee76d2 starting-check link fixture must parse");
+            .expect(constants_str::DIAGNOSTIC_9AEE76D2);
     assert_eq!(value.get_inner(), constants_str::HTTPS_EXAMPLE_COM);
 }
 #[test]
 fn test_service_socket_address_parsing_returns_socket_addr() {
     let _address =
         parse_env::<crate::domain_types::ServiceSocketAddress>(constants_str::VALUE_127_0_0_1_3000)
-            .expect("a8b92bac service socket fixture must parse");
+            .expect(constants_str::DIAGNOSTIC_A8B92BAC);
 }
 #[test]
 fn test_service_socket_address_parsing_returns_error_for_invalid_addr() {

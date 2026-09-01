@@ -12,7 +12,7 @@ mod tests {
         );
         let Err(_error) = crate::secrecy_secret_box_string::SecrecySecretBoxString::try_from(value)
         else {
-            panic!("41c03fcc");
+            std::panic::panic_any(constants_str::PANIC_41C03FCC);
         };
     }
 
@@ -24,9 +24,9 @@ mod tests {
             .repeat(crate::admin_jwt_secret_min_len::ADMIN_JWT_SECRET_MIN_LEN);
         let parsed = <crate::admin_jwt_secret::AdminJwtSecret as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(format!("{first}, {second}"))
-                .expect("12fd7c6a parses_primary_and_verification_secrets invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_12FD7C6A),
         )
-        .expect("2c18577d parses_primary_and_verification_secrets invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_2C18577D);
         assert_eq!(parsed.verification_secrets().len(), 2usize);
         assert_eq!(
             parsed
@@ -40,7 +40,7 @@ mod tests {
     fn test_rejects_empty_effective_secret_list() {
         let result = <crate::admin_jwt_secret::AdminJwtSecret as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::TEST_EMPTY_DELIMITED_LIST))
-                .expect("86c514b2 rejects_empty_effective_secret_list invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_86C514B2),
         );
         assert!(matches!(
             result,
@@ -54,7 +54,7 @@ mod tests {
             .repeat(crate::admin_jwt_secret_min_len::ADMIN_JWT_SECRET_MIN_LEN);
         let result = <crate::admin_jwt_secret::AdminJwtSecret as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(format!("{secret},,{secret}"))
-                .expect("9674829d rejects_empty_secret_between_rotation_keys invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_9674829D),
         );
         assert!(matches!(
             result,

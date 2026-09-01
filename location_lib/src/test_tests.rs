@@ -34,20 +34,18 @@ fn test_location(
         .unwrap_or_else(crate::location_commit::LocationCommit::from),
         crate::location_duration::LocationDuration::from(duration),
         occr,
-        crate::location_line::LocationLine::try_from(10)
-            .expect("fc5a52e8 test_location invariant must hold"),
+        crate::location_line::LocationLine::try_from(10).expect(constants_str::DIAGNOSTIC_FC5A52E8),
         crate::location_column::LocationColumn::try_from(20)
-            .expect("8a180198 test_location invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_8A180198),
     ))
 }
 fn test_occr() -> crate::occr::Occr {
     crate::occr::Occr::new(
         crate::location_file::LocationFile::try_from(String::from(constants_str::SRC_ERROR_RS))
             .unwrap_or_else(crate::location_file::LocationFile::from),
-        crate::location_line::LocationLine::try_from(30)
-            .expect("1fbd3424 test_occr invariant must hold"),
+        crate::location_line::LocationLine::try_from(30).expect(constants_str::DIAGNOSTIC_1FBD3424),
         crate::location_column::LocationColumn::try_from(40)
-            .expect("44a1f8ca test_occr invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_44A1F8CA),
     )
 }
 fn fmt_place(
@@ -117,7 +115,9 @@ fn test_fmt_datetime_returns_fallback_for_overflowed_duration() {
 #[test]
 fn test_datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
     let location = test_location(std::time::Duration::from_secs(0), None);
-    let date_time = location.datetime_with_tz().expect("f5c41dd8 datetime_with_tz_returns_expected_epoch_time_for_zero_duration invariant must hold");
+    let date_time = location
+        .datetime_with_tz()
+        .expect(constants_str::DIAGNOSTIC_F5C41DD8);
     assert_eq!(
         chrono::DateTime::<chrono::FixedOffset>::from(date_time)
             .format("%Y-%m-%d %H:%M:%S")

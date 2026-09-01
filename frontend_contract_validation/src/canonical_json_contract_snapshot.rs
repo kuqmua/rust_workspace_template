@@ -50,7 +50,7 @@ mod tests {
             }),
             &[constants_str::TEST_JSON_REQUEST_ID.into()],
         )
-        .expect("d8ddf580 dynamic_fields_are_normalized_recursively invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_D8DDF580);
         assert!(!snapshot.as_ref().contains(constants_str::TEST_JSON_FIRST));
         assert!(!snapshot.as_ref().contains(constants_str::TEST_JSON_SECOND));
         assert_eq!(

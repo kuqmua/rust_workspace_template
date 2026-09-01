@@ -7,7 +7,7 @@ mod tests {
                 constants_str::TEST_PROXY_USERS_PATH,
             ),
         )
-        .expect("6e90cb42 proxy_path_matches_only_segment_prefix invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_6E90CB42);
         assert!(bool::from(
             crate::proxy_path_matches_prefix::proxy_path_matches_prefix(
                 &path,
@@ -35,7 +35,7 @@ mod tests {
                 constants_str::TEST_DYNAMIC_IDENTIFIER_PATH,
             ),
         )
-        .expect("a36c01e4 identifier_path_normalizes_numbers_and_uuid_v4 invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_A36C01E4);
         assert_eq!(
             normalized.as_ref(),
             constants_str::TEST_NORMALIZED_IDENTIFIER_PATH

@@ -15,7 +15,7 @@ fn test_memusage_parsers_distinguish_values_and_missing_fields() {
     let text = crate::clean_ansi_text::CleanAnsiText::try_from(String::from(
         constants_str::VALUE_D36CD261,
     ))
-    .expect("afa44055 memusage_parsers_distinguish_values_and_missing_fields invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_AFA44055);
     assert_eq!(
         crate::memusage_heap_value::memusage_heap_value(
             &text,

@@ -6,9 +6,7 @@ mod tests {
         let outcome = crate::run_with_retries::run_with_retries(
             crate::retry_policy::RetryPolicy::new(
                 crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(3usize)
-                    .expect(
-                        "e7bc9a41 retryable_failure_is_retried_until_success invariant must hold",
-                    ),
+                    .expect(constants_str::DIAGNOSTIC_E7BC9A41),
                 None,
             ),
             || {
@@ -28,7 +26,7 @@ mod tests {
         let outcome = crate::run_with_retries::run_with_retries(
             crate::retry_policy::RetryPolicy::new(
                 crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(3usize)
-                    .expect("61b6aed5 terminal_failure_is_not_retried invariant must hold"),
+                    .expect(constants_str::DIAGNOSTIC_61B6AED5),
                 None,
             ),
             || {

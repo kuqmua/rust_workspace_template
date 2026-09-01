@@ -31,12 +31,12 @@ mod tests {
             crate::development_identity_specs::DevelopmentIdentitySpecs::try_from(vec![
                 server_runtime_core::identity_spec::IdentitySpec::new(1u8, 2u8, 3u8, 4u8),
             ])
-            .expect("743c519b plan_preserves_typed_identity_specs invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_743C519B),
         );
         let identity = plan
             .identities()
             .first()
-            .expect("b9368d0c plan_preserves_typed_identity_specs invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_B9368D0C);
         assert_eq!(identity.login(), &1u8);
     }
 

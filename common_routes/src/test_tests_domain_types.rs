@@ -16,7 +16,7 @@ impl git_info::git_commit_id_provider::GitCommitIdProvider for TestState {
 }
 impl app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider for TestState {
     fn sqlx_pg_pool(&self) -> app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_> {
-        panic!("38f80f5f")
+        std::panic::panic_any(constants_str::PANIC_38F80F5F)
     }
 }
 impl crate::common_routes_parameters::CommonRoutesParameters for TestState {}
@@ -34,11 +34,11 @@ fn test_commit_link_cow() -> git_info::git_commit_link_cow::GitCommitLinkCow {
     git_info::git_commit_link_cow::GitCommitLinkCow::try_from(std::borrow::Cow::Owned(
         test_commit_link(),
     ))
-    .expect("931b775c test_commit_link_cow invariant must hold")
+    .expect(constants_str::DIAGNOSTIC_931B775C)
 }
 fn b_cow(v: &'static str) -> git_info::git_commit_link_cow::GitCommitLinkCow {
     git_info::git_commit_link_cow::GitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v))
-        .expect("36301996 b_cow invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_36301996)
 }
 fn uri_ref(uri: &axum::http::Uri) -> crate::axum_http_uri_ref::AxumHttpUriRef<'_> {
     crate::axum_http_uri_ref::AxumHttpUriRef::from(uri)
@@ -236,7 +236,9 @@ async fn test_default_service_routes_return_success_statuses_and_match_openapi()
     let router = axum::Router::from(crate::common_routes::common_routes(
         crate::arc_common_routes_app_state::ArcCommonRoutesAppState::from(test_state()),
     ));
-    let document = serde_json::to_value(crate::common_routes_open_api::CommonRoutesOpenApi::open_api()).expect("f96bcc6e default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
+    let document =
+        serde_json::to_value(crate::common_routes_open_api::CommonRoutesOpenApi::open_api())
+            .expect(constants_str::DIAGNOSTIC_F96BCC6E);
     let check = |path: String| {
         let cloned_router = router.clone();
         let cloned_document = document.clone();
@@ -246,10 +248,10 @@ async fn test_default_service_routes_return_success_statuses_and_match_openapi()
                 axum::http::Request::builder()
                     .uri(path.as_str())
                     .body(axum::body::Body::empty())
-                    .expect("6e9abf44 default_service_routes_return_success_statuses_and_match_openapi invariant must hold"),
+                    .expect(constants_str::DIAGNOSTIC_6E9ABF44),
             )
             .await
-            .expect("634c635b default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_634C635B);
             assert_eq!(response.status(), axum::http::StatusCode::OK);
             assert!(
                 response
@@ -265,10 +267,10 @@ async fn test_default_service_routes_return_success_statuses_and_match_openapi()
             );
             let body = axum::body::to_bytes(response.into_body(), 16_384usize)
                 .await
-                .expect("e7d5f988 default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_E7D5F988);
             assert!(
                 serde_json::from_slice::<serde_json::Value>(&body)
-                    .expect("5013a777 default_service_routes_return_success_statuses_and_match_openapi invariant must hold")
+                    .expect(constants_str::DIAGNOSTIC_5013A777)
                     .is_object()
             );
         }
@@ -322,9 +324,9 @@ async fn test_default_service_routes_return_success_statuses_and_match_openapi()
         axum::http::Request::builder()
             .uri(constants_str::MISSING)
             .body(axum::body::Body::empty())
-            .expect("bb258755 default_service_routes_return_success_statuses_and_match_openapi invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_BB258755),
     )
     .await
-    .expect("d2b9cc45 default_service_routes_return_success_statuses_and_match_openapi invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_D2B9CC45);
     assert_eq!(not_found.status(), axum::http::StatusCode::NOT_FOUND);
 }

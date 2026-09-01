@@ -6,7 +6,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let env_var_name_snake_case = naming::domain_types::EnvVarNameSnakeCase;
     let std_env_var_error_snake_case = naming::domain_types::StdEnvVarErrorSnakeCase;
     let std_env_var_error_upper_camel_case = naming::domain_types::StdEnvVarErrorUpperCamelCase;
-    let di: syn::DeriveInput = syn::parse(v).expect("e45f75c2 try_from_env invariant must hold");
+    let di: syn::DeriveInput = syn::parse(v).expect(constants_str::DIAGNOSTIC_E45F75C2);
     let identifier = &di.ident;
     let generate_env_example = di.attrs.iter().any(|attribute| {
         attribute.path().is_ident(constants_str::CONFIG)
@@ -18,11 +18,15 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         naming::parameter::SelfTryFromEnvErrorUpperCamelCase::from_tokens(&identifier);
     let data_struct = match di.data {
         syn::Data::Struct(v0) => v0,
-        syn::Data::Enum(_) | syn::Data::Union(_) => panic!("54289ad5"),
+        syn::Data::Enum(_) | syn::Data::Union(_) => {
+            std::panic::panic_any(constants_str::PANIC_54289AD5)
+        }
     };
     let fields_named = match data_struct.fields {
         syn::Fields::Named(v0) => v0.named,
-        syn::Fields::Unnamed(_) | syn::Fields::Unit => panic!("330b2512"),
+        syn::Fields::Unnamed(_) | syn::Fields::Unit => {
+            std::panic::panic_any(constants_str::PANIC_330B2512)
+        }
     };
     let config_field_attributes = |field: &syn::Field| {
         let mut example = None;
@@ -59,7 +63,13 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Err(error) => return error.to_compile_error().into(),
     };
     let field_identifier = |field: &syn::Field, exp_id: &'static str| {
-        field.ident.clone().unwrap_or_else(|| panic!("{exp_id}"))
+        field.ident.clone().unwrap_or_else(|| {
+            std::panic::panic_any(constants_str::PANIC_D8C45567.replacen(
+                constants_str::PANIC_PLACEHOLDER_D8C45567,
+                exp_id,
+                1usize,
+            ))
+        })
     };
     let config_descriptors = fields_named
         .iter()

@@ -41,8 +41,8 @@ mod tests {
     #[test]
     fn test_derives_generate_from_and_borrowed_getter() {
         let tokens: proc_macro2::TokenStream = quote::quote! { true };
-        let _expression = syn::parse2::<syn::Expr>(tokens)
-            .expect("690cf228 foundation derive dependency invariant must hold");
+        let _expression =
+            syn::parse2::<syn::Expr>(tokens).expect(constants_str::DIAGNOSTIC_690CF228);
         let value = BorrowedValue::from(true);
         assert!(value.get());
     }
@@ -57,7 +57,7 @@ mod tests {
     fn test_derives_generate_as_ref_and_to_tokens() {
         let value = TokenValue::from(
             syn::parse_str::<syn::Expr>(constants_str::TRUE)
-                .expect("cb6db081 bool must parse as a Rust expression"),
+                .expect(constants_str::DIAGNOSTIC_CB6DB081),
         );
         let _: &syn::Expr = value.as_ref();
 
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn test_as_ref_inner_dereferences_reference_fields() {
         let expression = syn::parse_str::<syn::Expr>(constants_str::TRUE)
-            .expect("e7306ef4 bool must parse as a Rust expression");
+            .expect(constants_str::DIAGNOSTIC_E7306EF4);
         let value = ReferencedValue::from(&expression);
 
         assert!(matches!(value.as_ref(), syn::Expr::Lit(_)));

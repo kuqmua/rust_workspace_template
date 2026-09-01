@@ -47,6 +47,6 @@ fn test_duplicate_options_preserve_attribute_diagnostic() {
     if let Err(error) = bounded_result {
         assert_eq!(error.to_string(), "duplicate bounded_string option");
     } else {
-        panic!("d03ced5c");
+        std::panic::panic_any(constants_str::PANIC_D03CED5C);
     }
 }

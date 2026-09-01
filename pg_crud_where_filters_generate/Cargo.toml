@@ -13,6 +13,7 @@ edition.workspace = true
 proc-macro = true
 
 [dependencies]
+constants_str = { workspace = true }
 generate_where_filters_src = { workspace = true }
 [lints]
 workspace = true

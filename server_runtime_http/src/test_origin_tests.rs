@@ -4,7 +4,7 @@ mod tests {
         crate::allowed_origins::AllowedOrigins::try_from(vec![String::from(
             constants_str::HTTPS_ADMIN_EXAMPLE_COM,
         )])
-        .expect("782d2bed allowed_origins invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_782D2BED)
     }
 
     #[test]

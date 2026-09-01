@@ -17,9 +17,7 @@ fn test_server_rendered_pages_contain_forms_and_no_scripts() {
             crate::admin_ssr_error_message::AdminSsrErrorMessage::try_from(String::from(
                 constants_str::VALUE_7EC371A9,
             ))
-            .expect(
-                "31b0d69f server_rendered_pages_contain_forms_and_no_scripts invariant must hold",
-            ),
+            .expect(constants_str::DIAGNOSTIC_31B0D69F),
         ),
         None,
     );
@@ -33,9 +31,7 @@ fn test_server_rendered_pages_contain_forms_and_no_scripts() {
     let page = crate::render_admin_page::render_admin_page(
         server_admin_contract::admin_page::AdminPage::Users,
         crate::admin_ssr_html::AdminSsrHtml::try_from(String::from(constants_str::VALUE_91B66961))
-            .expect(
-                "c78bd3a1 server_rendered_pages_contain_forms_and_no_scripts invariant must hold",
-            ),
+            .expect(constants_str::DIAGNOSTIC_C78BD3A1),
     );
     assert!(page.as_ref().contains("<p>ready</p>"));
     assert!(!page.as_ref().contains("<h1"));
@@ -63,9 +59,8 @@ fn test_server_rendered_pages_contain_forms_and_no_scripts() {
 fn test_header_table_labels_match_table_names_and_routes() {
     let page = crate::render_admin_page::render_admin_page(
         server_admin_contract::admin_page::AdminPage::Users,
-        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new()).expect(
-            "5a984c96 header_table_labels_match_table_names_and_routes invariant must hold",
-        ),
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
+            .expect(constants_str::DIAGNOSTIC_5A984C96),
     );
 
     assert!(
@@ -74,9 +69,10 @@ fn test_header_table_labels_match_table_names_and_routes() {
             .all(|table| {
                 let table_name = table.to_string();
                 let route = table.frontend_path().to_string();
-                let route_name = route.rsplit_once('/').map(|(_prefix, name)| name).expect(
-                    "100762f4 header_table_labels_match_table_names_and_routes invariant must hold",
-                );
+                let route_name = route
+                    .rsplit_once('/')
+                    .map(|(_prefix, name)| name)
+                    .expect(constants_str::DIAGNOSTIC_100762F4);
                 let href = format!("href=\"{route}\"");
                 let header_label = page
                     .as_ref()
@@ -94,19 +90,18 @@ fn test_header_table_labels_match_table_names_and_routes() {
 fn test_header_items_stay_stable_between_static_and_table_pages() {
     let metrics = crate::render_admin_page::render_admin_page(
         server_admin_contract::admin_page::AdminPage::Metrics,
-        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new()).expect(
-            "f2d57bb4 header_items_stay_stable_between_static_and_table_pages invariant must hold",
-        ),
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
+            .expect(constants_str::DIAGNOSTIC_F2D57BB4),
     );
-    let cleanup_status = crate::render_admin_page_with_table_access::render_admin_page_with_table_access(
-        server_admin_contract::admin_page::AdminPage::Tables,
-        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new()).expect(
-            "7f46cfd6 header_items_stay_stable_between_static_and_table_pages invariant must hold",
-        ),
-        None,
-        None,
-        Some(server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus),
-    );
+    let cleanup_status =
+        crate::render_admin_page_with_table_access::render_admin_page_with_table_access(
+            server_admin_contract::admin_page::AdminPage::Tables,
+            crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
+                .expect(constants_str::DIAGNOSTIC_7F46CFD6),
+            None,
+            None,
+            Some(server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus),
+        );
     let normalized_header = |html: &crate::admin_ssr_html::AdminSsrHtml| {
         html.as_ref()
             .split_once(constants_str::VALUE_75322EEF)
@@ -141,15 +136,15 @@ fn test_csr_page_contains_only_csr_application_shell() {
         server_admin_contract::admin_display_name::AdminDisplayName::try_from(
             constants_str::ADMIN.to_owned(),
         )
-        .expect("642357a8 csr_page_contains_only_csr_application_shell invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_642357A8),
         server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
-            .expect("41856438 csr_page_contains_only_csr_application_shell invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_41856438),
         server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
-            .expect("71a3b6e5 csr_page_contains_only_csr_application_shell invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_71A3B6E5),
         server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(Vec::new())
-            .expect("8e3cf81f csr_page_contains_only_csr_application_shell invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_8E3CF81F),
         server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
-            .expect("a5677f33 csr_page_contains_only_csr_application_shell invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_A5677F33),
     );
     let settings = server_admin_contract::admin_settings_view::AdminSettingsView::new(
         server_admin_contract::admin_default_route::AdminDefaultRoute::try_from(
@@ -157,7 +152,7 @@ fn test_csr_page_contains_only_csr_application_shell() {
                 .get()
                 .to_owned(),
         )
-        .expect("44758b19 csr_page_contains_only_csr_application_shell invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_44758B19),
         None,
         None,
         None,
@@ -165,7 +160,7 @@ fn test_csr_page_contains_only_csr_application_shell() {
         server_admin_contract::admin_site_name::AdminSiteName::try_from(String::from(
             constants_str::ADMIN,
         ))
-        .expect("8ba6b381 csr_page_contains_only_csr_application_shell invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_8BA6B381),
         None,
         None,
     );

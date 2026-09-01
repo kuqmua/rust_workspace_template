@@ -97,7 +97,7 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
         Unnamed,
     }
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse(input).expect("d94f091a location invariant must hold");
+    let di: syn::DeriveInput = syn::parse(input).expect(constants_str::DIAGNOSTIC_D94F091A);
     let utoipa_to_schema_token_stream = di
         .attrs
         .iter()
@@ -115,14 +115,14 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
         .map(|element_a6a747c1| match &element_a6a747c1 {
             syn::GenericParam::Type(v) => &v.ident,
             syn::GenericParam::Lifetime(_) | syn::GenericParam::Const(_) => {
-                panic!("3ce82d11")
+                std::panic::panic_any(constants_str::PANIC_3CE82D11)
             }
         })
         .collect::<Vec<&syn::Ident>>();
     let identifier_with_serde_upper_camel_case =
         naming::parameter::SelfWithSerdeUpperCamelCase::from_tokens(&identifier);
     let syn::Data::Enum(data_enum) = di.data else {
-        panic!("d98214f7");
+        std::panic::panic_any(constants_str::PANIC_D98214F7);
     };
     let supported_enum_variant = {
         let mut all_eq: Option<SuportedEnumVariant> = None;
@@ -153,9 +153,9 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                         all_eq = Some(SuportedEnumVariant::Unnamed);
                     }
                 },
-                syn::Fields::Unit => panic!("2f2e9385"),
+                syn::Fields::Unit => std::panic::panic_any(constants_str::PANIC_2F2E9385),
             });
-        all_eq.expect("b9da972a location invariant must hold")
+        all_eq.expect(constants_str::DIAGNOSTIC_B9DA972A)
     };
     let maybe_generic_parameters_token_stream = if generic_parameters.is_empty() {
         proc_macro2::TokenStream::new()
@@ -202,12 +202,12 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                     let fields = if let syn::Fields::Named(fields) = &element.fields {
                         &fields.named
                     } else {
-                        panic!("f64e0d21");
+                        std::panic::panic_any(constants_str::PANIC_F64E0D21);
                     };
                     let fields_idents_excluding_location_token_stream = {
                         let accumulator_token_stream = fields.iter()
-                        .filter(|el0| *el0.ident.as_ref().expect("07504636 location invariant must hold") != *location_snake_case_str)
-                        .map(|el0| el0.ident.as_ref().expect("971ace15 location invariant must hold"))
+                        .filter(|el0| *el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_07504636) != *location_snake_case_str)
+                        .map(|el0| el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_971ACE15))
                         .collect::<Vec<&syn::Ident>>();
                         if accumulator_token_stream.is_empty() {
                             proc_macro2::TokenStream::new()
@@ -218,11 +218,11 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                     };
                     let fields_format_excluding_location_token_stream = generate_quotes::dq_token_stream::dq_token_stream(
                         &fields.iter()
-                        .filter(|el0| *el0.ident.as_ref().expect("3d70a4f4 location invariant must hold") != *location_snake_case_str)
+                        .filter(|el0| *el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_3D70A4F4) != *location_snake_case_str)
                         .fold(
                             String::new(),
                             |mut accumulator, el0| {
-                                let el0_identifier = &el0.ident.as_ref().expect("2e7cd5fe location invariant must hold");
+                                let el0_identifier = &el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_2E7CD5FE);
                                 assert!(
                                     std::fmt::Write::write_fmt(
                                         &mut accumulator,
@@ -235,10 +235,10 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                         )
                     );
                     let fields_format_vs_excluding_location_token_stream = fields.iter()
-                    .filter(|el0| *el0.ident.as_ref().expect("f6f6fb24 location invariant must hold") != *location_snake_case_str)
+                    .filter(|el0| *el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_F6F6FB24) != *location_snake_case_str)
                     .map(|el0| {
-                        let el0_identifier = &el0.ident.as_ref().expect("e97b25b9 location invariant must hold");
-                        match macro_helpers::location_field_attr::LocationFieldAttr::try_from(el0).expect("8ff56aeb location invariant must hold") {
+                        let el0_identifier = &el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_E97B25B9);
+                        match macro_helpers::location_field_attr::LocationFieldAttr::try_from(el0).expect(constants_str::DIAGNOSTIC_8FF56AEB) {
                             macro_helpers::location_field_attr::LocationFieldAttr::EoToErrString | macro_helpers::location_field_attr::LocationFieldAttr::EoToErrStringSerde => {
                                 quote::quote! {
                                     to_err_string::to_err_string::ToErrString::to_err_string(#el0_identifier)
@@ -397,18 +397,18 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                     let fields = if let syn::Fields::Named(fields) = &element.fields {
                         &fields.named
                     } else {
-                        panic!("238b402b");
+                        std::panic::panic_any(constants_str::PANIC_238B402B);
                     };
                     let fields_idents_token_stream = fields.iter().map(|el0| &el0.ident);
                     let fields_token_stream = fields.iter()
                     .map(|el0| {
-                        let el0_identifier = &el0.ident.as_ref().expect("9a672ac2 location invariant must hold");
+                        let el0_identifier = &el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_9A672AC2);
                         if **el0_identifier == *location_snake_case_str {
                             quote::quote! {#el0_identifier}
                         }
                         else {
                             let generate_field_token_stream = |ts: &dyn quote::ToTokens|quote::quote! {#el0_identifier: {#ts}};
-                            match macro_helpers::location_field_attr::LocationFieldAttr::try_from(el0).expect("449c3781 location invariant must hold") {
+                            match macro_helpers::location_field_attr::LocationFieldAttr::try_from(el0).expect(constants_str::DIAGNOSTIC_449C3781) {
                                 macro_helpers::location_field_attr::LocationFieldAttr::EoToErrString => generate_field_token_stream(&quote::quote! {
                                     to_err_string::to_err_string::ToErrString::to_err_string(&#el0_identifier).into_inner()
                                 }),
@@ -526,7 +526,7 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                     let fields = if let syn::Fields::Unnamed(fields) = &element.fields {
                         &fields.unnamed
                     } else {
-                        panic!("5749e920");
+                        std::panic::panic_any(constants_str::PANIC_5749E920);
                     };
                     let inner_type_with_serde_token_stream = {
                         format!(
@@ -536,14 +536,14 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
                                 let field_type = &fields
                                     .iter()
                                     .next()
-                                    .expect("8a80c36d location invariant must hold")
+                                    .expect(constants_str::DIAGNOSTIC_8A80C36D)
                                     .ty;
                                 quote::quote! {#field_type}.to_string()
                             },
                             naming::domain_types::WithSerdeUpperCamelCase
                         )
                         .parse::<proc_macro2::TokenStream>()
-                        .expect("9ff40f7e location invariant must hold")
+                        .expect(constants_str::DIAGNOSTIC_9FF40F7E)
                     };
                     quote::quote! {#element_identifier(#inner_type_with_serde_token_stream)}
                 });
@@ -589,7 +589,7 @@ mod tests {
         super::add_location_fields(super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(
             &mut item,
         ))
-        .expect("74c1509e adds_location_to_every_named_variant invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_74C1509E);
         assert_eq!(
             quote::quote! {#item}.to_string(),
             quote::quote! {

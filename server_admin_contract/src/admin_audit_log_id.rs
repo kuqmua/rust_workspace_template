@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn test_audit_log_identifier_round_trips_i64() {
         let identifier = super::AdminAuditLogId::try_from(constants_i64::ONE)
-            .expect("1a6ef5d3 audit log identifier must be positive");
+            .expect(constants_str::DIAGNOSTIC_1A6EF5D3);
         assert_eq!(i64::from(identifier), constants_i64::ONE);
     }
 }

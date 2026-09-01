@@ -32,7 +32,7 @@ impl TryFrom<String> for SqlIdentifier {
 mod tests {
     fn sql_identifier_fixture(value: &str) -> crate::sql_identifier::SqlIdentifier {
         crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
-            .expect("940eb924 identifier invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_940EB924)
     }
     #[test]
     #[allow(
@@ -48,9 +48,7 @@ mod tests {
         .into_iter()
         .for_each(|value| {
             let _identifier = crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
-                .expect(
-                    "326a4da9 sql_identifier_uses_restricted_ascii_grammar invariant must hold",
-                );
+                .expect(constants_str::DIAGNOSTIC_326A4DA9);
         });
         [
             constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
@@ -76,9 +74,7 @@ mod tests {
                 sql_identifier_fixture(constants_str::SQL_NAMES_ID),
                 sql_identifier_fixture(constants_str::LOGIN),
             ])
-            .expect(
-                "c4cf723e query_builder_accepts_only_validated_identifiers invariant must hold",
-            ),
+            .expect(constants_str::DIAGNOSTIC_C4CF723E),
         );
         let first = builder.build();
         let second = builder.build();

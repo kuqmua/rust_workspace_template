@@ -70,6 +70,6 @@ mod tests {
         .into_iter()
         .all(|(kind, expected)| super::AdminDataGridInputType::from(kind).as_ref() == expected)
         .then_some(())
-        .expect("8f1547af input kind mappings must match HTML input types");
+        .expect(constants_str::DIAGNOSTIC_8F1547AF);
     }
 }

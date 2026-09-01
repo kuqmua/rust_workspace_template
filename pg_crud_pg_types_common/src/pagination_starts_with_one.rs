@@ -142,9 +142,8 @@ impl pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneEleme
 mod tests {
     #[test]
     fn test_pagination_starts_with_one_accepts_inclusive_boundaries() {
-        let pagination = super::PaginationStartsWithOne::try_new(2i64, constants_i64::ONE).expect(
-            "007c805e pagination_starts_with_one_accepts_inclusive_boundaries invariant must hold",
-        );
+        let pagination = super::PaginationStartsWithOne::try_new(2i64, constants_i64::ONE)
+            .expect(constants_str::DIAGNOSTIC_007C805E);
         assert_eq!(pagination.start().get(), constants_i64::ONE);
         assert_eq!(pagination.end().get(), 3i64);
     }

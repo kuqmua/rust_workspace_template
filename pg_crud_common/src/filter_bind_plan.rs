@@ -44,7 +44,7 @@ mod tests {
             crate::pg_filter_text::PgFilterText::try_from(String::from(
                 constants_str::TEST_FILTER_TEXT,
             ))
-            .expect("43d8053d bind_plan_preserves_cross_type_order invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_43D8053D),
         );
         plan.push_i64(7i64.into());
         plan.push_bool(true.into());

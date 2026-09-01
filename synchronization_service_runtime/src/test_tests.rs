@@ -7,9 +7,7 @@ fn test_configuration_keeps_retry_and_execution_policies_together() {
     let delay = server_runtime_core::retry_delay_duration::RetryDelayDuration::from(
         std::time::Duration::ZERO,
     );
-    let valid_attempts = attempts.expect(
-        "36b4ca8f configuration_keeps_retry_and_execution_policies_together invariant must hold",
-    );
+    let valid_attempts = attempts.expect(constants_str::DIAGNOSTIC_36B4CA8F);
     let retry_policy =
         server_runtime_core::retry_policy::RetryPolicy::new(valid_attempts, Some(delay));
     let configuration =
@@ -29,7 +27,7 @@ fn test_synchronization_payload_enforces_maximum_byte_length() {
     let Ok(payload) =
         crate::synchronization_payload::SynchronizationPayload::try_from(vec![0; 16 * 1024 * 1024])
     else {
-        panic!("5c80aadf");
+        std::panic::panic_any(constants_str::PANIC_5C80AADF);
     };
     assert_eq!(payload.as_ref().len(), 16 * 1024 * 1024);
     let Err(_error) = crate::synchronization_payload::SynchronizationPayload::try_from(vec![
@@ -37,6 +35,6 @@ fn test_synchronization_payload_enforces_maximum_byte_length() {
         16 * 1024 * 1024
             + 1
     ]) else {
-        panic!("5e2a6145");
+        std::panic::panic_any(constants_str::PANIC_5E2A6145);
     };
 }

@@ -143,13 +143,13 @@ mod tests {
         let base_url = crate::service_base_url::ServiceBaseUrl::try_from(String::from(
             constants_str::VALUE_FF79C6DD,
         ))
-        .expect("6cde5062 route_url_uses_contract_path invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_6CDE5062);
         assert_eq!(
             super::route_url(
                 &base_url,
                 common_routes::common_route::CommonRoute::HealthLive.path()
             )
-            .expect("ea911c48 route_url_uses_contract_path invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_EA911C48)
             .as_ref(),
             "http://application/health/live"
         );

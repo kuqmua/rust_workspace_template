@@ -4,9 +4,7 @@ mod tests {
     fn test_administrator_secret_text_enforces_internal_bound() {
         let at_limit = constants_str::A_ALT.repeat(constants_usize::VALUE_8_192);
         let secret = crate::secrecy_admin_string::SecrecyAdminString::try_from(at_limit.clone())
-            .expect(
-                "6673b876 administrator_secret_text_enforces_internal_bound invariant must hold",
-            );
+            .expect(constants_str::DIAGNOSTIC_6673B876);
         assert_eq!(
             secrecy::ExposeSecret::expose_secret(&secret)
                 .as_ref()
@@ -27,13 +25,10 @@ mod tests {
     fn test_administrator_secret_text_is_redacted_and_zeroizable() {
         let raw = constants_str::NEVER_PRINT_THIS_VALUE;
         let secret = crate::secrecy_admin_string::SecrecyAdminString::try_from(raw.to_owned())
-            .expect(
-                "67b629e2 administrator_secret_text_is_redacted_and_zeroizable invariant must hold",
-            );
+            .expect(constants_str::DIAGNOSTIC_67B629E2);
         assert!(!format!("{secret:?}").contains(raw));
-        let mut bounded = crate::std_admin_string::StdAdminString::try_from(raw.to_owned()).expect(
-            "201f3c4b administrator_secret_text_is_redacted_and_zeroizable invariant must hold",
-        );
+        let mut bounded = crate::std_admin_string::StdAdminString::try_from(raw.to_owned())
+            .expect(constants_str::DIAGNOSTIC_201F3C4B);
         secrecy::zeroize::Zeroize::zeroize(&mut bounded);
         assert!(bounded.as_ref().is_empty());
     }
@@ -41,7 +36,7 @@ mod tests {
     fn test_administrator_resource_values_are_stable() {
         let positive =
             server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64::try_from(42i64)
-                .expect("2570af3b administrator_resource_values_are_stable invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_2570AF3B);
         assert_eq!(
             crate::std_admin_string::StdAdminString::from_positive_i64(positive).as_ref(),
             "42"

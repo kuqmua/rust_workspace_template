@@ -9,13 +9,12 @@ mod tests {
     #[test]
     fn test_exact_limit_and_one_byte_over_are_distinguished() {
         let path = unique_path(constants_str::LIMIT);
-        std::fs::write(&path, b"abcd")
-            .expect("11ddba38 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
+        std::fs::write(&path, b"abcd").expect(constants_str::DIAGNOSTIC_11DDBA38);
         let exact = crate::read_bounded_file::read_bounded_file(
             crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
             crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(4usize),
         )
-        .expect("28fce6c8 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_28FCE6C8);
         assert_eq!(exact.into_inner(), b"abcd");
         let over = crate::read_bounded_file::read_bounded_file(
             crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
@@ -26,14 +25,12 @@ mod tests {
             Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes })
                 if maximum_bytes.get() == 3usize
         ));
-        std::fs::remove_file(path)
-            .expect("30b575c6 exact_limit_and_one_byte_over_are_distinguished invariant must hold");
+        std::fs::remove_file(path).expect(constants_str::DIAGNOSTIC_30B575C6);
     }
     #[test]
     fn test_file_growth_after_metadata_is_rechecked() {
         let path = unique_path(constants_str::GROWTH);
-        std::fs::write(&path, b"a")
-            .expect("c0745b58 file_growth_after_metadata_is_rechecked invariant must hold");
+        std::fs::write(&path, b"a").expect(constants_str::DIAGNOSTIC_C0745B58);
         let maximum_bytes =
             crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(constants_usize::ONE);
         let result = (|| {
@@ -47,8 +44,7 @@ mod tests {
                     crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes },
                 );
             }
-            std::fs::write(&path, b"ab")
-                .expect("d34a7bc1 file_growth_after_metadata_is_rechecked invariant must hold");
+            std::fs::write(&path, b"ab").expect(constants_str::DIAGNOSTIC_D34A7BC1);
             let bytes = std::fs::read(path.as_path()).map_err(|source| {
                 crate::bounded_read_error::BoundedReadError::Io {
                     source: crate::bounded_read_io_error::BoundedReadIoError::from(source),
@@ -66,8 +62,7 @@ mod tests {
                 maximum_bytes: error_maximum_bytes,
             }) if error_maximum_bytes.get() == constants_usize::ONE
         ));
-        std::fs::remove_file(path)
-            .expect("385eed61 file_growth_after_metadata_is_rechecked invariant must hold");
+        std::fs::remove_file(path).expect(constants_str::DIAGNOSTIC_385EED61);
     }
     #[test]
     fn test_invalid_utf8_is_not_lossily_converted() {
@@ -102,7 +97,7 @@ mod tests {
                 .to_vec(),
         );
         let _json = crate::parse_bounded_json::parse_bounded_json(&valid)
-            .expect("712a0ea9 bounded_json_distinguishes_invalid_document invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_712A0EA9);
         let invalid = crate::bounded_bytes::BoundedBytes::from(
             constants_str::TEST_INVALID_JSON.as_bytes().to_vec(),
         );
@@ -116,15 +111,13 @@ mod tests {
         let json = crate::bounded_json_text::BoundedJsonText::try_from(String::from(
             constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY,
         ))
-        .expect("d2d69400 bounded_json_formats_pretty_and_compact_text invariant must hold");
-        let pretty = json
-            .pretty()
-            .expect("35493db4 bounded_json_formats_pretty_and_compact_text invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_D2D69400);
+        let pretty = json.pretty().expect(constants_str::DIAGNOSTIC_35493DB4);
         assert!(pretty.as_ref().contains('\n'));
         assert_eq!(
             pretty
                 .compact()
-                .expect("08123a26 bounded_json_formats_pretty_and_compact_text invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_08123A26)
                 .as_ref(),
             constants_str::TEST_JSON_MAP_WITH_ONE_ENTRY
         );
@@ -134,24 +127,24 @@ mod tests {
         let path = unique_path(constants_str::ASYNC);
         tokio::fs::write(&path, b"abc")
             .await
-            .expect("f68e33f3 asynchronous_file_read_obeys_limit invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_F68E33F3);
         let bytes = crate::read_bounded_file_async::read_bounded_file_async(
             crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
             crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(3usize),
         )
         .await
-        .expect("51d66e2c asynchronous_file_read_obeys_limit invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_51D66E2C);
         assert_eq!(bytes.into_inner(), b"abc");
         tokio::fs::remove_file(path)
             .await
-            .expect("9d5a2db0 asynchronous_file_read_obeys_limit invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_9D5A2DB0);
     }
     #[tokio::test]
     async fn test_http_response_stream_obeys_limit_without_external_network() {
         let response = http::Response::builder()
             .header(http::header::CONTENT_LENGTH, constants_str::VALUE_4)
             .body(constants_str::ABCD_ALT)
-            .expect("2306b26a http_response_stream_obeys_limit_without_external_network invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_2306B26A);
         let bytes = crate::read_bounded_http_response::read_bounded_http_response(
             crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(response)),
             crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(4usize),
@@ -160,7 +153,7 @@ mod tests {
             )),
         )
         .await
-        .expect("26fc4688 http_response_stream_obeys_limit_without_external_network invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_26FC4688);
         assert_eq!(bytes.into_inner(), b"abcd");
     }
 }

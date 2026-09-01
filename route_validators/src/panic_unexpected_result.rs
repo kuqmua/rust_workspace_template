@@ -9,5 +9,27 @@ pub(super) fn panic_unexpected_result(
     let fn_name = fn_name.into();
     let expected = expected.into();
     let exp_id = exp_id.into();
-    panic!("{error_id} unexpected {expected} for {fn_name}, id={exp_id}");
+    std::panic::panic_any(
+        constants_str::PANIC_C8FE4BAC
+            .replacen(
+                constants_str::PANIC_PLACEHOLDER_81766C62,
+                error_id.to_string().as_str(),
+                1usize,
+            )
+            .replacen(
+                constants_str::PANIC_PLACEHOLDER_A8D54BD7,
+                expected.to_string().as_str(),
+                1usize,
+            )
+            .replacen(
+                constants_str::PANIC_PLACEHOLDER_15B92257,
+                fn_name.to_string().as_str(),
+                1usize,
+            )
+            .replacen(
+                constants_str::PANIC_PLACEHOLDER_D8C45567,
+                exp_id.to_string().as_str(),
+                1usize,
+            ),
+    );
 }

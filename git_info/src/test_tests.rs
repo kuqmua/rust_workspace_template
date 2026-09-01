@@ -10,7 +10,7 @@ impl crate::git_commit_id_provider::GitCommitIdProvider for TestGitCommit {
         let calls = self.fallback_calls.get().saturating_add(1);
         self.fallback_calls.set(calls);
         crate::git_commit_id::GitCommitId::try_from(self.commit.to_owned())
-            .expect("45a9c31d git_commit_id invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_45A9C31D)
     }
     fn git_commit_id_ref(&self) -> Option<crate::git_commit_id_ref::GitCommitIdRef<'_>> {
         self.borrow_commit_ref
@@ -106,12 +106,12 @@ fn test_owned_git_values_and_generated_links_enforce_length_limit() {
     let Err(_commit_id_error) = crate::git_commit_id_cow::GitCommitIdCow::try_from(
         std::borrow::Cow::Owned(oversized.clone()),
     ) else {
-        panic!("8c811508");
+        std::panic::panic_any(constants_str::PANIC_8C811508);
     };
     let Err(_commit_link_error) = crate::git_commit_link_cow::GitCommitLinkCow::try_from(
         std::borrow::Cow::Owned(oversized.clone()),
     ) else {
-        panic!("69ee1326");
+        std::panic::panic_any(constants_str::PANIC_69EE1326);
     };
     let commit =
         crate::git_commit_id_provider::GitCommitIdProvider::git_commit_id(oversized.as_str());

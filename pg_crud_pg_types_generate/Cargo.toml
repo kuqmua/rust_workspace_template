@@ -13,6 +13,7 @@ edition.workspace = true
 proc-macro = true
 
 [dependencies]
+constants_str = { workspace = true }
 generate_pg_types_src = { workspace = true }
 macro_helpers = { workspace = true }
 [lints]

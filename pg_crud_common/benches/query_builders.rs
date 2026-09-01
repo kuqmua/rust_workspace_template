@@ -5,7 +5,7 @@
 
 fn identifier(value: &str) -> pg_crud_common::sql_identifier::SqlIdentifier {
     pg_crud_common::sql_identifier::SqlIdentifier::try_from(value.to_owned())
-        .expect("cd596c44 identifier invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_CD596C44)
 }
 #[allow(
     clippy::needless_for_each,
@@ -32,7 +32,7 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
                 identifier(constants_str::BENCHMARK_TABLE),
             ),
             pg_crud_common::sql_identifiers::SqlIdentifiers::try_from(columns)
-                .expect("04b6cc99 benchmark SQL identifiers invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_04B6CC99),
         );
         let _criterion = criterion.bench_function(benchmark_name, |bencher| {
             bencher.iter(|| {
@@ -69,13 +69,11 @@ fn bench_stable_read_query_plan(criterion: &mut criterion::Criterion) {
     let base = pg_crud_common::query_part_fragment::QueryPartFragment::try_from(String::from(
         constants_str::TEST_READ_QUERY_BASE,
     ))
-    .expect("bdca9e10 bench_stable_read_query_plan invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_BDCA9E10);
     let sort_column = identifier(constants_str::CREATED_AT);
     let tie_break_column = identifier(constants_str::SQL_NAMES_ID);
-    let limit_bind = std::num::NonZeroU32::new(1u32)
-        .expect("54b6f80d bench_stable_read_query_plan invariant must hold");
-    let offset_bind = std::num::NonZeroU32::new(2u32)
-        .expect("f05a624b bench_stable_read_query_plan invariant must hold");
+    let limit_bind = std::num::NonZeroU32::new(1u32).expect(constants_str::DIAGNOSTIC_54B6F80D);
+    let offset_bind = std::num::NonZeroU32::new(2u32).expect(constants_str::DIAGNOSTIC_F05A624B);
     let _criterion = criterion.bench_function(constants_str::STABLE_READ_QUERY_PLAN, |bencher| {
         bencher.iter(|| {
             let plan = pg_crud_common::build_stable_read_query_plan::build_stable_read_query_plan(

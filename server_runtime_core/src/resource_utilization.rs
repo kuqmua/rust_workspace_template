@@ -47,7 +47,7 @@ mod tests {
             crate::resource_amount::ResourceAmount::from(used),
             crate::resource_amount::ResourceAmount::from(maximum),
         )
-        .expect("8c23bc92 calculate invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_8C23BC92)
     }
 
     #[test]
@@ -121,7 +121,7 @@ mod tests {
                 .expect_err(constants_str::VALUE_F7C27C6F);
         assert_eq!(
             crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(100u8)
-                .expect("f17abeab percentage_rejects_values_above_one_hundred invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_F17ABEAB)
                 .get(),
             100u8
         );

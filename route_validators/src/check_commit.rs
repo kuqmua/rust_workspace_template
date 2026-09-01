@@ -61,8 +61,7 @@ mod tests {
     }
     fn make_headers_with_commit(commit: &str) -> crate::axum_test_headers::AxumTestHeaders {
         make_headers_with_commit_header_value(
-            axum::http::HeaderValue::from_str(commit)
-                .expect("9f2db59c make_headers_with_commit invariant must hold"),
+            axum::http::HeaderValue::from_str(commit).expect(constants_str::DIAGNOSTIC_9F2DB59C),
         )
     }
     fn make_headers_with_wrong_commit() -> crate::axum_test_headers::AxumTestHeaders {

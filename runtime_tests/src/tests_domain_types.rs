@@ -5,7 +5,7 @@ mod tests {
         let base_url = crate::service_base_url::ServiceBaseUrl::try_from(String::from(
             constants_str::VALUE_88B6A990,
         ))
-        .expect("087da3f2 service_base_url_normalizes_trailing_slashes invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_087DA3F2);
         assert_eq!(base_url.as_ref(), "http://127.0.0.1:8080");
     }
 

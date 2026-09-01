@@ -76,16 +76,34 @@ impl CodebaseSnapshot {
             .or_else(|| {
                 path.as_ref().exists().then(|| {
                     let value = std::fs::read_to_string(path.as_ref()).unwrap_or_else(|error| {
-                        panic!(
-                            "e12179c5 failed to read {}: {error}",
-                            path.as_ref().display()
+                        std::panic::panic_any(
+                            constants_str::PANIC_E12179C5
+                                .replacen(
+                                    constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                                    path.as_ref().display().to_string().as_str(),
+                                    1usize,
+                                )
+                                .replacen(
+                                    constants_str::PANIC_PLACEHOLDER_81240055,
+                                    error.to_string().as_str(),
+                                    1usize,
+                                ),
                         )
                     });
                     value.parse::<toml::Table>().map_or_else(
                         |error| {
-                            panic!(
-                                "77b2d82b failed to parse {}: {error}",
-                                path.as_ref().display()
+                            std::panic::panic_any(
+                                constants_str::PANIC_77B2D82B
+                                    .replacen(
+                                        constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                                        path.as_ref().display().to_string().as_str(),
+                                        1usize,
+                                    )
+                                    .replacen(
+                                        constants_str::PANIC_PLACEHOLDER_81240055,
+                                        error.to_string().as_str(),
+                                        1usize,
+                                    ),
                             )
                         },
                         crate::types::TomlTable::from,
@@ -127,7 +145,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                         cargo_metadata::MetadataCommand::new()
                             .manifest_path(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
                             .exec()
-                            .expect("c84e9d1f workspace metadata invariant must hold"),
+                            .expect(constants_str::DIAGNOSTIC_C84E9D1F),
                     );
                     let workspace_members = crate::types::CargoPackageIdRefHashSet::from(
                         metadata
@@ -151,14 +169,38 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                         .map(|package| {
                             let path = package.manifest_path.as_std_path().to_path_buf();
                             let content = std::fs::read_to_string(&path).unwrap_or_else(|error| {
-                                panic!("50da433e failed to read {}: {error}", path.display())
+                                std::panic::panic_any(
+                                    constants_str::PANIC_50DA433E
+                                        .replacen(
+                                            constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                                            path.display().to_string().as_str(),
+                                            1usize,
+                                        )
+                                        .replacen(
+                                            constants_str::PANIC_PLACEHOLDER_81240055,
+                                            error.to_string().as_str(),
+                                            1usize,
+                                        ),
+                                )
                             });
                             let parsed = content.parse::<toml::Table>().unwrap_or_else(|error| {
-                                panic!("96f2c78a failed to parse {}: {error}", path.display())
+                                std::panic::panic_any(
+                                    constants_str::PANIC_96F2C78A
+                                        .replacen(
+                                            constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                                            path.display().to_string().as_str(),
+                                            1usize,
+                                        )
+                                        .replacen(
+                                            constants_str::PANIC_PLACEHOLDER_81240055,
+                                            error.to_string().as_str(),
+                                            1usize,
+                                        ),
+                                )
                             });
                             CargoTomlSourceFile {
                                 content: crate::types::SourceText::try_from(content)
-                                    .expect("84f6a0d2 build invariant must hold"),
+                                    .expect(constants_str::DIAGNOSTIC_84F6A0D2),
                                 parsed: crate::types::TomlTable::from(parsed),
                                 path: crate::types::OwnedPathBuf::from(path),
                             }
@@ -228,7 +270,19 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                 .map(|source_file| {
                     let ast =
                         syn::parse_file(source_file.content.as_ref()).unwrap_or_else(|error| {
-                            panic!("5e7a83eb {}: {error}", source_file.path.as_ref().display())
+                            std::panic::panic_any(
+                                constants_str::PANIC_5E7A83EB
+                                    .replacen(
+                                        constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                                        source_file.path.as_ref().display().to_string().as_str(),
+                                        1usize,
+                                    )
+                                    .replacen(
+                                        constants_str::PANIC_PLACEHOLDER_81240055,
+                                        error.to_string().as_str(),
+                                        1usize,
+                                    ),
+                            )
                         });
                     RsSourceFile {
                         ast: crate::types::SynFile::from(ast),
@@ -246,11 +300,30 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
 }
 
 fn project_walk_entry(entry: walkdir::Result<walkdir::DirEntry>) -> walkdir::DirEntry {
-    entry.unwrap_or_else(|error| panic!("1e4b17b0 walk failed: {error}"))
+    entry.unwrap_or_else(|error| {
+        std::panic::panic_any(constants_str::PANIC_1E4B17B0.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            error.to_string().as_str(),
+            1usize,
+        ))
+    })
 }
 fn project_source_file(path: std::path::PathBuf) -> ProjectSourceFile {
-    let raw_content = std::fs::read_to_string(&path)
-        .unwrap_or_else(|error| panic!("68a041c3 failed to read {}: {error}", path.display()));
+    let raw_content = std::fs::read_to_string(&path).unwrap_or_else(|error| {
+        std::panic::panic_any(
+            constants_str::PANIC_68A041C3
+                .replacen(
+                    constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                    path.display().to_string().as_str(),
+                    1usize,
+                )
+                .replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                ),
+        )
+    });
     let content = project_source_content(path.as_path(), raw_content);
     ProjectSourceFile {
         content,
@@ -258,8 +331,21 @@ fn project_source_file(path: std::path::PathBuf) -> ProjectSourceFile {
     }
 }
 fn project_source_content(path: &std::path::Path, raw_content: String) -> crate::types::SourceText {
-    crate::types::SourceText::try_from(raw_content)
-        .unwrap_or_else(|error| panic!("e27f9e15 invalid source {}: {error}", path.display()))
+    crate::types::SourceText::try_from(raw_content).unwrap_or_else(|error| {
+        std::panic::panic_any(
+            constants_str::PANIC_E27F9E15
+                .replacen(
+                    constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                    path.display().to_string().as_str(),
+                    1usize,
+                )
+                .replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                ),
+        )
+    })
 }
 #[test]
 fn test_invalid_project_source_content_fails_snapshot_loading() {
@@ -287,7 +373,7 @@ fn test_walk_error_fails_snapshot_loading() {
             let missing = walkdir::WalkDir::new("code_style_snapshot_missing_directory")
                 .into_iter()
                 .next()
-                .expect("1da2f4ed walk_error_fails_snapshot_loading invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_1DA2F4ED);
             project_walk_entry(missing)
         })
         .is_err(),

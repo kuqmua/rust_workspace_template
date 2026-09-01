@@ -9,9 +9,8 @@ fn test_empty_settings_update_has_no_fields_and_is_valid() {
         None,
         None,
         None,
-        crate::admin_optional_settings::AdminOptionalSettings::try_from(Vec::new()).expect(
-            "d1846f3a empty_settings_update_has_no_fields_and_is_valid invariant must hold",
-        ),
+        crate::admin_optional_settings::AdminOptionalSettings::try_from(Vec::new())
+            .expect(constants_str::DIAGNOSTIC_D1846F3A),
     );
     assert!(!bool::from(request.has_fields()));
     assert!(bool::from(request.is_valid()));
@@ -22,32 +21,32 @@ fn test_setting_types_match_database_constraints() {
     let Err(_empty_site_name_error) =
         crate::admin_site_name::AdminSiteName::try_from(String::new())
     else {
-        panic!("4cfb6820");
+        std::panic::panic_any(constants_str::PANIC_4CFB6820);
     };
     let Err(_blank_site_name_error) =
         crate::admin_site_name::AdminSiteName::try_from(constants_str::SPACE.to_owned())
     else {
-        panic!("b5fba19e");
+        std::panic::panic_any(constants_str::PANIC_B5FBA19E);
     };
     let _site_name =
         crate::admin_site_name::AdminSiteName::try_from(constants_str::ADMIN.to_owned())
-            .expect("adb58327 setting_types_match_database_constraints invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_ADB58327);
     let _default_route = crate::admin_default_route::AdminDefaultRoute::try_from(
         crate::admin_frontend_path::AdminFrontendPath::Users
             .get()
             .to_owned(),
     )
-    .expect("3582a0ec setting_types_match_database_constraints invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_3582A0EC);
     let _table_default_route = crate::admin_default_route::AdminDefaultRoute::try_from(
         crate::admin_data_table::AdminDataTable::RolePermissions
             .frontend_path()
             .to_string(),
     )
-    .expect("e3d42017 setting_types_match_database_constraints invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_E3D42017);
     let Err(_invalid_route_error) =
         crate::admin_default_route::AdminDefaultRoute::try_from(constants_str::ROUTE.to_owned())
     else {
-        panic!("bb0d454a");
+        std::panic::panic_any(constants_str::PANIC_BB0D454A);
     };
 }
 
@@ -63,7 +62,7 @@ fn test_update_reports_whether_it_contains_a_field() {
         None,
         None,
         crate::admin_optional_settings::AdminOptionalSettings::try_from(Vec::new())
-            .expect("c4a1e2d3 update_reports_whether_it_contains_a_field invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_C4A1E2D3),
     );
     assert!(!bool::from(empty.has_fields()));
     let with_site_name = crate::admin_update_settings_req::AdminUpdateSettingsReq::new(
@@ -74,12 +73,12 @@ fn test_update_reports_whether_it_contains_a_field() {
         None,
         Some(
             crate::admin_site_name::AdminSiteName::try_from(constants_str::ADMIN.to_owned())
-                .expect("5db76a91 update_reports_whether_it_contains_a_field invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_5DB76A91),
         ),
         None,
         None,
         crate::admin_optional_settings::AdminOptionalSettings::try_from(Vec::new())
-            .expect("32e4e74d update_reports_whether_it_contains_a_field invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_32E4E74D),
     );
     assert!(bool::from(with_site_name.has_fields()));
     assert!(bool::from(with_site_name.is_valid()));
@@ -95,7 +94,7 @@ fn test_update_reports_whether_it_contains_a_field() {
         crate::admin_optional_settings::AdminOptionalSettings::try_from(vec![
             crate::admin_optional_setting::AdminOptionalSetting::MainLogo,
         ])
-        .expect("96e94562 update_reports_whether_it_contains_a_field invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_96E94562),
     );
     assert!(bool::from(clear_logo.has_fields()));
     assert!(bool::from(clear_logo.is_valid()));
@@ -104,7 +103,7 @@ fn test_update_reports_whether_it_contains_a_field() {
 #[test]
 fn test_catalog_covers_read_and_update_wire_fields() {
     let empty_clear = crate::admin_optional_settings::AdminOptionalSettings::try_from(Vec::new())
-        .expect("7f3a9c2e catalog_covers_read_and_update_wire_fields invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_7F3A9C2E);
     let update = crate::admin_update_settings_req::AdminUpdateSettingsReq::new(
         None,
         None,
@@ -117,9 +116,9 @@ fn test_catalog_covers_read_and_update_wire_fields() {
         empty_clear,
     );
     let update_fields = serde_json::to_value(update)
-        .expect("c84d1e6a catalog_covers_read_and_update_wire_fields invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_C84D1E6A)
         .as_object()
-        .expect("49b2e7c1 catalog_covers_read_and_update_wire_fields invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_49B2E7C1)
         .keys()
         .cloned()
         .collect::<std::collections::BTreeSet<_>>();
@@ -135,20 +134,20 @@ fn test_catalog_covers_read_and_update_wire_fields() {
         crate::admin_default_route::AdminDefaultRoute::try_from(String::from(
             constants_str::VALUE_074B6E5E,
         ))
-        .expect("b6831fd4 catalog_covers_read_and_update_wire_fields invariant must hold"),
+        .expect(constants_str::DIAGNOSTIC_B6831FD4),
         None,
         None,
         None,
         None,
         crate::admin_site_name::AdminSiteName::try_from(String::from(constants_str::ADMIN))
-            .expect("e15c7a93 catalog_covers_read_and_update_wire_fields invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_E15C7A93),
         None,
         None,
     );
     let view_fields = serde_json::to_value(view)
-        .expect("86d4a2f9 catalog_covers_read_and_update_wire_fields invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_86D4A2F9)
         .as_object()
-        .expect("21c9e5b7 catalog_covers_read_and_update_wire_fields invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_21C9E5B7)
         .keys()
         .cloned()
         .collect::<std::collections::BTreeSet<_>>();

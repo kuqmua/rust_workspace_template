@@ -9,6 +9,6 @@ pub(crate) fn assert_file_content(
         ),
     )
     .and_then(server_runtime_http::bounded_text::BoundedText::try_from)
-    .expect("d5ec6712 assert_file_content invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_D5EC6712);
     assert_eq!(cnt.as_ref(), exp.as_ref());
 }

@@ -15,8 +15,7 @@ mod tests {
         let error = crate::make_query_bind_error::make_query_bind_error(std::io::Error::other(
             constants_str::ERROR,
         ));
-        let source = std::error::Error::source(&error)
-            .expect("c9d460e5 query_bind_error_preserves_its_source invariant must hold");
+        let source = std::error::Error::source(&error).expect(constants_str::DIAGNOSTIC_C9D460E5);
 
         assert_eq!(source.to_string(), constants_str::ERROR);
         assert_eq!(
@@ -26,7 +25,7 @@ mod tests {
         assert_eq!(
             source
                 .source()
-                .expect("4e5bcc6b query_bind_error_preserves_its_source invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_4E5BCC6B)
                 .to_string(),
             constants_str::ERROR
         );

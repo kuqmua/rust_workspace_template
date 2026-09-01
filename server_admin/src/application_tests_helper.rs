@@ -5,9 +5,9 @@ where
 {
     Value::try_from_std_env_var_ok(
         config_lib::std_env_var_ok::StdEnvVarOk::try_from(value.to_owned())
-            .expect("82c951d4 env invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_82C951D4),
     )
-    .expect("135a22e8 env invariant must hold")
+    .expect(constants_str::DIAGNOSTIC_135A22E8)
 }
 
 pub(crate) fn auth_state(

@@ -15,7 +15,7 @@ mod tests {
         let _value = crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText::try_from(
             constants_str::TEST_GIT_COMMIT_HASH.to_owned(),
         )
-        .expect("fdb4f77c fixed_hex_requires_lowercase_and_exact_length invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_FDB4F77C);
         assert_eq!(
             crate::fixed_length_ascii_hex_text::FixedLengthAsciiHexText::try_from(
                 constants_str::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()

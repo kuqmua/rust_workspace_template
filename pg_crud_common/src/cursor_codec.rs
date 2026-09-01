@@ -125,9 +125,9 @@ mod tests {
     fn codec() -> crate::cursor_codec::CursorCodec {
         crate::cursor_codec::CursorCodec::new(
             crate::cursor_signing_key::CursorSigningKey::try_from(vec![7u8; 32usize])
-                .expect("556f25ae codec invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_556F25AE),
             crate::cursor_maximum_length::CursorMaximumLength::try_from(1_024usize)
-                .expect("30c8f351 codec invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_30C8F351),
         )
     }
 
@@ -136,14 +136,14 @@ mod tests {
         let payload = crate::cursor_payload::CursorPayload::try_from(String::from(
             constants_str::CURSOR_TEST_JSON_PAYLOAD,
         ))
-        .expect("ead70a9e signed_cursor_round_trip_preserves_payload invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_EAD70A9E);
         let cursor = codec()
             .encode(&payload)
-            .expect("47ad934b signed_cursor_round_trip_preserves_payload invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_47AD934B);
         assert_eq!(
             codec()
                 .decode(&cursor)
-                .expect("cc4bf589 signed_cursor_round_trip_preserves_payload invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_CC4BF589),
             payload
         );
     }
@@ -153,13 +153,13 @@ mod tests {
         let payload = crate::cursor_payload::CursorPayload::try_from(String::from(
             constants_str::CURSOR_TEST_PAYLOAD,
         ))
-        .expect("256860a7 modified_cursor_is_rejected invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_256860A7);
         let cursor = codec()
             .encode(&payload)
-            .expect("22fc1ce9 modified_cursor_is_rejected invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_22FC1CE9);
         let modified =
             crate::signed_cursor::SignedCursor::try_from(format!("{}x", cursor.as_ref()))
-                .expect("64b5f541 modified_cursor_is_rejected invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_64B5F541);
         assert_eq!(
             codec().decode(&modified),
             Err(crate::cursor_decode_error::CursorDecodeError::InvalidSignature)

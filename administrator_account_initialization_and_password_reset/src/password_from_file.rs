@@ -43,7 +43,7 @@ mod tests {
                 format!("{password_text}\r\n").into_bytes(),
             ),
         )
-        .expect("05536bb6 password_file_accepts_one_trailing_line_ending invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_05536BB6);
 
         let debug = format!("{password:?}");
         assert!(debug.contains(constants_str::REDACTED_ALT_3));
@@ -59,7 +59,7 @@ mod tests {
                     .saturating_add(constants_usize::ONE)
             ]),
         ) else {
-            panic!("7ad9edb5 expected an excessive password file to fail");
+            std::panic::panic_any(constants_str::PANIC_7AD9EDB5);
         };
     }
 }

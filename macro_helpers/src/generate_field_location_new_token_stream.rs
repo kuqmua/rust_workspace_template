@@ -49,12 +49,10 @@ mod tests {
         let _column_error =
             crate::field_location_column::FieldLocationColumn::try_from(constants_u32::ZERO)
                 .expect_err(constants_str::VALUE_B430FE14);
-        let _line = crate::field_location_line::FieldLocationLine::try_from(7u32).expect(
-            "070dbee8 coordinates_reject_zero_and_accept_positive_values invariant must hold",
-        );
-        let _column = crate::field_location_column::FieldLocationColumn::try_from(11u32).expect(
-            "e067c790 coordinates_reject_zero_and_accept_positive_values invariant must hold",
-        );
+        let _line = crate::field_location_line::FieldLocationLine::try_from(7u32)
+            .expect(constants_str::DIAGNOSTIC_070DBEE8);
+        let _column = crate::field_location_column::FieldLocationColumn::try_from(11u32)
+            .expect(constants_str::DIAGNOSTIC_E067C790);
     }
     #[test]
     fn test_first_coordinates_generate_complete_location_field() {

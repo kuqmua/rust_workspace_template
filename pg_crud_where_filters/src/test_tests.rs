@@ -7,7 +7,11 @@ fn test_pg_type_not_empty_unique_vec_try_from_ok() {
         1i32, 2i32, 3i32,
     ]);
     if let Err(error) = rslt {
-        panic!("5a6afcfa {error:?}");
+        std::panic::panic_any(constants_str::PANIC_5A6AFCFA.replacen(
+            constants_str::PANIC_PLACEHOLDER_04CEF635,
+            format!("{error:?}").as_str(),
+            1usize,
+        ));
     }
 }
 
@@ -90,11 +94,11 @@ fn test_encode_format_display_is_stable() {
 #[test]
 fn test_regex_regex_eq_compares_pattern_content() {
     let left = crate::regex_regex::RegexRegex::try_from(String::from(constants_str::D_PLUS))
-        .expect("8342ad27 regex_regex_eq_compares_pattern_content invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_8342AD27);
     let right = crate::regex_regex::RegexRegex::try_from(String::from(constants_str::D_PLUS))
-        .expect("4d0fa8e3 regex_regex_eq_compares_pattern_content invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_4D0FA8E3);
     let other = crate::regex_regex::RegexRegex::try_from(String::from(constants_str::A_Z_PLUS))
-        .expect("abcc9a72 regex_regex_eq_compares_pattern_content invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_ABCC9A72);
     assert_eq!(left, right);
     assert_ne!(left, other);
 }

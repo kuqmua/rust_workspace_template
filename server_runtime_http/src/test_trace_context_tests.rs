@@ -9,27 +9,27 @@ mod tests {
         let trace_parent = crate::http_trace_parent::HttpTraceParent::try_from(
             constants_str::TRACEPARENT_TEST_VALUE.to_owned(),
         )
-        .expect("6b490bf8 validates_and_applies_w3c_trace_context invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_6B490BF8);
         let trace_state = crate::http_trace_state::HttpTraceState::try_from(
             constants_str::TRACESTATE_TEST_VALUE.to_owned(),
         )
-        .expect("b82fb9ef validates_and_applies_w3c_trace_context invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_B82FB9EF);
         let request_id =
             crate::request_id::RequestId::try_from(constants_str::REQUEST_ID_TEST_VALUE.to_owned())
-                .expect("50c01ea8 validates_and_applies_w3c_trace_context invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_50C01EA8);
         let client = crate::reqwest_client::ReqwestClient::try_new(
             crate::reqwest_client_policy::ReqwestClientPolicy::new(
                 crate::reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration::try_from(
                     std::time::Duration::from_secs(1u64),
                 )
-                .expect("ce032a9f validates_and_applies_w3c_trace_context invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_CE032A9F),
                 crate::reqwest_request_timeout_duration::ReqwestRequestTimeoutDuration::try_from(
                     std::time::Duration::from_secs(2u64),
                 )
-                .expect("a1dabed3 validates_and_applies_w3c_trace_context invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_A1DABED3),
             ),
         )
-        .expect("8ded9d63 validates_and_applies_w3c_trace_context invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_8DED9D63);
         let request_builder: reqwest::RequestBuilder =
             crate::outbound_trace_context::OutboundTraceContext::new(
                 trace_parent,
@@ -44,7 +44,7 @@ mod tests {
             .into();
         let request = request_builder
             .build()
-            .expect("1574578f validates_and_applies_w3c_trace_context invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_1574578F);
         assert_eq!(
             request.headers()[constants_str::TRACESTATE],
             constants_str::TRACESTATE_TEST_VALUE
@@ -82,7 +82,7 @@ mod tests {
         assert!(span.span_context().is_remote());
         let expected_trace_id = constants_str::TRACEPARENT_TEST_VALUE
             .get(3usize..35usize)
-            .expect("65aa5eca extracts_valid_w3c_parent_context invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_65AA5ECA);
         assert_eq!(
             span.span_context().trace_id().to_string(),
             expected_trace_id

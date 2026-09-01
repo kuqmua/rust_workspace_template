@@ -68,9 +68,7 @@ fn test_persisted_idempotency_body_enforces_inclusive_storage_limit() {
         constants_u8::ZERO;
         constants_usize::VALUE_1_048_576
     ])
-    .expect(
-        "aa90ef11 persisted_idempotency_body_enforces_inclusive_storage_limit invariant must hold",
-    );
+    .expect(constants_str::DIAGNOSTIC_AA90EF11);
     assert_eq!(exact.as_ref().len(), constants_usize::VALUE_1_048_576);
     assert_eq!(
         crate::pg_table_idempotency_body::PgTableIdempotencyBody::try_from(vec![

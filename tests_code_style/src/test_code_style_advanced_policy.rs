@@ -70,7 +70,7 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
                     .then(|| {
                         argument.path.segments.first().map(|segment| {
                             crate::types::SourceText::try_from(segment.ident.to_string())
-                                .expect("d4f6bdce dropped identifier invariant must hold")
+                                .expect(constants_str::DIAGNOSTIC_D4F6BDCE)
                         })
                     })
                     .flatten()
@@ -554,11 +554,11 @@ impl PublicApiVisitor {
             .lines
             .get(start..end)
             .map(|lines| lines.join(constants_str::NEWLINE))
-            .expect("c9d73e55 source invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_C9D73E55)
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(constants_str::SPACE);
-        crate::types::SourceText::try_from(normalized).expect("31f04bb7 source invariant must hold")
+        crate::types::SourceText::try_from(normalized).expect(constants_str::DIAGNOSTIC_31F04BB7)
     }
     fn field_type(&self, field: &syn::Field) -> crate::types::SourceText {
         let source = self.source(syn::spanned::Spanned::span(field));
@@ -566,9 +566,8 @@ impl PublicApiVisitor {
             .as_ref()
             .split_once(':')
             .map(|(_field, field_type)| field_type.trim().trim_end_matches(',').to_owned())
-            .expect("5af91e82 field_type invariant must hold");
-        crate::types::SourceText::try_from(field_type)
-            .expect("3e2d89ef field_type invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_5AF91E82);
+        crate::types::SourceText::try_from(field_type).expect(constants_str::DIAGNOSTIC_3E2D89EF)
     }
     fn record(&mut self, span: proc_macro2::Span, signature_only: bool) {
         let start = span.start().line.saturating_sub(constants_usize::ONE);
@@ -577,7 +576,7 @@ impl PublicApiVisitor {
             .lines
             .get(start..end)
             .map(|lines| lines.join(constants_str::NEWLINE))
-            .expect("3e180abf record invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_3E180ABF);
         let relevant = if signature_only {
             source
                 .split_once('{')
@@ -612,7 +611,7 @@ impl PublicApiVisitor {
                 }
                 Ok(())
             })
-            .expect("d932a5f1 record_contract_struct_api invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_D932A5F1);
         let syn::Fields::Named(fields) = &item.fields else {
             return;
         };
@@ -682,7 +681,7 @@ impl PublicApiVisitor {
                                 let inner_type = field_type
                                     .strip_prefix(constants_str::VALUE_7E0FC0D7)
                                     .and_then(|value| value.strip_suffix('>'))
-                                    .expect("9ba9415c into_ invariant must hold");
+                                    .expect(constants_str::DIAGNOSTIC_9BA9415C);
                                 format!(
                                     "#[must_use] pub const fn {identifier}(&self) -> Option<&{inner_type}>"
                                 )
@@ -703,7 +702,7 @@ impl PublicApiVisitor {
                             }
                             Ok(())
                         })
-                        .expect("206adbf7 into_ invariant must hold");
+                        .expect(constants_str::DIAGNOSTIC_206ADBF7);
                 });
         });
     }
@@ -984,12 +983,11 @@ fn test_struct_error_exceptions_match_reviewed_snapshot() {
         let snapshot_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(constants_str::STRUCT_ERROR_SNAPSHOT_PATH);
         if std::env::var_os(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS).is_some() {
-            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
-                "65e1d4f0 struct_error_exceptions_match_reviewed_snapshot invariant must hold",
-            );
+            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes())
+                .expect(constants_str::DIAGNOSTIC_65E1D4F0);
         }
-        let expected_snapshot = std::fs::read_to_string(snapshot_path)
-            .expect("ba047d32 struct_error_exceptions_match_reviewed_snapshot invariant must hold");
+        let expected_snapshot =
+            std::fs::read_to_string(snapshot_path).expect(constants_str::DIAGNOSTIC_BA047D32);
         assert_eq!(
             current_snapshot, expected_snapshot,
             "731ffc35 struct error inventory changed"
@@ -1048,12 +1046,11 @@ fn test_contract_public_api_matches_reviewed_snapshot() {
         if std::env::var_os(constants_str::UPDATE_CODE_STYLE_SNAPSHOTS).is_some()
             || std::env::var_os(constants_str::UPDATE_CONTRACT_PUBLIC_API_SNAPSHOT).is_some()
         {
-            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes()).expect(
-                "e2c6b190 contract_public_api_matches_reviewed_snapshot invariant must hold",
-            );
+            std::fs::write(snapshot_path.as_path(), current_snapshot.as_bytes())
+                .expect(constants_str::DIAGNOSTIC_E2C6B190);
         }
-        let expected_snapshot = std::fs::read_to_string(snapshot_path)
-            .expect("fd9130e7 contract_public_api_matches_reviewed_snapshot invariant must hold");
+        let expected_snapshot =
+            std::fs::read_to_string(snapshot_path).expect(constants_str::DIAGNOSTIC_FD9130E7);
         assert_eq!(
             current_snapshot, expected_snapshot,
             "505a0cf7 contract public API snapshot changed"
@@ -1945,8 +1942,8 @@ fn test_select_sites_match_reviewed_cancellation_inventory() {
 
 #[test]
 fn test_select_policy_rejects_cancellation_sensitive_operations() {
-    let ast = syn::parse_file(constants_str::VALUE_F6958372)
-        .expect("714c620f invalid invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_F6958372).expect(constants_str::DIAGNOSTIC_714C620F);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         SelectMacroVisitor::default(),
@@ -1978,7 +1975,7 @@ fn test_architectural_boundaries_reject_upward_dependencies() {
                 .packages
                 .iter()
                 .find(|package| package.name == *package_name)
-                .expect("010e6a3f architectural_boundaries_reject_upward_dependencies invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_010E6A3F);
             let observed = package
                 .dependencies
                 .iter()
@@ -2000,7 +1997,9 @@ fn test_architectural_boundaries_reject_upward_dependencies() {
                             || dependency.name.starts_with(constants_str::VALUE_AAADEE66)
                             || dependency.name.starts_with(constants_str::VALUE_D11DB134)
                     }
-                    constants_str::VALUE_B29A11B9 | constants_str::VALUE_E1717E8B | constants_str::VALUE_B4F499E2 => {
+                    constants_str::VALUE_B29A11B9
+                    | constants_str::VALUE_E1717E8B
+                    | constants_str::VALUE_B4F499E2 => {
                         dependency.name == constants_str::VALUE_CA3132B2
                             || dependency.name == constants_str::VALUE_B3EACD33
                             || dependency.name.starts_with(constants_str::VALUE_6D090579)
@@ -2024,10 +2023,10 @@ fn test_architectural_boundaries_reject_upward_dependencies() {
 
 #[test]
 fn test_lock_across_await_policy_requires_explicit_drop() {
-    let invalid = syn::parse_file(constants_str::VALUE_6F786FC4)
-        .expect("b57df6a3 invalid invariant must hold");
+    let invalid =
+        syn::parse_file(constants_str::VALUE_6F786FC4).expect(constants_str::DIAGNOSTIC_B57DF6A3);
     let valid =
-        syn::parse_file(constants_str::VALUE_D481790B).expect("a62f1ce9 valid invariant must hold");
+        syn::parse_file(constants_str::VALUE_D481790B).expect(constants_str::DIAGNOSTIC_A62F1CE9);
     let invalid_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&invalid),
         LockAcrossAwaitVisitor::default(),
@@ -2101,7 +2100,7 @@ fn test_retained_spawn_tasks_are_supervised() {
 #[test]
 fn test_spawn_lifecycle_policy_rejects_unconsumed_tasks() {
     let ast =
-        syn::parse_file(constants_str::VALUE_9F18A090).expect("834138af tasks invariant must hold");
+        syn::parse_file(constants_str::VALUE_9F18A090).expect(constants_str::DIAGNOSTIC_834138AF);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         SpawnLifecycleVisitor::default(),
@@ -2141,8 +2140,8 @@ fn test_route_path_segments_use_snake_case() {
 
 #[test]
 fn test_route_path_policy_rejects_kebab_case() {
-    let ast = syn::parse_file(constants_str::VALUE_72E2834F)
-        .expect("9aa037dc route_path_policy_rejects_kebab_case invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_72E2834F).expect(constants_str::DIAGNOSTIC_9AA037DC);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
@@ -2156,8 +2155,8 @@ fn test_route_path_policy_rejects_kebab_case() {
 
 #[test]
 fn test_route_path_policy_rejects_api_prefix() {
-    let ast = syn::parse_file(constants_str::VALUE_D7270E5B)
-        .expect("3eaa623d route_path_policy_rejects_api_prefix invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_D7270E5B).expect(constants_str::DIAGNOSTIC_3EAA623D);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),

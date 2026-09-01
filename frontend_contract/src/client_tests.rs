@@ -204,7 +204,11 @@ mod tests {
                 "/values/{parameter}"
             )) {
                 Ok(value) => value,
-                Err(error) => panic!("f7bd0a29: {error:?}"),
+                Err(error) => std::panic::panic_any(constants_str::PANIC_F7BD0A29.replacen(
+                    constants_str::PANIC_PLACEHOLDER_04CEF635,
+                    format!("{error:?}").as_str(),
+                    1usize,
+                )),
             }
         }
     }
@@ -245,7 +249,13 @@ mod tests {
                     assert_eq!(request.path(), path);
                     let body = match serde_json::from_slice::<Request>(request.body().as_ref()) {
                         Ok(value) => value,
-                        Err(error) => panic!("5f2d7a32: {error}"),
+                        Err(error) => {
+                            std::panic::panic_any(constants_str::PANIC_5F2D7A32.replacen(
+                                constants_str::PANIC_PLACEHOLDER_81240055,
+                                error.to_string().as_str(),
+                                1usize,
+                            ))
+                        }
                     };
                     assert_eq!(body.value, expected_body.value);
                 }
@@ -256,7 +266,11 @@ mod tests {
     fn transport_path(value: &str) -> crate::transport_path::TransportPath {
         match crate::transport_path::TransportPath::try_from(value.to_owned()) {
             Ok(path) => path,
-            Err(error) => panic!("e7222790: {error:?}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_E7222790.replacen(
+                constants_str::PANIC_PLACEHOLDER_04CEF635,
+                format!("{error:?}").as_str(),
+                1usize,
+            )),
         }
     }
     fn response(
@@ -265,7 +279,11 @@ mod tests {
     ) -> crate::transport_response::TransportResponse {
         let transport_body = match crate::transport_body::TransportBody::try_from(bytes) {
             Ok(value) => value,
-            Err(error) => panic!("05780b24: {error}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_05780B24.replacen(
+                constants_str::PANIC_PLACEHOLDER_81240055,
+                error.to_string().as_str(),
+                1usize,
+            )),
         };
         crate::transport_response::TransportResponse::new(transport_body, status)
     }
@@ -275,7 +293,11 @@ mod tests {
             response: Ok(response(
                 match serde_json::to_vec(&Response { value: 7u64 }) {
                     Ok(value) => value,
-                    Err(error) => panic!("f0c69ec8: {error}"),
+                    Err(error) => std::panic::panic_any(constants_str::PANIC_F0C69EC8.replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    )),
                 },
                 crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
@@ -288,17 +310,29 @@ mod tests {
     fn test_sends_typed_route_through_transport() {
         let response_bytes = match serde_json::to_vec(&Response { value: 7u64 }) {
             Ok(value) => value,
-            Err(error) => panic!("4f35f9bb: {error}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_4F35F9BB.replacen(
+                constants_str::PANIC_PLACEHOLDER_81240055,
+                error.to_string().as_str(),
+                1usize,
+            )),
         };
         let response_body = match crate::transport_body::TransportBody::try_from(response_bytes) {
             Ok(value) => value,
-            Err(error) => panic!("d8999336: {error}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_D8999336.replacen(
+                constants_str::PANIC_PLACEHOLDER_81240055,
+                error.to_string().as_str(),
+                1usize,
+            )),
         };
         let expected_path = match crate::transport_path::TransportPath::try_from(
             constants_str::VALUE_5B762F37.to_owned(),
         ) {
             Ok(value) => value,
-            Err(error) => panic!("a805dfe8: {error:?}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_A805DFE8.replacen(
+                constants_str::PANIC_PLACEHOLDER_04CEF635,
+                format!("{error:?}").as_str(),
+                1usize,
+            )),
         };
         let transport = TestTransport {
             expected: ExpectedRequest::Json(expected_path, Request { value: 5u64 }),
@@ -310,7 +344,11 @@ mod tests {
         let prefix =
             match crate::transport_path::TransportPath::try_from(constants_str::V1.to_owned()) {
                 Ok(value) => value,
-                Err(error) => panic!("b4849039: {error:?}"),
+                Err(error) => std::panic::panic_any(constants_str::PANIC_B4849039.replacen(
+                    constants_str::PANIC_PLACEHOLDER_04CEF635,
+                    format!("{error:?}").as_str(),
+                    1usize,
+                )),
             };
         let client = crate::typed_client::TypedClient::new(transport, prefix);
         let result = futures::executor::block_on(client.send::<Route>(Request { value: 5u64 }));
@@ -320,13 +358,21 @@ mod tests {
     fn test_sends_parameterized_route_and_decodes_empty_no_content() {
         let body = match crate::transport_body::TransportBody::try_from(Vec::new()) {
             Ok(value) => value,
-            Err(error) => panic!("57ef3356: {error}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_57EF3356.replacen(
+                constants_str::PANIC_PLACEHOLDER_81240055,
+                error.to_string().as_str(),
+                1usize,
+            )),
         };
         let expected_path = match crate::transport_path::TransportPath::try_from(
             constants_str::VALUE_F06110E6.to_owned(),
         ) {
             Ok(value) => value,
-            Err(error) => panic!("16a72a46: {error:?}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_16A72A46.replacen(
+                constants_str::PANIC_PLACEHOLDER_04CEF635,
+                format!("{error:?}").as_str(),
+                1usize,
+            )),
         };
         let transport = TestTransport {
             expected: ExpectedRequest::Empty(expected_path),
@@ -339,7 +385,11 @@ mod tests {
             constants_str::V1_SLASH.to_owned(),
         ) {
             Ok(value) => value,
-            Err(error) => panic!("e5c1d120: {error:?}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_E5C1D120.replacen(
+                constants_str::PANIC_PLACEHOLDER_04CEF635,
+                format!("{error:?}").as_str(),
+                1usize,
+            )),
         };
         let client = crate::typed_client::TypedClient::new(transport, prefix);
         let result =
@@ -382,7 +432,11 @@ mod tests {
             response: Ok(response(
                 match serde_json::to_vec(&Response { value: 7u64 }) {
                     Ok(value) => value,
-                    Err(error) => panic!("03957e1b: {error}"),
+                    Err(error) => std::panic::panic_any(constants_str::PANIC_03957E1B.replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    )),
                 },
                 crate::success_status::SuccessStatus::Code201.transport_status(),
             )),
@@ -426,7 +480,11 @@ mod tests {
             response: Ok(response(
                 match serde_json::to_vec(&Response { value: 7u64 }) {
                     Ok(bytes) => bytes,
-                    Err(error) => panic!("91bfb281: {error}"),
+                    Err(error) => std::panic::panic_any(constants_str::PANIC_91BFB281.replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    )),
                 },
                 crate::success_status::SuccessStatus::Code200.transport_status(),
             )),
@@ -532,7 +590,11 @@ mod tests {
         );
         let problem_body = match serde_json::to_vec(&problem) {
             Ok(value) => value,
-            Err(error) => panic!("0046cd3f: {error}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_0046CD3F.replacen(
+                constants_str::PANIC_PLACEHOLDER_81240055,
+                error.to_string().as_str(),
+                1usize,
+            )),
         };
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
@@ -563,7 +625,11 @@ mod tests {
             constants_str::VALUE_8E2C7AC5.to_owned(),
         ) {
             Ok(value) => value,
-            Err(error) => panic!("6d9c63f5: {error}"),
+            Err(error) => std::panic::panic_any(constants_str::PANIC_6D9C63F5.replacen(
+                constants_str::PANIC_PLACEHOLDER_81240055,
+                error.to_string().as_str(),
+                1usize,
+            )),
         };
         let transport = TestTransport {
             expected: ExpectedRequest::Json(

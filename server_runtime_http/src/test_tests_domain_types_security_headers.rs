@@ -5,13 +5,13 @@ async fn test_only_trusts_forwarded_proto_when_configured() {
             .uri(constants_str::V1_TEST)
             .header(constants_str::X_FORWARDED_PROTO, constants_str::HTTPS)
             .body(axum::body::Body::empty())
-            .expect("94149bdd only_trusts_forwarded_proto_when_configured invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_94149BDD)
     };
     let make_router = |trust| {
         let policy = crate::http_content_security_policy::HttpContentSecurityPolicy::try_from(
             constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
         )
-        .expect("abf8cd24 only_trusts_forwarded_proto_when_configured invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_ABF8CD24);
         axum::Router::from(
             crate::security_headers_layer::SecurityHeadersLayer::from(trust)
                 .with_content_security_policy(policy)
@@ -28,7 +28,7 @@ async fn test_only_trusts_forwarded_proto_when_configured() {
         make_request(),
     )
     .await
-    .expect("8c89e84f only_trusts_forwarded_proto_when_configured invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_8C89E84F);
     assert!(
         ignored_response
             .headers()
@@ -40,7 +40,7 @@ async fn test_only_trusts_forwarded_proto_when_configured() {
         make_request(),
     )
     .await
-    .expect("db05c4be only_trusts_forwarded_proto_when_configured invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_DB05C4BE);
     assert!(
         trusted_response
             .headers()
@@ -108,10 +108,10 @@ async fn test_marks_credentials_as_sensitive() {
                 constants_str::TEST_BEARER_AUTHORIZATION,
             )
             .body(axum::body::Body::empty())
-            .expect("703affc9 marks_credentials_as_sensitive invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_703AFFC9),
     )
     .await
-    .expect("c975d44e marks_credentials_as_sensitive invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_C975D44E);
     assert!(
         response
             .headers()

@@ -9,5 +9,5 @@ pub fn generate_where_filters(
     )
     .to_string()
     .parse::<proc_macro::TokenStream>()
-    .expect("6716175c generate_where_filters invariant must hold")
+    .expect(constants_str::DIAGNOSTIC_6716175C)
 }

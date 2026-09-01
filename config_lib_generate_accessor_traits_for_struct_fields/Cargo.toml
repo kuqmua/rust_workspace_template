@@ -12,6 +12,7 @@ license.workspace = true
 proc-macro = true
 
 [dependencies]
+constants_str = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
 panic_location = { workspace = true }

@@ -4,19 +4,19 @@ mod tests {
     fn test_path_and_query_components_are_encoded() {
         let mut url =
             crate::api_url::ApiUrl::try_from(String::from(constants_str::TEST_API_URL_BASE))
-                .expect("17480cb4 path_and_query_components_are_encoded invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_17480CB4);
         url.push_path_segment(
             crate::api_url_path_segment_ref::ApiUrlPathSegmentRef::try_from(
                 constants_str::TEST_API_URL_SEGMENT,
             )
-            .expect("c013abc7 path_and_query_components_are_encoded invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_C013ABC7),
         )
-        .expect("8ddc23d4 path segment must fit bounded API URL");
+        .expect(constants_str::DIAGNOSTIC_8DDC23D4);
         url.push_query_pair(
             constants_str::TEST_API_URL_QUERY_NAME.into(),
             constants_str::TEST_API_URL_QUERY_VALUE.into(),
         )
-        .expect("0e672d91 query pair must fit bounded API URL");
+        .expect(constants_str::DIAGNOSTIC_0E672D91);
         assert_eq!(url.as_ref(), constants_str::TEST_API_URL_EXPECTED);
     }
 

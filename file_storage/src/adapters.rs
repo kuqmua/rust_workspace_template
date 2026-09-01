@@ -347,12 +347,12 @@ mod tests {
             std::env::temp_dir().join(format!("file-storage-adapter-test-{}", std::process::id()));
         let storage = crate::safe_file_storage::SafeFileStorage::new(
             crate::file_storage_root_path_buf::FileStorageRootPathBuf::try_from(root.clone())
-                .expect("f2ba8084 adapter test root must be valid"),
+                .expect(constants_str::DIAGNOSTIC_F2BA8084),
         );
         storage
             .prepare()
             .await
-            .expect("ef6bfe8c staging directories must be created");
+            .expect(constants_str::DIAGNOSTIC_EF6BFE8C);
         assert!(
             root.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
                 .is_dir()
@@ -363,6 +363,6 @@ mod tests {
         );
         tokio::fs::remove_dir_all(root)
             .await
-            .expect("1fc58e0b adapter test directory must be removable");
+            .expect(constants_str::DIAGNOSTIC_1FC58E0B);
     }
 }

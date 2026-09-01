@@ -113,13 +113,13 @@ mod tests {
         ));
         assert_eq!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(vec![1u8])
-                .expect("0901ec3d try_from_enforces_inclusive_bounds invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_0901EC3D)
                 .as_slice(),
             &[1u8]
         );
         assert_eq!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(vec![1u8, 2u8])
-                .expect("324b4da9 try_from_enforces_inclusive_bounds invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_324B4DA9)
                 .as_slice(),
             &[1u8, 2u8]
         );
@@ -143,7 +143,7 @@ mod tests {
                     [1u8, 2u8].into_iter(),
                 ),
             )
-            .expect("9dcb60bc serde_round_trip_and_limits_are_stable invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_9DCB60BC);
         assert_eq!(value.as_slice(), &[1u8, 2u8]);
         let below_min =
             <crate::pg_bounded_vec::PgBoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
@@ -180,7 +180,7 @@ mod tests {
         let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) =
             open_api_schema
         else {
-            panic!("06be97f2");
+            std::panic::panic_any(constants_str::PANIC_06BE97F2);
         };
         assert_eq!(array.min_items, Some(constants_usize::ONE));
         assert_eq!(array.max_items, Some(2usize));

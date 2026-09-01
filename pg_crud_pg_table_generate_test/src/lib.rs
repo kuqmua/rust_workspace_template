@@ -41,9 +41,7 @@ mod tests {
         >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
             constants_str::OPERATION_RM,
         ))
-        .expect(
-            "f9f9af71 shared_json_contract_helper_round_trips_table_fixture invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_F9F9AF71);
     }
     #[test]
     fn test_duplicate_frontend_order_is_rejected_during_generation() {

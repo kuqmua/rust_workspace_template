@@ -16,7 +16,11 @@ impl Drop for remove_dir_on_drop::RemoveDirOnDrop {
             && error.kind() != std::io::ErrorKind::NotFound
             && error.kind() != std::io::ErrorKind::DirectoryNotEmpty
         {
-            panic!("a83f7c18: {error}");
+            std::panic::panic_any(constants_str::PANIC_A83F7C18.replacen(
+                constants_str::PANIC_PLACEHOLDER_81240055,
+                error.to_string().as_str(),
+                1usize,
+            ));
         }
     }
 }
@@ -25,20 +29,36 @@ fn remove_dir_all_if_exists(path: &std::path::Path, error_id: &str) {
     if let Err(error) = std::fs::remove_dir_all(path)
         && error.kind() != std::io::ErrorKind::NotFound
     {
-        panic!("{error_id}: {error}");
+        std::panic::panic_any(
+            constants_str::PANIC_AF2FFBC7
+                .replacen(constants_str::PANIC_PLACEHOLDER_81766C62, error_id, 1usize)
+                .replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                ),
+        );
     }
 }
 #[cfg(feature = "test-utils")]
 pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_to_generate: &str) {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .map_or_else(|| panic!("2d592b13"), std::path::Path::to_path_buf);
+        .map_or_else(
+            || std::panic::panic_any(constants_str::PANIC_2D592B13),
+            std::path::Path::to_path_buf,
+        );
     let crate_path = root
         .join(constants_str::TARGET_MACRO_CHECK)
         .join(crate_name);
     remove_dir_all_if_exists(&crate_path, constants_str::E28698F2);
-    std::fs::create_dir_all(crate_path.join(constants_str::SRC_ALT))
-        .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
+    std::fs::create_dir_all(crate_path.join(constants_str::SRC_ALT)).unwrap_or_else(|error| {
+        std::panic::panic_any(constants_str::PANIC_2B24EF1A.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            error.to_string().as_str(),
+            1usize,
+        ))
+    });
     let _remove_dir_on_drop = remove_dir_on_drop::RemoveDirOnDrop::new(crate_path.clone());
     let cargo_toml_cnt = format!(
         r#"[package]
@@ -66,7 +86,13 @@ categories = ["category"]
         ),
     )
     .and_then(server_runtime_http::bounded_text::BoundedText::try_from)
-    .unwrap_or_else(|error| panic!("bf40d675: {error}"));
+    .unwrap_or_else(|error| {
+        std::panic::panic_any(constants_str::PANIC_BF40D675.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            error.to_string().as_str(),
+            1usize,
+        ))
+    });
     let root_path = root.display().to_string();
     let cargo_toml_extra = extra_cnt.lines().fold(
         String::with_capacity(extra_cnt.len()),
@@ -83,12 +109,12 @@ categories = ["category"]
                     value
                         .chars()
                         .fold(constants_i32::ZERO, |accumulator, ch| match ch {
-                            '{' | '[' => accumulator
-                                .checked_add(1i32)
-                                .unwrap_or_else(|| panic!("0a8df093")),
-                            '}' | ']' => accumulator
-                                .checked_sub(1i32)
-                                .unwrap_or_else(|| panic!("4e404fc9")),
+                            '{' | '[' => accumulator.checked_add(1i32).unwrap_or_else(|| {
+                                std::panic::panic_any(constants_str::PANIC_0A8DF093)
+                            }),
+                            '}' | ']' => accumulator.checked_sub(1i32).unwrap_or_else(|| {
+                                std::panic::panic_any(constants_str::PANIC_4E404FC9)
+                            }),
                             _ => accumulator,
                         })
                 };
@@ -96,7 +122,7 @@ categories = ["category"]
                 let mut workspace_lines = workspace_cargo_toml.as_ref().lines();
                 let mut dep_entry = loop {
                     let Some(workspace_line) = workspace_lines.next() else {
-                        panic!("1bb3996c");
+                        std::panic::panic_any(constants_str::PANIC_1BB3996C);
                     };
                     if workspace_line == constants_str::WORKSPACE_DEPENDENCIES {
                         in_workspace_deps = true;
@@ -110,13 +136,16 @@ categories = ["category"]
                         let mut out = String::from(workspace_line);
                         let mut balance = braces_balance(workspace_line);
                         while balance > constants_i32::ZERO {
-                            let next_line =
-                                workspace_lines.next().unwrap_or_else(|| panic!("7bb3cd14"));
+                            let next_line = workspace_lines.next().unwrap_or_else(|| {
+                                std::panic::panic_any(constants_str::PANIC_7BB3CD14)
+                            });
                             out.push('\n');
                             out.push_str(next_line);
                             balance = balance
                                 .checked_add(braces_balance(next_line))
-                                .unwrap_or_else(|| panic!("f1e71cd6"));
+                                .unwrap_or_else(|| {
+                                    std::panic::panic_any(constants_str::PANIC_F1E71CD6)
+                                });
                         }
                         break out;
                     }
@@ -166,15 +195,31 @@ categories = ["category"]
     cargo_toml_full.push('\n');
     cargo_toml_full.push_str(&cargo_toml_extra);
     drop(cargo_toml_extra);
-    std::fs::write(path_cargo_toml, cargo_toml_full)
-        .unwrap_or_else(|error| panic!("3757da9b: {error}"));
-    std::fs::write(path_lib_rs, content_to_generate)
-        .unwrap_or_else(|error| panic!("55124f90: {error}"));
+    std::fs::write(path_cargo_toml, cargo_toml_full).unwrap_or_else(|error| {
+        std::panic::panic_any(constants_str::PANIC_3757DA9B.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            error.to_string().as_str(),
+            1usize,
+        ))
+    });
+    std::fs::write(path_lib_rs, content_to_generate).unwrap_or_else(|error| {
+        std::panic::panic_any(constants_str::PANIC_55124F90.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            error.to_string().as_str(),
+            1usize,
+        ))
+    });
     let _copied_lock_bytes = std::fs::copy(
         root.join(constants_str::CARGO_LOCK),
         crate_path.join(constants_str::CARGO_LOCK),
     )
-    .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
+    .unwrap_or_else(|error| {
+        std::panic::panic_any(constants_str::PANIC_1DDA80F9.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            error.to_string().as_str(),
+            1usize,
+        ))
+    });
     generated_crate_steps_tests::GENERATED_CRATE_STEPS
         .iter()
         .fold((), |(), step| {
@@ -189,16 +234,29 @@ categories = ["category"]
             .args(macro_helpers::tool_args_ref::ToolArgsRef::from(step.args()))
             .status()
             .unwrap_or_else(|error| {
-                panic!(
-                    "cd48b869: generated crate {} phase failed to start at {}: {error}",
-                    step.phase(),
-                    crate_path.display()
+                std::panic::panic_any(
+                    constants_str::PANIC_CD48B869
+                        .replacen(
+                            constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                            step.phase().to_string().as_str(),
+                            1usize,
+                        )
+                        .replacen(
+                            constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                            crate_path.display().to_string().as_str(),
+                            1usize,
+                        )
+                        .replacen(
+                            constants_str::PANIC_PLACEHOLDER_81240055,
+                            error.to_string().as_str(),
+                            1usize,
+                        ),
                 )
             });
             assert!(
                 status.success(),
                 "2c037283: generated crate {} phase failed at {}: {status}",
-                step.phase(),
+                step.phase().to_string().as_str(),
                 crate_path.display()
             );
         });
@@ -218,7 +276,7 @@ mod tests {
                 std::process::id(),
                 seq
             ));
-            std::fs::create_dir_all(&path).expect("0c77b4c7 new invariant must hold");
+            std::fs::create_dir_all(&path).expect(constants_str::DIAGNOSTIC_0C77B4C7);
             Self::from(path)
         }
         fn path(&self) -> &std::path::Path {
@@ -230,7 +288,11 @@ mod tests {
             if let Err(error) = std::fs::remove_dir_all(&self.0)
                 && error.kind() != std::io::ErrorKind::NotFound
             {
-                panic!("15ab6a8d: {error}");
+                std::panic::panic_any(constants_str::PANIC_15AB6A8D.replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                ));
             }
         }
     }
@@ -238,8 +300,7 @@ mod tests {
     fn test_remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = TmpDirPathBuf::new();
         let path = dir.path().join(constants_str::CRATE_DIR);
-        std::fs::create_dir_all(&path)
-            .expect("9b0e24f1 remove_dir_on_drop_removes_temp_crate_dir invariant must hold");
+        std::fs::create_dir_all(&path).expect(constants_str::DIAGNOSTIC_9B0E24F1);
         let guard = super::remove_dir_on_drop::RemoveDirOnDrop::new(path.clone());
         drop(guard);
         assert!(!path.exists());
@@ -275,8 +336,11 @@ mod tests {
             constants_str::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS.as_slice(),
         ]
         .into_iter()
-        .all(|args| args.contains(&constants_str::SHARED_VALUES_LOCKED) && args.contains(&constants_str::SHARED_VALUES_OFFLINE))
+        .all(|args| {
+            args.contains(&constants_str::SHARED_VALUES_LOCKED)
+                && args.contains(&constants_str::SHARED_VALUES_OFFLINE)
+        })
         .then_some(())
-        .expect("3f63f262 generated_crate_compilation_is_offline_and_follow_up_steps_are_locked invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_3F63F262);
     }
 }

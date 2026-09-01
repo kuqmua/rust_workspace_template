@@ -21,9 +21,8 @@ mod tests {
             crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
         );
         assert_eq!(
-            full.insert(empty_supervisor()).expect(
-                "806f6943 process_set_enforces_capacity_and_identifier_overflow invariant must hold"
-            ),
+            full.insert(empty_supervisor())
+                .expect(constants_str::DIAGNOSTIC_806F6943),
             crate::child_process_id::ChildProcessId::from(constants_u64::ZERO)
         );
         assert!(matches!(
@@ -32,7 +31,7 @@ mod tests {
         ));
 
         let mut overflowing = crate::child_process_set::ChildProcessSet::new(crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize::from(
-            std::num::NonZeroUsize::new(2usize).expect("d96a312b process_set_enforces_capacity_and_identifier_overflow invariant must hold"),
+            std::num::NonZeroUsize::new(2usize).expect(constants_str::DIAGNOSTIC_D96A312B),
         ));
         overflowing.set_next_id_for_test(crate::child_process_id::ChildProcessId::from(u64::MAX));
         assert!(matches!(
@@ -46,14 +45,14 @@ mod tests {
         let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
             std::time::Duration::from_secs(1u64),
         )
-        .expect("02c5c4e9 missing_child_and_absent_diagnostic_are_explicit invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_02C5C4E9);
         assert!(matches!(
             empty_supervisor().shutdown(timeout).await,
             Err(crate::child_process_error::ChildProcessError::MissingChild)
         ));
-        let diagnostic = crate::join_diagnostic::join_diagnostic(None).await.expect(
-            "bfc19618 missing_child_and_absent_diagnostic_are_explicit invariant must hold",
-        );
+        let diagnostic = crate::join_diagnostic::join_diagnostic(None)
+            .await
+            .expect(constants_str::DIAGNOSTIC_BFC19618);
         assert!(diagnostic.as_ref().is_empty());
     }
 
@@ -80,11 +79,11 @@ mod tests {
         let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
             std::time::Duration::from_secs(1u64),
         )
-        .expect("69d0d988 empty_process_set_shuts_down_without_reports invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_69D0D988);
         let reports = processes
             .shutdown_all(timeout)
             .await
-            .expect("b85cbf78 empty_process_set_shuts_down_without_reports invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_B85CBF78);
         assert!(reports.as_ref().is_empty());
     }
 
@@ -94,20 +93,18 @@ mod tests {
         let write = tokio::spawn(async move {
             tokio::io::AsyncWriteExt::write_all(&mut writer, b"123456")
                 .await
-                .expect("248f268d diagnostic_read_is_bounded invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_248F268D);
         });
         let diagnostic = crate::read_child_diagnostic::read_child_diagnostic(
             reader,
             crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(
                 std::num::NonZeroUsize::new(4usize)
-                    .expect("9de989aa diagnostic_read_is_bounded invariant must hold"),
+                    .expect(constants_str::DIAGNOSTIC_9DE989AA),
             ),
         )
         .await
-        .expect("35f4e073 diagnostic_read_is_bounded invariant must hold");
-        write
-            .await
-            .expect("f859fb47 diagnostic_read_is_bounded invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_35F4E073);
+        write.await.expect(constants_str::DIAGNOSTIC_F859FB47);
         assert_eq!(diagnostic.as_ref(), b"1234");
     }
 }

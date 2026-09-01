@@ -149,7 +149,7 @@ fn test_revision_rejects_invalid_and_negative_values() {
     ));
     assert_eq!(
         crate::pg_table_revision::PgTableRevision::try_from("7".to_owned())
-            .expect("63520e0f revision_rejects_invalid_and_negative_values invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_63520E0F)
             .to_string(),
         "7"
     );

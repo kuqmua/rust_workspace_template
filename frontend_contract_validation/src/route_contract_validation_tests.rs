@@ -67,7 +67,7 @@ mod tests {
         let expectation = crate::http_contract_expectation::HttpContractExpectation::new(
             metadata,
             crate::http_contract_status::HttpContractStatus::try_from(200u16)
-                .expect("a76c9e6b http_fixture_checks_status_and_json_body invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_A76C9E6B),
             crate::http_contract_body_kind::HttpContractBodyKind::Json,
         );
         let (_, _, body_kind) = expectation.parts();
@@ -79,18 +79,16 @@ mod tests {
             crate::run_http_contract_fixture::run_http_contract_fixture(
                 expectation,
                 async |observed_metadata| {
-                    let observation = crate::http_contract_observation::HttpContractObservation::new(
-                        observed_metadata,
-                        crate::http_contract_status::HttpContractStatus::try_from(200u16).expect(
-                            "d0abdccc http_fixture_checks_status_and_json_body invariant must hold",
-                        ),
-                        crate::http_contract_body::HttpContractBody::try_from(
-                            br#"{"ok":true}"#.to_vec(),
-                        )
-                        .expect(
-                            "08bddb5e http_fixture_checks_status_and_json_body invariant must hold",
-                        ),
-                    );
+                    let observation =
+                        crate::http_contract_observation::HttpContractObservation::new(
+                            observed_metadata,
+                            crate::http_contract_status::HttpContractStatus::try_from(200u16)
+                                .expect(constants_str::DIAGNOSTIC_D0ABDCCC),
+                            crate::http_contract_body::HttpContractBody::try_from(
+                                br#"{"ok":true}"#.to_vec(),
+                            )
+                            .expect(constants_str::DIAGNOSTIC_08BDDB5E),
+                        );
                     let (body, _, _) = observation.parts();
                     assert!(!body.is_empty());
                     observation

@@ -40,11 +40,15 @@ fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
         args.as_slice(),
     ))
     .output()
-    .expect("3a17d9c2 probe_lint invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_3A17D9C2);
     if let Err(error) = std::fs::remove_file(output_path.as_path())
         && error.kind() != std::io::ErrorKind::NotFound
     {
-        panic!("51e8c6b4: {error}");
+        std::panic::panic_any(constants_str::PANIC_51E8C6B4.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            error.to_string().as_str(),
+            1usize,
+        ));
     }
     if output.as_ref().status.success() {
         return LintProbeDisposition::Supported;

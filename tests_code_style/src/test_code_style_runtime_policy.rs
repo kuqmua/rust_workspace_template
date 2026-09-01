@@ -94,12 +94,12 @@ fn test_runtime_arc_usage_is_limited_to_cross_thread_state() {
 }
 #[test]
 fn test_runtime_test_crate_detection_uses_test_name_segments() {
-    let production = constants_str::VALUE_D0480B8C.parse::<toml::Table>().expect(
-        "85acd272 runtime_test_crate_detection_uses_exact_package_names invariant must hold",
-    );
-    let test_crate = constants_str::VALUE_D6812408.parse::<toml::Table>().expect(
-        "50b60550 runtime_test_crate_detection_uses_exact_package_names invariant must hold",
-    );
+    let production = constants_str::VALUE_D0480B8C
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_85ACD272);
+    let test_crate = constants_str::VALUE_D6812408
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_50B60550);
     assert!(
         !crate::code_style::is_test_crate(crate::types::TomlTableRef::from(&production)).get(),
         "3db51a9b"
@@ -168,8 +168,8 @@ fn test_async_functions_do_not_make_blocking_executor_calls() {
 }
 #[test]
 fn test_async_blocking_policy_rejects_sync_filesystem_network_and_executor_calls() {
-    let ast = syn::parse_file(constants_str::VALUE_9AC9CBBD)
-        .expect("57a4f701 synchronous_is_allowed invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_9AC9CBBD).expect(constants_str::DIAGNOSTIC_57A4F701);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::AsyncBlockingCallVisitor::new(
@@ -203,8 +203,8 @@ fn test_unit_tests_do_not_create_external_service_clients() {
 
 #[test]
 fn test_external_service_policy_rejects_http_database_and_socket_clients() {
-    let ast = syn::parse_file(constants_str::VALUE_0FE6CFEC)
-        .expect("62a4c3a8 external_clients invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_0FE6CFEC).expect(constants_str::DIAGNOSTIC_62A4C3A8);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor::new(
@@ -217,8 +217,8 @@ fn test_external_service_policy_rejects_http_database_and_socket_clients() {
 
 #[test]
 fn test_external_service_policy_requires_a_reason_for_ignored_integration_tests() {
-    let ast = syn::parse_file(constants_str::VALUE_7BBB4BBC)
-        .expect("fa48e32b ignored_with_reason invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_7BBB4BBC).expect(constants_str::DIAGNOSTIC_FA48E32B);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor::new(

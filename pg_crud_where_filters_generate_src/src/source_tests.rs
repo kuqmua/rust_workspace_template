@@ -9,14 +9,11 @@ mod test_pipeline_tests {
         let parsed = crate::parse_generate_where_filters::parse_generate_where_filters(
             crate::proc_macro2_generate_where_filters_input::ProcMacro2GenerateWhereFiltersInput::from(&input),
         )
-        .expect("4fb319d6 config_builds_and_validates_without_emitting_source invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_4FB319D6);
         let built = crate::build_generate_where_filters::build_generate_where_filters(parsed)
-            .expect(
-                "98c270ea config_builds_and_validates_without_emitting_source invariant must hold",
-            );
-        let _validated = crate::validate_generate_where_filters::validate_generate_where_filters(
-            built,
-        )
-        .expect("e61243af config_builds_and_validates_without_emitting_source invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_98C270EA);
+        let _validated =
+            crate::validate_generate_where_filters::validate_generate_where_filters(built)
+                .expect(constants_str::DIAGNOSTIC_E61243AF);
     }
 }

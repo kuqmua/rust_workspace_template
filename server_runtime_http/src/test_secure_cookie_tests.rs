@@ -5,15 +5,11 @@ mod tests {
         let name = crate::http_cookie_name::HttpCookieName::try_from(String::from(
             constants_str::TEST_COOKIE_NAME,
         ))
-        .expect(
-            "977f74f0 builder_sets_security_attributes_and_rejects_injection invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_977F74F0);
         let value = crate::http_cookie_value::HttpCookieValue::try_from(String::from(
             constants_str::TEST_COOKIE_VALUE,
         ))
-        .expect(
-            "38fc5531 builder_sets_security_attributes_and_rejects_injection invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_38FC5531);
         let header = crate::build_secure_strict_cookie::build_secure_strict_cookie(
             &name,
             &value,
@@ -21,13 +17,11 @@ mod tests {
             crate::http_cookie_access::HttpCookieAccess::HttpOnly,
             crate::http_cookie_secure::HttpCookieSecure::Enabled,
         )
-        .expect(
-            "0b4600b3 builder_sets_security_attributes_and_rejects_injection invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_0B4600B3);
         let header_value = http::HeaderValue::from(header);
-        let text = header_value.to_str().expect(
-            "3176fb72 builder_sets_security_attributes_and_rejects_injection invariant must hold",
-        );
+        let text = header_value
+            .to_str()
+            .expect(constants_str::DIAGNOSTIC_3176FB72);
         assert!(text.contains(constants_str::HTTPONLY));
         assert!(text.contains(constants_str::SECURE));
         assert_eq!(
@@ -51,11 +45,11 @@ mod tests {
         let name = crate::http_cookie_name::HttpCookieName::try_from(String::from(
             constants_str::TEST_COOKIE_NAME,
         ))
-        .expect("3dde3ff2 builder_preserves_unsigned_maximum_age_range invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_3DDE3FF2);
         let value = crate::http_cookie_value::HttpCookieValue::try_from(String::from(
             constants_str::TEST_COOKIE_VALUE,
         ))
-        .expect("7b47e5b5 builder_preserves_unsigned_maximum_age_range invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_7B47E5B5);
         let header = crate::build_secure_strict_cookie::build_secure_strict_cookie(
             &name,
             &value,
@@ -63,11 +57,11 @@ mod tests {
             crate::http_cookie_access::HttpCookieAccess::ScriptReadable,
             crate::http_cookie_secure::HttpCookieSecure::Disabled,
         )
-        .expect("0a722d46 builder_preserves_unsigned_maximum_age_range invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_0A722D46);
         assert!(
             http::HeaderValue::from(header)
                 .to_str()
-                .expect("b1dde58f builder_preserves_unsigned_maximum_age_range invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_B1DDE58F)
                 .contains(u64::MAX.to_string().as_str())
         );
     }
