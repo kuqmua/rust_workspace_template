@@ -34,6 +34,32 @@ fn foundation_tuple_struct(
         })
 }
 
+#[proc_macro_derive(AsRefInner)]
+pub fn foundation_as_ref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    (|| -> syn::Result<proc_macro2::TokenStream> {
+        let parsed_input = syn::parse::<syn::DeriveInput>(input)?;
+        let (inner_type, _visibility) = foundation_tuple_struct(&parsed_input)?;
+        let (referenced_type, reference_expression) = if let syn::Type::Reference(reference) = inner_type {
+            (&*reference.elem, quote::quote! { self.0 })
+        } else {
+            (inner_type, quote::quote! { &self.0 })
+        };
+        let identifier = &parsed_input.ident;
+        let (implementation_generics, type_generics, where_clause) =
+            parsed_input.generics.split_for_impl();
+        Ok(quote::quote! {
+            #[automatically_derived]
+            impl #implementation_generics AsRef<#referenced_type> for #identifier #type_generics #where_clause {
+                fn as_ref(&self) -> &#referenced_type {
+                    #reference_expression
+                }
+            }
+        })
+    })()
+    .unwrap_or_else(syn::Error::into_compile_error)
+    .into()
+}
+
 #[proc_macro_derive(FromInner)]
 pub fn foundation_from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     (|| -> syn::Result<proc_macro2::TokenStream> {
@@ -87,6 +113,27 @@ pub fn foundation_get_inner(input: proc_macro::TokenStream) -> proc_macro::Token
                 #[must_use]
                 #visibility const fn get(#receiver) -> #inner_type {
                     self.0
+                }
+            }
+        })
+    })()
+    .unwrap_or_else(syn::Error::into_compile_error)
+    .into()
+}
+
+#[proc_macro_derive(ToTokens)]
+pub fn foundation_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    (|| -> syn::Result<proc_macro2::TokenStream> {
+        let parsed_input = syn::parse::<syn::DeriveInput>(input)?;
+        let (_inner_type, _visibility) = foundation_tuple_struct(&parsed_input)?;
+        let identifier = &parsed_input.ident;
+        let (implementation_generics, type_generics, where_clause) =
+            parsed_input.generics.split_for_impl();
+        Ok(quote::quote! {
+            #[automatically_derived]
+            impl #implementation_generics quote::ToTokens for #identifier #type_generics #where_clause {
+                fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                    quote::ToTokens::to_tokens(&self.0, tokens);
                 }
             }
         })

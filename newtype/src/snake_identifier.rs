@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype_foundation::ToTokens)]
 pub(crate) struct SnakeIdentifier(String);
 impl TryFrom<String> for SnakeIdentifier {
     type Error =
@@ -22,10 +22,5 @@ impl AsRef<str> for SnakeIdentifier {
 impl std::fmt::Display for SnakeIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
-    }
-}
-impl quote::ToTokens for SnakeIdentifier {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
     }
 }
