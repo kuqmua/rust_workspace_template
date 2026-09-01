@@ -2309,6 +2309,37 @@ fn test_tuple_newtypes_derive_display_instead_of_implementing_forwarding_display
     );
 }
 #[test]
+fn test_forwarding_display_visitor_detects_equivalent_forms() {
+    let ast: syn::File = syn::parse_quote! {
+        impl std::fmt::Display for MethodCallValue {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                self.0.fmt(f)
+            }
+        }
+        impl std::fmt::Display for QualifiedCallValue {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                std::fmt::Display::fmt(&self.0, f)
+            }
+        }
+        impl std::fmt::Display for WriteMacroValue {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.0)
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::source_analysis::ForwardingDisplayVisitor::new(
+            crate::types::DiagnosticMsgs::default(),
+        ),
+    );
+    assert_eq!(
+        visitor.get_ers().len(),
+        constants_usize::THREE,
+        "e2f1f362 forwarding display detection invariant must hold"
+    );
+}
+#[test]
 fn test_error_implementations_derive_thiserror_error() {
     crate::code_style::assert_rs_ast_ers_empty_with_ctx(
         crate::types::StaticStr::from(constants_str::VALUE_3FCD79E4),

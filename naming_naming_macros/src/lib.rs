@@ -204,7 +204,7 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
                 &quote::quote! {quote::ToTokens::to_tokens(&self.to_string().parse::<proc_macro2::TokenStream>().expect("71c8d26b generate_self_upper_camel_case_and_snake_case_str_and_token_stream invariant must hold"), tokens);}
             );
             quote::quote! {
-                #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
+                #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout, newtype::Display)]
                 pub struct #struct_identifier_token_stream(String);
                 impl #struct_identifier_token_stream {
                     fn wrap(v: &dyn std::fmt::Display) -> Self {
@@ -244,11 +244,6 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
                         else {
                             panic!("518933f8");
                         }
-                    }
-                }
-                impl std::fmt::Display for #struct_identifier_token_stream {
-                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(f, "{}", self.0)
                     }
                 }
                 #impl_to_tokens_token_stream

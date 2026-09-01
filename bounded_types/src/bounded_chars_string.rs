@@ -8,6 +8,7 @@
     PartialEq,
     PartialOrd,
     newtype::DerefInner,
+    newtype::Display,
 )]
 pub struct BoundedCharsString<const MIN: usize, const MAX: usize>(String);
 
@@ -32,12 +33,6 @@ impl<const MIN: usize, const MAX: usize> BoundedCharsString<MIN, MAX> {
 impl<const MIN: usize, const MAX: usize> AsRef<str> for BoundedCharsString<MIN, MAX> {
     fn as_ref(&self) -> &str {
         self.0.as_str()
-    }
-}
-
-impl<const MIN: usize, const MAX: usize> std::fmt::Display for BoundedCharsString<MIN, MAX> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, f)
     }
 }
 

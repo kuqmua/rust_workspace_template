@@ -2020,6 +2020,24 @@ impl<'ast> syn::visit::Visit<'ast> for ApiErrorLocationVisitor<'_> {
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_inner_field = |expression: &syn::Expr| {
+            let referenced_expression = if let syn::Expr::Reference(reference) = expression {
+                reference.expr.as_ref()
+            } else {
+                expression
+            };
+            let syn::Expr::Field(field) = referenced_expression else {
+                return false;
+            };
+            let syn::Expr::Path(receiver) = field.base.as_ref() else {
+                return false;
+            };
+            receiver
+                .path
+                .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+                && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
+        };
+        let is_formatter = |expression: &syn::Expr| matches!(expression, syn::Expr::Path(formatter) if formatter.path.is_ident(constants_str::CODE_STYLE_FMT_ARGUMENT_IDENTIFIER));
         let is_display_impl = i.trait_.as_ref().is_some_and(|(path, _)| {
             path.segments.last().is_some_and(|segment| {
                 segment.ident == constants_str::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
@@ -2036,29 +2054,58 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
                         let syn::Stmt::Expr(expression, None) = statement else {
                             return false;
                         };
-                        let syn::Expr::MethodCall(call) = expression else {
+                        if let syn::Expr::MethodCall(call) = expression {
+                            return is_inner_field(call.receiver.as_ref())
+                                && call.method == constants_str::CODE_STYLE_FMT_FN_IDENTIFIER
+                                && call.args.len() == constants_usize::ONE
+                                && call.args.first().is_some_and(is_formatter);
+                        }
+                        if let syn::Expr::Call(call) = expression {
+                            let syn::Expr::Path(function_path) = call.func.as_ref() else {
+                                return false;
+                            };
+                            return function_path.path.segments.last().is_some_and(|segment| {
+                                segment.ident == constants_str::CODE_STYLE_FMT_FN_IDENTIFIER
+                            }) && function_path.path.segments.iter().any(|segment| {
+                                segment.ident == constants_str::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
+                            }) && call.args.len() == constants_usize::TWO
+                                && call.args.first().is_some_and(is_inner_field)
+                                && call
+                                    .args
+                                    .iter()
+                                    .nth(constants_usize::ONE)
+                                    .is_some_and(is_formatter);
+                        }
+                        let syn::Expr::Macro(macro_expression) = expression else {
                             return false;
                         };
-                        let syn::Expr::Field(field) = call.receiver.as_ref() else {
+                        if !macro_expression.mac.path.is_ident(constants_str::WRITE_ALT) {
+                            return false;
+                        }
+                        let parser = syn::punctuated::Punctuated::<
+                            syn::Expr,
+                            syn::Token![,],
+                        >::parse_terminated;
+                        let Ok(arguments) =
+                            syn::parse::Parser::parse2(parser, macro_expression.mac.tokens.clone())
+                        else {
                             return false;
                         };
-                        let syn::Expr::Path(receiver) = field.base.as_ref() else {
-                            return false;
-                        };
-                        receiver
-                            .path
-                            .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
-                            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
-                            && call.method == constants_str::CODE_STYLE_FMT_FN_IDENTIFIER
-                            && call.args.len() == constants_usize::ONE
-                            && call.args.first().is_some_and(|argument| {
-                                let syn::Expr::Path(formatter) = argument else {
-                                    return false;
-                                };
-                                formatter
-                                    .path
-                                    .is_ident(constants_str::CODE_STYLE_FMT_ARGUMENT_IDENTIFIER)
-                            })
+                        arguments.len() == constants_usize::THREE
+                            && arguments.first().is_some_and(is_formatter)
+                            && arguments
+                                .iter()
+                                .nth(constants_usize::TWO)
+                                .is_some_and(is_inner_field)
+                            && arguments
+                                .iter()
+                                .nth(constants_usize::ONE)
+                                .is_some_and(|argument| {
+                                    matches!(argument, syn::Expr::Lit(syn::ExprLit {
+                                        lit: syn::Lit::Str(value),
+                                        ..
+                                    }) if value.value().as_bytes() == b"{}")
+                                })
                     })
             });
         if is_display_impl && is_forwarding {
