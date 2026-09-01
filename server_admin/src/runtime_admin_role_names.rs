@@ -3,6 +3,7 @@
     Clone,
     Debug,
     serde::Serialize,
+    newtype::UtoipaSchema,
     newtype::AsRefTarget,
     newtype::FromInner,
     newtype::IntoInnerFrom,

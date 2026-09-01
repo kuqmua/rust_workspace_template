@@ -59,7 +59,7 @@ fn test_string_wrappers_do_not_use_from_string() {
 }
 #[test]
 fn test_from_string_impl_visitor_rejects_non_string_wrappers_too() {
-    let ast = syn::parse_file(constants_str::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect("f7c0e2a9 from_string_impl_visitor_rejects_non_string_wrappers_too invariant must hold");
+    let ast = syn::parse_file(constants_str::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect(constants_str::DIAGNOSTIC_F7C0E2A9);
     let string_wrapper_names = crate::types::SourceTextBTreeSet::default();
     let len_checked_function_names =
         crate::code_style::len_checked_function_names(crate::types::SynFileRef::from(&ast));
@@ -90,7 +90,7 @@ fn test_bounded_string_derive_satisfies_string_wrapper_policy() {
     let ast = syn::parse_file(
         constants_str::NEWLINE_CONST_SOURCE_TEXT_MAX_LEN_USIZE_1024_NEWLINE_DERIVE_NEWTYPE_PATH,
     )
-    .expect("90df57a8 bounded_string_derive_satisfies_string_wrapper_policy invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_90DF57A8);
     let string_wrapper_names =
         crate::code_style::string_wrapper_names(crate::types::SynFileRef::from(&ast));
     let len_checked_function_names =
@@ -649,6 +649,19 @@ fn test_domain_boundaries_use_repository_declared_types() {
                     .get_ers().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
+            let local_visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                super::domain_analysis::RawTextLocalVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                ),
+            );
+            ers.extend(
+                local_visitor
+                    .get_ers()
+                    .clone()
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
         },
     );
 }
@@ -743,8 +756,8 @@ fn test_domain_fixture_and_benchmark_directory_boundaries_are_exact() {
 }
 #[test]
 fn test_domain_type_policy_reports_raw_browser_external_types_natively() {
-    let ast = syn::parse_file(constants_str::VALUE_B7CF0D16)
-        .expect("d031ea92 browser invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_B7CF0D16).expect(constants_str::DIAGNOSTIC_D031EA92);
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::new();
     let visitor = crate::code_style::visit_syn_file(
@@ -775,7 +788,7 @@ fn test_domain_type_policy_reports_raw_browser_external_types_natively() {
 #[test]
 fn test_proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
     let ast =
-        syn::parse_file(constants_str::VALUE_1FB67C5A).expect("5a1d8c34 entry invariant must hold");
+        syn::parse_file(constants_str::VALUE_1FB67C5A).expect(constants_str::DIAGNOSTIC_5A1D8C34);
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::new();
     let visitor = crate::code_style::visit_syn_file(
@@ -808,9 +821,7 @@ fn test_domain_type_policy_checks_explicit_closure_parameter_types() {
     let ast = syn::parse_file(
         constants_str::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_FN_DEMO_NEWLINE_LET_PATH_CB,
     )
-    .expect(
-        "c81a6f20 domain_type_policy_checks_explicit_closure_parameter_types invariant must hold",
-    );
+    .expect(constants_str::DIAGNOSTIC_C81A6F20);
     let repo_crates = std::collections::BTreeSet::new();
     let repo_types = std::collections::BTreeSet::from([String::from(constants_str::SOURCETEXT)]);
     let visitor = crate::code_style::visit_syn_file(
@@ -839,6 +850,29 @@ fn test_domain_type_policy_checks_explicit_closure_parameter_types() {
         ers.iter()
             .any(|error| error.contains("closure parameter uses `syn::Type`")),
         "60b8ae2d {ers:#?}"
+    );
+}
+
+#[test]
+fn test_domain_type_policy_checks_explicit_local_types() {
+    let ast: syn::File = syn::parse_quote! {
+        fn example() {
+            let raw: String = String::new();
+            let wrapped: SourceText = SourceText::try_from(String::new());
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::domain_analysis::RawTextLocalVisitor::new(crate::types::DiagnosticMsgs::default()),
+    );
+    assert_eq!(visitor.get_ers().len(), 1, "90d1487c");
+    assert!(
+        visitor
+            .get_ers()
+            .first()
+            .is_some_and(|error| error.contains("local binding uses `String`")),
+        "0db73fec {:#?}",
+        visitor.get_ers()
     );
 }
 
@@ -910,7 +944,7 @@ fn test_analyzer_state_struct_fields_use_repository_declared_wrappers() {
 }
 #[test]
 fn test_analyzer_state_raw_container_field_visitor_reports_helper_fields() {
-    let ast = syn::parse_file(constants_str::NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS).expect("9f4d2a7c analyzer_state_raw_container_field_visitor_reports_helper_fields invariant must hold");
+    let ast = syn::parse_file(constants_str::NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS).expect(constants_str::DIAGNOSTIC_9F4D2A7C);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::AnalyzerStateRawContainerFieldVisitor::new(
@@ -967,7 +1001,7 @@ fn test_helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
     let ast = syn::parse_file(
         constants_str::NEWLINE_FN_DIRECT_ARROW_STRING_NEWLINE_STRING_PATH_NEW_NEWLINE_NEWLINE_FN,
     )
-    .expect("3a9d7e2c helper_raw_text_return_visitor_reports_free_and_inherent_helpers invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_3A9D7E2C);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::HelperRawTextReturnVisitor::new(

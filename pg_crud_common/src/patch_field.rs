@@ -6,8 +6,10 @@
     Eq,
     PartialEq,
     schemars::JsonSchema,
+    newtype::UtoipaSchema,
 )]
 #[serde(untagged)]
+#[utoipa_schema(Value)]
 pub enum PatchField<Value> {
     Null,
     #[default]
@@ -43,16 +45,6 @@ where
             .map(|value| value.map_or(Self::Null, Self::Value))
     }
 }
-impl<Value> utoipa::PartialSchema for PatchField<Value>
-where
-    Value: utoipa::ToSchema,
-{
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <Value as utoipa::PartialSchema>::schema()
-    }
-}
-impl<Value: utoipa::ToSchema> utoipa::ToSchema for PatchField<Value> {}
-
 #[cfg(test)]
 mod tests {
     #[derive(
@@ -71,25 +63,21 @@ mod tests {
     #[test]
     fn test_deserialization_distinguishes_omitted_null_and_value() {
         assert_eq!(
-            serde_json::from_str::<Patch>("{}").expect(
-                "d3e7aa4a deserialization_distinguishes_omitted_null_and_value invariant must hold"
-            ),
+            serde_json::from_str::<Patch>("{}").expect(constants_str::DIAGNOSTIC_D3E7AA4A),
             Patch {
                 value: crate::patch_field::PatchField::Omitted,
             }
         );
         assert_eq!(
-            serde_json::from_str::<Patch>(r#"{"value":null}"#).expect(
-                "3c55056d deserialization_distinguishes_omitted_null_and_value invariant must hold"
-            ),
+            serde_json::from_str::<Patch>(r#"{"value":null}"#)
+                .expect(constants_str::DIAGNOSTIC_3C55056D),
             Patch {
                 value: crate::patch_field::PatchField::Null,
             }
         );
         assert_eq!(
-            serde_json::from_str::<Patch>(r#"{"value":"next"}"#).expect(
-                "4471155f deserialization_distinguishes_omitted_null_and_value invariant must hold"
-            ),
+            serde_json::from_str::<Patch>(r#"{"value":"next"}"#)
+                .expect(constants_str::DIAGNOSTIC_4471155F),
             Patch {
                 value: crate::patch_field::PatchField::Value(String::from("next")),
             }
@@ -102,18 +90,14 @@ mod tests {
             serde_json::to_string(&Patch {
                 value: crate::patch_field::PatchField::<String>::Null,
             })
-            .expect(
-                "f2053f9c serialization_preserves_null_and_value_wire_shapes invariant must hold"
-            ),
+            .expect(constants_str::DIAGNOSTIC_F2053F9C),
             r#"{"value":null}"#
         );
         assert_eq!(
             serde_json::to_string(&Patch {
                 value: crate::patch_field::PatchField::Value(String::from("next")),
             })
-            .expect(
-                "cccae65f serialization_preserves_null_and_value_wire_shapes invariant must hold"
-            ),
+            .expect(constants_str::DIAGNOSTIC_CCCAE65F),
             r#"{"value":"next"}"#
         );
     }

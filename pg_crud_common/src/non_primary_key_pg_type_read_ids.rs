@@ -7,15 +7,15 @@
     serde::Deserialize,
     optimal_memory_layout::OptimalMemoryLayout,
 )]
-#[serde(from = "crate::v::V<Option<()>>")]
+#[serde(from = "crate::explicit_value::ExplicitValue<Option<()>>")]
 #[derive(newtype::FromInner)]
-pub struct NonPrimaryKeyPgTypeReadIds(crate::v::V<Option<()>>);
+pub struct NonPrimaryKeyPgTypeReadIds(crate::explicit_value::ExplicitValue<Option<()>>);
 
 impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_VALUES_FIELD,
                 utoipa::openapi::schema::OneOfBuilder::new()
                     .item(
                         utoipa::openapi::ObjectBuilder::new()
@@ -23,7 +23,7 @@ impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
                     )
                     .item(utoipa::openapi::schema::empty()),
             )
-            .required(constants_str::PG_CRUD_V_FIELD)
+            .required(constants_str::PG_CRUD_VALUES_FIELD)
             .build()
             .into()
     }
@@ -53,6 +53,6 @@ impl sqlx::Type<sqlx::Postgres> for NonPrimaryKeyPgTypeReadIds {
 
 impl Default for NonPrimaryKeyPgTypeReadIds {
     fn default() -> Self {
-        Self::from(crate::v::V::new(None))
+        Self::from(crate::explicit_value::ExplicitValue::new(None))
     }
 }

@@ -21,9 +21,10 @@ pub trait PgTypeTestCases {
     fn update_to_read_ids(
         v: &<Self::PgType as crate::pg_type::PgType>::Update,
     ) -> <Self::PgType as crate::pg_type::PgType>::ReadIds;
-    fn read_ids_to_optional_v_read_default_some_one_element(
+    fn read_ids_to_optional_explicit_value_read_default_some_one_element(
         _v: &<Self::PgType as crate::pg_type::PgType>::ReadIds,
-    ) -> Option<crate::v::V<<Self::PgType as crate::pg_type::PgType>::Read>> {
+    ) -> Option<crate::explicit_value::ExplicitValue<<Self::PgType as crate::pg_type::PgType>::Read>>
+    {
         None
     }
     fn previous_read_and_optional_update_into_read(
@@ -34,10 +35,11 @@ pub trait PgTypeTestCases {
         read_ids: <Self::PgType as crate::pg_type::PgType>::ReadIds,
         create: <Self::PgType as crate::pg_type::PgType>::Create,
     ) -> <Self::PgType as crate::pg_type::PgType>::Read;
-    fn read_ids_and_create_into_optional_v_read(
+    fn read_ids_and_create_into_optional_explicit_value_read(
         _read_ids: <Self::PgType as crate::pg_type::PgType>::ReadIds,
         _create: <Self::PgType as crate::pg_type::PgType>::Create,
-    ) -> Option<crate::v::V<<Self::PgType as crate::pg_type::PgType>::Read>> {
+    ) -> Option<crate::explicit_value::ExplicitValue<<Self::PgType as crate::pg_type::PgType>::Read>>
+    {
         None
     }
     fn read_ids_and_create_into_table_type(

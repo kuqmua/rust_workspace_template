@@ -1,7 +1,10 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract_macros::route_registry(
+frontend_contract_macros::route_registry! {
+    #[openapi(
+        tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"), (name = "admin_tables", description = "Read-only administrator database views"))
+    )]
+    pub(crate);
     state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
     family = server_admin_contract::admin_route::AdminAuthenticationRouteFamily;
     (constants_str::ADMIN_COOKIE, constants_str::ADMIN_CSRF);
@@ -90,8 +93,4 @@
     (server_admin_contract::admin_update_settings_route::AdminUpdateSettingsRoute, crate::api_update_settings::api_update_settings),
     (server_admin_contract::admin_data_tables_route::AdminDataTablesRoute, crate::api_data_tables::api_data_tables),
     (server_admin_contract::admin_data_table_route::AdminDataTableRoute, crate::api_data_table::api_data_table),
-)]
-#[openapi(
-    tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"), (name = "admin_tables", description = "Read-only administrator database views"))
-)]
-pub(crate) struct AdminAuthRouteRegistry;
+}

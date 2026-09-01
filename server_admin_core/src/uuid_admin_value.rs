@@ -7,19 +7,10 @@
     Eq,
     serde::Serialize,
     serde::Deserialize,
+    utoipa::ToSchema,
     newtype::FromInner,
     newtype::GetInner,
 )]
 #[serde(from = "uuid::Uuid")]
+#[schema(value_type = String, format = "uuid")]
 pub struct UuidAdminValue(uuid::Uuid);
-impl utoipa::PartialSchema for UuidAdminValue {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        utoipa::openapi::ObjectBuilder::new()
-            .schema_type(utoipa::openapi::schema::Type::String)
-            .format(Some(utoipa::openapi::SchemaFormat::Custom(
-                constants_str::PG_CRUD_PG_UUID.to_owned(),
-            )))
-            .into()
-    }
-}
-impl utoipa::ToSchema for UuidAdminValue {}

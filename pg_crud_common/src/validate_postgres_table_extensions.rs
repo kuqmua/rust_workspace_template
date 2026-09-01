@@ -48,8 +48,8 @@ where
             ))
         })
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
-    expected_defaults.sort_unstable();
-    observed_defaults.sort_unstable();
+    expected_defaults.sort();
+    observed_defaults.sort();
     if expected_defaults != observed_defaults {
         return Err(
             crate::db_schema_conformance_error::DbSchemaConformanceError::DefaultContractMismatch {
@@ -118,8 +118,8 @@ where
             ))
         })
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
-    expected_objects.sort_unstable();
-    observed_objects.sort_unstable();
+    expected_objects.sort();
+    observed_objects.sort();
     if expected_objects == observed_objects {
         Ok(())
     } else {

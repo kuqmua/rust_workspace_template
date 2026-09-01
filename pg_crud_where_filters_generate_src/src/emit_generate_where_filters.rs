@@ -41,7 +41,7 @@ pub fn emit_generate_where_filters(
     let increment_snake_case = naming::domain_types::IncrementSnakeCase;
     let query_snake_case = naming::domain_types::QuerySnakeCase;
     let self_snake_case = naming::domain_types::SelfSnakeCase;
-    let v_snake_case = naming::domain_types::VSnakeCase;
+    let values_snake_case = naming::domain_types::ValuesSnakeCase;
     let pg_crud_common_default_some_one_element = token_patterns::PgCrudCommonDefaultSomeOneElement;
     let pg_crud_common_default_some_one_element_call =
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
@@ -49,9 +49,9 @@ pub fn emit_generate_where_filters(
     let t_token_stream = quote::quote! {T};
     let t_ann_generic_token_stream = quote::quote! {<#t_token_stream>};
     let proc_macro2_token_stream_new = proc_macro2::TokenStream::new();
-    let pub_v_t_token_stream = quote::quote! {#[schema(inline)] #v_snake_case: T};
+    let pub_v_t_token_stream = quote::quote! {#[schema(inline)] #values_snake_case: T};
     let v_default_some_one_element_token_stream = quote::quote! {
-        #v_snake_case: #pg_crud_common_default_some_one_element_call
+        #values_snake_case: #pg_crud_common_default_some_one_element_call
     };
     let generate_struct_token_stream =
         |filter_initialization_with_try_new_result_is_ok,
@@ -157,7 +157,7 @@ pub fn emit_generate_where_filters(
         quote::quote! {
             #ts
             regex_case: crate::regex_case::RegexCase,
-            #v_snake_case: crate::regex_regex::RegexRegex
+            #values_snake_case: crate::regex_regex::RegexRegex
         }
     };
     let add_regex_case_and_v_default_initialization_token_stream = |ts: &dyn quote::ToTokens| {
@@ -179,7 +179,7 @@ pub fn emit_generate_where_filters(
             }
         };
     let v_match_increment_checked_add_one_initialization_token_stream =
-        generate_match_increment_checked_add_one_initialization_token_stream(&v_snake_case);
+        generate_match_increment_checked_add_one_initialization_token_stream(&values_snake_case);
     let self_operator_to_query_part_token_stream =
         quote::quote! {&#self_snake_case.operator.to_query_part(add_operator),};
     let generate_regex_query_part_format_token_stream =
@@ -199,7 +199,7 @@ pub fn emit_generate_where_filters(
                         #column_snake_case,
                         #maybe_extra_parameters_token_stream
                         #self_snake_case.regex_case.postgreql_syntax(),
-                        #v_snake_case
+                        #values_snake_case
                     ),
                 )
                 .is_err()
@@ -212,13 +212,13 @@ pub fn emit_generate_where_filters(
             }
         };
     let if_let_err_query_try_bind_self_v_to_string_token_stream = quote::quote! {
-        if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case.to_string()) {
+        if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#values_snake_case.to_string()) {
             return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
         }
         Ok(#query_snake_case)
     };
     let if_let_err_query_try_bind_self_v_token_stream = quote::quote! {
-        if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case) {
+        if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#values_snake_case) {
             return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
         }
     };
@@ -238,7 +238,7 @@ pub fn emit_generate_where_filters(
         }),
     };
     let pub_v_between_t_token_stream =
-        quote::quote! {#[schema(inline)] #v_snake_case: crate::between::Between<T>};
+        quote::quote! {#[schema(inline)] #values_snake_case: crate::between::Between<T>};
     let generate_match_query_bind_token_stream = |field_token_stream: &dyn quote::ToTokens| {
         pg_crud_macro_common::generate_match_ok_assign_or_return_err_token_stream::generate_match_ok_assign_or_return_err_token_stream(
             &quote::quote! {#field_token_stream.query_bind(#query_snake_case)},
@@ -247,8 +247,9 @@ pub fn emit_generate_where_filters(
         )
     };
     let query_self_v_query_bind_token_stream = {
-        let ts =
-            generate_match_query_bind_token_stream(&quote::quote! {#self_snake_case.#v_snake_case});
+        let ts = generate_match_query_bind_token_stream(
+            &quote::quote! {#self_snake_case.#values_snake_case},
+        );
         quote::quote! {
             #ts
             Ok(#query_snake_case)
@@ -270,8 +271,8 @@ pub fn emit_generate_where_filters(
         };
     let v_match_self_v_query_part_initialization_token_stream =
         generate_identifier_match_field_fn_ok_v_return_err_token_stream(
-            &v_snake_case,
-            &v_snake_case,
+            &values_snake_case,
+            &values_snake_case,
             &quote::quote! {query_part},
         );
     let generate_maybe_dimensions_declaration_pub_v_t_token_stream = |ts: &dyn quote::ToTokens| {
@@ -312,7 +313,7 @@ pub fn emit_generate_where_filters(
                         #self_operator_to_query_part_token_stream
                         #column_snake_case,
                         #maybe_extra_parameters_token_stream
-                        #v_snake_case
+                        #values_snake_case
                     ),
                 )
                 .is_err()
@@ -446,7 +447,7 @@ pub fn emit_generate_where_filters(
                                             #self_operator_to_query_part_token_stream
                                             #column_snake_case,
                                             #maybe_extra_parameters_token_stream
-                                            #v_snake_case
+                                            #values_snake_case
                                         ),
                                     )
                                     .is_err()
@@ -482,7 +483,7 @@ pub fn emit_generate_where_filters(
                             },
                             quote::quote! {
                                 #maybe_dimensions_declaration_token_stream
-                                #v_snake_case: crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec<T>
+                                #values_snake_case: crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec<T>
                             },
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
@@ -501,7 +502,7 @@ pub fn emit_generate_where_filters(
                                 );
                                 quote::quote! {
                                     #maybe_dimensions_ies_initialization_token_stream
-                                    let values = #self_snake_case.#v_snake_case.as_slice();
+                                    let values = #self_snake_case.#values_snake_case.as_slice();
                                     let mut query_part_bce8c9ae = String::with_capacity(
                                         32usize.saturating_add(values.len().saturating_mul(8))
                                     );
@@ -531,7 +532,7 @@ pub fn emit_generate_where_filters(
                             is_query_bind_mut_true,
                             quote::quote! {
                                 #maybe_dimensions_query_bind_token_stream
-                                for element in Vec::from(#self_snake_case.#v_snake_case) {
+                                for element in Vec::from(#self_snake_case.#values_snake_case) {
                                     if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(element) {
                                         return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
                                     }
@@ -660,7 +661,7 @@ pub fn emit_generate_where_filters(
                                                 #column_snake_case,
                                                 #maybe_extra_parameters_token_stream
                                                 &#self_snake_case.encode_format,
-                                                #v_snake_case
+                                                #values_snake_case
                                             ),
                                         )
                                         .is_err()
@@ -705,7 +706,7 @@ pub fn emit_generate_where_filters(
                             Generic::False,
                             quote::quote! {
                                 #maybe_dimensions_declaration_token_stream
-                                #v_snake_case: #import::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32
+                                #values_snake_case: #import::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32
                             },
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
@@ -738,14 +739,14 @@ pub fn emit_generate_where_filters(
                         |maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens| {
                             quote::quote! {
                                 #maybe_dimensions_ies_initialization_token_stream
-                                let operator = <T as #import::pg_type_eq_operator::PgTypeEqOperator>::operator(&#self_snake_case.#v_snake_case);
+                                let operator = <T as #import::pg_type_eq_operator::PgTypeEqOperator>::operator(&#self_snake_case.#values_snake_case);
                                 let mut query_part_6e4b019d = String::with_capacity(48);
                                 let write_result_6e4b019d = match operator {
                                     #import::eq_operator::EqOperator::Eq => {
                                         #v_match_increment_checked_add_one_initialization_token_stream
                                         std::fmt::Write::write_fmt(
                                             &mut query_part_6e4b019d,
-                                            format_args!("{}({} {} ${v})", #self_operator_to_query_part_token_stream #column_snake_case, #equality_sql_operator),
+                                            format_args!("{}({} {} ${values})", #self_operator_to_query_part_token_stream #column_snake_case, #equality_sql_operator),
                                         )
                                     },
                                     #import::eq_operator::EqOperator::IsNull => std::fmt::Write::write_fmt(
@@ -763,8 +764,8 @@ pub fn emit_generate_where_filters(
                         |ts: &dyn quote::ToTokens| {
                             quote::quote! {
                                 #ts
-                                if matches!(&<T as #import::pg_type_eq_operator::PgTypeEqOperator>::operator(&#self_snake_case.#v_snake_case), #import::eq_operator::EqOperator::Eq)
-                                    && let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#v_snake_case)
+                                if matches!(&<T as #import::pg_type_eq_operator::PgTypeEqOperator>::operator(&#self_snake_case.#values_snake_case), #import::eq_operator::EqOperator::Eq)
+                                    && let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#values_snake_case)
                                 {
                                     return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
                                 }

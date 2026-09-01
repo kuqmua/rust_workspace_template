@@ -808,7 +808,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         {
             let tokens = i.tokens.to_string();
             let pattern = regex::Regex::new(constants_str::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS)
-                .expect("f4e61b29 generated PostgreSQL type name pattern invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_F4E61B29);
             pattern
                 .captures_iter(tokens.as_str())
                 .filter_map(|captures| {
@@ -943,6 +943,14 @@ pub(super) struct AnalyzerStateRawContainerFieldVisitor {
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct HelperRawTextReturnVisitor {
+    ers: crate::types::DiagnosticMsgs,
+}
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
+pub(super) struct RawTextLocalVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
@@ -1524,6 +1532,24 @@ impl<'ast> syn::visit::Visit<'ast> for HelperRawTextReturnVisitor {
             });
     }
 }
+impl<'ast> syn::visit::Visit<'ast> for RawTextLocalVisitor {
+    fn visit_local(&mut self, i: &'ast syn::Local) {
+        if let syn::Pat::Type(pat_ty) = &i.pat
+            && let Some((raw_ty, wrapper_ty)) =
+                crate::code_style::raw_text_return_ty(crate::types::SynTypeRef::from(&*pat_ty.ty))
+            && raw_ty.get() != constants_str::STR
+            && raw_ty.get() != constants_str::OPTION_STR
+        {
+            self.ers.push(format!(
+                "{} uses `{}`; use `{}`",
+                constants_str::LOCAL_BINDING,
+                raw_ty.get(),
+                wrapper_ty.get()
+            ));
+        }
+        syn::visit::visit_local(self, i);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for ExternalLeafWrapperNameVisitor<'_> {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if crate::code_style::attrs_contain_test_only_cfg(crate::types::SynAttributeListRef::from(
@@ -1603,7 +1629,7 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             },
         );
         let expected_fragment = crate::types::SourceText::try_from(fragment_text)
-            .expect("9ea072c4 external wrapper name fragment invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_9EA072C4);
         let identifier = item_ref.ident.to_string();
         if identifier.contains(expected_fragment.as_ref()) {
             return;

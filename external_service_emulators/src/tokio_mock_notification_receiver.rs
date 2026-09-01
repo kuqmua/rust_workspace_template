@@ -1,8 +1,6 @@
-use tokio::sync::mpsc::UnboundedReceiver;
-
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner)]
 pub(super) struct TokioMockNotificationReceiver(
-    UnboundedReceiver<
+    tokio::sync::mpsc::UnboundedReceiver<
         server_runtime_http::runtime_notification_message::RuntimeNotificationMessage,
     >,
 );

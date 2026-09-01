@@ -15,20 +15,20 @@ fn main() {
     let error = error_one::ErrorOne::Variant {
         eo_display_field: display_struct::DisplayStruct::new(
             create_location_test_text::create_location_test_text(String::from(
-                constants_str::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_VALUES_FIELD,
             )),
             location_test_flag::LocationTestFlag::from(true),
         ),
         eo_serde: serde_struct::SerdeStruct::new(
             create_location_test_text::create_location_test_text(String::from(
-                constants_str::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_VALUES_FIELD,
             )),
             location_test_count::LocationTestCount::from(42),
             location_test_flag::LocationTestFlag::from(true),
         ),
         eo_location_field: error_two::ErrorTwo::Variant {
             eo_display_with_serde_field: create_location_test_text::create_location_test_text(
-                String::from(constants_str::PG_CRUD_V_FIELD),
+                String::from(constants_str::PG_CRUD_VALUES_FIELD),
             ),
             location: location_macros::location!(),
         },
@@ -44,7 +44,7 @@ fn main() {
         ],
         eo_vec_serde: vec![
             serde_struct::SerdeStruct::new(
-                location_test_text::LocationTestText::from(constants_str::PG_CRUD_V_FIELD),
+                location_test_text::LocationTestText::from(constants_str::PG_CRUD_VALUES_FIELD),
                 location_test_count::LocationTestCount::from(42),
                 location_test_flag::LocationTestFlag::from(true),
             ),
@@ -57,7 +57,7 @@ fn main() {
         eo_vec_location_field: vec![
             error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
                 eo_display_with_serde_field: location_test_text::LocationTestText::from(
-                    constants_str::PG_CRUD_V_FIELD,
+                    constants_str::PG_CRUD_VALUES_FIELD,
                 ),
                 location: location_macros::location!(),
             }),

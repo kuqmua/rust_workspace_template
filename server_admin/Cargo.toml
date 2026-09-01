@@ -15,6 +15,7 @@ categories = ["web-programming"]
 test-utils = []
 
 [dependencies]
+naming_macros = { workspace = true }
 constants_usize = { workspace = true }
 constants_u64 = { workspace = true }
 constants_i64 = { workspace = true }

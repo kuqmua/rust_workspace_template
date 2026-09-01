@@ -14,6 +14,9 @@
     Hash,
     naming_macros::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
     naming_macros::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
+    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
+    naming_macros::EnumWithUnitFieldsToUpperCamelCaseStr,
+    naming_macros::EnumWithUnitFieldsToUpperSnakeCaseStr,
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum StatusCode {
@@ -449,6 +452,22 @@ impl TryFrom<&String> for StatusCode {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_generated_case_methods_return_static_case_strings() {
+        assert_eq!(
+            super::StatusCode::NetworkAuthenticationRequired511.as_snake_case_str(),
+            "network_authentication_required_511"
+        );
+        assert_eq!(
+            super::StatusCode::NetworkAuthenticationRequired511.as_upper_camel_case_str(),
+            "NetworkAuthenticationRequired511"
+        );
+        assert_eq!(
+            super::StatusCode::NetworkAuthenticationRequired511.as_upper_snake_case_str(),
+            "NETWORK_AUTHENTICATION_REQUIRED_511"
+        );
+    }
+
+    #[test]
     fn test_status_code_token_views_are_consistent() {
         let cases = [
             (
@@ -512,7 +531,7 @@ mod tests {
                 );
                 Ok::<(), ()>(())
             })
-            .expect("1f309f5c status_code_token_views_are_consistent invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_1F309F5C);
     }
 
     #[test]

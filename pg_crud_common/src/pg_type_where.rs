@@ -10,7 +10,7 @@
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct PgTypeWhere<T> {
-    v: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
+    values: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
     operator: crate::operator::Operator,
 }
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
@@ -19,14 +19,14 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::PG_CRUD_V_FIELD,
+                constants_str::PG_CRUD_VALUES_FIELD,
                 <crate::not_empty_unique_vec::NotEmptyUniqueVec<T> as utoipa::PartialSchema>::schema(),
             )
             .property(
                 constants_str::PG_CRUD_OPERATOR_FIELD,
                 <crate::operator::Operator as utoipa::PartialSchema>::schema(),
             )
-            .required(constants_str::PG_CRUD_V_FIELD)
+            .required(constants_str::PG_CRUD_VALUES_FIELD)
             .required(constants_str::PG_CRUD_OPERATOR_FIELD)
             .build()
             .into()
@@ -41,9 +41,9 @@ impl<T: PartialEq + Clone> PgTypeWhere<T> {
     #[must_use]
     pub const fn new(
         operator: crate::operator::Operator,
-        v: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
+        values: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
     ) -> Self {
-        Self { v, operator }
+        Self { values, operator }
     }
     #[must_use]
     pub const fn operator(&self) -> &crate::operator::Operator {
@@ -51,11 +51,14 @@ impl<T: PartialEq + Clone> PgTypeWhere<T> {
     }
     pub fn try_new(
         operator: crate::operator::Operator,
-        v: crate::duplicate_candidates::DuplicateCandidates<T>,
+        values: crate::duplicate_candidates::DuplicateCandidates<T>,
     ) -> Result<Self, crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>>
     {
-        match crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(v) {
-            Ok(v0) => Ok(Self { operator, v: v0 }),
+        match crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(values) {
+            Ok(validated_values) => Ok(Self {
+                values: validated_values,
+                operator,
+            }),
             Err(error) => Err(error),
         }
     }
@@ -117,7 +120,7 @@ const _: () = {
                 {
                     match v {
                         constants_str::PG_CRUD_OPERATOR_FIELD => Ok(__Field::f0),
-                        constants_str::PG_CRUD_V_FIELD => Ok(__Field::f1),
+                        constants_str::PG_CRUD_VALUES_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -127,7 +130,7 @@ const _: () = {
                 {
                     match v {
                         b"operator" => Ok(__Field::f0),
-                        b"v" => Ok(__Field::f1),
+                        b"values" => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -145,7 +148,7 @@ const _: () = {
             #[doc(hidden)]
             struct __Visitor<'de, PgTypeWhere> {
                 marker: _serde::__private229::PhantomData<PgTypeWhere>,
-                lt: _serde::__private229::PhantomData<&'de ()>,
+                lifetime_marker: _serde::__private229::PhantomData<&'de ()>,
             }
             impl<'de, T: std::fmt::Debug + PartialEq + Clone + serde::Deserialize<'de>>
                 _serde::de::Visitor<'de> for __Visitor<'de, T>
@@ -211,7 +214,7 @@ const _: () = {
                                 if Option::is_some(&f1) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            constants_str::PG_CRUD_V_FIELD,
+                                            constants_str::PG_CRUD_VALUES_FIELD,
                                         ),
                                     );
                                 }
@@ -233,9 +236,9 @@ const _: () = {
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
-                        None => {
-                            _serde::__private229::de::missing_field(constants_str::PG_CRUD_V_FIELD)?
-                        }
+                        None => _serde::__private229::de::missing_field(
+                            constants_str::PG_CRUD_VALUES_FIELD,
+                        )?,
                     };
                     match PgTypeWhere::try_new(f0_v, f1_v.into()) {
                         Ok(v) => Ok(v),
@@ -249,7 +252,7 @@ const _: () = {
                 constants_str::PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<T>,
-                    lt: _serde::__private229::PhantomData,
+                    lifetime_marker: _serde::__private229::PhantomData,
                 },
             )
         }
@@ -265,7 +268,7 @@ impl<'query_lt, T: crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>>
         crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
         crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
-        self.v
+        self.values
             .into_vec()
             .into_iter()
             .try_fold(query, |accumulator_query, element| {
@@ -289,14 +292,14 @@ impl<'query_lt, T: crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>>
             operator_query_part
                 .as_ref()
                 .len()
-                .saturating_add(self.v.as_slice().len().saturating_mul(32))
+                .saturating_add(self.values.as_slice().len().saturating_mul(32))
                 .saturating_add(2),
         );
         query_part.push_str(operator_query_part.as_ref());
         query_part.push('(');
         let mut element_add_operator = crate::add_operator::AddOperator::from(false);
         let mut is_first = true;
-        self.v.as_slice().iter().try_for_each(|element| {
+        self.values.as_slice().iter().try_for_each(|element| {
             let v = crate::pg_type_where_filter::PgTypeWhereFilter::query_part(
                 element,
                 increment,
@@ -325,7 +328,7 @@ impl<T: std::fmt::Debug + PartialEq + Clone + crate::all_enum_variants_array_def
     fn default_some_one_element() -> Self {
         Self {
             operator: crate::default_some_one_element::DefaultSomeOneElement::default_some_one_element(),
-            v: crate::default_some_one_element::DefaultSomeOneElement::default_some_one_element(),
+            values: crate::default_some_one_element::DefaultSomeOneElement::default_some_one_element(),
         }
     }
 }

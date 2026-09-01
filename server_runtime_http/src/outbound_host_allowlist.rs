@@ -13,7 +13,7 @@ impl TryFrom<Vec<crate::outbound_allowed_host::OutboundAllowedHost>> for Outboun
     fn try_from(
         mut value: Vec<crate::outbound_allowed_host::OutboundAllowedHost>,
     ) -> Result<Self, Self::Error> {
-        value.sort_unstable();
+        value.sort();
         value.dedup();
         bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)

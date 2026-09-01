@@ -54,10 +54,13 @@ where
     let mut observed = rows
         .into_iter()
         .map(|row| {
-            let nullable: String =
-                sqlx::Row::try_get(&row, constants_str::IS_NULLABLE).map_err(|error| {
+            let nullable: crate::db_schema_text::DbSchemaText =
+                crate::db_schema_text::DbSchemaText::try_from(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::IS_NULLABLE).map_err(|error| {
                     crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(error))
-                })?;
+                })?,
+                )
+                .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?;
             Ok(crate::db_column_contract_snapshot::DbColumnContractSnapshot::new(
                 crate::db_schema_text::DbSchemaText::try_from(
                     sqlx::Row::try_get::<String, _>(&row, constants_str::COLUMN_NAME).map_err(
@@ -79,7 +82,7 @@ where
                     )?,
                 )
                 .map_err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?,
-                crate::db_column_nullable::DbColumnNullable::from(nullable == constants_str::YES),
+                crate::db_column_nullable::DbColumnNullable::from(nullable.as_ref() == constants_str::YES),
                 crate::db_column_has_server_default::DbColumnHasServerDefault::from(
                     sqlx::Row::try_get::<bool, _>(&row, constants_str::HAS_SERVER_DEFAULT)
                         .map_err(|error| {
@@ -91,8 +94,8 @@ where
             ))
         })
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
-    expected.sort_unstable();
-    observed.sort_unstable();
+    expected.sort();
+    observed.sort();
     if expected != observed {
         return Err(
             crate::db_schema_conformance_error::DbSchemaConformanceError::ColumnContractMismatch {
@@ -195,8 +198,8 @@ where
             }
         })
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
-    expected_keys.sort_unstable();
-    observed_keys.sort_unstable();
+    expected_keys.sort();
+    observed_keys.sort();
     if expected_keys == observed_keys {
         Ok(())
     } else {

@@ -11,21 +11,29 @@ pub(crate) async fn authorization_authenticate(
         crate::admin_cookie_kind::AdminCookieKind::Access,
     )
     .ok_or(crate::admin_error::AdminError::Authentication)?;
-    let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
-    validation.set_issuer(&[state.get_issuer().as_ref()]);
-    validation.set_audience(&[state.get_audience().as_ref()]);
+    let validation = crate::admin_access_token_validation::admin_access_token_validation();
     let claims = state
         .get_decoding_keys()
         .as_ref()
         .iter()
         .find_map(|decoding_key| {
-            jsonwebtoken::decode::<crate::admin_access_claims::AdminAccessClaims>(
+            let data = jsonwebtoken::decode::<crate::admin_access_claims::AdminAccessClaims>(
                 token.as_ref(),
                 decoding_key,
                 &validation,
             )
-            .ok()
-            .map(|data| data.claims)
+            .ok()?;
+            match crate::validate_admin_access_claims::validate_admin_access_claims(
+                &data.claims,
+                state.get_issuer(),
+                state.get_audience(),
+            ) {
+                Ok(()) => Some(data.claims),
+                Err(error) => {
+                    drop(error);
+                    None
+                }
+            }
         })
         .ok_or(crate::admin_error::AdminError::Authentication)?;
     let context_hash =

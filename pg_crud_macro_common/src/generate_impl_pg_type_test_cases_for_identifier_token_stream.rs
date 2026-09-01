@@ -8,10 +8,10 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
     read_inner_into_read_with_new_or_try_new_unwraped_token_stream: &dyn quote::ToTokens,
     read_inner_into_update_with_new_or_try_new_unwraped_token_stream: &dyn quote::ToTokens,
     update_to_read_ids_token_stream: &dyn quote::ToTokens,
-    read_ids_to_optional_v_read_default_some_one_element_token_stream: &dyn quote::ToTokens,
+    read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream: &dyn quote::ToTokens,
     previous_read_and_optional_update_into_read_token_stream: &dyn quote::ToTokens,
     read_ids_and_create_into_read_token_stream: &dyn quote::ToTokens,
-    read_ids_and_create_into_optional_v_read_token_stream: &dyn quote::ToTokens,
+    read_ids_and_create_into_optional_explicit_value_read_token_stream: &dyn quote::ToTokens,
     read_ids_and_create_into_table_type_token_stream: &dyn quote::ToTokens,
     read_ids_and_create_into_where_eq_token_stream: &dyn quote::ToTokens,
     read_ids_and_create_into_vec_where_eq_using_fields_token_stream: &dyn quote::ToTokens,
@@ -145,27 +145,25 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         }
         .into()
     };
-    let read_ids_to_optional_v_read_default_some_one_element_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
+    let read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_4 = crate::names_ctx::NamesCtx::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
-            ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCaseSnippet4,
+            ReadIdsToOptionalExplicitValueReadDefaultSomeOneElementSnakeCaseSnippet4,
             ReadIdsUpperCamelCaseSnippet4,
             ReadUpperCamelCaseSnippet4,
             VSnakeCaseSnippet4,
-            VUpperCamelCaseSnippet4,
         ) = (
-            snippet_names_4.get_read_ids_to_optional_v_read_default_some_one_element_snake_case(),
+            snippet_names_4.get_read_ids_to_optional_explicit_value_read_default_some_one_element_snake_case(),
             snippet_names_4.get_read_ids_upper_camel_case(),
             snippet_names_4.get_read_upper_camel_case(),
             snippet_names_4.get_v_snake_case(),
-            snippet_names_4.get_v_upper_camel_case(),
         );
         quote::quote! {
-            fn #ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCaseSnippet4(
+            fn #ReadIdsToOptionalExplicitValueReadDefaultSomeOneElementSnakeCaseSnippet4(
                 #VSnakeCaseSnippet4: &#self_pg_type_as_pg_type_token_stream::#ReadIdsUpperCamelCaseSnippet4
-            ) -> Option<#import::v::#VUpperCamelCaseSnippet4<#self_pg_type_as_pg_type_token_stream::#ReadUpperCamelCaseSnippet4>> {
-                #read_ids_to_optional_v_read_default_some_one_element_token_stream
+            ) -> Option<#import::explicit_value::ExplicitValue<#self_pg_type_as_pg_type_token_stream::#ReadUpperCamelCaseSnippet4>> {
+                #read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream
             }
         }
         .into()
@@ -224,32 +222,30 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         }
         .into()
     };
-    let read_ids_and_create_into_optional_v_read_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
+    let read_ids_and_create_into_optional_explicit_value_read_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
         let snippet_names_7 = crate::names_ctx::NamesCtx::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
             CreateSnakeCaseSnippet7,
             CreateUpperCamelCaseSnippet7,
-            ReadIdsAndCreateIntoOptionalVReadSnakeCaseSnippet7,
+            ReadIdsAndCreateIntoOptionalExplicitValueReadSnakeCaseSnippet7,
             ReadIdsSnakeCaseSnippet7,
             ReadIdsUpperCamelCaseSnippet7,
             ReadUpperCamelCaseSnippet7,
-            VUpperCamelCaseSnippet7,
         ) = (
             snippet_names_7.get_create_snake_case(),
             snippet_names_7.get_create_upper_camel_case(),
-            snippet_names_7.get_read_ids_and_create_into_optional_v_read_snake_case(),
+            snippet_names_7.get_read_ids_and_create_into_optional_explicit_value_read_snake_case(),
             snippet_names_7.get_read_ids_snake_case(),
             snippet_names_7.get_read_ids_upper_camel_case(),
             snippet_names_7.get_read_upper_camel_case(),
-            snippet_names_7.get_v_upper_camel_case(),
         );
         quote::quote! {
-            fn #ReadIdsAndCreateIntoOptionalVReadSnakeCaseSnippet7(
+            fn #ReadIdsAndCreateIntoOptionalExplicitValueReadSnakeCaseSnippet7(
                 #ReadIdsSnakeCaseSnippet7: #self_pg_type_as_pg_type_token_stream::#ReadIdsUpperCamelCaseSnippet7,
                 #CreateSnakeCaseSnippet7: #self_pg_type_as_pg_type_token_stream::#CreateUpperCamelCaseSnippet7
-            ) -> Option<#import::v::#VUpperCamelCaseSnippet7<#self_pg_type_as_pg_type_token_stream::#ReadUpperCamelCaseSnippet7>> {
-                #read_ids_and_create_into_optional_v_read_token_stream
+            ) -> Option<#import::explicit_value::ExplicitValue<#self_pg_type_as_pg_type_token_stream::#ReadUpperCamelCaseSnippet7>> {
+                #read_ids_and_create_into_optional_explicit_value_read_token_stream
             }
         }
         .into()
@@ -369,10 +365,10 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
             #read_inner_into_read_with_new_or_try_new_unwraped_token_stream_gnrtd
             #read_inner_into_update_with_new_or_try_new_unwraped_token_stream_gnrtd
             #update_to_read_ids_token_stream_gnrtd
-            #read_ids_to_optional_v_read_default_some_one_element_token_stream_gnrtd
+            #read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream_gnrtd
             #previous_read_and_optional_update_into_read_token_stream_gnrtd
             #read_ids_and_create_into_read_token_stream_gnrtd
-            #read_ids_and_create_into_optional_v_read_token_stream_gnrtd
+            #read_ids_and_create_into_optional_explicit_value_read_token_stream_gnrtd
             #read_ids_and_create_into_table_type_token_stream_gnrtd
             #read_ids_and_create_into_where_eq_token_stream_gnrtd
             #read_ids_and_create_into_vec_where_eq_using_fields_token_stream_gnrtd

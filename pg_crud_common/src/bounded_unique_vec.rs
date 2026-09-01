@@ -64,7 +64,7 @@ mod tests {
     fn test_shared_bounds_map_to_existing_unique_errors() {
         assert_eq!(
             crate::bounded_unique_vec::BoundedUniqueVec::<u8, 1, 2>::try_from(Vec::new())
-                .expect_err("e71d26a6"),
+                .expect_err(constants_str::VALUE_E71D26A6),
             crate::unique_vec_error::UniqueVecError::BelowMin {
                 actual: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ZERO),
                 min: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ONE),
@@ -72,14 +72,14 @@ mod tests {
         );
         assert_eq!(
             crate::bounded_unique_vec::BoundedUniqueVec::<u8, 0, 1>::try_from(vec![1u8, 2u8])
-                .expect_err("c98b4208"),
+                .expect_err(constants_str::VALUE_C98B4208),
             crate::unique_vec_error::UniqueVecError::AboveMax {
                 max: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ONE),
             }
         );
         assert_eq!(
             crate::bounded_unique_vec::BoundedUniqueVec::<u8, 2, 1>::try_from(vec![1u8])
-                .expect_err("6898eb44"),
+                .expect_err(constants_str::VALUE_6898EB44),
             crate::unique_vec_error::UniqueVecError::InvalidBounds {
                 min: crate::unique_vec_len::UniqueVecLen::from(2usize),
                 max: crate::unique_vec_len::UniqueVecLen::from(constants_usize::ONE),
@@ -87,7 +87,7 @@ mod tests {
         );
         assert_eq!(
             crate::bounded_unique_vec::BoundedUniqueVec::<u8, 0, 2>::try_from(vec![1u8, 1u8])
-                .expect_err("dc0f5d9f"),
+                .expect_err(constants_str::VALUE_DC0F5D9F),
             crate::unique_vec_error::UniqueVecError::Duplicate
         );
     }

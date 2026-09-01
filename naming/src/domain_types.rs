@@ -394,7 +394,8 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["select", "only", "updated", "ids", "query", "bind"],
     ["create", "for", "query"],
     [
-        "read", "ids", "to", "optional", "v", "read", "default", "some", "one", "element"
+        "read", "ids", "to", "optional", "explicit", "value", "read", "default", "some", "one",
+        "element"
     ],
     ["optional", "update"],
     ["select", "only", "created", "ids", "query", "part"],
@@ -402,7 +403,7 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["update", "for", "query"],
     ["update", "for", "query", "vec"],
     [
-        "read", "ids", "and", "create", "into", "optional", "v", "read"
+        "read", "ids", "and", "create", "into", "optional", "explicit", "value", "read"
     ],
     ["default", "some", "one", "element", "max", "page", "size"],
     [
@@ -420,7 +421,9 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     [
         "read", "inner", "into", "update", "with", "new", "or", "try", "new", "unwraped"
     ],
-    ["read", "ids", "into", "optional", "v", "read", "inner"],
+    [
+        "read", "ids", "into", "optional", "explicit", "value", "read", "inner"
+    ],
     [
         "previous", "read", "and", "optional", "update", "into", "read"
     ],
@@ -473,6 +476,7 @@ naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["positive", "less", "typical"],
     ["positive", "more", "typical"],
     ["v"],
+    ["values"],
     ["not", "uuid"]
 ]);
 #[cfg(test)]

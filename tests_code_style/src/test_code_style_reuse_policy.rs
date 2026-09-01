@@ -18,6 +18,49 @@ struct ReviewedDuplicateGroup {
     reason: &'static str,
 }
 
+#[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+struct DomainShapeVisitor<'path_lt> {
+    path: Option<&'path_lt std::path::Path>,
+    shapes: std::collections::BTreeMap<String, Vec<String>>,
+}
+
+impl DomainShapeVisitor<'_> {
+    fn record(&mut self, shape: String, name: &syn::Ident) {
+        if let Some(path) = self.path {
+            self.shapes
+                .entry(shape)
+                .or_default()
+                .push(format!("{}::{name}", path.display()));
+        }
+    }
+}
+
+impl<'ast> syn::visit::Visit<'ast> for DomainShapeVisitor<'_> {
+    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+        if i.variants.len() >= 2usize {
+            let mut variants = i.variants.clone();
+            variants.iter_mut().for_each(|variant| {
+                variant.attrs.clear();
+                variant
+                    .fields
+                    .iter_mut()
+                    .for_each(|field| field.attrs.clear());
+            });
+            self.record(format!("enum {variants:?}"), &i.ident);
+        }
+        syn::visit::visit_item_enum(self, i);
+    }
+
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if i.fields.len() >= 2usize {
+            let mut fields = i.fields.clone();
+            fields.iter_mut().for_each(|field| field.attrs.clear());
+            self.record(format!("struct {fields:?}"), &i.ident);
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+
 impl<'ast> syn::visit::Visit<'ast> for FunctionBodyComplexity {
     fn visit_expr(&mut self, i: &'ast syn::Expr) {
         self.expression_count = self.expression_count.saturating_add(constants_usize::ONE);
@@ -69,6 +112,51 @@ fn function_body_hash(
 }
 
 #[test]
+fn test_reports_repeated_explicit_domain_shapes_for_code_reuse_review() {
+    let mut shapes = std::collections::BTreeMap::<String, Vec<String>>::new();
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        snapshot.rs_files().iter().for_each(|file| {
+            let mut visitor = DomainShapeVisitor {
+                path: Some(file.path().as_ref()),
+                shapes: std::collections::BTreeMap::new(),
+            };
+            syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
+            visitor.shapes.into_iter().for_each(|(shape, locations)| {
+                shapes.entry(shape).or_default().extend(locations);
+            });
+        });
+    });
+    let duplicates = shapes
+        .into_values()
+        .filter(|locations| locations.len() > constants_usize::ONE)
+        .collect::<Vec<Vec<String>>>();
+    let report_path = std::path::Path::new(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+        .parent()
+        .expect(constants_str::DIAGNOSTIC_834CED10)
+        .join(constants_str::TARGET)
+        .join(stringify!(code_reuse_repeated_domain_shapes.txt));
+    std::fs::write(
+        &report_path,
+        format!("code reuse diagnostic: repeated explicit domain shapes\n{duplicates:#?}"),
+    )
+    .unwrap_or_else(|error| {
+        std::panic::panic_any(
+            constants_str::PANIC_62A7B1D4
+                .replacen(
+                    constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                    report_path.display().to_string().as_str(),
+                    1usize,
+                )
+                .replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                ),
+        )
+    });
+}
+
+#[test]
 #[allow(clippy::option_if_let_else)] // matched groups update the reviewed inventory as part of branching
 fn test_substantial_function_bodies_have_one_source_of_truth() {
     let canonicalize_locations = |locations: &str| {
@@ -111,9 +199,8 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
             .join(constants_str::NEWLINE)
     };
     let mut bodies = crate::types::FunctionBodyLocationsBTreeMap::default();
-    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42).expect(
-        "d4a8c2f1 substantial_function_bodies_have_one_source_of_truth invariant must hold",
-    );
+    let identifier_pattern =
+        regex::Regex::new(constants_str::VALUE_58523C42).expect(constants_str::DIAGNOSTIC_D4A8C2F1);
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(|file| {
             let mut visitor = FunctionBodyVisitor {
@@ -152,10 +239,6 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
         ReviewedDuplicateGroup {
             locations: constants_str::HTTP_CLIENT_TIMEOUT_TRY_FROM_LOCATIONS,
             reason: constants_str::VALUE_FE253AFB,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_599796F1,
-            reason: constants_str::VALUE_8A3C621C,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_224F7450,
@@ -210,7 +293,7 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
     .into_values()
     .filter(|locations| locations.len() > constants_usize::ONE)
     .filter_map(|mut locations| {
-        locations.sort_unstable();
+        locations.sort();
         let location_signature = locations.join(constants_str::NEWLINE);
         let canonical = canonicalize_locations(location_signature.as_str());
         let actual_lines = canonical
@@ -248,11 +331,11 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
 #[test]
 fn test_function_body_similarity_ignores_identifier_names() {
     let first = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_55C24F35)
-        .expect("ca632fad first invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_CA632FAD);
     let second = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_A4EA5826)
-        .expect("b608f7e1 second invariant must hold");
-    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
-        .expect("9658f225 second invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_B608F7E1);
+    let identifier_pattern =
+        regex::Regex::new(constants_str::VALUE_58523C42).expect(constants_str::DIAGNOSTIC_9658F225);
     let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
     assert_eq!(
         function_body_hash(&first.block, identifier_pattern_ref),
@@ -263,11 +346,11 @@ fn test_function_body_similarity_ignores_identifier_names() {
 #[test]
 fn test_function_body_similarity_preserves_behavioral_structure() {
     let addition = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_F3BCDB38)
-        .expect("cb1d077f value invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_CB1D077F);
     let subtraction = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_B28E8E9F)
-        .expect("ae9313cb value invariant must hold");
-    let identifier_pattern = regex::Regex::new(constants_str::VALUE_58523C42)
-        .expect("fdf7075b value invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_AE9313CB);
+    let identifier_pattern =
+        regex::Regex::new(constants_str::VALUE_58523C42).expect(constants_str::DIAGNOSTIC_FDF7075B);
     let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
     assert_ne!(
         function_body_hash(&addition.block, identifier_pattern_ref),
@@ -278,6 +361,6 @@ fn test_function_body_similarity_preserves_behavioral_structure() {
 #[test]
 fn test_short_mechanical_adapters_are_not_substantial() {
     let adapter = syn::parse_str::<syn::ItemFn>(constants_str::VALUE_EC742D93)
-        .expect("9dc062d1 value invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_9DC062D1);
     assert!(!function_body_is_substantial(&adapter.block));
 }

@@ -6,7 +6,7 @@ pub struct DbCatalogSnapshot {
 impl DbCatalogSnapshot {
     #[must_use]
     pub fn new(mut objects: crate::db_object_snapshots::DbObjectSnapshots) -> Self {
-        objects.sort_unstable();
+        objects.sort();
         Self { objects }
     }
 }

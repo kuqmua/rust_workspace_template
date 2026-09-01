@@ -90,7 +90,7 @@ mod tests {
                 )
             )
             .into_inner(),
-            vec![
+            [
                 crate::route_test_category::RouteTestCategory::DatabaseFixture,
                 crate::route_test_category::RouteTestCategory::JsonRoundTrip,
                 crate::route_test_category::RouteTestCategory::StreamingResponse,
@@ -110,7 +110,7 @@ mod tests {
                 crate::required_test_categories::required_test_categories(capabilities)
             )
             .into_inner(),
-            vec![
+            [
                 crate::route_test_category::RouteTestCategory::FixtureHook,
                 crate::route_test_category::RouteTestCategory::Metadata,
             ]

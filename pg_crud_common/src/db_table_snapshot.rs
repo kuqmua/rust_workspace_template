@@ -10,8 +10,8 @@ impl DbTableSnapshot {
         mut columns: crate::db_column_snapshots::DbColumnSnapshots,
         mut objects: crate::db_object_snapshots::DbObjectSnapshots,
     ) -> Self {
-        columns.sort_unstable();
-        objects.sort_unstable();
+        columns.sort();
+        objects.sort();
         Self { columns, objects }
     }
 }

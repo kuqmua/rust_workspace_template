@@ -1,6 +1,13 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, serde::Serialize,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    newtype::UtoipaSchema,
 )]
+#[utoipa_schema(bounded_types::bounded_vec::BoundedVec<crate::health_component::HealthComponent, { constants_usize::ZERO }, { crate::health_components_max_len::HEALTH_COMPONENTS_MAX_LEN }>)]
 pub struct HealthComponents(Vec<crate::health_component::HealthComponent>);
 impl HealthComponents {
     #[cfg(test)]
@@ -8,16 +15,6 @@ impl HealthComponents {
         self.0.as_slice()
     }
 }
-impl utoipa::PartialSchema for HealthComponents {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::bounded_vec::BoundedVec<
-            crate::health_component::HealthComponent,
-            { constants_usize::ZERO },
-            { crate::health_components_max_len::HEALTH_COMPONENTS_MAX_LEN },
-        > as utoipa::PartialSchema>::schema()
-    }
-}
-impl utoipa::ToSchema for HealthComponents {}
 impl From<[crate::health_component::HealthComponent; 1]> for HealthComponents {
     fn from(value: [crate::health_component::HealthComponent; 1]) -> Self {
         Self(Vec::from(value))

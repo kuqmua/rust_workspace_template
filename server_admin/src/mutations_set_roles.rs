@@ -66,7 +66,8 @@ pub(crate) async fn mutations_set_roles(
                 .copied()
                 .map(i64::from)
                 .collect::<Vec<_>>();
-        expected_raw_ids.sort_unstable();
+        #[allow(clippy::stable_sort_primitive)] // workspace policy requires stable sorting
+        expected_raw_ids.sort();
         if current_role_ids != expected_raw_ids {
             return Ok(crate::replace_user_roles_outcome::ReplaceUserRolesOutcome::StaleAssignment);
         }

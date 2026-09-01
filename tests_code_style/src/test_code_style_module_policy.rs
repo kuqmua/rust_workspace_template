@@ -26,7 +26,7 @@ fn identifier_snake_case(identifier: &syn::Ident) -> crate::types::SourceText {
             output
         },
     ))
-    .expect("3c8a729e identifier snake case must fit the source text bound")
+    .expect(constants_str::DIAGNOSTIC_3C8A729E)
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn test_custom_type_names_are_unique_across_workspace() {
 #[test]
 fn test_custom_type_name_visitor_covers_all_rust_type_declarations() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_TYPE_DECLARATIONS_FIXTURE)
-        .expect("a9ea85b6 custom type declaration fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_A9EA85B6);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::CustomTypeNameVisitor::default(),
@@ -104,7 +104,7 @@ fn test_custom_type_name_visitor_covers_all_rust_type_declarations() {
 #[test]
 fn test_free_function_name_visitor_excludes_methods() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE)
-        .expect("31495514 free function declaration fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_31495514);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::FreeFnNameVisitor::default(),
@@ -456,7 +456,7 @@ fn test_external_module_declarations_exist_only_in_crate_roots() {
                     .collect::<Vec<String>>()
             })
             .collect::<Vec<String>>();
-        violations.sort_unstable();
+        violations.sort();
         assert!(
             violations.is_empty(),
             "c6014d50 external module declarations must exist only in crate roots:\n{}",
@@ -671,9 +671,9 @@ fn test_non_root_workspace_modules_are_not_reexport_only_facades() {
             })
     }
     let reexports = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_ONLY_FIXTURE)
-        .expect("f4a6c213 re-export-only module fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_F4A6C213);
     let module_with_logic = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
-        .expect("875cd8ad module-with-logic fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_875CD8AD);
     assert!(is_reexport_only(reexports.items.as_slice()), "fd841ceb");
     assert!(
         !is_reexport_only(module_with_logic.items.as_slice()),
@@ -720,12 +720,12 @@ fn test_workspace_modules_reject_local_root_use_imports() {
         }
     }
     let grouped_import = syn::parse_file(constants_str::LOCAL_IMPORT_POLICY_FIXTURE)
-        .expect("86c23b47 grouped local import fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_86C23B47);
     let mut grouped_import_visitor = CrateImportVisitor::default();
     syn::visit::Visit::visit_file(&mut grouped_import_visitor, &grouped_import);
     assert_eq!(
         grouped_import_visitor.lines,
-        vec![1usize, 2usize, 3usize, 4usize],
+        [1usize, 2usize, 3usize, 4usize],
         "a49c2e71"
     );
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
@@ -971,7 +971,11 @@ fn test_large_module_exceptions_are_exact_and_still_needed() {
                 .iter()
                 .find(|file| file.path().as_ref().ends_with(exception));
             let Some(file) = matching_file else {
-                panic!("2d8f4a61 missing large-module exception target: {exception}");
+                std::panic::panic_any(constants_str::PANIC_2D8F4A61.replacen(
+                    constants_str::PANIC_PLACEHOLDER_9F304DDF,
+                    exception.to_string().as_str(),
+                    1usize,
+                ));
             };
             assert!(
                 file.content().as_ref().lines().count() > PRODUCTION_MODULE_MAX_LINES,
@@ -996,13 +1000,13 @@ fn test_server_domain_types_exclude_application_and_adapter_workflows() {
                     .as_ref()
                     .ends_with(constants_str::VALUE_47325207)
             })
-            .expect("2a49fec1 server domain types source must exist")
+            .expect(constants_str::DIAGNOSTIC_2A49FEC1)
             .content()
             .as_ref();
         let source = source_with_tests
             .split(constants_str::VALUE_3BA26FB4)
             .next()
-            .expect("82d0ffa2 split always returns the production source prefix");
+            .expect(constants_str::DIAGNOSTIC_82D0FFA2);
         [
             constants_str::VALUE_58D8E00E,
             constants_str::VALUE_4BB60066,
@@ -1058,13 +1062,13 @@ fn test_file_storage_domain_types_exclude_filesystem_workflows() {
                     .as_ref()
                     .ends_with(constants_str::VALUE_712F68AD)
             })
-            .expect("a081579c file storage domain types source must exist")
+            .expect(constants_str::DIAGNOSTIC_A081579C)
             .content()
             .as_ref();
         let source = source_with_tests
             .split(constants_str::VALUE_3BA26FB4)
             .next()
-            .expect("622c12de split always returns the production source prefix");
+            .expect(constants_str::DIAGNOSTIC_622C12DE);
         [
             constants_str::TOKIO_PATH_FS_PATH,
             constants_str::VALUE_BAA7CB12,
@@ -1097,13 +1101,13 @@ fn test_workspace_test_runner_domain_types_exclude_application_and_adapter_workf
                     .as_ref()
                     .ends_with(constants_str::VALUE_F45EC0EE)
             })
-            .expect("8b3cb235 workspace test runner domain types source must exist")
+            .expect(constants_str::DIAGNOSTIC_8B3CB235)
             .content()
             .as_ref();
         let source = source_with_tests
             .split(constants_str::VALUE_3BA26FB4)
             .next()
-            .expect("4c2a6281 split always returns the production source prefix");
+            .expect(constants_str::DIAGNOSTIC_4C2A6281);
         [
             constants_str::VALUE_32E64619,
             constants_str::VALUE_B9D99DED,

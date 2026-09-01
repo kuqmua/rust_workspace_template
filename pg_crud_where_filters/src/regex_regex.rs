@@ -5,29 +5,19 @@
     Eq,
     serde::Serialize,
     serde::Deserialize,
+    utoipa::ToSchema,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefOwned,
     newtype::Display,
     newtype::IntoInnerFrom,
 )]
 #[serde(try_from = "String", into = "String")]
+#[schema(value_type = String)]
 pub struct RegexRegex(String);
 impl From<crate::default_regex_pattern::DefaultRegexPattern> for RegexRegex {
     fn from(value: crate::default_regex_pattern::DefaultRegexPattern) -> Self {
         let _: crate::default_regex_pattern::DefaultRegexPattern = value;
         Self(String::from(constants_str::A_Z_PLUS))
-    }
-}
-impl utoipa::PartialSchema for RegexRegex {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        utoipa::openapi::ObjectBuilder::new()
-            .schema_type(utoipa::openapi::schema::Type::String)
-            .into()
-    }
-}
-impl utoipa::ToSchema for RegexRegex {
-    fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_REGEX_REGEX_SCHEMA_NAME)
     }
 }
 impl TryFrom<String> for RegexRegex {

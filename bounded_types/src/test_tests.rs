@@ -58,7 +58,7 @@ fn assert_above_max(
 fn test_string_bounds_are_inclusive() {
     let value =
         crate::bounded_string::BoundedString::<1, 3>::try_from(constants_str::ABC_ALT_3.to_owned())
-            .expect("6f09ad52 string_bounds_are_inclusive invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_6F09AD52);
     assert_eq!(value.as_ref(), constants_str::ABC_ALT_3);
     assert_eq!(value.len().get(), 3usize);
     assert_eq!(
@@ -75,7 +75,7 @@ fn test_string_bounds_are_inclusive() {
 fn test_string_rejects_below_minimum_and_invalid_bounds() {
     assert_eq!(
         crate::bounded_string::BoundedString::<1, 3>::try_from(String::new())
-            .expect_err("0ef05b85"),
+            .expect_err(constants_str::VALUE_0EF05B85),
         crate::bounded_string_error::BoundedStringError::BelowMinimum {
             actual_length: crate::bounded_len::BoundedLen::from(constants_usize::ZERO),
             minimum_length: crate::bounded_len::BoundedLen::from(constants_usize::ONE),
@@ -83,7 +83,7 @@ fn test_string_rejects_below_minimum_and_invalid_bounds() {
     );
     assert_eq!(
         crate::bounded_string::BoundedString::<2, 1>::try_from(constants_str::A_ALT.to_owned())
-            .expect_err("2de961c6"),
+            .expect_err(constants_str::VALUE_2DE961C6),
         crate::bounded_string_error::BoundedStringError::BelowMinimum {
             actual_length: crate::bounded_len::BoundedLen::from(constants_usize::ONE),
             minimum_length: crate::bounded_len::BoundedLen::from(2usize),
@@ -94,7 +94,7 @@ fn test_string_rejects_below_minimum_and_invalid_bounds() {
 #[test]
 fn test_byte_string_bounds_count_utf8_bytes() {
     let unicode = String::from_utf8(vec![0xc3u8, 0xa9u8, 0xc3u8, 0xa9u8])
-        .expect("9167aed1 byte_string_bounds_count_utf8_bytes invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_9167AED1);
     assert_eq!(
         crate::bounded_string::BoundedString::<0, 2>::try_from(unicode)
             .expect_err(constants_str::VALUE_311B8C86),
@@ -121,7 +121,7 @@ fn test_bounded_string_supports_default_unbounded_mutation_and_conversion() {
 #[test]
 fn test_bounded_string_truncates_at_utf8_boundary() {
     let unicode = String::from_utf8(vec![0xc3u8, 0xa9u8, 0xc3u8, 0xa9u8])
-        .expect("43af9b78 bounded_string_truncates_at_utf8_boundary invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_43AF9B78);
     let value = crate::bounded_string::BoundedString::<0, 3>::from_truncated(unicode);
     assert_eq!(value.as_str().len(), 2usize);
     assert!(value.as_str().is_char_boundary(value.as_str().len()));
@@ -141,11 +141,9 @@ fn test_bounded_string_default_and_prevalidated_construction_preserve_values() {
 fn test_byte_string_schema_publishes_byte_extensions() {
     let schema = <crate::bounded_string::BoundedString<1, 4> as utoipa::PartialSchema>::schema();
     let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) = schema else {
-        panic!("43ea6e9b");
+        std::panic::panic_any(constants_str::PANIC_43EA6E9B);
     };
-    let extensions = object
-        .extensions
-        .expect("177a114d byte_string_schema_publishes_byte_extensions invariant must hold");
+    let extensions = object.extensions.expect(constants_str::DIAGNOSTIC_177A114D);
     assert_eq!(
         extensions
             .get(constants_str::OPENAPI_MIN_BYTES_EXTENSION)
@@ -168,11 +166,9 @@ fn test_unbounded_byte_string_schema_omits_max_bytes_extension() {
         <crate::bounded_string::BoundedString<1, { usize::MAX }> as utoipa::PartialSchema>::schema(
         );
     let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) = schema else {
-        panic!("43fbea64");
+        std::panic::panic_any(constants_str::PANIC_43FBEA64);
     };
-    let extensions = object.extensions.expect(
-        "803cfa80 unbounded_byte_string_schema_omits_max_bytes_extension invariant must hold",
-    );
+    let extensions = object.extensions.expect(constants_str::DIAGNOSTIC_803CFA80);
     assert!(extensions.contains_key(constants_str::OPENAPI_MIN_BYTES_EXTENSION));
     assert!(!extensions.contains_key(constants_str::OPENAPI_MAX_BYTES_EXTENSION));
 }
@@ -180,10 +176,10 @@ fn test_unbounded_byte_string_schema_omits_max_bytes_extension() {
 #[test]
 fn test_vec_bounds_and_growth_are_enforced() {
     let mut values = crate::bounded_vec::BoundedVec::<u8, 0, 1>::try_from(Vec::new())
-        .expect("cb18bc21 vec_bounds_and_growth_are_enforced invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_CB18BC21);
     values
         .try_push(1u8)
-        .expect("28f49231 vec_bounds_and_growth_are_enforced invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_28F49231);
     assert_eq!(values.as_slice(), &[1u8]);
     assert_above_max(
         values
@@ -192,20 +188,22 @@ fn test_vec_bounds_and_growth_are_enforced() {
         2usize,
         constants_usize::ONE,
     );
-    assert_eq!(values.into_inner(), vec![1u8]);
+    assert_eq!(values.into_inner(), [1u8]);
 }
 
 #[test]
 fn test_vec_rejects_below_minimum_and_invalid_bounds() {
     assert_eq!(
-        crate::bounded_vec::BoundedVec::<u8, 1, 2>::try_from(Vec::new()).expect_err("8bf60687"),
+        crate::bounded_vec::BoundedVec::<u8, 1, 2>::try_from(Vec::new())
+            .expect_err(constants_str::VALUE_8BF60687),
         crate::bounded_value_error::BoundedValueError::BelowMin {
             actual: crate::bounded_len::BoundedLen::from(constants_usize::ZERO),
             min: crate::bounded_len::BoundedLen::from(constants_usize::ONE),
         }
     );
     assert_eq!(
-        crate::bounded_vec::BoundedVec::<u8, 2, 1>::try_from(vec![1u8]).expect_err("7e536e25"),
+        crate::bounded_vec::BoundedVec::<u8, 2, 1>::try_from(vec![1u8])
+            .expect_err(constants_str::VALUE_7E536E25),
         crate::bounded_value_error::BoundedValueError::InvalidBounds {
             min: crate::bounded_len::BoundedLen::from(2usize),
             max: crate::bounded_len::BoundedLen::from(constants_usize::ONE),
@@ -218,7 +216,7 @@ fn test_max_vec_construction_preserves_order_and_supports_consuming_iteration() 
     let values =
         crate::bounded_vec::BoundedVec::<u8, 0, { usize::MAX }>::from_max_iter([3u8, 1u8, 2u8]);
     assert_eq!(values.len().get(), 3usize);
-    assert_eq!(values.into_iter().collect::<Vec<u8>>(), vec![3u8, 1u8, 2u8]);
+    assert_eq!(values.into_iter().collect::<Vec<u8>>(), [3u8, 1u8, 2u8]);
 }
 
 #[test]
@@ -226,14 +224,14 @@ fn test_btree_map_replacement_is_allowed_at_capacity() {
     let mut values = crate::bounded_b_tree_map::BoundedBTreeMap::<u8, u8, 1>::try_from(
         std::collections::BTreeMap::new(),
     )
-    .expect("ea1fdc07 btree_map_replacement_is_allowed_at_capacity invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_EA1FDC07);
     let _previous = values
         .try_insert(1u8, 2u8)
-        .expect("285278fe btree_map_replacement_is_allowed_at_capacity invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_285278FE);
     assert_eq!(
         values
             .try_insert(1u8, 3u8)
-            .expect("946eb9a8 btree_map_replacement_is_allowed_at_capacity invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_946EB9A8),
         Some(2u8)
     );
     assert_above_max(
@@ -249,21 +247,21 @@ fn test_btree_map_replacement_is_allowed_at_capacity() {
 fn test_hash_map_capacity_mutation_and_removal_are_enforced() {
     let mut values = crate::bounded_hash_map::BoundedHashMap::<u8, u8, 1>::default();
     assert_eq!(
-        values.try_insert(1u8, 2u8).expect(
-            "c1b15ee9 hash_map_capacity_mutation_and_removal_are_enforced invariant must hold"
-        ),
+        values
+            .try_insert(1u8, 2u8)
+            .expect(constants_str::DIAGNOSTIC_C1B15EE9),
         None
     );
     assert_eq!(
-        values.try_insert(1u8, 3u8).expect(
-            "b4e85208 hash_map_capacity_mutation_and_removal_are_enforced invariant must hold"
-        ),
+        values
+            .try_insert(1u8, 3u8)
+            .expect(constants_str::DIAGNOSTIC_B4E85208),
         Some(2u8)
     );
     values
         .get_mut(&1u8)
         .map(|value| *value = 4u8)
-        .expect("32578cec hash_map_capacity_mutation_and_removal_are_enforced invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_32578CEC);
     assert_eq!(values.get(&1u8), Some(&4u8));
     assert_above_max(
         values
@@ -274,9 +272,9 @@ fn test_hash_map_capacity_mutation_and_removal_are_enforced() {
     );
     assert_eq!(values.remove(&1u8), Some(4u8));
     assert_eq!(
-        values.try_insert(2u8, 5u8).expect(
-            "98c16ca4 hash_map_capacity_mutation_and_removal_are_enforced invariant must hold"
-        ),
+        values
+            .try_insert(2u8, 5u8)
+            .expect(constants_str::DIAGNOSTIC_98C16CA4),
         None
     );
 }
@@ -291,7 +289,7 @@ fn test_btree_map_iteration_and_pop_preserve_key_order() {
     [3u8, 1u8, 2u8].into_iter().for_each(|key| {
         let _previous = values
             .try_insert(key, key)
-            .expect("02efac64 btree_map_iteration_and_pop_preserve_key_order invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_02EFAC64);
     });
     values.iter_mut().for_each(|(_key, value)| {
         *value = value.saturating_add(10u8);
@@ -301,10 +299,10 @@ fn test_btree_map_iteration_and_pop_preserve_key_order() {
             .iter()
             .map(|(key, value)| (*key, *value))
             .collect::<Vec<_>>(),
-        vec![(1u8, 11u8), (2u8, 12u8), (3u8, 13u8)]
+        [(1u8, 11u8), (2u8, 12u8), (3u8, 13u8)]
     );
     assert_eq!(values.pop_first(), Some((1u8, 11u8)));
-    assert_eq!(values.into_values().collect::<Vec<u8>>(), vec![12u8, 13u8]);
+    assert_eq!(values.into_values().collect::<Vec<u8>>(), [12u8, 13u8]);
 }
 
 #[test]
@@ -403,11 +401,14 @@ fn test_vec_deserialization_ignores_excess_item_type() {
 }
 
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-struct MisleadingSizeHintIter<Value> {
-    values: std::vec::IntoIter<Value>,
+struct MisleadingSizeHintIter<Values> {
+    values: Values,
 }
-impl<Value> Iterator for MisleadingSizeHintIter<Value> {
-    type Item = Value;
+impl<Values> Iterator for MisleadingSizeHintIter<Values>
+where
+    Values: Iterator,
+{
+    type Item = Values::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.values.next()
@@ -424,11 +425,11 @@ fn test_vec_deserialization_caps_untrusted_size_hint() {
         <crate::bounded_vec::BoundedVec<u8, 0, { usize::MAX }> as serde::Deserialize>::deserialize(
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
                 MisleadingSizeHintIter {
-                    values: vec![1u8].into_iter(),
+                    values: [1u8].into_iter(),
                 },
             ),
         )
-        .expect("d1ce80f4 vec_deserialization_caps_untrusted_size_hint invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_D1CE80F4);
     assert_eq!(values.as_slice(), &[1u8]);
     assert!(
         values.allocation_capacity() <= crate::serde_prealloc_max_items::SERDE_PREALLOC_MAX_ITEMS
@@ -440,19 +441,21 @@ fn test_map_deserialization_enforces_capacity_and_allows_duplicate_replacement()
     let duplicate_map = serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
         [(1u8, 2u8), (1u8, 3u8)].into_iter(),
     );
-    let values = <crate::bounded_b_tree_map::BoundedBTreeMap<u8, u8, 2> as serde::Deserialize>::deserialize(
-        duplicate_map,
-    )
-    .expect("22d831a5 map_deserialization_enforces_capacity_and_allows_duplicate_replacement invariant must hold");
+    let values =
+        <crate::bounded_b_tree_map::BoundedBTreeMap<u8, u8, 2> as serde::Deserialize>::deserialize(
+            duplicate_map,
+        )
+        .expect(constants_str::DIAGNOSTIC_22D831A5);
     assert_eq!(values.get(&1u8), Some(&3u8));
 
     let hash_duplicate_map = serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
         [(1u8, 2u8), (1u8, 3u8)].into_iter(),
     );
-    let hash_values = <crate::bounded_hash_map::BoundedHashMap<u8, u8, 2> as serde::Deserialize>::deserialize(
-        hash_duplicate_map,
-    )
-    .expect("75beb0a8 map_deserialization_enforces_capacity_and_allows_duplicate_replacement invariant must hold");
+    let hash_values =
+        <crate::bounded_hash_map::BoundedHashMap<u8, u8, 2> as serde::Deserialize>::deserialize(
+            hash_duplicate_map,
+        )
+        .expect(constants_str::DIAGNOSTIC_75BEB0A8);
     assert_eq!(hash_values.get(&1u8), Some(&3u8));
 
     let duplicate_above_wire_limit =
@@ -544,13 +547,13 @@ fn test_zero_capacity_maps_reject_without_deserializing_key_or_value_types() {
 #[test]
 fn test_hash_map_deserialization_caps_untrusted_size_hint() {
     let entries = MisleadingSizeHintIter {
-        values: vec![(1u8, 2u8)].into_iter(),
+        values: [(1u8, 2u8)].into_iter(),
     };
     let values =
         <crate::bounded_hash_map::BoundedHashMap<u8, u8, { usize::MAX }> as serde::Deserialize>::deserialize(
             serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(entries),
         )
-        .expect("b3cda4f2 hash_map_deserialization_caps_untrusted_size_hint invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_B3CDA4F2);
     assert_eq!(values.get(&1u8), Some(&2u8));
     let capped_capacity = std::collections::HashMap::<u8, u8>::with_capacity(
         crate::serde_prealloc_max_items::SERDE_PREALLOC_MAX_ITEMS,
@@ -564,7 +567,7 @@ fn test_unbounded_vector_schema_omits_max_items() {
     let schema =
         <crate::bounded_vec::BoundedVec<u8, 0, { usize::MAX }> as utoipa::PartialSchema>::schema();
     let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Array(array)) = schema else {
-        panic!("5fb9ee86");
+        std::panic::panic_any(constants_str::PANIC_5FB9EE86);
     };
     assert_eq!(array.min_items, Some(constants_usize::ZERO));
     assert_eq!(array.max_items, None);

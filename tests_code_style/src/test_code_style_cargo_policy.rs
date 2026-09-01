@@ -84,10 +84,10 @@ fn test_all_crates_have_workspace_lints() {
 #[test]
 fn test_workspace_denies_single_call_production_functions() {
     let manifest = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
-        .expect("7b9e2c41 workspace manifest must be readable");
+        .expect(constants_str::DIAGNOSTIC_7B9E2C41);
     let parsed = manifest
         .parse::<toml::Table>()
-        .expect("c4a81f36 workspace manifest must be valid TOML");
+        .expect(constants_str::DIAGNOSTIC_C4A81F36);
     let single_call_fn = constants_str::SHARED_VALUES_CLIPPY_SINGLE_CALL_FN
         .rsplit_once(constants_str::PATH_SEPARATOR)
         .map_or(
@@ -104,6 +104,60 @@ fn test_workspace_denies_single_call_production_functions() {
         lint_level,
         Some(constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND),
         "e13d7a90 workspace must deny single-call functions so private production helpers are localized as closures"
+    );
+}
+#[test]
+fn test_variable_lifetime_safety_lints_remain_denied() {
+    let manifest = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+        .expect(constants_str::DIAGNOSTIC_2F4A8C71);
+    let parsed = manifest
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_B0C1A5D9);
+    let workspace_lints = parsed
+        .get(constants_str::WORKSPACE)
+        .and_then(|workspace| workspace.get(constants_str::LINTS));
+    let rust_lints = workspace_lints
+        .and_then(|lints| lints.get(constants_str::RUST))
+        .and_then(toml::Value::as_table)
+        .expect(constants_str::DIAGNOSTIC_D93F0A2C);
+    let clippy_lints = workspace_lints
+        .and_then(|lints| lints.get(constants_str::CLIPPY))
+        .and_then(toml::Value::as_table)
+        .expect(constants_str::DIAGNOSTIC_F1A71C44);
+    let denied = |lints: &toml::Table, lint: &str| {
+        lints.get(lint).and_then(toml::Value::as_str)
+            == Some(constants_str::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND)
+    };
+    let rust_violations = [
+        stringify!(if_let_rescope),
+        stringify!(let_underscore_drop),
+        stringify!(tail_expr_drop_order),
+        stringify!(unused_lifetimes),
+    ]
+    .into_iter()
+    .filter(|lint| !denied(rust_lints, lint));
+    let clippy_violations = [
+        stringify!(await_holding_invalid_type),
+        stringify!(await_holding_lock),
+        stringify!(await_holding_refcell_ref),
+        stringify!(drop_non_drop),
+        stringify!(large_futures),
+        stringify!(large_stack_frames),
+        stringify!(let_and_return),
+        stringify!(needless_late_init),
+        stringify!(redundant_clone),
+        stringify!(redundant_locals),
+        stringify!(significant_drop_in_scrutinee),
+        stringify!(significant_drop_tightening),
+    ]
+    .into_iter()
+    .filter(|lint| !denied(clippy_lints, lint));
+    let violations = rust_violations
+        .chain(clippy_violations)
+        .collect::<Vec<&str>>();
+    assert!(
+        violations.is_empty(),
+        "49f1d063 variable lifetime safety lints must remain denied: {violations:?}"
     );
 }
 #[test]
@@ -162,9 +216,10 @@ fn test_check_workspace_dependencies_having_exact_version() {
     let workspace = crate::code_style::workspace_table_from_cargo_toml();
     crate::code_style::toml_val_as_table_ref(
         crate::types::TomlValueRef::from(
-            workspace.as_ref().get(constants_str::DEPENDENCIES).expect(
-                "2376f58e check_workspace_dependencies_having_exact_version invariant must hold",
-            ),
+            workspace
+                .as_ref()
+                .get(constants_str::DEPENDENCIES)
+                .expect(constants_str::DIAGNOSTIC_2376F58E),
         ),
         crate::types::StaticStr::from(constants_str::E117FA5A),
     )
@@ -181,7 +236,11 @@ fn test_check_workspace_dependencies_having_exact_version() {
                     match v_table.get().len() {
                         1 => (),
                         2 => crate::code_style::validate_workspace_dep_default_features(v_table),
-                        _ => panic!("f6a3b9d1 {v_table:#?}"),
+                        _ => std::panic::panic_any(constants_str::PANIC_F6A3B9D1.replacen(
+                            constants_str::PANIC_PLACEHOLDER_E0C1082A,
+                            format!("{v_table:#?}").as_str(),
+                            1usize,
+                        )),
                     }
                     return;
                 }
@@ -190,13 +249,13 @@ fn test_check_workspace_dependencies_having_exact_version() {
                 | toml::Value::Float(_)
                 | toml::Value::Boolean(_)
                 | toml::Value::Datetime(_)
-                | toml::Value::Array(_) => panic!("6ca03a1f"),
+                | toml::Value::Array(_) => std::panic::panic_any(constants_str::PANIC_6CA03A1F),
             }
         }
         match v_table
             .get()
             .get(constants_str::VERSION_ALT_3)
-            .expect("d5b2b269 workspace dependency version invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_D5B2B269)
         {
             toml::Value::String(version_string) => {
                 let exact_three_part_version =
@@ -216,7 +275,7 @@ fn test_check_workspace_dependencies_having_exact_version() {
             | toml::Value::Float(_)
             | toml::Value::Boolean(_)
             | toml::Value::Datetime(_)
-            | toml::Value::Array(_) => panic!("a3410a37"),
+            | toml::Value::Array(_) => std::panic::panic_any(constants_str::PANIC_A3410A37),
         }
         crate::code_style::validate_workspace_dep_default_features(v_table);
         match v_table.get().len() {
@@ -224,7 +283,7 @@ fn test_check_workspace_dependencies_having_exact_version() {
             3 => match v_table
                 .get()
                 .get(constants_str::FEATURES_ALT)
-                .expect("473577d5 workspace dependency features invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_473577D5)
             {
                 &toml::Value::Array(_) => (),
                 &toml::Value::String(_)
@@ -232,9 +291,13 @@ fn test_check_workspace_dependencies_having_exact_version() {
                 | &toml::Value::Integer(_)
                 | &toml::Value::Float(_)
                 | &toml::Value::Boolean(_)
-                | &toml::Value::Datetime(_) => panic!("38ba32e9"),
+                | &toml::Value::Datetime(_) => std::panic::panic_any(constants_str::PANIC_38BA32E9),
             },
-            _ => panic!("f1139378 {v_table:#?}"),
+            _ => std::panic::panic_any(constants_str::PANIC_F1139378.replacen(
+                constants_str::PANIC_PLACEHOLDER_E0C1082A,
+                format!("{v_table:#?}").as_str(),
+                1usize,
+            )),
         }
     });
 }
@@ -246,7 +309,7 @@ fn test_external_workspace_dependencies_disable_default_features() {
             workspace
                 .as_ref()
                 .get(constants_str::DEPENDENCIES)
-                .expect("9ac9fb4c external_workspace_dependencies_disable_default_features invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_9AC9FB4C),
         ),
         crate::types::StaticStr::from(constants_str::VALUE_5EECAACC),
     );
@@ -268,34 +331,40 @@ fn test_external_workspace_dependencies_disable_default_features() {
 }
 #[test]
 fn test_workspace_dependency_default_feature_policy_rejects_missing_and_true_values() {
-    let valid = toml::from_str::<toml::Value>(
-        constants_str::VALUE_ED42B9D4,
-    )
-    .expect("227e7634 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
-    let missing = toml::from_str::<toml::Value>(
-        constants_str::VALUE_79152E94,
-    )
-    .expect("0e82eab4 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
-    let enabled = toml::from_str::<toml::Value>(
-        constants_str::VALUE_4CB11A6C,
-    )
-    .expect("e441c429 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold");
+    let valid = toml::from_str::<toml::Value>(constants_str::VALUE_ED42B9D4)
+        .expect(constants_str::DIAGNOSTIC_227E7634);
+    let missing = toml::from_str::<toml::Value>(constants_str::VALUE_79152E94)
+        .expect(constants_str::DIAGNOSTIC_0E82EAB4);
+    let enabled = toml::from_str::<toml::Value>(constants_str::VALUE_4CB11A6C)
+        .expect(constants_str::DIAGNOSTIC_E441C429);
     assert!(
-        crate::code_style::workspace_dep_disables_default_features(crate::types::TomlValueRef::from(
-            valid.get("dependency").expect("34136b6c workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold"),
-        ))
+        crate::code_style::workspace_dep_disables_default_features(
+            crate::types::TomlValueRef::from(
+                valid
+                    .get("dependency")
+                    .expect(constants_str::DIAGNOSTIC_34136B6C),
+            )
+        )
         .get()
     );
     assert!(
-        !crate::code_style::workspace_dep_disables_default_features(crate::types::TomlValueRef::from(
-            missing.get("dependency").expect("e9b5ed95 workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold"),
-        ))
+        !crate::code_style::workspace_dep_disables_default_features(
+            crate::types::TomlValueRef::from(
+                missing
+                    .get("dependency")
+                    .expect(constants_str::DIAGNOSTIC_E9B5ED95),
+            )
+        )
         .get()
     );
     assert!(
-        !crate::code_style::workspace_dep_disables_default_features(crate::types::TomlValueRef::from(
-            enabled.get("dependency").expect("3e8046ef workspace_dependency_default_feature_policy_rejects_missing_and_true_values invariant must hold"),
-        ))
+        !crate::code_style::workspace_dep_disables_default_features(
+            crate::types::TomlValueRef::from(
+                enabled
+                    .get("dependency")
+                    .expect(constants_str::DIAGNOSTIC_3E8046EF),
+            )
+        )
         .get()
     );
 }
@@ -353,9 +422,10 @@ fn test_workspace_dependency_catalog_has_no_unused_entries() {
     let workspace = crate::code_style::workspace_table_from_cargo_toml();
     let catalog = crate::code_style::toml_val_as_table_ref(
         crate::types::TomlValueRef::from(
-            workspace.as_ref().get(constants_str::DEPENDENCIES).expect(
-                "3e0ac397 workspace_dependency_catalog_has_no_unused_entries invariant must hold",
-            ),
+            workspace
+                .as_ref()
+                .get(constants_str::DEPENDENCIES)
+                .expect(constants_str::DIAGNOSTIC_3E0AC397),
         ),
         crate::types::StaticStr::from(constants_str::VALUE_5EB013E8),
     );
@@ -499,9 +569,97 @@ fn test_library_crates_with_public_logic_own_tests() {
 }
 
 #[test]
+fn test_source_modules_with_public_logic_own_unit_tests() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let proc_macro_entrypoints = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| {
+                package.targets.iter().any(|target| {
+                    target
+                        .kind
+                        .iter()
+                        .any(|kind| kind == &cargo_metadata::TargetKind::ProcMacro)
+                })
+            })
+            .filter_map(|package| package.manifest_path.as_std_path().parent())
+            .filter_map(|directory| directory.file_name())
+            .map(std::path::PathBuf::from)
+            .map(|directory| directory.join(stringify!(src)).join(stringify!(lib.rs)))
+            .collect::<std::collections::BTreeSet<std::path::PathBuf>>();
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| {
+                let path = file.path().as_ref();
+                path.components()
+                    .any(|part| part.as_os_str() == stringify!(src))
+                    && !crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(
+                        path,
+                    ))
+                    .get()
+                    && !proc_macro_entrypoints
+                        .iter()
+                        .any(|entrypoint| path.ends_with(entrypoint))
+            })
+            .filter(|file| {
+                crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(file.ast().as_ref()),
+                    super::source_analysis::PublicLogicVisitor::default(),
+                )
+                .get_found()
+                .get()
+            })
+            .filter(|file| {
+                !crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(file.ast().as_ref()),
+                    super::source_analysis::OwnedTestVisitor::default(),
+                )
+                .get_found()
+                .get()
+            })
+            .filter(|file| {
+                let path = file.path().as_ref();
+                let Some(source_directory) = path.ancestors().find(|ancestor| {
+                    ancestor
+                        .file_name()
+                        .is_some_and(|name| name == stringify!(src))
+                }) else {
+                    return true;
+                };
+                ![stringify!(lib.rs), stringify!(main.rs)]
+                    .into_iter()
+                    .map(|root_name| source_directory.join(root_name))
+                    .filter_map(|root_path| {
+                        snapshot
+                            .rs_files()
+                            .iter()
+                            .find(|candidate| candidate.path().as_ref() == root_path)
+                    })
+                    .any(|root_file| {
+                        root_file.ast().as_ref().items.iter().any(|item| {
+                            crate::code_style::has_test_only_cfg_attr(
+                                crate::types::SynItemRef::from(item),
+                            )
+                            .get()
+                        })
+                    })
+            })
+            .map(|file| file.path().as_ref().display().to_string())
+            .collect::<Vec<String>>();
+        assert!(
+            violations.is_empty(),
+            "7547897d source modules with public logic lack local or crate-root unit tests: {violations:#?}"
+        );
+    });
+}
+
+#[test]
 fn test_workspace_lint_allows_have_inline_reasons() {
     let source = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
-        .expect("68dcaf75 workspace_lint_allows_have_inline_reasons invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_68DCAF75);
     let violations = crate::code_style::unjustified_workspace_lint_allows(
         crate::types::SourceTextRef::from(source.as_str()),
     );
@@ -573,9 +731,9 @@ fn test_workspace_crates_must_use_workspace_dependencies() {
 }
 #[test]
 fn test_target_specific_dependencies_must_use_workspace_dependencies() {
-    let invalid_manifest = constants_str::VALUE_DB030A59.parse::<toml::Table>().expect(
-        "b49e27c1 target_specific_dependencies_must_use_workspace_dependencies invariant must hold",
-    );
+    let invalid_manifest = constants_str::VALUE_DB030A59
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_B49E27C1);
     let mut invalid_ers = Vec::new();
     crate::code_style::collect_non_workspace_dep_ers(
         crate::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
@@ -598,9 +756,9 @@ fn test_target_specific_dependencies_must_use_workspace_dependencies() {
         );
     });
 
-    let valid_manifest = constants_str::VALUE_98F81CDD.parse::<toml::Table>().expect(
-        "8f1c3a6d target_specific_dependencies_must_use_workspace_dependencies invariant must hold",
-    );
+    let valid_manifest = constants_str::VALUE_98F81CDD
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_8F1C3A6D);
     let mut valid_ers = Vec::new();
     crate::code_style::collect_non_workspace_dep_ers(
         crate::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
@@ -613,17 +771,17 @@ fn test_target_specific_dependencies_must_use_workspace_dependencies() {
 fn test_workspace_dependencies_use_inline_table_style() {
     let regex =
         regex::Regex::new(constants_str::QUESTION_M_S_ASTERISK_A_ZA_Z0_9_PLUS_WORKSPACE_S_ASTERISK)
-            .expect("ac15d6b9 workspace_dependencies_use_inline_table_style invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_AC15D6B9);
     let mut ers = Vec::new();
     crate::code_style::for_each_crate_manifest_file(|path| {
         let v = crate::code_style::cargo_toml_content(crate::types::PathRef::from(path))
-            .expect("762c1d9e workspace_dependencies_use_inline_table_style invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_762C1D9E);
         ers.extend(regex.find_iter(v.as_ref()).filter_map(|mtch| {
             let field = mtch
                 .as_str()
                 .split_once('.')
                 .map(|(field, _suffix)| field.trim())
-                .expect("34f5ed27 workspace_dependencies_use_inline_table_style invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_34F5ED27);
             if [
                 constants_str::DESCRIPTION,
                 constants_str::EDITION,
@@ -688,9 +846,7 @@ fn test_workspace_members_exist_on_disk() {
 fn test_workspace_crates_are_direct_children_of_workspace_root() {
     let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect(
-            "f7a31d9c workspace_crates_are_direct_children_of_workspace_root invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_F7A31D9C);
     let mut violations = walkdir::WalkDir::new(workspace_root)
         .into_iter()
         .filter_entry(|entry| {
@@ -698,13 +854,13 @@ fn test_workspace_crates_are_direct_children_of_workspace_root() {
                 && entry.file_name() != constants_str::GIT
                 && entry.file_name() != constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES
         })
-        .map(|entry| entry.unwrap_or_else(|error| panic!("b93c6e41 {error}")))
+        .map(|entry| entry.unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_B93C6E41.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize))))
         .filter(|entry| !entry.file_type().is_dir() && entry.file_name() == constants_str::CARGO_TOML)
         .filter_map(|entry| {
-            let crate_directory = entry.path().parent().expect("3de790a4 workspace_crates_are_direct_children_of_workspace_root invariant must hold");
+            let crate_directory = entry.path().parent().expect(constants_str::DIAGNOSTIC_3DE790A4);
             let relative = crate_directory
                 .strip_prefix(workspace_root)
-                .expect("c16f84b2 workspace_crates_are_direct_children_of_workspace_root invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_C16F84B2);
             let parts = relative
                 .components()
                 .map(|component| component.as_os_str().to_string_lossy())
@@ -719,7 +875,7 @@ fn test_workspace_crates_are_direct_children_of_workspace_root() {
             })
         })
         .collect::<Vec<String>>();
-    violations.sort_unstable();
+    violations.sort();
     assert!(
         violations.is_empty(),
         "5a2e8c71 workspace crates must be direct children of the workspace root. Nested paths such as `my_folder/my_logic/my_crate` are forbidden; flatten every path by joining its directory names with underscores:\n{}",
@@ -737,10 +893,11 @@ fn test_workspace_crate_src_modules_are_flat() {
             .iter()
             .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
             .flat_map(|package| {
-                let crate_directory =
-                    package.manifest_path.as_std_path().parent().expect(
-                        "92161504 workspace_crate_src_modules_are_flat invariant must hold",
-                    );
+                let crate_directory = package
+                    .manifest_path
+                    .as_std_path()
+                    .parent()
+                    .expect(constants_str::DIAGNOSTIC_92161504);
                 let source_directory = crate_directory.join(constants_str::SRC_ALT);
                 if !source_directory.is_dir() {
                     return Vec::new();
@@ -748,7 +905,15 @@ fn test_workspace_crate_src_modules_are_flat() {
                 walkdir::WalkDir::new(source_directory.as_path())
                     .min_depth(constants_usize::ONE)
                     .into_iter()
-                    .map(|entry| entry.unwrap_or_else(|error| panic!("49938956 {error}")))
+                    .map(|entry| {
+                        entry.unwrap_or_else(|error| {
+                            std::panic::panic_any(constants_str::PANIC_49938956.replacen(
+                                constants_str::PANIC_PLACEHOLDER_81240055,
+                                error.to_string().as_str(),
+                                1usize,
+                            ))
+                        })
+                    })
                     .filter(|entry| !entry.file_type().is_dir())
                     .filter(|entry| {
                         entry.path().extension().and_then(std::ffi::OsStr::to_str)
@@ -761,7 +926,7 @@ fn test_workspace_crate_src_modules_are_flat() {
                     .collect::<Vec<String>>()
             })
             .collect::<Vec<String>>();
-        violations.sort_unstable();
+        violations.sort();
         assert!(
             violations.is_empty(),
             "037f95b6 Rust module files must be stored directly in each crate's src directory:\n{}",
@@ -777,7 +942,7 @@ fn test_workspace_members_sorted_alphabetically() {
         crate::types::StaticStr::from(constants_str::C1D4F7A2),
     );
     let mut sorted = members_vec.clone();
-    sorted.sort_unstable();
+    sorted.sort();
     let ers = members_vec
         .iter()
         .zip(sorted.iter())

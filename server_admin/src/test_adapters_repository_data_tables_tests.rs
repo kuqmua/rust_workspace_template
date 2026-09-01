@@ -10,20 +10,20 @@ fn filter_query(
                 server_admin_contract::admin_filter_field::AdminFilterField::try_from(
                     field.to_owned(),
                 )
-                .expect("a17498dc filter_query invariant must hold"),
+                .expect(constants_str::DIAGNOSTIC_A17498DC),
             ),
             Some(operation),
             filter_value.map(|raw_filter_value| {
                 server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
                     raw_filter_value.to_owned(),
                 )
-                .expect("f064fcd7 filter_query invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_F064FCD7)
             }),
             end.map(|raw_filter_end| {
                 server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
                     raw_filter_end.to_owned(),
                 )
-                .expect("9b563f27 filter_query invariant must hold")
+                .expect(constants_str::DIAGNOSTIC_9B563F27)
             }),
         ),
         server_admin_contract::admin_table_query::AdminTableQuery::default(),
@@ -81,7 +81,7 @@ fn test_generated_table_fields_supply_client_column_metadata() {
         server_admin_contract::admin_data_columns::AdminDataColumns::try_from(columns)
             .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     })()
-    .expect("f3c897af generated_table_fields_supply_client_column_metadata invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_F3C897AF);
     let id = columns
         .as_slice()
         .iter()
@@ -93,16 +93,14 @@ fn test_generated_table_fields_supply_client_column_metadata() {
         .as_slice()
         .iter()
         .find(|column| column.name().as_ref() == constants_str::LOGIN)
-        .expect(
-            "7a340d1f generated_table_fields_supply_client_column_metadata invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_7A340D1F);
     assert_eq!(
         login
             .filters()
             .iter()
             .map(server_admin_contract::admin_data_filter::AdminDataFilter::operation)
             .collect::<Vec<_>>(),
-        vec![
+        [
             frontend_contract::filter_operation::FilterOperation::Eq,
             frontend_contract::filter_operation::FilterOperation::Regex,
         ]
@@ -121,14 +119,14 @@ fn test_generated_where_filter_builds_typed_table_predicate() {
         server_admin_contract::admin_data_table::AdminDataTable::Users,
         query.filter(),
     )
-    .expect("4e779df0 generated_where_filter_builds_typed_table_predicate invariant must hold")
-    .expect("d9c8cf39 generated_where_filter_builds_typed_table_predicate invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_4E779DF0)
+    .expect(constants_str::DIAGNOSTIC_D9C8CF39);
     let mut increment =
         pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
 
     let fragment = filter
         .query_part(&mut increment)
-        .expect("a25fe142 generated_where_filter_builds_typed_table_predicate invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_A25FE142);
 
     assert!(fragment.as_ref().contains(constants_str::LOGIN));
     assert!(fragment.as_ref().contains("$1"));
@@ -163,7 +161,7 @@ fn test_empty_filter_query_omits_the_predicate() {
             server_admin_contract::admin_data_table::AdminDataTable::Users,
             &query
         )
-        .expect("fd36a6f5 empty_filter_query_omits_the_predicate invariant must hold")
+        .expect(constants_str::DIAGNOSTIC_FD36A6F5)
         .is_none()
     );
 }
@@ -173,11 +171,11 @@ fn test_incomplete_filter_queries_are_rejected() {
     let field = server_admin_contract::admin_filter_field::AdminFilterField::try_from(
         constants_str::LOGIN.to_owned(),
     )
-    .expect("f1832a34 incomplete_filter_queries_are_rejected invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_F1832A34);
     let value = server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
         String::from(constants_str::VALUE_2BD806C9),
     )
-    .expect("16849a06 incomplete_filter_queries_are_rejected invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_16849A06);
     let queries = [
         server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
             Some(field),
@@ -260,14 +258,14 @@ fn test_regex_filter_builds_a_typed_predicate() {
         server_admin_contract::admin_data_table::AdminDataTable::Users,
         query.filter(),
     )
-    .expect("e0b1326d regex_filter_builds_a_typed_predicate invariant must hold")
-    .expect("8a4e68fb regex_filter_builds_a_typed_predicate invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_E0B1326D)
+    .expect(constants_str::DIAGNOSTIC_8A4E68FB);
     let mut increment =
         pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
 
     let fragment = filter
         .query_part(&mut increment)
-        .expect("9f5e101d regex_filter_builds_a_typed_predicate invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_9F5E101D);
 
     assert!(fragment.as_ref().contains(constants_str::LOGIN));
     assert_eq!(increment.get(), 1u64);
@@ -278,13 +276,11 @@ fn test_filtered_sql_places_pagination_after_filter_binds() {
     let fragment = pg_crud_common::query_part_fragment::QueryPartFragment::try_from(String::from(
         constants_str::VALUE_F7A09FE1,
     ))
-    .expect("45d292b8 filtered_sql_places_pagination_after_filter_binds invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_45D292B8);
 
     let (base_count, base_data) =
         crate::base_sql::base_sql(server_admin_contract::admin_data_table::AdminDataTable::Users)
-            .expect(
-                "44c43299 filtered_sql_places_pagination_after_filter_binds invariant must hold",
-            );
+            .expect(constants_str::DIAGNOSTIC_44C43299);
     let (_count, data) = (|| -> Result<
         (
             server_admin_core::std_admin_string::StdAdminString,
@@ -322,7 +318,7 @@ fn test_filtered_sql_places_pagination_after_filter_binds() {
             .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
         Ok((count, data))
     })()
-    .expect("c33365ba filtered_sql_places_pagination_after_filter_binds invariant must hold");
+    .expect(constants_str::DIAGNOSTIC_C33365BA);
 
     assert!(data.as_ref().contains("where login = $1"));
     assert!(data.as_ref().contains("LIMIT $2 OFFSET $3"));
@@ -334,7 +330,8 @@ fn test_table_spec_generates_bounded_projection_and_count_sql_for_every_table() 
     server_admin_contract::admin_data_table::AdminDataTable::ALL
         .into_iter()
         .for_each(|table| {
-            let (count, data) = crate::base_sql::base_sql(table).expect("5f714b28 table_spec_generates_bounded_projection_and_count_sql_for_every_table invariant must hold");
+            let (count, data) =
+                crate::base_sql::base_sql(table).expect(constants_str::DIAGNOSTIC_5F714B28);
             let table_name = table.to_string();
             assert!(count.as_ref().contains(table_name.as_str()));
             assert!(data.as_ref().contains(table_name.as_str()));

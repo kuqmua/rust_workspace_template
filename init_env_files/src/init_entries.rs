@@ -1,5 +1,3 @@
-use bounded_types::bounded_vec::BoundedVec;
-
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::AsRefOwned,
@@ -7,5 +5,9 @@ use bounded_types::bounded_vec::BoundedVec;
     newtype::IntoIterator,
 )]
 pub(crate) struct InitEntries(
-    BoundedVec<crate::initialization_entry::InitializationEntry, 0, { usize::MAX }>,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::initialization_entry::InitializationEntry,
+        0,
+        { usize::MAX },
+    >,
 );

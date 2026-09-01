@@ -12,6 +12,7 @@ keywords = ["admin", "contract"]
 categories = ["web-programming"]
 
 [dependencies]
+naming_macros = { workspace = true }
 generate_accessor = { workspace = true }
 generate_constructor = { workspace = true }
 constants_usize = { workspace = true }

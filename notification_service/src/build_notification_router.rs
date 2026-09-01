@@ -10,8 +10,8 @@ pub(crate) fn build_notification_router(
             .into_common_routes_app_state(),
     ));
     crate::notification_axum_router::NotificationAxumRouter::from(
-        super::notification_route_registry::NotificationRouteRegistry::router()
-            .merge(super::notification_api_route_registry::NotificationApiRouteRegistry::router())
+        super::notification_route_registry::router()
+            .merge(super::notification_api_route_registry::router())
             .layer(axum::extract::DefaultBodyLimit::max(
                 body_maximum_bytes.get(),
             ))

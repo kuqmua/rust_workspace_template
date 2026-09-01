@@ -1,4 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    naming_macros::EnumWithUnitFieldsToUpperSnakeCaseStr,
+)]
 pub(crate) enum AdminMutationMethod {
     Delete,
     Patch,
@@ -7,10 +13,6 @@ pub(crate) enum AdminMutationMethod {
 
 impl AdminMutationMethod {
     pub(crate) const fn get(self) -> &'static str {
-        match self {
-            Self::Delete => constants_str::DELETE,
-            Self::Patch => constants_str::PATCH,
-            Self::Post => constants_str::POST,
-        }
+        self.as_upper_snake_case_str()
     }
 }

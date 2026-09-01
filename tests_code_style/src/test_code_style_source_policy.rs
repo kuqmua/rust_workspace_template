@@ -175,9 +175,7 @@ fn test_cfg_test_attribute_policy_rejects_a_duplicate() {
     };
     assert_eq!(
         crate::code_style::cfg_test_attr_count(crate::types::SynItemRef::from(
-            ast.items
-                .first()
-                .expect("ed9caf91 duplicate cfg fixture must contain an item"),
+            ast.items.first().expect(constants_str::DIAGNOSTIC_ED9CAF91),
         )),
         constants_usize::TWO
     );
@@ -223,8 +221,7 @@ fn test_empty_module_policy_rejects_an_inline_module_without_items() {
 
 #[test]
 fn test_empty_module_policy_rejects_a_source_file_without_items() {
-    let ast = syn::parse_file(constants_str::EMPTY)
-        .expect("ae2e1c74 empty module source fixture must parse");
+    let ast = syn::parse_file(constants_str::EMPTY).expect(constants_str::DIAGNOSTIC_AE2E1C74);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         EmptyModuleVisitor::default(),
@@ -370,8 +367,8 @@ fn test_generated_struct_fields_are_private_without_exceptions() {
 
 #[test]
 fn test_provider_traits_do_not_use_get_prefix() {
-    let pattern = regex::Regex::new(constants_str::VALUE_B2BAA955)
-        .expect("cbe7bf15 provider trait regex must compile");
+    let pattern =
+        regex::Regex::new(constants_str::VALUE_B2BAA955).expect(constants_str::DIAGNOSTIC_CBE7BF15);
     let mut ers = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
         pattern
@@ -523,8 +520,8 @@ fn test_expect_and_panic_messages_start_with_unique_diagnostic_ids() {
 }
 #[test]
 fn test_diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
-    let ast = syn::parse_file(constants_str::VALUE_D1E0CA47)
-        .expect("95d174ac fixture invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_D1E0CA47).expect(constants_str::DIAGNOSTIC_95D174AC);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor::new(
@@ -538,8 +535,8 @@ fn test_diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
         [String::from("1a2b3c4d"), String::from("5e6f7a8b")]
     );
 
-    let invalid_ast = syn::parse_file(constants_str::VALUE_BFBFB833)
-        .expect("6c3a48f1 fixture invariant must hold");
+    let invalid_ast =
+        syn::parse_file(constants_str::VALUE_BFBFB833).expect(constants_str::DIAGNOSTIC_6C3A48F1);
     let invalid_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&invalid_ast),
         super::source_analysis::DiagnosticIdVisitor::new(
@@ -551,8 +548,8 @@ fn test_diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
 }
 #[test]
 fn test_diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
-    let ast = syn::parse_file(constants_str::VALUE_38F6372C)
-        .expect("227c291c generate invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_38F6372C).expect(constants_str::DIAGNOSTIC_227C291C);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor::new(
@@ -566,13 +563,13 @@ fn test_diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
 #[test]
 fn test_check_rs_files_contains_only_unique_uuid_v4() {
     let regex = regex::Regex::new(constants_str::B_0_9A_FA_F_8_0_9A_FA_F_4_4)
-        .expect("e098a1ff check_rs_files_contains_only_unique_uuid_v4 invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_E098A1FF);
     let mut seen = std::collections::HashSet::new();
     crate::code_style::for_each_rs_file(|file| {
         let v = file.content().as_ref();
         regex.find_iter(v).for_each(|element_714b3d9c| {
             let uuid = uuid::Uuid::parse_str(element_714b3d9c.as_str())
-                .expect("c9711efd check_rs_files_contains_only_unique_uuid_v4 invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_C9711EFD);
             assert!(uuid.get_version_num() == 4, "49b49b21");
             assert!(seen.insert(uuid), "4cf9d239");
         });
@@ -719,7 +716,7 @@ fn test_runtime_struct_fields_do_not_expose_untyped_json_values() {
 #[test]
 fn test_struct_field_visibility_policy_rejects_restricted_visibility() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_STRUCT_FIELD_VISIBILITY_FIXTURE)
-        .expect("8c99de4e struct field visibility fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_8C99DE4E);
     let mut visitor = super::source_analysis::PublicStructFieldVisitor::default();
     syn::visit::Visit::visit_file(&mut visitor, &ast);
     assert_eq!(
@@ -739,7 +736,7 @@ fn test_struct_field_visibility_policy_rejects_restricted_visibility() {
 #[test]
 fn test_generated_struct_field_visibility_policy_rejects_every_public_form() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_GENERATED_STRUCT_FIELD_VISIBILITY_FIXTURE)
-        .expect("77de048c generated struct field visibility fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_77DE048C);
     let mut visitor = super::source_analysis::GeneratedPublicStructFieldVisitor::default();
     syn::visit::Visit::visit_file(&mut visitor, &ast);
     assert_eq!(visitor.get_violations().len(), 5usize, "85b3fba7");
@@ -768,8 +765,8 @@ fn test_spawned_tasks_must_retain_an_owner() {
 }
 #[test]
 fn test_spawned_task_policy_rejects_bare_wildcard_and_ignored_bindings() {
-    let ast = syn::parse_file(constants_str::VALUE_EBB24851)
-        .expect("94b344d7 spawn_tasks invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_EBB24851).expect(constants_str::DIAGNOSTIC_94B344D7);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::LostSpawnVisitor::new(crate::types::DiagnosticMsgs::default()),
@@ -813,7 +810,7 @@ fn test_direct_filesystem_owner_inventory_is_exact_justified_and_current() {
     );
     let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("4d82f1b7 direct_filesystem_owner_inventory_is_exact_justified_and_current invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_4D82F1B7);
     let missing_or_unjustified = constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
         .iter()
         .zip(constants_str::CODE_STYLE_DIRECT_FS_OWNER_REASONS)
@@ -919,6 +916,22 @@ fn test_runtime_data_reads_are_bounded() {
     );
 }
 #[test]
+fn test_bounded_read_policy_rejects_sync_and_async_whole_file_reads() {
+    let syntax: syn::File = syn::parse_quote! {
+        pub(super) async fn reads() {
+            let _first = std::fs::read(stringify!(first));
+            let _second = std::fs::read_to_string(stringify!(second));
+            let _third = tokio::fs::read(stringify!(third)).await;
+            let _fourth = tokio::fs::read_to_string(stringify!(fourth)).await;
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&syntax),
+        super::source_analysis::UnboundedReadVisitor::new(crate::types::DiagnosticMsgs::default()),
+    );
+    assert_eq!(visitor.get_calls().len(), 4usize, "46638c47");
+}
+#[test]
 fn test_environment_initializer_is_in_bounded_read_policy_scope() {
     assert!(
         !constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
@@ -967,7 +980,7 @@ fn test_raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         if count != constants_usize::ZERO {
             let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
-                .expect("19512c63 raw_runtime_sql_identifier_inventory_matches_reviewed_baseline invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_19512C63);
             let relative = path
                 .strip_prefix(workspace_root)
                 .unwrap_or(path)
@@ -1095,10 +1108,8 @@ fn test_every_workspace_struct_and_enum_derives_optimal_memory_layout() {
 }
 #[test]
 fn test_optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
-    let ast = syn::parse_file(
-        constants_str::VALUE_936BA38B,
-    )
-    .expect("34fb5a61 optimal_memory_layout_derive_visitor_checks_structs_and_enums invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_936BA38B).expect(constants_str::DIAGNOSTIC_34FB5A61);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::OptimalMemoryLayoutVisitor::default(),
@@ -1146,8 +1157,8 @@ fn test_unit_tests_use_deterministic_time_and_randomness_patterns() {
 }
 #[test]
 fn test_unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness() {
-    let ast = syn::parse_file(constants_str::VALUE_402DAFF0)
-        .expect("9354f086 integration_test_helper invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_402DAFF0).expect(constants_str::DIAGNOSTIC_9354F086);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TestNondeterminismVisitor::new(
@@ -1208,7 +1219,7 @@ fn test_generated_randomness_policy_inspects_quote_token_streams() {
         constants_str::VALUE_D10B36AA,
     ]
     .join(constants_str::NEWLINE);
-    let ast = syn::parse_file(source.as_str()).expect("04e98f91 generated invariant must hold");
+    let ast = syn::parse_file(source.as_str()).expect(constants_str::DIAGNOSTIC_04E98F91);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::GeneratedRandomnessVisitor::new(
@@ -1437,9 +1448,59 @@ fn test_module_and_function_names_do_not_use_unclear_short_forms() {
     );
 }
 #[test]
+fn test_struct_fields_do_not_use_opaque_short_names() {
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
+        crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
+        |path, ast, ers| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                super::source_analysis::OpaqueShortFieldNamingVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                ),
+            );
+            visitor
+                .get_identifiers()
+                .clone()
+                .into_iter()
+                .for_each(|identifier| {
+                    ers.push(format!(
+                        "{}: struct field `{identifier}` uses an opaque short name",
+                        path.display()
+                    ));
+                });
+        },
+    );
+}
+#[test]
+fn test_serde_renames_do_not_introduce_opaque_short_names() {
+    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+        crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
+        crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
+        |path, ast, ers| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                super::source_analysis::OpaqueSerdeRenameVisitor::new(
+                    crate::types::DiagnosticMsgs::default(),
+                ),
+            );
+            visitor
+                .get_identifiers()
+                .clone()
+                .into_iter()
+                .for_each(|identifier| {
+                    ers.push(format!(
+                        "{}: serde rename `{identifier}` uses an opaque short name",
+                        path.display()
+                    ));
+                });
+        },
+    );
+}
+#[test]
 fn test_production_line_print_macro_policy_allows_test_code_and_rejects_production_code() {
-    let ast = syn::parse_file(constants_str::VALUE_606F2B07)
-        .expect("a508c55d production_line_print_macro_policy fixture must parse");
+    let ast =
+        syn::parse_file(constants_str::VALUE_606F2B07).expect(constants_str::DIAGNOSTIC_A508C55D);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ProductionLinePrintMacroVisitor::new(
@@ -1479,9 +1540,8 @@ fn test_sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
 }
 #[test]
 fn test_sensitive_text_debug_policy_distinguishes_redacted_derives() {
-    let ast = syn::parse_file(constants_str::VALUE_BC13B693).expect(
-        "3d72b9e0 sensitive_text_debug_policy_distinguishes_redacted_derives invariant must hold",
-    );
+    let ast =
+        syn::parse_file(constants_str::VALUE_BC13B693).expect(constants_str::DIAGNOSTIC_3D72B9E0);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::SensitiveTextDebugDeriveVisitor::new(
@@ -1532,10 +1592,8 @@ fn test_error_formatters_do_not_expose_sensitive_fields() {
 }
 #[test]
 fn test_sensitive_error_format_policy_rejects_named_and_tuple_placeholders() {
-    let ast = syn::parse_file(
-        constants_str::VALUE_2CC8E3AF,
-    )
-    .expect("d8cc09ca sensitive_error_format_policy_rejects_named_and_tuple_placeholders invariant must hold");
+    let ast =
+        syn::parse_file(constants_str::VALUE_2CC8E3AF).expect(constants_str::DIAGNOSTIC_D8CC09CA);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::SensitiveErrorFormatVisitor::new(
@@ -1578,9 +1636,7 @@ fn test_source_lint_suppressions_have_explicit_reasons() {
         crate::types::StaticStr::from(constants_str::VALUE_7410D6B1),
         crate::types::SourceTextRef::from(constants_str::VALUE_2DAB1928),
         |path, ast, ers| {
-            let source = std::fs::read_to_string(path).expect(
-                "8d3bca08 source_lint_suppressions_have_explicit_reasons invariant must hold",
-            );
+            let source = std::fs::read_to_string(path).expect(constants_str::DIAGNOSTIC_8D3BCA08);
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::AllowReasonVisitor::new(
@@ -1603,7 +1659,7 @@ fn test_source_lint_suppressions_have_explicit_reasons() {
 #[test]
 fn test_source_lint_reason_policy_accepts_argument_and_comment_reasons() {
     let source = constants_str::VALUE_1D86D8F2;
-    let ast = syn::parse_file(source).expect("ec218827 argument_reason invariant must hold");
+    let ast = syn::parse_file(source).expect(constants_str::DIAGNOSTIC_EC218827);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::AllowReasonVisitor::new(
@@ -1618,7 +1674,7 @@ fn test_source_lint_reason_policy_accepts_argument_and_comment_reasons() {
 #[test]
 fn test_route_operation_error_policy_rejects_shared_types() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_ROUTE_ENDPOINT_OPERATION_ERROR_FIXTURE)
-        .expect("752fbb70 route_operation_error_policy_rejects_shared_types invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_752FBB70);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
@@ -1635,8 +1691,12 @@ fn test_admin_route_errors_do_not_wrap_a_shared_operation_error() {
         let auth = snapshot
             .rs_files()
             .iter()
-            .find(|file| file.path().as_ref().ends_with(constants_str::VALUE_0690A45F))
-            .expect("9585d60c admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
+            .find(|file| {
+                file.path()
+                    .as_ref()
+                    .ends_with(constants_str::VALUE_0690A45F)
+            })
+            .expect(constants_str::DIAGNOSTIC_9585D60C)
             .content()
             .as_ref();
         let macros = snapshot
@@ -1647,7 +1707,7 @@ fn test_admin_route_errors_do_not_wrap_a_shared_operation_error() {
                     .as_ref()
                     .ends_with(constants_str::VALUE_00ABFB22)
             })
-            .expect("890b3180 admin_route_errors_do_not_wrap_a_shared_operation_error invariant must hold")
+            .expect(constants_str::DIAGNOSTIC_890B3180)
             .content()
             .as_ref();
         assert!(!auth.contains("Operation(AdminError)"), "7c9f1bb0");
@@ -1685,9 +1745,7 @@ fn test_source_does_not_retain_commented_debug_statements() {
         crate::types::StaticStr::from(constants_str::VALUE_16B3BD74),
         crate::types::SourceTextRef::from(constants_str::VALUE_353E0299),
         |path, _, ers| {
-            let source = std::fs::read_to_string(path).expect(
-                "2b06297b source_does_not_retain_commented_debug_statements invariant must hold",
-            );
+            let source = std::fs::read_to_string(path).expect(constants_str::DIAGNOSTIC_2B06297B);
             ers.extend(
                 crate::code_style::commented_debug_statements(crate::types::SourceTextRef::from(
                     source.as_str(),
@@ -1716,7 +1774,7 @@ fn test_commented_debug_statement_policy_rejects_debug_macros_only() {
 fn test_project_text_files_have_stable_line_endings_and_no_trailing_whitespace() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .expect("fd1294e4 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_FD1294E4);
     let mut command = macro_helpers::tool_command::ToolCommand::new(
         macro_helpers::tool_program_ref::ToolProgramRef::from(constants_str::GIT_PROGRAM),
     );
@@ -1727,9 +1785,10 @@ fn test_project_text_files_have_stable_line_endings_and_no_trailing_whitespace()
         .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
             constants_str::GIT_LS_FILES_ARGS.as_slice(),
         ));
-    let output = command.output().expect("e6c52471 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
+    let output = command.output().expect(constants_str::DIAGNOSTIC_E6C52471);
     assert!(output.status.success(), "9041df16");
-    let tracked_paths = std::str::from_utf8(&output.stdout).expect("b9976fe8 project_text_files_have_stable_line_endings_and_no_trailing_whitespace invariant must hold");
+    let tracked_paths =
+        std::str::from_utf8(&output.stdout).expect(constants_str::DIAGNOSTIC_B9976FE8);
     let mut violations = Vec::<String>::new();
     tracked_paths
         .split_terminator('\0')
@@ -1738,7 +1797,11 @@ fn test_project_text_files_have_stable_line_endings_and_no_trailing_whitespace()
             let bytes = match std::fs::read(path.as_path()) {
                 Ok(bytes) => bytes,
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
-                Err(error) => panic!("d808e460: {error}"),
+                Err(error) => std::panic::panic_any(constants_str::PANIC_D808E460.replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                )),
             };
             let Ok(source) = std::str::from_utf8(bytes.as_slice()) else {
                 return;
@@ -1874,9 +1937,8 @@ fn test_public_reexports_are_forbidden_and_private_imports_are_restricted() {
 }
 #[test]
 fn test_declared_child_does_not_bypass_non_public_use_import_policy() {
-    let ast = syn::parse_file(constants_str::CODE_STYLE_DECLARED_CHILD_USE_FIXTURE).expect(
-        "b67d5cf1 declared_child_does_not_bypass_non_public_use_import_policy invariant must hold",
-    );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_DECLARED_CHILD_USE_FIXTURE)
+        .expect(constants_str::DIAGNOSTIC_B67D5CF1);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor::new(
@@ -1900,9 +1962,8 @@ fn test_declared_child_does_not_bypass_non_public_use_import_policy() {
 }
 #[test]
 fn test_use_import_policy_detects_private_imports_and_public_reexports() {
-    let ast = syn::parse_file(constants_str::VALUE_B2B1AD10).expect(
-        "7b9e6f31 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
-    );
+    let ast =
+        syn::parse_file(constants_str::VALUE_B2B1AD10).expect(constants_str::DIAGNOSTIC_7B9E6F31);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor::new(
@@ -1919,9 +1980,39 @@ fn test_use_import_policy_detects_private_imports_and_public_reexports() {
         "3f4798c8"
     );
 
-    let leptos_ast = syn::parse_file(constants_str::VALUE_444213A9).expect(
-        "56f86b52 use_import_policy_narrows_facade_and_leptos_exceptions invariant must hold",
+    let private_import_is_rejected = |item_use: syn::ItemUse| {
+        let import_ast = syn::File {
+            shebang: None,
+            frontmatter: None,
+            attrs: Vec::new(),
+            items: vec![syn::Item::Use(item_use)],
+        };
+        crate::code_style::visit_syn_file(
+            crate::types::SynFileRef::from(&import_ast),
+            super::source_analysis::UseImportVisitor::new(
+                crate::types::SourceTextList::default(),
+                crate::types::AnalyzerBool::default(),
+                crate::types::AnalyzerBool::default(),
+            ),
+        )
+        .get_found_non_public_use_import()
+        .get()
+    };
+    assert!(
+        private_import_is_rejected(syn::parse_quote!(
+            use bounded_types::bounded_vec::BoundedVec;
+        )),
+        "8ea3c40f"
     );
+    assert!(
+        private_import_is_rejected(syn::parse_quote!(
+            use bounded_types::bounded_string::BoundedString;
+        )),
+        "18f67a2d"
+    );
+
+    let leptos_ast =
+        syn::parse_file(constants_str::VALUE_444213A9).expect(constants_str::DIAGNOSTIC_56F86B52);
     let leptos_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&leptos_ast),
         super::source_analysis::UseImportVisitor::new(
@@ -1938,7 +2029,7 @@ fn test_use_import_policy_detects_private_imports_and_public_reexports() {
 #[test]
 fn test_cfg_test_modules_do_not_hide_forbidden_public_reexports() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_REEXPORT_WITH_LOGIC_FIXTURE)
-        .expect("12d3ea75 public re-export fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_12D3EA75);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::UseImportVisitor::new(
@@ -2012,9 +2103,7 @@ fn test_empty_enum_policy_checks_items_and_attribute_payloads() {
         constants_str::VALUE_1A9A6650,
     ]
     .join(constants_str::NEWLINE);
-    let ast = syn::parse_file(&source).expect(
-        "e52f247c empty_enum_policy_checks_items_and_attribute_payloads invariant must hold",
-    );
+    let ast = syn::parse_file(&source).expect(constants_str::DIAGNOSTIC_E52F247C);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::EmptyEnumVisitor::new(crate::types::DiagnosticMsgs::default()),
@@ -2065,7 +2154,7 @@ fn test_infallible_result_policy_rejects_wrappers_and_free_function_results() {
         constants_str::VALUE_41324880,
     ]
     .join(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
-    let ast = syn::parse_file(&source).expect("aa0bacf7 concrete invariant must hold");
+    let ast = syn::parse_file(&source).expect(constants_str::DIAGNOSTIC_AA0BACF7);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::InfallibleResultVisitor::new(
@@ -2384,8 +2473,8 @@ fn test_json_api_error_responses_originate_from_thiserror_enums() {
 }
 #[test]
 fn test_json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums() {
-    let ast =
-        syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect("e45c8f09 json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enums invariant must hold");
+    let ast = syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE)
+        .expect(constants_str::DIAGNOSTIC_E45C8F09);
     let thiserror_enums = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -2428,9 +2517,8 @@ fn test_api_response_errors_keep_source_locations_out_of_public_error_enums() {
 }
 #[test]
 fn test_api_response_location_policy_rejects_location_fields() {
-    let ast = syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect(
-        "6d8c50f1 api_response_location_policy_rejects_location_fields invariant must hold",
-    );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE)
+        .expect(constants_str::DIAGNOSTIC_6D8C50F1);
     let thiserror_enums = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -2473,9 +2561,8 @@ fn test_api_response_error_sources_use_observed_error() {
 }
 #[test]
 fn test_api_response_error_source_policy_rejects_raw_sources() {
-    let ast = syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE).expect(
-        "b26f4527 api_response_error_source_policy_rejects_raw_sources invariant must hold",
-    );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_JSON_API_ERROR_ENUM_FIXTURE)
+        .expect(constants_str::DIAGNOSTIC_B26F4527);
     let response_types = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::IntoResponseTypeVisitor::default(),
@@ -2562,9 +2649,8 @@ fn test_every_fallible_typed_route_operation_has_its_own_error_type() {
 }
 #[test]
 fn test_typed_route_operation_error_policy_rejects_shared_types() {
-    let ast = syn::parse_file(constants_str::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE).expect(
-        "60ff98c7 typed_route_operation_error_policy_rejects_shared_types invariant must hold",
-    );
+    let ast = syn::parse_file(constants_str::CODE_STYLE_ROUTE_OPERATION_ERROR_FIXTURE)
+        .expect(constants_str::DIAGNOSTIC_60FF98C7);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
@@ -2832,9 +2918,8 @@ fn test_production_string_literals_are_reused() {
     reason = "the negative ownership policy must construct forbidden identifiers without declaring them in constants_str"
 )]
 fn test_domain_owned_string_catalogs_do_not_return_to_str_constants() {
-    let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS).expect(
-        "84c15a0e domain_owned_string_catalogs_do_not_return_to_str_constants invariant must hold",
-    );
+    let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
+        .expect(constants_str::DIAGNOSTIC_84C15A0E);
     [
         concat!("ADMIN_SETTING_DEFAULT_ROUTE_LABEL"),
         concat!("ADMIN_DATABASE_ERROR_CODE"),
@@ -2858,8 +2943,8 @@ fn test_domain_owned_string_catalogs_do_not_return_to_str_constants() {
 )]
 fn test_string_constants_reuse_every_repeated_word() {
     let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
-        .expect("4629edbb server_admin_string_constants_reuse_macro_fragments invariant must hold");
-    let ast = syn::parse_file(&source).expect("8b13948d constants_str source must parse");
+        .expect(constants_str::DIAGNOSTIC_4629EDBB);
+    let ast = syn::parse_file(&source).expect(constants_str::DIAGNOSTIC_8B13948D);
     let macro_tokens = ast
         .items
         .iter()
@@ -2873,7 +2958,7 @@ fn test_string_constants_reuse_every_repeated_word() {
             }
             _ => None,
         })
-        .expect("9350ba36 string constants macro must exist");
+        .expect(constants_str::DIAGNOSTIC_9350BA36);
     let top_tokens = macro_tokens.into_iter().collect::<Vec<_>>();
     let fragment_group = top_tokens
         .get(constants_usize::ONE)
@@ -2881,7 +2966,7 @@ fn test_string_constants_reuse_every_repeated_word() {
             proc_macro2::TokenTree::Group(group) => Some(group),
             _ => None,
         })
-        .expect("65052205 string fragment group must exist");
+        .expect(constants_str::DIAGNOSTIC_65052205);
     let fragments = fragment_group
         .stream()
         .into_iter()
@@ -2902,7 +2987,7 @@ fn test_string_constants_reuse_every_repeated_word() {
             proc_macro2::TokenTree::Group(group) => Some(group),
             _ => None,
         })
-        .expect("e402ace1 Rust fragment group must exist");
+        .expect(constants_str::DIAGNOSTIC_E402ACE1);
     let rust_fragments = rust_fragment_group
         .stream()
         .into_iter()
@@ -3027,7 +3112,7 @@ fn test_string_constants_reuse_every_repeated_word() {
 #[test]
 fn test_str_constants_does_not_own_typed_domain_values() {
     let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
-        .expect("3caa56a9 str_constants_does_not_own_typed_domain_values invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_3CAA56A9);
     let ers = [
         concat!("ADMIN_API_", "PATHS_"),
         concat!("ADMIN_", "OPERATION_"),
@@ -3049,17 +3134,17 @@ fn test_str_constants_does_not_own_typed_domain_values() {
 #[test]
 fn test_string_constant_visitor_checks_test_code_and_allows_reviewed_syntax_boundaries() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE)
-        .expect("87c9a142 string_constant_visitor_allows_only_reviewed_syntax_boundaries invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_87C9A142);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantVisitor::new(crate::types::DiagnosticMsgs::default()),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::TWO);
+    assert_eq!(visitor.get_ers().len(), 3usize);
 }
 #[test]
 fn test_string_constant_visitor_detects_expression_and_nested_macro_literals() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE)
-        .expect("bc91574f string_constant_visitor_detects_expression_and_nested_macro_literals invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_BC91574F);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantVisitor::new(crate::types::DiagnosticMsgs::default()),
@@ -3067,9 +3152,24 @@ fn test_string_constant_visitor_detects_expression_and_nested_macro_literals() {
     assert_eq!(visitor.get_ers().len(), 2usize);
 }
 #[test]
+fn test_string_constant_visitor_detects_expect_literals_nested_in_assertions_and_panic() {
+    let source = format!(
+        "fn f() {{ assert!(fallible().expect(\"{}\")); assert_eq!(fallible().expect_err(\"{}\"), expected); panic!(\"{}\"); }}",
+        constants_str::VALUE_2DE961C6,
+        constants_str::VALUE_0EF05B85,
+        constants_str::VALUE_3C31187B,
+    );
+    let ast = syn::parse_file(source.as_str()).expect(constants_str::DIAGNOSTIC_7C5E1A92);
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::source_analysis::StringConstantVisitor::new(crate::types::DiagnosticMsgs::default()),
+    );
+    assert_eq!(visitor.get_ers().len(), 3usize);
+}
+#[test]
 fn test_tracing_message_visitor_checks_every_event_macro_and_test_module() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_TRACING_MESSAGE_FIXTURE)
-        .expect("5d7c4e2a tracing message fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_5D7C4E2A);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TracingMessageLiteralVisitor::default(),
@@ -3179,7 +3279,7 @@ fn test_string_constant_policy_has_only_the_constants_crate_source_directory_exc
 #[test]
 fn test_string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_const_forms() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_CONSTANT_DECLARATION_FIXTURE)
-        .expect("02ec1d16 string_constant_declaration_policy_ignores_runtime_literals_and_rejects_all_const_forms invariant must hold");
+        .expect(constants_str::DIAGNOSTIC_02EC1D16);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantDeclarationVisitor::new(
@@ -3191,8 +3291,8 @@ fn test_string_constant_declaration_policy_ignores_runtime_literals_and_rejects_
 }
 #[test]
 fn test_string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
-    let ast =
-        syn::parse_file(constants_str::CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE).expect("56f8e2c1 string_constant_declaration_policy_rejects_aliases_to_exported_constants invariant must hold");
+    let ast = syn::parse_file(constants_str::CODE_STYLE_STRING_CONSTANT_ALIAS_FIXTURE)
+        .expect(constants_str::DIAGNOSTIC_56F8E2C1);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantDeclarationVisitor::new(
@@ -3219,6 +3319,40 @@ fn test_no_unwrap_in_source_code() {
                 *visitor.get_found_count(),
             );
         },
+    );
+}
+#[test]
+fn test_no_unstable_sorting_methods_in_source_code() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|file| {
+                file.content()
+                    .as_ref()
+                    .contains(constants_str::SORT_UNSTABLE_METHOD_PREFIX)
+            })
+            .map(|file| file.path().as_ref().display().to_string())
+            .collect::<Vec<_>>();
+        assert!(violations.is_empty(), "f3a91c7e {violations:?}");
+    });
+}
+#[test]
+fn test_unstable_sorting_policy_covers_every_variant() {
+    assert!(
+        [
+            constants_str::SORT_UNSTABLE_METHOD_FIXTURE,
+            constants_str::SORT_UNSTABLE_BY_METHOD_FIXTURE,
+            constants_str::SORT_UNSTABLE_BY_KEY_METHOD_FIXTURE,
+        ]
+        .iter()
+        .all(|source| source.contains(constants_str::SORT_UNSTABLE_METHOD_PREFIX)),
+        "8ac60d31"
+    );
+    assert!(
+        !constants_str::SORT_STABLE_METHOD_FIXTURE
+            .contains(constants_str::SORT_UNSTABLE_METHOD_PREFIX),
+        "b147e9a2"
     );
 }
 #[test]
@@ -3348,7 +3482,7 @@ fn test_name_policy_accepts_canonical_tests_module() {
 #[test]
 fn test_name_policy_rejects_redundant_test_tests_module() {
     let ast = syn::parse_file(constants_str::TEST_TESTS_MODULE_FIXTURE)
-        .expect("60a9f21c redundant test module fixture must parse");
+        .expect(constants_str::DIAGNOSTIC_60A9F21C);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TestNameVisitor::new(

@@ -75,7 +75,8 @@ pub(crate) async fn mutations_set_permissions(
             .copied()
             .map(i64::from)
             .collect::<Vec<_>>();
-        expected_raw_ids.sort_unstable();
+        #[allow(clippy::stable_sort_primitive)] // workspace policy requires stable sorting
+        expected_raw_ids.sort();
         if current_permission_ids != expected_raw_ids {
             return Ok::<_, crate::sqlx_admin_error::SqlxAdminError>(
                 crate::replace_role_permissions_outcome::ReplaceRolePermissionsOutcome::StaleAssignment,

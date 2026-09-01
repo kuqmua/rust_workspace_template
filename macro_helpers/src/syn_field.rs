@@ -7,6 +7,6 @@
 )]
 pub struct SynField {
     identifier: crate::syn_field_identifier::SynFieldIdentifier,
-    type0: crate::syn_field_type::SynFieldType,
-    vis: crate::syn_field_vis::SynFieldVis,
+    field_type: crate::syn_field_type::SynFieldType,
+    visibility: crate::syn_field_vis::SynFieldVis,
 }

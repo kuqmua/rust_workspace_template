@@ -1,6 +1,6 @@
 #[must_use]
 pub fn admin_api_open_api() -> crate::utoipa_admin_auth_open_api::UtoipaAdminAuthOpenApi {
-    let mut document = crate::admin_auth_route_registry::AdminAuthRouteRegistry::open_api();
+    let mut document = crate::admin_auth_route_registry::open_api();
     let body_limit_description =
         <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::body_limit()
             .map(|limit| {

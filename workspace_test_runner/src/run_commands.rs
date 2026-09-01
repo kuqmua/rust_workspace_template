@@ -48,8 +48,8 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
                         ),
                     };
                     crate::command_run::CommandRun::new(
-                        started_at.elapsed(),
                         crate::command_idx::CommandIdx::from(idx),
+                        started_at.elapsed(),
                         crate::command_text::CommandText::try_from(log_text)
                             .unwrap_or_else(crate::command_text::CommandText::from),
                         crate::command_text::CommandText::try_from(status_text)
@@ -67,7 +67,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
         crate::summary_text::SummaryText::try_from(String::new()).map_err(|_error| ())?;
     let mut succeeded = true;
     command_runs.sort_by_key(|command_run_result| match command_run_result {
-        Ok(command_run) => usize::from(*command_run.get_idx()),
+        Ok(command_run) => usize::from(*command_run.get_command_index()),
         Err(_panic) => usize::MAX,
     });
     command_runs.into_iter().try_for_each(|command_run_result| {
@@ -82,7 +82,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             }
         };
         let (program, args) = commands
-            .get(usize::from(*command_run.get_idx()))
+            .get(usize::from(*command_run.get_command_index()))
             .copied()
             .ok_or(())?;
         let parts = std::iter::once(program)
@@ -115,7 +115,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             .collect::<String>();
         let log_name = crate::command_text::CommandText::try_from(format!(
             "{:02}-{sanitized}.log",
-            usize::from(*command_run.get_idx())
+            usize::from(*command_run.get_command_index())
         ))
         .unwrap_or_else(crate::command_text::CommandText::from);
         let log_path = run_dir.join(log_name.as_ref());

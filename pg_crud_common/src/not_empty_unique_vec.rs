@@ -106,7 +106,7 @@ const _: () = {
                 T: serde::Deserialize<'de>,
             {
                 marker: _serde::__private229::PhantomData<NotEmptyUniqueVec<T>>,
-                lt: _serde::__private229::PhantomData<&'de ()>,
+                lifetime_marker: _serde::__private229::PhantomData<&'de ()>,
             }
             #[automatically_derived]
             impl<'de, T: std::fmt::Debug + PartialEq + serde::Deserialize<'de>>
@@ -160,7 +160,7 @@ const _: () = {
                 constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
-                    lt: _serde::__private229::PhantomData,
+                    lifetime_marker: _serde::__private229::PhantomData,
                 },
             )
         }
@@ -211,7 +211,7 @@ mod test_tests_not_empty_unique_vec {
             }
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
             | crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::TooLong { .. } => {
-                panic!("9f5e2a34")
+                std::panic::panic_any(constants_str::PANIC_9F5E2A34)
             }
         }
     }
@@ -283,7 +283,7 @@ mod test_tests_not_empty_unique_vec {
             crate::duplicate_candidates::DuplicateCandidates::from(vec![1u8, 2u8, 3u8]);
         let actual = crate::take_fst_dup::take_fst_dup(&mut values);
         assert!(actual.is_none());
-        assert_eq!(Vec::from(values), vec![1u8, 2u8, 3u8]);
+        assert_eq!(Vec::from(values), [1u8, 2u8, 3u8]);
     }
     #[test]
     fn test_take_fst_dup_returns_first_duplicate_value() {
@@ -319,7 +319,7 @@ mod test_tests_not_empty_unique_vec {
     fn test_as_slice_matches_to_vec_view() {
         let values =
             crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(vec![1u8, 2u8, 3u8].into())
-                .expect("3f6e8a12 as_slice_matches_to_vec_view invariant must hold");
+                .expect(constants_str::DIAGNOSTIC_3F6E8A12);
         assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
         assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
     }

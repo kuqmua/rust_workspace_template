@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+naming_macros = { workspace = true }
 constants_usize = { workspace = true }
 constants_i32 = { workspace = true }
 optimal_memory_layout = { workspace = true }

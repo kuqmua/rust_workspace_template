@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+naming_macros = { workspace = true }
 generate_accessor = { workspace = true }
 bounded_types = { workspace = true }
 secrecy = { workspace = true }

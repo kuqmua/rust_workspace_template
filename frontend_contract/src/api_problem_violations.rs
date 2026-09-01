@@ -8,6 +8,7 @@
     newtype::FromInner,
     serde::Deserialize,
     serde::Serialize,
+    newtype::UtoipaSchema,
 )]
 #[serde(
     from = "bounded_types::bounded_vec::BoundedVec<crate::api_problem_violation::ApiProblemViolation, { constants_usize::ZERO }, 128usize>"
@@ -19,15 +20,3 @@ pub(crate) struct ApiProblemViolations(
         128usize,
     >,
 );
-
-impl utoipa::PartialSchema for ApiProblemViolations {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::bounded_vec::BoundedVec<
-            crate::api_problem_violation::ApiProblemViolation,
-            { constants_usize::ZERO },
-            128usize,
-        > as utoipa::PartialSchema>::schema()
-    }
-}
-
-impl utoipa::ToSchema for ApiProblemViolations {}

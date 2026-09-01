@@ -615,6 +615,113 @@ pub(super) struct DoubleUnderscoreNamingVisitor {
 pub(super) struct ShortFunctionNamingVisitor {
     identifiers: crate::types::DiagnosticMsgs,
 }
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
+pub(super) struct OpaqueShortFieldNamingVisitor {
+    identifiers: crate::types::DiagnosticMsgs,
+}
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
+)]
+pub(super) struct OpaqueSerdeRenameVisitor {
+    identifiers: crate::types::DiagnosticMsgs,
+}
+impl OpaqueSerdeRenameVisitor {
+    fn check_identifier(&mut self, identifier: String) {
+        if matches!(
+            identifier.as_str(),
+            stringify!(asc)
+                | stringify!(aud)
+                | stringify!(desc)
+                | stringify!(exp)
+                | stringify!(iat)
+                | stringify!(iss)
+                | stringify!(jti)
+                | stringify!(sub)
+                | stringify!(v)
+        ) {
+            self.identifiers.push(identifier);
+        }
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for OpaqueSerdeRenameVisitor {
+    fn visit_attribute(&mut self, i: &'ast syn::Attribute) {
+        if i.path().is_ident(stringify!(serde)) {
+            let syn::Meta::List(attribute_list) = &i.meta else {
+                syn::visit::visit_attribute(self, i);
+                return;
+            };
+            let parser = syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated;
+            match syn::parse::Parser::parse2(parser, attribute_list.tokens.clone()) {
+                Ok(metadata) => metadata.into_iter().for_each(|meta| match meta {
+                    syn::Meta::NameValue(name_value)
+                        if name_value.path.is_ident(stringify!(rename)) =>
+                    {
+                        if let syn::Expr::Lit(expression_literal) = name_value.value
+                            && let syn::Lit::Str(identifier) = expression_literal.lit
+                        {
+                            self.check_identifier(identifier.value());
+                        }
+                    }
+                    syn::Meta::List(rename_list)
+                        if rename_list.path.is_ident(stringify!(rename)) =>
+                    {
+                        match syn::parse::Parser::parse2(parser, rename_list.tokens) {
+                            Ok(rename_metadata) => {
+                                rename_metadata.into_iter().for_each(|rename_meta| {
+                                    if let syn::Meta::NameValue(name_value) = rename_meta
+                                        && (name_value.path.is_ident(stringify!(serialize))
+                                            || name_value.path.is_ident(stringify!(deserialize)))
+                                        && let syn::Expr::Lit(expression_literal) = name_value.value
+                                        && let syn::Lit::Str(identifier) = expression_literal.lit
+                                    {
+                                        self.check_identifier(identifier.value());
+                                    }
+                                });
+                            }
+                            Err(error) => self.identifiers.push(error.to_string()),
+                        }
+                    }
+                    syn::Meta::Path(_) | syn::Meta::List(_) | syn::Meta::NameValue(_) => {}
+                }),
+                Err(error) => self.identifiers.push(error.to_string()),
+            }
+        }
+        syn::visit::visit_attribute(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for OpaqueShortFieldNamingVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        self.identifiers.extend(
+            i.fields
+                .iter()
+                .filter_map(|field| field.ident.as_ref())
+                .map(ToString::to_string)
+                .filter(|identifier_text| {
+                    matches!(
+                        identifier_text.as_str(),
+                        stringify!(aud)
+                            | stringify!(exp)
+                            | stringify!(iat)
+                            | stringify!(idx)
+                            | stringify!(iss)
+                            | stringify!(jti)
+                            | stringify!(lt)
+                            | stringify!(sub)
+                            | stringify!(type0)
+                            | stringify!(v)
+                            | stringify!(vis)
+                    )
+                }),
+        );
+        syn::visit::visit_item_struct(self, i);
+    }
+}
 impl ShortFunctionNamingVisitor {
     fn check_identifier(&mut self, identifier: &syn::Ident) {
         let identifier_text = identifier.to_string();
@@ -706,6 +813,40 @@ impl DiagnosticIdVisitor {
             ));
         }
     }
+    fn record_constant_path(
+        &mut self,
+        kind: crate::types::SourceTextRef<'_>,
+        expression: &syn::Expr,
+    ) -> bool {
+        let syn::Expr::Path(path) = expression else {
+            return false;
+        };
+        if path.qself.is_some() {
+            return false;
+        }
+        let Some(identifier) = path
+            .path
+            .segments
+            .last()
+            .map(|segment| segment.ident.to_string())
+        else {
+            return false;
+        };
+        let Some(diagnostic_id) = identifier
+            .strip_prefix(constants_str::CODE_STYLE_DIAGNOSTIC_CONSTANT_PREFIX)
+            .and_then(|suffix| suffix.get(..8usize))
+            .map(str::to_ascii_lowercase)
+        else {
+            return false;
+        };
+        self.record(
+            kind,
+            crate::types::SourceTextRef::from(
+                format!("{diagnostic_id} stored diagnostic").as_str(),
+            ),
+        );
+        true
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
@@ -718,6 +859,14 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
                     crate::types::SourceTextRef::from(constants_str::CODE_STYLE_EXPECT_METHOD_NAME),
                     crate::types::SourceTextRef::from(lit_str.value().as_str()),
                 ),
+                Some(argument)
+                    if i.args.len() == constants_usize::ONE
+                        && self.record_constant_path(
+                            crate::types::SourceTextRef::from(
+                                constants_str::CODE_STYLE_EXPECT_METHOD_NAME,
+                            ),
+                            argument,
+                        ) => {}
                 Some(_) | None => self.ers.push(constants_str::VALUE_3C063239.to_owned()),
             }
         }
@@ -759,7 +908,10 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
-#[allow(clippy::needless_for_each)] // repository source policy requires iterator methods instead of for loops
+#[allow(
+    clippy::needless_for_each,
+    reason = "repository source policy requires iterator methods instead of for loops"
+)]
 impl<'ast> syn::visit::Visit<'ast> for SensitiveTextDebugDeriveVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if crate::code_style::sensitive_text_wrapper_identifier(crate::types::SourceTextRef::from(
@@ -1164,9 +1316,13 @@ pub(super) struct UseImportVisitor {
 #[allow(
     clippy::arbitrary_source_item_ordering,
     clippy::single_call_fn,
-    reason = "use-tree analyzer helpers are grouped by root extraction, recursive rename detection, and local-root classification to keep policy logic independently testable"
+    reason = "use-tree analyzer helpers are grouped by root extraction, reviewed exceptions, and recursive rename detection to keep policy logic independently testable"
 )]
 impl UseImportVisitor {
+    fn is_reviewed_private_use(use_tree: &syn::UseTree) -> bool {
+        matches!(use_tree, syn::UseTree::Path(path) if path.ident == stringify!(leptos))
+    }
+
     fn use_tree_root(use_tree: &syn::UseTree) -> crate::types::SourceText {
         crate::types::SourceText::try_from(match use_tree {
             syn::UseTree::Path(path) => path.ident.to_string(),
@@ -1175,7 +1331,7 @@ impl UseImportVisitor {
             syn::UseTree::Glob(_) => constants_str::ASTERISK.to_owned(),
             syn::UseTree::Group(_) => constants_str::BRACED_ELLIPSIS.to_owned(),
         })
-        .expect("e7ab40c1 use-tree roots are bounded Rust identifiers")
+        .expect(constants_str::DIAGNOSTIC_E7AB40C1)
     }
 
     fn use_tree_contains_rename(
@@ -1193,42 +1349,10 @@ impl UseImportVisitor {
             }),
         })
     }
-
-    fn use_tree_local_root(use_tree: &syn::UseTree) -> Option<&syn::Ident> {
-        match use_tree {
-            syn::UseTree::Path(path)
-                if path.ident == constants_str::CRATE
-                    || path.ident == constants_str::SELF_ALT
-                    || path.ident == constants_str::SUPER =>
-            {
-                Some(&path.ident)
-            }
-            syn::UseTree::Name(name)
-                if name.ident == constants_str::CRATE
-                    || name.ident == constants_str::SELF_ALT
-                    || name.ident == constants_str::SUPER =>
-            {
-                Some(&name.ident)
-            }
-            syn::UseTree::Rename(rename)
-                if rename.ident == constants_str::CRATE
-                    || rename.ident == constants_str::SELF_ALT
-                    || rename.ident == constants_str::SUPER =>
-            {
-                Some(&rename.ident)
-            }
-            syn::UseTree::Glob(_)
-            | syn::UseTree::Group(_)
-            | syn::UseTree::Path(_)
-            | syn::UseTree::Name(_)
-            | syn::UseTree::Rename(_) => None,
-        }
-    }
 }
 impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
     fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
-        let local_root = Self::use_tree_local_root(&i.tree);
-        if matches!(i.vis, syn::Visibility::Inherited) && local_root.is_some() {
+        if matches!(i.vis, syn::Visibility::Inherited) && !Self::is_reviewed_private_use(&i.tree) {
             self.found_non_public_use_import.set_true();
         }
         if !matches!(i.vis, syn::Visibility::Inherited) {
@@ -1924,45 +2048,48 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
         }
         syn::visit::visit_item_fn(self, i);
     }
-    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        i.attrs
-            .iter()
-            .filter(|attr| {
-                attr.path().segments.last().is_some_and(|segment| {
-                    segment.ident == constants_str::CODE_STYLE_ENDPOINT_REGISTRY_IDENTIFIER
+    fn visit_item_macro(&mut self, i: &'ast syn::ItemMacro) {
+        if i.mac.path.segments.last().is_some_and(|segment| {
+            segment.ident == constants_str::CODE_STYLE_ENDPOINT_REGISTRY_IDENTIFIER
+        }) {
+            i.mac
+                .tokens
+                .clone()
+                .into_iter()
+                .filter_map(|token| match token {
+                    proc_macro2::TokenTree::Group(group)
+                        if group.delimiter() == proc_macro2::Delimiter::Parenthesis
+                            && group.stream().into_iter().any(|child| {
+                                matches!(
+                                    child,
+                                    proc_macro2::TokenTree::Punct(punctuation)
+                                        if punctuation.as_char() == ','
+                                )
+                            }) =>
+                    {
+                        group
+                            .stream()
+                            .into_iter()
+                            .filter_map(|child| match child {
+                                proc_macro2::TokenTree::Ident(identifier) => {
+                                    Some(identifier.to_string())
+                                }
+                                proc_macro2::TokenTree::Group(_)
+                                | proc_macro2::TokenTree::Literal(_)
+                                | proc_macro2::TokenTree::Punct(_) => None,
+                            })
+                            .last()
+                    }
+                    proc_macro2::TokenTree::Group(_)
+                    | proc_macro2::TokenTree::Ident(_)
+                    | proc_macro2::TokenTree::Literal(_)
+                    | proc_macro2::TokenTree::Punct(_) => None,
                 })
-            })
-            .filter_map(|attr| match &attr.meta {
-                syn::Meta::List(value) => Some(value.tokens.clone()),
-                syn::Meta::NameValue(_) | syn::Meta::Path(_) => None,
-            })
-            .flat_map(proc_macro2::TokenStream::into_iter)
-            .filter_map(|token| match token {
-                proc_macro2::TokenTree::Group(group)
-                    if group.delimiter() == proc_macro2::Delimiter::Parenthesis =>
-                {
-                    group
-                        .stream()
-                        .into_iter()
-                        .filter_map(|child| match child {
-                            proc_macro2::TokenTree::Ident(identifier) => {
-                                Some(identifier.to_string())
-                            }
-                            proc_macro2::TokenTree::Group(_)
-                            | proc_macro2::TokenTree::Literal(_)
-                            | proc_macro2::TokenTree::Punct(_) => None,
-                        })
-                        .last()
-                }
-                proc_macro2::TokenTree::Group(_)
-                | proc_macro2::TokenTree::Ident(_)
-                | proc_macro2::TokenTree::Literal(_)
-                | proc_macro2::TokenTree::Punct(_) => None,
-            })
-            .for_each(|endpoint| {
-                let _: bool = self.registered.insert(endpoint);
-            });
-        syn::visit::visit_item_struct(self, i);
+                .for_each(|endpoint| {
+                    let _: bool = self.registered.insert(endpoint);
+                });
+        }
+        syn::visit::visit_item_macro(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for ApiErrorSourceVisitor<'_> {
@@ -2640,6 +2767,31 @@ pub(super) struct StringConstantVisitor {
     generate_accessor::Getters,
     generate_constructor::New,
     optimal_memory_layout::OptimalMemoryLayout,
+)]
+pub(super) struct ExpectStringConstantVisitor {
+    ers: crate::types::DiagnosticMsgs,
+}
+
+impl<'ast> syn::visit::Visit<'ast> for ExpectStringConstantVisitor {
+    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        if matches!(
+            i.method.to_string().as_str(),
+            stringify!(expect) | stringify!(expect_err)
+        ) {
+            let mut visitor = StringConstantVisitor::new(crate::types::DiagnosticMsgs::default());
+            i.args
+                .iter()
+                .for_each(|argument| syn::visit::Visit::visit_expr(&mut visitor, argument));
+            self.ers.extend(visitor.ers);
+        }
+        syn::visit::visit_expr_method_call(self, i);
+    }
+}
+
+#[derive(
+    generate_accessor::Getters,
+    generate_constructor::New,
+    optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct TracingMessageLiteralVisitor {
@@ -2717,14 +2869,44 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         }
         syn::visit::visit_expr_lit(self, i);
     }
-    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == constants_str::CODE_STYLE_EXPECT_METHOD_NAME {
-            syn::visit::Visit::visit_expr(self, i.receiver.as_ref());
+    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+        let macro_name = i
+            .path
+            .segments
+            .last()
+            .map_or_else(String::new, |segment| segment.ident.to_string());
+        if matches!(
+            macro_name.as_str(),
+            constants_str::SHARED_VALUES_ASSERT
+                | constants_str::SHARED_VALUES_ASSERT_EQ
+                | constants_str::SHARED_VALUES_ASSERT_NE
+                | constants_str::SHARED_VALUES_DEBUG_ASSERT
+                | constants_str::SHARED_VALUES_DEBUG_ASSERT_EQ
+                | constants_str::SHARED_VALUES_DEBUG_ASSERT_NE
+        ) {
+            let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated;
+            if let Ok(expressions) = syn::parse::Parser::parse2(parser, i.tokens.clone()) {
+                let required_expression_count = if matches!(
+                    macro_name.as_str(),
+                    constants_str::SHARED_VALUES_ASSERT | constants_str::SHARED_VALUES_DEBUG_ASSERT
+                ) {
+                    constants_usize::ONE
+                } else {
+                    constants_usize::TWO
+                };
+                let mut visitor =
+                    ExpectStringConstantVisitor::new(crate::types::DiagnosticMsgs::default());
+                expressions
+                    .iter()
+                    .take(required_expression_count)
+                    .for_each(|expression| {
+                        syn::visit::Visit::visit_expr(&mut visitor, expression);
+                    });
+                self.ers.extend(visitor.ers);
+            }
+            syn::visit::visit_macro(self, i);
             return;
         }
-        syn::visit::visit_expr_method_call(self, i);
-    }
-    fn visit_macro(&mut self, i: &'ast syn::Macro) {
         let is_syntax_boundary = i.path.segments.last().is_some_and(|segment| {
             constants_str::CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES
                 .contains(&segment.ident.to_string().as_str())
@@ -2751,11 +2933,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
                     proc_macro2::TokenTree::Ident(_) | proc_macro2::TokenTree::Punct(_) => {}
                 });
             }
-            let macro_name = i
-                .path
-                .segments
-                .last()
-                .map_or_else(String::new, |segment| segment.ident.to_string());
             while let Some((value, start_line, start_column, end_line, end_column)) = values.pop() {
                 self.ers.push(format!(
                     "{start_line}:{start_column}-{end_line}:{end_column}: macro `{macro_name}` string literal {value:?} must be declared in constants_str"

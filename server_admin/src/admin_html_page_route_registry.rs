@@ -1,5 +1,5 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract_macros::endpoint_registry(
+frontend_contract_macros::endpoint_registry! {
+    pub(crate);
     state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc;
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn, crate::sign_in_page::sign_in_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Tables, crate::data_tables::data_tables),
@@ -14,5 +14,4 @@
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile, crate::profile::profile),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings, crate::settings::settings),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Version, crate::version::version),
-)]
-pub(crate) struct AdminHtmlPageRouteRegistry;
+}

@@ -153,10 +153,10 @@ mod tests {
                 (2u8, 2u8),
                 (1u8, 1u8),
             ]))
-            .expect("c51f09be btree_map_preserves_key_order invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_C51F09BE);
         assert_eq!(
             value.as_map().keys().copied().collect::<Vec<_>>(),
-            vec![1u8, 2u8]
+            [1u8, 2u8]
         );
     }
 }

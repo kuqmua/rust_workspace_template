@@ -3,7 +3,7 @@ pub fn common_routes(
     app_state_b9fc2d94: crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
 ) -> crate::axum_common_routes::AxumCommonRoutes {
     crate::axum_common_routes::AxumCommonRoutes::from(
-        super::common_route_registry::CommonRouteRegistry::router()
+        super::common_route_registry::router()
             .fallback(
                 async |uri: crate::axum_http_uri::AxumHttpUri,
                        axum::extract::State(app_state_19103bd5_raw)| {

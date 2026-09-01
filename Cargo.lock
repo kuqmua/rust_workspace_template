@@ -738,6 +738,7 @@ dependencies = [
  "dotenv",
  "generate_accessor",
  "generate_accessor_traits_for_struct_fields",
+ "naming_macros",
  "newtype",
  "optimal_memory_layout",
  "secrecy",
@@ -1083,6 +1084,7 @@ dependencies = [
 name = "dev_identity_creation_planner"
 version = "0.1.0"
 dependencies = [
+ "constants_str",
  "constants_usize",
  "generate_constructor",
  "newtype",
@@ -1357,6 +1359,7 @@ dependencies = [
  "futures",
  "generate_accessor",
  "generate_constructor",
+ "naming_macros",
  "newtype",
  "optimal_memory_layout",
  "percent-encoding",
@@ -1525,6 +1528,7 @@ dependencies = [
 name = "generate_accessor_traits_for_struct_fields"
 version = "0.1.0"
 dependencies = [
+ "constants_str",
  "naming_common",
  "panic_location",
  "quote",
@@ -1547,6 +1551,7 @@ name = "generate_derive_token_stream_builder"
 version = "0.1.0"
 dependencies = [
  "bounded_types",
+ "constants_str",
  "naming",
  "naming_common",
  "newtype",
@@ -1560,6 +1565,7 @@ dependencies = [
 name = "generate_pg_table"
 version = "0.1.0"
 dependencies = [
+ "constants_str",
  "generate_pg_table_src",
  "macro_helpers",
 ]
@@ -1613,6 +1619,7 @@ dependencies = [
 name = "generate_pg_types"
 version = "0.1.0"
 dependencies = [
+ "constants_str",
  "generate_pg_types_src",
  "macro_helpers",
 ]
@@ -1681,6 +1688,7 @@ dependencies = [
 name = "generate_where_filters"
 version = "0.1.0"
 dependencies = [
+ "constants_str",
  "generate_where_filters_src",
 ]
 
@@ -2717,6 +2725,7 @@ dependencies = [
  "generate_accessor",
  "generate_constructor",
  "macro_helpers",
+ "naming_macros",
  "newtype",
  "optimal_memory_layout",
  "server_runtime_http",
@@ -4638,6 +4647,7 @@ dependencies = [
  "location_lib",
  "location_macros",
  "metrics",
+ "naming_macros",
  "newtype",
  "optimal_memory_layout",
  "pg_crud_common",
@@ -4681,6 +4691,7 @@ dependencies = [
  "frontend_contract_macros",
  "generate_accessor",
  "generate_constructor",
+ "naming_macros",
  "newtype",
  "optimal_memory_layout",
  "serde",
@@ -4721,6 +4732,7 @@ dependencies = [
  "constants_usize",
  "frontend_contract",
  "leptos",
+ "naming_macros",
  "newtype",
  "optimal_memory_layout",
  "serde",
@@ -5364,6 +5376,7 @@ name = "synchronization_service_runtime"
 version = "0.1.0"
 dependencies = [
  "bounded_types",
+ "constants_str",
  "newtype",
  "optimal_memory_layout",
  "server_runtime_core",

@@ -19,7 +19,7 @@ pub fn plan_disk_cache_eviction(
                 .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)
         })?;
     let mut ordered = entries.iter().collect::<Vec<_>>();
-    ordered.sort_unstable_by_key(|entry| std::time::SystemTime::from(entry.parts().0));
+    ordered.sort_by_key(|entry| std::time::SystemTime::from(entry.parts().0));
     let projected = current
         .checked_add(incoming_size)
         .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?;

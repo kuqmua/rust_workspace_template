@@ -70,6 +70,17 @@ mod tests {
     const VALIDATE_LOWERCASE_ASCII: fn(&str) -> bool =
         |value| value.bytes().all(|byte| byte.is_ascii_lowercase());
     #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::UtoipaSchema,
+    )]
+    struct UtoipaSchemaDelegatedValue(
+        bounded_types::bounded_vec::BoundedVec<u8, 0, { constants_usize::TWO }>,
+    );
+    #[derive(
+        optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner, newtype::UtoipaSchema,
+    )]
+    #[utoipa_schema(bounded_types::bounded_vec::BoundedVec<u8, 0, { constants_usize::TWO }>)]
+    struct UtoipaSchemaOverrideValue(Vec<u8>);
+    #[derive(
         optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
@@ -378,7 +389,7 @@ mod tests {
     #[test]
     fn test_string_newtype_impls_are_generated() {
         let v = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
-            .expect("9d27b01c string_newtype_impls_are_generated invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_9D27B01C);
         assert_eq!(v.to_string(), "abc");
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");
@@ -455,19 +466,19 @@ mod tests {
     fn test_vec_accessors_are_generated() {
         let v = VecValue::from(vec![1i32, 2i32]);
         assert_eq!(v.as_slice(), [1i32, 2i32]);
-        assert_eq!(v.into_vec(), vec![1i32, 2i32]);
+        assert_eq!(v.into_vec(), [1i32, 2i32]);
     }
     #[test]
     fn test_inner_deref_and_from_are_generated() {
         let mut v = InnerVecValue::from(vec![1u8]);
         v.push(2);
-        assert_eq!(&*v, &vec![1, 2]);
-        assert_eq!(Vec::<u8>::from(v), vec![1, 2]);
+        assert_eq!(&*v, &[1, 2]);
+        assert_eq!(Vec::<u8>::from(v), [1, 2]);
     }
     #[test]
     fn test_consuming_into_iterator_is_generated() {
         let value = InnerVecValue::from(vec![1u8, 2u8]);
-        assert_eq!(value.into_iter().collect::<Vec<u8>>(), vec![1u8, 2u8]);
+        assert_eq!(value.into_iter().collect::<Vec<u8>>(), [1u8, 2u8]);
     }
     #[test]
     fn test_target_deref_impls_are_generated() {
@@ -504,17 +515,16 @@ mod tests {
         let bounded_value = [
             ' ',
             ' ',
-            char::from_u32(0x430).expect("a4fc1902 valid character invariant must hold"),
-            char::from_u32(0x431).expect("b9e21c73 valid character invariant must hold"),
+            char::from_u32(0x430).expect(constants_str::DIAGNOSTIC_A4FC1902),
+            char::from_u32(0x431).expect(constants_str::DIAGNOSTIC_B9E21C73),
             ' ',
             ' ',
         ]
         .into_iter()
         .collect::<String>();
         let expected = bounded_value.trim().to_owned();
-        let value = RichValue::try_from(bounded_value.clone()).expect(
-            "a091b772 bounded_string_rich_policies_share_runtime_and_serde_validation invariant must hold",
-        );
+        let value =
+            RichValue::try_from(bounded_value.clone()).expect(constants_str::DIAGNOSTIC_A091B772);
         assert_eq!(value.0.as_ref(), &expected);
         assert!(matches!(
             RichValue::try_from(String::from("   ")),
@@ -528,9 +538,10 @@ mod tests {
             RichValue::try_from(String::from("a\0b")),
             Err(RichValueTryFromStringError::ContainsNul)
         ));
-        let serialized = serde_json::to_string(&bounded_value)
-            .expect("7c3a9d21 bounded value serialization invariant must hold");
-        let deserialized = serde_json::from_str::<RichValue>(&serialized).expect("1d3222b1 bounded_string_rich_policies_share_runtime_and_serde_validation invariant must hold");
+        let serialized =
+            serde_json::to_string(&bounded_value).expect(constants_str::DIAGNOSTIC_7C3A9D21);
+        let deserialized = serde_json::from_str::<RichValue>(&serialized)
+            .expect(constants_str::DIAGNOSTIC_1D3222B1);
         assert_eq!(deserialized.0.as_ref(), &expected);
         let _error = serde_json::from_str::<RichValue>(constants_str::ABCD)
             .expect_err(constants_str::C0E03C6D);
@@ -538,9 +549,7 @@ mod tests {
     #[test]
     fn test_bounded_string_openapi_limits_match_runtime_limits() {
         let schema = <RichValue as utoipa::PartialSchema>::schema();
-        let json = serde_json::to_value(schema).expect(
-            "756f3fe9 bounded_string_openapi_limits_match_runtime_limits invariant must hold",
-        );
+        let json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_756F3FE9);
         assert_eq!(
             json.get("minLength"),
             Some(&serde_json::json!(constants_usize::ONE))
@@ -550,8 +559,32 @@ mod tests {
     #[test]
     fn test_bounded_string_openapi_write_only_matches_secret_contract() {
         let schema = <WriteOnlyValue as utoipa::PartialSchema>::schema();
-        let json = serde_json::to_value(schema).expect("ce9351d4 bounded_string_openapi_write_only_matches_secret_contract invariant must hold");
+        let json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_CE9351D4);
         assert_eq!(json.get("writeOnly"), Some(&serde_json::json!(true)));
+    }
+    #[test]
+    fn test_utoipa_schema_delegates_default_and_overridden_types() {
+        let delegated_value =
+            UtoipaSchemaDelegatedValue::from(bounded_types::bounded_vec::BoundedVec::default());
+        let overridden_value = UtoipaSchemaOverrideValue::from(Vec::new());
+        let UtoipaSchemaDelegatedValue(delegated_inner) = delegated_value;
+        let UtoipaSchemaOverrideValue(overridden_inner) = overridden_value;
+        assert!(delegated_inner.is_empty());
+        assert!(overridden_inner.is_empty());
+        let expected = serde_json::to_value(<bounded_types::bounded_vec::BoundedVec<
+            u8,
+            0,
+            { constants_usize::TWO },
+        > as utoipa::PartialSchema>::schema())
+        .expect(constants_str::DIAGNOSTIC_38274C1A);
+        let delegated =
+            serde_json::to_value(<UtoipaSchemaDelegatedValue as utoipa::PartialSchema>::schema())
+                .expect(constants_str::DIAGNOSTIC_5DA321B7);
+        let overridden =
+            serde_json::to_value(<UtoipaSchemaOverrideValue as utoipa::PartialSchema>::schema())
+                .expect(constants_str::DIAGNOSTIC_2B3C6772);
+        assert_eq!(delegated, expected);
+        assert_eq!(overridden, expected);
     }
     #[test]
     fn test_bounded_string_small_input_space_matches_reference_model() {
@@ -579,7 +612,7 @@ mod tests {
     #[test]
     fn test_bounded_string_custom_validator_is_applied() {
         let value = ValidatedValue::try_from(String::from(constants_str::ABC_ALT_3))
-            .expect("fcadf793 bounded_string_custom_validator_is_applied invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_FCADF793);
         assert_eq!(value.0.as_ref(), constants_str::ABC_ALT_3);
         assert!(matches!(
             ValidatedValue::try_from(String::from(constants_str::GET)),
@@ -603,7 +636,7 @@ mod tests {
     #[test]
     fn test_borrow_impls_are_generated() {
         let string = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
-            .expect("f37f2ed0 borrow_impls_are_generated invariant must hold");
+            .expect(constants_str::DIAGNOSTIC_F37F2ED0);
         assert_eq!(std::borrow::Borrow::<str>::borrow(&string), "abc");
         let owned = InnerValue::from(7u16);
         assert_eq!(*std::borrow::Borrow::<u16>::borrow(&owned), 7u16);
@@ -619,7 +652,7 @@ mod tests {
     fn test_owned_inner_impls_are_generated() {
         let v = OwnedValue::from(vec![3, 5, 8]);
         assert_eq!(v, vec![3, 5, 8], "72a4dc19");
-        assert_eq!(AsRef::<Vec<u8>>::as_ref(&v), &vec![3, 5, 8]);
+        assert_eq!(AsRef::<Vec<u8>>::as_ref(&v), &[3, 5, 8]);
     }
     #[test]
     fn test_owned_and_borrowed_slice_impls_are_generated() {

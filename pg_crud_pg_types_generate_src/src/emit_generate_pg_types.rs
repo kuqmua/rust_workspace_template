@@ -242,7 +242,13 @@ pub(super) enum IntRangeType {
         } else {
             &dot_clone_token_stream
         };
-        let generate_v_initialization_ts0 = |ts: &dyn quote::ToTokens| pg_crud_macro_common::generate_v_initialization_token_stream::generate_v_initialization_token_stream(&import, &ts);
+        let generate_explicit_value_initialization_token_stream0 =
+            |token_stream: &dyn quote::ToTokens| {
+                pg_crud_macro_common::generate_explicit_value_initialization_token_stream::generate_explicit_value_initialization_token_stream(
+                    &import,
+                    token_stream,
+                )
+            };
         let generate_identifier_str = |
             pg_type_parameter: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
             is_nullable_parameter: &pg_crud_macro_common::is_nullable::IsNullable,
@@ -3679,66 +3685,66 @@ pub(super) enum IsNeedToUseInto {
                 let generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream =
                     |min_token_stream: &dyn quote::ToTokens, negative_less_typical_token_stream: &dyn quote::ToTokens, negative_more_typical_token_stream: &dyn quote::ToTokens, near_zero_token_stream: &dyn quote::ToTokens, positive_less_typical_token_stream: &dyn quote::ToTokens, positive_more_typical_token_stream: &dyn quote::ToTokens, max_token_stream: &dyn quote::ToTokens| {
                         #[derive(optimal_memory_layout::OptimalMemoryLayout)]
-pub(super) enum Bnd<'lt> {
-                            Excl(&'lt dyn quote::ToTokens),
-                            Incl(&'lt dyn quote::ToTokens),
-                            Unb,
+pub(super) enum RangeBoundToken<'token_lt> {
+                            Excluded(&'token_lt dyn quote::ToTokens),
+                            Included(&'token_lt dyn quote::ToTokens),
+                            Unbounded,
                         }
                         let test_cases_array_token_stream = [
-                            (Bnd::Incl(&min_snake_case),Bnd::Incl(&min_snake_case)),
-                            (Bnd::Incl(&negative_less_typical_snake_case),Bnd::Incl(&negative_more_typical_snake_case)),
-                            (Bnd::Incl(&near_zero_snake_case), Bnd::Incl(&near_zero_snake_case)),
-                            (Bnd::Incl(&positive_less_typical_snake_case), Bnd::Incl(&positive_more_typical_snake_case)),
-                            (Bnd::Incl(&max_snake_case), Bnd::Incl(&max_snake_case)),
-                            (Bnd::Incl(&min_snake_case), Bnd::Incl(&max_snake_case)),
-                            (Bnd::Incl(&min_snake_case), Bnd::Excl(&min_snake_case)),
-                            (Bnd::Incl(&negative_less_typical_snake_case), Bnd::Excl(&negative_more_typical_snake_case)),
-                            (Bnd::Incl(&near_zero_snake_case), Bnd::Excl(&near_zero_snake_case)),
-                            (Bnd::Incl(&positive_less_typical_snake_case), Bnd::Excl(&positive_more_typical_snake_case)),
-                            (Bnd::Incl(&max_snake_case), Bnd::Excl(&max_snake_case)),
-                            (Bnd::Incl(&min_snake_case), Bnd::Excl(&max_snake_case)),
-                            (Bnd::Incl(&min_snake_case), Bnd::Unb),
-                            (Bnd::Incl(&negative_less_typical_snake_case), Bnd::Unb),
-                            (Bnd::Incl(&near_zero_snake_case), Bnd::Unb),
-                            (Bnd::Incl(&positive_less_typical_snake_case), Bnd::Unb),
-                            (Bnd::Incl(&max_snake_case), Bnd::Unb),
-                            (Bnd::Excl(&min_snake_case), Bnd::Incl(&min_snake_case)),
-                            (Bnd::Excl(&negative_less_typical_snake_case), Bnd::Incl(&negative_more_typical_snake_case)),
-                            (Bnd::Excl(&near_zero_snake_case), Bnd::Incl(&near_zero_snake_case)),
-                            (Bnd::Excl(&positive_less_typical_snake_case), Bnd::Incl(&positive_more_typical_snake_case)),
-                            (Bnd::Excl(&max_snake_case), Bnd::Incl(&max_snake_case)),
-                            (Bnd::Excl(&min_snake_case), Bnd::Incl(&max_snake_case)),
-                            (Bnd::Excl(&min_snake_case), Bnd::Excl(&min_snake_case)),
-                            (Bnd::Excl(&negative_less_typical_snake_case), Bnd::Excl(&negative_more_typical_snake_case)),
-                            (Bnd::Excl(&near_zero_snake_case), Bnd::Excl(&near_zero_snake_case)),
-                            (Bnd::Excl(&positive_less_typical_snake_case), Bnd::Excl(&positive_more_typical_snake_case)),
-                            (Bnd::Excl(&max_snake_case), Bnd::Excl(&max_snake_case)),
-                            (Bnd::Excl(&min_snake_case), Bnd::Excl(&max_snake_case)),
-                            (Bnd::Excl(&min_snake_case), Bnd::Unb),
-                            (Bnd::Excl(&negative_less_typical_snake_case), Bnd::Unb),
-                            (Bnd::Excl(&near_zero_snake_case), Bnd::Unb),
-                            (Bnd::Excl(&positive_less_typical_snake_case), Bnd::Unb),
-                            (Bnd::Excl(&max_snake_case), Bnd::Unb),
-                            (Bnd::Unb, Bnd::Incl(&min_snake_case)),
-                            (Bnd::Unb, Bnd::Incl(&negative_more_typical_snake_case)),
-                            (Bnd::Unb, Bnd::Incl(&near_zero_snake_case)),
-                            (Bnd::Unb, Bnd::Incl(&positive_more_typical_snake_case)),
-                            (Bnd::Unb, Bnd::Incl(&max_snake_case)),
-                            (Bnd::Unb, Bnd::Excl(&min_snake_case)),
-                            (Bnd::Unb, Bnd::Excl(&negative_more_typical_snake_case)),
-                            (Bnd::Unb, Bnd::Excl(&near_zero_snake_case)),
-                            (Bnd::Unb, Bnd::Excl(&positive_more_typical_snake_case)),
-                            (Bnd::Unb, Bnd::Excl(&max_snake_case)),
-                            (Bnd::Unb, Bnd::Unb),
+                            (RangeBoundToken::Included(&min_snake_case),RangeBoundToken::Included(&min_snake_case)),
+                            (RangeBoundToken::Included(&negative_less_typical_snake_case),RangeBoundToken::Included(&negative_more_typical_snake_case)),
+                            (RangeBoundToken::Included(&near_zero_snake_case), RangeBoundToken::Included(&near_zero_snake_case)),
+                            (RangeBoundToken::Included(&positive_less_typical_snake_case), RangeBoundToken::Included(&positive_more_typical_snake_case)),
+                            (RangeBoundToken::Included(&max_snake_case), RangeBoundToken::Included(&max_snake_case)),
+                            (RangeBoundToken::Included(&min_snake_case), RangeBoundToken::Included(&max_snake_case)),
+                            (RangeBoundToken::Included(&min_snake_case), RangeBoundToken::Excluded(&min_snake_case)),
+                            (RangeBoundToken::Included(&negative_less_typical_snake_case), RangeBoundToken::Excluded(&negative_more_typical_snake_case)),
+                            (RangeBoundToken::Included(&near_zero_snake_case), RangeBoundToken::Excluded(&near_zero_snake_case)),
+                            (RangeBoundToken::Included(&positive_less_typical_snake_case), RangeBoundToken::Excluded(&positive_more_typical_snake_case)),
+                            (RangeBoundToken::Included(&max_snake_case), RangeBoundToken::Excluded(&max_snake_case)),
+                            (RangeBoundToken::Included(&min_snake_case), RangeBoundToken::Excluded(&max_snake_case)),
+                            (RangeBoundToken::Included(&min_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Included(&negative_less_typical_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Included(&near_zero_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Included(&positive_less_typical_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Included(&max_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Excluded(&min_snake_case), RangeBoundToken::Included(&min_snake_case)),
+                            (RangeBoundToken::Excluded(&negative_less_typical_snake_case), RangeBoundToken::Included(&negative_more_typical_snake_case)),
+                            (RangeBoundToken::Excluded(&near_zero_snake_case), RangeBoundToken::Included(&near_zero_snake_case)),
+                            (RangeBoundToken::Excluded(&positive_less_typical_snake_case), RangeBoundToken::Included(&positive_more_typical_snake_case)),
+                            (RangeBoundToken::Excluded(&max_snake_case), RangeBoundToken::Included(&max_snake_case)),
+                            (RangeBoundToken::Excluded(&min_snake_case), RangeBoundToken::Included(&max_snake_case)),
+                            (RangeBoundToken::Excluded(&min_snake_case), RangeBoundToken::Excluded(&min_snake_case)),
+                            (RangeBoundToken::Excluded(&negative_less_typical_snake_case), RangeBoundToken::Excluded(&negative_more_typical_snake_case)),
+                            (RangeBoundToken::Excluded(&near_zero_snake_case), RangeBoundToken::Excluded(&near_zero_snake_case)),
+                            (RangeBoundToken::Excluded(&positive_less_typical_snake_case), RangeBoundToken::Excluded(&positive_more_typical_snake_case)),
+                            (RangeBoundToken::Excluded(&max_snake_case), RangeBoundToken::Excluded(&max_snake_case)),
+                            (RangeBoundToken::Excluded(&min_snake_case), RangeBoundToken::Excluded(&max_snake_case)),
+                            (RangeBoundToken::Excluded(&min_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Excluded(&negative_less_typical_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Excluded(&near_zero_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Excluded(&positive_less_typical_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Excluded(&max_snake_case), RangeBoundToken::Unbounded),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Included(&min_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Included(&negative_more_typical_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Included(&near_zero_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Included(&positive_more_typical_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Included(&max_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Excluded(&min_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Excluded(&negative_more_typical_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Excluded(&near_zero_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Excluded(&positive_more_typical_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Excluded(&max_snake_case)),
+                            (RangeBoundToken::Unbounded, RangeBoundToken::Unbounded),
                         ]
                         .into_iter()
                         .map(|(start, end)|{
                             let (start_token_stream,end_token_stream) = {
-                                let generate_bound_token_stream = |bnd: Bnd<'_>|{
-                                    let ts = match bnd {
-                                        Bnd::Excl(ts) => quote::quote! {Excluded(#ts)},
-                                        Bnd::Incl(ts) => quote::quote! {Included(#ts)},
-                                        Bnd::Unb => quote::quote! {Unbounded},
+                                let generate_bound_token_stream = |range_bound: RangeBoundToken<'_>|{
+                                    let ts = match range_bound {
+                                        RangeBoundToken::Excluded(ts) => quote::quote! {Excluded(#ts)},
+                                        RangeBoundToken::Included(ts) => quote::quote! {Included(#ts)},
+                                        RangeBoundToken::Unbounded => quote::quote! {Unbounded},
                                     };
                                     quote::quote!{std::ops::Bound::#ts}
                                 };
@@ -4129,14 +4135,15 @@ pub(super) enum Bnd<'lt> {
                     #identifier_read_ids_upper_camel_case(#identifier_read_upper_camel_case(#v_snake_case.0 #maybe_dot_clone_token_stream))//todo its not correct. must be only for primary_key but it for all types what van be primary_key
                 }
             } else {
-                let ts = generate_v_initialization_ts0(&none_token_stream);
+                let token_stream =
+                    generate_explicit_value_initialization_token_stream0(&none_token_stream);
                 quote::quote! {
-                    #import_non_primary_key_pg_type_read_ids_token_stream::from(#ts)
+                    #import_non_primary_key_pg_type_read_ids_token_stream::from(#token_stream)
                 }
             };
-            let read_ids_to_optional_v_read_default_some_one_element_token_stream = {
+            let read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream = {
                 //todo that is not correct for array of generated by pg pks but maybe just need to remove this variants and thats it?
-                let ts = generate_v_initialization_ts0(&{
+                let token_stream = generate_explicit_value_initialization_token_stream0(&{
                     let ts: &dyn quote::ToTokens = if matches!(&is_non_null_standard_can_be_primary_key, IsNonNullStandardCanBePrimaryKey::True) {
                         &quote::quote! {#v_snake_case.0 #maybe_dot_clone_token_stream}
                     } else {
@@ -4144,7 +4151,7 @@ pub(super) enum Bnd<'lt> {
                     };
                     quote::quote! {#self_pg_type_as_pg_type_token_stream::normalize(#ts)}
                 });
-                quote::quote! {Some(#ts)}
+                quote::quote! {Some(#token_stream)}
             };
             let previous_read_and_optional_update_into_read_token_stream = quote::quote! {
                 #optional_update_snake_case.map_or(#read_snake_case, |#v_snake_case| #identifier_read_upper_camel_case(#v_snake_case.0))
@@ -4159,14 +4166,14 @@ pub(super) enum Bnd<'lt> {
                     #self_pg_type_as_pg_type_token_stream::normalize(#ts)
                 }
             };
-            let read_ids_and_create_into_optional_v_read_token_stream = {
-                let ts = generate_v_initialization_ts0(&quote::quote! {
+            let read_ids_and_create_into_optional_explicit_value_read_token_stream = {
+                let token_stream = generate_explicit_value_initialization_token_stream0(&quote::quote! {
                     <Self as #import::pg_type_test_cases::PgTypeTestCases>::#read_ids_and_create_into_read_snake_case(
                         #read_ids_snake_case,
                         #create_snake_case
                     )
                 });
-                quote::quote! {Some(#ts)}
+                quote::quote! {Some(#token_stream)}
             };
             let read_ids_and_create_into_table_type_token_stream = {
                 let ts = if matches!(&is_non_null_standard_can_be_primary_key, IsNonNullStandardCanBePrimaryKey::True) {
@@ -4544,10 +4551,10 @@ pub(super) enum CreateReadIds {
                 &read_inner_into_read_with_new_or_try_new_unwraped_token_stream,
                 &read_inner_into_update_with_new_or_try_new_unwraped_token_stream,
                 &update_to_read_ids_token_stream,
-                &read_ids_to_optional_v_read_default_some_one_element_token_stream,
+                &read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream,
                 &previous_read_and_optional_update_into_read_token_stream,
                 &read_ids_and_create_into_read_token_stream,
-                &read_ids_and_create_into_optional_v_read_token_stream,
+                &read_ids_and_create_into_optional_explicit_value_read_token_stream,
                 &read_ids_and_create_into_table_type_token_stream,
                 &read_ids_and_create_into_where_eq_token_stream,
                 &read_ids_and_create_into_vec_where_eq_using_fields_token_stream,

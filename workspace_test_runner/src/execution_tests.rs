@@ -11,7 +11,7 @@ mod tests {
                 .iter()
                 .map(crate::command_text::CommandText::as_ref)
                 .collect::<Vec<&str>>(),
-            vec!["crate::domain_types::first", "crate::domain_types::second"]
+            ["crate::domain_types::first", "crate::domain_types::second"]
         );
     }
     #[test]

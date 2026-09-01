@@ -41,8 +41,8 @@ pub(crate) struct NamesCtx {
     QueryPartErrorUpperCamelCase: naming::domain_types::QueryPartErrorUpperCamelCase,
     QueryPartSnakeCase: naming::domain_types::QueryPartSnakeCase,
     QuerySnakeCase: naming::domain_types::QuerySnakeCase,
-    ReadIdsAndCreateIntoOptionalVReadSnakeCase:
-        naming::domain_types::ReadIdsAndCreateIntoOptionalVReadSnakeCase,
+    ReadIdsAndCreateIntoOptionalExplicitValueReadSnakeCase:
+        naming::domain_types::ReadIdsAndCreateIntoOptionalExplicitValueReadSnakeCase,
     ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase:
         naming::domain_types::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase,
     ReadIdsAndCreateIntoReadSnakeCase: naming::domain_types::ReadIdsAndCreateIntoReadSnakeCase,
@@ -57,8 +57,8 @@ pub(crate) struct NamesCtx {
     ReadIdsSnakeCase: naming::domain_types::ReadIdsSnakeCase,
     ReadIdsTo2DimensionsVecReadInnerSnakeCase:
         naming::domain_types::ReadIdsTo2DimensionsVecReadInnerSnakeCase,
-    ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase:
-        naming::domain_types::ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase,
+    ReadIdsToOptionalExplicitValueReadDefaultSomeOneElementSnakeCase:
+        naming::domain_types::ReadIdsToOptionalExplicitValueReadDefaultSomeOneElementSnakeCase,
     ReadIdsUpperCamelCase: naming::domain_types::ReadIdsUpperCamelCase,
     ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase:
         naming::domain_types::ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,
@@ -133,8 +133,8 @@ impl NamesCtx {
             QueryPartErrorUpperCamelCase: naming::domain_types::QueryPartErrorUpperCamelCase,
             QueryPartSnakeCase: naming::domain_types::QueryPartSnakeCase,
             QuerySnakeCase: naming::domain_types::QuerySnakeCase,
-            ReadIdsAndCreateIntoOptionalVReadSnakeCase:
-                naming::domain_types::ReadIdsAndCreateIntoOptionalVReadSnakeCase,
+            ReadIdsAndCreateIntoOptionalExplicitValueReadSnakeCase:
+                naming::domain_types::ReadIdsAndCreateIntoOptionalExplicitValueReadSnakeCase,
             ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase:
                 naming::domain_types::ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCase,
             ReadIdsAndCreateIntoReadSnakeCase:
@@ -150,8 +150,8 @@ impl NamesCtx {
             ReadIdsSnakeCase: naming::domain_types::ReadIdsSnakeCase,
             ReadIdsTo2DimensionsVecReadInnerSnakeCase:
                 naming::domain_types::ReadIdsTo2DimensionsVecReadInnerSnakeCase,
-            ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase:
-                naming::domain_types::ReadIdsToOptionalVReadDefaultSomeOneElementSnakeCase,
+            ReadIdsToOptionalExplicitValueReadDefaultSomeOneElementSnakeCase:
+                naming::domain_types::ReadIdsToOptionalExplicitValueReadDefaultSomeOneElementSnakeCase,
             ReadIdsUpperCamelCase: naming::domain_types::ReadIdsUpperCamelCase,
             ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase:
                 naming::domain_types::ReadInnerIntoReadWithNewOrTryNewUnwrapedSnakeCase,

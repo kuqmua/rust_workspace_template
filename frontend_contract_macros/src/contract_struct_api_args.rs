@@ -2,7 +2,7 @@
 #[getters(get_mut)]
 pub(crate) struct ContractStructApiArgs {
     into_parts: crate::std_bool::StdBool,
-    new: crate::std_bool::StdBool,
+    generate_constructor: crate::std_bool::StdBool,
 }
 #[allow(
     dead_code,

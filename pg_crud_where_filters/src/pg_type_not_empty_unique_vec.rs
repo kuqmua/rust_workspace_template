@@ -78,7 +78,7 @@ const _: () = {
                 T: _serde::Deserialize<'de>,
             {
                 marker: _serde::__private229::PhantomData<PgTypeNotEmptyUniqueVec<T>>,
-                lt: _serde::__private229::PhantomData<&'de ()>,
+                lifetime_marker: _serde::__private229::PhantomData<&'de ()>,
             }
             #[automatically_derived]
             impl<'de, T: std::fmt::Debug + PartialEq + _serde::Deserialize<'de>>
@@ -128,7 +128,7 @@ const _: () = {
                 constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
-                    lt: _serde::__private229::PhantomData,
+                    lifetime_marker: _serde::__private229::PhantomData,
                 },
             )
         }

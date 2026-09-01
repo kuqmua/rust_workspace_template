@@ -21,26 +21,6 @@ impl From<server_admin_core::std_admin_string::StdAdminStringTryFromStringError>
         }
     }
 }
-impl utoipa::PartialSchema for crate::admin_auth_permissions::AdminAuthPermissions {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::bounded_vec::BoundedVec<
-            server_admin_contract::admin_permission::AdminPermission,
-            0,
-            { crate::admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN },
-        > as utoipa::PartialSchema>::schema()
-    }
-}
-impl utoipa::ToSchema for crate::admin_auth_permissions::AdminAuthPermissions {}
-impl utoipa::PartialSchema for crate::runtime_admin_role_names::RuntimeAdminRoleNames {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        <bounded_types::bounded_vec::BoundedVec<
-            server_admin_contract::admin_role_name::AdminRoleName,
-            0,
-            { crate::admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN },
-        > as utoipa::PartialSchema>::schema()
-    }
-}
-impl utoipa::ToSchema for crate::runtime_admin_role_names::RuntimeAdminRoleNames {}
 impl TryFrom<Vec<server_admin_contract::admin_permission::AdminPermission>>
     for crate::admin_auth_permissions::AdminAuthPermissions
 {
@@ -299,7 +279,7 @@ mod tests {
             server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(
                 constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
             )
-            .expect("4f0db163 bounded test secret must be valid"),
+            .expect(constants_str::DIAGNOSTIC_4F0DB163),
         );
         let debug = format!("{token:?}");
         assert!(debug.contains(constants_str::REDACTED_ALT_3));

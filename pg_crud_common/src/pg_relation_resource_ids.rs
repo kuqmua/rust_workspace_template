@@ -27,7 +27,7 @@ impl TryFrom<Vec<crate::pg_relation_resource_id::PgRelationResourceId>> for PgRe
         >::try_from(value)
         .map_err(|_error| crate::pg_relation_lock_error::PgRelationLockError::TooManyResources)?
         .into_inner();
-        resources.sort_unstable();
+        resources.sort();
         resources.dedup();
         bounded_types::bounded_vec::BoundedVec::try_from(resources)
             .map(Self)
@@ -44,9 +44,7 @@ mod tests {
             crate::pg_relation_resource_id::PgRelationResourceId::from(constants_i64::ONE),
             crate::pg_relation_resource_id::PgRelationResourceId::from(2i64),
         ])
-        .expect(
-            "a9cf9ea3 resources_are_sorted_and_deduplicated_before_locking invariant must hold",
-        );
+        .expect(constants_str::DIAGNOSTIC_A9CF9EA3);
         assert_eq!(
             resources.0.as_slice(),
             [

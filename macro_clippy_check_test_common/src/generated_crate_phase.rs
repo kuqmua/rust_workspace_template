@@ -1,4 +1,12 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
+)]
 pub(crate) enum GeneratedCratePhase {
     Clippy,
     Compilation,
@@ -8,11 +16,6 @@ pub(crate) enum GeneratedCratePhase {
 
 impl std::fmt::Display for GeneratedCratePhase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Clippy => f.write_str(constants_str::CLIPPY),
-            Self::Compilation => f.write_str(constants_str::COMPILATION),
-            Self::Formatting => f.write_str(constants_str::FORMATTING),
-            Self::Test => f.write_str(constants_str::TEST_ALT_3),
-        }
+        f.write_str(self.as_snake_case_str())
     }
 }

@@ -9,6 +9,7 @@
     serde::Deserialize,
     utoipa::ToSchema,
     newtype::EnumFromStr,
+    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AdminAuditAction {

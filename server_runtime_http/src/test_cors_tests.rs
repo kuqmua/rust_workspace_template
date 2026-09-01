@@ -8,11 +8,11 @@ mod tests {
                     constants_str::VALUE_BCE3AE6B,
                 ),
             )
-            .expect("d8a0e140 parser_trims_valid_origins invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_D8A0E140),
         );
         assert_eq!(
             parsed,
-            vec![
+            [
                 http::HeaderValue::from_static("https://a.example"),
                 http::HeaderValue::from_static("https://b.example"),
             ]
@@ -26,7 +26,7 @@ mod tests {
                     constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
                 ),
             )
-            .expect("3b681d57 parser_preserves_empty_configuration_behavior invariant must hold"),
+            .expect(constants_str::DIAGNOSTIC_3B681D57),
         );
         assert!(parsed.is_empty());
     }

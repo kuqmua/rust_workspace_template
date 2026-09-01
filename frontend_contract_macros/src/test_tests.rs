@@ -14,15 +14,15 @@ fn test_contract_struct_api_attributes_are_explicit() {
     let Ok(args) = crate::parse_contract_struct_api_args(
         crate::syn_attributes_ref::SynAttributesRef::from(input.attrs.as_slice()),
     ) else {
-        panic!("edc94d17");
+        std::panic::panic_any(constants_str::PANIC_EDC94D17);
     };
-    assert!(bool::from(*args.get_new()));
+    assert!(bool::from(*args.get_generate_constructor()));
     assert!(bool::from(*args.get_into_parts()));
     let syn::Data::Struct(data) = input.data else {
-        panic!("eb3fcd83");
+        std::panic::panic_any(constants_str::PANIC_EB3FCD83);
     };
     let syn::Fields::Named(fields) = data.fields else {
-        panic!("55c90f04");
+        std::panic::panic_any(constants_str::PANIC_55C90F04);
     };
     let parsed_result = fields
         .named
@@ -98,11 +98,11 @@ fn test_contract_struct_api_attributes_are_explicit() {
         })
         .collect::<syn::Result<Vec<_>>>();
     let Ok(parsed_fields) = parsed_result else {
-        panic!("ceffbe6d");
+        std::panic::panic_any(constants_str::PANIC_CEFFBE6D);
     };
     assert_eq!(
         parsed_fields,
-        vec![
+        [
             (true, false, false),
             (false, true, false),
             (false, false, true)
@@ -121,7 +121,7 @@ fn test_contract_struct_api_rejects_unknown_attributes() {
     let Err(error) = crate::parse_contract_struct_api_args(
         crate::syn_attributes_ref::SynAttributesRef::from(input.attrs.as_slice()),
     ) else {
-        panic!("86b738e6");
+        std::panic::panic_any(constants_str::PANIC_86B738E6);
     };
     assert!(
         error
@@ -149,7 +149,7 @@ fn test_typed_route_args_require_exactly_one_error_source() {
             typed_route_args(errors).as_str(),
         );
         let Err(error) = result else {
-            panic!("f58d0a31");
+            std::panic::panic_any(constants_str::PANIC_F58D0A31);
         };
         assert!(
             error
@@ -163,7 +163,7 @@ fn test_typed_route_args_require_exactly_one_error_source() {
             let Ok(_args) = syn::parse_str::<crate::typed_route_args::TypedRouteArgs>(
                 typed_route_args(errors).as_str(),
             ) else {
-                panic!("470bf91c");
+                std::panic::panic_any(constants_str::PANIC_470BF91C);
             };
         });
 }
@@ -174,7 +174,7 @@ fn test_route_registry_args_require_family_after_state() {
         constants_str::VALUE_A19E6154,
     );
     let Err(error) = result else {
-        panic!("da287c44");
+        std::panic::panic_any(constants_str::PANIC_DA287C44);
     };
     assert!(
         error
@@ -189,7 +189,7 @@ fn test_route_registry_args_parse_family_and_bindings() {
         constants_str::VALUE_2497DABD,
     );
     let Ok(args) = result else {
-        panic!("6282e207");
+        std::panic::panic_any(constants_str::PANIC_6282E207);
     };
     assert_eq!(args.get_bindings().as_ref().len(), constants_usize::ONE);
     assert_eq!(args.get_schemas().as_ref().len(), constants_usize::ONE);

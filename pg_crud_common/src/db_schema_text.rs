@@ -7,6 +7,7 @@
     PartialEq,
     PartialOrd,
     newtype::BoundedStringWrapper,
+    newtype::AsRefStr,
 )]
 #[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub struct DbSchemaText(

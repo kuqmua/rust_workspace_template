@@ -12,6 +12,7 @@
     Eq,
     optimal_memory_layout::OptimalMemoryLayout,
     newtype::EnumFromStr,
+    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum TracingLevel {
@@ -24,13 +25,7 @@ pub enum TracingLevel {
 }
 impl TracingLevel {
     fn as_str(self) -> crate::tracing_level_name::TracingLevelName {
-        crate::tracing_level_name::TracingLevelName::from(match self {
-            Self::Trace => constants_str::CONFIG_TRACING_TRACE,
-            Self::Debug => constants_str::CONFIG_TRACING_DEBUG,
-            Self::Info => constants_str::CONFIG_TRACING_INFO,
-            Self::Warn => constants_str::CONFIG_TRACING_WARN,
-            Self::Error => constants_str::CONFIG_TRACING_ERROR,
-        })
+        crate::tracing_level_name::TracingLevelName::from(self.as_snake_case_str())
     }
 }
 impl std::fmt::Display for TracingLevel {

@@ -1,5 +1,3 @@
-use bounded_types::bounded_string::BoundedString;
-
 #[derive(
     Debug,
     PartialEq,
@@ -15,6 +13,11 @@ use bounded_types::bounded_string::BoundedString;
 )]
 #[bounded_string(max = crate::domain_types::LOC_COMMIT_MAX_LEN )]
 #[serde(try_from = "String")]
+#[schema(value_type = bounded_types::bounded_string::BoundedString<0usize, { crate::domain_types::LOC_COMMIT_MAX_LEN }, false>)]
 pub struct LocationCommit(
-    BoundedString<0usize, { crate::domain_types::LOC_COMMIT_MAX_LEN }, false>,
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { crate::domain_types::LOC_COMMIT_MAX_LEN },
+        false,
+    >,
 );

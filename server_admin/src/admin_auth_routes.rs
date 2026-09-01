@@ -6,7 +6,7 @@
 pub fn admin_auth_routes(
     state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
 ) -> crate::axum_admin_auth_router::AxumAdminAuthRouter {
-    let base_router = crate::admin_auth_route_registry::AdminAuthRouteRegistry::router()
+    let base_router = crate::admin_auth_route_registry::router()
         .method_not_allowed_fallback(async || crate::admin_error::AdminError::MethodNotAllowed);
     let router = match <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::body_limit() {
         Some(limit) => base_router.layer(axum::extract::DefaultBodyLimit::max(limit.get())),

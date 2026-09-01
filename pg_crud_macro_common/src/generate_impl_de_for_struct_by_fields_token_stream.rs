@@ -17,7 +17,7 @@ pub fn generate_impl_de_for_struct_by_fields_token_stream(
     let raw_identifier_token_stream = quote::format_ident!("{}Raw", identifier.to_string());
     let syn_fields: &[macro_helpers::syn_field::SynField] = fields.into();
     let raw_fields_token_stream = syn_fields.iter().map(|field| {
-        let ty = field.get_type0().as_ref();
+        let ty = field.get_field_type().as_ref();
         let field_identifier = field.get_identifier().as_ref();
         let type_token_stream = generate_type_token_stream(field_identifier, ty);
         quote::quote! { #field_identifier: #type_token_stream, }

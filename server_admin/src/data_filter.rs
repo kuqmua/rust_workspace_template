@@ -72,7 +72,7 @@ pub(crate) fn data_filter(
                 let _range_end_replaced =
                     range.insert(constants_str::PG_CRUD_END_FIELD.to_owned(), end);
                 let _body_range_replaced = body.insert(
-                    constants_str::PG_CRUD_V_FIELD.to_owned(),
+                    constants_str::PG_CRUD_VALUES_FIELD.to_owned(),
                     serde_json::Value::Object(range),
                 );
             }
@@ -98,7 +98,7 @@ pub(crate) fn data_filter(
                     })
                     .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
                 let _body_list_replaced = body.insert(
-                    constants_str::PG_CRUD_V_FIELD.to_owned(),
+                    constants_str::PG_CRUD_VALUES_FIELD.to_owned(),
                     serde_json::Value::Array(values),
                 );
             }
@@ -119,7 +119,7 @@ pub(crate) fn data_filter(
                     ),
                 );
                 let _body_regex_value_replaced =
-                    body.insert(constants_str::PG_CRUD_V_FIELD.to_owned(), value);
+                    body.insert(constants_str::PG_CRUD_VALUES_FIELD.to_owned(), value);
             }
             frontend_contract::filter_value_shape::FilterValueShape::EncodedText => {
                 if query.end().is_some() {
@@ -152,7 +152,7 @@ pub(crate) fn data_filter(
                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                     .and_then(parse_value)?;
                 let _body_scalar_replaced =
-                    body.insert(constants_str::PG_CRUD_V_FIELD.to_owned(), value);
+                    body.insert(constants_str::PG_CRUD_VALUES_FIELD.to_owned(), value);
             }
         }
         let mut operation_entry = serde_json::Map::new();
@@ -160,7 +160,7 @@ pub(crate) fn data_filter(
             operation_entry.insert(format!("{operation:?}"), serde_json::Value::Object(body));
         let mut field_filters = serde_json::Map::new();
         let _field_values_replaced = field_filters.insert(
-            constants_str::PG_CRUD_V_FIELD.to_owned(),
+            constants_str::PG_CRUD_VALUES_FIELD.to_owned(),
             serde_json::Value::Array(vec![serde_json::Value::Object(operation_entry)]),
         );
         let _field_operator_replaced = field_filters.insert(

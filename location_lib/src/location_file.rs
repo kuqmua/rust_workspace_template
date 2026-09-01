@@ -1,5 +1,3 @@
-use bounded_types::bounded_string::BoundedString;
-
 #[derive(
     Debug,
     PartialEq,
@@ -16,4 +14,11 @@ use bounded_types::bounded_string::BoundedString;
 )]
 #[bounded_string(max = crate::domain_types::LOC_FILE_MAX_LEN )]
 #[serde(try_from = "String")]
-pub struct LocationFile(BoundedString<0usize, { crate::domain_types::LOC_FILE_MAX_LEN }, false>);
+#[schema(value_type = bounded_types::bounded_string::BoundedString<0usize, { crate::domain_types::LOC_FILE_MAX_LEN }, false>)]
+pub struct LocationFile(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { crate::domain_types::LOC_FILE_MAX_LEN },
+        false,
+    >,
+);

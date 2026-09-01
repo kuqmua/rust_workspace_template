@@ -718,6 +718,50 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
         Err(error) => error.into_compile_error().into(),
     }
 }
+#[proc_macro_derive(UtoipaSchema, attributes(utoipa_schema))]
+pub fn utoipa_schema(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    let mut schema_attributes = input
+        .attrs
+        .iter()
+        .filter(|attribute| attribute.path().is_ident(stringify!(utoipa_schema)));
+    let schema_type = match schema_attributes.next() {
+        Some(attribute) => match attribute.parse_args::<syn::Type>() {
+            Ok(value) => value,
+            Err(error) => return error.into_compile_error().into(),
+        },
+        None => match tuple_struct_one_field_ty(
+            newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),
+        ) {
+            Ok(value) => value.as_ref().clone(),
+            Err(error) => return error.into_compile_error().into(),
+        },
+    };
+    if let Some(attribute) = schema_attributes.next() {
+        return syn::Error::new_spanned(attribute, constants_str::DUPLICATE_NEWTYPE_OPTION)
+            .into_compile_error()
+            .into();
+    }
+    let identifier = &input.ident;
+    let mut generics = input.generics.clone();
+    generics
+        .make_where_clause()
+        .predicates
+        .push(syn::parse_quote!(#schema_type: utoipa::ToSchema));
+    let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
+    quote::quote! {
+        impl #impl_generics utoipa::PartialSchema for #identifier #type_generics #where_clause {
+            fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+                <#schema_type as utoipa::PartialSchema>::schema()
+            }
+        }
+        impl #impl_generics utoipa::ToSchema for #identifier #type_generics #where_clause {}
+    }
+    .into()
+}
 #[proc_macro_derive(WireEnum, attributes(wire_enum, wire))]
 pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
@@ -1873,8 +1917,7 @@ fn identifier_to_snake(
             (out, prev_lowercase)
         },
     );
-    snake_identifier::SnakeIdentifier::try_from(out)
-        .expect("2e7a9c4f identifier_to_snake invariant must hold")
+    snake_identifier::SnakeIdentifier::try_from(out).expect(constants_str::DIAGNOSTIC_2E7A9C4F)
 }
 #[cfg(test)]
 mod test_tests;

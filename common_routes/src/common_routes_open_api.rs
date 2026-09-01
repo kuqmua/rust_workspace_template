@@ -5,7 +5,7 @@ impl CommonRoutesOpenApi {
     pub fn open_api()
     -> crate::utoipa_common_routes_open_api_document::UtoipaCommonRoutesOpenApiDocument {
         crate::utoipa_common_routes_open_api_document::UtoipaCommonRoutesOpenApiDocument::from(
-            crate::common_route_registry::CommonRouteRegistry::open_api(),
+            crate::common_route_registry::open_api(),
         )
     }
 }

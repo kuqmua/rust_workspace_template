@@ -110,7 +110,7 @@ where
     Value: serde::de::DeserializeOwned,
 {
     let Err(_error) = serde_json::from_str::<Value>(json) else {
-        panic!("30bbf690");
+        std::panic::panic_any(constants_str::PANIC_30BBF690);
     };
 }
 #[test]
@@ -121,7 +121,7 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
         crate::admin_collection_max_items::ADMIN_COLLECTION_MAX_ITEMS
     ];
     let Ok(maximum_role_ids) = crate::admin_role_ids::AdminRoleIds::try_from(maximum_values) else {
-        panic!("bce86c7b");
+        std::panic::panic_any(constants_str::PANIC_BCE86C7B);
     };
     assert_eq!(
         maximum_role_ids.as_ref().len(),
@@ -137,14 +137,14 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
         crate::admin_role_ids::AdminRoleIds::try_from(oversized),
         Err(crate::admin_collection_error::AdminCollectionError::TooLong)
     ));
-    let json = serde_json::json!(vec![
+    let oversized_json_values = vec![
         constants_i64::ONE;
         crate::admin_collection_max_items::ADMIN_COLLECTION_MAX_ITEMS
             .saturating_add(constants_usize::ONE)
-    ])
-    .to_string();
+    ];
+    let json = serde_json::json!(oversized_json_values).to_string();
     let Err(_error) = serde_json::from_str::<crate::admin_role_ids::AdminRoleIds>(&json) else {
-        panic!("742a0bdd");
+        std::panic::panic_any(constants_str::PANIC_742A0BDD);
     };
 }
 #[test]
@@ -196,9 +196,9 @@ fn test_request_payloads_reject_unknown_fields() {
 }
 #[test]
 fn test_route_contract_keeps_custom_action_policy_and_path_together() {
-    let route = crate::admin_route::AdminRoute::SetUserBan(crate::admin_user_id::AdminUserId::try_from(7).expect(
-        "8bed843c route_contract_keeps_custom_action_policy_and_path_together invariant must hold",
-    ));
+    let route = crate::admin_route::AdminRoute::SetUserBan(
+        crate::admin_user_id::AdminUserId::try_from(7).expect(constants_str::DIAGNOSTIC_8BED843C),
+    );
     assert_eq!(route.path().as_ref(), "/v1/admin/users/7/ban");
     assert_eq!(
         route.contract().method(),
@@ -224,15 +224,11 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
     let session_id = crate::admin_session_identifier::AdminSessionIdentifier::try_from(
         String::from(constants_str::VALUE_4943E43B),
     )
-    .expect(
-        "84d51132 parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
-    );
-    let role_id = crate::admin_role_id::AdminRoleId::try_from(7i64).expect(
-        "1d69f24c parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
-    );
-    let user_id = crate::admin_user_id::AdminUserId::try_from(8i64).expect(
-        "35959579 parameterized_admin_route_path_uses_typed_route_metadata invariant must hold",
-    );
+    .expect(constants_str::DIAGNOSTIC_84D51132);
+    let role_id = crate::admin_role_id::AdminRoleId::try_from(7i64)
+        .expect(constants_str::DIAGNOSTIC_1D69F24C);
+    let user_id = crate::admin_user_id::AdminUserId::try_from(8i64)
+        .expect(constants_str::DIAGNOSTIC_35959579);
     let path = crate::admin_parameterized_route_path::admin_parameterized_route_path::<
         crate::admin_revoke_session_route::AdminRevokeSessionRoute,
     >(&session_id);
@@ -335,7 +331,7 @@ fn test_removed_audit_log_page_is_not_a_frontend_route() {
     let Err(_error) = crate::admin_default_route::AdminDefaultRoute::try_from(String::from(
         constants_str::VALUE_FF160115,
     )) else {
-        panic!("61f0ab3e");
+        std::panic::panic_any(constants_str::PANIC_61F0AB3E);
     };
 }
 #[test]
@@ -402,8 +398,7 @@ fn test_audit_details_enforce_serialized_byte_limit() {
             "operation": "create"
         }),
     );
-    let _accepted =
-        accepted.expect("20697dc1 audit_details_enforce_serialized_byte_limit invariant must hold");
+    let _accepted = accepted.expect(constants_str::DIAGNOSTIC_20697DC1);
     let oversized = crate::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails::try_from(
         serde_json::Value::String(
             constants_str::A_ALT
@@ -468,7 +463,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
     );
     assert_eq!(
         crate::admin_page::AdminPage::navigation().collect::<Vec<_>>(),
-        vec![
+        [
             crate::admin_page::AdminPage::OpenApi,
             crate::admin_page::AdminPage::Metrics,
             crate::admin_page::AdminPage::Profile,
@@ -481,7 +476,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
         crate::admin_page::AdminPage::all()
             .filter(|page| bool::from(page.supports_csr()))
             .collect::<Vec<_>>(),
-        vec![
+        [
             crate::admin_page::AdminPage::Users,
             crate::admin_page::AdminPage::Roles,
             crate::admin_page::AdminPage::Permissions,
@@ -495,7 +490,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
         crate::admin_page::AdminPage::all()
             .filter(|page| bool::from(page.uses_table_query()))
             .collect::<Vec<_>>(),
-        vec![
+        [
             crate::admin_page::AdminPage::Users,
             crate::admin_page::AdminPage::Roles,
             crate::admin_page::AdminPage::Permissions,
@@ -505,7 +500,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
         crate::admin_page::AdminPage::navigation()
             .map(|page| page.spec().route_name().to_string())
             .collect::<Vec<_>>(),
-        vec![
+        [
             String::from("swagger_ui"),
             String::from("metrics"),
             String::from("profile"),
@@ -557,7 +552,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             .into_iter()
             .filter(|table| bool::from(table.supports_filters()))
             .collect::<Vec<_>>(),
-        vec![crate::admin_data_table::AdminDataTable::RolePermissions]
+        [crate::admin_data_table::AdminDataTable::RolePermissions]
     );
     assert_eq!(
         crate::admin_data_table::AdminDataTable::PG_ORDER
@@ -595,11 +590,10 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             assert_eq!(spec.permission(), table.permission());
             assert_eq!(spec.supports_filters(), table.supports_filters());
             assert_eq!(
-            crate::admin_data_table::AdminDataTable::try_from(table.to_string()).expect(
-                "0596134b data_tables_round_trip_and_require_read_permissions invariant must hold"
-            ),
-            table
-        );
+                crate::admin_data_table::AdminDataTable::try_from(table.to_string())
+                    .expect(constants_str::DIAGNOSTIC_0596134B),
+                table
+            );
             assert_eq!(
                 crate::admin_data_table::AdminDataTable::from_frontend_path(
                     crate::admin_page_path_ref::AdminPagePathRef::from(

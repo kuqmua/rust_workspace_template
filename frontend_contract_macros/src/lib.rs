@@ -51,7 +51,7 @@ fn parse_contract_struct_api_args(
                     .path
                     .is_ident(constants_str::CONTRACT_STRUCT_API_NEW)
                 {
-                    *args.get_new_mut() = std_bool::StdBool::from(true);
+                    *args.get_generate_constructor_mut() = std_bool::StdBool::from(true);
                     Ok(())
                 } else if metadata
                     .path
@@ -172,22 +172,20 @@ impl syn::parse::Parse for route_registry_binding::RouteRegistryBinding {
         Ok(Self::new(endpoint, route))
     }
 }
-#[proc_macro_attribute]
-pub fn endpoint_registry(
-    attribute_args: proc_macro::TokenStream,
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    let parsed_args =
-        match syn::parse::<endpoint_registry_args::EndpointRegistryArgs>(attribute_args) {
-            Ok(value) => value,
-            Err(error) => return error.to_compile_error().into(),
-        };
-    let item = match syn::parse::<syn::ItemStruct>(input) {
+#[proc_macro]
+pub fn endpoint_registry(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let (visibility, parsed_args) = match syn::parse::Parser::parse(
+        |parse_stream: syn::parse::ParseStream<'_>| {
+            let visibility = parse_stream.parse::<syn::Visibility>()?;
+            let _semicolon = parse_stream.parse::<syn::Token![;]>()?;
+            let args = parse_stream.parse::<endpoint_registry_args::EndpointRegistryArgs>()?;
+            Ok((visibility, args))
+        },
+        token_stream,
+    ) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let identifier = &item.ident;
-    let visibility = &item.vis;
     let state = parsed_args.get_state().as_ref();
     let contracts = parsed_args
         .get_bindings()
@@ -202,18 +200,15 @@ pub fn endpoint_registry(
         .map(|binding| binding.get_endpoint().as_ref())
         .collect::<Vec<_>>();
     quote::quote! {
-        #item
-        impl #identifier {
-            #visibility fn router() -> axum::Router<#state> {
-                axum::Router::new()
-                    #(.route(
-                        frontend_contract::route_registration_contract::RouteRegistrationContract::path(#contracts).get(),
-                        frontend_contract::route_method_router::route_method_router(
-                            frontend_contract::route_registration_contract::RouteRegistrationContract::method(#contracts),
-                            #endpoints,
-                        ).into(),
-                    ))*
-            }
+        #visibility fn router() -> axum::Router<#state> {
+            axum::Router::new()
+                #(.route(
+                    frontend_contract::route_registration_contract::RouteRegistrationContract::path(#contracts).get(),
+                    frontend_contract::route_method_router::route_method_router(
+                        frontend_contract::route_registration_contract::RouteRegistrationContract::method(#contracts),
+                        #endpoints,
+                    ).into(),
+                ))*
         }
     }
     .into()
@@ -411,7 +406,7 @@ pub fn derive_contract_struct_api(
                         .path
                         .is_ident(constants_str::CONTRACT_STRUCT_API_NEW)
                     {
-                        *args.get_new_mut() = std_bool::StdBool::from(true);
+                        *args.get_generate_constructor_mut() = std_bool::StdBool::from(true);
                         Ok(())
                     } else if metadata
                         .path
@@ -528,7 +523,7 @@ pub fn derive_contract_struct_api(
         .iter()
         .map(|(_identifier, field_type, _args)| *field_type)
         .collect::<Vec<_>>();
-    let constructor = bool::from(*args.get_new()).then(|| {
+    let constructor = bool::from(*args.get_generate_constructor()).then(|| {
         quote::quote! {
             #[must_use]
             pub const fn new(#(#identifiers: #types),*) -> Self {
@@ -718,32 +713,30 @@ impl syn::parse::Parse for route_registry_args::RouteRegistryArgs {
     }
 }
 
-#[proc_macro_attribute]
-pub fn route_registry(
-    attribute_args: proc_macro::TokenStream,
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    let parsed_args = match syn::parse::<route_registry_args::RouteRegistryArgs>(attribute_args) {
+#[proc_macro]
+pub fn route_registry(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let (openapi_attribute, visibility, parsed_args) = match syn::parse::Parser::parse(
+        |parse_stream: syn::parse::ParseStream<'_>| {
+            let mut attributes = parse_stream.call(syn::Attribute::parse_outer)?;
+            let Some(openapi_attribute_index) = attributes
+                .iter()
+                .position(|attribute| attribute.path().is_ident(constants_str::OPENAPI))
+            else {
+                return Err(
+                    parse_stream.error(constants_str::ROUTE_REGISTRY_REQUIRES_OPENAPI_ATTRIBUTE)
+                );
+            };
+            let openapi_attribute = attributes.remove(openapi_attribute_index);
+            let visibility = parse_stream.parse::<syn::Visibility>()?;
+            let _semicolon = parse_stream.parse::<syn::Token![;]>()?;
+            let args = parse_stream.parse::<route_registry_args::RouteRegistryArgs>()?;
+            Ok((openapi_attribute, visibility, args))
+        },
+        token_stream,
+    ) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let mut item = match syn::parse::<syn::ItemStruct>(input) {
-        Ok(value) => value,
-        Err(error) => return error.to_compile_error().into(),
-    };
-    let Some(openapi_attribute_index) = item
-        .attrs
-        .iter()
-        .position(|attribute| attribute.path().is_ident(constants_str::OPENAPI))
-    else {
-        return syn::Error::new_spanned(
-            item.ident,
-            constants_str::ROUTE_REGISTRY_REQUIRES_OPENAPI_ATTRIBUTE,
-        )
-        .to_compile_error()
-        .into();
-    };
-    let openapi_attribute = item.attrs.remove(openapi_attribute_index);
     let openapi_metadata = match openapi_attribute.meta {
         syn::Meta::List(value) => value.tokens,
         value @ (syn::Meta::Path(_) | syn::Meta::NameValue(_)) => {
@@ -755,10 +748,6 @@ pub fn route_registry(
             .into();
         }
     };
-    let identifier = &item.ident;
-    let visibility = &item.vis;
-    let unique_route_trait_identifier = quote::format_ident!("{}UniqueRoute", identifier);
-    let openapi_identifier = quote::format_ident!("{}OpenApi", identifier);
     let state = parsed_args.get_state().as_ref();
     let family = parsed_args.get_family().as_ref();
     let authenticated_security = parsed_args.get_authenticated_security().as_ref();
@@ -790,94 +779,91 @@ pub fn route_registry(
         })
         .collect::<Vec<_>>();
     quote::quote! {
-        #item
-        trait #unique_route_trait_identifier {}
-        #(impl #unique_route_trait_identifier for #routes {})*
+        trait RegistryUniqueRoute {}
+        #(impl RegistryUniqueRoute for #routes {})*
         const _: [(); <#family as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT] =
             [(); #route_count];
         // The owner module retains lint-sensitive semantics from the original implementation.
         #[allow(clippy::needless_for_each)]
         #[derive(utoipa::OpenApi)]
         #[openapi(paths(#(#endpoints),*), #openapi_metadata)]
-        struct #openapi_identifier;
-        impl #identifier {
-            #visibility fn assert_route_family_membership<Route>()
+        struct RegistryOpenApi;
+        #visibility fn open_api() -> utoipa::openapi::OpenApi {
+            let mut document = <RegistryOpenApi as utoipa::OpenApi>::openapi();
+            #({
+                let components = document
+                    .components
+                    .get_or_insert_with(utoipa::openapi::schema::Components::new);
+                let mut schema_components =
+                    frontend_contract::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut::from(components);
+                frontend_contract::register_openapi_schema::register_openapi_schema::<#schemas>(
+                    &mut schema_components
+                );
+            })*
+            document.paths = utoipa::openapi::path::Paths::new();
+            #({
+                let mut open_api = frontend_contract::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut::from(&mut document);
+                frontend_contract::register_openapi_route_schemas::register_openapi_route_schemas::<#routes>(
+                    &mut open_api
+                );
+                let metadata = <#routes as frontend_contract::typed_route::TypedRoute>::metadata();
+                let mut operation = <#openapi_paths as utoipa::Path>::operation();
+                {
+                    operation.operation_id = Some(metadata.openapi_operation_id().as_ref().to_owned());
+                    frontend_contract::apply_openapi_request_contract::apply_openapi_request_contract::<#routes>(&mut operation);
+                    frontend_contract::apply_openapi_success_contract::apply_openapi_success_contract::<#routes>(&mut operation);
+                    frontend_contract::apply_openapi_error_contract::apply_openapi_error_contract::<#routes>(&mut operation);
+                    frontend_contract::apply_openapi_path_parameter_contract::apply_openapi_path_parameter_contract::<#routes>(&mut operation);
+                    frontend_contract::apply_openapi_security_contract::apply_openapi_security_contract::<#routes>(
+                        &mut operation,
+                        frontend_contract::open_api_security_scheme_ref::OpenApiSecuritySchemeRef::from(#authenticated_security),
+                        frontend_contract::open_api_security_scheme_ref::OpenApiSecuritySchemeRef::from(#csrf_security),
+                    );
+                    let path_item_type = match metadata.route_method() {
+                        frontend_contract::route_method::RouteMethod::Connect => None,
+                        frontend_contract::route_method::RouteMethod::Delete => Some(utoipa::openapi::path::HttpMethod::Delete),
+                        frontend_contract::route_method::RouteMethod::Get => Some(utoipa::openapi::path::HttpMethod::Get),
+                        frontend_contract::route_method::RouteMethod::Head => Some(utoipa::openapi::path::HttpMethod::Head),
+                        frontend_contract::route_method::RouteMethod::Options => Some(utoipa::openapi::path::HttpMethod::Options),
+                        frontend_contract::route_method::RouteMethod::Patch => Some(utoipa::openapi::path::HttpMethod::Patch),
+                        frontend_contract::route_method::RouteMethod::Post => Some(utoipa::openapi::path::HttpMethod::Post),
+                        frontend_contract::route_method::RouteMethod::Put => Some(utoipa::openapi::path::HttpMethod::Put),
+                        frontend_contract::route_method::RouteMethod::Trace => Some(utoipa::openapi::path::HttpMethod::Trace),
+                    };
+                    if let Some(path_item_type) = path_item_type {
+                        let path_item = utoipa::openapi::path::PathItem::new(path_item_type, operation);
+                        document
+                            .paths
+                            .paths
+                            .entry(metadata.path().as_ref().to_owned())
+                            .and_modify(|existing| existing.merge_operations(path_item.clone()))
+                            .or_insert(path_item);
+                    }
+                }
+            })*
+            document
+        }
+        #visibility fn router() -> axum::Router<#state> {
+            fn assert_route_family_membership<Route>()
             where
-                Route: frontend_contract::route_in_family::RouteInFamily<#family> + #unique_route_trait_identifier,
+                Route: frontend_contract::route_in_family::RouteInFamily<#family> + RegistryUniqueRoute,
             {
             }
-            #visibility fn open_api() -> utoipa::openapi::OpenApi {
-                let mut document = <#openapi_identifier as utoipa::OpenApi>::openapi();
-                #({
-                    let components = document
-                        .components
-                        .get_or_insert_with(utoipa::openapi::schema::Components::new);
-                    let mut schema_components =
-                        frontend_contract::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut::from(components);
-                    frontend_contract::register_openapi_schema::register_openapi_schema::<#schemas>(
-                        &mut schema_components
-                    );
-                })*
-                document.paths = utoipa::openapi::path::Paths::new();
-                #({
-                    let mut open_api = frontend_contract::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut::from(&mut document);
-                    frontend_contract::register_openapi_route_schemas::register_openapi_route_schemas::<#routes>(
-                        &mut open_api
-                    );
-                    let metadata = <#routes as frontend_contract::typed_route::TypedRoute>::metadata();
-                    let mut operation = <#openapi_paths as utoipa::Path>::operation();
-                    {
-                        operation.operation_id = Some(metadata.openapi_operation_id().as_ref().to_owned());
-                        frontend_contract::apply_openapi_request_contract::apply_openapi_request_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_success_contract::apply_openapi_success_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_error_contract::apply_openapi_error_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_path_parameter_contract::apply_openapi_path_parameter_contract::<#routes>(&mut operation);
-                        frontend_contract::apply_openapi_security_contract::apply_openapi_security_contract::<#routes>(
-                            &mut operation,
-                            frontend_contract::open_api_security_scheme_ref::OpenApiSecuritySchemeRef::from(#authenticated_security),
-                            frontend_contract::open_api_security_scheme_ref::OpenApiSecuritySchemeRef::from(#csrf_security),
-                        );
-                        let path_item_type = match metadata.route_method() {
-                            frontend_contract::route_method::RouteMethod::Connect => None,
-                            frontend_contract::route_method::RouteMethod::Delete => Some(utoipa::openapi::path::HttpMethod::Delete),
-                            frontend_contract::route_method::RouteMethod::Get => Some(utoipa::openapi::path::HttpMethod::Get),
-                            frontend_contract::route_method::RouteMethod::Head => Some(utoipa::openapi::path::HttpMethod::Head),
-                            frontend_contract::route_method::RouteMethod::Options => Some(utoipa::openapi::path::HttpMethod::Options),
-                            frontend_contract::route_method::RouteMethod::Patch => Some(utoipa::openapi::path::HttpMethod::Patch),
-                            frontend_contract::route_method::RouteMethod::Post => Some(utoipa::openapi::path::HttpMethod::Post),
-                            frontend_contract::route_method::RouteMethod::Put => Some(utoipa::openapi::path::HttpMethod::Put),
-                            frontend_contract::route_method::RouteMethod::Trace => Some(utoipa::openapi::path::HttpMethod::Trace),
-                        };
-                        if let Some(path_item_type) = path_item_type {
-                            let path_item = utoipa::openapi::path::PathItem::new(path_item_type, operation);
-                            document
-                                .paths
-                                .paths
-                                .entry(metadata.path().as_ref().to_owned())
-                                .and_modify(|existing| existing.merge_operations(path_item.clone()))
-                                .or_insert(path_item);
-                        }
-                    }
-                })*
-                document
-            }
-            #visibility fn router() -> axum::Router<#state> {
-                #(Self::assert_route_family_membership::<#routes>();)*
-                axum::Router::new()
-                    #(.route(
-                        frontend_contract::typed_route_path::typed_route_path::<#routes>().as_ref(),
-                        axum::routing::on(
-                            axum::routing::MethodFilter::from(
-                                frontend_contract::to_axum_method_filter::to_axum_method_filter(
-                                    <#routes as frontend_contract::typed_route::TypedRoute>::metadata()
-                                        .contract()
-                                        .method()
-                                )
-                            ),
-                            #endpoints,
+            #(assert_route_family_membership::<#routes>();)*
+            axum::Router::new()
+                #(.route(
+                    frontend_contract::typed_route_path::typed_route_path::<#routes>().as_ref(),
+                    axum::routing::on(
+                        axum::routing::MethodFilter::from(
+                            frontend_contract::to_axum_method_filter::to_axum_method_filter(
+                                <#routes as frontend_contract::typed_route::TypedRoute>::metadata()
+                                    .contract()
+                                    .method()
+                            )
                         ),
-                    ))*
-            }
+                        #endpoints,
+                    ),
+                ))*
         }
     }
     .into()

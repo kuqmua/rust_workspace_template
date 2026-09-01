@@ -94,6 +94,7 @@ pub mod duplicate_candidates;
 pub mod duplicate_idx;
 pub mod eq_operator;
 pub mod eq_operator_query_str;
+pub mod explicit_value;
 pub mod f32_test_cases_vec;
 pub mod f64_test_cases_vec;
 pub mod filter_bind_plan;
@@ -247,6 +248,12 @@ pub mod test_domain_types_db_schema_conformance_tests;
 #[cfg(test)]
 pub mod test_domain_types_query_pagination_tests;
 #[cfg(test)]
+pub mod test_explicit_value_serializes_with_full_field_name;
+#[cfg(test)]
+pub mod test_order_serializes_with_full_variant_names;
+#[cfg(test)]
+pub mod test_pg_type_where_serializes_and_deserializes_with_full_field_name;
+#[cfg(test)]
 pub mod test_tests_domain_types_operator_to_query_part;
 pub mod transaction_failure;
 pub mod try_new_unique_vec;
@@ -263,7 +270,6 @@ pub mod unsigned_part_of_i32_raw;
 pub mod unsigned_part_of_i32_try_from_i32_error;
 pub mod uuid_uuid_test_cases;
 pub mod uuid_uuid_test_cases_vec;
-pub mod v;
 pub mod validate_batch_by_key;
 pub mod validate_bulk_atomicity;
 pub mod validate_generated_postgres_table;

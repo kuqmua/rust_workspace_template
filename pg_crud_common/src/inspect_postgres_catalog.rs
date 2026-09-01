@@ -16,15 +16,20 @@ pub async fn inspect_postgres_catalog(
         })?;
     rows.into_iter()
         .map(|row| {
-            let kind_text: String =
-                sqlx::Row::try_get(&row, constants_str::OBJECT_KIND).map_err(|error| {
-                    crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
-                        crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
-                            error,
-                        ),
-                    )
-                })?;
-            let kind = match kind_text.as_str() {
+            let kind_text: crate::db_schema_text::DbSchemaText =
+                crate::db_schema_text::DbSchemaText::try_from(
+                    sqlx::Row::try_get::<String, _>(&row, constants_str::OBJECT_KIND).map_err(|error| {
+                        crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
+                            crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(
+                                error,
+                            ),
+                        )
+                    })?,
+                )
+                .map_err(
+                    crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong,
+                )?;
+            let kind = match kind_text.as_ref() {
                 constants_str::EXTENSION => crate::db_object_kind::DbObjectKind::Extension,
                 constants_str::FUNCTION => crate::db_object_kind::DbObjectKind::Function,
                 constants_str::TRIGGER => crate::db_object_kind::DbObjectKind::Trigger,

@@ -7,9 +7,7 @@ pub fn decode_access_token(
     crate::admin_access_claims::AdminAccessClaims,
     crate::admin_access_token_error::AdminAccessTokenError,
 > {
-    let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
-    validation.set_issuer(&[issuer.as_ref()]);
-    validation.set_audience(&[audience.as_ref()]);
+    let validation = crate::admin_access_token_validation::admin_access_token_validation();
     jsonwebtoken::decode::<crate::admin_access_claims::AdminAccessClaims>(
         token.as_ref(),
         &jsonwebtoken::DecodingKey::from_secret(
@@ -17,7 +15,14 @@ pub fn decode_access_token(
         ),
         &validation,
     )
-    .map(|data| data.claims)
     .map_err(crate::jsonwebtoken_admin_error::JsonwebtokenAdminError::from)
+    .and_then(|data| {
+        crate::validate_admin_access_claims::validate_admin_access_claims(
+            &data.claims,
+            issuer,
+            audience,
+        )?;
+        Ok(data.claims)
+    })
     .map_err(crate::admin_access_token_error::AdminAccessTokenError::from)
 }

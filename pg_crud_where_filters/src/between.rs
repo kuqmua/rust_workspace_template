@@ -163,7 +163,7 @@ const _: () = {
                     + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
             {
                 marker: _serde::__private229::PhantomData<Between<T>>,
-                lt: _serde::__private229::PhantomData<&'de ()>,
+                lifetime_marker: _serde::__private229::PhantomData<&'de ()>,
             }
             impl<'de, T> _serde::de::Visitor<'de> for __Visitor<'de, T>
             where
@@ -266,7 +266,7 @@ const _: () = {
                 constants_str::PG_CRUD_SERDE_BETWEEN_FIELDS,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
-                    lt: _serde::__private229::PhantomData,
+                    lifetime_marker: _serde::__private229::PhantomData,
                 },
             )
         }

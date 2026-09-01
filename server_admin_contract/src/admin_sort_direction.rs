@@ -9,18 +9,16 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
+    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AdminSortDirection {
     #[default]
-    Asc,
-    Desc,
+    Ascending,
+    Descending,
 }
 impl AsRef<str> for AdminSortDirection {
     fn as_ref(&self) -> &str {
-        match self {
-            Self::Asc => constants_str::ASC_ALT,
-            Self::Desc => constants_str::DESC_ALT,
-        }
+        self.as_snake_case_str()
     }
 }

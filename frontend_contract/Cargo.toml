@@ -11,6 +11,7 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+naming_macros = { workspace = true }
 generate_accessor = { workspace = true }
 generate_constructor = { workspace = true }
 constants_usize = { workspace = true }

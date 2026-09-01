@@ -1,4 +1,12 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    naming_macros::EnumWithUnitFieldsToUpperSnakeCaseStr,
+)]
 pub enum RouteMethod {
     Connect,
     Delete,
@@ -13,16 +21,6 @@ pub enum RouteMethod {
 impl RouteMethod {
     #[must_use]
     pub fn as_str(self) -> crate::contract_str::ContractStr {
-        crate::contract_str::ContractStr::from(match self {
-            Self::Connect => constants_str::CONNECT,
-            Self::Delete => constants_str::DELETE,
-            Self::Get => constants_str::GET,
-            Self::Head => constants_str::HEAD,
-            Self::Options => constants_str::OPTIONS,
-            Self::Patch => constants_str::PATCH,
-            Self::Post => constants_str::POST,
-            Self::Put => constants_str::PUT,
-            Self::Trace => constants_str::TRACE,
-        })
+        crate::contract_str::ContractStr::from(self.as_upper_snake_case_str())
     }
 }

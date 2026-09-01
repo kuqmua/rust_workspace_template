@@ -1,7 +1,8 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract_macros::route_registry(
+frontend_contract_macros::route_registry! {
+    #[openapi(tags((name = "service", description = "Service operational routes")))]
+    pub(super);
     state = crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
     family = crate::common_route::CommonRouteFamily;
     ("", "");
@@ -16,6 +17,4 @@
     (crate::health_check_route::HealthCheckRoute, crate::health_check::health_check),
     (crate::health_live_route::HealthLiveRoute, crate::health_live::health_live),
     (crate::health_ready_route::HealthReadyRoute, crate::health_ready::health_ready),
-)]
-#[openapi(tags((name = "service", description = "Service operational routes")))]
-pub(super) struct CommonRouteRegistry;
+}

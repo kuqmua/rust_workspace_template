@@ -1,7 +1,8 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[frontend_contract_macros::route_registry(
+frontend_contract_macros::route_registry! {
+    #[openapi()]
+    pub(super);
     state = crate::notification_state::NotificationState,
     family = notification_service_contract::notification_route::NotificationRouteFamily;
     ("", "");
@@ -13,6 +14,4 @@
         notification_service_contract::create_notification_route::CreateNotificationRoute,
         crate::create_notification::create_notification
     ),
-)]
-#[openapi()]
-pub(super) struct NotificationApiRouteRegistry;
+}
