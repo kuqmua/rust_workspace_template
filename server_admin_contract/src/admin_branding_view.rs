@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -8,10 +10,14 @@
 )]
 pub struct AdminBrandingView {
     default_admin_route: crate::admin_default_route::AdminDefaultRoute,
+    #[getters(skip)]
     main_logo: Option<crate::admin_main_logo::AdminMainLogo>,
+    #[getters(skip)]
     primary_color: Option<crate::admin_primary_color::AdminPrimaryColor>,
     site_name: crate::admin_site_name::AdminSiteName,
+    #[getters(skip)]
     support_url: Option<crate::admin_support_url::AdminSupportUrl>,
+    #[getters(skip)]
     tab_title: Option<crate::admin_tab_title::AdminTabTitle>,
 }
 
@@ -27,10 +33,7 @@ impl AdminBrandingView {
             tab_title: value.tab_title().cloned(),
         }
     }
-    #[must_use]
-    pub const fn default_admin_route(&self) -> &crate::admin_default_route::AdminDefaultRoute {
-        &self.default_admin_route
-    }
+
     #[must_use]
     pub const fn main_logo(&self) -> Option<&crate::admin_main_logo::AdminMainLogo> {
         self.main_logo.as_ref()
@@ -39,10 +42,7 @@ impl AdminBrandingView {
     pub const fn primary_color(&self) -> Option<&crate::admin_primary_color::AdminPrimaryColor> {
         self.primary_color.as_ref()
     }
-    #[must_use]
-    pub const fn site_name(&self) -> &crate::admin_site_name::AdminSiteName {
-        &self.site_name
-    }
+
     #[must_use]
     pub const fn support_url(&self) -> Option<&crate::admin_support_url::AdminSupportUrl> {
         self.support_url.as_ref()

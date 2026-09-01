@@ -1,19 +1,11 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
 pub(crate) struct InitializationEntry {
     keys: crate::env_keys::EnvKeys,
     member: crate::workspace_member::WorkspaceMember,
+    #[getters(copy)]
     status: crate::initialization_status::InitializationStatus,
-}
-impl InitializationEntry {
-    pub(crate) const fn keys(&self) -> &crate::env_keys::EnvKeys {
-        &self.keys
-    }
-    pub(crate) const fn member(&self) -> &crate::workspace_member::WorkspaceMember {
-        &self.member
-    }
-    pub(crate) const fn status(&self) -> crate::initialization_status::InitializationStatus {
-        self.status
-    }
 }
 impl
     From<(

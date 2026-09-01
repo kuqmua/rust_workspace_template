@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct NotificationServiceState<Sender> {
     permits: crate::arc_tokio_semaphore::ArcTokioSemaphore,
@@ -6,18 +8,6 @@ pub struct NotificationServiceState<Sender> {
 }
 
 impl<Sender> NotificationServiceState<Sender> {
-    pub(crate) const fn permits(&self) -> &crate::arc_tokio_semaphore::ArcTokioSemaphore {
-        &self.permits
-    }
-
-    pub(crate) const fn sender(&self) -> &Sender {
-        &self.sender
-    }
-
-    pub(crate) const fn token(&self) -> &crate::notification_api_token::NotificationApiToken {
-        &self.token
-    }
-
     #[must_use]
     pub fn new(
         token: crate::notification_api_token::NotificationApiToken,

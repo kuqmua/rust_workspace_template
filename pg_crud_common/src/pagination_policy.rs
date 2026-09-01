@@ -1,12 +1,11 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PaginationPolicy {
+    #[getters(copy)]
     default_limit: super::pagination_limit::PaginationLimit,
 }
 impl PaginationPolicy {
-    #[must_use]
-    pub const fn default_limit(self) -> super::pagination_limit::PaginationLimit {
-        self.default_limit
-    }
     #[must_use]
     pub fn standard() -> Self {
         Self {

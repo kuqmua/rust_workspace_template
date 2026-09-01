@@ -15,20 +15,35 @@ mod tests {
         assert_eq!(contract.format(), crate::value_format::ValueFormat::Int64);
     }
 }
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FieldContract {
+    #[getters(skip)]
     filters: crate::filter_contracts::FilterContracts,
+    #[getters(copy)]
     label: crate::contract_str::ContractStr,
+    #[getters(copy)]
     name: crate::contract_str::ContractStr,
+    #[getters(copy)]
     placeholder: crate::field_placeholder::FieldPlaceholder,
+    #[getters(copy)]
     type_contract: crate::type_contract::TypeContract,
+    #[getters(copy)]
     order: crate::field_order::FieldOrder,
+    #[getters(copy)]
     creatable: crate::field_capability::FieldCapability,
+    #[getters(copy)]
     filterable: crate::field_capability::FieldCapability,
+    #[getters(copy)]
     primary_key: crate::primary_key_kind::PrimaryKeyKind,
+    #[getters(copy)]
     readable: crate::field_capability::FieldCapability,
+    #[getters(copy)]
     sortable: crate::field_capability::FieldCapability,
+    #[getters(copy)]
     updatable: crate::field_capability::FieldCapability,
+    #[getters(copy)]
     visibility: crate::field_visibility::FieldVisibility,
 }
 impl FieldContract {
@@ -56,58 +71,12 @@ impl FieldContract {
             visibility: crate::field_visibility::FieldVisibility::Visible,
         }
     }
-    #[must_use]
-    pub const fn creatable(self) -> crate::field_capability::FieldCapability {
-        self.creatable
-    }
-    #[must_use]
-    pub const fn label(self) -> crate::contract_str::ContractStr {
-        self.label
-    }
-    #[must_use]
-    pub const fn filterable(self) -> crate::field_capability::FieldCapability {
-        self.filterable
-    }
+
     #[must_use]
     pub fn filters(&self) -> &[crate::filter_operation::FilterOperation] {
         self.filters.as_ref()
     }
-    #[must_use]
-    pub const fn name(self) -> crate::contract_str::ContractStr {
-        self.name
-    }
-    #[must_use]
-    pub const fn order(self) -> crate::field_order::FieldOrder {
-        self.order
-    }
-    #[must_use]
-    pub const fn placeholder(self) -> crate::field_placeholder::FieldPlaceholder {
-        self.placeholder
-    }
-    #[must_use]
-    pub const fn primary_key(self) -> crate::primary_key_kind::PrimaryKeyKind {
-        self.primary_key
-    }
-    #[must_use]
-    pub const fn readable(self) -> crate::field_capability::FieldCapability {
-        self.readable
-    }
-    #[must_use]
-    pub const fn sortable(self) -> crate::field_capability::FieldCapability {
-        self.sortable
-    }
-    #[must_use]
-    pub const fn type_contract(self) -> crate::type_contract::TypeContract {
-        self.type_contract
-    }
-    #[must_use]
-    pub const fn updatable(self) -> crate::field_capability::FieldCapability {
-        self.updatable
-    }
-    #[must_use]
-    pub const fn visibility(self) -> crate::field_visibility::FieldVisibility {
-        self.visibility
-    }
+
     #[must_use]
     pub const fn with_creatable(mut self, value: crate::field_capability::FieldCapability) -> Self {
         self.creatable = value;

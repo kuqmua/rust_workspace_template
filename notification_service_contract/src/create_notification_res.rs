@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,12 +13,6 @@
     generate_constructor::New,
 )]
 pub struct CreateNotificationRes {
+    #[getters(copy)]
     id: crate::uuid_notification_id::UuidNotificationId,
-}
-
-impl CreateNotificationRes {
-    #[must_use]
-    pub const fn id(&self) -> crate::uuid_notification_id::UuidNotificationId {
-        self.id
-    }
 }

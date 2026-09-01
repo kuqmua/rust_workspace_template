@@ -29,8 +29,4 @@ impl RouteCoverageDescriptor {
             mutation,
         }
     }
-    #[must_use]
-    pub const fn metadata(self) -> crate::route_metadata::RouteMetadata {
-        self.metadata
-    }
 }

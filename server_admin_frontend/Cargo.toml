@@ -15,6 +15,7 @@ categories = ["web-programming"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+generate_accessor = { workspace = true }
 naming_macros = { workspace = true }
 bounded_types = { workspace = true }
 constants_usize = { workspace = true }

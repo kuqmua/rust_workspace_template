@@ -1,5 +1,10 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "generated getter field order preserves the established serialized contract"
+)]
 #[derive(
     Debug,
     Clone,
@@ -45,10 +50,7 @@ impl<T: PartialEq + Clone> PgTypeWhere<T> {
     ) -> Self {
         Self { values, operator }
     }
-    #[must_use]
-    pub const fn operator(&self) -> &crate::operator::Operator {
-        &self.operator
-    }
+
     pub fn try_new(
         operator: crate::operator::Operator,
         values: crate::duplicate_candidates::DuplicateCandidates<T>,

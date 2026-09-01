@@ -8,6 +8,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+generate_accessor = { workspace = true }
 generate_constructor = { workspace = true }
 constants_usize = { workspace = true }
 constants_u8 = { workspace = true }

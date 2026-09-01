@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -29,15 +31,5 @@ impl utoipa::IntoParams for AdminDataTableQuery {
             }),
         );
         parameters
-    }
-}
-impl AdminDataTableQuery {
-    #[must_use]
-    pub const fn filter(&self) -> &crate::admin_data_table_filter_query::AdminDataTableFilterQuery {
-        &self.filter
-    }
-    #[must_use]
-    pub const fn page(&self) -> &crate::admin_table_query::AdminTableQuery {
-        &self.page
     }
 }

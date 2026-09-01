@@ -28,18 +28,21 @@ pub fn emit_generate_pg_table(
     validated: crate::syn_validated_generate_pg_table_input::SynValidatedGeneratePgTableInput,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+    #[derive(generate_accessor::Getters)]
+    #[getters(bare)]
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "the local generated-source model keeps related syntax fields together"
+    )]
     #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
     struct SynVariant {
         variant: syn::Variant,
+        #[getters(skip)]
         status_code: Option<macro_helpers::status_code::StatusCode>,
     }
     impl SynVariant {
         const fn status_code(&self) -> Option<&macro_helpers::status_code::StatusCode> {
             self.status_code.as_ref()
-        }
-        const fn variant(&self) -> &syn::Variant {
-            &self.variant
         }
     }
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]

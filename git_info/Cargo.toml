@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+generate_accessor = { workspace = true }
 constants_str = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }

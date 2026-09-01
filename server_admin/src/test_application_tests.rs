@@ -207,7 +207,7 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
             .iter()
             .copied()
             .map(|descriptor| {
-                let metadata = descriptor.metadata();
+                let metadata = descriptor.get_metadata();
                 (
                     metadata.method().as_ref().to_ascii_lowercase(),
                     metadata.openapi_operation_id().as_ref().to_owned(),

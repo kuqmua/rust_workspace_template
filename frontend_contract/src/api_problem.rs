@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -13,7 +15,9 @@ pub struct ApiProblem {
     request_id: Option<crate::api_problem_request_id::ApiProblemRequestId>,
     #[schema(inline)]
     violations: crate::api_problem_violations::ApiProblemViolations,
+    #[getters(copy)]
     status: crate::api_problem_status::ApiProblemStatus,
+    #[getters(copy)]
     kind: crate::api_problem_kind::ApiProblemKind,
 }
 
@@ -88,18 +92,5 @@ impl ApiProblem {
             status,
             violations: crate::api_problem_violations::ApiProblemViolations::default(),
         }
-    }
-
-    #[must_use]
-    pub const fn detail(&self) -> &crate::api_problem_detail::ApiProblemDetail {
-        &self.detail
-    }
-    #[must_use]
-    pub const fn kind(&self) -> crate::api_problem_kind::ApiProblemKind {
-        self.kind
-    }
-    #[must_use]
-    pub const fn status(&self) -> crate::api_problem_status::ApiProblemStatus {
-        self.status
     }
 }

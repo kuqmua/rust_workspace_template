@@ -11,6 +11,7 @@ categories = ["filesystem"]
 edition.workspace = true
 
 [dependencies]
+generate_accessor = { workspace = true }
 generate_constructor = { workspace = true }
 constants_usize = { workspace = true }
 constants_u64 = { workspace = true }

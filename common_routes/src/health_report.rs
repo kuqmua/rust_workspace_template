@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -9,7 +11,9 @@
     utoipa::ToSchema,
 )]
 pub struct HealthReport {
+    #[getters(skip)]
     components: crate::health_components::HealthComponents,
+    #[getters(copy)]
     status: crate::health_status::HealthStatus,
 }
 impl HealthReport {
@@ -58,9 +62,5 @@ impl HealthReport {
             ]),
             status,
         }
-    }
-    #[must_use]
-    pub const fn status(&self) -> crate::health_status::HealthStatus {
-        self.status
     }
 }

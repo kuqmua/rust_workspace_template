@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     Debug,
     serde_derive::Serialize,
@@ -10,13 +12,8 @@
     optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct ProjectGitInfo<'commit_lt> {
+    #[getters(copy)]
     commit: crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>,
-}
-impl<'commit_lt> ProjectGitInfo<'commit_lt> {
-    #[must_use]
-    pub const fn commit(&self) -> crate::git_commit_id_ref::GitCommitIdRef<'commit_lt> {
-        self.commit
-    }
 }
 impl<'commit_lt> From<crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>>
     for ProjectGitInfo<'commit_lt>

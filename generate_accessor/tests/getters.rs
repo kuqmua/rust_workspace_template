@@ -19,6 +19,21 @@ mod tests {
     #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
     struct TupleField(u64);
 
+    #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+    #[getters(bare)]
+    struct BareFields {
+        #[getters(copy)]
+        count: u64,
+        #[getters(skip)]
+        text: String,
+    }
+
+    impl BareFields {
+        fn text_len(&self) -> usize {
+            self.text.len()
+        }
+    }
+
     #[derive(optimal_memory_layout::OptimalMemoryLayout)]
     enum TupleFieldError {
         Zero,
@@ -60,6 +75,12 @@ mod tests {
             Err(TupleFieldError::Zero) => return,
         };
         assert_eq!(*tuple.get_inner(), 21);
+        let bare = BareFields {
+            count: 34,
+            text: String::from(constants_str::A_ALT),
+        };
+        assert_eq!(bare.count(), 34);
+        assert_eq!(bare.text_len(), constants_usize::ONE);
     }
 
     const _: usize = constants_str::DOT.len();

@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -8,29 +10,17 @@
     generate_constructor::New,
 )]
 pub struct AdminSettingSpec {
+    #[getters(copy)]
     label: crate::admin_setting_label::AdminSettingLabel,
+    #[getters(copy)]
     name: crate::admin_setting_name::AdminSettingName,
+    #[getters(copy)]
     input_kind: crate::admin_setting_input_kind::AdminSettingInputKind,
+    #[getters(copy)]
     optionality: crate::admin_setting_optionality::AdminSettingOptionality,
 }
 
 impl AdminSettingSpec {
-    #[must_use]
-    pub const fn input_kind(self) -> crate::admin_setting_input_kind::AdminSettingInputKind {
-        self.input_kind
-    }
-    #[must_use]
-    pub const fn label(self) -> crate::admin_setting_label::AdminSettingLabel {
-        self.label
-    }
-    #[must_use]
-    pub const fn name(self) -> crate::admin_setting_name::AdminSettingName {
-        self.name
-    }
-    #[must_use]
-    pub const fn optionality(self) -> crate::admin_setting_optionality::AdminSettingOptionality {
-        self.optionality
-    }
     #[must_use]
     pub fn required(self) -> crate::admin_bool::AdminBool {
         crate::admin_bool::AdminBool::from(matches!(

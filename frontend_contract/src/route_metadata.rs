@@ -1,11 +1,20 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteMetadata {
+    #[getters(copy)]
     authentication: crate::authentication_requirement::AuthenticationRequirement,
+    #[getters(copy)]
     error_statuses: &'static [crate::route_error_status::RouteErrorStatus],
+    #[getters(copy)]
     openapi_operation_id: crate::contract_str::ContractStr,
+    #[getters(copy)]
     path: crate::contract_str::ContractStr,
+    #[getters(skip)]
     method: crate::route_method::RouteMethod,
+    #[getters(copy)]
     mutation: crate::route_mutation::RouteMutation,
+    #[getters(copy)]
     success_status: crate::success_status::SuccessStatus,
 }
 impl RouteMetadata {
@@ -45,16 +54,7 @@ impl RouteMetadata {
             success_status,
         }
     }
-    #[must_use]
-    pub const fn authentication(
-        self,
-    ) -> crate::authentication_requirement::AuthenticationRequirement {
-        self.authentication
-    }
-    #[must_use]
-    pub const fn error_statuses(self) -> &'static [crate::route_error_status::RouteErrorStatus] {
-        self.error_statuses
-    }
+
     #[must_use]
     pub const fn access(self) -> crate::route_access::RouteAccess {
         match self.authentication {
@@ -75,22 +75,7 @@ impl RouteMetadata {
     pub const fn route_method(self) -> crate::route_method::RouteMethod {
         self.method
     }
-    #[must_use]
-    pub const fn openapi_operation_id(self) -> crate::contract_str::ContractStr {
-        self.openapi_operation_id
-    }
-    #[must_use]
-    pub const fn path(self) -> crate::contract_str::ContractStr {
-        self.path
-    }
-    #[must_use]
-    pub const fn mutation(self) -> crate::route_mutation::RouteMutation {
-        self.mutation
-    }
-    #[must_use]
-    pub const fn success_status(self) -> crate::success_status::SuccessStatus {
-        self.success_status
-    }
+
     #[must_use]
     pub const fn contract(self) -> crate::route_contract::RouteContract {
         crate::route_contract::RouteContract::new(

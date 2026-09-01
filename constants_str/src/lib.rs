@@ -952,6 +952,7 @@ constants_str_macros::define_str_constants! {
         W_COOKIE = "cookie";
         W_COORDINATES = "coordinates";
         W_COPY = "copy";
+        W_SKIP = "skip";
         W_COPY_REF = "copy_ref";
         W_CORE = "core";
         W_COUNT_6C35493A = "count";
@@ -6356,14 +6357,21 @@ constants_str_macros::define_str_constants! {
         pub CODE_STYLE_DESERIALIZE_DERIVE_NAME = [W_DESERIALIZE];
         pub CODE_STYLE_CRATE_VISIBILITY_PATH = [W_CRATE];
         pub GETTERS_ATTRIBUTE = [W_GETTERS_F4853BC8];
+        pub GETTERS_BARE = ["bare"];
+        pub GETTERS_COPY = [W_COPY];
         pub GETTER_PREFIX = ["get_"];
+        pub PUBLIC_USE_PREFIX = [W_PUB, " ", W_USE, " "];
         pub GETTERS_GET_MUT = ["get_mut"];
+        pub GETTERS_SKIP = [W_SKIP];
         pub GETTERS_REQUIRES_NAMED_OR_SINGLE_FIELD = [W_GETTERS, " ", W_REQUIRES, " ", W_NAMED, " ", W_FIELDS, " ", W_OR_7175517A, " ", W_A_CA978112, " ", W_SINGLE, " ", W_TUPLE, " ", W_FIELD];
         pub GETTERS_REQUIRES_STRUCT = [W_GETTERS, " ", W_CAN, " ", W_ONLY, " ", W_BE, " ", W_DERIVED, " ", W_FOR_10C22BCF, " ", W_STRUCTS];
         pub GETTERS_UNSUPPORTED_ATTRIBUTE = [W_UNSUPPORTED, " ", W_GETTERS_F4853BC8, " ", W_ATTRIBUTE];
         pub CONSTRUCTOR_ATTRIBUTE = [W_CONSTRUCTOR];
+        pub CONSTRUCTOR_DUPLICATE_ORDER = [W_DUPLICATE, " ", W_CONSTRUCTOR, " ", W_ORDER_3EEB7E96];
+        pub CONSTRUCTOR_ORDER_MUST_BE_UNIQUE_AND_CONTIGUOUS = [W_CONSTRUCTOR, " ", W_ORDER_3EEB7E96, " ", W_MUST, " ", W_BE, " ", W_UNIQUE, " ", W_AND, " ", "contiguous"];
         pub CONSTRUCTOR_REQUIRES_NAMED_FIELDS = [W_NEW, " ", W_REQUIRES, " ", W_A_CA978112, " ", W_STRUCT, " ", W_WITH_0695B563, " ", W_NAMED, " ", W_FIELDS];
         pub CONSTRUCTOR_REQUIRES_STRUCT = [W_NEW, " ", W_CAN, " ", W_ONLY, " ", W_BE, " ", W_DERIVED, " ", W_FOR_10C22BCF, " ", W_STRUCTS];
+        pub CONSTRUCTOR_UNSUPPORTED_ATTRIBUTE = [W_UNSUPPORTED, " ", W_CONSTRUCTOR, " ", W_ATTRIBUTE];
         pub OPTION_TYPE = [W_OPTION];
         pub CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT = [W_FROM_75857A45, " ="];
         pub CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT = [W_TRY_FROM, " ="];
@@ -7733,7 +7741,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_AE5F4132 = [W_SHARED, " ", W_INPUT, " ", W_VALIDATION, " ", W_MAPS, " ", W_TO, " ", W_STABLE, " ", W_API, " ", W_CATEGORIES];
         pub VALUE_614D1CA5 = [W_SINGLE, "-", W_FLIGHT, " ", "ownership", " ", W_REQUIRES, " ", W_SHARED, " ", W_SYNCHRONIZED, " ", W_STATE];
         pub VALUE_7C6A6719 = [W_SITE_NAME];
-        pub VALUE_42E93B9B = ["skip"];
+        pub VALUE_42E93B9B = [W_SKIP];
         pub VALUE_03FDB065 = [W_SLICE];
         pub VALUE_EC2B18D8 = ["smol"];
         pub VALUE_20E49707 = [W_SOCKET_ENV];

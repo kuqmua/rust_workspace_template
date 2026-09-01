@@ -1,11 +1,20 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TypeContract {
+    #[getters(copy)]
     maximum: crate::numeric_bound::NumericBound,
+    #[getters(copy)]
     minimum: crate::numeric_bound::NumericBound,
+    #[getters(copy)]
     example: crate::value_example::ValueExample,
+    #[getters(copy)]
     format: crate::value_format::ValueFormat,
+    #[getters(copy)]
     input_kind: crate::input_kind::InputKind,
+    #[getters(copy)]
     nullability: crate::nullability::Nullability,
+    #[getters(copy)]
     step: crate::input_step::InputStep,
 }
 impl TypeContract {
@@ -25,34 +34,7 @@ impl TypeContract {
             step: crate::input_step::InputStep::Any,
         }
     }
-    #[must_use]
-    pub const fn example(self) -> crate::value_example::ValueExample {
-        self.example
-    }
-    #[must_use]
-    pub const fn format(self) -> crate::value_format::ValueFormat {
-        self.format
-    }
-    #[must_use]
-    pub const fn input_kind(self) -> crate::input_kind::InputKind {
-        self.input_kind
-    }
-    #[must_use]
-    pub const fn maximum(self) -> crate::numeric_bound::NumericBound {
-        self.maximum
-    }
-    #[must_use]
-    pub const fn minimum(self) -> crate::numeric_bound::NumericBound {
-        self.minimum
-    }
-    #[must_use]
-    pub const fn nullability(self) -> crate::nullability::Nullability {
-        self.nullability
-    }
-    #[must_use]
-    pub const fn step(self) -> crate::input_step::InputStep {
-        self.step
-    }
+
     #[must_use]
     pub const fn supports_filtering(self) -> crate::capability_support::CapabilitySupport {
         if matches!(

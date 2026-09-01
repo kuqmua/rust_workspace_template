@@ -1,12 +1,19 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub struct ConfigFieldDescriptor {
+    #[getters(copy)]
     env_name: crate::env_var_name_ref::EnvVarNameRef<'static>,
+    #[getters(copy)]
     example: crate::config_field_example_ref::ConfigFieldExampleRef<'static>,
     parser: fn(
         crate::std_env_var_ok::StdEnvVarOk,
     ) -> crate::config_example_validity::ConfigExampleValidity,
+    #[getters(copy)]
     rust_type_name: crate::config_rust_type_name::ConfigRustTypeName,
+    #[getters(copy)]
     requirement: crate::config_field_requirement::ConfigFieldRequirement,
+    #[getters(copy)]
     sensitivity: crate::config_field_sensitivity::ConfigFieldSensitivity,
 }
 impl std::fmt::Debug for ConfigFieldDescriptor {
@@ -41,26 +48,7 @@ impl ConfigFieldDescriptor {
             sensitivity,
         }
     }
-    #[must_use]
-    pub const fn env_name(self) -> crate::env_var_name_ref::EnvVarNameRef<'static> {
-        self.env_name
-    }
-    #[must_use]
-    pub const fn example(self) -> crate::config_field_example_ref::ConfigFieldExampleRef<'static> {
-        self.example
-    }
-    #[must_use]
-    pub const fn requirement(self) -> crate::config_field_requirement::ConfigFieldRequirement {
-        self.requirement
-    }
-    #[must_use]
-    pub const fn rust_type_name(self) -> crate::config_rust_type_name::ConfigRustTypeName {
-        self.rust_type_name
-    }
-    #[must_use]
-    pub const fn sensitivity(self) -> crate::config_field_sensitivity::ConfigFieldSensitivity {
-        self.sensitivity
-    }
+
     #[must_use]
     pub fn validate_example(
         self,

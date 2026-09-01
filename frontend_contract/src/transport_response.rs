@@ -1,7 +1,11 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
     body: crate::transport_body::TransportBody,
+    #[getters(skip)]
     retry_after: Option<crate::transport_retry_after::TransportRetryAfter>,
+    #[getters(copy)]
     status: crate::transport_status::TransportStatus,
 }
 
@@ -25,14 +29,7 @@ impl TransportResponse {
         self.retry_after = retry_after;
         self
     }
-    #[must_use]
-    pub const fn body(&self) -> &crate::transport_body::TransportBody {
-        &self.body
-    }
-    #[must_use]
-    pub const fn status(&self) -> crate::transport_status::TransportStatus {
-        self.status
-    }
+
     #[must_use]
     pub const fn retry_after(&self) -> Option<&crate::transport_retry_after::TransportRetryAfter> {
         self.retry_after.as_ref()

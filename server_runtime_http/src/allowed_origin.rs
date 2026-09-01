@@ -1,19 +1,9 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct AllowedOrigin {
     authority: crate::http_origin_authority_text::HttpOriginAuthorityText,
     scheme: crate::http_origin_scheme_text::HttpOriginSchemeText,
-}
-
-impl AllowedOrigin {
-    pub(crate) const fn authority(
-        &self,
-    ) -> &crate::http_origin_authority_text::HttpOriginAuthorityText {
-        &self.authority
-    }
-
-    pub(crate) const fn scheme(&self) -> &crate::http_origin_scheme_text::HttpOriginSchemeText {
-        &self.scheme
-    }
 }
 
 impl TryFrom<String> for AllowedOrigin {

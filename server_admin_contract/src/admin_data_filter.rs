@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,7 +12,9 @@
     utoipa::ToSchema,
 )]
 pub struct AdminDataFilter {
+    #[getters(copy)]
     operation: frontend_contract::filter_operation::FilterOperation,
+    #[getters(copy)]
     value_shape: frontend_contract::filter_value_shape::FilterValueShape,
 }
 impl From<frontend_contract::filter_operation::FilterOperation> for AdminDataFilter {
@@ -22,14 +26,6 @@ impl From<frontend_contract::filter_operation::FilterOperation> for AdminDataFil
     }
 }
 impl AdminDataFilter {
-    #[must_use]
-    pub const fn operation(&self) -> frontend_contract::filter_operation::FilterOperation {
-        self.operation
-    }
-    #[must_use]
-    pub const fn value_shape(&self) -> frontend_contract::filter_value_shape::FilterValueShape {
-        self.value_shape
-    }
     #[must_use]
     pub fn requires_value(&self) -> crate::admin_bool::AdminBool {
         crate::admin_bool::AdminBool::from(!matches!(

@@ -24,65 +24,96 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         let visibility = &parsed_input_ref.vis;
         let (impl_generics, type_generics, where_clause) =
             parsed_input_ref.generics.split_for_impl();
-        let container_get_mut =
+        let (container_bare, container_get_mut) =
             parsed_input_ref
                 .attrs
                 .iter()
-                .try_fold(false, |found, attribute| {
+                .try_fold((false, false), |found, attribute| {
                     if !attribute.path().is_ident(constants_str::GETTERS_ATTRIBUTE) {
                         return Ok(found);
                     }
+                    let mut attribute_bare = false;
                     let mut attribute_get_mut = false;
                     attribute.parse_nested_meta(|metadata| {
-                        if metadata.path.is_ident(constants_str::GETTERS_GET_MUT) {
+                        if metadata.path.is_ident(constants_str::GETTERS_BARE) {
+                            attribute_bare = true;
+                            Ok(())
+                        } else if metadata.path.is_ident(constants_str::GETTERS_GET_MUT) {
                             attribute_get_mut = true;
                             Ok(())
                         } else {
                             Err(metadata.error(constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE))
                         }
                     })?;
-                    Ok::<bool, syn::Error>(found || attribute_get_mut)
+                    Ok::<(bool, bool), syn::Error>((
+                        found.0 || attribute_bare,
+                        found.1 || attribute_get_mut,
+                    ))
                 })?;
         let methods = data
             .fields
             .iter()
             .enumerate()
             .map(|(index, field)| {
-                let get_mut = field.attrs.iter().try_fold(false, |found, attribute| {
-                    if !attribute.path().is_ident(constants_str::GETTERS_ATTRIBUTE) {
-                        return Ok(found);
-                    }
-                    let mut attribute_get_mut = false;
-                    attribute.parse_nested_meta(|metadata| {
-                        if metadata.path.is_ident(constants_str::GETTERS_GET_MUT) {
-                            attribute_get_mut = true;
-                            Ok(())
-                        } else {
-                            Err(metadata.error(constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE))
-                        }
-                    })?;
-                    Ok::<bool, syn::Error>(found || attribute_get_mut)
-                })?;
+                let (copy, get_mut, skip) =
+                    field
+                        .attrs
+                        .iter()
+                        .try_fold((false, false, false), |found, attribute| {
+                            if !attribute.path().is_ident(constants_str::GETTERS_ATTRIBUTE) {
+                                return Ok(found);
+                            }
+                            let mut attribute_copy = false;
+                            let mut attribute_get_mut = false;
+                            let mut attribute_skip = false;
+                            attribute.parse_nested_meta(|metadata| {
+                                if metadata.path.is_ident(constants_str::GETTERS_COPY) {
+                                    attribute_copy = true;
+                                    Ok(())
+                                } else if metadata.path.is_ident(constants_str::GETTERS_GET_MUT) {
+                                    attribute_get_mut = true;
+                                    Ok(())
+                                } else if metadata.path.is_ident(constants_str::GETTERS_SKIP) {
+                                    attribute_skip = true;
+                                    Ok(())
+                                } else {
+                                    Err(metadata
+                                        .error(constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE))
+                                }
+                            })?;
+                            Ok::<(bool, bool, bool), syn::Error>((
+                                found.0 || attribute_copy,
+                                found.1 || attribute_get_mut,
+                                found.2 || attribute_skip,
+                            ))
+                        })?;
+                if skip {
+                    return Ok(quote::quote!());
+                }
                 let (field_member, field_name) = match &field.ident {
                     Some(field_identifier) => (
                         quote::quote!(#field_identifier),
-                        quote::format_ident!(
-                            "get_{}",
-                            field_identifier.to_string().chars().enumerate().fold(
-                                String::new(),
-                                |mut snake_case, (character_index, character)| {
-                                    if character.is_uppercase() {
-                                        if character_index != constants_usize::ZERO {
-                                            snake_case.push('_');
+                        if container_bare {
+                            field_identifier.clone()
+                        } else {
+                            quote::format_ident!(
+                                "get_{}",
+                                field_identifier.to_string().chars().enumerate().fold(
+                                    String::new(),
+                                    |mut snake_case, (character_index, character)| {
+                                        if character.is_uppercase() {
+                                            if character_index != constants_usize::ZERO {
+                                                snake_case.push('_');
+                                            }
+                                            snake_case.extend(character.to_lowercase());
+                                        } else {
+                                            snake_case.push(character);
                                         }
-                                        snake_case.extend(character.to_lowercase());
-                                    } else {
-                                        snake_case.push(character);
+                                        snake_case
                                     }
-                                    snake_case
-                                }
+                                )
                             )
-                        ),
+                        },
                     ),
                     None if data.fields.len() == constants_usize::ONE => {
                         let syn_index = syn::Index::from(index);
@@ -96,7 +127,13 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     }
                 };
                 let field_type = &field.ty;
-                let immutable = if let syn::Type::Path(type_path) = field_type
+                let immutable = if copy {
+                    quote::quote! {
+                        #visibility const fn #field_name(&self) -> #field_type {
+                            self.#field_member
+                        }
+                    }
+                } else if let syn::Type::Path(type_path) = field_type
                     && type_path.qself.is_none()
                     && type_path.path.segments.len() == constants_usize::ONE
                     && let Some(option_segment) = type_path.path.segments.first()
@@ -130,6 +167,7 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Ok(quote::quote! {
         #[allow(
             dead_code,
+            clippy::same_name_method,
             reason = "private fields are intentionally exposed through uniform generated getters"
         )]
         impl #impl_generics #identifier #type_generics #where_clause {

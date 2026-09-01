@@ -2,9 +2,12 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpErrorDiagnostic {
     backtrace: crate::std_http_error_backtrace::StdHttpErrorBacktrace,
+    #[getters(skip)]
     error_chain: crate::std_http_error_chain::StdHttpErrorChain,
     location: server_observability::std_panic_location::StdPanicLocation,
     span_trace: crate::tracing_http_span_trace::TracingHttpSpanTrace,
@@ -12,12 +15,6 @@ pub struct HttpErrorDiagnostic {
 }
 
 impl HttpErrorDiagnostic {
-    pub(crate) const fn backtrace(
-        &self,
-    ) -> &crate::std_http_error_backtrace::StdHttpErrorBacktrace {
-        &self.backtrace
-    }
-
     #[track_caller]
     #[must_use]
     pub fn capture(
@@ -97,16 +94,6 @@ impl HttpErrorDiagnostic {
                 crate::http_error_code::HttpErrorCode::from(error.error_code().get()),
             ),
         }
-    }
-
-    pub(crate) const fn location(
-        &self,
-    ) -> &server_observability::std_panic_location::StdPanicLocation {
-        &self.location
-    }
-
-    pub(crate) const fn span_trace(&self) -> &crate::tracing_http_span_trace::TracingHttpSpanTrace {
-        &self.span_trace
     }
 }
 

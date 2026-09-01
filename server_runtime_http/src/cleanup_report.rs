@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -11,24 +13,10 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub struct CleanupReport {
+    #[getters(copy)]
     batches: crate::cleanup_batch_count::CleanupBatchCount,
+    #[getters(copy)]
     rows: crate::cleanup_rows::CleanupRows,
+    #[getters(copy)]
     completion: crate::cleanup_completion::CleanupCompletion,
-}
-
-impl CleanupReport {
-    #[must_use]
-    pub const fn batches(self) -> crate::cleanup_batch_count::CleanupBatchCount {
-        self.batches
-    }
-
-    #[must_use]
-    pub const fn completion(self) -> crate::cleanup_completion::CleanupCompletion {
-        self.completion
-    }
-
-    #[must_use]
-    pub const fn rows(self) -> crate::cleanup_rows::CleanupRows {
-        self.rows
-    }
 }

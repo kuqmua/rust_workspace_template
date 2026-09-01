@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -16,12 +18,15 @@ pub struct AdminTableQuery {
     #[serde(default)]
     #[param(value_type = String, max_length = 32)]
     sort: crate::admin_table_sort_key::AdminTableSortKey,
+    #[getters(copy)]
     #[serde(default)]
     #[param(value_type = u32)]
     offset: crate::admin_page_offset::AdminPageOffset,
+    #[getters(copy)]
     #[serde(default)]
     #[param(value_type = u16, minimum = 1, maximum = 100)]
     limit: crate::admin_page_limit::AdminPageLimit,
+    #[getters(copy)]
     #[serde(default)]
     #[param(inline)]
     direction: crate::admin_sort_direction::AdminSortDirection,
@@ -37,25 +42,5 @@ impl AdminTableQuery {
             limit,
             ..Self::default()
         }
-    }
-    #[must_use]
-    pub const fn limit(&self) -> crate::admin_page_limit::AdminPageLimit {
-        self.limit
-    }
-    #[must_use]
-    pub const fn offset(&self) -> crate::admin_page_offset::AdminPageOffset {
-        self.offset
-    }
-    #[must_use]
-    pub const fn search(&self) -> &crate::admin_table_search::AdminTableSearch {
-        &self.search
-    }
-    #[must_use]
-    pub const fn sort(&self) -> &crate::admin_table_sort_key::AdminTableSortKey {
-        &self.sort
-    }
-    #[must_use]
-    pub const fn direction(&self) -> crate::admin_sort_direction::AdminSortDirection {
-        self.direction
     }
 }

@@ -1,21 +1,27 @@
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct RsSourceFile {
     ast: crate::types::SynFile,
     content: crate::types::SourceText,
     path: crate::types::OwnedPathBuf,
 }
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ProjectSourceFile {
     content: crate::types::SourceText,
     path: crate::types::OwnedPathBuf,
 }
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 struct CargoTomlSourceFile {
     content: crate::types::SourceText,
     parsed: crate::types::TomlTable,
     path: crate::types::OwnedPathBuf,
 }
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct CodebaseSnapshot {
     rs_files: Vec<RsSourceFile>,
     source: std::sync::Arc<CodebaseSourceSnapshot>,
@@ -28,25 +34,6 @@ struct CodebaseSourceSnapshot {
     project_source_files: Vec<ProjectSourceFile>,
     workspace_crate_names: crate::types::SourceTextBTreeSet,
     workspace_metadata: crate::types::CargoMetadata,
-}
-impl ProjectSourceFile {
-    pub(super) fn content(&self) -> &crate::types::SourceText {
-        &self.content
-    }
-    pub(super) fn path(&self) -> &crate::types::OwnedPathBuf {
-        &self.path
-    }
-}
-impl RsSourceFile {
-    pub(super) fn ast(&self) -> &crate::types::SynFile {
-        &self.ast
-    }
-    pub(super) fn content(&self) -> &crate::types::SourceText {
-        &self.content
-    }
-    pub(super) fn path(&self) -> &crate::types::OwnedPathBuf {
-        &self.path
-    }
 }
 impl CodebaseSnapshot {
     pub(super) fn cargo_toml_content(
@@ -111,9 +98,7 @@ impl CodebaseSnapshot {
                 })
             })
     }
-    pub(super) fn rs_files(&self) -> &[RsSourceFile] {
-        &self.rs_files
-    }
+
     // The snapshot exposes this derived workspace-name set through one policy consumer.
 
     #[allow(clippy::single_call_fn)] // policy consumers share this snapshot accessor directly and through the root facade

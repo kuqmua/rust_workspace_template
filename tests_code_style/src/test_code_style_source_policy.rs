@@ -23,6 +23,26 @@ struct ConversionInputNameVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
 
+#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+struct GeneratedPublicUseVisitor {
+    violations: crate::types::DiagnosticMsgs,
+}
+
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for GeneratedPublicUseVisitor {
+    fn visit_lit_str(&mut self, i: &'ast_lt syn::LitStr) {
+        if i.value().lines().any(|line| {
+            line.trim_start()
+                .starts_with(constants_str::PUBLIC_USE_PREFIX)
+        }) {
+            self.violations.push(format!(
+                "line {}: generated Rust source contains a public re-export",
+                syn::spanned::Spanned::span(i).start().line
+            ));
+        }
+        syn::visit::visit_lit_str(self, i);
+    }
+}
+
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for DuplicateCfgTestVisitor {
     fn visit_item(&mut self, i: &'ast_lt syn::Item) {
         if crate::code_style::cfg_test_attr_count(crate::types::SynItemRef::from(i))
@@ -130,13 +150,38 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
                 let syn::ImplItem::Fn(method) = item else {
                     return;
                 };
-                if method.sig.inputs.len() == constants_usize::ONE
-                    && method
-                        .sig
-                        .ident
-                        .to_string()
-                        .starts_with(constants_str::GETTER_PREFIX)
-                {
+                if method.sig.inputs.len() != constants_usize::ONE {
+                    return;
+                }
+                let has_getter_prefix = method
+                    .sig
+                    .ident
+                    .to_string()
+                    .starts_with(constants_str::GETTER_PREFIX);
+                let returned_field = method.block.stmts.first().and_then(|statement| {
+                    if method.block.stmts.len() != constants_usize::ONE {
+                        return None;
+                    }
+                    let syn::Stmt::Expr(expression, None) = statement else {
+                        return None;
+                    };
+                    let returned_expression = if let syn::Expr::Reference(reference) = expression {
+                        reference.expr.as_ref()
+                    } else {
+                        expression
+                    };
+                    let syn::Expr::Field(field) = returned_expression else {
+                        return None;
+                    };
+                    let syn::Expr::Path(base) = field.base.as_ref() else {
+                        return None;
+                    };
+                    (base.path.is_ident(constants_str::SELF_ALT)).then_some(&field.member)
+                });
+                let directly_returns_named_field = returned_field.is_some_and(|member| {
+                    matches!(member, syn::Member::Named(field) if field == &method.sig.ident)
+                });
+                if has_getter_prefix || directly_returns_named_field {
                     self.violations.push(method.sig.ident.to_string());
                 }
             });
@@ -1926,6 +1971,17 @@ fn test_public_reexports_are_forbidden_and_private_imports_are_restricted() {
                 ers,
             );
             append_public_use_import_ers(path, visitor.get_public_use_roots(), ers);
+            let generated_visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                GeneratedPublicUseVisitor::default(),
+            );
+            ers.extend(
+                generated_visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| format!("{}: {violation}", path.display())),
+            );
             if visitor.get_found_use_rename().get() {
                 ers.push(format!(
                         "{}: found use rename with `as`; use the original item name or rename the item at its definition",

@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -11,6 +13,7 @@
 )]
 pub struct HealthComponent {
     kind: crate::health_component_kind::HealthComponentKind,
+    #[getters(copy)]
     status: crate::health_status::HealthStatus,
 }
 impl HealthComponent {
@@ -20,11 +23,5 @@ impl HealthComponent {
         status: crate::health_status::HealthStatus,
     ) -> Self {
         Self { kind, status }
-    }
-
-    #[cfg(test)]
-    #[must_use]
-    pub(crate) const fn status(self) -> crate::health_status::HealthStatus {
-        self.status
     }
 }

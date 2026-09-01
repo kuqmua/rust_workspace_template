@@ -1,8 +1,18 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Default, Eq, PartialEq,
+    generate_accessor::Getters,
+    optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
 )]
+#[getters(bare)]
 pub struct StaleStagingCleanupReport {
+    #[getters(copy)]
     removed: crate::std_stale_staging_entry_count::StdStaleStagingEntryCount,
+    #[getters(copy)]
     scanned: crate::std_stale_staging_entry_count::StdStaleStagingEntryCount,
 }
 impl StaleStagingCleanupReport {
@@ -12,15 +22,6 @@ impl StaleStagingCleanupReport {
 
     pub(crate) const fn record_scanned(&mut self) {
         self.scanned.increment();
-    }
-
-    #[must_use]
-    pub const fn removed(self) -> crate::std_stale_staging_entry_count::StdStaleStagingEntryCount {
-        self.removed
-    }
-    #[must_use]
-    pub const fn scanned(self) -> crate::std_stale_staging_entry_count::StdStaleStagingEntryCount {
-        self.scanned
     }
 }
 

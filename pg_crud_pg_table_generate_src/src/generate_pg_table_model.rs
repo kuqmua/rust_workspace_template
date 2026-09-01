@@ -1,15 +1,12 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(generate_constructor::New, optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct GeneratePgTableModel {
+    #[getters(copy)]
     field_count: super::generate_pg_table_field_count::GeneratePgTableFieldCount,
     input: super::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput,
 }
 impl GeneratePgTableModel {
-    #[must_use]
-    pub const fn field_count(
-        &self,
-    ) -> super::generate_pg_table_field_count::GeneratePgTableFieldCount {
-        self.field_count
-    }
     pub(crate) fn into_input(
         self,
     ) -> super::syn_generate_pg_table_model_input::SynGeneratePgTableModelInput {

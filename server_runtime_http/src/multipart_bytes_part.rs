@@ -1,24 +1,17 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct MultipartBytesPart {
     bytes: crate::multipart_bytes::MultipartBytes,
+    #[getters(skip)]
     file_name: Option<crate::multipart_file_name::MultipartFileName>,
     name: crate::multipart_field_name::MultipartFieldName,
 }
 
 impl MultipartBytesPart {
     #[must_use]
-    pub const fn bytes(&self) -> &crate::multipart_bytes::MultipartBytes {
-        &self.bytes
-    }
-
-    #[must_use]
     pub const fn file_name(&self) -> Option<&crate::multipart_file_name::MultipartFileName> {
         self.file_name.as_ref()
-    }
-
-    #[must_use]
-    pub const fn name(&self) -> &crate::multipart_field_name::MultipartFieldName {
-        &self.name
     }
 
     #[must_use]

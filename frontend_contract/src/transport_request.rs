@@ -1,9 +1,14 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, PartialEq, Eq)]
 pub struct TransportRequest {
     body: crate::transport_body::TransportBody,
     path: crate::transport_path::TransportPath,
+    #[getters(copy)]
     route: crate::route_contract::RouteContract,
+    #[getters(skip)]
     idempotency_key: Option<crate::transport_idempotency_key::TransportIdempotencyKey>,
+    #[getters(skip)]
     if_match: Option<crate::transport_if_match::TransportIfMatch>,
 }
 
@@ -22,18 +27,7 @@ impl TransportRequest {
             if_match: None,
         }
     }
-    #[must_use]
-    pub const fn body(&self) -> &crate::transport_body::TransportBody {
-        &self.body
-    }
-    #[must_use]
-    pub const fn path(&self) -> &crate::transport_path::TransportPath {
-        &self.path
-    }
-    #[must_use]
-    pub const fn route(&self) -> crate::route_contract::RouteContract {
-        self.route
-    }
+
     #[must_use]
     pub const fn idempotency_key(
         &self,

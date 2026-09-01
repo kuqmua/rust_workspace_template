@@ -9,12 +9,13 @@ pub trait RouteFamily {
     fn schema_contracts() -> crate::route_schema_contracts::RouteSchemaContracts {
         crate::route_schema_contracts::RouteSchemaContracts::default()
     }
+    #[must_use]
     fn route_metadata() -> crate::route_metadata_list::RouteMetadataList {
         crate::route_metadata_list::RouteMetadataList::from(
             bounded_types::bounded_vec::BoundedVec::from_max_iter(
                 bounded_types::bounded_vec::BoundedVec::from(Self::coverage_descriptors())
                     .into_iter()
-                    .map(crate::route_coverage_descriptor::RouteCoverageDescriptor::metadata),
+                    .map(|descriptor| *descriptor.get_metadata()),
             ),
         )
     }

@@ -1,51 +1,23 @@
-#[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    PartialEq,
-    generate_accessor::Getters,
-)]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupCfg {
+    #[getters(copy)]
     audit_retention: crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,
+    #[getters(copy)]
     auth_retention: crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,
+    #[getters(copy)]
     batch_size: crate::admin_cleanup_batch_size::AdminCleanupBatchSize,
+    #[getters(copy)]
     idempotency_completed_retention:
         crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,
+    #[getters(copy)]
     idempotency_pending_retention:
         crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,
+    #[getters(copy)]
     rate_limit_retention: crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,
 }
 impl AdminCleanupCfg {
-    pub(crate) const fn audit_retention(
-        self,
-    ) -> crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds {
-        self.audit_retention
-    }
-
-    pub(crate) const fn auth_retention(
-        self,
-    ) -> crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds {
-        self.auth_retention
-    }
-
-    pub(crate) const fn batch_size(self) -> crate::admin_cleanup_batch_size::AdminCleanupBatchSize {
-        self.batch_size
-    }
-
-    pub(crate) const fn idempotency_completed_retention(
-        self,
-    ) -> crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds {
-        self.idempotency_completed_retention
-    }
-
-    pub(crate) const fn idempotency_pending_retention(
-        self,
-    ) -> crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds {
-        self.idempotency_pending_retention
-    }
-
     #[must_use]
     pub const fn new(
         batch_size: crate::admin_cleanup_batch_size::AdminCleanupBatchSize,
@@ -63,11 +35,5 @@ impl AdminCleanupCfg {
             idempotency_pending_retention,
             rate_limit_retention,
         }
-    }
-
-    pub(crate) const fn rate_limit_retention(
-        self,
-    ) -> crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds {
-        self.rate_limit_retention
     }
 }

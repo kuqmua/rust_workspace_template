@@ -9,6 +9,14 @@ mod tests {
         second: Option<T>,
     }
 
+    #[derive(generate_constructor::New, optimal_memory_layout::OptimalMemoryLayout)]
+    struct OrderedFixture {
+        #[constructor(order = 1)]
+        first: usize,
+        #[constructor(order = 0)]
+        second: bool,
+    }
+
     #[test]
     fn test_generates_const_new_for_named_fields_and_generics() {
         let assert_fixture = |value: Fixture<bool>| {
@@ -16,6 +24,9 @@ mod tests {
             assert_eq!(value.second, None);
         };
         assert_fixture(Fixture::new(true, None));
+        let ordered = OrderedFixture::new(true, 7usize);
+        assert_eq!(ordered.first, 7usize);
+        assert!(ordered.second);
 
         let _proc_macro2_marker: Option<proc_macro2::TokenStream> = None;
         let _quote_marker = quote::quote!();

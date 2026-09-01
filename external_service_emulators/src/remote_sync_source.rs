@@ -1,6 +1,9 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct RemoteSyncSource {
     payload: synchronization_service_runtime::synchronization_payload::SynchronizationPayload,
+    #[getters(copy)]
     request_count: crate::remote_sync_request_count::RemoteSyncRequestCount,
 }
 
@@ -15,11 +18,6 @@ impl RemoteSyncSource {
                 constants_usize::ZERO,
             ),
         }
-    }
-
-    #[must_use]
-    pub const fn request_count(&self) -> crate::remote_sync_request_count::RemoteSyncRequestCount {
-        self.request_count
     }
 }
 

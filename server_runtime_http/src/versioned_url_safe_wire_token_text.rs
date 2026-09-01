@@ -1,29 +1,10 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct VersionedUrlSafeWireTokenText {
     encoded_payload: text_policy::url_safe_token_part_text::UrlSafeTokenPartText,
     encoded_signature: text_policy::url_safe_token_part_text::UrlSafeTokenPartText,
     version: text_policy::url_safe_token_part_text::UrlSafeTokenPartText,
-}
-
-impl VersionedUrlSafeWireTokenText {
-    #[must_use]
-    pub const fn encoded_payload(
-        &self,
-    ) -> &text_policy::url_safe_token_part_text::UrlSafeTokenPartText {
-        &self.encoded_payload
-    }
-
-    #[must_use]
-    pub const fn encoded_signature(
-        &self,
-    ) -> &text_policy::url_safe_token_part_text::UrlSafeTokenPartText {
-        &self.encoded_signature
-    }
-
-    #[must_use]
-    pub const fn version(&self) -> &text_policy::url_safe_token_part_text::UrlSafeTokenPartText {
-        &self.version
-    }
 }
 
 impl TryFrom<String> for VersionedUrlSafeWireTokenText {

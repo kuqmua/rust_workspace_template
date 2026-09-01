@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -14,10 +16,6 @@ pub struct AdminSignInReq {
 }
 impl AdminSignInReq {
     #[must_use]
-    pub const fn login(&self) -> &crate::admin_login::AdminLogin {
-        &self.login
-    }
-    #[must_use]
     pub fn into_parts(
         self,
     ) -> (
@@ -25,9 +23,5 @@ impl AdminSignInReq {
         crate::admin_password::AdminPassword,
     ) {
         (self.login, self.password)
-    }
-    #[must_use]
-    pub const fn password(&self) -> &crate::admin_password::AdminPassword {
-        &self.password
     }
 }

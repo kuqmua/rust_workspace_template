@@ -1,10 +1,18 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(crate) struct AdminPageRange {
+    #[getters(copy)]
     end: server_admin_contract::admin_page_total::AdminPageTotal,
+    #[getters(copy)]
     start: server_admin_contract::admin_page_total::AdminPageTotal,
+    #[getters(copy)]
     next_offset: server_admin_contract::admin_page_offset::AdminPageOffset,
+    #[getters(copy)]
     previous_offset: server_admin_contract::admin_page_offset::AdminPageOffset,
+    #[getters(copy)]
     next_disabled: super::admin_page_nav_disabled::AdminPageNavDisabled,
+    #[getters(copy)]
     previous_disabled: super::admin_page_nav_disabled::AdminPageNavDisabled,
 }
 
@@ -44,38 +52,6 @@ impl AdminPageRange {
                     .min(total_value),
             ),
         }
-    }
-
-    pub(crate) const fn end(self) -> server_admin_contract::admin_page_total::AdminPageTotal {
-        self.end
-    }
-
-    pub(crate) const fn next_disabled(
-        self,
-    ) -> super::admin_page_nav_disabled::AdminPageNavDisabled {
-        self.next_disabled
-    }
-
-    pub(crate) const fn next_offset(
-        self,
-    ) -> server_admin_contract::admin_page_offset::AdminPageOffset {
-        self.next_offset
-    }
-
-    pub(crate) const fn previous_disabled(
-        self,
-    ) -> super::admin_page_nav_disabled::AdminPageNavDisabled {
-        self.previous_disabled
-    }
-
-    pub(crate) const fn previous_offset(
-        self,
-    ) -> server_admin_contract::admin_page_offset::AdminPageOffset {
-        self.previous_offset
-    }
-
-    pub(crate) const fn start(self) -> server_admin_contract::admin_page_total::AdminPageTotal {
-        self.start
     }
 }
 

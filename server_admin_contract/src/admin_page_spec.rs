@@ -1,10 +1,17 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminPageSpec {
+    #[getters(copy)]
     route: crate::admin_route::AdminRoute,
+    #[getters(copy)]
     capability: crate::admin_page_capability::AdminPageCapability,
     metadata: crate::admin_page_metadata::AdminPageMetadata,
+    #[getters(copy)]
     page: crate::admin_page::AdminPage,
+    #[getters(skip)]
     path: crate::admin_frontend_path::AdminFrontendPath,
+    #[getters(skip)]
     title: crate::admin_page_title::AdminPageTitle,
 }
 impl AdminPageSpec {
@@ -25,10 +32,7 @@ impl AdminPageSpec {
             title,
         }
     }
-    #[must_use]
-    pub const fn capability(self) -> crate::admin_page_capability::AdminPageCapability {
-        self.capability
-    }
+
     #[must_use]
     pub const fn client_mode(self) -> crate::admin_page_client_mode::AdminPageClientMode {
         *self.metadata.get_client_mode()
@@ -41,10 +45,7 @@ impl AdminPageSpec {
     pub const fn frontend_path(self) -> crate::admin_frontend_path::AdminFrontendPath {
         self.path
     }
-    #[must_use]
-    pub const fn page(self) -> crate::admin_page::AdminPage {
-        self.page
-    }
+
     #[must_use]
     pub fn path(self) -> frontend_contract::contract_str::ContractStr {
         frontend_contract::contract_str::ContractStr::from(self.path.get())
@@ -55,10 +56,7 @@ impl AdminPageSpec {
             crate::admin_page_path_ref::AdminPagePathRef::from(self.path.get()),
         )
     }
-    #[must_use]
-    pub const fn route(self) -> crate::admin_route::AdminRoute {
-        self.route
-    }
+
     #[must_use]
     pub fn title(self) -> frontend_contract::contract_str::ContractStr {
         frontend_contract::contract_str::ContractStr::from(match self.title {

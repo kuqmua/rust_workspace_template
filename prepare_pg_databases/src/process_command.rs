@@ -1,6 +1,9 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct ProcessCommand {
     arguments: crate::process_arguments::ProcessArguments,
+    #[getters(copy)]
     program: crate::process_program::ProcessProgram,
 }
 impl
@@ -17,17 +20,5 @@ impl
     ) -> Self {
         let (program, arguments) = value;
         Self { arguments, program }
-    }
-}
-
-impl ProcessCommand {
-    #[must_use]
-    pub const fn arguments(&self) -> &crate::process_arguments::ProcessArguments {
-        &self.arguments
-    }
-
-    #[must_use]
-    pub const fn program(&self) -> crate::process_program::ProcessProgram {
-        self.program
     }
 }

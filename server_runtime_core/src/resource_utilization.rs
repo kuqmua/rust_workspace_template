@@ -2,6 +2,8 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -13,33 +15,16 @@
 )]
 #[constructor(pub(crate))]
 pub struct ResourceUtilization {
+    #[getters(copy)]
     maximum: crate::resource_amount::ResourceAmount,
+    #[getters(copy)]
     used: crate::resource_amount::ResourceAmount,
+    #[getters(copy)]
     percent: crate::resource_utilization_percent::ResourceUtilizationPercent,
+    #[getters(copy)]
     status: crate::resource_utilization_status::ResourceUtilizationStatus,
 }
 
-impl ResourceUtilization {
-    #[must_use]
-    pub const fn maximum(self) -> crate::resource_amount::ResourceAmount {
-        self.maximum
-    }
-
-    #[must_use]
-    pub const fn percent(self) -> crate::resource_utilization_percent::ResourceUtilizationPercent {
-        self.percent
-    }
-
-    #[must_use]
-    pub const fn status(self) -> crate::resource_utilization_status::ResourceUtilizationStatus {
-        self.status
-    }
-
-    #[must_use]
-    pub const fn used(self) -> crate::resource_amount::ResourceAmount {
-        self.used
-    }
-}
 #[cfg(test)]
 mod tests {
     fn calculate(used: u64, maximum: u64) -> super::ResourceUtilization {

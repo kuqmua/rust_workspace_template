@@ -1,7 +1,11 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(crate) struct FilterSpec {
     bind_count: crate::bind_count::BindCount,
+    #[getters(copy)]
     sql_operator: crate::filter_sql_operator::FilterSqlOperator,
+    #[getters(copy)]
     sql_suffix: crate::filter_sql_suffix::FilterSqlSuffix,
     value_shape: crate::pg_filter_value_shape::PgFilterValueShape,
 }
@@ -64,12 +68,7 @@ impl FilterSpec {
             value_shape: crate::pg_filter_value_shape::PgFilterValueShape::Scalar,
         }
     }
-    pub(crate) const fn sql_operator(self) -> crate::filter_sql_operator::FilterSqlOperator {
-        self.sql_operator
-    }
-    pub(crate) const fn sql_suffix(self) -> crate::filter_sql_suffix::FilterSqlSuffix {
-        self.sql_suffix
-    }
+
     pub(crate) fn text_search() -> Self {
         Self {
             bind_count: crate::bind_count::BindCount::from(constants_usize::ONE),

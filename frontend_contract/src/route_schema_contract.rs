@@ -1,7 +1,12 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct RouteSchemaContract {
+    #[getters(copy)]
     metadata: crate::route_metadata::RouteMetadata,
+    #[getters(skip)]
     request_schema: Option<crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema>,
+    #[getters(skip)]
     response_schema: Option<crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema>,
 }
 impl RouteSchemaContract {
@@ -16,10 +21,7 @@ impl RouteSchemaContract {
             response_schema: Route::openapi_response_schema(),
         }
     }
-    #[must_use]
-    pub const fn metadata(&self) -> crate::route_metadata::RouteMetadata {
-        self.metadata
-    }
+
     #[must_use]
     pub const fn request_schema(
         &self,

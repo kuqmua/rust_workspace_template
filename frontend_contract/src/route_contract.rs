@@ -2,12 +2,19 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RouteContract {
+    #[getters(copy)]
     path: crate::contract_str::ContractStr,
+    #[getters(copy)]
     authentication: crate::authentication_requirement::AuthenticationRequirement,
+    #[getters(copy)]
     method: crate::route_method::RouteMethod,
+    #[getters(copy)]
     mutation: crate::mutation_kind::MutationKind,
+    #[getters(copy)]
     success_status: crate::success_status::SuccessStatus,
 }
 
@@ -27,28 +34,6 @@ impl RouteContract {
             mutation,
             success_status,
         }
-    }
-    #[must_use]
-    pub const fn authentication(
-        self,
-    ) -> crate::authentication_requirement::AuthenticationRequirement {
-        self.authentication
-    }
-    #[must_use]
-    pub const fn method(self) -> crate::route_method::RouteMethod {
-        self.method
-    }
-    #[must_use]
-    pub const fn mutation(self) -> crate::mutation_kind::MutationKind {
-        self.mutation
-    }
-    #[must_use]
-    pub const fn path(self) -> crate::contract_str::ContractStr {
-        self.path
-    }
-    #[must_use]
-    pub const fn success_status(self) -> crate::success_status::SuccessStatus {
-        self.success_status
     }
 }
 pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[crate::route_error_status::RouteErrorStatus] = &[

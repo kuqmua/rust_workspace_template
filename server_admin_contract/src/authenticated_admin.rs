@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -10,7 +12,9 @@ pub struct AuthenticatedAdmin {
     display_name: crate::admin_display_name::AdminDisplayName,
     id: crate::admin_user_id::AdminUserId,
     login: crate::admin_login::AdminLogin,
+    #[getters(skip)]
     permissions: crate::admin_permission_values::AdminPermissionValues,
+    #[getters(skip)]
     roles: crate::admin_role_names::AdminRoleNames,
 }
 impl AuthenticatedAdmin {
@@ -30,18 +34,12 @@ impl AuthenticatedAdmin {
             roles,
         }
     }
-    #[must_use]
-    pub const fn display_name(&self) -> &crate::admin_display_name::AdminDisplayName {
-        &self.display_name
-    }
+
     #[must_use]
     pub fn permissions(&self) -> &[crate::admin_permission_value::AdminPermissionValue] {
         self.permissions.as_ref()
     }
-    #[must_use]
-    pub const fn login(&self) -> &crate::admin_login::AdminLogin {
-        &self.login
-    }
+
     #[must_use]
     pub const fn roles(&self) -> &[crate::admin_role_name::AdminRoleName] {
         self.roles.as_slice()

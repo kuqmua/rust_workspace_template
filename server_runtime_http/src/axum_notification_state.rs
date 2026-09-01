@@ -1,21 +1,9 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AxumNotificationState<Sender> {
     headers: crate::http_notification_header_map::HttpNotificationHeaderMap,
     state: crate::notification_service_state::NotificationServiceState<Sender>,
-}
-
-impl<Sender> AxumNotificationState<Sender> {
-    pub(super) const fn headers(
-        &self,
-    ) -> &crate::http_notification_header_map::HttpNotificationHeaderMap {
-        &self.headers
-    }
-
-    pub(super) const fn state(
-        &self,
-    ) -> &crate::notification_service_state::NotificationServiceState<Sender> {
-        &self.state
-    }
 }
 
 impl<Sender>

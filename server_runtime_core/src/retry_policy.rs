@@ -1,3 +1,5 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(
     optimal_memory_layout::OptimalMemoryLayout,
     Clone,
@@ -8,18 +10,8 @@
     generate_constructor::New,
 )]
 pub struct RetryPolicy {
+    #[getters(copy)]
     attempts: crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize,
+    #[getters(copy)]
     delay: Option<crate::retry_delay_duration::RetryDelayDuration>,
-}
-
-impl RetryPolicy {
-    #[must_use]
-    pub const fn attempts(self) -> crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize {
-        self.attempts
-    }
-
-    #[must_use]
-    pub const fn delay(self) -> Option<crate::retry_delay_duration::RetryDelayDuration> {
-        self.delay
-    }
 }

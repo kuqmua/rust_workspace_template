@@ -1,7 +1,12 @@
+#[derive(generate_accessor::Getters)]
+#[getters(bare)]
 #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ActionContract {
+    #[getters(copy)]
     route: crate::route_contract::RouteContract,
+    #[getters(copy)]
     confirmation: crate::confirmation_requirement::ConfirmationRequirement,
+    #[getters(copy)]
     operation: crate::operation_kind::OperationKind,
 }
 
@@ -17,18 +22,7 @@ impl ActionContract {
             route,
         }
     }
-    #[must_use]
-    pub const fn confirmation(self) -> crate::confirmation_requirement::ConfirmationRequirement {
-        self.confirmation
-    }
-    #[must_use]
-    pub const fn operation(self) -> crate::operation_kind::OperationKind {
-        self.operation
-    }
-    #[must_use]
-    pub const fn route(self) -> crate::route_contract::RouteContract {
-        self.route
-    }
+
     #[must_use]
     pub const fn with_confirmation(
         mut self,
