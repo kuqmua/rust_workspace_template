@@ -1,12 +1,8 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype_foundation::FromInner,
+    newtype_foundation::GetInner,
+)]
+#[accessor(pub(crate))]
+#[borrow]
 pub(crate) struct NewtypeBool(bool);
-impl From<bool> for NewtypeBool {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl NewtypeBool {
-    pub(crate) const fn get(&self) -> bool {
-        self.0
-    }
-}

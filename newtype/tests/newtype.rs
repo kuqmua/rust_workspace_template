@@ -1,5 +1,13 @@
 const _: usize = constants_str::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR.len();
 #[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    newtype_foundation::FromInner,
+    newtype_foundation::GetInner,
+)]
+struct FoundationValue(bool);
+const _: fn(bool) -> FoundationValue = FoundationValue::from;
+const _: fn(FoundationValue) -> bool = FoundationValue::get;
+#[derive(
     generate_accessor::Getters,
     generate_constructor::New,
     optimal_memory_layout::OptimalMemoryLayout,

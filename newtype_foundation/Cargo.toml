@@ -1,18 +1,24 @@
 [package]
-name = "workspace_macro_helpers"
+name = "newtype_foundation"
 version.workspace = true
 publish.workspace = true
-description.workspace = true
+description = "Foundation derives for newtypes below the main newtype proc-macro dependency boundary"
 repository.workspace = true
 
 license.workspace = true
 edition.workspace = true
+
+[lib]
+proc-macro = true
+
 [dependencies]
-optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
-newtype_foundation = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
+
+[dev-dependencies]
+optimal_memory_layout = { workspace = true }
+
 [lints]
 workspace = true

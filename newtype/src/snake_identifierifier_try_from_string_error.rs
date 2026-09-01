@@ -1,14 +1,7 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype_foundation::FromInner)]
 pub(crate) struct SnakeIdentifierifierTryFromStringError(
     crate::snake_identifierifier_len::SnakeIdentifierifierLen,
 );
-impl From<crate::snake_identifierifier_len::SnakeIdentifierifierLen>
-    for SnakeIdentifierifierTryFromStringError
-{
-    fn from(value: crate::snake_identifierifier_len::SnakeIdentifierifierLen) -> Self {
-        Self(value)
-    }
-}
 impl std::fmt::Display for SnakeIdentifierifierTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

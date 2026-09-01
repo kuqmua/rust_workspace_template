@@ -1,12 +1,7 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype_foundation::FromInner,
+)]
 pub struct UniqueOptionBTreeSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
-impl<OptionValue> From<std::collections::BTreeSet<OptionValue>>
-    for UniqueOptionBTreeSet<OptionValue>
-{
-    fn from(value: std::collections::BTreeSet<OptionValue>) -> Self {
-        Self(value)
-    }
-}
 impl<OptionValue> Default for UniqueOptionBTreeSet<OptionValue> {
     fn default() -> Self {
         Self::from(std::collections::BTreeSet::new())

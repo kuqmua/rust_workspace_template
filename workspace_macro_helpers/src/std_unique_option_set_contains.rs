@@ -1,13 +1,11 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype_foundation::FromInner,
+    newtype_foundation::GetInner,
+)]
 pub struct StdUniqueOptionSetContains(bool);
-impl From<bool> for StdUniqueOptionSetContains {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl StdUniqueOptionSetContains {
-    #[must_use]
-    pub const fn get(self) -> bool {
-        self.0
-    }
-}

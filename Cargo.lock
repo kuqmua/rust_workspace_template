@@ -2978,6 +2978,7 @@ dependencies = [
  "constants_usize",
  "generate_accessor",
  "generate_constructor",
+ "newtype_foundation",
  "optimal_memory_layout",
  "proc-macro2",
  "quote",
@@ -2986,6 +2987,17 @@ dependencies = [
  "syn 3.0.4",
  "utoipa",
  "workspace_macro_helpers",
+]
+
+[[package]]
+name = "newtype_foundation"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "optimal_memory_layout",
+ "proc-macro2",
+ "quote",
+ "syn 3.0.4",
 ]
 
 [[package]]
@@ -6544,6 +6556,7 @@ name = "workspace_macro_helpers"
 version = "0.1.0"
 dependencies = [
  "constants_str",
+ "newtype_foundation",
  "optimal_memory_layout",
  "proc-macro2",
  "quote",

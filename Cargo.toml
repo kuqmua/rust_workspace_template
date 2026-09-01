@@ -43,6 +43,7 @@ members = [
   "naming_naming_common_macros",
   "naming_naming_macros",
   "newtype",
+  "newtype_foundation",
   "notification_service",
   "notification_service_config",
   "notification_service_contract",
@@ -344,6 +345,7 @@ naming_common = { path = "./naming_naming_common" }
 naming_common_macros = { path = "./naming_naming_common_macros" }
 naming_macros = { path = "./naming_naming_macros" }
 newtype = { path = "./newtype" }
+newtype_foundation = { path = "./newtype_foundation" }
 notification_service = { path = "./notification_service" }
 notification_service_config = { path = "./notification_service_config" }
 notification_service_contract = { path = "./notification_service_contract" }

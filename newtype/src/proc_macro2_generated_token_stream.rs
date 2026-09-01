@@ -1,10 +1,5 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype_foundation::FromInner)]
 pub(crate) struct ProcMacro2GeneratedTokenStream(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GeneratedTokenStream {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
 impl From<ProcMacro2GeneratedTokenStream> for proc_macro2::TokenStream {
     fn from(value: ProcMacro2GeneratedTokenStream) -> Self {
         value.0

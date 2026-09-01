@@ -15,6 +15,7 @@ optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
 generate_accessor = { workspace = true }
 generate_constructor = { workspace = true }
+newtype_foundation = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }

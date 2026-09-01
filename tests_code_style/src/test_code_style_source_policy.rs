@@ -2143,13 +2143,7 @@ fn test_tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_fro
                             suffix.to_string_lossy().as_ref(),
                         ))
             });
-            if is_required_foundation_impl
-                || path.starts_with(constants_str::WORKSPACE_MACRO_HELPERS_SRC_PATH)
-            {
-                assert!(
-                    !constants_str::WORKSPACE_MACRO_HELPERS_BOOTSTRAP_NEWTYPE_REASON.is_empty(),
-                    "43534db2 workspace_macro_helpers bootstrap exception requires a reason"
-                );
+            if is_required_foundation_impl {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(

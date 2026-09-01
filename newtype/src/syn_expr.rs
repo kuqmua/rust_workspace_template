@@ -1,10 +1,5 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype_foundation::FromInner)]
 pub(crate) struct SynExpr(syn::Expr);
-impl From<syn::Expr> for SynExpr {
-    fn from(value: syn::Expr) -> Self {
-        Self(value)
-    }
-}
 impl AsRef<syn::Expr> for SynExpr {
     fn as_ref(&self) -> &syn::Expr {
         &self.0
