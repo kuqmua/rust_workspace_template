@@ -640,6 +640,40 @@ fn test_map_err_does_not_discard_source_with_wildcard() {
 }
 
 #[test]
+fn test_workspace_crate_sources_do_not_use_include_macro() {
+    #[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+    struct IncludeMacroVisitor {
+        lines: Vec<usize>,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for IncludeMacroVisitor {
+        fn visit_macro(&mut self, i: &'ast syn::Macro) {
+            if i.path.is_ident(stringify!(include)) {
+                self.lines
+                    .push(syn::spanned::Spanned::span(&i.path).start().line);
+            }
+            syn::visit::visit_macro(self, i);
+        }
+    }
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter_map(|file| {
+                let mut visitor = IncludeMacroVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
+                (!visitor.lines.is_empty())
+                    .then(|| format!("{}: {:?}", file.path().as_ref().display(), visitor.lines))
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "646fbd75 include macros are forbidden in workspace crate sources:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
 fn test_numeric_conversions_do_not_use_as_casts() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
