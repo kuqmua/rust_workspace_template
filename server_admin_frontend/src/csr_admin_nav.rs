@@ -13,7 +13,7 @@ pub(crate) fn CsrAdminNav(
         .unwrap_or_default();
     let active_table = super::admin_csr_query::AdminCsrQuery::from_location()
         .ok()
-        .and_then(|query| query.table);
+        .and_then(|query| query.table());
     leptos::view! {
         <header class="topbar"><crate::admin_sidebar::AdminSidebar>
             {option.as_ref().map_or_else(Vec::new, |option| server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER.into_iter().filter(|table| {
@@ -22,7 +22,7 @@ pub(crate) fn CsrAdminNav(
                 }).map(|table| {
                     let name = table.to_string();
                     let href = table.frontend_path().to_string();
-                    leptos::view! { <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink active=active_table == Some(table) href=href>{name}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem> }
+                    leptos::view! { <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=active_table == Some(table) string=href>{name}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem> }
                 }).collect::<Vec<_>>())}
             {option.as_ref().map_or_else(Vec::new, |option| server_admin_contract::admin_page::AdminPage::navigation().filter(|page| {
                     bool::from(option.can_access(*page))
@@ -31,13 +31,13 @@ pub(crate) fn CsrAdminNav(
                     let href = spec.path().as_ref().to_owned();
                     let active = pathname == href;
                     let label = spec.route_name().as_ref().to_owned();
-                    leptos::view! { <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink active=active href=href>{label}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem> }
+                    leptos::view! { <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=active string=href>{label}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem> }
                 }).collect::<Vec<_>>())}
             <crate::admin_sidebar_item::AdminSidebarItem><form on:submit=move |event| {
                 event.prevent_default();
-                if let Ok(path) = super::http::url::admin_api_url(server_admin_contract::admin_route::AdminRoute::SignOut) {
-                    super::mutation::reload_after(
-                        super::mutation::AdminMutationMethod::Post,
+                if let Ok(path) = crate::admin_api_url::admin_api_url(server_admin_contract::admin_route::AdminRoute::SignOut) {
+                    crate::reload_after::reload_after(
+                        crate::admin_mutation_method::AdminMutationMethod::Post,
                         path,
                         server_admin_contract::admin_no_body::AdminNoBody,
                     );

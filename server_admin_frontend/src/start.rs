@@ -20,7 +20,7 @@ pub(crate) fn start() {
         return;
     };
     root.set_inner_html(constants_str::EMPTY);
-    leptos::mount::mount_to(root, admin_app::AdminApp).forget();
+    leptos::mount::mount_to(root, crate::admin_app::AdminApp).forget();
 }
 
 // Root-owned module compatibility wrappers.

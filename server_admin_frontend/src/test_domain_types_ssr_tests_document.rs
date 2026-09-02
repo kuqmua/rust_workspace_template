@@ -1,4 +1,12 @@
 #[test]
+fn test_csr_template_contains_mount_root() {
+    let template = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/csr.html"))
+        .expect(constants_str::DIAGNOSTIC_4FC292A1);
+
+    assert!(template.contains(format!("id=\"{}\"", constants_str::ADMIN_CSR_ROOT_ID).as_str()));
+}
+
+#[test]
 fn test_server_rendered_pages_contain_forms_and_no_scripts() {
     let sign_in = crate::render_sign_in::render_sign_in(None, None);
     assert!(sign_in.as_ref().contains(constants_str::VALUE_675DDC50));

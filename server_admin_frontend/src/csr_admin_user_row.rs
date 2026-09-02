@@ -6,10 +6,7 @@ pub(super) fn csr_admin_user_row(
     let login = admin_user_summary.login().to_string();
     let display_name = admin_user_summary.display_name().to_string();
     let banned = admin_user_summary.is_banned().to_string();
-    let roles = crate::domain_types::shared::admin_user_roles::admin_user_roles(
-        admin_user_summary,
-        admin_users_page,
-    );
+    let roles = crate::admin_user_roles::admin_user_roles(admin_user_summary, admin_users_page);
     leptos::view! {
         <crate::table_row::TableRow>
             <crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell>

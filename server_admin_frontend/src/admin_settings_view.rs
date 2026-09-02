@@ -18,13 +18,13 @@ pub(crate) fn AdminSettingsView(
     leptos::view! {
         <section class="settings-grid" data-renderer="csr"><crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Settings><form class="settings-form" on:submit=move |event| {
             event.prevent_default();
-            save::save(signals);
+            crate::save::save(signals);
         }>
             {crate::admin_setting_inputs::admin_setting_inputs(signals, crate::admin_setting_disabled::AdminSettingDisabled::from(!can_update))}
             <crate::admin_card_footer::AdminCardFooter>
                 <crate::admin_button::AdminButton bool=!can_update>"Save settings"</crate::admin_button::AdminButton>
-                <crate::admin_alert_dialog::AdminAlertDialog id=String::from("reset-settings-dialog") title="Reset settings?" description="All administrator settings will return to the template defaults." trigger="Reset to template defaults" confirm="Reset settings" bool=!can_update on_confirm=leptos::prelude::Callback::new(move |()| {
-                    reset::reset();
+                <crate::admin_alert_dialog::AdminAlertDialog string=String::from("reset-settings-dialog") title="Reset settings?" description="All administrator settings will return to the template defaults." trigger="Reset to template defaults" confirm="Reset settings" bool=!can_update callback=leptos::prelude::Callback::new(move |()| {
+                    crate::reset::reset();
                 }) />
             </crate::admin_card_footer::AdminCardFooter>
         </form></crate::admin_card::AdminCard></section>

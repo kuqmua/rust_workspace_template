@@ -73,7 +73,7 @@ pub(super) fn save(
             .then(|| server_admin_contract::admin_tab_title::AdminTabTitle::try_from(tab_title_value))
             .transpose(),
         clear,
-        crate::http::url::admin_api_url(
+        crate::admin_api_url::admin_api_url(
             server_admin_contract::admin_route::AdminRoute::UpdateSettings,
         ),
     );
@@ -90,7 +90,7 @@ pub(super) fn save(
         Ok(path),
     ) = values
     {
-        crate::mutation::reload_after(
+        crate::reload_after::reload_after(
             crate::admin_mutation_method::AdminMutationMethod::Patch,
             path,
             server_admin_contract::admin_update_settings_request::AdminUpdateSettingsRequest::new(

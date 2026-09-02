@@ -1,6 +1,7 @@
 #![allow(
+    dead_code,
     clippy::field_scoped_visibility_modifiers,
-    reason = "Leptos component expansion models props as generated fields even though the source declares functions"
+    reason = "Leptos component expansion models props as generated fields and triggers false dead-field diagnostics even though the source function consumes every prop"
 )]
 #![allow(
     clippy::arbitrary_source_item_ordering,

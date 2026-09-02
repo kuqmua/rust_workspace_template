@@ -6,44 +6,42 @@ pub(crate) async fn fetch_page(
     admin_page: server_admin_contract::admin_page::AdminPage,
     admin_csr_query: &super::admin_csr_query::AdminCsrQuery,
 ) -> Result<
-    super::state::admin_load_state::AdminLoadState,
-    super::state::admin_table_load_error::AdminTableLoadError,
+    crate::admin_load_state::AdminLoadState,
+    crate::admin_table_load_error::AdminTableLoadError,
 > {
     let search = web_sys::window()
-        .ok_or(super::state::admin_table_load_error::AdminTableLoadError::Fetch)?
+        .ok_or(crate::admin_table_load_error::AdminTableLoadError::Fetch)?
         .location()
         .search()
-        .map_err(|_error| super::state::admin_table_load_error::AdminTableLoadError::Fetch)?;
+        .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
     let me_url =
-        super::http::url::admin_api_url(server_admin_contract::admin_route::AdminRoute::Me)?;
-    let admin = super::http::fetch_json::fetch_json::<
+        crate::admin_api_url::admin_api_url(server_admin_contract::admin_route::AdminRoute::Me)?;
+    let admin = crate::fetch_json::fetch_json::<
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
     >(&me_url)
     .await?;
     let route = match admin_page {
         server_admin_contract::admin_page::AdminPage::Profile => {
-            return Ok(super::state::admin_load_state::AdminLoadState::Profile(
-                admin,
-            ));
+            return Ok(crate::admin_load_state::AdminLoadState::Profile(admin));
         }
         server_admin_contract::admin_page::AdminPage::Tables => {
-            let Some(table) = admin_csr_query.table else {
-                return Ok(super::state::admin_load_state::AdminLoadState::Empty(admin));
+            let Some(table) = admin_csr_query.table() else {
+                return Ok(crate::admin_load_state::AdminLoadState::Empty(admin));
             };
             let table_search = web_sys::window()
-                .ok_or(super::state::admin_table_load_error::AdminTableLoadError::Fetch)?
+                .ok_or(crate::admin_table_load_error::AdminTableLoadError::Fetch)?
                 .location()
                 .search()
-                .map_err(|_error| {
-                    super::state::admin_table_load_error::AdminTableLoadError::Fetch
-                })?;
-            let url = super::http::url::admin_api_url_with_suffix(
+                .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
+            let url = crate::admin_api_url_with_suffix::admin_api_url_with_suffix(
                 server_admin_contract::admin_route::AdminRoute::DataTable(table),
-                super::http::url::AdminCsrApiUrlSuffixRef::from(table_search.as_str()),
+                crate::admin_csr_api_url_suffix_ref::AdminCsrApiUrlSuffixRef::from(
+                    table_search.as_str(),
+                ),
             )?;
-            return super::http::fetch_json::fetch_json(&url)
+            return crate::fetch_json::fetch_json(&url)
                 .await
-                .map(|value| super::state::admin_load_state::AdminLoadState::Table(admin, value));
+                .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
         }
         server_admin_contract::admin_page::AdminPage::Permissions
         | server_admin_contract::admin_page::AdminPage::Roles
@@ -53,7 +51,7 @@ pub(crate) async fn fetch_page(
         server_admin_contract::admin_page::AdminPage::Metrics
         | server_admin_contract::admin_page::AdminPage::OpenApi
         | server_admin_contract::admin_page::AdminPage::Version => {
-            return Err(super::state::admin_table_load_error::AdminTableLoadError::Query);
+            return Err(crate::admin_table_load_error::AdminTableLoadError::Query);
         }
     };
     let suffix = if bool::from(admin_page.uses_table_query()) {
@@ -61,48 +59,42 @@ pub(crate) async fn fetch_page(
     } else {
         String::new()
     };
-    let url = super::http::url::admin_api_url_with_suffix(
+    let url = crate::admin_api_url_with_suffix::admin_api_url_with_suffix(
         route,
-        super::http::url::AdminCsrApiUrlSuffixRef::from(suffix.as_str()),
+        crate::admin_csr_api_url_suffix_ref::AdminCsrApiUrlSuffixRef::from(suffix.as_str()),
     )?;
     match admin_page {
         server_admin_contract::admin_page::AdminPage::Permissions => {
-            super::http::fetch_json::fetch_json(&url)
+            crate::fetch_json::fetch_json(&url)
                 .await
-                .map(|value| {
-                    super::state::admin_load_state::AdminLoadState::Permissions(admin, value)
-                })
+                .map(|value| crate::admin_load_state::AdminLoadState::Permissions(admin, value))
         }
-        server_admin_contract::admin_page::AdminPage::Profile => Ok(
-            super::state::admin_load_state::AdminLoadState::Profile(admin),
-        ),
-        server_admin_contract::admin_page::AdminPage::Roles => {
-            super::http::fetch_json::fetch_json(&url)
-                .await
-                .map(|value| super::state::admin_load_state::AdminLoadState::Roles(admin, value))
+        server_admin_contract::admin_page::AdminPage::Profile => {
+            Ok(crate::admin_load_state::AdminLoadState::Profile(admin))
         }
+        server_admin_contract::admin_page::AdminPage::Roles => crate::fetch_json::fetch_json(&url)
+            .await
+            .map(|value| crate::admin_load_state::AdminLoadState::Roles(admin, value)),
         server_admin_contract::admin_page::AdminPage::Sessions => {
-            super::http::fetch_json::fetch_json(&url)
+            crate::fetch_json::fetch_json(&url)
                 .await
-                .map(|value| super::state::admin_load_state::AdminLoadState::Sessions(admin, value))
+                .map(|value| crate::admin_load_state::AdminLoadState::Sessions(admin, value))
         }
         server_admin_contract::admin_page::AdminPage::Settings => {
-            super::http::fetch_json::fetch_json(&url)
+            crate::fetch_json::fetch_json(&url)
                 .await
-                .map(|value| super::state::admin_load_state::AdminLoadState::Settings(admin, value))
+                .map(|value| crate::admin_load_state::AdminLoadState::Settings(admin, value))
         }
         server_admin_contract::admin_page::AdminPage::Tables => {
-            Ok(super::state::admin_load_state::AdminLoadState::Empty(admin))
+            Ok(crate::admin_load_state::AdminLoadState::Empty(admin))
         }
-        server_admin_contract::admin_page::AdminPage::Users => {
-            super::http::fetch_json::fetch_json(&url)
-                .await
-                .map(|value| super::state::admin_load_state::AdminLoadState::Users(admin, value))
-        }
+        server_admin_contract::admin_page::AdminPage::Users => crate::fetch_json::fetch_json(&url)
+            .await
+            .map(|value| crate::admin_load_state::AdminLoadState::Users(admin, value)),
         server_admin_contract::admin_page::AdminPage::Metrics
         | server_admin_contract::admin_page::AdminPage::OpenApi
         | server_admin_contract::admin_page::AdminPage::Version => {
-            Err(super::state::admin_table_load_error::AdminTableLoadError::Query)
+            Err(crate::admin_table_load_error::AdminTableLoadError::Query)
         }
     }
 }

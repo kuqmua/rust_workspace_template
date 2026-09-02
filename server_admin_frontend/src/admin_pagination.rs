@@ -11,40 +11,40 @@ pub(crate) fn AdminPagination(
     admin_page_total: server_admin_contract::admin_page_total::AdminPageTotal,
 ) -> impl leptos::prelude::IntoView {
     let range = crate::admin_page_range::AdminPageRange::new(
-        admin_csr_query.offset,
-        admin_csr_query.limit,
+        admin_csr_query.offset(),
+        admin_csr_query.limit(),
         admin_page_total,
     );
     let total_value = u64::from(admin_page_total);
-    let limit = u16::from(admin_csr_query.limit).to_string();
+    let limit = u16::from(admin_csr_query.limit()).to_string();
     let page_size_query = crate::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
-        &admin_csr_query.search,
-        &admin_csr_query.sort,
+        admin_csr_query.search(),
+        admin_csr_query.sort(),
         &crate::admin_table_query_direction::AdminTableQueryDirection::Csr(
-            admin_csr_query.direction.clone(),
+            admin_csr_query.direction().cloned(),
         ),
-        admin_csr_query.limit,
+        admin_csr_query.limit(),
     );
     let previous_query = crate::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
-        &admin_csr_query.search,
-        &admin_csr_query.sort,
+        admin_csr_query.search(),
+        admin_csr_query.sort(),
         &crate::admin_table_query_direction::AdminTableQueryDirection::Csr(
-            admin_csr_query.direction.clone(),
+            admin_csr_query.direction().cloned(),
         ),
-        admin_csr_query.limit,
+        admin_csr_query.limit(),
     );
     let next_query = crate::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
-        &admin_csr_query.search,
-        &admin_csr_query.sort,
+        admin_csr_query.search(),
+        admin_csr_query.sort(),
         &crate::admin_table_query_direction::AdminTableQueryDirection::Csr(
-            admin_csr_query.direction,
+            admin_csr_query.direction().cloned(),
         ),
-        admin_csr_query.limit,
+        admin_csr_query.limit(),
     );
     leptos::view! {
         <singlestage::Pagination attr:data-name="Pagination" attr:aria-label="Table pages" class="table-pagination mx-auto flex w-full items-center justify-center gap-2">
             <singlestage::PaginationContent class="contents">
-            <singlestage::PaginationItem class="contents"><form class="table-page-size" method="get" admin_frontend_path=admin_frontend_path.get()>
+            <singlestage::PaginationItem class="contents"><form class="table-page-size" method="get" action=admin_frontend_path.get()>
                 {page_size_query}
                 <input type="hidden" name="offset" value="0" />
                 <crate::admin_input_group::AdminInputGroup>
@@ -52,12 +52,12 @@ pub(crate) fn AdminPagination(
                     <crate::admin_button::AdminButton>"Apply"</crate::admin_button::AdminButton>
                 </crate::admin_input_group::AdminInputGroup>
             </form></singlestage::PaginationItem>
-            <singlestage::PaginationItem class="contents"><form method="get" admin_frontend_path=admin_frontend_path.get()>
+            <singlestage::PaginationItem class="contents"><form method="get" action=admin_frontend_path.get()>
                 {previous_query}
                 <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.previous_disabled())>"Previous"</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total_value)}</span></singlestage::PaginationItem>
-            <singlestage::PaginationItem class="contents"><form method="get" admin_frontend_path=admin_frontend_path.get()>
+            <singlestage::PaginationItem class="contents"><form method="get" action=admin_frontend_path.get()>
                 {next_query}
                 <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.next_disabled())>"Next"</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>

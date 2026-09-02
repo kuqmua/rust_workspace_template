@@ -10,8 +10,8 @@ pub(crate) fn AdminProfileView(
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
         <section class="profile-grid" data-renderer="csr">
-            {admin_profile_account::admin_profile_account(&authenticated_admin)}
-            {admin_change_password::admin_change_password()}
+            {crate::admin_profile_account::admin_profile_account(&authenticated_admin)}
+            {crate::admin_change_password::admin_change_password()}
         </section>
     }
 }

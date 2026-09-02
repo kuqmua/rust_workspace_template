@@ -21,12 +21,12 @@ pub(super) fn admin_change_password() -> impl leptos::prelude::IntoView {
                 if let (Ok(current), Ok(new_value), Ok(path)) = (
                     request.0,
                     request.1,
-                    crate::domain_types::start::http::url::admin_api_url(
+                    crate::admin_api_url::admin_api_url(
                         server_admin_contract::admin_route::AdminRoute::ChangeOwnPassword,
                     ),
                 ) {
                     leptos::prelude::Set::set(&password_validation_failed, false);
-                    crate::domain_types::start::mutation::reload_after(
+                    crate::reload_after::reload_after(
                         crate::admin_mutation_method::AdminMutationMethod::Post,
                         path,
                         server_admin_contract::admin_change_own_password_request::AdminChangeOwnPasswordRequest::new(current, new_value),

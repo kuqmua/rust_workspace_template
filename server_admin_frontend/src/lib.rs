@@ -8,7 +8,8 @@
     clippy::wildcard_imports,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    reason = "Leptos component names intentionally mirror their owner modules and generated view functions are consumed by view macros; root-owned frontend modules retain the signal, generated-view, test-leaf, and compatibility lint contracts previously scoped across their nested owner modules"
+    private_interfaces,
+    reason = "Leptos component names intentionally mirror their owner modules and generated view functions are consumed by view macros; generated component constructors have framework-defined public visibility while their CSR-only props stay crate-private; root-owned frontend modules retain the signal, generated-view, test-leaf, and compatibility lint contracts previously scoped across their nested owner modules"
 )]
 
 pub mod admin_alert;
@@ -21,6 +22,7 @@ pub mod admin_api_url;
 pub mod admin_api_url_with_suffix;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_app;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod admin_assets_error;
 pub mod admin_badge;
 pub mod admin_badge_variant;
@@ -54,6 +56,7 @@ pub mod admin_empty;
 pub mod admin_field;
 pub mod admin_field_label;
 pub mod admin_filter_hidden_inputs;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod admin_frontend_routes;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_http_status;
@@ -116,6 +119,7 @@ pub mod admin_textarea;
 pub mod admin_user_roles;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_users_view;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod axum_admin_frontend_router;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod crud_render_shell;

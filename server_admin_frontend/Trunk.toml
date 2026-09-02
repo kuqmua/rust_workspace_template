@@ -4,6 +4,9 @@ filehash = false
 public_url = "/admin/assets/csr/"
 target = "csr.html"
 
+[serve]
+port = 8081
+
 [[hooks]]
 stage = "pre_build"
 command = "npm"

@@ -18,7 +18,7 @@ where
         .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Response)?;
     if !response.ok() {
         return Err(crate::admin_table_load_error::AdminTableLoadError::Http(
-            super::admin_csr_api_url::AdminHttpStatus::from(response.status()),
+            crate::admin_http_status::AdminHttpStatus::from(response.status()),
             admin_csr_api_url.clone(),
         ));
     }

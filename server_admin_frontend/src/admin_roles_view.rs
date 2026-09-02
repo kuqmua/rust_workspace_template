@@ -25,17 +25,17 @@ pub(crate) fn AdminRolesView(
     let rows = admin_roles_page
         .items()
         .iter()
-        .map(|item| csr_admin_role_row::csr_admin_role_row(item, &admin_roles_page))
+        .map(|item| crate::csr_admin_role_row::csr_admin_role_row(item, &admin_roles_page))
         .collect::<Vec<_>>();
     leptos::view! {
         <section class="table-admin_roles_page" data-renderer="csr">
             <div class="resource-actions">
-                {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>"Create role"</crate::admin_button_link::AdminButtonLink> })}
-                {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesManage.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Manage roles"</crate::admin_button_link::AdminButtonLink> })}
+                {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>"Create role"</crate::admin_button_link::AdminButtonLink> })}
+                {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesManage.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Manage roles"</crate::admin_button_link::AdminButtonLink> })}
             </div>
             <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"name"</crate::table_head::TableHead><crate::table_head::TableHead>"system"</crate::table_head::TableHead><crate::table_head::TableHead>"permissions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
-            <super::admin_pagination::AdminPagination action=server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles admin_csr_query=admin_csr_query total=total />
+            <super::admin_pagination::AdminPagination admin_frontend_path=server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles admin_csr_query=admin_csr_query admin_page_total=total />
         </section>
     }
 }

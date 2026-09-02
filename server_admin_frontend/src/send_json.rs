@@ -28,7 +28,7 @@ where
         .headers()
         .set(
             constants_str::X_CSRF_TOKEN,
-            crate::domain_types::start::http::mutation::csrf_token::csrf_token()?.as_ref(),
+            crate::csrf_token::csrf_token()?.as_ref(),
         )
         .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
     let response_value = wasm_bindgen_futures::JsFuture::from(

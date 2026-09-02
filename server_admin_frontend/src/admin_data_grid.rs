@@ -12,32 +12,32 @@ pub(crate) fn AdminDataGrid(
     let supports_filters = bool::from(admin_data_table_view.table().supports_filters());
     let table_path = admin_data_table_view.table().frontend_path();
     let total = admin_data_table_view.total();
-    let limit = u16::from(admin_csr_query.limit);
+    let limit = u16::from(admin_csr_query.limit());
     let limit_text = limit.to_string();
     let range = crate::admin_page_range::AdminPageRange::new(
-        admin_csr_query.offset,
-        admin_csr_query.limit,
+        admin_csr_query.offset(),
+        admin_csr_query.limit(),
         total,
     );
     let filter_field = supports_filters
-        .then_some(admin_csr_query.filter_field.as_ref())
+        .then_some(admin_csr_query.filter_field())
         .flatten();
     let filter_operation = supports_filters
-        .then_some(admin_csr_query.filter_operation.as_ref())
+        .then_some(admin_csr_query.filter_operation())
         .flatten();
     let filter_value = supports_filters
-        .then_some(admin_csr_query.filter_value.as_ref())
+        .then_some(admin_csr_query.filter_value())
         .flatten();
     let filter_end = supports_filters
-        .then_some(admin_csr_query.filter_end.as_ref())
+        .then_some(admin_csr_query.filter_end())
         .flatten();
-    let grid = crate::domain_types::shared::admin_data_table_grid::admin_data_table_grid(
+    let grid = crate::admin_data_table_grid::admin_data_table_grid(
         &admin_data_table_view,
-        admin_csr_query.filter_field.as_ref(),
-        admin_csr_query.filter_operation.as_ref(),
-        admin_csr_query.filter_value.as_ref(),
-        admin_csr_query.filter_end.as_ref(),
-        admin_csr_query.limit,
+        admin_csr_query.filter_field(),
+        admin_csr_query.filter_operation(),
+        admin_csr_query.filter_value(),
+        admin_csr_query.filter_end(),
+        admin_csr_query.limit(),
     );
     let page_size_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
         filter_field,
