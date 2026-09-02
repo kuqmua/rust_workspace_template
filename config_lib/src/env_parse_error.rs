@@ -15,12 +15,12 @@ pub(super) enum EnvParseError {
     },
     #[error("{context}: {detail}")]
     Parse {
-        context: crate::parse_ctx_ref::ParseCtxRef,
+        context: crate::parse_context_ref::ParseContextRef,
         detail: to_err_string::error_text::ErrorText,
     },
 }
 impl From<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError> for EnvParseError {
-    fn from(value: crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError) -> Self {
-        Self::ValueTooLong { source: value }
+    fn from(config_lib_string_wrapper_try_from_string_error: crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError) -> Self {
+        Self::ValueTooLong { source: config_lib_string_wrapper_try_from_string_error }
     }
 }

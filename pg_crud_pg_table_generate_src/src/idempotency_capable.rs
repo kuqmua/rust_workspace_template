@@ -6,7 +6,7 @@ pub(crate) const fn idempotency_capable<
     PermissionAction,
     StatusCode,
 >(
-    dsc: &crate::operation_dsc::OperationDsc<
+    operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
         Capability,
         HttpMethod,
         Operation,
@@ -18,15 +18,15 @@ pub(crate) const fn idempotency_capable<
 where
     Capability: Copy,
 {
-    *dsc.get_idempotency_capable()
+    *operation_descriptor.get_idempotency_capable()
 }
 #[cfg(test)]
 mod tests {
     fn descriptor(
         idempotency_capable: bool,
         optimistic_concurrency_capable: bool,
-    ) -> crate::operation_dsc::OperationDsc<bool, (), (), (), (), ()> {
-        crate::operation_dsc::OperationDsc::new(
+    ) -> crate::operation_descriptor::OperationDescriptor<bool, (), (), (), (), ()> {
+        crate::operation_descriptor::OperationDescriptor::new(
             (),
             idempotency_capable,
             (),

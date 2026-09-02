@@ -1,8 +1,8 @@
 pub(crate) fn read_commit_header_str(
-    headers: crate::axum_headers_ref::AxumHeadersRef<'_>,
+    axum_headers_ref: crate::axum_headers_ref::AxumHeadersRef<'_>,
 ) -> Result<crate::header_str_ref::HeaderStrRef<'_>, crate::commit_error::CommitError> {
     crate::required_header_str::required_header_str(
-        headers,
+        axum_headers_ref,
         super::commit_header_name::COMMIT_HEADER_NAME,
         || crate::commit_error::CommitError::NoCommitHeader {
             no_commit_header: crate::no_commit_header_message::NoCommitHeaderMessage::from(

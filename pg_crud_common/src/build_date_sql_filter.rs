@@ -1,30 +1,30 @@
 pub fn build_date_sql_filter(
-    optional_table_alias: Option<&crate::sql_identifier::SqlIdentifier>,
-    bounds: crate::date_filter_bounds::DateFilterBounds<'_>,
-    bind_start: crate::date_sql_bind_start_non_zero_u32::DateSqlBindStartNonZeroU32,
+    option: Option<&crate::sql_identifier::SqlIdentifier>,
+    date_filter_bounds: crate::date_filter_bounds::DateFilterBounds<'_>,
+    date_sql_bind_start_non_zero_u32: crate::date_sql_bind_start_non_zero_u32::DateSqlBindStartNonZeroU32,
 ) -> Result<crate::date_sql_filter::DateSqlFilter, crate::date_sql_filter_error::DateSqlFilterError>
 {
-    let mut bind_index = bind_start.get_inner().get();
+    let mut bind_index = date_sql_bind_start_non_zero_u32.get_inner().get();
     let candidates = [
         (
             constants_str::CREATED_AT,
             constants_str::GREATER_OR_EQUAL,
-            bounds.get_created_at_from().copied(),
+            date_filter_bounds.get_created_at_from().copied(),
         ),
         (
             constants_str::CREATED_AT,
             constants_str::LESS_OR_EQUAL,
-            bounds.get_created_at_to().copied(),
+            date_filter_bounds.get_created_at_to().copied(),
         ),
         (
             constants_str::UPDATED_AT,
             constants_str::GREATER_OR_EQUAL,
-            bounds.get_updated_at_from().copied(),
+            date_filter_bounds.get_updated_at_from().copied(),
         ),
         (
             constants_str::UPDATED_AT,
             constants_str::LESS_OR_EQUAL,
-            bounds.get_updated_at_to().copied(),
+            date_filter_bounds.get_updated_at_to().copied(),
         ),
     ];
     let active_count = candidates
@@ -32,7 +32,7 @@ pub fn build_date_sql_filter(
         .filter(|(_, _, value)| value.is_some())
         .count();
     let mut values = Vec::with_capacity(active_count);
-    let alias_bytes = optional_table_alias.map_or(constants_usize::ZERO, |alias| {
+    let alias_bytes = option.map_or(constants_usize::ZERO, |alias| {
         alias.as_ref().len().saturating_add(constants_usize::ONE)
     });
     let fragment_capacity = candidates
@@ -62,7 +62,7 @@ pub fn build_date_sql_filter(
             if !fragment.is_empty() {
                 fragment.push_str(constants_str::AND);
             }
-            if let Some(table_alias) = optional_table_alias {
+            if let Some(table_alias) = option {
                 fragment.push_str(table_alias.as_ref());
                 fragment.push('.');
             }

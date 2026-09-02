@@ -1,8 +1,8 @@
 #[must_use]
 pub fn generate_pg_types_tokens(
-    input: macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
+    proc_macro2_token_stream_ref: macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    match crate::parse_generate_pg_types::parse_generate_pg_types(input)
+    match crate::parse_generate_pg_types::parse_generate_pg_types(proc_macro2_token_stream_ref)
         .and_then(crate::build_generate_pg_types::build_generate_pg_types)
         .and_then(crate::validate_generate_pg_types::validate_generate_pg_types)
     {

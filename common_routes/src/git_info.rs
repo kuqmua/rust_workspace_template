@@ -16,13 +16,15 @@ impl GitInfo {
         reason = "the contract owner constructs its private serialized field for the route adapter"
     )]
     pub(super) const fn from_commit(
-        commit: git_info::git_commit_link_cow::GitCommitLinkCow,
+        git_commit_link_cow: git_info::git_commit_link_cow::GitCommitLinkCow,
     ) -> Self {
-        Self { commit }
+        Self {
+            commit: git_commit_link_cow,
+        }
     }
 
     #[cfg(test)]
-    pub(crate) fn commit_matches(&self, expected: &str) -> bool {
-        self.commit.as_ref() == expected
+    pub(crate) fn commit_matches(&self, str: &str) -> bool {
+        self.commit.as_ref() == str
     }
 }

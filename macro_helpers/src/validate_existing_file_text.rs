@@ -1,11 +1,11 @@
 pub(super) fn validate_existing_file_text(
-    path: crate::written_file_path_ref::WrittenFilePathRef<'_>,
-    maximum_bytes: crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes,
+    written_file_path_ref: crate::written_file_path_ref::WrittenFilePathRef<'_>,
+    generated_file_maximum_bytes: crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes,
 ) -> std::io::Result<()> {
     server_runtime_http::read_bounded_file::read_bounded_file(
-        server_runtime_http::runtime_path_ref::RuntimePathRef::from(path.as_ref()),
+        server_runtime_http::runtime_path_ref::RuntimePathRef::from(written_file_path_ref.as_ref()),
         server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
-            usize::from(maximum_bytes),
+            usize::from(generated_file_maximum_bytes),
         ),
     )
     .and_then(server_runtime_http::bounded_text::BoundedText::try_from)

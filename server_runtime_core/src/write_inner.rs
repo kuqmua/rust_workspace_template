@@ -1,7 +1,7 @@
 pub(super) fn write_inner(
-    inner: &crate::arc_single_flight_rw_lock::ArcSingleFlightRwLock,
+    arc_single_flight_rw_lock: &crate::arc_single_flight_rw_lock::ArcSingleFlightRwLock,
 ) -> crate::single_flight_rw_lock_write_guard::SingleFlightRwLockWriteGuard<'_> {
-    match inner.write() {
+    match arc_single_flight_rw_lock.write() {
         Ok(guard) => {
             crate::single_flight_rw_lock_write_guard::SingleFlightRwLockWriteGuard::from(guard)
         }

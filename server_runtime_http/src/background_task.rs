@@ -29,7 +29,7 @@ impl BackgroundTask {
 
     pub async fn shutdown(
         mut self,
-        timeout: crate::request_timeout_duration::RequestTimeoutDuration,
+        request_timeout_duration: crate::request_timeout_duration::RequestTimeoutDuration,
     ) -> Result<
         crate::background_task_outcome::BackgroundTaskOutcome,
         crate::background_task_shutdown_error::BackgroundTaskShutdownError,
@@ -40,7 +40,7 @@ impl BackgroundTask {
         let Some(mut task_join) = self.task_join.take().map(tokio::task::JoinHandle::from) else {
             return Ok(crate::background_task_outcome::BackgroundTaskOutcome::ShutdownRequested);
         };
-        match tokio::time::timeout(timeout.get(), &mut task_join).await {
+        match tokio::time::timeout(request_timeout_duration.get(), &mut task_join).await {
             Ok(result) => result.map_err(|error| {
                 crate::background_task_shutdown_error::BackgroundTaskShutdownError::Join(
                     crate::tokio_task_join_error::TokioTaskJoinError::from(error),

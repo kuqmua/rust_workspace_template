@@ -1,8 +1,8 @@
 pub(super) fn measure_memusage_command(
     measurement_name: crate::measurement_name::MeasurementName,
-    program: crate::program_path_ref::ProgramPathRef<'_>,
-    args: crate::program_args_ref::ProgramArgsRef<'_>,
-    memusage_prog_name: crate::memusage_prog_name_ref::MemusageProgNameRef<'_>,
+    program_path_ref: crate::program_path_ref::ProgramPathRef<'_>,
+    program_args_ref: crate::program_args_ref::ProgramArgsRef<'_>,
+    memusage_prog_name_ref: crate::memusage_prog_name_ref::MemusageProgNameRef<'_>,
 ) -> Result<(), ()> {
     let measurement_name_value = measurement_name.get();
     if !std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH).exists() {
@@ -13,9 +13,11 @@ pub(super) fn measure_memusage_command(
         return Ok(());
     }
     let command_output = macro_helpers::tool_command::ToolCommand::new(
-        macro_helpers::tool_program_ref::ToolProgramRef::from(program.get()),
+        macro_helpers::tool_program_ref::ToolProgramRef::from(program_path_ref.get()),
     )
-    .args(macro_helpers::tool_args_ref::ToolArgsRef::from(args.get()))
+    .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
+        program_args_ref.get(),
+    ))
     .env(
         macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(constants_str::LD_PRELOAD),
         macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(
@@ -24,7 +26,7 @@ pub(super) fn measure_memusage_command(
     )
     .env(
         macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(constants_str::MEMUSAGE_PROG_NAME),
-        macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(memusage_prog_name.get()),
+        macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(memusage_prog_name_ref.get()),
     )
     .output();
     match command_output {
@@ -60,67 +62,67 @@ pub(super) fn measure_memusage_command(
             let malloc_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(0),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(0),
             )
             .get();
             let malloc_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(1),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(1),
             )
             .get();
             let malloc_failed = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(2),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(2),
             )
             .get();
             let realloc_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::REALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(0),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(0),
             )
             .get();
             let realloc_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::REALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(1),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(1),
             )
             .get();
             let realloc_failed = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::REALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(2),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(2),
             )
             .get();
             let calloc_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::CALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(0),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(0),
             )
             .get();
             let calloc_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::CALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(1),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(1),
             )
             .get();
             let calloc_failed = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::CALLOC),
-                crate::memusage_column_idx::MemusageColumnIdx::from(2),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(2),
             )
             .get();
             let free_calls = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::FREE),
-                crate::memusage_column_idx::MemusageColumnIdx::from(0),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(0),
             )
             .get();
             let free_memory = crate::memusage_table_value::memusage_table_value(
                 &clean,
                 crate::memusage_row_name::MemusageRowName::from(constants_str::FREE),
-                crate::memusage_column_idx::MemusageColumnIdx::from(1),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(1),
             )
             .get();
             println!(

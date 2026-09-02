@@ -1,9 +1,9 @@
 pub(crate) async fn assignment_action<Ids, Parse, Request, BuildRequest, Target, Run, RunFuture>(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    expected: &crate::admin_html_form_text::AdminHtmlFormText,
-    selected: &crate::std_admin_html_selected::StdAdminHtmlSelected,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    admin_html_form_text: &crate::admin_html_form_text::AdminHtmlFormText,
+    std_admin_html_selected: &crate::std_admin_html_selected::StdAdminHtmlSelected,
     parse: Parse,
-    path: server_admin_contract::admin_frontend_path::AdminFrontendPath,
+    admin_frontend_path: server_admin_contract::admin_frontend_path::AdminFrontendPath,
     build_request: BuildRequest,
     target: Target,
     run: Run,
@@ -14,7 +14,7 @@ where
     ) -> Result<Ids, crate::admin_error::AdminError>,
     BuildRequest: FnOnce(Ids, Ids) -> Request,
     Run: FnOnce(
-        crate::admin_auth_req::AdminAuthReq,
+        crate::admin_auth_request::AdminAuthRequest,
         Target,
         crate::axum_admin_json::AxumAdminJson<Request>,
     ) -> RunFuture,
@@ -26,30 +26,34 @@ where
     >,
 {
     let (auth, expected, selected) = match (|| {
-        let auth = crate::form_auth_impl::form_auth_impl(auth)?;
-        let expected = parse(expected)?;
+        let auth = crate::form_auth_impl::form_auth_impl(admin_auth_request)?;
+        let expected = parse(admin_html_form_text)?;
         let separator = constants_str::COMMA_SPACE.trim();
-        let capacity = selected
+        let capacity = std_admin_html_selected
             .iter()
             .map(|(_key, value)| value.len())
             .sum::<usize>()
             .saturating_add(
-                selected
+                std_admin_html_selected
                     .len()
                     .get()
                     .saturating_sub(constants_usize::ONE)
                     .saturating_mul(separator.len()),
             );
-        let text = selected.iter().map(|(_key, value)| value).enumerate().fold(
-            String::with_capacity(capacity),
-            |mut text, (index, value)| {
-                if index > constants_usize::ZERO {
-                    text.push_str(separator);
-                }
-                text.push_str(value.as_ref());
-                text
-            },
-        );
+        let text = std_admin_html_selected
+            .iter()
+            .map(|(_key, value)| value)
+            .enumerate()
+            .fold(
+                String::with_capacity(capacity),
+                |mut text, (index, value)| {
+                    if index > constants_usize::ZERO {
+                        text.push_str(separator);
+                    }
+                    text.push_str(value.as_ref());
+                    text
+                },
+            );
         let selected_ids = crate::admin_html_form_text::AdminHtmlFormText::try_from(text)
             .map_err(|_error| crate::admin_error::AdminError::Validation)
             .and_then(|value| parse(&value))?;
@@ -65,6 +69,6 @@ where
             crate::axum_admin_json::AxumAdminJson::from(build_request(expected, selected)),
         )
         .await,
-        path,
+        admin_frontend_path,
     )
 }

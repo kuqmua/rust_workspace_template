@@ -11,13 +11,13 @@ impl ReqwestRuntimeTestClient {
 
     pub(crate) fn send_get(
         &self,
-        url: &crate::runtime_test_url::RuntimeTestUrl,
+        runtime_test_url: &crate::runtime_test_url::RuntimeTestUrl,
     ) -> Result<
         crate::reqwest_runtime_test_response::ReqwestRuntimeTestResponse,
         server_runtime_http::reqwest_error::ReqwestError,
     > {
         self.0
-            .get(url.as_ref())
+            .get(runtime_test_url.as_ref())
             .send()
             .map(crate::reqwest_runtime_test_response::ReqwestRuntimeTestResponse::from)
             .map_err(server_runtime_http::reqwest_error::ReqwestError::from)
@@ -27,15 +27,15 @@ impl ReqwestRuntimeTestClient {
 
     pub(crate) fn send_notification(
         &self,
-        url: &crate::runtime_test_url::RuntimeTestUrl,
-        request: &notification_service_contract::create_notification_req::CreateNotificationReq,
+        runtime_test_url: &crate::runtime_test_url::RuntimeTestUrl,
+        create_notification_request: &notification_service_contract::create_notification_request::CreateNotificationRequest,
     ) -> Result<
         crate::reqwest_runtime_test_response::ReqwestRuntimeTestResponse,
         server_runtime_http::reqwest_error::ReqwestError,
     > {
         self.0
-            .post(url.as_ref())
-            .json(request)
+            .post(runtime_test_url.as_ref())
+            .json(create_notification_request)
             .send()
             .map(crate::reqwest_runtime_test_response::ReqwestRuntimeTestResponse::from)
             .map_err(server_runtime_http::reqwest_error::ReqwestError::from)

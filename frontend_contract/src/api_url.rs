@@ -20,14 +20,14 @@ pub struct ApiUrl(
 impl ApiUrl {
     pub fn push_path_segment(
         &mut self,
-        segment: crate::api_url_path_segment_ref::ApiUrlPathSegmentRef<'_>,
+        api_url_path_segment_ref: crate::api_url_path_segment_ref::ApiUrlPathSegmentRef<'_>,
     ) -> Result<(), ApiUrlTryFromStringError> {
         let mut value = self.0.as_str().to_owned();
         if !value.ends_with('/') {
             value.push('/');
         }
         value.extend(percent_encoding::utf8_percent_encode(
-            segment.get(),
+            api_url_path_segment_ref.get(),
             crate::api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET,
         ));
         *self = Self::try_from(value)?;
@@ -44,8 +44,8 @@ impl ApiUrl {
         [name.get(), value.get()]
             .into_iter()
             .enumerate()
-            .for_each(|(idx, component)| {
-                if idx == constants_usize::ONE {
+            .for_each(|(index, component)| {
+                if index == constants_usize::ONE {
                     url.push('=');
                 }
                 url.extend(percent_encoding::utf8_percent_encode(

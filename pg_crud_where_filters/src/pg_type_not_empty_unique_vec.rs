@@ -17,8 +17,12 @@ impl<T> From<[T; 1]> for PgTypeNotEmptyUniqueVec<T> {
     }
 }
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeNotEmptyUniqueVec<T> {
+    #[allow(
+        unused_variables,
+        reason = "the schema trait implementation preserves the type-based parameter name"
+    )]
     fn compose(
-        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+        vec: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ArrayBuilder::new()
             .items(<T as utoipa::PartialSchema>::schema())
@@ -35,22 +39,24 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeNotEmptyUniqueVec<T> {
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUniqueVec<T> {
     type Error =
         pg_crud_common::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>;
-    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new(value.into())
+    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
+        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new(vec.into())
             .map(pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::into_vec)
             .map(Self)
     }
 }
 impl<T: Eq + std::hash::Hash> PgTypeNotEmptyUniqueVec<T> {
     pub fn try_from_by_hash(
-        v: pg_crud_common::duplicate_candidates::DuplicateCandidates<T>,
+        duplicate_candidates: pg_crud_common::duplicate_candidates::DuplicateCandidates<T>,
     ) -> Result<
         Self,
         pg_crud_common::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>,
     > {
-        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new_by_hash(v)
-            .map(pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::into_vec)
-            .map(Self)
+        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new_by_hash(
+            duplicate_candidates,
+        )
+        .map(pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::into_vec)
+        .map(Self)
     }
 }
 // The owner module retains lint-sensitive semantics from the original implementation.
@@ -67,7 +73,7 @@ const _: () = {
     impl<'de, T: std::fmt::Debug + PartialEq + _serde::Deserialize<'de>> _serde::Deserialize<'de>
         for PgTypeNotEmptyUniqueVec<T>
     {
-        fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+        fn deserialize<__D>(__d: __D) -> Result<Self, __D::Error>
         where
             __D: _serde::Deserializer<'de>,
         {
@@ -87,10 +93,10 @@ const _: () = {
                 type Value = PgTypeNotEmptyUniqueVec<T>;
                 fn expecting(
                     &self,
-                    __f: &mut _serde::__private229::Formatter<'_>,
+                    formatter: &mut _serde::__private229::Formatter<'_>,
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
-                        __f,
+                        formatter,
                         constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
@@ -106,12 +112,11 @@ const _: () = {
                     }
                 }
                 #[inline]
-                fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
+                fn visit_seq<__A>(self, mut __a: __A) -> Result<Self::Value, __A::Error>
                 where
                     __A: _serde::de::SeqAccess<'de>,
                 {
-                    let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
-                    else {
+                    let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __a)? else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ZERO,
                             &constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
@@ -124,7 +129,7 @@ const _: () = {
                 }
             }
             _serde::Deserializer::deserialize_newtype_struct(
-                __deserializer,
+                __d,
                 constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,

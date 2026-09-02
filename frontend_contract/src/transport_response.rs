@@ -12,21 +12,21 @@ pub struct TransportResponse {
 impl TransportResponse {
     #[must_use]
     pub const fn new(
-        body: crate::transport_body::TransportBody,
-        status: crate::transport_status::TransportStatus,
+        transport_body: crate::transport_body::TransportBody,
+        transport_status: crate::transport_status::TransportStatus,
     ) -> Self {
         Self {
-            body,
+            body: transport_body,
             retry_after: None,
-            status,
+            status: transport_status,
         }
     }
     #[must_use]
     pub fn with_retry_after(
         mut self,
-        retry_after: Option<crate::transport_retry_after::TransportRetryAfter>,
+        option: Option<crate::transport_retry_after::TransportRetryAfter>,
     ) -> Self {
-        self.retry_after = retry_after;
+        self.retry_after = option;
         self
     }
 
@@ -36,16 +36,16 @@ impl TransportResponse {
     }
     pub fn success_body(
         &self,
-        expected: crate::transport_status::TransportStatus,
+        transport_status: crate::transport_status::TransportStatus,
     ) -> Result<&crate::transport_body::TransportBody, crate::client_error::ClientError> {
-        if self.status == expected {
+        if self.status == transport_status {
             Ok(&self.body)
         } else {
             Err(
                 crate::decode_api_problem::decode_api_problem(&self.body).map_or(
                     crate::client_error::ClientError::Status {
                         actual: self.status,
-                        expected,
+                        expected: transport_status,
                     },
                     crate::client_error::ClientError::Problem,
                 ),

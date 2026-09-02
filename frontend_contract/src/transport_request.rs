@@ -15,14 +15,14 @@ pub struct TransportRequest {
 impl TransportRequest {
     #[must_use]
     pub const fn new(
-        body: crate::transport_body::TransportBody,
-        path: crate::transport_path::TransportPath,
-        route: crate::route_contract::RouteContract,
+        transport_body: crate::transport_body::TransportBody,
+        transport_path: crate::transport_path::TransportPath,
+        route_contract: crate::route_contract::RouteContract,
     ) -> Self {
         Self {
-            body,
-            path,
-            route,
+            body: transport_body,
+            path: transport_path,
+            route: route_contract,
             idempotency_key: None,
             if_match: None,
         }
@@ -41,14 +41,17 @@ impl TransportRequest {
     #[must_use]
     pub fn with_idempotency_key(
         mut self,
-        value: crate::transport_idempotency_key::TransportIdempotencyKey,
+        transport_idempotency_key: crate::transport_idempotency_key::TransportIdempotencyKey,
     ) -> Self {
-        self.idempotency_key = Some(value);
+        self.idempotency_key = Some(transport_idempotency_key);
         self
     }
     #[must_use]
-    pub fn with_if_match(mut self, value: crate::transport_if_match::TransportIfMatch) -> Self {
-        self.if_match = Some(value);
+    pub fn with_if_match(
+        mut self,
+        transport_if_match: crate::transport_if_match::TransportIfMatch,
+    ) -> Self {
+        self.if_match = Some(transport_if_match);
         self
     }
 }

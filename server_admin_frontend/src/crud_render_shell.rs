@@ -11,12 +11,12 @@
 use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
 
 pub(super) fn crud_render_shell(
-    page: server_admin_contract::admin_page::AdminPage,
+    admin_page: server_admin_contract::admin_page::AdminPage,
     content: impl leptos::prelude::IntoAny,
-    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+    authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
-    let active_table = match page {
+    let active_table = match admin_page {
         server_admin_contract::admin_page::AdminPage::Users => {
             Some(server_admin_contract::admin_data_table::AdminDataTable::Users)
         }
@@ -33,10 +33,10 @@ pub(super) fn crud_render_shell(
         | server_admin_contract::admin_page::AdminPage::Version => None,
     };
     crate::render_admin_page_with_table_access::render_admin_page_with_table_access(
-        page,
+        admin_page,
         crate::render_view::render_view(content),
-        Some(admin),
-        Some(branding),
+        Some(authenticated_admin),
+        Some(admin_branding_view),
         active_table,
     )
 }

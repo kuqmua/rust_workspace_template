@@ -1,7 +1,7 @@
 pub(super) fn service_catalog_render_release_entries(
-    entries: crate::service_catalog_entries_ref::ServiceCatalogEntriesRef<'_>,
+    service_catalog_entries_ref: crate::service_catalog_entries_ref::ServiceCatalogEntriesRef<'_>,
 ) -> crate::scaffold_text::ScaffoldText {
-    let output_capacity = entries
+    let output_capacity = service_catalog_entries_ref
         .get()
         .iter()
         .filter(|entry| bool::from(*entry.get_release()))
@@ -15,7 +15,7 @@ pub(super) fn service_catalog_render_release_entries(
         })
         .sum::<usize>();
     crate::scaffold_text::ScaffoldText::try_from(
-        entries
+        service_catalog_entries_ref
             .get()
             .iter()
             .filter(|entry| bool::from(*entry.get_release()))

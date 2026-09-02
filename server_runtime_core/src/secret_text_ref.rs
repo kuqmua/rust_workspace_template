@@ -10,38 +10,38 @@ impl<'value_lt> SecretTextRef<'value_lt> {
 impl<'value_lt> TryFrom<&'value_lt str> for SecretTextRef<'value_lt> {
     type Error = crate::bounded_secret_text_error::BoundedSecretTextError;
 
-    fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
-        if value.len() < crate::secret_text_minimum_bytes::SECRET_TEXT_MINIMUM_BYTES
-            || value.len() > constants_usize::VALUE_8_192
+    fn try_from(str: &'value_lt str) -> Result<Self, Self::Error> {
+        if str.len() < crate::secret_text_minimum_bytes::SECRET_TEXT_MINIMUM_BYTES
+            || str.len() > constants_usize::VALUE_8_192
         {
             return Err(crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength);
         }
-        if value.trim().len() != value.len() {
+        if str.trim().len() != str.len() {
             return Err(
                 crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
             );
         }
-        if value
+        if str
             .as_bytes()
             .first()
-            .is_some_and(|first| value.as_bytes().iter().all(|byte| byte == first))
+            .is_some_and(|first| str.as_bytes().iter().all(|byte| byte == first))
         {
             return Err(crate::bounded_secret_text_error::BoundedSecretTextError::RepeatedByte);
         }
-        Ok(Self(value))
+        Ok(Self(str))
     }
 }
 
 impl<'value_lt> From<&'value_lt crate::bounded_secret_text::BoundedSecretText>
     for SecretTextRef<'value_lt>
 {
-    fn from(value: &'value_lt crate::bounded_secret_text::BoundedSecretText) -> Self {
-        Self(value.as_str())
+    fn from(bounded_secret_text: &'value_lt crate::bounded_secret_text::BoundedSecretText) -> Self {
+        Self(bounded_secret_text.as_str())
     }
 }
 
 impl std::fmt::Debug for SecretTextRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(constants_str::REDACTED_ALT_3)
     }
 }

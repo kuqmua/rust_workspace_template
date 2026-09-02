@@ -1,19 +1,20 @@
 pub(crate) async fn settings_update(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    request: crate::axum_admin_json::AxumAdminJson<
-        server_admin_contract::admin_update_settings_req::AdminUpdateSettingsReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_json: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_update_settings_request::AdminUpdateSettingsRequest,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
-        &auth,
+        &admin_auth_request,
         server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate,
     )
     .await?;
-    if !bool::from(request.get_inner().has_fields()) || !bool::from(request.get_inner().is_valid())
+    if !bool::from(axum_admin_json.get_inner().has_fields())
+        || !bool::from(axum_admin_json.get_inner().is_valid())
     {
         return Err(crate::admin_error::AdminError::Validation);
     }
-    let mut tx = auth
+    let mut tx = admin_auth_request
         .get_state()
         .as_ref()
         .get_pool()
@@ -31,7 +32,7 @@ pub(crate) async fn settings_update(
         support_url,
         tab_title,
         clear,
-    ) = request.into_inner().into_parts();
+    ) = axum_admin_json.into_inner().into_parts();
     sqlx::query_scalar::<_, bool>(
         constants_str::SERVER_ADMIN_UPDATE_SETTINGS_SQL,
     )

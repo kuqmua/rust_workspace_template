@@ -44,7 +44,7 @@ pub mod health_report;
 pub mod health_report_response;
 pub mod health_route;
 pub mod health_status;
-pub mod json_res;
+pub mod json_response;
 #[cfg(test)]
 pub mod make_git_info_payload_tests;
 pub mod make_json_response;

@@ -9,10 +9,10 @@
 pub(crate) struct TestPathStem<'stem_lt>(&'stem_lt str);
 
 impl TestPathStem<'_> {
-    pub(crate) fn new<T>(v: T) -> Self
+    pub(crate) fn new<T>(t: T) -> Self
     where
         T: Into<Self>,
     {
-        v.into()
+        t.into()
     }
 }

@@ -7,16 +7,16 @@ use leptos::prelude::{ClassAttribute, ElementChild};
 
 #[must_use]
 pub fn render_data_tables(
-    table: Option<&server_admin_contract::admin_data_table_view::AdminDataTableView>,
-    query: &server_admin_contract::admin_data_table_query::AdminDataTableQuery,
-    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+    option: Option<&server_admin_contract::admin_data_table_view::AdminDataTableView>,
+    admin_data_table_query: &server_admin_contract::admin_data_table_query::AdminDataTableQuery,
+    authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
     let content_view = leptos::view! {
-        {table.map(|view| leptos::view! {
+        {option.map(|view| leptos::view! {
             <section class="table-page">
-                {crate::data_table_grid::data_table_grid(view, query)}
-                {crate::table_pagination::table_pagination(server_admin_contract::admin_page::AdminPage::Tables, query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(query.filter()))}
+                {crate::data_table_grid::data_table_grid(view, admin_data_table_query)}
+                {crate::table_pagination::table_pagination(server_admin_contract::admin_page::AdminPage::Tables, admin_data_table_query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(admin_data_table_query.filter()))}
             </section>
         })}
     };
@@ -24,8 +24,8 @@ pub fn render_data_tables(
     crate::render_admin_page_with_table_access::render_admin_page_with_table_access(
         server_admin_contract::admin_page::AdminPage::Tables,
         content,
-        Some(admin),
-        Some(branding),
-        table.map(server_admin_contract::admin_data_table_view::AdminDataTableView::table),
+        Some(authenticated_admin),
+        Some(admin_branding_view),
+        option.map(server_admin_contract::admin_data_table_view::AdminDataTableView::table),
     )
 }

@@ -5,7 +5,7 @@
     tag = "admin_auth"
 )]
 pub(crate) async fn api_revoke_all_sessions(
-    auth: crate::admin_auth_req::AdminAuthReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<
     crate::axum_admin_response::AxumAdminResponse,
     crate::application_auth::AdminRevokeAllSessionsError,

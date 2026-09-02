@@ -1,12 +1,12 @@
 #[proc_macro_derive(TryFromEnv, attributes(config))]
-pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     panic_location::panic_location();
     let dotenv_snake_case = naming::domain_types::DotenvSnakeCase;
     let dotenv_upper_camel_case = naming::domain_types::DotenvUpperCamelCase;
     let env_var_name_snake_case = naming::domain_types::EnvVarNameSnakeCase;
     let std_env_var_error_snake_case = naming::domain_types::StdEnvVarErrorSnakeCase;
     let std_env_var_error_upper_camel_case = naming::domain_types::StdEnvVarErrorUpperCamelCase;
-    let di: syn::DeriveInput = syn::parse(v).expect(constants_str::DIAGNOSTIC_E45F75C2);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_E45F75C2);
     let identifier = &di.ident;
     let generate_env_example = di.attrs.iter().any(|attribute| {
         attribute.path().is_ident(constants_str::CONFIG)

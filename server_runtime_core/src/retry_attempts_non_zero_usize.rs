@@ -19,8 +19,8 @@ impl RetryAttemptsNonZeroUsize {
 impl TryFrom<usize> for RetryAttemptsNonZeroUsize {
     type Error = crate::std_retry_attempts_error::StdRetryAttemptsError;
 
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        std::num::NonZeroUsize::new(value)
+    fn try_from(usize: usize) -> Result<Self, Self::Error> {
+        std::num::NonZeroUsize::new(usize)
             .map(Self)
             .ok_or(crate::std_retry_attempts_error::StdRetryAttemptsError::Zero)
     }

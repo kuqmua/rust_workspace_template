@@ -1,5 +1,5 @@
-fn cmpct(v: &str) -> String {
-    v.split_whitespace().collect::<String>()
+fn cmpct(str: &str) -> String {
+    str.split_whitespace().collect::<String>()
 }
 fn empty_token_stream() -> proc_macro2::TokenStream {
     proc_macro2::TokenStream::new()

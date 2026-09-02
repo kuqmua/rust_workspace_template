@@ -23,9 +23,9 @@ pub struct ApiProblem {
 
 impl ApiProblem {
     #[must_use]
-    pub fn from_error(error: crate::api_problem_error::ApiProblemError) -> Self {
-        let status = error.status();
-        let (kind, detail) = match error {
+    pub fn from_error(api_problem_error: crate::api_problem_error::ApiProblemError) -> Self {
+        let status = api_problem_error.status();
+        let (kind, detail) = match api_problem_error {
             crate::api_problem_error::ApiProblemError::Authentication => (
                 crate::api_problem_kind::ApiProblemKind::Authentication,
                 constants_str::AUTHENTICATION_REQUIRED,

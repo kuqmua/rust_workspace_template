@@ -13,13 +13,13 @@ pub(super) struct TokioMockNotificationSender(
 impl TokioMockNotificationSender {
     pub(super) fn send(
         &self,
-        message: server_runtime_http::runtime_notification_message::RuntimeNotificationMessage,
+        runtime_notification_message: server_runtime_http::runtime_notification_message::RuntimeNotificationMessage,
     ) -> Result<
         (),
         tokio::sync::mpsc::error::SendError<
             server_runtime_http::runtime_notification_message::RuntimeNotificationMessage,
         >,
     > {
-        self.0.send(message)
+        self.0.send(runtime_notification_message)
     }
 }

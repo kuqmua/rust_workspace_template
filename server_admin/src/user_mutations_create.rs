@@ -1,16 +1,16 @@
 pub(crate) async fn user_mutations_create(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    request: crate::axum_admin_json::AxumAdminJson<
-        server_admin_contract::admin_create_user_req::AdminCreateUserReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_json: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_create_user_request::AdminCreateUserRequest,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
-        &auth,
+        &admin_auth_request,
         server_admin_contract::admin_permission::AdminPermission::UsersCreate,
     )
     .await?;
     let (contract_display_name, contract_login, contract_password) =
-        request.into_inner().into_parts();
+        axum_admin_json.into_inner().into_parts();
     let display_name = server_admin_contract::admin_display_name::AdminDisplayName::try_from(
         contract_display_name.into_inner(),
     )
@@ -22,14 +22,14 @@ pub(crate) async fn user_mutations_create(
         contract_password,
     )
     .map_err(crate::admin_error::AdminError::password_text)?;
-    let password_hash = auth
+    let password_hash = admin_auth_request
         .get_state()
         .as_ref()
         .get_password_hasher()
         .hash(password)
         .await
         .map_err(crate::admin_error::AdminError::password_hash)?;
-    let mut tx = auth
+    let mut tx = admin_auth_request
         .get_state()
         .as_ref()
         .get_pool()
@@ -69,7 +69,7 @@ pub(crate) async fn user_mutations_create(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(
-                server_admin_contract::admin_create_user_res::AdminCreateUserRes::new(
+                server_admin_contract::admin_create_user_response::AdminCreateUserResponse::new(
                     server_admin_contract::admin_user_id::AdminUserId::from(user_id.value()),
                 ),
             ),

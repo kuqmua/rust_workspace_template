@@ -1,15 +1,15 @@
 pub async fn inspect_postgres_table(
-    pool: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
-    schema: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
-    table: crate::db_table_name_ref::DbTableNameRef<'_>,
+    sqlx_pg_catalog_pool_ref: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
+    db_schema_name_ref: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
+    db_table_name_ref: crate::db_table_name_ref::DbTableNameRef<'_>,
 ) -> Result<
     crate::db_table_snapshot::DbTableSnapshot,
     crate::db_schema_conformance_error::DbSchemaConformanceError,
 > {
     let column_rows = sqlx::query(constants_str::DB_SCHEMA_COLUMN_QUERY)
-        .bind(*schema.get_inner())
-        .bind(*table.get_inner())
-        .fetch_all(*pool.get_inner())
+        .bind(*db_schema_name_ref.get_inner())
+        .bind(*db_table_name_ref.get_inner())
+        .fetch_all(*sqlx_pg_catalog_pool_ref.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
@@ -61,9 +61,9 @@ pub async fn inspect_postgres_table(
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>()?;
 
     let constraint_rows = sqlx::query(constants_str::DB_SCHEMA_CONSTRAINT_QUERY)
-        .bind(*schema.get_inner())
-        .bind(*table.get_inner())
-        .fetch_all(*pool.get_inner())
+        .bind(*db_schema_name_ref.get_inner())
+        .bind(*db_table_name_ref.get_inner())
+        .fetch_all(*sqlx_pg_catalog_pool_ref.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
@@ -118,9 +118,9 @@ pub async fn inspect_postgres_table(
         .collect::<Vec<_>>();
 
     let index_rows = sqlx::query(constants_str::DB_SCHEMA_INDEX_QUERY)
-        .bind(*schema.get_inner())
-        .bind(*table.get_inner())
-        .fetch_all(*pool.get_inner())
+        .bind(*db_schema_name_ref.get_inner())
+        .bind(*db_table_name_ref.get_inner())
+        .fetch_all(*sqlx_pg_catalog_pool_ref.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(

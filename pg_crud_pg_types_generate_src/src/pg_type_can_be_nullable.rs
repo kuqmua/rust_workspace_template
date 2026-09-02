@@ -5,7 +5,7 @@ pub(crate) const fn pg_type_can_be_nullable<
     PgName,
     WireKind,
 >(
-    spec: &crate::pg_type_spec::PgTypeSpec<
+    pg_type_spec: &crate::pg_type_spec::PgTypeSpec<
         CanBeNullable,
         CanBePrimaryKey,
         FilterKind,
@@ -16,5 +16,5 @@ pub(crate) const fn pg_type_can_be_nullable<
 where
     CanBeNullable: Copy,
 {
-    *spec.get_can_be_nullable()
+    *pg_type_spec.get_can_be_nullable()
 }

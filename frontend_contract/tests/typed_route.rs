@@ -1,5 +1,9 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #![allow(unused_crate_dependencies)] // integration test links the package dependency set while exercising the re-exported derive macro
+#![allow(
+    unused_variables,
+    reason = "test trait fixtures preserve repository type-based parameter names"
+)]
 
 #[cfg(test)]
 mod tests {
@@ -35,7 +39,7 @@ mod tests {
     impl frontend_contract::transport::Transport for TestTransport {
         fn send(
             &self,
-            _request: frontend_contract::transport_request::TransportRequest,
+            transport_request: frontend_contract::transport_request::TransportRequest,
         ) -> impl Future<
             Output = Result<
                 frontend_contract::transport_response::TransportResponse,

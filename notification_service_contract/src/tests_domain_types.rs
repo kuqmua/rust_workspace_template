@@ -1,3 +1,8 @@
+#![allow(
+    unused_variables,
+    reason = "test trait fixtures preserve repository type-based parameter names"
+)]
+
 #[cfg(test)]
 mod tests {
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
@@ -5,7 +10,7 @@ mod tests {
     impl frontend_contract::transport::Transport for ClientTransport {
         fn send(
             &self,
-            _request: frontend_contract::transport_request::TransportRequest,
+            transport_request: frontend_contract::transport_request::TransportRequest,
         ) -> impl Future<
             Output = Result<
                 frontend_contract::transport_response::TransportResponse,

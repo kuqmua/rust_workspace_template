@@ -20,23 +20,21 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
     BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>
 {
     #[must_use]
-    fn value_len(value: &str) -> usize {
+    fn value_len(str: &str) -> usize {
         if COUNT_CHARS {
-            value.chars().count()
+            str.chars().count()
         } else {
-            value.len()
+            str.len()
         }
     }
 
     #[must_use]
-    pub(crate) const fn from_prevalidated(value: String) -> Self {
-        Self { value }
+    pub(crate) const fn from_prevalidated(string: String) -> Self {
+        Self { value: string }
     }
 
-    pub fn validate_str(
-        value: &str,
-    ) -> Result<(), crate::bounded_string_error::BoundedStringError> {
-        let value_len = Self::value_len(value);
+    pub fn validate_str(str: &str) -> Result<(), crate::bounded_string_error::BoundedStringError> {
+        let value_len = Self::value_len(str);
         let actual_length = crate::bounded_len::BoundedLen::from(value_len);
         if value_len < MINIMUM_LENGTH {
             return Err(
@@ -80,8 +78,8 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
 
 impl BoundedString {
     #[must_use]
-    pub const fn from_unbounded(value: String) -> Self {
-        Self::from_prevalidated(value)
+    pub const fn from_unbounded(string: String) -> Self {
+        Self::from_prevalidated(string)
     }
 
     #[must_use]
@@ -94,15 +92,15 @@ impl<const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     BoundedString<{ constants_usize::ZERO }, MAXIMUM_LENGTH, COUNT_CHARS>
 {
     #[must_use]
-    pub fn from_truncated(mut value: String) -> Self {
-        if value.len() > MAXIMUM_LENGTH {
+    pub fn from_truncated(mut string: String) -> Self {
+        if string.len() > MAXIMUM_LENGTH {
             let mut truncation_length = MAXIMUM_LENGTH;
-            while !value.is_char_boundary(truncation_length) {
+            while !string.is_char_boundary(truncation_length) {
                 truncation_length = truncation_length.saturating_sub(1usize);
             }
-            value.truncate(truncation_length);
+            string.truncate(truncation_length);
         }
-        Self::from_prevalidated(value)
+        Self::from_prevalidated(string)
     }
 }
 
@@ -125,24 +123,24 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
 impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     PartialEq<str> for BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>
 {
-    fn eq(&self, other: &str) -> bool {
-        self.as_str() == other
+    fn eq(&self, str: &str) -> bool {
+        self.as_str() == str
     }
 }
 
 impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     PartialEq<&str> for BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>
 {
-    fn eq(&self, other: &&str) -> bool {
-        self.as_str() == *other
+    fn eq(&self, str: &&str) -> bool {
+        self.as_str() == *str
     }
 }
 
 impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     PartialEq<String> for BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>
 {
-    fn eq(&self, other: &String) -> bool {
-        self.as_str() == other
+    fn eq(&self, string: &String) -> bool {
+        self.as_str() == string
     }
 }
 
@@ -157,8 +155,8 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
 impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     std::fmt::Display for BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.as_str())
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str())
     }
 }
 
@@ -177,8 +175,8 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
 {
     type Error = crate::bounded_string_error::BoundedStringError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let actual_length = Self::value_len(value.as_str());
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        let actual_length = Self::value_len(string.as_str());
         if actual_length < MINIMUM_LENGTH {
             return Err(
                 crate::bounded_string_error::BoundedStringError::BelowMinimum {
@@ -195,15 +193,15 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
                 },
             );
         }
-        Ok(Self::from_prevalidated(value))
+        Ok(Self::from_prevalidated(string))
     }
 }
 
 impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     From<BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>> for String
 {
-    fn from(value: BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>) -> Self {
-        value.into_string()
+    fn from(bounded_string: BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>) -> Self {
+        bounded_string.into_string()
     }
 }
 
@@ -281,7 +279,7 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
         ))
     }
 
-    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        generator.subschema_for::<String>()
+    fn json_schema(schema_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schema_generator.subschema_for::<String>()
     }
 }

@@ -6,8 +6,8 @@
     tag = "admin_roles"
 )]
 pub(crate) async fn api_list_permissions(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    query: crate::axum_admin_query::AxumAdminQuery<
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
         server_admin_contract::admin_table_query::AdminTableQuery,
     >,
 ) -> Result<

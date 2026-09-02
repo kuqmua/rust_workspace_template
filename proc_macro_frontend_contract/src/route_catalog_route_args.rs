@@ -19,13 +19,13 @@ impl RouteCatalogRouteArgs {
         contract: Option<crate::contract_syn_expr::ContractSynExpr>,
         path: Option<crate::contract_syn_expr::ContractSynExpr>,
         route: Option<crate::contract_syn_type::ContractSynType>,
-        exclude_from_family: crate::std_bool::StdBool,
+        std_bool: crate::std_bool::StdBool,
     ) -> Self {
         Self {
             contract,
             path,
             route,
-            exclude_from_family,
+            exclude_from_family: std_bool,
         }
     }
 }

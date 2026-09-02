@@ -11,10 +11,14 @@ impl axum::extract::FromRequestParts<crate::notification_state::NotificationStat
     for NotificationAxumState
 {
     type Rejection = crate::http_notification_status_code::HttpNotificationStatusCode;
+    #[allow(
+        unused_variables,
+        reason = "the extractor trait implementation preserves type-based parameter names"
+    )]
     fn from_request_parts(
-        _parts: &mut http::request::Parts,
-        state: &crate::notification_state::NotificationState,
+        parts: &mut http::request::Parts,
+        notification_state: &crate::notification_state::NotificationState,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
-        std::future::ready(Ok(Self::from(state.clone())))
+        std::future::ready(Ok(Self::from(notification_state.clone())))
     }
 }

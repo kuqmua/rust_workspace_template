@@ -10,16 +10,16 @@
 pub struct FixedLengthAsciiHexText(String);
 impl TryFrom<String> for FixedLengthAsciiHexText {
     type Error = crate::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() != 40usize {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.len() != 40usize {
             Err(Self::Error::InvalidLength)
-        } else if !value
+        } else if !string
             .bytes()
             .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
         {
             Err(Self::Error::InvalidSymbol)
         } else {
-            Ok(Self(value))
+            Ok(Self(string))
         }
     }
 }

@@ -3,10 +3,14 @@
     reason = "split owner modules import the private facade vocabulary used by the moved generator"
 )]
 
+#[allow(
+    unused_variables,
+    reason = "the generator API preserves the repository type-based parameter name"
+)]
 pub fn generate_impl_de_for_struct_token_stream(
     identifier: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens,
-    vec_identifier_type: crate::syn_identifier_type_refs::SynIdentifierTypeRefs<'_>,
-    _len: crate::de_len::DeLen,
+    syn_identifier_type_refs: crate::syn_identifier_type_refs::SynIdentifierTypeRefs<'_>,
+    de_len: crate::de_len::DeLen,
     generate_type_token_stream: &dyn Fn(
         &syn::Ident,
         &syn::Type,
@@ -15,7 +19,7 @@ pub fn generate_impl_de_for_struct_token_stream(
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_identifier_token_stream = quote::format_ident!("{}Raw", identifier.to_string());
-    let identifier_types: &[(&syn::Ident, &syn::Type)] = vec_identifier_type.into();
+    let identifier_types: &[(&syn::Ident, &syn::Type)] = syn_identifier_type_refs.into();
     let raw_fields_token_stream = identifier_types.iter().map(|(field, ty)| {
         let type_token_stream = generate_type_token_stream(field, ty);
         quote::quote! { #field: #type_token_stream, }

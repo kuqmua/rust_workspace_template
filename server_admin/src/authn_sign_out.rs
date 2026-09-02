@@ -1,9 +1,9 @@
 pub(crate) async fn authn_sign_out(
-    auth: crate::admin_auth_req::AdminAuthReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
-    let peer = *auth.get_peer();
-    let state = auth.get_state();
-    let headers = auth.get_headers();
+    let peer = *admin_auth_request.get_peer();
+    let state = admin_auth_request.get_state();
+    let headers = admin_auth_request.get_headers();
     let authenticated = crate::authorization_authenticate::authorization_authenticate(
         state.as_ref(),
         crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(headers.as_ref()),

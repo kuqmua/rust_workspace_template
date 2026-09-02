@@ -13,17 +13,19 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttri
 
 #[must_use]
 pub fn render_user_manage(
-    page: &server_admin_contract::admin_users_page::AdminUsersPage,
-    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+    admin_users_page: &server_admin_contract::admin_users_page::AdminUsersPage,
+    authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
     let can_update = bool::from(
-        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::UsersUpdate),
+        authenticated_admin
+            .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersUpdate),
     );
     let can_delete = bool::from(
-        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::UsersDelete),
+        authenticated_admin
+            .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersDelete),
     );
-    let cards = page.items().iter().map(|item| {
+    let cards = admin_users_page.items().iter().map(|item| {
         let id = item.id().to_string();
         let article_id = format!("user-{}", item.id());
         let title = format!("{} (#{})", item.login(), item.id());
@@ -39,13 +41,13 @@ pub fn render_user_manage(
                 <div class="crud-record-heading"><h2>{title}</h2><span>{status}</span></div>
                 {can_update.then(|| leptos::view! { <form class="crud-form crud-form-compact" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::UserUpdate.get()>
                     <input type="hidden" name="user_id" value=id.clone() />
-                    <crate::admin_field::AdminField label="Login"><crate::admin_input::AdminInput name="login" initial_value=login required=true /></crate::admin_field::AdminField>
-                    <crate::admin_field::AdminField label="Display name"><crate::admin_input::AdminInput name="display_name" initial_value=display_name required=true /></crate::admin_field::AdminField>
+                    <crate::admin_field::AdminField admin_field_label="Login"><crate::admin_input::AdminInput admin_input_name="login" initial_value=login required=true /></crate::admin_field::AdminField>
+                    <crate::admin_field::AdminField admin_field_label="Display name"><crate::admin_input::AdminInput admin_input_name="display_name" initial_value=display_name required=true /></crate::admin_field::AdminField>
                     <div class="crud-actions"><crate::admin_button::AdminButton>"Save changes"</crate::admin_button::AdminButton></div>
                 </form> })}
                 {can_delete.then(|| leptos::view! { <form class="crud-delete" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::UserDelete.get()>
                     <input type="hidden" name="user_id" value=id />
-                    <div><p>"Permanently remove this user and their administrator access."</p><label class="crud-confirm"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />"I understand this cannot be undone"</label></div><crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Danger>"Delete user"</crate::admin_button::AdminButton>
+                    <div><p>"Permanently remove this user and their administrator access."</p><label class="crud-confirm"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />"I understand this cannot be undone"</label></div><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger>"Delete user"</crate::admin_button::AdminButton>
                 </form> })}
             </article></crate::admin_card::AdminCard>
         }
@@ -53,9 +55,9 @@ pub fn render_user_manage(
     super::crud_render_shell::crud_render_shell(
         server_admin_contract::admin_page::AdminPage::Users,
         leptos::view! {
-            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Manage users"</h1><p>"Update account details or permanently delete an account."</p></div><crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get() variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Back to users"</crate::admin_button_link::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
+            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Users"</p><h1>"Manage users"</h1><p>"Update account details or permanently delete an account."</p></div><crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Back to users"</crate::admin_button_link::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
         },
-        admin,
-        branding,
+        authenticated_admin,
+        admin_branding_view,
     )
 }

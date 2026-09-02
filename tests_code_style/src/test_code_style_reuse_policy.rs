@@ -28,20 +28,20 @@ struct DomainShapeVisitor<'path_lt> {
 }
 
 impl DomainShapeVisitor<'_> {
-    fn record(&mut self, shape: String, name: &syn::Ident) {
+    fn record(&mut self, string: String, ident: &syn::Ident) {
         if let Some(path) = self.path {
             self.shapes
-                .entry(shape)
+                .entry(string)
                 .or_default()
-                .push(format!("{}::{name}", path.display()));
+                .push(format!("{}::{ident}", path.display()));
         }
     }
 }
 
 impl<'ast> syn::visit::Visit<'ast> for DomainShapeVisitor<'_> {
-    fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
-        if i.variants.len() >= 2usize {
-            let mut variants = i.variants.clone();
+    fn visit_item_enum(&mut self, item_enum: &'ast syn::ItemEnum) {
+        if item_enum.variants.len() >= 2usize {
+            let mut variants = item_enum.variants.clone();
             variants.iter_mut().for_each(|variant| {
                 variant.attrs.clear();
                 variant
@@ -49,50 +49,51 @@ impl<'ast> syn::visit::Visit<'ast> for DomainShapeVisitor<'_> {
                     .iter_mut()
                     .for_each(|field| field.attrs.clear());
             });
-            self.record(format!("enum {variants:?}"), &i.ident);
+            self.record(format!("enum {variants:?}"), &item_enum.ident);
         }
-        syn::visit::visit_item_enum(self, i);
+        syn::visit::visit_item_enum(self, item_enum);
     }
 
-    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        if i.fields.len() >= 2usize {
-            let mut fields = i.fields.clone();
+    fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
+        if item_struct.fields.len() >= 2usize {
+            let mut fields = item_struct.fields.clone();
             fields.iter_mut().for_each(|field| field.attrs.clear());
-            self.record(format!("struct {fields:?}"), &i.ident);
+            self.record(format!("struct {fields:?}"), &item_struct.ident);
         }
-        syn::visit::visit_item_struct(self, i);
+        syn::visit::visit_item_struct(self, item_struct);
     }
 }
 
 impl<'ast> syn::visit::Visit<'ast> for FunctionBodyComplexity {
-    fn visit_expr(&mut self, i: &'ast syn::Expr) {
+    fn visit_expr(&mut self, expr: &'ast syn::Expr) {
         self.expression_count = self.expression_count.saturating_add(constants_usize::ONE);
-        syn::visit::visit_expr(self, i);
+        syn::visit::visit_expr(self, expr);
     }
 }
 
 impl FunctionBodyVisitor<'_> {
-    fn record(&mut self, name: &syn::Ident, block: &syn::Block) {
+    fn record(&mut self, ident: &syn::Ident, block: &syn::Block) {
         if function_body_is_substantial(block) {
             self.bodies
                 .entry(function_body_hash(block, self.identifier_pattern))
                 .or_default()
-                .push(format!("{}::{name}", self.path.as_ref().display()));
+                .push(format!("{}::{ident}", self.path.as_ref().display()));
         }
     }
 }
 
 impl<'ast> syn::visit::Visit<'ast> for FunctionBodyVisitor<'_> {
-    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
-        self.record(&i.sig.ident, &i.block);
-        syn::visit::visit_impl_item_fn(self, i);
+    fn visit_impl_item_fn(&mut self, impl_item_fn: &'ast syn::ImplItemFn) {
+        self.record(&impl_item_fn.sig.ident, &impl_item_fn.block);
+        syn::visit::visit_impl_item_fn(self, impl_item_fn);
     }
 
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if !crate::code_style::item_fn_is_unit_test(crate::types::SynItemFnRef::from(i)).get() {
-            self.record(&i.sig.ident, &i.block);
+    fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
+        if !crate::code_style::item_fn_is_unit_test(crate::types::SynItemFnRef::from(item_fn)).get()
+        {
+            self.record(&item_fn.sig.ident, &item_fn.block);
         }
-        syn::visit::visit_item_fn(self, i);
+        syn::visit::visit_item_fn(self, item_fn);
     }
 }
 
@@ -104,11 +105,10 @@ fn function_body_is_substantial(block: &syn::Block) -> bool {
 
 fn function_body_hash(
     block: &syn::Block,
-    identifier_pattern: crate::types::RegexRegexRef<'_>,
+    regex_regex_ref: crate::types::RegexRegexRef<'_>,
 ) -> crate::types::FunctionBodyHash {
     let body = format!("{block:?}");
-    let normalized_body =
-        identifier_pattern.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
+    let normalized_body = regex_regex_ref.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
     let mut hasher = std::hash::DefaultHasher::new();
     std::hash::Hash::hash(&normalized_body, &mut hasher);
     crate::types::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))

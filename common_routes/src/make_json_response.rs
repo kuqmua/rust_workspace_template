@@ -1,5 +1,5 @@
-pub(crate) fn make_json_response<T>(payload: T) -> crate::json_res::JsonRes<T> {
-    crate::json_res::JsonRes::from(crate::axum_json_payload::AxumJsonPayload::from(axum::Json(
-        payload,
-    )))
+pub(crate) fn make_json_response<T>(t: T) -> crate::json_response::JsonResponse<T> {
+    crate::json_response::JsonResponse::from(crate::axum_json_payload::AxumJsonPayload::from(
+        axum::Json(t),
+    ))
 }

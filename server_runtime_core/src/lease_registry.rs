@@ -9,11 +9,11 @@ pub struct LeaseRegistry {
 impl LeaseRegistry {
     pub async fn heartbeat(
         &self,
-        id: &crate::lease_id::LeaseId,
+        lease_id: &crate::lease_id::LeaseId,
     ) -> crate::lease_heartbeat::LeaseHeartbeat {
         {
             let mut inner = self.inner.write().await;
-            inner.heartbeat(id, tokio::time::Instant::now())
+            inner.heartbeat(lease_id, tokio::time::Instant::now())
         }
     }
 
@@ -24,40 +24,45 @@ impl LeaseRegistry {
 
     pub async fn release(
         &self,
-        id: &crate::lease_id::LeaseId,
+        lease_id: &crate::lease_id::LeaseId,
     ) -> crate::lease_heartbeat::LeaseHeartbeat {
         let mut inner = self.inner.write().await;
-        inner.release(id)
+        inner.release(lease_id)
     }
 
     pub async fn reserve(
         &self,
-        id: crate::lease_id::LeaseId,
-        key: crate::lease_key::LeaseKey,
-        maximum: crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize,
+        lease_id: crate::lease_id::LeaseId,
+        lease_key: crate::lease_key::LeaseKey,
+        lease_registry_maximum_non_zero_usize: crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize,
     ) -> crate::lease_reservation::LeaseReservation {
         {
             let mut inner = self.inner.write().await;
-            inner.reserve(id, &key, maximum, tokio::time::Instant::now())
+            inner.reserve(
+                lease_id,
+                &lease_key,
+                lease_registry_maximum_non_zero_usize,
+                tokio::time::Instant::now(),
+            )
         }
     }
 
     pub async fn stale(
         &self,
-        timeout: crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration,
+        lease_stale_timeout_duration: crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration,
     ) -> crate::lease_ids::LeaseIds {
         let mut inner = self.inner.write().await;
-        inner.stale(tokio::time::Instant::now(), timeout)
+        inner.stale(tokio::time::Instant::now(), lease_stale_timeout_duration)
     }
 }
 #[cfg(test)]
 mod tests {
-    fn id(value: &str) -> crate::lease_id::LeaseId {
-        crate::lease_id::LeaseId::try_from(value.to_owned())
+    fn id(str: &str) -> crate::lease_id::LeaseId {
+        crate::lease_id::LeaseId::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_F1F58ADC)
     }
-    fn lease_key(value: &str) -> crate::lease_key::LeaseKey {
-        crate::lease_key::LeaseKey::try_from(value.to_owned())
+    fn lease_key(str: &str) -> crate::lease_key::LeaseKey {
+        crate::lease_key::LeaseKey::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_699F4283)
     }
     fn maximum() -> crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize {

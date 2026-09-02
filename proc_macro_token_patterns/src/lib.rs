@@ -2,9 +2,9 @@ pub(crate) mod proc_macro2_generate_tp_input;
 pub(crate) mod proc_macro2_generate_tp_output;
 
 fn generate_tp(
-    input: proc_macro2_generate_tp_input::ProcMacro2GenerateTpInput,
+    proc_macro2_generate_tp_input: proc_macro2_generate_tp_input::ProcMacro2GenerateTpInput,
 ) -> proc_macro2_generate_tp_output::ProcMacro2GenerateTpOutput {
-    let mut iter = proc_macro2::TokenStream::from(input).into_iter();
+    let mut iter = proc_macro2::TokenStream::from(proc_macro2_generate_tp_input).into_iter();
     let Some(name) =
         workspace_macro_helpers::parse_first_identifier::parse_first_identifier(&mut iter)
     else {
@@ -37,18 +37,20 @@ fn generate_tp(
     })
 }
 #[proc_macro]
-pub fn tp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn tp(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     proc_macro2::TokenStream::from(generate_tp(
         proc_macro2_generate_tp_input::ProcMacro2GenerateTpInput::from(
-            proc_macro2::TokenStream::from(input),
+            proc_macro2::TokenStream::from(token_stream),
         ),
     ))
     .into()
 }
 #[proc_macro]
-pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn tp_parts(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     );
     if parts.len() < 2 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
@@ -81,8 +83,8 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     .into()
 }
 #[proc_macro]
-pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let mut iter = proc_macro2::TokenStream::from(input).into_iter();
+pub fn ts_path_fn(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let mut iter = proc_macro2::TokenStream::from(token_stream).into_iter();
     let Some(name) =
         workspace_macro_helpers::parse_first_identifier::parse_first_identifier(&mut iter)
     else {
@@ -109,8 +111,8 @@ pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     .into()
 }
 #[proc_macro]
-pub fn tp_batch(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let output = proc_macro2::TokenStream::from(input)
+pub fn tp_batch(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let output = proc_macro2::TokenStream::from(token_stream)
         .into_iter()
         .filter_map(|token| match token {
             proc_macro2::TokenTree::Group(group)

@@ -13,9 +13,9 @@
     obligations = frontend_contract::route_coverage_obligation::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     openapi_operation_id = "create_notification",
     path = "/notifications",
-    request = crate::create_notification_req::CreateNotificationReq,
+    request = crate::create_notification_request::CreateNotificationRequest,
     request_body = frontend_contract::route_request_body::RouteRequestBody::Json,
-    response = crate::create_notification_res::CreateNotificationRes,
+    response = crate::create_notification_response::CreateNotificationResponse,
     success_status = frontend_contract::success_status::SuccessStatus::Code201,
     transport = frontend_contract::public_transport::PublicTransport
 )]

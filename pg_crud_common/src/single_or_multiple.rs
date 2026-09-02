@@ -48,11 +48,11 @@ where
     }
 
     fn schemas(
-        schemas: &mut Vec<(
+        vec: &mut Vec<(
             String,
             utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
         )>,
     ) {
-        T::schemas(schemas);
+        T::schemas(vec);
     }
 }

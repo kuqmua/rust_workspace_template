@@ -71,11 +71,11 @@ impl Import {
     }
 }
 impl quote::ToTokens for Import {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+    fn to_tokens(&self, token_stream: &mut proc_macro2::TokenStream) {
         match &self {
             Self::Crate => quote::quote! { crate },
             Self::PgCrudCommon => quote::quote! { pg_crud_common },
         }
-        .to_tokens(tokens);
+        .to_tokens(token_stream);
     }
 }

@@ -1,10 +1,10 @@
 #[must_use]
 pub fn resolve_client_ip(
-    headers: crate::http_header_map_ref::HttpHeaderMapRef<'_>,
-    peer: crate::client_socket_addr::ClientSocketAddr,
+    http_header_map_ref: crate::http_header_map_ref::HttpHeaderMapRef<'_>,
+    client_socket_addr: crate::client_socket_addr::ClientSocketAddr,
     trusted_proxy_ranges: &crate::trusted_proxy_ranges::TrustedProxyRanges,
 ) -> crate::resolved_client_ip_addr::ResolvedClientIpAddr {
-    let peer_ip = peer.ip();
+    let peer_ip = client_socket_addr.ip();
     if !trusted_proxy_ranges
         .contains(crate::parsed_ip_addr::ParsedIpAddr::from(peer_ip))
         .get()
@@ -12,7 +12,7 @@ pub fn resolve_client_ip(
         return crate::resolved_client_ip_addr::ResolvedClientIpAddr::from(peer_ip);
     }
     let parsed_forwarded_ip = || {
-        let values = headers
+        let values = http_header_map_ref
             .get()
             .get_all(constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME);
         let mut iter = values.iter();
@@ -49,7 +49,7 @@ pub fn resolve_client_ip(
             .flatten()
     };
     let parsed_real_ip = || {
-        let values = headers
+        let values = http_header_map_ref
             .get()
             .get_all(constants_str::RUNTIME_REAL_IP_HEADER_NAME);
         let mut iter = values.iter();

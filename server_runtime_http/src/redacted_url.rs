@@ -22,14 +22,15 @@ impl AsRef<str> for RedactedUrl {
 }
 
 impl std::fmt::Display for RedactedUrl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.as_ref())
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_ref())
     }
 }
 
 impl std::fmt::Debug for RedactedUrl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(constants_str::REDACTED_URL)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_tuple(constants_str::REDACTED_URL)
             .field(&self.as_ref())
             .finish()
     }

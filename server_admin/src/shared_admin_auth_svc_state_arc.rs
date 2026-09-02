@@ -12,7 +12,9 @@ pub struct SharedAdminAuthSvcStateArc(
 
 impl SharedAdminAuthSvcStateArc {
     #[must_use]
-    pub fn from_state(state: crate::admin_auth_svc_state::AdminAuthSvcState) -> Self {
-        Self::from(std::sync::Arc::new(state))
+    pub fn from_state(
+        admin_auth_svc_state: crate::admin_auth_svc_state::AdminAuthSvcState,
+    ) -> Self {
+        Self::from(std::sync::Arc::new(admin_auth_svc_state))
     }
 }

@@ -1,15 +1,15 @@
 pub(crate) fn assignment_ids_impl<Id, IdError, Ids, IdsError>(
-    value: &crate::admin_html_form_text::AdminHtmlFormText,
+    admin_html_form_text: &crate::admin_html_form_text::AdminHtmlFormText,
 ) -> Result<Ids, crate::admin_error::AdminError>
 where
     Id: TryFrom<i64, Error = IdError>,
     Ids: TryFrom<Vec<Id>, Error = IdsError>,
 {
-    if value.is_empty() {
+    if admin_html_form_text.is_empty() {
         return Ids::try_from(Vec::new())
             .map_err(|_error| crate::admin_error::AdminError::Validation);
     }
-    let values = value
+    let values = admin_html_form_text
         .split(',')
         .map(|item| {
             let parsed = item

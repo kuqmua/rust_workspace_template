@@ -9,12 +9,12 @@ pub struct ReqwestClient(reqwest::Client);
 impl ReqwestClient {
     pub async fn execute(
         &self,
-        mut request: crate::reqwest_request::ReqwestRequest,
+        mut reqwest_request: crate::reqwest_request::ReqwestRequest,
     ) -> Result<crate::reqwest_response::ReqwestResponse, crate::reqwest_error::ReqwestError> {
-        let span = Self::prepare_observed_http_request(&mut request);
+        let span = Self::prepare_observed_http_request(&mut reqwest_request);
         tracing::Instrument::instrument(
             async {
-                match self.0.execute(request.into_inner()).await {
+                match self.0.execute(reqwest_request.into_inner()).await {
                     Ok(response) => {
                         let _client_status_record = tracing::Span::current().record(
                             constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE,
@@ -47,11 +47,11 @@ impl ReqwestClient {
         reason = "request instrumentation preparation is shared with deterministic test_tests"
     )]
     pub(crate) fn prepare_observed_http_request(
-        request: &mut crate::reqwest_request::ReqwestRequest,
+        reqwest_request: &mut crate::reqwest_request::ReqwestRequest,
     ) -> super::tracing_http_client_span::TracingHttpClientSpan {
         let span = {
-            let method = request.method();
-            let host = request.host().unwrap_or_else(|| {
+            let method = reqwest_request.method();
+            let host = reqwest_request.host().unwrap_or_else(|| {
                 crate::http_host_ref::HttpHostRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)
             });
             let span = tracing::info_span!(
@@ -71,19 +71,19 @@ impl ReqwestClient {
             &crate::opentelemetry_context::OpentelemetryContext::from(
                 tracing_opentelemetry::OpenTelemetrySpanExt::context(&span),
             ),
-            request.headers_mut(),
+            reqwest_request.headers_mut(),
         );
         super::tracing_http_client_span::TracingHttpClientSpan::from(span)
     }
 
     pub fn try_new(
-        policy: super::reqwest_client_policy::ReqwestClientPolicy,
+        reqwest_client_policy: super::reqwest_client_policy::ReqwestClientPolicy,
     ) -> Result<Self, super::reqwest_client_build_error::ReqwestClientBuildError> {
         reqwest::Client::builder()
-            .connect_timeout(*policy.connect_timeout())
-            .timeout(*policy.request_timeout())
+            .connect_timeout(*reqwest_client_policy.connect_timeout())
+            .timeout(*reqwest_client_policy.request_timeout())
             .dns_resolver(crate::outbound_dns_resolver::OutboundDnsResolver::new(
-                policy.host_policy(),
+                reqwest_client_policy.host_policy(),
             ))
             .redirect(reqwest::redirect::Policy::none())
             .user_agent(concat!(

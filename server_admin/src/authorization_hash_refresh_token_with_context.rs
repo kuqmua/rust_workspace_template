@@ -1,12 +1,12 @@
 pub(crate) fn authorization_hash_refresh_token_with_context(
-    token: &crate::admin_opaque_token::AdminOpaqueToken,
-    context_hash: &crate::admin_token_hash::AdminTokenHash,
+    admin_opaque_token: &crate::admin_opaque_token::AdminOpaqueToken,
+    admin_token_hash: &crate::admin_token_hash::AdminTokenHash,
 ) -> Result<
     crate::admin_token_hash::AdminTokenHash,
     crate::admin_secret_text_error::AdminSecretTextError,
 > {
-    let token_text = token.expose();
-    let context_hash_text = context_hash.expose();
+    let token_text = admin_opaque_token.expose();
+    let context_hash_text = admin_token_hash.expose();
     let mut token_with_context = String::with_capacity(
         token_text
             .as_ref()

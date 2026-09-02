@@ -14,15 +14,15 @@ struct BoundedStringIdentifierVisitor {
 }
 
 impl<'ast> syn::visit::Visit<'ast> for BoundedStringIdentifierVisitor {
-    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        let derives_bounded_string = i.attrs.iter().any(|attribute| {
+    fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
+        let derives_bounded_string = item_struct.attrs.iter().any(|attribute| {
             crate::code_style::derive_attr_has_terminal(
                 crate::types::SynAttributeRef::from(attribute),
                 crate::types::SourceTextRef::from(stringify!(BoundedString)),
             )
             .get()
         });
-        let stores_bounded_string = match &i.fields {
+        let stores_bounded_string = match &item_struct.fields {
             syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
                 fields.unnamed.first().is_some_and(|field| {
                     crate::code_style::type_path_ends_with_identifier(
@@ -35,30 +35,30 @@ impl<'ast> syn::visit::Visit<'ast> for BoundedStringIdentifierVisitor {
             syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
         };
         if derives_bounded_string || stores_bounded_string {
-            let _: bool = self.identifiers.insert(i.ident.to_string());
+            let _: bool = self.identifiers.insert(item_struct.ident.to_string());
         }
-        syn::visit::visit_item_struct(self, i);
+        syn::visit::visit_item_struct(self, item_struct);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for SecretBoxStringVisitor {
-    fn visit_macro(&mut self, i: &'ast syn::Macro) {
-        let tokens = i.tokens.to_string();
+    fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
+        let tokens = r#macro.tokens.to_string();
         if tokens.contains(constants_str::VALUE_27E33079)
             || tokens.contains(constants_str::VALUE_B7FC9172)
         {
             self.found_count.saturating_inc();
         }
-        syn::visit::visit_macro(self, i);
+        syn::visit::visit_macro(self, r#macro);
     }
 
-    fn visit_type(&mut self, i: &'ast syn::Type) {
-        if let Some(identifier) = type_secret_box_argument_identifier(i) {
+    fn visit_type(&mut self, ty: &'ast syn::Type) {
+        if let Some(identifier) = type_secret_box_argument_identifier(ty) {
             let _was_inserted = self.argument_identifiers.insert(identifier.to_string());
         }
-        if type_is_secret_box_string(i) {
+        if type_is_secret_box_string(ty) {
             self.found_count.saturating_inc();
         }
-        syn::visit::visit_type(self, i);
+        syn::visit::visit_type(self, ty);
     }
 }
 fn type_is_secret_box_string(ty: &syn::Type) -> bool {
@@ -85,7 +85,7 @@ fn type_secret_box_argument_identifier(ty: &syn::Type) -> Option<&syn::Ident> {
 }
 #[test]
 fn test_secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_3B1BC5FE),
         crate::types::SourceTextRef::from(constants_str::VALUE_820D50A4),
         |path, ast, errors| {
@@ -94,7 +94,7 @@ fn test_secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
                 SecretBoxStringVisitor::default(),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMsgsMutRef::from(errors),
+                crate::types::DiagnosticMessagesMutRef::from(errors),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(constants_str::VALUE_05D8F7AC),
                 *visitor.get_found_count(),

@@ -1,7 +1,7 @@
 pub fn validate_pg_relation_capacity(
     current: crate::pg_relation_row_count::PgRelationRowCount,
     incoming: crate::pg_relation_row_count::PgRelationRowCount,
-    maximum: crate::pg_relation_capacity_maximum::PgRelationCapacityMaximum,
+    pg_relation_capacity_maximum: crate::pg_relation_capacity_maximum::PgRelationCapacityMaximum,
 ) -> Result<
     crate::pg_relation_row_count::PgRelationRowCount,
     crate::pg_relation_capacity_error::PgRelationCapacityError,
@@ -10,7 +10,7 @@ pub fn validate_pg_relation_capacity(
         .get_inner()
         .checked_add(*incoming.get_inner())
         .ok_or(crate::pg_relation_capacity_error::PgRelationCapacityError::Overflow)?;
-    if projected > maximum.get_inner().get() {
+    if projected > pg_relation_capacity_maximum.get_inner().get() {
         Err(crate::pg_relation_capacity_error::PgRelationCapacityError::Exceeded)
     } else {
         Ok(crate::pg_relation_row_count::PgRelationRowCount::from(

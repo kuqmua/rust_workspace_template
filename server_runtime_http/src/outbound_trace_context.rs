@@ -9,9 +9,9 @@ impl OutboundTraceContext {
     #[must_use]
     pub fn apply(
         &self,
-        request: crate::reqwest_request_builder::ReqwestRequestBuilder,
+        reqwest_request_builder: crate::reqwest_request_builder::ReqwestRequestBuilder,
     ) -> crate::reqwest_request_builder::ReqwestRequestBuilder {
-        let request_with_parent = reqwest::RequestBuilder::from(request)
+        let request_with_parent = reqwest::RequestBuilder::from(reqwest_request_builder)
             .header(constants_str::TRACEPARENT, self.trace_parent.as_ref());
         let request_with_state = match self.trace_state.as_ref() {
             Some(trace_state) => {
@@ -30,13 +30,13 @@ impl OutboundTraceContext {
 
     #[must_use]
     pub const fn new(
-        trace_parent: crate::http_trace_parent::HttpTraceParent,
+        http_trace_parent: crate::http_trace_parent::HttpTraceParent,
         trace_state: Option<crate::http_trace_state::HttpTraceState>,
         request_id: Option<crate::request_id::RequestId>,
     ) -> Self {
         Self {
             request_id,
-            trace_parent,
+            trace_parent: http_trace_parent,
             trace_state,
         }
     }

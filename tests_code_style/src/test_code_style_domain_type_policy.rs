@@ -14,10 +14,10 @@ fn test_string_wrappers_do_not_use_from_string() {
                     .collect::<std::collections::BTreeSet<String>>(),
             )
         });
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::E2A6B9C4),
         crate::types::SourceTextRef::from(constants_str::STRING_WRAPPERS_MUST_VALIDATE_LENGTH_USE_TRYFROM_STRING_WITH_A_LENGTH_CHECK),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(path))
                 .get()
             {
@@ -27,9 +27,9 @@ fn test_string_wrappers_do_not_use_from_string() {
                 crate::code_style::string_wrapper_names(crate::types::SynFileRef::from(ast));
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::StringWrapperFromVisitor::new(crate::types::DiagnosticMsgs::default(), &len_checked_function_names, &string_wrapper_names, crate::types::SourceTextBTreeSet::default(), crate::types::SourceTextBTreeSet::default()),
+                super::domain_analysis::StringWrapperFromVisitor::new(crate::types::DiagnosticMessages::default(), &len_checked_function_names, &string_wrapper_names, crate::types::SourceTextBTreeSet::default(), crate::types::SourceTextBTreeSet::default()),
             );
-            ers.extend(string_wrapper_names.iter().filter_map(|name| {
+            errors.extend(string_wrapper_names.iter().filter_map(|name| {
                         if visitor.get_try_from_string_names().contains(name) {
                             None
                         } else {
@@ -39,7 +39,7 @@ fn test_string_wrappers_do_not_use_from_string() {
                             ))
                         }
                     }));
-            ers.extend(string_wrapper_names.iter().filter_map(|name| {
+            errors.extend(string_wrapper_names.iter().filter_map(|name| {
                         if visitor.get_try_from_string_len_checked_names().contains(name) {
                             None
                         } else {
@@ -49,9 +49,9 @@ fn test_string_wrappers_do_not_use_from_string() {
                             ))
                         }
                     }));
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -66,23 +66,24 @@ fn test_from_string_impl_visitor_rejects_non_string_wrappers_too() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::StringWrapperFromVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             &len_checked_function_names,
             &string_wrapper_names,
             crate::types::SourceTextBTreeSet::default(),
             crate::types::SourceTextBTreeSet::default(),
         ),
     );
-    let ers = visitor
-        .get_ers()
+    let errors = visitor
+        .get_errors()
         .clone()
         .into_iter()
         .collect::<Vec<String>>();
-    assert_eq!(ers.len(), 1, "a06d3c4f {ers:#?}");
+    assert_eq!(errors.len(), 1, "a06d3c4f {errors:#?}");
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_1CCF1FF0)),
-        "b19e40c8 {ers:#?}"
+        "b19e40c8 {errors:#?}"
     );
 }
 #[test]
@@ -98,7 +99,7 @@ fn test_bounded_string_derive_satisfies_string_wrapper_policy() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::StringWrapperFromVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             &len_checked_function_names,
             &string_wrapper_names,
             crate::types::SourceTextBTreeSet::default(),
@@ -118,26 +119,26 @@ fn test_bounded_string_derive_satisfies_string_wrapper_policy() {
         "69f280b3"
     );
     assert!(
-        visitor.get_ers().is_empty(),
+        visitor.get_errors().is_empty(),
         "fbd8c479 {:#?}",
-        visitor.get_ers()
+        visitor.get_errors()
     );
 }
 #[test]
 fn test_bounded_string_wrappers_store_bounded_string() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::E2A6B9C4),
         crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::BoundedStringStorageVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -155,14 +156,14 @@ fn test_bounded_string_storage_visitor_rejects_raw_string_and_old_derive() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::BoundedStringStorageVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
     assert_eq!(
-        visitor.get_ers().len(),
+        visitor.get_errors().len(),
         2,
         "9301b84f {:#?}",
-        visitor.get_ers()
+        visitor.get_errors()
     );
 }
 #[test]
@@ -188,7 +189,7 @@ fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::StringWrapperFromVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             &len_checked_function_names,
             &string_wrapper_names,
             crate::types::SourceTextBTreeSet::default(),
@@ -234,7 +235,7 @@ fn test_newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::StringWrapperFromVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             &len_checked_function_names,
             &string_wrapper_names,
             crate::types::SourceTextBTreeSet::default(),
@@ -280,7 +281,7 @@ fn test_manual_try_from_delegated_validator_satisfies_string_wrapper_policy() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::StringWrapperFromVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             &len_checked_function_names,
             &string_wrapper_names,
             crate::types::SourceTextBTreeSet::default(),
@@ -302,17 +303,17 @@ fn test_manual_try_from_delegated_validator_satisfies_string_wrapper_policy() {
 }
 #[test]
 fn test_tuple_wrappers_do_not_expose_inner_field() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::B7C84E2A),
         crate::types::SourceTextRef::from(constants_str::PUBLIC_TUPLE_WRAPPERS_MUST_NOT_EXPOSE_INNER_FIELDS_INITIALIZE_THEM_THROUGH_FROM),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::PublicTupleWrapperFieldVisitor::new(crate::types::DiagnosticMsgs::default()),
+                super::domain_analysis::PublicTupleWrapperFieldVisitor::new(crate::types::DiagnosticMessages::default()),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -320,10 +321,10 @@ fn test_tuple_wrappers_do_not_expose_inner_field() {
 }
 #[test]
 fn test_tuple_wrapper_deserialization_uses_from_or_try_from() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::B7C84E2A),
         crate::types::SourceTextRef::from(constants_str::VALUE_532F14A8),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let collector = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::TupleWrapperConversionCollector::new(
@@ -339,12 +340,12 @@ fn test_tuple_wrapper_deserialization_uses_from_or_try_from() {
             let derive_visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::DirectDeserializeTupleWrapperVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 derive_visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -352,13 +353,13 @@ fn test_tuple_wrapper_deserialization_uses_from_or_try_from() {
             let manual_visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::ManualDeserializeTupleWrapperVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     collector.get_names(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 manual_visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -414,12 +415,12 @@ fn test_tuple_wrapper_deserialization_policy_rejects_direct_derive() {
     let derive_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::DirectDeserializeTupleWrapperVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    assert_eq!(derive_visitor.get_ers().len(), 1, "b0406560");
+    assert_eq!(derive_visitor.get_errors().len(), 1, "b0406560");
     assert!(
-        derive_visitor.get_ers().first().is_some_and(|error| {
+        derive_visitor.get_errors().first().is_some_and(|error| {
             error.contains(constants_str::VALUE_55F7B06B)
                 && error.contains(constants_str::VALUE_43E042B0)
         }),
@@ -428,13 +429,13 @@ fn test_tuple_wrapper_deserialization_policy_rejects_direct_derive() {
     let manual_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::ManualDeserializeTupleWrapperVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             collector.get_names(),
         ),
     );
-    assert_eq!(manual_visitor.get_ers().len(), 1, "fbe61e18");
+    assert_eq!(manual_visitor.get_errors().len(), 1, "fbe61e18");
     assert!(
-        manual_visitor.get_ers().first().is_some_and(|error| {
+        manual_visitor.get_errors().first().is_some_and(|error| {
             error.contains(constants_str::VALUE_F8243212)
                 && error.contains(constants_str::VALUE_98BCCBF1)
         }),
@@ -443,10 +444,10 @@ fn test_tuple_wrapper_deserialization_policy_rejects_direct_derive() {
 }
 #[test]
 fn test_tuple_wrappers_initialize_only_through_from_or_try_from() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::B7C84E2A),
         crate::types::SourceTextRef::from(constants_str::VALUE_15F71E67),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let collector = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::TupleWrapperConversionCollector::new(
@@ -459,7 +460,7 @@ fn test_tuple_wrappers_initialize_only_through_from_or_try_from() {
                     crate::types::SourceTextBTreeSet::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 collector
                     .get_names()
                     .difference(collector.get_converted_names())
@@ -470,7 +471,7 @@ fn test_tuple_wrappers_initialize_only_through_from_or_try_from() {
                         )
                     }),
             );
-            ers.extend(
+            errors.extend(
                 collector
                     .get_from_inner_names()
                     .intersection(collector.get_try_from_inner_names())
@@ -485,14 +486,14 @@ fn test_tuple_wrappers_initialize_only_through_from_or_try_from() {
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::DirectTupleWrapperConstructorVisitor::new(
                     None,
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     crate::types::AnalyzerBool::default(),
                     collector.get_names(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -613,12 +614,12 @@ fn test_tuple_wrapper_initialization_policy_rejects_direct_constructors() {
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::DirectTupleWrapperConstructorVisitor::new(
             None,
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::AnalyzerBool::default(),
             collector.get_names(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 2, "dd79f331");
+    assert_eq!(visitor.get_errors().len(), 2, "dd79f331");
 }
 #[test]
 fn test_domain_boundaries_use_repository_declared_types() {
@@ -634,10 +635,10 @@ fn test_domain_boundaries_use_repository_declared_types() {
         names.extend(visitor.get_names().iter().cloned());
     });
     let repo_types = crate::types::SourceTextBTreeSet::from(names);
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::A7F9C3E1),
         crate::types::SourceTextRef::from(constants_str::RAW_EXTERNAL_OR_PRIMITIVE_TYPES_FOUND_IN_DOMAIN_BOUNDARIES_USE_REPOSITORY_DOMAIN),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(path))
                 .get()
                 || crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
@@ -650,22 +651,22 @@ fn test_domain_boundaries_use_repository_declared_types() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::DomainTypePolicyVisitor::new(crate::types::AnalyzerBool::default(), crate::types::AnalyzerCount::default(), crate::types::DiagnosticMsgs::default(), Vec::new(), crate::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()), crate::types::SourceTextBTreeSetRef::from(repo_types.as_ref())),
+                super::domain_analysis::DomainTypePolicyVisitor::new(crate::types::AnalyzerBool::default(), crate::types::AnalyzerCount::default(), crate::types::DiagnosticMessages::default(), Vec::new(), crate::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()), crate::types::SourceTextBTreeSetRef::from(repo_types.as_ref())),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
             let local_visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::RawTextLocalVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 local_visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -773,21 +774,21 @@ fn test_domain_type_policy_reports_raw_browser_external_types_natively() {
         super::domain_analysis::DomainTypePolicyVisitor::new(
             crate::types::AnalyzerBool::from(true),
             crate::types::AnalyzerCount::default(),
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             Vec::new(),
             crate::types::SourceTextBTreeSetRef::from(&repo_crates),
             crate::types::SourceTextBTreeSetRef::from(&repo_types),
         ),
     );
     assert_eq!(
-        visitor.get_ers().len(),
+        visitor.get_errors().len(),
         constants_usize::ONE,
         "79ce162a {:#?}",
-        visitor.get_ers()
+        visitor.get_errors()
     );
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .first()
             .is_some_and(|error| error.contains(constants_str::VALUE_A7FCF9B8)),
         "bd624f03"
@@ -804,21 +805,21 @@ fn test_proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
         super::domain_analysis::DomainTypePolicyVisitor::new(
             crate::types::AnalyzerBool::from(true),
             crate::types::AnalyzerCount::default(),
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             Vec::new(),
             crate::types::SourceTextBTreeSetRef::from(&repo_crates),
             crate::types::SourceTextBTreeSetRef::from(&repo_types),
         ),
     );
     assert_eq!(
-        visitor.get_ers().len(),
+        visitor.get_errors().len(),
         2usize,
         "c82fb6d1 {:#?}",
-        visitor.get_ers()
+        visitor.get_errors()
     );
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .iter()
             .all(|error| error.contains(constants_str::VALUE_E81D3B0E)),
         "109eb4a7"
@@ -837,27 +838,29 @@ fn test_domain_type_policy_checks_explicit_closure_parameter_types() {
         super::domain_analysis::DomainTypePolicyVisitor::new(
             crate::types::AnalyzerBool::from(true),
             crate::types::AnalyzerCount::default(),
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             Vec::new(),
             crate::types::SourceTextBTreeSetRef::from(&repo_crates),
             crate::types::SourceTextBTreeSetRef::from(&repo_types),
         ),
     );
-    let ers = visitor
-        .get_ers()
+    let errors = visitor
+        .get_errors()
         .clone()
         .into_iter()
         .collect::<Vec<String>>();
-    assert_eq!(ers.len(), 2, "0f6d3a91 {ers:#?}");
+    assert_eq!(errors.len(), 2, "0f6d3a91 {errors:#?}");
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_8212AC3A)),
-        "d4b2f8a0 {ers:#?}"
+        "d4b2f8a0 {errors:#?}"
     );
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_27005C7D)),
-        "60b8ae2d {ers:#?}"
+        "60b8ae2d {errors:#?}"
     );
 }
 
@@ -871,16 +874,18 @@ fn test_domain_type_policy_checks_explicit_local_types() {
     };
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::domain_analysis::RawTextLocalVisitor::new(crate::types::DiagnosticMsgs::default()),
+        super::domain_analysis::RawTextLocalVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
     );
-    assert_eq!(visitor.get_ers().len(), 1, "90d1487c");
+    assert_eq!(visitor.get_errors().len(), 1, "90d1487c");
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .first()
             .is_some_and(|error| error.contains(constants_str::VALUE_CBBF3E32)),
         "0db73fec {:#?}",
-        visitor.get_ers()
+        visitor.get_errors()
     );
 }
 
@@ -909,30 +914,31 @@ fn test_domain_type_policy_allows_only_option_and_result_containers() {
         super::domain_analysis::DomainTypePolicyVisitor::new(
             crate::types::AnalyzerBool::from(true),
             crate::types::AnalyzerCount::default(),
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             Vec::new(),
             crate::types::SourceTextBTreeSetRef::from(&repo_crates),
             crate::types::SourceTextBTreeSetRef::from(&repo_types),
         ),
     );
-    let ers = visitor
-        .get_ers()
+    let errors = visitor
+        .get_errors()
         .clone()
         .into_iter()
         .collect::<Vec<String>>();
-    assert_eq!(ers.len(), 1, "c47a91e2 {ers:#?}");
+    assert_eq!(errors.len(), 1, "c47a91e2 {errors:#?}");
     assert!(
-        ers.first()
+        errors
+            .first()
             .is_some_and(|error| error.contains(constants_str::VALUE_14A14329)),
-        "d8b305f6 {ers:#?}"
+        "d8b305f6 {errors:#?}"
     );
 }
 #[test]
 fn test_analyzer_state_struct_fields_use_repository_declared_wrappers() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::F2C7A91B),
         crate::types::SourceTextRef::from(constants_str::RAW_TEXT_CONTAINERS_FOUND_IN_HELPER_STRUCT_FIELDS_USE_REPOSITORY_WRAPPER_TYPES),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(path))
                 .get()
             {
@@ -940,11 +946,11 @@ fn test_analyzer_state_struct_fields_use_repository_declared_wrappers() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::AnalyzerStateRawContainerFieldVisitor::new(crate::types::DiagnosticMsgs::default()),
+                super::domain_analysis::AnalyzerStateRawContainerFieldVisitor::new(crate::types::DiagnosticMessages::default()),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -956,37 +962,40 @@ fn test_analyzer_state_raw_container_field_visitor_reports_helper_fields() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::AnalyzerStateRawContainerFieldVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    let ers = visitor
-        .get_ers()
+    let errors = visitor
+        .get_errors()
         .clone()
         .into_iter()
         .collect::<Vec<String>>();
-    assert_eq!(ers.len(), 3, "2c0b7e91 {ers:#?}");
+    assert_eq!(errors.len(), 3, "2c0b7e91 {errors:#?}");
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_7C64B919)),
-        "74e18b2d {ers:#?}"
+        "74e18b2d {errors:#?}"
     );
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_F6C0ACAB)),
-        "4a0df351 {ers:#?}"
+        "4a0df351 {errors:#?}"
     );
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_6FCF10B8)),
-        "81c6a2ef {ers:#?}"
+        "81c6a2ef {errors:#?}"
     );
 }
 #[test]
 fn test_helper_return_types_use_repository_declared_text_wrappers() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_6D41C8E2),
         crate::types::SourceTextRef::from(constants_str::RAW_TEXT_RETURN_TYPES_FOUND_IN_HELPER_FUNCTIONS_USE_REPOSITORY_WRAPPER_TYPES),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::is_code_style_meta_harness_source_path(crate::types::PathRef::from(path))
                 .get()
             {
@@ -994,11 +1003,11 @@ fn test_helper_return_types_use_repository_declared_text_wrappers() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::domain_analysis::HelperRawTextReturnVisitor::new(crate::types::DiagnosticMsgs::default()),
+                super::domain_analysis::HelperRawTextReturnVisitor::new(crate::types::DiagnosticMessages::default()),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -1013,45 +1022,49 @@ fn test_helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::HelperRawTextReturnVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    let ers = visitor
-        .get_ers()
+    let errors = visitor
+        .get_errors()
         .clone()
         .into_iter()
         .collect::<Vec<String>>();
-    assert_eq!(ers.len(), 4, "7b2e41a0 {ers:#?}");
+    assert_eq!(errors.len(), 4, "7b2e41a0 {errors:#?}");
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_801070C4)),
-        "08d4b6ea {ers:#?}"
+        "08d4b6ea {errors:#?}"
     );
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_EB19F83F)),
-        "ae71c3f4 {ers:#?}"
+        "ae71c3f4 {errors:#?}"
     );
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_8AB55626)),
-        "59f0bca8 {ers:#?}"
+        "59f0bca8 {errors:#?}"
     );
     assert!(
-        ers.iter()
+        errors
+            .iter()
             .any(|error| error.contains(constants_str::VALUE_F834D834)),
-        "c46d8e10 {ers:#?}"
+        "c46d8e10 {errors:#?}"
     );
 }
 #[test]
 fn test_external_leaf_tuple_wrappers_include_source_name() {
     let repo_crates = crate::code_style::workspace_crate_names();
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::B93D2A8C),
         crate::types::SourceTextRef::from(
             constants_str::TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_SOURCE_NAME,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::domain_type_policy_should_check_path(
                 crate::types::PathRef::from(path),
             )
@@ -1062,13 +1075,13 @@ fn test_external_leaf_tuple_wrappers_include_source_name() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::ExternalLeafWrapperNameVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     crate::types::SourceTextBTreeSetRef::from(repo_crates.as_ref()),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -1086,19 +1099,19 @@ fn test_external_leaf_wrapper_type_rule_has_no_name_exceptions() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::domain_analysis::ExternalLeafWrapperNameVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextBTreeSetRef::from(&repo_crates),
         ),
     );
     assert_eq!(
-        visitor.get_ers().len(),
+        visitor.get_errors().len(),
         constants_usize::ONE,
         "9db6310a {:#?}",
-        visitor.get_ers()
+        visitor.get_errors()
     );
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .first()
             .is_some_and(|error| error.contains(constants_str::VALUE_9CE15201)),
         "e7340ba2"

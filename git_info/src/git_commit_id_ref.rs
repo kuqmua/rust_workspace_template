@@ -15,7 +15,7 @@
 )]
 pub struct GitCommitIdRef<'commit_lt>(&'commit_lt str);
 impl PartialEq<&str> for GitCommitIdRef<'_> {
-    fn eq(&self, other: &&str) -> bool {
-        self.0 == *other
+    fn eq(&self, str: &&str) -> bool {
+        self.0 == *str
     }
 }

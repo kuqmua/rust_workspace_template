@@ -3,8 +3,8 @@
     reason = "the benchmark target links the library package but directly exercises only its public query API"
 )]
 
-fn identifier(value: &str) -> pg_crud_common::sql_identifier::SqlIdentifier {
-    pg_crud_common::sql_identifier::SqlIdentifier::try_from(value.to_owned())
+fn identifier(str: &str) -> pg_crud_common::sql_identifier::SqlIdentifier {
+    pg_crud_common::sql_identifier::SqlIdentifier::try_from(str.to_owned())
         .expect(constants_str::DIAGNOSTIC_CD596C44)
 }
 #[allow(
@@ -24,7 +24,7 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
     .into_iter()
     .for_each(|(benchmark_name, columns_len)| {
         let columns = (constants_usize::ZERO..columns_len)
-            .map(|idx| identifier(format!("column_{idx}").as_str()))
+            .map(|index| identifier(format!("column_{index}").as_str()))
             .collect::<Vec<_>>();
         let builder = pg_crud_common::sql_select_builder::SqlSelectBuilder::new(
             pg_crud_common::sql_qualified_identifier::SqlQualifiedIdentifier::new(

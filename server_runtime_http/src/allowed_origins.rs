@@ -15,8 +15,8 @@ pub struct AllowedOrigins(
 impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = crate::allowed_origins_error::AllowedOriginsError;
 
-    fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
-        let parsed = value
+    fn try_from(vec: Vec<String>) -> Result<Self, Self::Error> {
+        let parsed = vec
             .into_iter()
             .map(crate::allowed_origin::AllowedOrigin::try_from)
             .collect::<Result<

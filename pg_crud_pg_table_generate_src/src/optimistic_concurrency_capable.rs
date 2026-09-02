@@ -6,7 +6,7 @@ pub(crate) const fn optimistic_concurrency_capable<
     PermissionAction,
     StatusCode,
 >(
-    dsc: &crate::operation_dsc::OperationDsc<
+    operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
         Capability,
         HttpMethod,
         Operation,
@@ -18,14 +18,15 @@ pub(crate) const fn optimistic_concurrency_capable<
 where
     Capability: Copy,
 {
-    *dsc.get_optimistic_concurrency_capable()
+    *operation_descriptor.get_optimistic_concurrency_capable()
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn test_returns_optimistic_concurrency_capability() {
-        let dsc = crate::operation_dsc::OperationDsc::new((), false, (), (), true, (), ());
-        assert!(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&dsc));
+        let descriptor =
+            crate::operation_descriptor::OperationDescriptor::new((), false, (), (), true, (), ());
+        assert!(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&descriptor));
     }
 }

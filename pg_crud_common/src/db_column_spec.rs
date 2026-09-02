@@ -21,14 +21,14 @@ impl DbColumnSpec {
     pub const fn new(
         name: crate::db_static_schema_text::DbStaticSchemaText,
         data_type: crate::db_static_schema_text::DbStaticSchemaText,
-        nullable: crate::db_column_nullable::DbColumnNullable,
-        has_server_default: crate::db_column_has_server_default::DbColumnHasServerDefault,
+        db_column_nullable: crate::db_column_nullable::DbColumnNullable,
+        db_column_has_server_default: crate::db_column_has_server_default::DbColumnHasServerDefault,
     ) -> Self {
         Self {
             data_type,
             name,
-            has_server_default,
-            nullable,
+            has_server_default: db_column_has_server_default,
+            nullable: db_column_nullable,
         }
     }
 }

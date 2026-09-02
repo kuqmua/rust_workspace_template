@@ -13,8 +13,11 @@ impl RequestTimeoutLayer {
     }
 
     #[must_use]
-    pub fn apply(self, router: crate::axum_router::AxumRouter) -> crate::axum_router::AxumRouter {
-        crate::axum_router::AxumRouter::from(axum::Router::from(router).layer(
+    pub fn apply(
+        self,
+        axum_router: crate::axum_router::AxumRouter,
+    ) -> crate::axum_router::AxumRouter {
+        crate::axum_router::AxumRouter::from(axum::Router::from(axum_router).layer(
             crate::request_timeout_tower_layer::RequestTimeoutTowerLayer::from(self.duration()),
         ))
     }

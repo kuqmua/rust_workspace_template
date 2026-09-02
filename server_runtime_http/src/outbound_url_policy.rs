@@ -10,22 +10,22 @@ impl OutboundUrlPolicy {
     #[must_use]
     pub const fn new(
         schemes: &'static [crate::outbound_url_scheme::OutboundUrlScheme],
-        host_policy: crate::outbound_host_policy::OutboundHostPolicy,
+        outbound_host_policy: crate::outbound_host_policy::OutboundHostPolicy,
     ) -> Self {
         Self {
             schemes,
-            host_policy,
+            host_policy: outbound_host_policy,
         }
     }
 
     pub fn validate(
         self,
-        value: crate::outbound_url_text_ref::OutboundUrlTextRef<'_>,
+        outbound_url_text_ref: crate::outbound_url_text_ref::OutboundUrlTextRef<'_>,
     ) -> Result<
         crate::reqwest_outbound_url::ReqwestOutboundUrl,
         crate::outbound_url_error::OutboundUrlError,
     > {
-        let value_text = value.get();
+        let value_text = outbound_url_text_ref.get();
         if value_text.contains(['\0', '\r', '\n'])
             || value_text.as_bytes().windows(3usize).any(|window| {
                 window.eq_ignore_ascii_case(constants_str::PERCENT_ENCODED_NUL)

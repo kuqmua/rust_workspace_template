@@ -1,12 +1,12 @@
 pub(super) fn service_catalog_parse(
-    source: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+    scaffold_text_ref: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
 ) -> Result<
     crate::service_catalog_entries::ServiceCatalogEntries,
     crate::scaffold_error::ScaffoldError,
 > {
     let mut entries = Vec::new();
     let mut current = None;
-    source.get().lines().try_for_each(|raw_line| {
+    scaffold_text_ref.get().lines().try_for_each(|raw_line| {
         let trimmed_line = raw_line.trim();
         if trimmed_line == constants_str::VALUE_484ADD83 {
             if let Some(draft) = current.take() {

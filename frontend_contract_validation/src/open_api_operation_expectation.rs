@@ -10,16 +10,16 @@ pub struct OpenApiOperationExpectation {
 impl OpenApiOperationExpectation {
     #[must_use]
     pub const fn new(
-        metadata: frontend_contract::route_metadata::RouteMetadata,
-        status: crate::open_api_response_status::OpenApiResponseStatus,
-        content_type: frontend_contract::contract_str::ContractStr,
-        security: crate::open_api_security_expectation::OpenApiSecurityExpectation,
+        route_metadata: frontend_contract::route_metadata::RouteMetadata,
+        open_api_response_status: crate::open_api_response_status::OpenApiResponseStatus,
+        contract_str: frontend_contract::contract_str::ContractStr,
+        open_api_security_expectation: crate::open_api_security_expectation::OpenApiSecurityExpectation,
     ) -> Self {
         Self {
-            content_type,
-            metadata,
-            security,
-            status,
+            content_type: contract_str,
+            metadata: route_metadata,
+            security: open_api_security_expectation,
+            status: open_api_response_status,
         }
     }
 

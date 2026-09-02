@@ -1,5 +1,5 @@
 pub fn build_generate_where_filters(
-    parsed: crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
+    parsed_generate_where_filters_config: crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
 ) -> Result<
     crate::built_generate_where_filters_model::BuiltGenerateWhereFiltersModel,
     crate::generate_where_filters_pipeline_error::GenerateWhereFiltersPipelineError,
@@ -34,7 +34,7 @@ pub fn build_generate_where_filters(
     });
     Ok(
         crate::built_generate_where_filters_model::BuiltGenerateWhereFiltersModel::from((
-            parsed,
+            parsed_generate_where_filters_config,
             crate::filter_spec_valid::FilterSpecValid::from(valid),
         )),
     )

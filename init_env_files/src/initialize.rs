@@ -4,10 +4,12 @@
     reason = "provides one testable dry-run and apply entry point; repository policy forbids for loops"
 )]
 pub(crate) fn initialize(
-    root: crate::workspace_root_path_ref::WorkspaceRootPathRef<'_>,
-    mode: crate::run_mode::RunMode,
+    workspace_root_path_ref: crate::workspace_root_path_ref::WorkspaceRootPathRef<'_>,
+    run_mode: crate::run_mode::RunMode,
 ) -> Result<crate::init_entries::InitEntries, crate::initialize_error::InitializeError> {
-    let manifest_path = root.as_ref().join(constants_str::CARGO_TOML);
+    let manifest_path = workspace_root_path_ref
+        .as_ref()
+        .join(constants_str::CARGO_TOML);
     let manifest = crate::read_bounded_content::read_bounded_content(
         crate::init_path_ref::InitPathRef::from(manifest_path.as_path()),
         crate::init_max_bytes::InitMaxBytes::from(constants_usize::VALUE_1_048_576),
@@ -46,7 +48,7 @@ pub(crate) fn initialize(
     members
         .into_iter()
         .try_fold(Vec::new(), |mut entries, member| {
-            let example_path = root
+            let example_path = workspace_root_path_ref
                 .as_ref()
                 .join(member.as_ref())
                 .join(constants_str::ENV_EXAMPLE);
@@ -60,7 +62,10 @@ pub(crate) fn initialize(
                 crate::init_max_bytes::InitMaxBytes::from(constants_usize::VALUE_1_048_576),
             )
             .map_err(|source| crate::initialize_error::InitializeError::ReadExample { source })?;
-            let environment_path = root.as_ref().join(member.as_ref()).join(constants_str::ENV);
+            let environment_path = workspace_root_path_ref
+                .as_ref()
+                .join(member.as_ref())
+                .join(constants_str::ENV);
             let status = if bool::from(crate::path_exists::path_exists(
                 crate::init_path_ref::InitPathRef::from(environment_path.as_path()),
             )) {
@@ -99,7 +104,7 @@ pub(crate) fn initialize(
                 };
                 match merged {
                     None => crate::initialization_status::InitializationStatus::SkippedExisting,
-                    Some(_merged) if mode == crate::run_mode::RunMode::DryRun => {
+                    Some(_merged) if run_mode == crate::run_mode::RunMode::DryRun => {
                         crate::initialization_status::InitializationStatus::WouldUpdate
                     }
                     Some(merged_content) => {
@@ -110,7 +115,7 @@ pub(crate) fn initialize(
                         crate::initialization_status::InitializationStatus::Updated
                     }
                 }
-            } else if mode == crate::run_mode::RunMode::DryRun {
+            } else if run_mode == crate::run_mode::RunMode::DryRun {
                 crate::initialization_status::InitializationStatus::WouldCreate
             } else {
                 crate::write_content::write_content(

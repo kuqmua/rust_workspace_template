@@ -14,16 +14,16 @@ impl<'lt> ServerAppState<'lt> {
     #[must_use]
     pub const fn new(
         bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget,
-        config: server_config::server_config::ServerConfig,
+        server_config: server_config::server_config::ServerConfig,
         idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget,
-        pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
+        sqlx_pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
         project_git_info: git_info::project_git_info::ProjectGitInfo<'lt>,
     ) -> Self {
         Self {
             bulk_item_budget,
-            config,
+            config: server_config,
             idempotency_response_budget,
-            pg_pool,
+            pg_pool: sqlx_pg_pool,
             project_git_info,
         }
     }
@@ -55,9 +55,9 @@ proc_macro_impl_cfg_accessor::impl_cfg_accessor!(
     bool
 );
 proc_macro_impl_cfg_accessor::impl_cfg_accessor!(
-    config_lib::domain_types::SrcPlaceTypeProvider,
-    src_place_type,
-    config_lib::src_place_type::SrcPlaceType
+    config_lib::domain_types::SourcePlaceTypeProvider,
+    source_place_type,
+    config_lib::source_place_type::SourcePlaceType
 );
 proc_macro_impl_cfg_accessor::impl_cfg_accessor!(
     config_lib::chrono_timezone::ChronoTimezoneProvider,

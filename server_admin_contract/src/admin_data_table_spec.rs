@@ -16,16 +16,18 @@ pub struct AdminDataTableSpec {
 
 impl AdminDataTableSpec {
     pub(super) const fn new(
-        columns: crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef<'static>,
-        order: crate::admin_data_order_ref::AdminDataOrderRef<'static>,
-        permission: crate::admin_permission::AdminPermission,
-        supports_filters: crate::admin_bool::AdminBool,
+        admin_data_columns_csv_ref: crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef<
+            'static,
+        >,
+        admin_data_order_ref: crate::admin_data_order_ref::AdminDataOrderRef<'static>,
+        admin_permission: crate::admin_permission::AdminPermission,
+        admin_bool: crate::admin_bool::AdminBool,
     ) -> Self {
         Self {
-            columns,
-            order,
-            permission,
-            supports_filters,
+            columns: admin_data_columns_csv_ref,
+            order: admin_data_order_ref,
+            permission: admin_permission,
+            supports_filters: admin_bool,
         }
     }
 }

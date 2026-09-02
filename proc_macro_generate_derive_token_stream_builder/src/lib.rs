@@ -3,7 +3,7 @@ mod to_snake_case_input;
 
 #[proc_macro]
 pub fn generate_derive_token_stream_builder(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     #[derive(Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct Element {
@@ -15,7 +15,7 @@ pub fn generate_derive_token_stream_builder(
     let make_pub_snake_case_token_stream = quote::quote! {make_pub};
     let make_pub_if_snake_case_token_stream = quote::quote! {make_pub_if};
     let make_pub_upper_camel_case_token_stream = quote::quote! {MakePub};
-    let element_vec = serde_json::from_str::<Vec<String>>(&input_token_stream.to_string())
+    let element_vec = serde_json::from_str::<Vec<String>>(&token_stream.to_string())
         .expect(constants_str::DIAGNOSTIC_C5D09740)
         .into_iter()
         .map(|element| {

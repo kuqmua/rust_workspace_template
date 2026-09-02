@@ -1,31 +1,31 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn data_tables_get(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    table: crate::axum_admin_path::AxumAdminPath<
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_path: crate::axum_admin_path::AxumAdminPath<
         server_admin_contract::admin_data_table::AdminDataTable,
     >,
-    data_query: crate::axum_admin_query::AxumAdminQuery<
+    axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
         server_admin_contract::admin_data_table_query::AdminDataTableQuery,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let _actor = crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
-        auth.get_state().as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
-        *auth.get_peer(),
-        table.permission().as_str(),
+        admin_auth_request.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(admin_auth_request.get_headers().as_ref()),
+        *admin_auth_request.get_peer(),
+        axum_admin_path.permission().as_str(),
         server_admin_core::std_admin_bool::StdAdminBool::from(false),
     )
     .await?;
     let pool = crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-        auth.get_state().as_ref().get_pool().as_ref(),
+        admin_auth_request.get_state().as_ref().get_pool().as_ref(),
     );
     let view = async {
-            let spec = table.spec();
+            let spec = axum_admin_path.spec();
             let columns = {
                 let column_names = spec.columns();
                 (|| {
                         let generated_fields =
-                            crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
+                            crate::admin_generated_table::AdminGeneratedTable::for_data_table(*axum_admin_path)
                                 .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts);
                         let columns = column_names
                             .get()
@@ -69,8 +69,8 @@ pub(crate) async fn data_tables_get(
                 })()
             }?;
             let (base_count_sql, base_sql) = (|| {
-                    let base_spec = table.spec();
-                    let table_name = table.to_string();
+                    let base_spec = axum_admin_path.spec();
+                    let table_name = axum_admin_path.to_string();
                     let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
                     count.push_str(table_name.as_str());
                     let mut data = base_spec.columns().get().split(',').enumerate().fold(
@@ -98,7 +98,7 @@ pub(crate) async fn data_tables_get(
                     ))
             })()?;
             let filter = {
-                let query = data_query.filter();
+                let query = axum_admin_query.filter();
                 (|| {
                         let payload = (|| {
                             let (Some(field), Some(operation)) = (query.field(), query.operation()) else {
@@ -113,7 +113,7 @@ pub(crate) async fn data_tables_get(
                                 };
                             };
                             let fields =
-                                crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
+                                crate::admin_generated_table::AdminGeneratedTable::for_data_table(*axum_admin_path)
                                     .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
                                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
                             let field_contract = fields
@@ -126,7 +126,7 @@ pub(crate) async fn data_tables_get(
                             }
                             let parse_value = |value: &server_admin_contract::admin_filter_value::AdminFilterValue| {
                                 let wire_value =
-                                    crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
+                                    crate::admin_generated_table::AdminGeneratedTable::for_data_table(*axum_admin_path)
                                         .and_then(|generated| {
                                             generated.filter_value(
                                                 frontend_contract::form_field_name_ref::FormFieldNameRef::from(field.as_ref()),
@@ -265,7 +265,7 @@ pub(crate) async fn data_tables_get(
                         let Some(payload_wrapper) = payload else {
                             return Ok(None);
                         };
-                        crate::admin_generated_table::AdminGeneratedTable::for_data_table(*table)
+                        crate::admin_generated_table::AdminGeneratedTable::for_data_table(*axum_admin_path)
                             .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
                             .parse_filter(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                                 payload_wrapper.as_ref(),
@@ -358,8 +358,8 @@ pub(crate) async fn data_tables_get(
                     || sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str())),
                     pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
                 )
-                .bind(i64::from(u16::from(data_query.page().limit())))
-                .bind(i64::from(u32::from(data_query.page().offset())));
+                .bind(i64::from(u16::from(axum_admin_query.page().limit())))
+                .bind(i64::from(u32::from(axum_admin_query.page().offset())));
             let rows = bound_data_query
                 .fetch_all(*pool)
                 .await
@@ -392,7 +392,7 @@ pub(crate) async fn data_tables_get(
                     columns,
                     server_admin_contract::admin_data_rows::AdminDataRows::try_from(items)
                         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                    *table,
+                    *axum_admin_path,
                     crate::repository_page_total::repository_page_total(crate::admin_page_total_count::AdminPageTotalCount::from(total))?,
                 ),
             )

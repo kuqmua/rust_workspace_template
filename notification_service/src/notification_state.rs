@@ -13,13 +13,13 @@ pub(crate) struct NotificationState {
 impl NotificationState {
     #[allow(clippy::single_call_fn)] // service startup owns construction while test_tests reuse it under cfg(test)
     pub(crate) const fn new(
-        metrics: crate::notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer,
-        pool: app_state::sqlx_pg_pool::SqlxPgPool,
+        notification_metrics_exporter_prometheus_renderer: crate::notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer,
+        sqlx_pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
         project_git_info: git_info::project_git_info::ProjectGitInfo<'static>,
     ) -> Self {
         Self {
-            metrics,
-            pool,
+            metrics: notification_metrics_exporter_prometheus_renderer,
+            pool: sqlx_pg_pool,
             project_git_info,
         }
     }

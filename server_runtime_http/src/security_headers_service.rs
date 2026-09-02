@@ -21,12 +21,12 @@ where
     >;
     type Response = axum::response::Response;
 
-    fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
-        let is_api_path = req.uri().path().starts_with(constants_str::V1_SLASH);
+    fn call(&mut self, mut request: axum::extract::Request) -> Self::Future {
+        let is_api_path = request.uri().path().starts_with(constants_str::V1_SLASH);
         let is_forwarded_https = matches!(
             self.forwarded_proto_trust,
             crate::forwarded_proto_trust::ForwardedProtoTrust::Trust
-        ) && req
+        ) && request
             .headers()
             .get(constants_str::X_FORWARDED_PROTO)
             .and_then(|value| value.to_str().ok())
@@ -36,7 +36,7 @@ where
                     .next()
                     .is_some_and(|first| first.trim().eq_ignore_ascii_case(constants_str::HTTPS))
             });
-        req.headers_mut().iter_mut().for_each(|(name, value)| {
+        request.headers_mut().iter_mut().for_each(|(name, value)| {
             if name == http::header::AUTHORIZATION
                 || name == http::header::COOKIE
                 || name.as_str() == constants_str::X_CSRF_TOKEN_ALT
@@ -45,7 +45,7 @@ where
             }
         });
         let content_security_policy = self.content_security_policy.clone();
-        let response_future = tower::Service::call(&mut self.inner, req);
+        let response_future = tower::Service::call(&mut self.inner, request);
         Box::pin(async move {
             let mut response = response_future.await?;
             let _content_type_options = response.headers_mut().insert(
@@ -91,8 +91,8 @@ where
 
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        context: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
+        self.inner.poll_ready(context)
     }
 }

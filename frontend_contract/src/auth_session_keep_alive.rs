@@ -14,10 +14,10 @@ pub struct AuthSessionKeepAlive {
 impl AuthSessionKeepAlive {
     pub fn begin(
         &mut self,
-        now: crate::auth_session_instant::AuthSessionInstant,
-        presence: crate::auth_session_presence::AuthSessionPresence,
+        auth_session_instant: crate::auth_session_instant::AuthSessionInstant,
+        auth_session_presence: crate::auth_session_presence::AuthSessionPresence,
     ) -> crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision {
-        if presence == crate::auth_session_presence::AuthSessionPresence::Missing {
+        if auth_session_presence == crate::auth_session_presence::AuthSessionPresence::Missing {
             self.mark_missing();
             return crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipMissing;
         }
@@ -25,7 +25,7 @@ impl AuthSessionKeepAlive {
             return crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipAlreadyRunning;
         }
         if let Some(next) = self.next
-            && now.get() < next.get()
+            && auth_session_instant.get() < next.get()
         {
             return crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipNotDue { next };
         }
@@ -35,19 +35,21 @@ impl AuthSessionKeepAlive {
 
     pub fn finish(
         &mut self,
-        now: crate::auth_session_instant::AuthSessionInstant,
-        outcome: crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome,
+        auth_session_instant: crate::auth_session_instant::AuthSessionInstant,
+        auth_session_refresh_outcome: crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome,
     ) -> crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome {
         self.state = crate::auth_session_refresh_state::AuthSessionRefreshState::Idle;
-        self.next = match outcome {
+        self.next = match auth_session_refresh_outcome {
             crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Failed
-            | crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Refreshed => now
-                .get()
-                .checked_add(self.interval.get())
-                .map(crate::auth_session_instant::AuthSessionInstant::from),
+            | crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Refreshed => {
+                auth_session_instant
+                    .get()
+                    .checked_add(self.interval.get())
+                    .map(crate::auth_session_instant::AuthSessionInstant::from)
+            }
             crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Rejected => None,
         };
-        outcome
+        auth_session_refresh_outcome
     }
 
     pub const fn mark_missing(&mut self) {
@@ -57,10 +59,10 @@ impl AuthSessionKeepAlive {
 
     #[must_use]
     pub const fn new(
-        interval: crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration,
+        auth_session_refresh_interval_duration: crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration,
     ) -> Self {
         Self {
-            interval,
+            interval: auth_session_refresh_interval_duration,
             next: None,
             state: crate::auth_session_refresh_state::AuthSessionRefreshState::Idle,
         }

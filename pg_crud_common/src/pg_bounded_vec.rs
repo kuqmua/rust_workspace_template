@@ -28,8 +28,8 @@ impl<T, const MIN: usize, const MAX: usize> PgBoundedVec<T, MIN, MAX> {
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for PgBoundedVec<T, MIN, MAX> {
     type Error = crate::bounded_vec_error::BoundedVecError;
 
-    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(value)
+    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(vec)
             .map(|bounded| Self(bounded.into_inner()))
             .map_err(crate::bounded_vec_error::BoundedVecError::from)
     }
@@ -67,8 +67,8 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
 impl<T: schemars::JsonSchema, const MIN: usize, const MAX: usize> schemars::JsonSchema
     for PgBoundedVec<T, MIN, MAX>
 {
-    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        let mut schema = generator.subschema_for::<Vec<T>>();
+    fn json_schema(schema_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let mut schema = schema_generator.subschema_for::<Vec<T>>();
         let _previous_min = schema.insert(constants_str::MINITEMS.to_owned(), MIN.into());
         let _previous_max = schema.insert(constants_str::MAXITEMS.to_owned(), MAX.into());
         schema

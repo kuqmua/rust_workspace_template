@@ -1,11 +1,11 @@
 pub(crate) async fn query_audit_log(
-    pool: crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef<'_>,
-    query: crate::admin_audit_query::AdminAuditQuery,
+    sqlx_admin_repository_pool_ref: crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef<'_>,
+    admin_audit_query: crate::admin_audit_query::AdminAuditQuery,
 ) -> Result<
     server_admin_contract::admin_audit_page::AdminAuditPage,
     crate::admin_repository_error::AdminRepositoryError,
 > {
-    let parts = query.into_parts();
+    let parts = admin_audit_query.into_parts();
     let action_text = parts
         .get_action()
         .copied()
@@ -42,7 +42,7 @@ pub(crate) async fn query_audit_log(
             .bind(parts.get_user_login().map(|value| value.as_ref().as_str()))
             .bind(parts.get_resource_id().map(|value| value.as_ref().as_str()))
             .bind(parts.get_succeeded().copied().map(bool::from))
-            .fetch_one(*pool)
+            .fetch_one(*sqlx_admin_repository_pool_ref)
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
     let rows = sqlx::query_as::<
@@ -88,7 +88,7 @@ pub(crate) async fn query_audit_log(
     .bind(parts.get_succeeded().copied().map(bool::from))
     .bind(fetch_limit)
     .bind(i64::from(u32::from(*parts.get_offset())))
-    .fetch_all(*pool)
+    .fetch_all(*sqlx_admin_repository_pool_ref)
     .await
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
     let has_more = rows.len() > limit;

@@ -36,14 +36,17 @@ impl utoipa::ToSchema for NonPrimaryKeyPgTypeReadIds {
 }
 
 impl sqlx::Decode<'_, sqlx::Postgres> for NonPrimaryKeyPgTypeReadIds {
-    fn decode(value: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {
-        <sqlx::types::Json<Self> as sqlx::Decode<sqlx::Postgres>>::decode(value).map(|v0| v0.0)
+    fn decode(
+        pg_value_ref: sqlx::postgres::PgValueRef<'_>,
+    ) -> Result<Self, sqlx::error::BoxDynError> {
+        <sqlx::types::Json<Self> as sqlx::Decode<sqlx::Postgres>>::decode(pg_value_ref)
+            .map(|v0| v0.0)
     }
 }
 
 impl sqlx::Type<sqlx::Postgres> for NonPrimaryKeyPgTypeReadIds {
-    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
-        <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
+    fn compatible(type_info: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(type_info)
     }
 
     fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {

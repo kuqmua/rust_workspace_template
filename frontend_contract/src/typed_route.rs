@@ -19,8 +19,12 @@ pub trait TypedRoute: Sized {
         None
     }
     #[must_use]
+    #[allow(
+        unused_variables,
+        reason = "the default trait hook preserves the repository type-based parameter name"
+    )]
     fn openapi_error_response_schema(
-        _status: crate::route_error_status::RouteErrorStatus,
+        route_error_status: crate::route_error_status::RouteErrorStatus,
     ) -> Option<crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema> {
         Some(
             crate::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema::from(
@@ -37,8 +41,12 @@ pub trait TypedRoute: Sized {
     fn request_body() -> crate::route_request_body::RouteRequestBody {
         crate::route_request_body::RouteRequestBody::Absent
     }
+    #[allow(
+        unused_variables,
+        reason = "the default trait hook preserves the repository type-based parameter name"
+    )]
     fn register_openapi_schemas(
-        _components: &mut crate::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut<
+        utoipa_open_api_components_ref_mut: &mut crate::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut<
             '_,
         >,
     ) {

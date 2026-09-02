@@ -1,8 +1,8 @@
 #[must_use]
 pub(crate) fn resolve_outbound_address_disposition(
-    address: crate::outbound_ip_addr::OutboundIpAddr,
+    outbound_ip_addr: crate::outbound_ip_addr::OutboundIpAddr,
 ) -> crate::outbound_address_disposition::OutboundAddressDisposition {
-    let forbidden = match address.get() {
+    let forbidden = match outbound_ip_addr.get() {
         std::net::IpAddr::V4(ipv4_address) => {
             let octets = ipv4_address.octets();
             ipv4_address.is_broadcast()

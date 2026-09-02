@@ -23,8 +23,8 @@ use leptos::prelude::AddAnyAttr;
 )]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminCardTitle(
-    #[prop(optional)] class: Option<&'static str>,
+    #[prop(optional)] option: Option<&'static str>,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
-    leptos::view! { <singlestage::CardTitle attr:data-name="CardTitle" class=class.map(String::from)>{children()}</singlestage::CardTitle> }
+    leptos::view! { <singlestage::CardTitle attr:data-name="CardTitle" class=option.map(String::from)>{children()}</singlestage::CardTitle> }
 }

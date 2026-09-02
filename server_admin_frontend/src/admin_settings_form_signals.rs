@@ -16,23 +16,27 @@ pub(crate) struct AdminSettingsFormSignals(
 );
 impl AdminSettingsFormSignals {
     #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
-    pub(crate) fn new(values: &crate::admin_settings_form_values::AdminSettingsFormValues) -> Self {
+    pub(crate) fn new(
+        admin_settings_form_values: &crate::admin_settings_form_values::AdminSettingsFormValues,
+    ) -> Self {
         Self::from(
             server_admin_contract::admin_setting::AdminSetting::ALL.map(|setting| {
                 crate::leptos_admin_input_signal::LeptosAdminInputSignal::from(
-                    leptos::prelude::RwSignal::new(values.get(setting).as_ref().to_owned()),
+                    leptos::prelude::RwSignal::new(
+                        admin_settings_form_values.get(setting).as_ref().to_owned(),
+                    ),
                 )
             }),
         )
     }
     pub(crate) const fn get(
         self,
-        setting: server_admin_contract::admin_setting::AdminSetting,
+        admin_setting: server_admin_contract::admin_setting::AdminSetting,
     ) -> crate::leptos_admin_input_signal::LeptosAdminInputSignal {
         #[allow(
             clippy::indexing_slicing,
             reason = "UnitEnumIndex generates a total index below AdminSetting::COUNT"
         )]
-        self.0[setting.index()]
+        self.0[admin_setting.index()]
     }
 }

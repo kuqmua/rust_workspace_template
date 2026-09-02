@@ -40,24 +40,24 @@ mod tests {
                 TooLong,
             }
             impl std::fmt::Display for ErrorTextTryFromStringError {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     match self {
-                        Self::TooLong => f.write_str(constants_str::TOO_LONG),
+                        Self::TooLong => formatter.write_str(constants_str::TOO_LONG),
                     }
                 }
             }
             impl From<ErrorTextTryFromStringError> for ErrorText {
-                fn from(value: ErrorTextTryFromStringError) -> Self {
-                    Self(value.to_string())
+                fn from(error_text_try_from_string_error: ErrorTextTryFromStringError) -> Self {
+                    Self(error_text_try_from_string_error.to_string())
                 }
             }
             impl TryFrom<String> for ErrorText {
                 type Error = ErrorTextTryFromStringError;
-                fn try_from(value: String) -> Result<Self, Self::Error> {
-                    if value.len() > 1024 {
+                fn try_from(string: String) -> Result<Self, Self::Error> {
+                    if string.len() > 1024 {
                         return Err(Self::Error::TooLong);
                     }
-                    Ok(Self(value))
+                    Ok(Self(string))
                 }
             }
             impl AsRef<str> for ErrorText {
@@ -411,8 +411,8 @@ mod tests {
         FirstValue,
         Second,
     }
-    fn validate_checked_text(value: &str) -> Result<(), CheckedTextError> {
-        if value.len() > 2usize {
+    fn validate_checked_text(str: &str) -> Result<(), CheckedTextError> {
+        if str.len() > 2usize {
             Err(CheckedTextError::TooLong)
         } else {
             Ok(())

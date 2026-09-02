@@ -1,7 +1,7 @@
 pub(crate) fn validate_commit_header_value(
-    commit: crate::header_str_ref::HeaderStrRef<'_>,
+    header_str_ref: crate::header_str_ref::HeaderStrRef<'_>,
 ) -> Result<(), crate::commit_error::CommitError> {
-    git_info::validate_project_commit::validate_project_commit(commit.as_ref())
+    git_info::validate_project_commit::validate_project_commit(header_str_ref.as_ref())
         .map_err(|error| {
             crate::commit_to_use::CommitToUse::from(<&'static str>::from(
                 git_info::project_git_commit_link_ref::ProjectGitCommitLinkRef::from(error),

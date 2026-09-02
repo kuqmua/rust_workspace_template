@@ -18,12 +18,12 @@ pub struct PgTableIdempotencyRequest {
 impl PgTableIdempotencyRequest {
     #[must_use]
     pub fn new(
-        scope: crate::pg_table_idempotency_scope::PgTableIdempotencyScope,
-        body: crate::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef<'_>,
+        pg_table_idempotency_scope: crate::pg_table_idempotency_scope::PgTableIdempotencyScope,
+        pg_table_idempotency_body_ref: crate::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef<'_>,
     ) -> Self {
         Self {
-            scope,
-            request_hash: crate::calculate_pg_table_idempotency_request_hash::calculate_pg_table_idempotency_request_hash(body),
+            scope: pg_table_idempotency_scope,
+            request_hash: crate::calculate_pg_table_idempotency_request_hash::calculate_pg_table_idempotency_request_hash(pg_table_idempotency_body_ref),
         }
     }
 }

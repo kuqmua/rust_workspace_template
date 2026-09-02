@@ -8,8 +8,8 @@ pub enum DimensionIndexNumber {
     Three,
 }
 impl From<&crate::dimension::Dimension> for DimensionIndexNumber {
-    fn from(value: &crate::dimension::Dimension) -> Self {
-        match &value {
+    fn from(dimension: &crate::dimension::Dimension) -> Self {
+        match &dimension {
             crate::dimension::Dimension::One => Self::Zero,
             crate::dimension::Dimension::Two => Self::One,
             crate::dimension::Dimension::Three => Self::Two,

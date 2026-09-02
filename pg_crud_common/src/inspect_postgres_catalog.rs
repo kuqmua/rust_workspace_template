@@ -1,13 +1,13 @@
 pub async fn inspect_postgres_catalog(
-    pool: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
-    schema: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
+    sqlx_pg_catalog_pool_ref: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
+    db_schema_name_ref: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
 ) -> Result<
     crate::db_catalog_snapshot::DbCatalogSnapshot,
     crate::db_schema_conformance_error::DbSchemaConformanceError,
 > {
     let rows = sqlx::query(constants_str::DB_SCHEMA_CATALOG_QUERY)
-        .bind(*schema.get_inner())
-        .fetch_all(*pool.get_inner())
+        .bind(*db_schema_name_ref.get_inner())
+        .fetch_all(*sqlx_pg_catalog_pool_ref.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(

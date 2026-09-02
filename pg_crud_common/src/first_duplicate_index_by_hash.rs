@@ -1,5 +1,7 @@
 #[must_use]
-pub fn first_duplicate_index_by_hash<T>(values: &[T]) -> Option<crate::duplicate_idx::DuplicateIdx>
+pub fn first_duplicate_index_by_hash<T>(
+    values: &[T],
+) -> Option<crate::duplicate_index::DuplicateIndex>
 where
     T: Eq + std::hash::Hash,
 {
@@ -11,5 +13,5 @@ where
         .iter()
         .enumerate()
         .find(|(_, current)| !seen.insert(*current))
-        .map(|(idx, _)| crate::duplicate_idx::DuplicateIdx::from(idx))
+        .map(|(index, _)| crate::duplicate_index::DuplicateIndex::from(index))
 }

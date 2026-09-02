@@ -1,6 +1,6 @@
 #[must_use]
 pub fn split_fat_arrow<T>(
-    input: T,
+    t: T,
 ) -> Option<(
     crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
     crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
@@ -10,7 +10,7 @@ where
 {
     let mut before = proc_macro2::TokenStream::new();
     let mut after = proc_macro2::TokenStream::new();
-    let mut iter = input.into().into_iter().peekable();
+    let mut iter = t.into().into_iter().peekable();
     while let Some(token) = iter.next() {
         if let proc_macro2::TokenTree::Punct(punct) = &token
             && punct.as_char() == '='

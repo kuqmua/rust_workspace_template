@@ -5,12 +5,12 @@
 
 #[must_use]
 pub fn generate_rm_query_string(
-    table: crate::pg_table_name_ref::PgTableNameRef<'_>,
+    pg_table_name_ref: crate::pg_table_name_ref::PgTableNameRef<'_>,
     select_string: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     where_string: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
 ) -> crate::pg_table_query_string::PgTableQueryString {
     crate::generate_select_query_string::generate_select_query_string(
-        table,
+        pg_table_name_ref,
         select_string,
         where_string,
         crate::select_where_fmt::SelectWhereFmt::Plain,

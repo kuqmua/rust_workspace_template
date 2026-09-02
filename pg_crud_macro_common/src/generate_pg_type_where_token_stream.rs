@@ -8,13 +8,13 @@ pub fn generate_pg_type_where_token_stream<T>(
     variants: &[T],
     prefix: &dyn quote::ToTokens,
     should_derive_utoipa_to_schema: &crate::emission_types::ShouldDeriveUtoipaToSchema,
-    should_derive_schemars_json_schema: &crate::emission_types::ShouldDSchemarsJsonSchema,
+    should_d_schemars_json_schema: &crate::emission_types::ShouldDSchemarsJsonSchema,
     is_query_bind_mut: &crate::emission_types::IsQueryBindMut,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
 where
     T: crate::pg_filter::PgFilter,
 {
-    let names = crate::names_ctx::NamesCtx::new();
+    let names = crate::names_context::NamesContext::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (
@@ -90,7 +90,7 @@ where
         };
         quote::quote! {
             #attrs_token_stream
-            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_schemars_json_schema, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_d_schemars_json_schema, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #identifier {
                 #(#vrts_token_stream),*
             }

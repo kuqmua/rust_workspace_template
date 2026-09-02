@@ -6,7 +6,7 @@ pub(super) const fn route_http_method<
     PermissionAction,
     StatusCode,
 >(
-    dsc: &crate::operation_dsc::OperationDsc<
+    operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
         Capability,
         HttpMethod,
         Operation,
@@ -18,5 +18,5 @@ pub(super) const fn route_http_method<
 where
     HttpMethod: Copy,
 {
-    *dsc.get_http_method()
+    *operation_descriptor.get_http_method()
 }

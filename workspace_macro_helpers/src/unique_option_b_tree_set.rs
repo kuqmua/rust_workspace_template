@@ -17,10 +17,10 @@ where
     #[must_use]
     pub fn contains(
         &self,
-        value: OptionValue,
+        option_value: OptionValue,
     ) -> crate::std_unique_option_set_contains::StdUniqueOptionSetContains {
         crate::std_unique_option_set_contains::StdUniqueOptionSetContains::from(
-            self.0.contains(&value),
+            self.0.contains(&option_value),
         )
     }
     #[must_use]
@@ -29,13 +29,13 @@ where
     }
     pub fn try_insert_with<DuplicateError>(
         &mut self,
-        value: OptionValue,
+        option_value: OptionValue,
         duplicate_error: DuplicateError,
     ) -> syn::Result<()>
     where
         DuplicateError: FnOnce() -> syn::Error,
     {
-        if !self.0.insert(value) {
+        if !self.0.insert(option_value) {
             return Err(duplicate_error());
         }
         Ok(())

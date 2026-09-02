@@ -11,10 +11,10 @@ pub enum CursorPaginationUsage {
 impl CursorPaginationUsage {
     #[must_use]
     pub const fn from_presence(
-        offset: crate::offset_pagination_presence::OffsetPaginationPresence,
-        cursor: crate::signed_cursor_presence::SignedCursorPresence,
+        offset_pagination_presence: crate::offset_pagination_presence::OffsetPaginationPresence,
+        signed_cursor_presence: crate::signed_cursor_presence::SignedCursorPresence,
     ) -> Self {
-        match (offset, cursor) {
+        match (offset_pagination_presence, signed_cursor_presence) {
             (
                 crate::offset_pagination_presence::OffsetPaginationPresence::Absent,
                 crate::signed_cursor_presence::SignedCursorPresence::Absent,

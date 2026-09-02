@@ -1,13 +1,13 @@
-fn assert_scaffold_file_content(path: &std::path::Path, expected: &str) {
+fn assert_scaffold_file_content(path: &std::path::Path, str: &str) {
     let actual = std::fs::read_to_string(path).expect(constants_str::DIAGNOSTIC_371DBE92);
-    assert_eq!(actual, expected, "239c17b0: {}", path.display());
+    assert_eq!(actual, str, "239c17b0: {}", path.display());
 }
 
-fn write(path: &std::path::Path, value: &str) {
+fn write(path: &std::path::Path, str: &str) {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).expect(constants_str::DIAGNOSTIC_2F0AD03A);
     }
-    std::fs::write(path, value).expect(constants_str::DIAGNOSTIC_79AF6DC8);
+    std::fs::write(path, str).expect(constants_str::DIAGNOSTIC_79AF6DC8);
 }
 
 #[test]

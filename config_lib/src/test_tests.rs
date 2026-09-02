@@ -31,12 +31,12 @@ enum ParseRequiredEnvVarTestError {
         parse: &'static str,
     },
 }
-fn parse_env<T>(v: &str) -> Result<T, T::Error>
+fn parse_env<T>(str: &str) -> Result<T, T::Error>
 where
     T: crate::try_from_std_env_var_ok::TryFromStdEnvVarOk,
 {
     T::try_from_std_env_var_ok(
-        crate::std_env_var_ok::StdEnvVarOk::try_from(v.to_owned())
+        crate::std_env_var_ok::StdEnvVarOk::try_from(str.to_owned())
             .unwrap_or_else(crate::std_env_var_ok::StdEnvVarOk::from),
     )
 }
@@ -140,20 +140,20 @@ fn test_redis_url_parsing_returns_error_for_empty_string() {
     );
 }
 #[test]
-fn test_src_place_type_parsing_is_case_insensitive() {
-    let value = parse_env::<crate::domain_types::SrcPlaceType>(constants_str::GITHUB_ALT)
+fn test_source_place_type_parsing_is_case_insensitive() {
+    let value = parse_env::<crate::domain_types::SourcePlaceType>(constants_str::GITHUB_ALT)
         .expect(constants_str::DIAGNOSTIC_F7D20B3A);
     assert_eq!(
         *value.get_inner(),
-        crate::src_place_type::SrcPlaceType::Github
+        crate::source_place_type::SourcePlaceType::Github
     );
 }
 #[test]
-fn test_src_place_type_parsing_returns_error_for_unknown_value() {
+fn test_source_place_type_parsing_returns_error_for_unknown_value() {
     proc_macro_config_lib::assert_parse_err_matches!(
-        crate::domain_types::SrcPlaceType,
+        crate::domain_types::SourcePlaceType,
         constants_str::BAD,
-        crate::domain_types::TryFromStdEnvVarOkSrcPlaceTypeError::AppStateSrcPlaceTypeParsing { .. }
+        crate::domain_types::TryFromStdEnvVarOkSourcePlaceTypeError::AppStateSourcePlaceTypeParsing { .. }
     );
 }
 #[test]

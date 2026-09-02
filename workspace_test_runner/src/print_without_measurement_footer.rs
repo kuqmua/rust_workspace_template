@@ -1,5 +1,7 @@
-pub(crate) fn print_without_measurement_footer(stderr: crate::stderr_text_ref::StderrTextRef<'_>) {
-    stderr
+pub(crate) fn print_without_measurement_footer(
+    stderr_text_ref: crate::stderr_text_ref::StderrTextRef<'_>,
+) {
+    stderr_text_ref
         .get()
         .lines()
         .filter(|line| {

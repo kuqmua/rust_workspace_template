@@ -27,8 +27,8 @@ pub enum UniqueVecError {
 }
 
 impl From<bounded_types::bounded_value_error::BoundedValueError> for UniqueVecError {
-    fn from(value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
-        match value {
+    fn from(bounded_value_error: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+        match bounded_value_error {
             bounded_types::bounded_value_error::BoundedValueError::AboveMax { max, .. } => {
                 Self::AboveMax {
                     max: crate::unique_vec_len::UniqueVecLen::from(max.get()),

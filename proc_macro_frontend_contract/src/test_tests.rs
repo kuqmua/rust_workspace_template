@@ -130,9 +130,9 @@ fn test_contract_struct_api_rejects_unknown_attributes() {
     );
 }
 
-fn typed_route_args(errors: &str) -> String {
+fn typed_route_args(str: &str) -> String {
     format!(
-        "authentication = Authentication, {errors} method = Method, openapi_operation_id = \"operation\", path = \"/path\", request = Request, response = Response, success_status = Status, transport = Transport"
+        "authentication = Authentication, {str} method = Method, openapi_operation_id = \"operation\", path = \"/path\", request = Request, response = Response, success_status = Status, transport = Transport"
     )
 }
 

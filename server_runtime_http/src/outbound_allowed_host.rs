@@ -18,10 +18,10 @@ impl OutboundAllowedHost {
 impl TryFrom<String> for OutboundAllowedHost {
     type Error = crate::outbound_host_allowlist_error::OutboundHostAllowlistError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty()
-            || value.len() > 253usize
-            || value.bytes().any(|byte| {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.is_empty()
+            || string.len() > 253usize
+            || string.bytes().any(|byte| {
                 !(byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b':' | b'[' | b']'))
             })
         {
@@ -29,6 +29,6 @@ impl TryFrom<String> for OutboundAllowedHost {
                 crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost,
             );
         }
-        Ok(Self(value.to_ascii_lowercase()))
+        Ok(Self(string.to_ascii_lowercase()))
     }
 }

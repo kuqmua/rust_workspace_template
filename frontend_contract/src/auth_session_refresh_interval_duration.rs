@@ -11,12 +11,12 @@ pub struct AuthSessionRefreshIntervalDuration(std::time::Duration);
 
 impl TryFrom<std::time::Duration> for AuthSessionRefreshIntervalDuration {
     type Error = crate::auth_session_keep_alive_error::AuthSessionKeepAliveError;
-    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        if value.is_zero() {
+    fn try_from(duration: std::time::Duration) -> Result<Self, Self::Error> {
+        if duration.is_zero() {
             return Err(
                 crate::auth_session_keep_alive_error::AuthSessionKeepAliveError::ZeroInterval,
             );
         }
-        Ok(Self(value))
+        Ok(Self(duration))
     }
 }

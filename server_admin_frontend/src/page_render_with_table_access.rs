@@ -10,13 +10,13 @@ use leptos::prelude::{
 };
 
 pub(super) fn page_render_with_table_access(
-    page: server_admin_contract::admin_page::AdminPage,
-    content: crate::admin_ssr_html::AdminSsrHtml,
+    admin_page: server_admin_contract::admin_page::AdminPage,
+    admin_ssr_html: crate::admin_ssr_html::AdminSsrHtml,
     admin: Option<&server_admin_contract::authenticated_admin::AuthenticatedAdmin>,
     branding: Option<&server_admin_contract::admin_branding_view::AdminBrandingView>,
     active_table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
-    let spec = page.spec();
+    let spec = admin_page.spec();
     let title = spec.title();
     let document_title = branding
         .and_then(server_admin_contract::admin_branding_view::AdminBrandingView::tab_title)
@@ -41,7 +41,7 @@ pub(super) fn page_render_with_table_access(
                 let name = table.to_string();
                 let href = table.frontend_path().to_string();
                 leptos::view! {
-                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink active=active_table == Some(table) href=href>{name}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
+                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=active_table == Some(table) string=href>{name}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
                 }
             })
             .collect::<Vec<_>>();
@@ -54,7 +54,7 @@ pub(super) fn page_render_with_table_access(
                 let href = String::from(item.path());
                 let label = item.route_name().as_ref().to_owned();
                 leptos::view! {
-                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink active=item_page == page href=href>{label}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
+                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=item_page == admin_page string=href>{label}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
                 }
             })
             .collect::<Vec<_>>();
@@ -62,7 +62,7 @@ pub(super) fn page_render_with_table_access(
             <crate::admin_sidebar::AdminSidebar>
                 {tables}
                 {pages}
-                <crate::admin_sidebar_item::AdminSidebarItem><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get()><crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</crate::admin_button::AdminButton></form></crate::admin_sidebar_item::AdminSidebarItem>
+                <crate::admin_sidebar_item::AdminSidebarItem><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get()><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</crate::admin_button::AdminButton></form></crate::admin_sidebar_item::AdminSidebarItem>
             </crate::admin_sidebar::AdminSidebar>
         }
     };
@@ -74,7 +74,7 @@ pub(super) fn page_render_with_table_access(
                 <header class="topbar">
                     {navigation}
                 </header>
-                <main class="main-content"><div class="page-frame"><crate::admin_alert::AdminAlert variant=crate::admin_alert_variant::AdminAlertVariant::Success id="saved">"Changes saved."</crate::admin_alert::AdminAlert><div inner_html=String::from(content)></div></div></main>
+                <main class="main-content"><div class="page-frame"><crate::admin_alert::AdminAlert admin_alert_variant=crate::admin_alert_variant::AdminAlertVariant::Success option="saved">"Changes saved."</crate::admin_alert::AdminAlert><div inner_html=String::from(admin_ssr_html)></div></div></main>
             </div>
         },
     )

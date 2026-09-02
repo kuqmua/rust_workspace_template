@@ -6,7 +6,7 @@ pub async fn run_list_with_total<
     FetchCount,
     FetchCountFuture,
 >(
-    offset: crate::list_offset::ListOffset,
+    list_offset: crate::list_offset::ListOffset,
     fetch_list: FetchList,
     fetch_count: FetchCount,
 ) -> Result<crate::list_page::ListPage<Item>, Error>
@@ -28,7 +28,7 @@ where
         crate::window_total_presence::WindowTotalPresence::Absent
     };
     let total_source = crate::resolve_list_total_source::resolve_list_total_source(
-        offset,
+        list_offset,
         rows_presence,
         window_presence,
     );

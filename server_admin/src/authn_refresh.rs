@@ -1,10 +1,10 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn authn_refresh(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    peer: crate::admin_peer_addr::AdminPeerAddr,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
-    let state = auth.get_state();
-    let headers = auth.get_headers();
+    let state = admin_auth_request.get_state();
+    let headers = admin_auth_request.get_headers();
     if !crate::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
         state.as_ref(),
         crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(headers.as_ref()),
@@ -18,7 +18,7 @@ pub(crate) async fn authn_refresh(
         return Err(crate::admin_error::AdminError::Authentication);
     }
     let peer_subject = server_admin_core::std_admin_string::StdAdminString::try_from(
-        peer.get_inner().as_ref().ip().to_string(),
+        admin_peer_addr.get_inner().as_ref().ip().to_string(),
     )
     .map_err(|_error| crate::admin_error::AdminError::Validation)?;
     crate::enforce_rate_limit::enforce_rate_limit(
@@ -48,7 +48,7 @@ pub(crate) async fn authn_refresh(
     let context_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(headers.as_ref()),
-            peer,
+            admin_peer_addr,
         )
         .map_err(crate::admin_error::AdminError::authentication_secret_text)?;
     let token_hash =
@@ -141,7 +141,9 @@ pub(crate) async fn authn_refresh(
     let authenticated_contract =
         crate::authenticated_admin_contract::authenticated_admin_contract(&authenticated)?;
     let mut response = crate::json_response::json_response(
-        server_admin_contract::admin_sign_in_res::AdminSignInRes::new(authenticated_contract),
+        server_admin_contract::admin_sign_in_response::AdminSignInResponse::new(
+            authenticated_contract,
+        ),
     );
     crate::append_session_cookies::append_session_cookies(&mut response, state.as_ref(), &session)?;
     tx.commit()

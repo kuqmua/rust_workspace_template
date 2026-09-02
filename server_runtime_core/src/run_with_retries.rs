@@ -1,5 +1,5 @@
 pub async fn run_with_retries<Run, RunFuture, Success, Error, IsRetryable>(
-    policy: crate::retry_policy::RetryPolicy,
+    retry_policy: crate::retry_policy::RetryPolicy,
     mut run: Run,
     is_retryable: IsRetryable,
 ) -> crate::retry_outcome::RetryOutcome<Success, Error>
@@ -8,7 +8,7 @@ where
     RunFuture: Future<Output = Result<Success, Error>>,
     IsRetryable: Fn(&Error) -> bool,
 {
-    let maximum_attempts = policy.attempts().get();
+    let maximum_attempts = retry_policy.attempts().get();
     let mut attempt = constants_usize::ONE;
     loop {
         let result = run().await;
@@ -23,7 +23,7 @@ where
                 result,
             );
         }
-        if let Some(delay) = policy.delay() {
+        if let Some(delay) = retry_policy.delay() {
             tokio::time::sleep(*delay).await;
         }
         attempt = attempt.saturating_add(constants_usize::ONE);

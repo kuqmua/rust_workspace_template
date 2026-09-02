@@ -1,13 +1,15 @@
 pub(crate) async fn account_change_own_password(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    request: crate::axum_admin_json::AxumAdminJson<
-        server_admin_contract::admin_change_own_password_req::AdminChangeOwnPasswordReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_json: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_change_own_password_request::AdminChangeOwnPasswordRequest,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorization_authenticate::authorization_authenticate(
-        auth.get_state().as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
-        *auth.get_peer(),
+        admin_auth_request.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(
+            admin_auth_request.get_headers().as_ref(),
+        ),
+        *admin_auth_request.get_peer(),
     )
     .await?;
     let subject = server_admin_core::std_admin_string::StdAdminString::try_from(
@@ -15,24 +17,34 @@ pub(crate) async fn account_change_own_password(
     )
     .map_err(|_error| crate::admin_error::AdminError::Validation)?;
     crate::enforce_rate_limit::enforce_rate_limit(
-        auth.get_state().as_ref(),
+        admin_auth_request.get_state().as_ref(),
         crate::admin_rate_limit_scope::AdminRateLimitScope::Mutation,
         &subject,
-        auth.get_state().as_ref().get_policy().get_mutation_limit(),
-        auth.get_state().as_ref().get_policy().get_mutation_window(),
+        admin_auth_request
+            .get_state()
+            .as_ref()
+            .get_policy()
+            .get_mutation_limit(),
+        admin_auth_request
+            .get_state()
+            .as_ref()
+            .get_policy()
+            .get_mutation_window(),
     )
     .await?;
     crate::authorization_validate_csrf::authorization_validate_csrf(
-        auth.get_state().as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+        admin_auth_request.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(
+            admin_auth_request.get_headers().as_ref(),
+        ),
         &actor,
     )
     .await?;
-    let (current_password, new_password) = request.into_inner().into_parts();
+    let (current_password, new_password) = axum_admin_json.into_inner().into_parts();
     let expected_hash =
         sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_PASSWORD_HASH_SQL)
             .bind(actor.get_id().get())
-            .fetch_optional(auth.get_state().as_ref().get_pool().as_ref())
+            .fetch_optional(admin_auth_request.get_state().as_ref().get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
             .map(|value| {
@@ -46,7 +58,7 @@ pub(crate) async fn account_change_own_password(
             })
             .map_err(crate::admin_error::AdminError::from)?
             .ok_or(crate::admin_error::AdminError::Authentication)?;
-    if !auth
+    if !admin_auth_request
         .get_state()
         .as_ref()
         .get_password_hasher()
@@ -61,7 +73,7 @@ pub(crate) async fn account_change_own_password(
     {
         return Err(crate::admin_error::AdminError::Validation);
     }
-    let password_hash = auth
+    let password_hash = admin_auth_request
         .get_state()
         .as_ref()
         .get_password_hasher()
@@ -71,7 +83,7 @@ pub(crate) async fn account_change_own_password(
         )
         .await
         .map_err(crate::admin_error::AdminError::password_hash)?;
-    let mut tx = auth
+    let mut tx = admin_auth_request
         .get_state()
         .as_ref()
         .get_pool()

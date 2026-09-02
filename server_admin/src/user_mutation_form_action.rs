@@ -1,11 +1,11 @@
 pub(crate) async fn user_mutation_form_action(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    target: crate::user_mutation_form_target::UserMutationFormTarget,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    user_mutation_form_target: crate::user_mutation_form_target::UserMutationFormTarget,
 ) -> axum::response::Response {
-    match target {
+    match user_mutation_form_target {
         crate::user_mutation_form_target::UserMutationFormTarget::Ban(form) => {
             crate::authenticated_action_impl::authenticated_action_impl(
-                auth,
+                admin_auth_request,
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
                 |auth| {
                     crate::mutations_set_ban::mutations_set_ban(
@@ -14,7 +14,7 @@ pub(crate) async fn user_mutation_form_action(
                             crate::user_path_impl::user_path_impl(*form.get_user_id()),
                         ),
                         crate::axum_admin_json::AxumAdminJson::from(
-                            server_admin_contract::admin_set_user_ban_req::AdminSetUserBanReq::new(
+                            server_admin_contract::admin_set_user_ban_request::AdminSetUserBanRequest::new(
                                 *form.get_is_banned(),
                             ),
                         ),
@@ -25,7 +25,7 @@ pub(crate) async fn user_mutation_form_action(
         }
         crate::user_mutation_form_target::UserMutationFormTarget::Password(form) => {
             crate::authenticated_action_impl::authenticated_action_impl(
-                auth,
+                admin_auth_request,
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
                 |auth| {
                     crate::mutations_set_password::mutations_set_password(
@@ -34,7 +34,7 @@ pub(crate) async fn user_mutation_form_action(
                             crate::user_path_impl::user_path_impl(*form.get_user_id()),
                         ),
                         crate::axum_admin_json::AxumAdminJson::from(
-                            server_admin_contract::admin_set_user_password_req::AdminSetUserPasswordReq::new(
+                            server_admin_contract::admin_set_user_password_request::AdminSetUserPasswordRequest::new(
                                 form.get_password().clone(),
                             ),
                         ),

@@ -1,16 +1,16 @@
 pub(crate) async fn authorization_validate_csrf(
-    state: &crate::admin_auth_svc_state::AdminAuthSvcState,
-    headers: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
-    authenticated: &crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
+    admin_auth_svc_state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    http_admin_header_map_ref: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
+    runtime_authenticated_admin: &crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
 ) -> Result<(), crate::admin_error::AdminError> {
     if !crate::authorization_origin_is_present_and_allowed::authorization_origin_is_present_and_allowed(
-        state, headers,
+        admin_auth_svc_state, http_admin_header_map_ref,
     )
     .get()
     {
         return Err(crate::admin_error::AdminError::Csrf);
     }
-    let provided = headers
+    let provided = http_admin_header_map_ref
         .get()
         .get(http::HeaderName::from_static(
             constants_str::X_CSRF_TOKEN_ALT,
@@ -25,9 +25,9 @@ pub(crate) async fn authorization_validate_csrf(
     let provided_hash = crate::hash_opaque_token::hash_opaque_token(&provided_token)
         .map_err(crate::admin_error::AdminError::csrf_secret_text)?;
     let expected = sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_CSRF_HASH_SQL)
-        .bind(authenticated.get_session_id().get().get())
-        .bind(authenticated.get_id().get())
-        .fetch_optional(state.get_pool().as_ref())
+        .bind(runtime_authenticated_admin.get_session_id().get().get())
+        .bind(runtime_authenticated_admin.get_id().get())
+        .fetch_optional(admin_auth_svc_state.get_pool().as_ref())
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .and_then(|value| {

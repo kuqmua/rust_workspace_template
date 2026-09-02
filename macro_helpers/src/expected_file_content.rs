@@ -9,11 +9,11 @@
 pub(crate) struct ExpectedFileContent<'content_lt>(&'content_lt str);
 
 impl<'content_lt> ExpectedFileContent<'content_lt> {
-    pub(crate) fn new<T>(v: T) -> Self
+    pub(crate) fn new<T>(t: T) -> Self
     where
         T: Into<crate::expected_file_content_ref::ExpectedFileContentRef<'content_lt>>,
     {
-        let content = v.into();
+        let content = t.into();
         Self::from(<&'content_lt str>::from(content))
     }
 }

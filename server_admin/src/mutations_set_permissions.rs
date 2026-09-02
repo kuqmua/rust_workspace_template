@@ -1,18 +1,19 @@
 pub(crate) async fn mutations_set_permissions(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_path: crate::axum_admin_path::AxumAdminPath<
         server_admin_core::admin_role_record_id::AdminRoleRecordId,
     >,
-    request: crate::axum_admin_json::AxumAdminJson<
-        server_admin_contract::admin_set_role_permissions_req::AdminSetRolePermissionsReq,
+    axum_admin_json: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_set_role_permissions_request::AdminSetRolePermissionsRequest,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
-        &auth,
+        &admin_auth_request,
         server_admin_contract::admin_permission::AdminPermission::RolePermissionsUpdate,
     )
     .await?;
-    let (expected_permission_ids, contract_permission_ids) = request.into_inner().into_parts();
+    let (expected_permission_ids, contract_permission_ids) =
+        axum_admin_json.into_inner().into_parts();
     if AsRef::<[server_admin_contract::admin_permission_id::AdminPermissionId]>::as_ref(
         &expected_permission_ids,
     )
@@ -36,7 +37,7 @@ pub(crate) async fn mutations_set_permissions(
     {
         return Err(crate::admin_error::AdminError::Validation);
     }
-    let mut tx = auth
+    let mut tx = admin_auth_request
         .get_state()
         .as_ref()
         .get_pool()
@@ -45,7 +46,7 @@ pub(crate) async fn mutations_set_permissions(
         .await
         .map_err(crate::admin_error::AdminError::from)?;
     let outcome = async {
-        let inlined_role_permission_role_id = path.get_inner();
+        let inlined_role_permission_role_id = axum_admin_path.get_inner();
         let inlined_expected_permission_ids = expected_permission_ids.as_ref();
         let inlined_permission_ids = contract_permission_ids.as_ref();
         let optional_is_system =
@@ -136,7 +137,9 @@ pub(crate) async fn mutations_set_permissions(
             crate::admin_audit_action::AdminAuditAction::Update,
             actor.get_login(),
             crate::admin_audit_resource::AdminAuditResource::Role,
-            crate::admin_audit_resource_id::AdminAuditResourceId::Role(*path.get_inner()),
+            crate::admin_audit_resource_id::AdminAuditResourceId::Role(
+                *axum_admin_path.get_inner(),
+            ),
             *actor.get_id(),
         ),
     )

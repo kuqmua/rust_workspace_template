@@ -13,8 +13,8 @@ pub struct TransportBody(
 impl TryFrom<Vec<u8>> for TransportBody {
     type Error = crate::frontend_contract_body_error::FrontendContractBodyError;
 
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(value)
+    fn try_from(vec: Vec<u8>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(vec)
             .map(Self)
             .map_err(crate::frontend_contract_body_error::FrontendContractBodyError::from)
     }

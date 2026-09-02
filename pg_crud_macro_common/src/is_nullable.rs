@@ -21,23 +21,23 @@ impl IsNullable {
     #[must_use]
     pub fn maybe_optional_wrap(
         &self,
-        ts: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
+        proc_macro2_generated_rust_token_stream: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
     {
         match &self {
-            Self::False => ts,
-            Self::True => quote::quote! {Option<#ts>}.into(),
+            Self::False => proc_macro2_generated_rust_token_stream,
+            Self::True => quote::quote! {Option<#proc_macro2_generated_rust_token_stream>}.into(),
         }
     }
     #[must_use]
     pub fn maybe_some_wrap(
         &self,
-        ts: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
+        proc_macro2_generated_rust_token_stream: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream
     {
         match &self {
-            Self::False => ts,
-            Self::True => quote::quote! {Some(#ts)}.into(),
+            Self::False => proc_macro2_generated_rust_token_stream,
+            Self::True => quote::quote! {Some(#proc_macro2_generated_rust_token_stream)}.into(),
         }
     }
     #[must_use]

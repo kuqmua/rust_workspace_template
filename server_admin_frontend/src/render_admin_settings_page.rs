@@ -11,17 +11,18 @@ use leptos::prelude::{
 
 #[must_use]
 pub fn render_admin_settings_page(
-    view: &server_admin_contract::admin_settings_view::AdminSettingsView,
-    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+    admin_settings_view: &server_admin_contract::admin_settings_view::AdminSettingsView,
+    authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
-    let values = crate::admin_settings_form_values::AdminSettingsFormValues::from(view);
+    let values =
+        crate::admin_settings_form_values::AdminSettingsFormValues::from(admin_settings_view);
     let signals = crate::admin_settings_form_signals::AdminSettingsFormSignals::new(&values);
-    let can_update = bool::from(admin.has_permission(
+    let can_update = bool::from(authenticated_admin.has_permission(
         server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate,
     ));
     let content_view = leptos::view! {
-        <section class="settings-grid"><crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Settings>
+        <section class="settings-grid"><crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Settings>
         {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SettingsUpdate.get()>
             {crate::admin_setting_inputs::admin_setting_inputs(signals, crate::admin_setting_disabled::AdminSettingDisabled::from(false))}
             <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>"Save settings"</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
@@ -33,7 +34,7 @@ pub fn render_admin_settings_page(
     crate::render_admin_page_with_access::render_admin_page_with_access(
         server_admin_contract::admin_page::AdminPage::Settings,
         content,
-        Some(admin),
-        Some(branding),
+        Some(authenticated_admin),
+        Some(admin_branding_view),
     )
 }

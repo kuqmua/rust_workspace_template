@@ -11,7 +11,7 @@ pub(crate) enum DataFlt {
 impl DataFlt {
     pub(crate) fn query_bind(
         self,
-        query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'_>,
+        sqlx_postgres_query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'_>,
     ) -> Result<
         pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'_>,
         pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
@@ -20,44 +20,44 @@ impl DataFlt {
             Self::Permissions(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
-                    query,
+                    sqlx_postgres_query,
                 )
             }
             Self::RolePermissions(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
-                    query,
+                    sqlx_postgres_query,
                 )
             }
             Self::Roles(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
-                    query,
+                    sqlx_postgres_query,
                 )
             }
             Self::SystemSettings(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
-                    query,
+                    sqlx_postgres_query,
                 )
             }
             Self::UserRoles(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
-                    query,
+                    sqlx_postgres_query,
                 )
             }
             Self::Users(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
-                    query,
+                    sqlx_postgres_query,
                 )
             }
         }
     }
     pub(crate) fn query_part(
         &self,
-        increment: &mut pg_crud_common::query_part_increment::QueryPartIncrement,
+        query_part_increment: &mut pg_crud_common::query_part_increment::QueryPartIncrement,
     ) -> Result<
         pg_crud_common::query_part_fragment::QueryPartFragment,
         pg_crud_common::query_part_error::QueryPartError,
@@ -67,7 +67,7 @@ impl DataFlt {
             Self::Permissions(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
-                    increment,
+                    query_part_increment,
                     pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )
@@ -75,7 +75,7 @@ impl DataFlt {
             Self::RolePermissions(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
-                    increment,
+                    query_part_increment,
                     pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )
@@ -83,7 +83,7 @@ impl DataFlt {
             Self::Roles(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
-                    increment,
+                    query_part_increment,
                     pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )
@@ -91,7 +91,7 @@ impl DataFlt {
             Self::SystemSettings(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
-                    increment,
+                    query_part_increment,
                     pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )
@@ -99,7 +99,7 @@ impl DataFlt {
             Self::UserRoles(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
-                    increment,
+                    query_part_increment,
                     pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )
@@ -107,7 +107,7 @@ impl DataFlt {
             Self::Users(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
-                    increment,
+                    query_part_increment,
                     pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )

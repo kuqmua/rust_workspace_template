@@ -21,9 +21,9 @@ impl TryFrom<Vec<crate::route_coverage_descriptor::RouteCoverageDescriptor>>
 {
     type Error = bounded_types::bounded_value_error::BoundedValueError;
     fn try_from(
-        value: Vec<crate::route_coverage_descriptor::RouteCoverageDescriptor>,
+        vec: Vec<crate::route_coverage_descriptor::RouteCoverageDescriptor>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(vec).map(Self::from)
     }
 }
 impl RouteCoverageDescriptors {

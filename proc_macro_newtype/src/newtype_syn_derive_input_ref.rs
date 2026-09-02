@@ -7,7 +7,7 @@
 )]
 pub(crate) struct NewtypeSynDeriveInputRef<'syn_lt>(&'syn_lt syn::DeriveInput);
 impl<'syn_lt> From<NewtypeSynDeriveInputRef<'syn_lt>> for &'syn_lt syn::DeriveInput {
-    fn from(value: NewtypeSynDeriveInputRef<'syn_lt>) -> Self {
-        value.0
+    fn from(newtype_syn_derive_input_ref: NewtypeSynDeriveInputRef<'syn_lt>) -> Self {
+        newtype_syn_derive_input_ref.0
     }
 }

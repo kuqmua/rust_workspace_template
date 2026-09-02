@@ -33,11 +33,11 @@ proc_macro_config_lib::impl_try_from_parse!(
     Copy
 );
 proc_macro_config_lib::impl_try_from_parse_string_error!(
-    SrcPlaceType,
-    TryFromStdEnvVarOkSrcPlaceTypeError,
-    crate::src_place_type::SrcPlaceType,
-    AppStateSrcPlaceTypeParsing,
-    app_state_src_place_type_parsing
+    SourcePlaceType,
+    TryFromStdEnvVarOkSourcePlaceTypeError,
+    crate::source_place_type::SourcePlaceType,
+    AppStateSourcePlaceTypeParsing,
+    app_state_source_place_type_parsing
 );
 proc_macro_config_lib::impl_try_from_non_empty_string!(
     StartingCheckLink,
@@ -45,12 +45,16 @@ proc_macro_config_lib::impl_try_from_non_empty_string!(
 );
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::tracing_format::TracingFormat {
     type Error = std::convert::Infallible;
-    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        Ok(if v.eq_ignore_ascii_case(constants_str::JSON) {
-            Self::Json
-        } else {
-            Self::Text
-        })
+    fn try_from_std_env_var_ok(
+        std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
+    ) -> Result<Self, Self::Error> {
+        Ok(
+            if std_env_var_ok.eq_ignore_ascii_case(constants_str::JSON) {
+                Self::Json
+            } else {
+                Self::Text
+            },
+        )
     }
 }
 proc_macro_config_lib::impl_try_from_parse_string_error!(

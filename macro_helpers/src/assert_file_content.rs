@@ -1,14 +1,14 @@
 pub(crate) fn assert_file_content(
-    path: crate::std_assert_file_path::StdAssertFilePath<'_>,
-    exp: crate::expected_file_content::ExpectedFileContent<'_>,
+    std_assert_file_path: crate::std_assert_file_path::StdAssertFilePath<'_>,
+    expected_file_content: crate::expected_file_content::ExpectedFileContent<'_>,
 ) {
-    let cnt = server_runtime_http::read_bounded_file::read_bounded_file(
-        server_runtime_http::runtime_path_ref::RuntimePathRef::from(path.as_ref()),
+    let count = server_runtime_http::read_bounded_file::read_bounded_file(
+        server_runtime_http::runtime_path_ref::RuntimePathRef::from(std_assert_file_path.as_ref()),
         server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
-            exp.as_ref().len(),
+            expected_file_content.as_ref().len(),
         ),
     )
     .and_then(server_runtime_http::bounded_text::BoundedText::try_from)
     .expect(constants_str::DIAGNOSTIC_D5EC6712);
-    assert_eq!(cnt.as_ref(), exp.as_ref());
+    assert_eq!(count.as_ref(), expected_file_content.as_ref());
 }

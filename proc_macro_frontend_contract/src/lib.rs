@@ -34,10 +34,10 @@ mod typed_route_args;
 
 #[cfg(test)]
 fn parse_contract_struct_api_args(
-    attributes: syn_attributes_ref::SynAttributesRef<'_>,
+    syn_attributes_ref: syn_attributes_ref::SynAttributesRef<'_>,
 ) -> syn::Result<contract_struct_api_args::ContractStructApiArgs> {
     let mut args = contract_struct_api_args::ContractStructApiArgs::default();
-    attributes
+    syn_attributes_ref
         .get()
         .iter()
         .filter(|attribute| {
@@ -68,24 +68,24 @@ fn parse_contract_struct_api_args(
 }
 
 impl syn::parse::Parse for route_catalog_route_args::RouteCatalogRouteArgs {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        if input.peek(syn::Ident) && input.peek2(syn::Token![=]) {
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        if parse_stream.peek(syn::Ident) && parse_stream.peek2(syn::Token![=]) {
             let mut contract = None;
             let mut exclude_from_family = std_bool::StdBool::from(false);
             let mut path = None;
-            while !input.is_empty() {
-                let name = input.parse::<syn::Ident>()?;
+            while !parse_stream.is_empty() {
+                let name = parse_stream.parse::<syn::Ident>()?;
                 if name == constants_str::ROUTE_CATALOG_EXCLUDE_FROM_FAMILY {
                     exclude_from_family = std_bool::StdBool::from(true);
                 } else {
-                    let _equals = input.parse::<syn::Token![=]>()?;
+                    let _equals = parse_stream.parse::<syn::Token![=]>()?;
                     if name == constants_str::ROUTE_CATALOG_CONTRACT {
                         contract = Some(contract_syn_expr::ContractSynExpr::from(
-                            input.parse::<syn::Expr>()?,
+                            parse_stream.parse::<syn::Expr>()?,
                         ));
                     } else if name == constants_str::ROUTE_CATALOG_PATH {
                         path = Some(contract_syn_expr::ContractSynExpr::from(
-                            input.parse::<syn::Expr>()?,
+                            parse_stream.parse::<syn::Expr>()?,
                         ));
                     } else {
                         return Err(syn::Error::new_spanned(
@@ -94,14 +94,13 @@ impl syn::parse::Parse for route_catalog_route_args::RouteCatalogRouteArgs {
                         ));
                     }
                 }
-                if !input.is_empty() {
-                    let _comma = input.parse::<syn::Token![,]>()?;
+                if !parse_stream.is_empty() {
+                    let _comma = parse_stream.parse::<syn::Token![,]>()?;
                 }
             }
             if contract.is_none() || path.is_none() {
-                return Err(
-                    input.error(constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES)
-                );
+                return Err(parse_stream
+                    .error(constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES));
             }
             Ok(Self::new(contract, path, None, exclude_from_family))
         } else {
@@ -109,7 +108,7 @@ impl syn::parse::Parse for route_catalog_route_args::RouteCatalogRouteArgs {
                 None,
                 None,
                 Some(contract_syn_type::ContractSynType::from(
-                    input.parse::<syn::Type>()?,
+                    parse_stream.parse::<syn::Type>()?,
                 )),
                 std_bool::StdBool::from(false),
             ))
@@ -117,9 +116,9 @@ impl syn::parse::Parse for route_catalog_route_args::RouteCatalogRouteArgs {
     }
 }
 impl syn::parse::Parse for endpoint_registry_binding::EndpointRegistryBinding {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
-        let _parenthesis = syn::parenthesized!(content in input);
+        let _parenthesis = syn::parenthesized!(content in parse_stream);
         let contract = syn_endpoint_registry_contract::SynEndpointRegistryContract::from(
             content.parse::<syn::Expr>()?,
         );
@@ -132,25 +131,25 @@ impl syn::parse::Parse for endpoint_registry_binding::EndpointRegistryBinding {
 }
 
 impl syn::parse::Parse for endpoint_registry_args::EndpointRegistryArgs {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        let state_name = input.parse::<syn::Ident>()?;
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let state_name = parse_stream.parse::<syn::Ident>()?;
         if state_name != constants_str::STATE {
             return Err(syn::Error::new_spanned(
                 state_name,
                 constants_str::ENDPOINT_REGISTRY_REQUIRES_STATE,
             ));
         }
-        let _equals = input.parse::<syn::Token![=]>()?;
+        let _equals = parse_stream.parse::<syn::Token![=]>()?;
         let state = syn_endpoint_registry_state::SynEndpointRegistryState::from(
-            input.parse::<syn::Type>()?,
+            parse_stream.parse::<syn::Type>()?,
         );
-        let _semicolon = input.parse::<syn::Token![;]>()?;
+        let _semicolon = parse_stream.parse::<syn::Token![;]>()?;
         let bindings = syn::punctuated::Punctuated::<
             endpoint_registry_binding::EndpointRegistryBinding,
             syn::Token![,],
-        >::parse_terminated(input)?;
+        >::parse_terminated(parse_stream)?;
         if bindings.is_empty() {
-            return Err(input.error(constants_str::ENDPOINT_REGISTRY_REQUIRES_BINDING));
+            return Err(parse_stream.error(constants_str::ENDPOINT_REGISTRY_REQUIRES_BINDING));
         }
         Ok(Self::new(
             syn_endpoint_registry_bindings::SynEndpointRegistryBindings::from(bindings),
@@ -160,9 +159,9 @@ impl syn::parse::Parse for endpoint_registry_args::EndpointRegistryArgs {
 }
 
 impl syn::parse::Parse for route_registry_binding::RouteRegistryBinding {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
-        let _parenthesis = syn::parenthesized!(content in input);
+        let _parenthesis = syn::parenthesized!(content in parse_stream);
         let route =
             syn_route_registry_route::SynRouteRegistryRoute::from(content.parse::<syn::Type>()?);
         let _comma = content.parse::<syn::Token![,]>()?;
@@ -384,9 +383,9 @@ pub fn route_openapi(
 
 #[proc_macro_derive(ContractStructApi, attributes(contract_struct_api))]
 pub fn derive_contract_struct_api(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let derive_input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+    let derive_input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -649,38 +648,40 @@ pub fn derive_contract_struct_api(
 }
 
 impl syn::parse::Parse for route_registry_args::RouteRegistryArgs {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        let state_name = input.parse::<syn::Ident>()?;
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let state_name = parse_stream.parse::<syn::Ident>()?;
         if state_name != constants_str::STATE {
             return Err(syn::Error::new_spanned(
                 state_name,
                 constants_str::ROUTE_REGISTRY_REQUIRES_STATE,
             ));
         }
-        let _equals = input.parse::<syn::Token![=]>()?;
-        let state =
-            syn_route_registry_state::SynRouteRegistryState::from(input.parse::<syn::Type>()?);
-        let _state_comma = input.parse::<syn::Token![,]>()?;
-        let family_name = input.parse::<syn::Ident>()?;
+        let _equals = parse_stream.parse::<syn::Token![=]>()?;
+        let state = syn_route_registry_state::SynRouteRegistryState::from(
+            parse_stream.parse::<syn::Type>()?,
+        );
+        let _state_comma = parse_stream.parse::<syn::Token![,]>()?;
+        let family_name = parse_stream.parse::<syn::Ident>()?;
         if family_name != constants_str::FAMILY {
             return Err(syn::Error::new_spanned(
                 family_name,
                 constants_str::ROUTE_REGISTRY_REQUIRES_FAMILY,
             ));
         }
-        let _family_equals = input.parse::<syn::Token![=]>()?;
-        let family =
-            syn_route_registry_family::SynRouteRegistryFamily::from(input.parse::<syn::Type>()?);
-        let _family_semicolon = input.parse::<syn::Token![;]>()?;
+        let _family_equals = parse_stream.parse::<syn::Token![=]>()?;
+        let family = syn_route_registry_family::SynRouteRegistryFamily::from(
+            parse_stream.parse::<syn::Type>()?,
+        );
+        let _family_semicolon = parse_stream.parse::<syn::Token![;]>()?;
         let security_content;
-        let _security_parenthesis = syn::parenthesized!(security_content in input);
+        let _security_parenthesis = syn::parenthesized!(security_content in parse_stream);
         let authenticated_security =
             contract_syn_expr::ContractSynExpr::from(security_content.parse::<syn::Expr>()?);
         let _comma = security_content.parse::<syn::Token![,]>()?;
         let csrf_security =
             contract_syn_expr::ContractSynExpr::from(security_content.parse::<syn::Expr>()?);
-        let _security_semicolon = input.parse::<syn::Token![;]>()?;
-        let schemas_name = input.parse::<syn::Ident>()?;
+        let _security_semicolon = parse_stream.parse::<syn::Token![;]>()?;
+        let schemas_name = parse_stream.parse::<syn::Ident>()?;
         if schemas_name != constants_str::SCHEMAS {
             return Err(syn::Error::new_spanned(
                 schemas_name,
@@ -688,19 +689,19 @@ impl syn::parse::Parse for route_registry_args::RouteRegistryArgs {
             ));
         }
         let schemas_content;
-        let _schemas_parenthesis = syn::parenthesized!(schemas_content in input);
+        let _schemas_parenthesis = syn::parenthesized!(schemas_content in parse_stream);
         let schemas = syn::punctuated::Punctuated::<syn::Type, syn::Token![,]>::parse_terminated(
             &schemas_content,
         )?
         .into_iter()
         .collect::<Vec<_>>();
-        let _schemas_semicolon = input.parse::<syn::Token![;]>()?;
+        let _schemas_semicolon = parse_stream.parse::<syn::Token![;]>()?;
         let bindings = syn::punctuated::Punctuated::<
             route_registry_binding::RouteRegistryBinding,
             syn::Token![,],
-        >::parse_terminated(input)?;
+        >::parse_terminated(parse_stream)?;
         if bindings.is_empty() {
-            return Err(input.error(constants_str::ROUTE_REGISTRY_REQUIRES_BINDING));
+            return Err(parse_stream.error(constants_str::ROUTE_REGISTRY_REQUIRES_BINDING));
         }
         Ok(Self::new(
             authenticated_security,
@@ -870,7 +871,7 @@ pub fn route_registry(token_stream: proc_macro::TokenStream) -> proc_macro::Toke
 }
 
 impl syn::parse::Parse for typed_route_args::TypedRouteArgs {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut method = None;
         let mut authentication = None;
         let mut error_response = None;
@@ -886,83 +887,83 @@ impl syn::parse::Parse for typed_route_args::TypedRouteArgs {
         let mut response = None;
         let mut success_status = None;
         let mut transport = None;
-        while !input.is_empty() {
-            let name: syn::Ident = input.parse()?;
-            let _equals: syn::Token![=] = input.parse()?;
+        while !parse_stream.is_empty() {
+            let name: syn::Ident = parse_stream.parse()?;
+            let _equals: syn::Token![=] = parse_stream.parse()?;
             match &name {
                 value if value == constants_str::TYPED_ROUTE_FIELD_AUTHENTICATION => {
                     authentication = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::TYPED_ROUTE_FIELD_ERROR_STATUSES => {
                     error_statuses = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::TYPED_ROUTE_FIELD_ERROR_RESPONSE => {
                     error_response = Some(contract_syn_type::ContractSynType::from(
-                        input.parse::<syn::Type>()?,
+                        parse_stream.parse::<syn::Type>()?,
                     ));
                 }
                 value if value == constants_str::TYPED_ROUTE_FIELD_ERROR_POLICY => {
                     error_policy = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::METHOD => {
                     method = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::OPENAPI_OPERATION_ID => {
                     openapi_operation_id = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::MUTATION => {
                     mutation = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::OBLIGATIONS => {
                     obligations = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::TYPED_ROUTE_FIELD_PATH => {
                     path = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::TYPED_ROUTE_FIELD_PATH_PARAMETER => {
                     path_parameter = Some(contract_syn_type::ContractSynType::from(
-                        input.parse::<syn::Type>()?,
+                        parse_stream.parse::<syn::Type>()?,
                     ));
                 }
                 value if value == constants_str::REQUEST => {
                     request = Some(contract_syn_type::ContractSynType::from(
-                        input.parse::<syn::Type>()?,
+                        parse_stream.parse::<syn::Type>()?,
                     ));
                 }
                 value if value == constants_str::TYPED_ROUTE_FIELD_REQUEST_BODY => {
                     request_body = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::RESPONSE => {
                     response = Some(contract_syn_type::ContractSynType::from(
-                        input.parse::<syn::Type>()?,
+                        parse_stream.parse::<syn::Type>()?,
                     ));
                 }
                 value if value == constants_str::TYPED_ROUTE_FIELD_SUCCESS_STATUS => {
                     success_status = Some(contract_syn_expr::ContractSynExpr::from(
-                        input.parse::<syn::Expr>()?,
+                        parse_stream.parse::<syn::Expr>()?,
                     ));
                 }
                 value if value == constants_str::TRANSPORT => {
                     transport = Some(contract_syn_type::ContractSynType::from(
-                        input.parse::<syn::Type>()?,
+                        parse_stream.parse::<syn::Type>()?,
                     ));
                 }
                 _ => {
@@ -972,8 +973,8 @@ impl syn::parse::Parse for typed_route_args::TypedRouteArgs {
                     ));
                 }
             }
-            if !input.is_empty() {
-                let _comma: syn::Token![,] = input.parse()?;
+            if !parse_stream.is_empty() {
+                let _comma: syn::Token![,] = parse_stream.parse()?;
             }
         }
         let errors = match (error_policy, error_statuses) {
@@ -982,29 +983,34 @@ impl syn::parse::Parse for typed_route_args::TypedRouteArgs {
                 syn_typed_route_errors::SynTypedRouteErrors::Statuses(statuses)
             }
             (None, None) | (Some(_), Some(_)) => {
-                return Err(
-                    input.error(constants_str::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES)
-                );
+                return Err(parse_stream
+                    .error(constants_str::TYPED_ROUTE_REQUIRES_ERROR_POLICY_OR_STATUSES));
             }
         };
         Ok(Self::new(
-            authentication
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_AUTHENTICATION))?,
+            authentication.ok_or_else(|| {
+                parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_AUTHENTICATION)
+            })?,
             error_response,
             errors,
-            method.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_METHOD))?,
+            method.ok_or_else(|| parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_METHOD))?,
             mutation,
             obligations,
-            openapi_operation_id
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_OPERATION_ID))?,
-            path.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_PATH))?,
+            openapi_operation_id.ok_or_else(|| {
+                parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_OPERATION_ID)
+            })?,
+            path.ok_or_else(|| parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_PATH))?,
             path_parameter,
-            request.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_REQUEST))?,
+            request
+                .ok_or_else(|| parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_REQUEST))?,
             request_body,
-            response.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_RESPONSE))?,
-            success_status
-                .ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_SUCCESS_STATUS))?,
-            transport.ok_or_else(|| input.error(constants_str::TYPED_ROUTE_REQUIRES_TRANSPORT))?,
+            response
+                .ok_or_else(|| parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_RESPONSE))?,
+            success_status.ok_or_else(|| {
+                parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_SUCCESS_STATUS)
+            })?,
+            transport
+                .ok_or_else(|| parse_stream.error(constants_str::TYPED_ROUTE_REQUIRES_TRANSPORT))?,
         ))
     }
 }
@@ -1014,8 +1020,8 @@ impl syn::parse::Parse for typed_route_args::TypedRouteArgs {
     clippy::wildcard_enum_match_arm,
     reason = "typed route methods intentionally reject every current and future non-path expression"
 )]
-pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+pub fn derive_typed_route(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -1396,16 +1402,16 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 }
 
 #[proc_macro]
-pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn api_operation_error(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parsed_ers = match syn::parse::Parser::parse(
         syn::punctuated::Punctuated::<syn::Ident, syn::Token![,]>::parse_terminated,
-        input,
+        token_stream,
     ) {
         Ok(value) => value,
         Err(parse_error) => return parse_error.to_compile_error().into(),
     };
-    let mut ers = parsed_ers.into_iter();
-    let Some(error) = ers.next() else {
+    let mut errors = parsed_ers.into_iter();
+    let Some(error) = errors.next() else {
         return syn::Error::new(
             proc_macro2::Span::call_site(),
             constants_str::API_OPERATION_ERROR_REQUIRES_ERROR_TYPE,
@@ -1413,7 +1419,7 @@ pub fn api_operation_error(input: proc_macro::TokenStream) -> proc_macro::TokenS
         .to_compile_error()
         .into();
     };
-    if ers.next().is_some() {
+    if errors.next().is_some() {
         return syn::Error::new(
             proc_macro2::Span::call_site(),
             constants_str::API_OPERATION_ERROR_ACCEPTS_ONE_ERROR_TYPE,
@@ -1731,8 +1737,8 @@ pub fn route_operation(
 }
 
 #[proc_macro_derive(RouteCatalog, attributes(route_catalog, route_catalog_route))]
-pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+pub fn derive_route_catalog(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -1979,8 +1985,8 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
 }
 
 #[proc_macro_derive(UnitEnumCatalog)]
-pub fn derive_unit_enum_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+pub fn derive_unit_enum_catalog(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -2020,8 +2026,8 @@ pub fn derive_unit_enum_catalog(input: proc_macro::TokenStream) -> proc_macro::T
 }
 
 #[proc_macro_derive(UnitEnumIndex)]
-pub fn derive_unit_enum_index(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+pub fn derive_unit_enum_index(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -2066,8 +2072,8 @@ pub fn derive_unit_enum_index(input: proc_macro::TokenStream) -> proc_macro::Tok
 }
 
 #[proc_macro_derive(PageCatalog, attributes(page_catalog, page_catalog_page))]
-pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+pub fn derive_page_catalog(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -2194,8 +2200,8 @@ pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_
 }
 
 #[proc_macro_derive(RouteFamily, attributes(route_family, route_family_body_limit))]
-pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+pub fn derive_route_family(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };

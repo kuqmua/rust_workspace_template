@@ -12,8 +12,8 @@ impl RouteErrorPolicy {
     #[must_use]
     pub const fn statuses(
         self,
-        authentication: crate::authentication_requirement::AuthenticationRequirement,
-        mutation: crate::route_mutation::RouteMutation,
+        authentication_requirement: crate::authentication_requirement::AuthenticationRequirement,
+        route_mutation: crate::route_mutation::RouteMutation,
     ) -> &'static [crate::route_error_status::RouteErrorStatus] {
         match self {
             Self::Authentication => crate::route_contract::PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
@@ -21,7 +21,7 @@ impl RouteErrorPolicy {
             Self::ValidatedRead => {
                 crate::route_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES
             }
-            Self::Default => match (authentication, mutation) {
+            Self::Default => match (authentication_requirement, route_mutation) {
                 (
                     crate::authentication_requirement::AuthenticationRequirement::Public,
                     crate::route_mutation::RouteMutation::ReadOnly,

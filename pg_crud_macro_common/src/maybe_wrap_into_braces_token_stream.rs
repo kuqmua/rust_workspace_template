@@ -5,9 +5,9 @@
 
 pub fn maybe_wrap_into_braces_token_stream(
     ts: &dyn quote::ToTokens,
-    wrap: crate::wrap_into_braces::WrapIntoBraces,
+    wrap_into_braces: crate::wrap_into_braces::WrapIntoBraces,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    if bool::from(wrap) {
+    if bool::from(wrap_into_braces) {
         crate::wrap_into_scopes_token_stream::wrap_into_scopes_token_stream(&ts)
     } else {
         quote::quote! {#ts}.into()

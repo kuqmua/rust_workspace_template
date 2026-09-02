@@ -1,7 +1,7 @@
 pub(super) fn environment_keys(
-    content: crate::env_content_ref::EnvContentRef<'_>,
+    env_content_ref: crate::env_content_ref::EnvContentRef<'_>,
 ) -> Result<crate::env_keys::EnvKeys, crate::init_string_error::InitStringError> {
-    content
+    env_content_ref
         .as_ref()
         .lines()
         .filter_map(|source_line| {

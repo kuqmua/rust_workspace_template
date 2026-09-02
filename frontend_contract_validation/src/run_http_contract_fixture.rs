@@ -1,12 +1,12 @@
 pub async fn run_http_contract_fixture<Send, SendFuture>(
-    expectation: crate::http_contract_expectation::HttpContractExpectation,
+    http_contract_expectation: crate::http_contract_expectation::HttpContractExpectation,
     send: Send,
 ) -> Result<(), crate::http_contract_mismatch::HttpContractMismatch>
 where
     Send: FnOnce(frontend_contract::route_metadata::RouteMetadata) -> SendFuture,
     SendFuture: Future<Output = crate::http_contract_observation::HttpContractObservation>,
 {
-    let (metadata, status, body_kind) = expectation.parts();
+    let (metadata, status, body_kind) = http_contract_expectation.parts();
     let observation = send(metadata).await;
     let (body, observed_metadata, observed_status) = observation.parts();
     crate::validate_route_contract_metadata::validate_route_contract_metadata(

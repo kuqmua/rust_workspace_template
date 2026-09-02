@@ -11,8 +11,8 @@ impl TryFrom<u32> for FieldLocationLine {
     type Error =
         crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error;
 
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        std::num::NonZeroU32::new(value)
+    fn try_from(u32: u32) -> Result<Self, Self::Error> {
+        std::num::NonZeroU32::new(u32)
             .map(Self::from)
             .ok_or(crate::field_location_coordinate_try_from_u32_error::FieldLocationCoordinateTryFromU32Error::OutOfRange)
     }

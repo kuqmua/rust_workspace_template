@@ -17,9 +17,9 @@ impl axum::response::IntoResponse for MetricsResponseBody {
 impl TryFrom<String> for MetricsResponseBody {
     type Error = crate::metrics_response_body_error::MetricsResponseBodyError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() <= constants_usize::VALUE_8_388_608 {
-            Ok(Self(value))
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.len() <= constants_usize::VALUE_8_388_608 {
+            Ok(Self(string))
         } else {
             Err(crate::metrics_response_body_error::MetricsResponseBodyError::TooLarge)
         }

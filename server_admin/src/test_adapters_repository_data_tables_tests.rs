@@ -1,6 +1,6 @@
 fn filter_query(
-    field: &str,
-    operation: frontend_contract::filter_operation::FilterOperation,
+    str: &str,
+    filter_operation: frontend_contract::filter_operation::FilterOperation,
     filter_value: Option<&str>,
     end: Option<&str>,
 ) -> server_admin_contract::admin_data_table_query::AdminDataTableQuery {
@@ -8,11 +8,11 @@ fn filter_query(
         server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
             Some(
                 server_admin_contract::admin_filter_field::AdminFilterField::try_from(
-                    field.to_owned(),
+                    str.to_owned(),
                 )
                 .expect(constants_str::DIAGNOSTIC_A17498DC),
             ),
-            Some(operation),
+            Some(filter_operation),
             filter_value.map(|raw_filter_value| {
                 server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
                     raw_filter_value.to_owned(),

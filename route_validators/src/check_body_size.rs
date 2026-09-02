@@ -3,15 +3,15 @@
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 pub async fn check_body_size<BodyTy, LimitTy>(
-    body: BodyTy,
-    limit: LimitTy,
+    body_ty: BodyTy,
+    limit_ty: LimitTy,
 ) -> Result<crate::bytes_body_bytes::BytesBodyBytes, crate::body_size_error::BodySizeError>
 where
     BodyTy: Into<crate::axum_body::AxumBody>,
     LimitTy: Into<crate::body_size_limit_bytes::BodySizeLimitBytes>,
 {
-    let body_value = body.into();
-    let limit_value = limit.into();
+    let body_value = body_ty.into();
+    let limit_value = limit_ty.into();
     let size_hint = body_value.size_hint();
     axum::body::to_bytes(body_value.into_inner(), limit_value.value())
         .await
@@ -29,14 +29,14 @@ where
 mod tests {
     fn expect_reached_max_size(
         body: axum::body::Body,
-        limit: usize,
-        exp_id: &'static str,
+        usize: usize,
+        str: &'static str,
     ) -> (usize, Option<u64>) {
         crate::assert_err_status_code_variant_ref::assert_err_status_code_variant_ref(
             crate::poll_test_future::poll_test_future(crate::check_body_size::check_body_size(
-                body, limit,
+                body, usize,
             )),
-            exp_id,
+            str,
             crate::axum_http_status_code::AxumHttpStatusCode::payload_too_large(),
             |v| {
                 Some(match v {
@@ -52,21 +52,21 @@ mod tests {
             },
         )
     }
-    fn assert_reached_max_size_limit(body: axum::body::Body, limit: usize, exp_id: &'static str) {
-        let (maximum_size_of_body_limit_in_bytes, _) = expect_reached_max_size(body, limit, exp_id);
-        assert_eq!(maximum_size_of_body_limit_in_bytes, limit);
+    fn assert_reached_max_size_limit(body: axum::body::Body, usize: usize, str: &'static str) {
+        let (maximum_size_of_body_limit_in_bytes, _) = expect_reached_max_size(body, usize, str);
+        assert_eq!(maximum_size_of_body_limit_in_bytes, usize);
     }
     fn assert_body_bytes_eq(
         body: axum::body::Body,
-        limit: usize,
-        exp_id: &'static str,
+        usize: usize,
+        str: &'static str,
         exp: &'static [u8],
     ) {
         let actual = crate::expect_ok::expect_ok(
             crate::poll_test_future::poll_test_future(crate::check_body_size::check_body_size(
-                body, limit,
+                body, usize,
             )),
-            exp_id,
+            str,
         );
         assert!(actual.matches(exp));
     }

@@ -23,9 +23,9 @@ impl From<crate::pg_table_idempotency_known_response_status::PgTableIdempotencyK
     for PgTableIdempotencyResponseStatus
 {
     fn from(
-        value: crate::pg_table_idempotency_known_response_status::PgTableIdempotencyKnownResponseStatus,
+        pg_table_idempotency_known_response_status: crate::pg_table_idempotency_known_response_status::PgTableIdempotencyKnownResponseStatus,
     ) -> Self {
-        match value {
+        match pg_table_idempotency_known_response_status {
             crate::pg_table_idempotency_known_response_status::PgTableIdempotencyKnownResponseStatus::InternalServerError => Self(500u16),
         }
     }

@@ -1,15 +1,17 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlRevokeSessionError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn revoke_session(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    form: crate::axum_admin_form::AxumAdminForm<crate::revoke_session_form::RevokeSessionForm>,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_form: crate::axum_admin_form::AxumAdminForm<
+        crate::revoke_session_form::RevokeSessionForm,
+    >,
 ) -> axum::response::Response {
-    if !bool::from(*form.get_confirmation()) {
+    if !bool::from(*axum_admin_form.get_confirmation()) {
         return axum::response::IntoResponse::into_response(
             crate::admin_error::AdminError::Validation,
         );
     }
-    let session_id = form
+    let session_id = axum_admin_form
         .get_session_id()
         .to_string()
         .parse::<uuid::Uuid>()
@@ -20,7 +22,7 @@ pub(crate) async fn revoke_session(
             crate::admin_error::AdminError::Validation,
         );
     };
-    match crate::form_auth_impl::form_auth_impl(auth) {
+    match crate::form_auth_impl::form_auth_impl(admin_auth_request) {
         Ok(auth) => {
             match crate::sessions_revoke_session::sessions_revoke_session(
                 auth,

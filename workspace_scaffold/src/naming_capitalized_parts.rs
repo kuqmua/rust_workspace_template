@@ -1,17 +1,17 @@
 pub(super) fn naming_capitalized_parts(
-    value: crate::project_name_ref::ProjectNameRef<'_>,
-    separator: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+    project_name_ref: crate::project_name_ref::ProjectNameRef<'_>,
+    scaffold_text_ref: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
 ) -> crate::scaffold_text::ScaffoldText {
-    let output = value
+    let output = project_name_ref
         .get()
         .split('_')
         .filter(|part| !part.is_empty())
         .enumerate()
         .fold(
-            String::with_capacity(value.get().len()),
+            String::with_capacity(project_name_ref.get().len()),
             |mut output, (index, part)| {
                 if index > constants_usize::ZERO {
-                    output.push_str(separator.get());
+                    output.push_str(scaffold_text_ref.get());
                 }
                 let mut chars = part.chars();
                 if let Some(first) = chars.next() {

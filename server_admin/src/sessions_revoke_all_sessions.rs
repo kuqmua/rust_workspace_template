@@ -1,20 +1,24 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn sessions_revoke_all_sessions(
-    auth: crate::admin_auth_req::AdminAuthReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let authenticated = crate::authorization_authenticate::authorization_authenticate(
-        auth.get_state().as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
-        *auth.get_peer(),
+        admin_auth_request.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(
+            admin_auth_request.get_headers().as_ref(),
+        ),
+        *admin_auth_request.get_peer(),
     )
     .await?;
     crate::authorization_validate_csrf::authorization_validate_csrf(
-        auth.get_state().as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
+        admin_auth_request.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(
+            admin_auth_request.get_headers().as_ref(),
+        ),
         &authenticated,
     )
     .await?;
-    let mut tx = auth
+    let mut tx = admin_auth_request
         .get_state()
         .as_ref()
         .get_pool()
@@ -53,7 +57,7 @@ pub(crate) async fn sessions_revoke_all_sessions(
     );
     crate::append_cleared_session_cookies::append_cleared_session_cookies(
         &mut response,
-        auth.get_state().as_ref(),
+        admin_auth_request.get_state().as_ref(),
     )?;
     Ok(response)
 }

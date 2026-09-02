@@ -10,11 +10,11 @@ pub(super) struct SecurityHeadersTowerLayer {
 impl<Service> tower::Layer<Service> for SecurityHeadersTowerLayer {
     type Service = crate::security_headers_service::SecurityHeadersService<Service>;
 
-    fn layer(&self, inner: Service) -> Self::Service {
+    fn layer(&self, service: Service) -> Self::Service {
         crate::security_headers_service::SecurityHeadersService::new(
             self.content_security_policy.clone(),
             self.forwarded_proto_trust,
-            inner,
+            service,
         )
     }
 }

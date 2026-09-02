@@ -10,7 +10,7 @@ pub mod location_duration;
 pub mod location_file;
 pub mod location_file_ref;
 pub mod location_line;
-pub mod occr;
+pub mod occurrence;
 pub mod std_time_duration;
 pub mod std_time_duration_nanos;
 pub mod std_time_duration_nanos_try_from_u32_error;

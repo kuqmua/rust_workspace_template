@@ -6,33 +6,36 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
     reason = "Leptos component visibility is required for composition from the shell module"
 )]
 pub(crate) fn AdminUsersView(
-    admin: server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-    page: server_admin_contract::admin_users_page::AdminUsersPage,
-    query: super::admin_csr_query::AdminCsrQuery,
+    authenticated_admin: server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    admin_users_page: server_admin_contract::admin_users_page::AdminUsersPage,
+    admin_csr_query: super::admin_csr_query::AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
     let can_create = bool::from(
-        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::UsersCreate),
+        authenticated_admin
+            .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersCreate),
     );
     let can_manage = bool::from(
-        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::UsersUpdate),
+        authenticated_admin
+            .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersUpdate),
     ) || bool::from(
-        admin.has_permission(server_admin_contract::admin_permission::AdminPermission::UsersDelete),
+        authenticated_admin
+            .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersDelete),
     );
-    let total = page.total();
-    let rows = page
+    let total = admin_users_page.total();
+    let rows = admin_users_page
         .items()
         .iter()
-        .map(|item| csr_admin_user_row::csr_admin_user_row(item, &page))
+        .map(|item| csr_admin_user_row::csr_admin_user_row(item, &admin_users_page))
         .collect::<Vec<_>>();
     leptos::view! {
-        <section class="table-page" data-renderer="csr">
+        <section class="table-admin_users_page" data-renderer="csr">
             <div class="resource-actions">
                 {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>"Create user"</crate::admin_button_link::AdminButtonLink> })}
-                {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersManage.get() variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Manage users"</crate::admin_button_link::AdminButtonLink> })}
+                {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink href=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersManage.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Manage users"</crate::admin_button_link::AdminButtonLink> })}
             </div>
             <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"login"</crate::table_head::TableHead><crate::table_head::TableHead>"display_name"</crate::table_head::TableHead><crate::table_head::TableHead>"banned"</crate::table_head::TableHead><crate::table_head::TableHead>"roles"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
-            <super::admin_pagination::AdminPagination action=server_admin_contract::admin_frontend_path::AdminFrontendPath::Users query=query total=total />
+            <super::admin_pagination::AdminPagination action=server_admin_contract::admin_frontend_path::AdminFrontendPath::Users admin_csr_query=admin_csr_query total=total />
         </section>
     }
 }

@@ -1,18 +1,19 @@
 #[must_use]
 pub fn generate_field_location_new_token_stream(
-    file: crate::field_location_file::FieldLocationFile,
-    line: crate::field_location_line::FieldLocationLine,
-    column: crate::field_location_column::FieldLocationColumn,
+    field_location_file: crate::field_location_file::FieldLocationFile,
+    field_location_line: crate::field_location_line::FieldLocationLine,
+    field_location_column: crate::field_location_column::FieldLocationColumn,
 ) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let location_snake_case = naming::domain_types::LocationSnakeCase;
     let location_new_token_stream = {
-        let file_token_stream = generate_quotes::dq_token_stream::dq_token_stream(file.as_str());
+        let file_token_stream =
+            generate_quotes::dq_token_stream::dq_token_stream(field_location_file.as_str());
         let line_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(line.value());
+            let literal = proc_macro2::Literal::u32_unsuffixed(field_location_line.value());
             quote::quote! {#literal}
         };
         let column_token_stream = {
-            let literal = proc_macro2::Literal::u32_unsuffixed(column.value());
+            let literal = proc_macro2::Literal::u32_unsuffixed(field_location_column.value());
             quote::quote! {#literal}
         };
         quote::quote! {
@@ -24,7 +25,7 @@ pub fn generate_field_location_new_token_stream(
                 location_lib::location_column::LocationColumn::from(
                     std::num::NonZeroU32::new(column!()).unwrap_or(std::num::NonZeroU32::MIN),
                 ),
-                Some(location_lib::occr::Occr::new(
+                Some(location_lib::occurrence::Occurrence::new(
                     location_lib::location_file::LocationFile::try_from(String::from(#file_token_stream)).unwrap_or_else(location_lib::location_file::LocationFile::from),
                     location_lib::location_line::LocationLine::try_from(#line_token_stream)
                         .unwrap_or_else(|_error| location_lib::location_line::LocationLine::first()),

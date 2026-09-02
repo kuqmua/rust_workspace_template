@@ -1,8 +1,8 @@
 pub fn resolve_request_origin_allowed(
-    headers: crate::http_origin_headers_ref::HttpOriginHeadersRef<'_>,
+    http_origin_headers_ref: crate::http_origin_headers_ref::HttpOriginHeadersRef<'_>,
     allowed_origins: &crate::allowed_origins::AllowedOrigins,
 ) -> crate::request_origin_allowed::RequestOriginAllowed {
-    let header_map = headers.get();
+    let header_map = http_origin_headers_ref.get();
     let allowed = header_map.get(http::header::ORIGIN).map_or_else(
         || {
             header_map

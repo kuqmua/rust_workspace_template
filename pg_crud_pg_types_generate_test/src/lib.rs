@@ -16,15 +16,15 @@ mod tests {
     where
         T: utoipa::ToSchema + serde::Serialize + serde::de::DeserializeOwned,
     {
-        fn first_example(schema: &serde_json::Value) -> Option<serde_json::Value> {
-            if let Some(example) = schema
+        fn first_example(value: &serde_json::Value) -> Option<serde_json::Value> {
+            if let Some(example) = value
                 .get(constants_str::VALUE_C590B3C9)
                 .and_then(serde_json::Value::as_array)
                 .and_then(|examples| examples.first())
             {
                 return Some(example.clone());
             }
-            match schema {
+            match value {
                 serde_json::Value::Array(values) => values.iter().find_map(first_example),
                 serde_json::Value::Object(values) => values.values().find_map(first_example),
                 serde_json::Value::Bool(_)

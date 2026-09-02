@@ -4,13 +4,13 @@ pub(super) enum CanBeNullable {
     True,
 }
 impl quote::ToTokens for crate::pg_type_catalog_kind::PgTypeCatalogKind {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
+    fn to_tokens(&self, token_stream: &mut proc_macro2::TokenStream) {
+        quote::format_ident!("{}", self.to_string()).to_tokens(token_stream);
     }
 }
 impl From<&crate::range::Range> for crate::pg_type_catalog_kind::PgTypeCatalogKind {
-    fn from(value: &crate::range::Range) -> Self {
-        match value {
+    fn from(range: &crate::range::Range) -> Self {
+        match range {
             crate::range::Range::I32AsInt4 => Self::I32AsInt4,
             crate::range::Range::I64AsInt8 => Self::I64AsInt8,
             crate::range::Range::SqlxTypesChronoNaiveDateAsDate => {

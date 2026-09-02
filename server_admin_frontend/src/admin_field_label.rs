@@ -8,14 +8,14 @@ impl AdminFieldLabel {
 }
 
 impl From<&'static str> for AdminFieldLabel {
-    fn from(value: &'static str) -> Self {
-        Self(Box::<str>::from(value))
+    fn from(str: &'static str) -> Self {
+        Self(Box::<str>::from(str))
     }
 }
 
 impl From<String> for AdminFieldLabel {
-    fn from(value: String) -> Self {
-        Self(value.into_boxed_str())
+    fn from(string: String) -> Self {
+        Self(string.into_boxed_str())
     }
 }
 

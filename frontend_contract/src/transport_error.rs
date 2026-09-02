@@ -13,7 +13,7 @@ pub struct TransportError(to_err_string::error_text::ErrorText);
 impl TryFrom<String> for TransportError {
     type Error = to_err_string::error_text::ErrorTextTryFromStringError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        to_err_string::error_text::ErrorText::try_from(value).map(Self)
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        to_err_string::error_text::ErrorText::try_from(string).map(Self)
     }
 }

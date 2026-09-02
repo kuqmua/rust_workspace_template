@@ -18,8 +18,8 @@ pub struct ActionContracts(
 impl TryFrom<Vec<crate::action_contract::ActionContract>> for ActionContracts {
     type Error = bounded_types::bounded_value_error::BoundedValueError;
 
-    fn try_from(value: Vec<crate::action_contract::ActionContract>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
+    fn try_from(vec: Vec<crate::action_contract::ActionContract>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(vec).map(Self::from)
     }
 }
 

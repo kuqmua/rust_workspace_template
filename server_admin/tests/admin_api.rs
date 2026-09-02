@@ -1107,7 +1107,7 @@ mod test_flow {
         .await
         .expect(constants_str::DIAGNOSTIC_1E53A0C7);
         let assign_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_req::AdminSetUserRolesReq::new(
+            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
                 crate::empty_admin_role_ids(),
                 crate::one_admin_role_id(
                     server_admin_contract::admin_role_id::AdminRoleId::try_from(role_id)
@@ -1133,7 +1133,7 @@ mod test_flow {
         .expect(constants_str::DIAGNOSTIC_F74095EB);
         assert_eq!(assign_role_response.status(), http::StatusCode::NO_CONTENT);
         let stale_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_req::AdminSetUserRolesReq::new(
+            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
                 crate::empty_admin_role_ids(),
                 crate::empty_admin_role_ids(),
             ),
@@ -1156,7 +1156,7 @@ mod test_flow {
         .expect(constants_str::DIAGNOSTIC_170158FB);
         assert_eq!(stale_role_response.status(), http::StatusCode::CONFLICT);
         let remove_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_req::AdminSetUserRolesReq::new(
+            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
                 crate::one_admin_role_id(
                     server_admin_contract::admin_role_id::AdminRoleId::try_from(role_id)
                         .expect(constants_str::DIAGNOSTIC_C8994C27),
@@ -1235,7 +1235,7 @@ mod test_flow {
                 .await
                 .expect(constants_str::DIAGNOSTIC_20B5FB03);
         let remove_last_admin_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_req::AdminSetUserRolesReq::new(
+            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
                 crate::one_admin_role_id(
                     server_admin_contract::admin_role_id::AdminRoleId::try_from(admin_role_id)
                         .expect(constants_str::DIAGNOSTIC_84FE96C8),
@@ -3042,7 +3042,7 @@ mod test_maintenance {
                 3_600i64,
             )
             .expect(constants_str::DIAGNOSTIC_AB892FC5);
-        let config = server_admin::admin_cleanup_cfg::AdminCleanupCfg::new(
+        let config = server_admin::admin_cleanup_configuration::AdminCleanupConfiguration::new(
             server_admin::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(2i64)
                 .expect(constants_str::DIAGNOSTIC_1D97B31C),
             retention,
@@ -3710,22 +3710,22 @@ impl AdminHtmlSettingsTestValues<'_> {
 }
 
 fn one_admin_role_id(
-    value: server_admin_contract::admin_role_id::AdminRoleId,
+    admin_role_id: server_admin_contract::admin_role_id::AdminRoleId,
 ) -> server_admin_contract::admin_role_ids::AdminRoleIds {
-    server_admin_contract::admin_role_ids::AdminRoleIds::try_from(vec![value])
+    server_admin_contract::admin_role_ids::AdminRoleIds::try_from(vec![admin_role_id])
         .expect(constants_str::DIAGNOSTIC_69BC51BC)
 }
 fn empty_admin_role_ids() -> server_admin_contract::admin_role_ids::AdminRoleIds {
     server_admin_contract::admin_role_ids::AdminRoleIds::try_from(Vec::new())
         .expect(constants_str::DIAGNOSTIC_D5CCD621)
 }
-fn env<T>(value: StdAdminApiTestStrRef<'_>) -> T
+fn env<T>(std_admin_api_test_str_ref: StdAdminApiTestStrRef<'_>) -> T
 where
     T: config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk,
     T::Error: std::fmt::Debug,
 {
     T::try_from_std_env_var_ok(
-        config_lib::std_env_var_ok::StdEnvVarOk::try_from(value.0.to_owned())
+        config_lib::std_env_var_ok::StdEnvVarOk::try_from(std_admin_api_test_str_ref.0.to_owned())
             .expect(constants_str::DIAGNOSTIC_92B71C4E),
     )
     .expect(constants_str::DIAGNOSTIC_AFE20C19)
@@ -3780,9 +3780,9 @@ fn admin_api_test_router() -> AxumAdminApiTestRouter {
         ),
     ))
 }
-fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
+fn router_with_pool(sqlx_admin_api_test_pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
-        app_state::sqlx_pg_pool::SqlxPgPool::from(pool.0.clone()),
+        app_state::sqlx_pg_pool::SqlxPgPool::from(sqlx_admin_api_test_pool.0.clone()),
         &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
@@ -3828,14 +3828,14 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     ))
 }
 fn request_with_peer(
-    method: HttpAdminApiTestMethod,
+    http_admin_api_test_method: HttpAdminApiTestMethod,
     uri: StdAdminApiTestStrRef<'_>,
     body: StdAdminApiTestStrRef<'_>,
     cookie: Option<StdAdminApiTestStrRef<'_>>,
     csrf: Option<StdAdminApiTestStrRef<'_>>,
 ) -> HttpAdminApiTestRequest {
     request_with_peer_at(
-        method,
+        http_admin_api_test_method,
         uri,
         body,
         cookie,
@@ -3844,7 +3844,7 @@ fn request_with_peer(
     )
 }
 fn request_with_peer_at(
-    method: HttpAdminApiTestMethod,
+    http_admin_api_test_method: HttpAdminApiTestMethod,
     uri: StdAdminApiTestStrRef<'_>,
     body: StdAdminApiTestStrRef<'_>,
     cookie: Option<StdAdminApiTestStrRef<'_>>,
@@ -3852,7 +3852,7 @@ fn request_with_peer_at(
     peer: StdAdminApiTestStrRef<'_>,
 ) -> HttpAdminApiTestRequest {
     let mut builder = http::Request::builder()
-        .method(method.0)
+        .method(http_admin_api_test_method.0)
         .uri(uri.0)
         .header(http::header::CONTENT_TYPE, constants_str::APPLICATION_JSON)
         .header(http::header::ORIGIN, constants_str::HTTP_LOCALHOST);
@@ -3873,20 +3873,20 @@ fn request_with_peer_at(
     HttpAdminApiTestRequest::from(request)
 }
 fn html_request_with_peer(
-    method: HttpAdminApiTestMethod,
+    http_admin_api_test_method: HttpAdminApiTestMethod,
     uri: StdAdminApiTestStrRef<'_>,
     body: StdAdminApiTestStrRef<'_>,
-    cookie: Option<StdAdminApiTestStrRef<'_>>,
+    option: Option<StdAdminApiTestStrRef<'_>>,
 ) -> HttpAdminApiTestRequest {
     let mut builder = http::Request::builder()
-        .method(method.0)
+        .method(http_admin_api_test_method.0)
         .uri(uri.0)
         .header(
             http::header::CONTENT_TYPE,
             constants_str::APPLICATION_X_WWW_FORM_URLENCODED,
         )
         .header(http::header::ORIGIN, constants_str::HTTP_LOCALHOST);
-    if let Some(value) = cookie {
+    if let Some(value) = option {
         builder = builder.header(http::header::COOKIE, value.0);
     }
     let mut request = builder
@@ -3900,10 +3900,10 @@ fn html_request_with_peer(
     HttpAdminApiTestRequest::from(request)
 }
 fn cookie_value(
-    response: HttpAdminApiTestResponseRef<'_>,
-    name: StdAdminApiTestStrRef<'_>,
+    http_admin_api_test_response_ref: HttpAdminApiTestResponseRef<'_>,
+    std_admin_api_test_str_ref: StdAdminApiTestStrRef<'_>,
 ) -> StdAdminApiTestCookie {
-    response
+    http_admin_api_test_response_ref
         .0
         .headers()
         .get_all(http::header::SET_COOKIE)
@@ -3913,7 +3913,7 @@ fn cookie_value(
             value
                 .split(';')
                 .next()
-                .and_then(|pair| pair.strip_prefix(name.0))
+                .and_then(|pair| pair.strip_prefix(std_admin_api_test_str_ref.0))
                 .map(str::to_owned)
         })
         .map(|value| {
@@ -3922,18 +3922,20 @@ fn cookie_value(
         .expect(constants_str::DIAGNOSTIC_360DE719)
 }
 async fn admin_html_response(
-    fixture: &AdminHtmlTestFixture,
-    method: HttpAdminApiTestMethod,
+    admin_html_test_fixture: &AdminHtmlTestFixture,
+    http_admin_api_test_method: HttpAdminApiTestMethod,
     uri: StdAdminApiTestStrRef<'_>,
     body: StdAdminApiTestStrRef<'_>,
 ) -> HttpAdminHtmlTestResponse {
     tower::ServiceExt::oneshot(
-        fixture.router.0.clone(),
+        admin_html_test_fixture.router.0.clone(),
         html_request_with_peer(
-            method,
+            http_admin_api_test_method,
             uri,
             body,
-            Some(StdAdminApiTestStrRef::from(fixture.cookie.0.as_str())),
+            Some(StdAdminApiTestStrRef::from(
+                admin_html_test_fixture.cookie.0.as_str(),
+            )),
         )
         .0,
     )
@@ -3941,28 +3943,41 @@ async fn admin_html_response(
     .map(HttpAdminHtmlTestResponse::from)
     .expect(constants_str::DIAGNOSTIC_3CB98672)
 }
-async fn admin_html_body(response: HttpAdminHtmlTestResponse) -> AdminHtmlTestBody {
-    axum::body::to_bytes(response.0.into_body(), constants_usize::VALUE_1_048_576)
-        .await
-        .map(|bytes| String::from_utf8(bytes.to_vec()).expect(constants_str::DIAGNOSTIC_86547438))
-        .map(|body| AdminHtmlTestBody::try_from(body).expect(constants_str::DIAGNOSTIC_EC7261CD))
-        .expect(constants_str::DIAGNOSTIC_8B54DE37)
+async fn admin_html_body(
+    http_admin_html_test_response: HttpAdminHtmlTestResponse,
+) -> AdminHtmlTestBody {
+    axum::body::to_bytes(
+        http_admin_html_test_response.0.into_body(),
+        constants_usize::VALUE_1_048_576,
+    )
+    .await
+    .map(|bytes| String::from_utf8(bytes.to_vec()).expect(constants_str::DIAGNOSTIC_86547438))
+    .map(|body| AdminHtmlTestBody::try_from(body).expect(constants_str::DIAGNOSTIC_EC7261CD))
+    .expect(constants_str::DIAGNOSTIC_8B54DE37)
 }
-fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
+fn assert_admin_csr_shell(admin_html_test_body: &AdminHtmlTestBody) {
     assert!(
-        body.0.contains(constants_str::VALUE_03DEA637),
+        admin_html_test_body
+            .0
+            .contains(constants_str::VALUE_03DEA637),
         "CSR root is missing"
     );
     assert!(
-        body.0.contains(constants_str::VALUE_C84BBF51),
+        admin_html_test_body
+            .0
+            .contains(constants_str::VALUE_C84BBF51),
         "CSR application script is missing"
     );
     assert!(
-        !body.0.contains(constants_str::VALUE_EA8C92A5),
+        !admin_html_test_body
+            .0
+            .contains(constants_str::VALUE_EA8C92A5),
         "server rendered a data table"
     );
     assert!(
-        !body.0.contains(constants_str::VALUE_C23058ED),
+        !admin_html_test_body
+            .0
+            .contains(constants_str::VALUE_C23058ED),
         "server rendered a data form"
     );
 }
@@ -3971,7 +3986,7 @@ fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
     reason = "the asserted status identifies the failed fixture stage"
 )]
 async fn admin_html_test_fixture_with_password_change(
-    password_change_required: server_admin_contract::admin_bool::AdminBool,
+    admin_bool: server_admin_contract::admin_bool::AdminBool,
 ) -> AdminHtmlTestFixture {
     let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
         .expect(constants_str::DIAGNOSTIC_FBE54D19);
@@ -4031,7 +4046,7 @@ async fn admin_html_test_fixture_with_password_change(
         )
         .await
         .expect(constants_str::DIAGNOSTIC_1E29C87F);
-    if !bool::from(password_change_required) {
+    if !bool::from(admin_bool) {
         let _updated =
             sqlx::query(constants_str::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE)
                 .execute(&pool.0)
@@ -4139,11 +4154,11 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
     .await
 }
 async fn postgres_accepts_admin_user_policy_values(
-    pool: &SqlxAdminApiTestPool,
+    sqlx_admin_api_test_pool: &SqlxAdminApiTestPool,
     display_name: StdAdminApiTestStrRef<'_>,
     login: StdAdminApiTestStrRef<'_>,
 ) -> server_admin_contract::admin_bool::AdminBool {
-    let mut transaction = pool
+    let mut transaction = sqlx_admin_api_test_pool
         .0
         .begin()
         .await
@@ -4162,16 +4177,16 @@ async fn postgres_accepts_admin_user_policy_values(
     server_admin_contract::admin_bool::AdminBool::from(accepted)
 }
 async fn postgres_accepts_admin_role_policy_value(
-    pool: &SqlxAdminApiTestPool,
-    name: StdAdminApiTestStrRef<'_>,
+    sqlx_admin_api_test_pool: &SqlxAdminApiTestPool,
+    std_admin_api_test_str_ref: StdAdminApiTestStrRef<'_>,
 ) -> server_admin_contract::admin_bool::AdminBool {
-    let mut transaction = pool
+    let mut transaction = sqlx_admin_api_test_pool
         .0
         .begin()
         .await
         .expect(constants_str::DIAGNOSTIC_77C2DB82);
     let accepted = sqlx::query(constants_str::INSERT_ADMIN_ROLE_POLICY_PROBE)
-        .bind(name.0)
+        .bind(std_admin_api_test_str_ref.0)
         .execute(&mut *transaction)
         .await
         .is_ok();

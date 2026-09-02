@@ -1,11 +1,11 @@
 pub(crate) fn try_new_unique_vec<T, FindDuplicate>(
-    values: crate::duplicate_candidates::DuplicateCandidates<T>,
+    duplicate_candidates: crate::duplicate_candidates::DuplicateCandidates<T>,
     find_duplicate: FindDuplicate,
 ) -> Result<Vec<T>, crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>>
 where
     FindDuplicate: FnOnce(&mut crate::duplicate_candidates::DuplicateCandidates<T>) -> Option<T>,
 {
-    let raw_values = Vec::from(values);
+    let raw_values = Vec::from(duplicate_candidates);
     if raw_values.is_empty() {
         return Err(
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::IsEmpty {

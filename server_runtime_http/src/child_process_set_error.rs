@@ -9,8 +9,8 @@ pub enum ChildProcessSetError {
 }
 
 impl From<bounded_types::bounded_value_error::BoundedValueError> for ChildProcessSetError {
-    fn from(value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
-        let _: bounded_types::bounded_value_error::BoundedValueError = value;
+    fn from(bounded_value_error: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+        let _: bounded_types::bounded_value_error::BoundedValueError = bounded_value_error;
         Self::Full
     }
 }

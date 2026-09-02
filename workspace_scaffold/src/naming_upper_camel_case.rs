@@ -1,8 +1,8 @@
 pub(super) fn naming_upper_camel_case(
-    value: crate::project_name_ref::ProjectNameRef<'_>,
+    project_name_ref: crate::project_name_ref::ProjectNameRef<'_>,
 ) -> crate::scaffold_text::ScaffoldText {
     crate::naming_capitalized_parts::naming_capitalized_parts(
-        value,
+        project_name_ref,
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::EMPTY),
     )
 }

@@ -20,7 +20,7 @@ impl<'headers_lt> AxumHeadersRef<'headers_lt> {
 impl<'headers_lt> From<&'headers_lt crate::axum_test_headers::AxumTestHeaders>
     for AxumHeadersRef<'headers_lt>
 {
-    fn from(value: &'headers_lt crate::axum_test_headers::AxumTestHeaders) -> Self {
-        Self(value.as_ref())
+    fn from(axum_test_headers: &'headers_lt crate::axum_test_headers::AxumTestHeaders) -> Self {
+        Self(axum_test_headers.as_ref())
     }
 }

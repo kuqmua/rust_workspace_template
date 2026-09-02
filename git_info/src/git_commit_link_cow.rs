@@ -14,20 +14,20 @@
 pub struct GitCommitLinkCow(std::borrow::Cow<'static, str>);
 impl TryFrom<String> for GitCommitLinkCow {
     type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::try_from(std::borrow::Cow::Owned(value))
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        Self::try_from(std::borrow::Cow::Owned(string))
     }
 }
 impl TryFrom<std::borrow::Cow<'static, str>> for GitCommitLinkCow {
     type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
-    fn try_from(value: std::borrow::Cow<'static, str>) -> Result<Self, Self::Error> {
-        if value.len() > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN {
+    fn try_from(cow: std::borrow::Cow<'static, str>) -> Result<Self, Self::Error> {
+        if cow.len() > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN {
             Err(crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
-                len: value.len(),
+                len: cow.len(),
                 max: crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN,
             })
         } else {
-            Ok(Self(value))
+            Ok(Self(cow))
         }
     }
 }
@@ -35,8 +35,10 @@ impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStri
     for GitCommitLinkCow
 {
     fn from(
-        value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+        git_info_string_try_from_string_error: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
     ) -> Self {
-        Self(std::borrow::Cow::Owned(value.to_string()))
+        Self(std::borrow::Cow::Owned(
+            git_info_string_try_from_string_error.to_string(),
+        ))
     }
 }

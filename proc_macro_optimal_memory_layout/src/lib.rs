@@ -3,16 +3,14 @@
     clippy::useless_concat,
     reason = "the foundational proc macro cannot depend on constants_str without creating a dependency cycle"
 )]
-pub fn optimal_memory_layout(
-    input_token_stream: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
+pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let generate_alignments_identifier_token_stream = |i: usize| {
         proc_macro2::Ident::new(
             format!("alignments_{i}").as_str(),
             proc_macro2::Span::call_site(),
         )
     };
-    let di: syn::DeriveInput = match syn::parse(input_token_stream) {
+    let di: syn::DeriveInput = match syn::parse(token_stream) {
         Ok(derive_input) => derive_input,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -60,11 +58,11 @@ pub fn optimal_memory_layout(
         let variant_info = variant.map_or_else(String::new, |variant_identifier| {
             format!("variant '{variant_identifier}' ")
         });
-        let generate_or_copy_identifier = |field: &syn::Field, idx: usize| {
+        let generate_or_copy_identifier = |field: &syn::Field, index: usize| {
             field
                 .ident
                 .as_ref()
-                .map_or_else(|| generate_field(idx), Clone::clone)
+                .map_or_else(|| generate_field(index), Clone::clone)
         };
         let assertions_token_stream = fields
             .iter()

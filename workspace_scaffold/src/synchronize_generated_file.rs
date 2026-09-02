@@ -1,11 +1,12 @@
 pub(super) fn synchronize_generated_file(
-    path: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
+    scaffold_path_ref: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
     begin: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
     end: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
     generated: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
-    write_changes: crate::should_write::ShouldWrite,
+    should_write: crate::should_write::ShouldWrite,
 ) -> Result<(), crate::scaffold_error::ScaffoldError> {
-    let source = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(path)?;
+    let source =
+        crate::template_fs_read_bounded_text::template_fs_read_bounded_text(scaffold_path_ref)?;
     let (prefix, after_begin) = source
         .as_ref()
         .split_once(begin.get())
@@ -23,9 +24,9 @@ pub(super) fn synchronize_generated_file(
     if expected.as_ref() == source.as_ref() {
         return Ok(());
     }
-    if bool::from(write_changes) {
+    if bool::from(should_write) {
         crate::template_fs_write_text::template_fs_write_text(
-            path,
+            scaffold_path_ref,
             crate::scaffold_text_ref::ScaffoldTextRef::from(expected.as_ref()),
         )
     } else {

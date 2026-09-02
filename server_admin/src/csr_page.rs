@@ -1,28 +1,25 @@
 pub(crate) async fn csr_page(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    page: server_admin_contract::admin_page::AdminPage,
-    active_table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    admin_page: server_admin_contract::admin_page::AdminPage,
+    option: Option<server_admin_contract::admin_data_table::AdminDataTable>,
 ) -> axum::response::Response {
-    match crate::page_context_impl::page_context_impl(&auth).await {
+    match crate::page_context_impl::page_context_impl(&admin_auth_request).await {
         Ok((_admin, _branding, password_change_required))
             if *password_change_required
-                && page != server_admin_contract::admin_page::AdminPage::Profile =>
+                && admin_page != server_admin_contract::admin_page::AdminPage::Profile =>
         {
             axum::response::IntoResponse::into_response(axum::response::Redirect::to(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get(),
             ))
         }
         Ok((admin, branding, _password_change_required))
-            if bool::from(admin.can_access(page))
-                && active_table
+            if bool::from(admin.can_access(admin_page))
+                && option
                     .is_none_or(|table| bool::from(admin.has_permission(table.permission()))) =>
         {
             crate::html_response_impl::html_response_impl(
                 server_admin_frontend::render_admin_csr::render_admin_csr(
-                    page,
-                    active_table,
-                    &admin,
-                    &branding,
+                    admin_page, option, &admin, &branding,
                 ),
             )
         }

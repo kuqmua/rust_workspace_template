@@ -11,8 +11,10 @@ impl SharedNotificationStateArc {
         clippy::single_call_fn,
         reason = "shared-state construction owns the sole Arc allocation boundary"
     )]
-    pub(crate) fn from_state(state: crate::notification_state::NotificationState) -> Self {
-        Self::from(std::sync::Arc::new(state))
+    pub(crate) fn from_state(
+        notification_state: crate::notification_state::NotificationState,
+    ) -> Self {
+        Self::from(std::sync::Arc::new(notification_state))
     }
 
     #[must_use]

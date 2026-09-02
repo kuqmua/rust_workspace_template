@@ -1,10 +1,10 @@
 pub fn increment_checked_add_one_returning_increment<IncrementTy>(
-    increment: &mut IncrementTy,
+    increment_ty: &mut IncrementTy,
 ) -> Result<crate::query_part_increment::QueryPartIncrement, crate::query_part_error::QueryPartError>
 where
     IncrementTy: crate::query_part_increment_mut::QueryPartIncrementMut + ?Sized,
 {
-    increment.checked_add_one().map_or_else(
+    increment_ty.checked_add_one().map_or_else(
         || {
             Err(crate::query_part_error::QueryPartError::CheckedAdd {
                 location: proc_macro_location_bang::location!(),

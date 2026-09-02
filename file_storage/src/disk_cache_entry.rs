@@ -7,14 +7,14 @@ pub struct DiskCacheEntry {
 impl DiskCacheEntry {
     #[must_use]
     pub const fn new(
-        path: crate::storage_relative_path_buf::StorageRelativePathBuf,
-        size: crate::std_disk_cache_size::StdDiskCacheSize,
-        modified_at: crate::disk_cache_modified_at_system_time::DiskCacheModifiedAtSystemTime,
+        storage_relative_path_buf: crate::storage_relative_path_buf::StorageRelativePathBuf,
+        std_disk_cache_size: crate::std_disk_cache_size::StdDiskCacheSize,
+        disk_cache_modified_at_system_time: crate::disk_cache_modified_at_system_time::DiskCacheModifiedAtSystemTime,
     ) -> Self {
         Self {
-            modified_at,
-            path,
-            size,
+            modified_at: disk_cache_modified_at_system_time,
+            path: storage_relative_path_buf,
+            size: std_disk_cache_size,
         }
     }
 

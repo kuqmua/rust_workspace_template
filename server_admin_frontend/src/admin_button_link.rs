@@ -20,12 +20,12 @@
 )]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminButtonLink(
-    href: &'static str,
+    str: &'static str,
     #[prop(default = crate::admin_button_variant::AdminButtonVariant::default())]
-    variant: crate::admin_button_variant::AdminButtonVariant,
+    admin_button_variant: crate::admin_button_variant::AdminButtonVariant,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <singlestage::Link class=variant.class() href=href>{children()}</singlestage::Link>
+        <singlestage::Link class=admin_button_variant.class() href=str>{children()}</singlestage::Link>
     }
 }

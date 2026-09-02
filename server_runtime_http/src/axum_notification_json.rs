@@ -12,10 +12,10 @@ where
     type Rejection = axum::extract::rejection::JsonRejection;
 
     async fn from_request(
-        req: axum::extract::Request,
+        request: axum::extract::Request,
         state: &State,
     ) -> Result<Self, Self::Rejection> {
-        axum::Json::<crate::notification_request::NotificationRequest>::from_request(req, state)
+        axum::Json::<crate::notification_request::NotificationRequest>::from_request(request, state)
             .await
             .map(|axum::Json(value)| Self::from(value))
     }

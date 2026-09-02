@@ -312,7 +312,7 @@ fn test_service_catalog_covers_every_build_and_runtime_projection() {
 }
 
 fn unpinned_dockerfile_base_images(
-    source: crate::types::SourceTextRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
 ) -> crate::types::SourceTextList {
     let from_parts = |line: &str| {
         let words = line.split_ascii_whitespace().collect::<Vec<_>>();
@@ -336,13 +336,13 @@ fn unpinned_dockerfile_base_images(
             .map(|stage| (*stage).to_ascii_lowercase());
         Some((image, stage))
     };
-    let stage_names = source
+    let stage_names = source_text_ref
         .as_ref()
         .lines()
         .filter_map(from_parts)
         .filter_map(|(_image, stage)| stage)
         .collect::<std::collections::BTreeSet<_>>();
-    source
+    source_text_ref
         .as_ref()
         .lines()
         .filter_map(from_parts)
@@ -378,7 +378,7 @@ fn test_catalog_dockerfiles_pin_every_external_base_image_by_digest() {
         .get(constants_str::SERVICE)
         .and_then(toml::Value::as_array)
         .expect(constants_str::DIAGNOSTIC_74F02A1C);
-    let mut ers = Vec::new();
+    let mut errors = Vec::new();
     services.iter().for_each(|service| {
         let dockerfile = service
             .as_table()
@@ -389,9 +389,9 @@ fn test_catalog_dockerfiles_pin_every_external_base_image_by_digest() {
             .expect(constants_str::DIAGNOSTIC_3FA21B68);
         unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(source.as_str()))
             .into_iter()
-            .for_each(|image| ers.push(format!("{dockerfile}: unpinned base image `{image}`")));
+            .for_each(|image| errors.push(format!("{dockerfile}: unpinned base image `{image}`")));
     });
-    assert!(ers.is_empty(), "e40a7c16 {ers:#?}");
+    assert!(errors.is_empty(), "e40a7c16 {errors:#?}");
 }
 
 #[test]

@@ -23,16 +23,16 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
 )]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminNavigationLink(
-    href: String,
-    active: bool,
+    string: String,
+    bool: bool,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
         <singlestage::Link
             attr:data-name="NavigationMenuLink"
-            class=if active { "active inline-flex items-center rounded-sm text-sm font-medium text-foreground transition-colors focus:outline-none" } else { "inline-flex items-center rounded-sm text-sm font-medium text-foreground/70 transition-colors hover:text-foreground focus:outline-none" }
-            attr:aria-current=active.then_some("page")
-            href=href
+            class=if bool { "active inline-flex items-center rounded-sm text-sm font-medium text-foreground transition-colors focus:outline-none" } else { "inline-flex items-center rounded-sm text-sm font-medium text-foreground/70 transition-colors hover:text-foreground focus:outline-none" }
+            attr:aria-current=bool.then_some("page")
+            href=string
         >
             {children()}
         </singlestage::Link>

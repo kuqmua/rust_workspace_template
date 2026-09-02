@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-    fn server_config_test_env<T>(value: &str) -> T
+    fn server_config_test_env<T>(str: &str) -> T
     where
         T: config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk,
         T::Error: std::fmt::Debug,
     {
         T::try_from_std_env_var_ok(
-            config_lib::std_env_var_ok::StdEnvVarOk::try_from(value.to_owned())
+            config_lib::std_env_var_ok::StdEnvVarOk::try_from(str.to_owned())
                 .expect(constants_str::DIAGNOSTIC_AA12CD88),
         )
         .expect(constants_str::DIAGNOSTIC_741E5201)
@@ -86,8 +86,8 @@ mod tests {
             3i32 * 3_600i32
         );
         assert_eq!(
-            config_lib::domain_types::SrcPlaceTypeProvider::src_place_type(&cfg),
-            &config_lib::src_place_type::SrcPlaceType::Github
+            config_lib::domain_types::SourcePlaceTypeProvider::source_place_type(&cfg),
+            &config_lib::source_place_type::SourcePlaceType::Github
         );
         assert_eq!(
             config_lib::domain_types::TracingLevelProvider::tracing_level(&cfg),

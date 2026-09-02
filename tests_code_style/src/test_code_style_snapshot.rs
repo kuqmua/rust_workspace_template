@@ -29,7 +29,7 @@ pub(super) struct CodebaseSnapshot {
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct CodebaseSourceSnapshot {
     cargo_toml_by_path:
-        std::collections::BTreeMap<crate::types::OwnedPathBuf, crate::types::CargoTomlFileIdx>,
+        std::collections::BTreeMap<crate::types::OwnedPathBuf, crate::types::CargoTomlFileIndex>,
     cargo_toml_files: Vec<CargoTomlSourceFile>,
     project_source_files: Vec<ProjectSourceFile>,
     workspace_crate_names: crate::types::SourceTextBTreeSet,
@@ -38,10 +38,10 @@ struct CodebaseSourceSnapshot {
 impl CodebaseSnapshot {
     pub(super) fn cargo_toml_content(
         &self,
-        path: crate::types::PathRef<'_>,
+        path_ref: crate::types::PathRef<'_>,
     ) -> Option<crate::types::SourceText> {
         self.source
-            .cargo_toml_file(path)
+            .cargo_toml_file(path_ref)
             .map(|cargo_toml| cargo_toml.content.clone())
     }
     pub(super) fn crate_manifest_paths(&self) -> impl Iterator<Item = &std::path::Path> {
@@ -55,35 +55,36 @@ impl CodebaseSnapshot {
     }
     pub(super) fn read_toml_table(
         &self,
-        path: crate::types::PathRef<'_>,
+        path_ref: crate::types::PathRef<'_>,
     ) -> Option<crate::types::TomlTable> {
         self.source
-            .cargo_toml_file(path)
+            .cargo_toml_file(path_ref)
             .map(|cargo_toml| cargo_toml.parsed.clone())
             .or_else(|| {
-                path.as_ref().exists().then(|| {
-                    let value = std::fs::read_to_string(path.as_ref()).unwrap_or_else(|error| {
-                        std::panic::panic_any(
-                            constants_str::PANIC_E12179C5
-                                .replacen(
-                                    constants_str::PANIC_POSITIONAL_PLACEHOLDER,
-                                    path.as_ref().display().to_string().as_str(),
-                                    1usize,
-                                )
-                                .replacen(
-                                    constants_str::PANIC_PLACEHOLDER_81240055,
-                                    error.to_string().as_str(),
-                                    1usize,
-                                ),
-                        )
-                    });
+                path_ref.as_ref().exists().then(|| {
+                    let value =
+                        std::fs::read_to_string(path_ref.as_ref()).unwrap_or_else(|error| {
+                            std::panic::panic_any(
+                                constants_str::PANIC_E12179C5
+                                    .replacen(
+                                        constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                                        path_ref.as_ref().display().to_string().as_str(),
+                                        1usize,
+                                    )
+                                    .replacen(
+                                        constants_str::PANIC_PLACEHOLDER_81240055,
+                                        error.to_string().as_str(),
+                                        1usize,
+                                    ),
+                            )
+                        });
                     value.parse::<toml::Table>().map_or_else(
                         |error| {
                             std::panic::panic_any(
                                 constants_str::PANIC_77B2D82B
                                     .replacen(
                                         constants_str::PANIC_POSITIONAL_PLACEHOLDER,
-                                        path.as_ref().display().to_string().as_str(),
+                                        path_ref.as_ref().display().to_string().as_str(),
                                         1usize,
                                     )
                                     .replacen(
@@ -110,10 +111,10 @@ impl CodebaseSnapshot {
     }
 }
 impl CodebaseSourceSnapshot {
-    fn cargo_toml_file(&self, path: crate::types::PathRef<'_>) -> Option<&CargoTomlSourceFile> {
+    fn cargo_toml_file(&self, path_ref: crate::types::PathRef<'_>) -> Option<&CargoTomlSourceFile> {
         self.cargo_toml_by_path
-            .get(path.as_ref())
-            .and_then(|idx| self.cargo_toml_files.get(idx.get()))
+            .get(path_ref.as_ref())
+            .and_then(|index| self.cargo_toml_files.get(index.get()))
     }
 }
 pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) -> R {
@@ -194,15 +195,15 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                     let cargo_toml_by_path = cargo_toml_files
                         .iter()
                         .enumerate()
-                        .map(|(idx, cargo_toml)| {
+                        .map(|(index, cargo_toml)| {
                             (
                                 cargo_toml.path.clone(),
-                                crate::types::CargoTomlFileIdx::from(idx),
+                                crate::types::CargoTomlFileIndex::from(index),
                             )
                         })
                         .collect::<std::collections::BTreeMap<
                             crate::types::OwnedPathBuf,
-                            crate::types::CargoTomlFileIdx,
+                            crate::types::CargoTomlFileIndex,
                         >>();
                     let project_source_files = crate::types::WalkdirWalkDir::from(
                         walkdir::WalkDir::new(constants_str::TEXT_ALT_9),
@@ -284,8 +285,8 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
     })
 }
 
-fn project_walk_entry(entry: walkdir::Result<walkdir::DirEntry>) -> walkdir::DirEntry {
-    entry.unwrap_or_else(|error| {
+fn project_walk_entry(result: walkdir::Result<walkdir::DirEntry>) -> walkdir::DirEntry {
+    result.unwrap_or_else(|error| {
         std::panic::panic_any(constants_str::PANIC_1E4B17B0.replacen(
             constants_str::PANIC_PLACEHOLDER_81240055,
             error.to_string().as_str(),
@@ -293,13 +294,13 @@ fn project_walk_entry(entry: walkdir::Result<walkdir::DirEntry>) -> walkdir::Dir
         ))
     })
 }
-fn project_source_file(path: std::path::PathBuf) -> ProjectSourceFile {
-    let raw_content = std::fs::read_to_string(&path).unwrap_or_else(|error| {
+fn project_source_file(path_buf: std::path::PathBuf) -> ProjectSourceFile {
+    let raw_content = std::fs::read_to_string(&path_buf).unwrap_or_else(|error| {
         std::panic::panic_any(
             constants_str::PANIC_68A041C3
                 .replacen(
                     constants_str::PANIC_POSITIONAL_PLACEHOLDER,
-                    path.display().to_string().as_str(),
+                    path_buf.display().to_string().as_str(),
                     1usize,
                 )
                 .replacen(
@@ -309,14 +310,14 @@ fn project_source_file(path: std::path::PathBuf) -> ProjectSourceFile {
                 ),
         )
     });
-    let content = project_source_content(path.as_path(), raw_content);
+    let content = project_source_content(path_buf.as_path(), raw_content);
     ProjectSourceFile {
         content,
-        path: crate::types::OwnedPathBuf::from(path),
+        path: crate::types::OwnedPathBuf::from(path_buf),
     }
 }
-fn project_source_content(path: &std::path::Path, raw_content: String) -> crate::types::SourceText {
-    crate::types::SourceText::try_from(raw_content).unwrap_or_else(|error| {
+fn project_source_content(path: &std::path::Path, string: String) -> crate::types::SourceText {
+    crate::types::SourceText::try_from(string).unwrap_or_else(|error| {
         std::panic::panic_any(
             constants_str::PANIC_E27F9E15
                 .replacen(

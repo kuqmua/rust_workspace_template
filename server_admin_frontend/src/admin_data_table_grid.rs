@@ -10,16 +10,16 @@ use leptos::prelude::{
 
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_data_table_grid(
-    view: &server_admin_contract::admin_data_table_view::AdminDataTableView,
+    admin_data_table_view: &server_admin_contract::admin_data_table_view::AdminDataTableView,
     active_field: Option<&server_admin_contract::admin_filter_field::AdminFilterField>,
     active_operation: Option<
         &server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey,
     >,
     active_value: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
     active_end: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
-    limit: server_admin_contract::admin_page_limit::AdminPageLimit,
+    admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
 ) -> impl leptos::prelude::IntoView + use<> {
-    let columns = view
+    let columns = admin_data_table_view
         .columns()
         .iter()
         .map(|column| {
@@ -27,11 +27,11 @@ pub(crate) fn admin_data_table_grid(
             let label = column.label().to_string();
             let filter_count = column.filters().len().to_string();
 let filter = {
-                let table_path = view.table().frontend_path();
+                let table_path = admin_data_table_view.table().frontend_path();
                 let action = table_path.to_string();
                 let supports_filter =
-                    bool::from(view.table().supports_filters()) && !column.filters().is_empty();
-                let limit = u16::from(limit).to_string();
+                    bool::from(admin_data_table_view.table().supports_filters()) && !column.filters().is_empty();
+                let limit = u16::from(admin_page_limit).to_string();
                 let active_field = active_field.map(ToString::to_string);
                 let active_operation = active_operation.map(ToString::to_string);
                 let clear_href = table_path.to_string();
@@ -75,7 +75,7 @@ let filter = {
                 {
                     supports_filter.then(|| leptos::prelude::IntoAny::into_any(crate::with_owner::with_owner(move || leptos::view! {
                                 <singlestage::Popover attr:data-name="Popover" class="table-column-filter">
-                                    <crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=trigger_filter_id aria_label=trigger_filter_label style=trigger_style>"Filter"</crate::admin_button::AdminButton>
+                                    <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=trigger_filter_id aria_label=trigger_filter_label style=trigger_style>"Filter"</crate::admin_button::AdminButton>
                                     <div data-name="PopoverContent" id=filter_id class="table-filter-operations relative z-50 my-[1ch] min-h-[150px] w-[250px] overflow-visible rounded-md border bg-card p-4 shadow-md" style=popover_style popover="auto" role="dialog" aria-label=filter_label>
                                         <div class="table-filter-header"><h2>{filter_title}</h2></div>
                                         <form class="table-filter-form" method="get" action=action.clone()>
@@ -155,7 +155,7 @@ let filter = {
                                             </singlestage::RadioGroup>
                                             <div class="table-filter-actions [&>*]:w-full">
                                                 <crate::admin_button::AdminButton>"Apply"</crate::admin_button::AdminButton>
-                                                <crate::admin_button::AdminButton variant=crate::admin_button_variant::AdminButtonVariant::Secondary kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">"Close"</crate::admin_button::AdminButton>
+                                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">"Close"</crate::admin_button::AdminButton>
                                             </div>
                                         </form>
                                         {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
@@ -174,7 +174,7 @@ let filter = {
             }
         })
         .collect::<Vec<_>>();
-    let rows = view
+    let rows = admin_data_table_view
         .items()
         .iter()
         .map(|item| {
@@ -183,7 +183,7 @@ let filter = {
                 .iter()
                 .enumerate()
                 .map(|(index, value)| {
-                    let column = view.columns().get(index);
+                    let column = admin_data_table_view.columns().get(index);
                     let label =
                         column.map_or_else(String::new, |column| column.label().to_string());
                     let field =

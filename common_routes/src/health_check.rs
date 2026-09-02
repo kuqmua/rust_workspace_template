@@ -5,12 +5,14 @@
     reason = "route registry owns this Axum handler"
 )]
 pub(super) async fn health_check(
-    app_state: crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
+    arc_common_routes_app_state: crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
 ) -> Result<
     crate::axum_health_check_status::AxumHealthCheckStatus,
     crate::health_check_error::HealthCheckError,
 > {
-    let status = if bool::from(super::database_is_ready::database_is_ready(&app_state).await) {
+    let status = if bool::from(
+        super::database_is_ready::database_is_ready(&arc_common_routes_app_state).await,
+    ) {
         crate::axum_health_check_status::AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
     } else {
         crate::axum_health_check_status::AxumHealthCheckStatus::from(

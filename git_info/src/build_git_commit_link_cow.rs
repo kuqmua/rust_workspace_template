@@ -1,11 +1,11 @@
 #[must_use]
 pub fn build_git_commit_link_cow<'commit_lt, CommitIdTy>(
-    commit_id: CommitIdTy,
+    commit_id_ty: CommitIdTy,
 ) -> crate::git_commit_link_cow::GitCommitLinkCow
 where
     CommitIdTy: Into<crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>>,
 {
-    let commit_id_ref = commit_id.into();
+    let commit_id_ref = commit_id_ty.into();
     if commit_id_ref.as_ref().len()
         > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN
             .saturating_sub(crate::base_git_commit_link_len::BASE_GIT_COMMIT_LINK_LEN)

@@ -11,16 +11,18 @@
 pub struct ChronoTimezone(chrono::FixedOffset);
 impl TryFrom<chrono::FixedOffset> for ChronoTimezone {
     type Error = crate::chrono_fixed_offset_error::ChronoFixedOffsetError;
-    fn try_from(value: chrono::FixedOffset) -> Result<Self, Self::Error> {
+    fn try_from(fixed_offset: chrono::FixedOffset) -> Result<Self, Self::Error> {
         crate::parse_east_fixed_offset::parse_east_fixed_offset(
-            crate::timezone_seconds::TimezoneSeconds::from(value.local_minus_utc()),
+            crate::timezone_seconds::TimezoneSeconds::from(fixed_offset.local_minus_utc()),
         )
     }
 }
 impl TryFrom<crate::timezone_seconds::TimezoneSeconds> for ChronoTimezone {
     type Error = crate::chrono_fixed_offset_error::ChronoFixedOffsetError;
-    fn try_from(value: crate::timezone_seconds::TimezoneSeconds) -> Result<Self, Self::Error> {
-        chrono::FixedOffset::east_opt(*value)
+    fn try_from(
+        timezone_seconds: crate::timezone_seconds::TimezoneSeconds,
+    ) -> Result<Self, Self::Error> {
+        chrono::FixedOffset::east_opt(*timezone_seconds)
             .map(Self)
             .ok_or_else(|| {
                 crate::chrono_fixed_offset_error::ChronoFixedOffsetError::from(
@@ -31,10 +33,12 @@ impl TryFrom<crate::timezone_seconds::TimezoneSeconds> for ChronoTimezone {
 }
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for ChronoTimezone {
     type Error = crate::try_from_std_env_var_ok_timezone_error::TryFromStdEnvVarOkTimezoneError;
-    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
+    fn try_from_std_env_var_ok(
+        std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
+    ) -> Result<Self, Self::Error> {
         let i32_v = crate::timezone_seconds::TimezoneSeconds::from(
             crate::parse_from_str_with_error::parse_from_str_with_error::<i32, _, _>(
-                crate::std_env_var_ok_ref::StdEnvVarOkRef::from(v.as_ref()),
+                crate::std_env_var_ok_ref::StdEnvVarOkRef::from(std_env_var_ok.as_ref()),
                 |i32_parsing| Self::Error::I32Parsing {
                     i32_parsing: crate::i32_parse_int_error::I32ParseIntError::from(i32_parsing),
                 },

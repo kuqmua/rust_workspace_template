@@ -6,24 +6,24 @@ pub(crate) struct PageCatalogArgs {
 }
 
 impl syn::parse::Parse for PageCatalogArgs {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut inventory = None;
         let mut path_ref = None;
         let mut spec = None;
-        while !input.is_empty() {
-            let name = input.parse::<syn::Ident>()?;
-            let _equals = input.parse::<syn::Token![=]>()?;
+        while !parse_stream.is_empty() {
+            let name = parse_stream.parse::<syn::Ident>()?;
+            let _equals = parse_stream.parse::<syn::Token![=]>()?;
             if name == constants_str::PAGE_CATALOG_INVENTORY {
                 inventory = Some(crate::contract_syn_ident::ContractSynIdent::from(
-                    input.parse::<syn::Ident>()?,
+                    parse_stream.parse::<syn::Ident>()?,
                 ));
             } else if name == constants_str::PAGE_CATALOG_PATH_REF {
                 path_ref = Some(crate::contract_syn_type::ContractSynType::from(
-                    input.parse::<syn::Type>()?,
+                    parse_stream.parse::<syn::Type>()?,
                 ));
             } else if name == constants_str::PAGE_CATALOG_SPEC {
                 spec = Some(crate::contract_syn_type::ContractSynType::from(
-                    input.parse::<syn::Type>()?,
+                    parse_stream.parse::<syn::Type>()?,
                 ));
             } else {
                 return Err(syn::Error::new_spanned(
@@ -31,17 +31,20 @@ impl syn::parse::Parse for PageCatalogArgs {
                     constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE,
                 ));
             }
-            if !input.is_empty() {
-                let _comma = input.parse::<syn::Token![,]>()?;
+            if !parse_stream.is_empty() {
+                let _comma = parse_stream.parse::<syn::Token![,]>()?;
             }
         }
         Ok(Self {
-            inventory: inventory
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
-            path_ref: path_ref
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
-            spec: spec
-                .ok_or_else(|| input.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
+            inventory: inventory.ok_or_else(|| {
+                parse_stream.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE)
+            })?,
+            path_ref: path_ref.ok_or_else(|| {
+                parse_stream.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE)
+            })?,
+            spec: spec.ok_or_else(|| {
+                parse_stream.error(constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE)
+            })?,
         })
     }
 }

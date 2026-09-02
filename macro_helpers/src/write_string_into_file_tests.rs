@@ -1,36 +1,38 @@
 #[cfg(test)]
 mod tests {
-    fn file_content(v: &str) -> crate::string_file_content_ref::StringFileContentRef<'_> {
-        crate::string_file_content_ref::StringFileContentRef::from(v)
+    fn file_content(str: &str) -> crate::string_file_content_ref::StringFileContentRef<'_> {
+        crate::string_file_content_ref::StringFileContentRef::from(str)
     }
-    fn path_ref(v: &std::path::Path) -> crate::written_file_path_ref::WrittenFilePathRef<'_> {
-        crate::written_file_path_ref::WrittenFilePathRef::from(v)
+    fn path_ref(path: &std::path::Path) -> crate::written_file_path_ref::WrittenFilePathRef<'_> {
+        crate::written_file_path_ref::WrittenFilePathRef::from(path)
     }
-    fn written_path(v: std::path::PathBuf) -> crate::written_file_path_buf::WrittenFilePathBuf {
-        crate::written_file_path_buf::WrittenFilePathBuf::from(v)
+    fn written_path(
+        path_buf: std::path::PathBuf,
+    ) -> crate::written_file_path_buf::WrittenFilePathBuf {
+        crate::written_file_path_buf::WrittenFilePathBuf::from(path_buf)
     }
-    fn txt_path(name: &str) -> std::path::PathBuf {
-        crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(name))
+    fn txt_path(str: &str) -> std::path::PathBuf {
+        crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(str))
             .as_ref()
             .with_extension(constants_str::TXT)
     }
     fn cleanup(path: &std::path::Path) {
         crate::cleanup_test_file::cleanup_test_file(path);
     }
-    fn assert_content_and_cleanup(path: &std::path::Path, expected: &str) {
+    fn assert_content_and_cleanup(path: &std::path::Path, str: &str) {
         crate::assert_file_content::assert_file_content(
             crate::std_assert_file_path::StdAssertFilePath::new(path),
-            crate::expected_file_content::ExpectedFileContent::new(expected),
+            crate::expected_file_content::ExpectedFileContent::new(str),
         );
         cleanup(path);
     }
     fn assert_outcome_and_cleanup(
         path: &std::path::Path,
-        outcome: &crate::write_path_outcome::WritePathOutcome,
-        expected_changed: bool,
+        write_path_outcome: &crate::write_path_outcome::WritePathOutcome,
+        bool: bool,
     ) {
-        assert_eq!(outcome.path().as_ref(), path);
-        assert_eq!(bool::from(outcome.is_changed()), expected_changed);
+        assert_eq!(write_path_outcome.path().as_ref(), path);
+        assert_eq!(bool::from(write_path_outcome.is_changed()), bool);
         cleanup(path);
     }
     #[test]

@@ -1,21 +1,21 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlUpdateUserError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn update_user(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    form: crate::axum_admin_form::AxumAdminForm<crate::update_user_form::UpdateUserForm>,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_form: crate::axum_admin_form::AxumAdminForm<crate::update_user_form::UpdateUserForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = crate::form_auth_impl::form_auth_impl(auth) else {
+    let Ok(auth) = crate::form_auth_impl::form_auth_impl(admin_auth_request) else {
         return axum::response::IntoResponse::into_response(crate::admin_error::AdminError::Csrf);
     };
-    let request = server_admin_contract::admin_update_user_req::AdminUpdateUserReq::new(
-        Some(form.get_display_name().clone()),
-        Some(form.get_login().clone()),
+    let request = server_admin_contract::admin_update_user_request::AdminUpdateUserRequest::new(
+        Some(axum_admin_form.get_display_name().clone()),
+        Some(axum_admin_form.get_login().clone()),
     );
     crate::action_result_impl::action_result_impl(
         crate::user_mutations_update::user_mutations_update(
             auth,
             crate::axum_admin_path::AxumAdminPath::from(crate::user_path_impl::user_path_impl(
-                *form.get_user_id(),
+                *axum_admin_form.get_user_id(),
             )),
             crate::axum_admin_json::AxumAdminJson::from(request),
         )

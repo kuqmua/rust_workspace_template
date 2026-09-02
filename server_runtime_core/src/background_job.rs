@@ -7,11 +7,11 @@ pub struct BackgroundJob<Report> {
 impl<Report: Clone + Send + Sync + 'static> BackgroundJob<Report> {
     #[must_use]
     pub const fn new(
-        history: crate::async_run_history::AsyncRunHistory<Report>,
+        async_run_history: crate::async_run_history::AsyncRunHistory<Report>,
         retry_policy: crate::retry_policy::RetryPolicy,
     ) -> Self {
         Self {
-            history,
+            history: async_run_history,
             retry_policy,
         }
     }

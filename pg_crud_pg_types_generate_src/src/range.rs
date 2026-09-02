@@ -11,9 +11,9 @@ pub(super) enum Range {
 impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for Range {
     type Error = ();
     fn try_from(
-        value: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
+        pg_type_catalog_kind: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
     ) -> Result<Self, Self::Error> {
-        match &value {
+        match &pg_type_catalog_kind {
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
@@ -45,9 +45,9 @@ impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for Range {
     }
 }
 impl std::fmt::Display for Range {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
-            f,
+            formatter,
             "{}",
             naming::parameter::SelfNonNullUpperCamelCase::from_display(
                 &crate::pg_type_catalog_kind::PgTypeCatalogKind::from(self)
@@ -56,7 +56,7 @@ impl std::fmt::Display for Range {
     }
 }
 impl quote::ToTokens for Range {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
+    fn to_tokens(&self, token_stream: &mut proc_macro2::TokenStream) {
+        quote::format_ident!("{}", self.to_string()).to_tokens(token_stream);
     }
 }

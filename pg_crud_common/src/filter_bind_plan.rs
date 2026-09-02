@@ -14,19 +14,25 @@ impl FilterBindPlan {
         Self::default()
     }
 
-    pub fn push_bool(&mut self, value: crate::pg_filter_bool::PgFilterBool) {
+    pub fn push_bool(&mut self, pg_filter_bool: crate::pg_filter_bool::PgFilterBool) {
         self.0
-            .push(crate::pg_filter_bind_value::PgFilterBindValue::Bool(value));
+            .push(crate::pg_filter_bind_value::PgFilterBindValue::Bool(
+                pg_filter_bool,
+            ));
     }
 
-    pub fn push_i64(&mut self, value: crate::pg_filter_i64::PgFilterI64) {
+    pub fn push_i64(&mut self, pg_filter_i64: crate::pg_filter_i64::PgFilterI64) {
         self.0
-            .push(crate::pg_filter_bind_value::PgFilterBindValue::I64(value));
+            .push(crate::pg_filter_bind_value::PgFilterBindValue::I64(
+                pg_filter_i64,
+            ));
     }
 
-    pub fn push_text(&mut self, value: crate::pg_filter_text::PgFilterText) {
+    pub fn push_text(&mut self, pg_filter_text: crate::pg_filter_text::PgFilterText) {
         self.0
-            .push(crate::pg_filter_bind_value::PgFilterBindValue::Text(value));
+            .push(crate::pg_filter_bind_value::PgFilterBindValue::Text(
+                pg_filter_text,
+            ));
     }
 
     #[must_use]

@@ -5,9 +5,9 @@ impl NotificationApiToken {
     #[must_use]
     pub fn authorizes(
         &self,
-        candidate: crate::notification_api_token_ref::NotificationApiTokenRef<'_>,
+        notification_api_token_ref: crate::notification_api_token_ref::NotificationApiTokenRef<'_>,
     ) -> crate::notification_api_token_authorized::NotificationApiTokenAuthorized {
-        let candidate_text = candidate.get();
+        let candidate_text = notification_api_token_ref.get();
         let maximum_len = self.0.len().max(candidate_text.len());
         let difference = (constants_usize::ZERO..maximum_len).fold(
             self.0.len() ^ candidate_text.len(),
@@ -33,21 +33,21 @@ impl NotificationApiToken {
 }
 
 impl std::fmt::Debug for NotificationApiToken {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
     }
 }
 
 impl TryFrom<String> for NotificationApiToken {
     type Error = crate::notification_api_token_error::NotificationApiTokenError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.is_empty() {
             Err(Self::Error::Empty)
-        } else if value.len() > constants_usize::VALUE_4_096 {
+        } else if string.len() > constants_usize::VALUE_4_096 {
             Err(Self::Error::TooLong)
         } else {
-            Ok(Self(value))
+            Ok(Self(string))
         }
     }
 }

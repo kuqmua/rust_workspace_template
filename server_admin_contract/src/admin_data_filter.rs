@@ -18,10 +18,10 @@ pub struct AdminDataFilter {
     value_shape: frontend_contract::filter_value_shape::FilterValueShape,
 }
 impl From<frontend_contract::filter_operation::FilterOperation> for AdminDataFilter {
-    fn from(value: frontend_contract::filter_operation::FilterOperation) -> Self {
+    fn from(filter_operation: frontend_contract::filter_operation::FilterOperation) -> Self {
         Self {
-            operation: value,
-            value_shape: value.value_shape(),
+            operation: filter_operation,
+            value_shape: filter_operation.value_shape(),
         }
     }
 }

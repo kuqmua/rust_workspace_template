@@ -34,12 +34,12 @@ pub struct AdminTableQuery {
 impl AdminTableQuery {
     #[must_use]
     pub fn pagination(
-        limit: crate::admin_page_limit::AdminPageLimit,
-        offset: crate::admin_page_offset::AdminPageOffset,
+        admin_page_limit: crate::admin_page_limit::AdminPageLimit,
+        admin_page_offset: crate::admin_page_offset::AdminPageOffset,
     ) -> Self {
         Self {
-            offset,
-            limit,
+            offset: admin_page_offset,
+            limit: admin_page_limit,
             ..Self::default()
         }
     }

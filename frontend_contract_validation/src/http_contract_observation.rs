@@ -8,14 +8,14 @@ pub struct HttpContractObservation {
 impl HttpContractObservation {
     #[must_use]
     pub const fn new(
-        metadata: frontend_contract::route_metadata::RouteMetadata,
-        status: crate::http_contract_status::HttpContractStatus,
-        body: crate::http_contract_body::HttpContractBody,
+        route_metadata: frontend_contract::route_metadata::RouteMetadata,
+        http_contract_status: crate::http_contract_status::HttpContractStatus,
+        http_contract_body: crate::http_contract_body::HttpContractBody,
     ) -> Self {
         Self {
-            body,
-            metadata,
-            status,
+            body: http_contract_body,
+            metadata: route_metadata,
+            status: http_contract_status,
         }
     }
 

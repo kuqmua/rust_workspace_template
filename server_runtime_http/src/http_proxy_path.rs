@@ -11,12 +11,12 @@ pub struct HttpProxyPath(String);
 impl TryFrom<String> for HttpProxyPath {
     type Error = crate::http_proxy_path_error::HttpProxyPathError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_192 {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.len() > constants_usize::VALUE_8_192 {
             return Err(Self::Error::ForbiddenSyntax);
         }
         Self::try_from(crate::http_proxy_path_ref::HttpProxyPathRef::from(
-            value.as_str(),
+            string.as_str(),
         ))
     }
 }
@@ -25,9 +25,9 @@ impl TryFrom<crate::http_proxy_path_ref::HttpProxyPathRef<'_>> for HttpProxyPath
     type Error = crate::http_proxy_path_error::HttpProxyPathError;
 
     fn try_from(
-        value: crate::http_proxy_path_ref::HttpProxyPathRef<'_>,
+        http_proxy_path_ref: crate::http_proxy_path_ref::HttpProxyPathRef<'_>,
     ) -> Result<Self, Self::Error> {
-        let path = value.get().trim().trim_start_matches('/');
+        let path = http_proxy_path_ref.get().trim().trim_start_matches('/');
         if path.is_empty() {
             return Err(Self::Error::Empty);
         }

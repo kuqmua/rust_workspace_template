@@ -1,6 +1,6 @@
 #[cfg(not(target_arch = "wasm32"))]
 pub fn route_method_router<State, Endpoint, Marker>(
-    method: crate::route_method::RouteMethod,
+    route_method: crate::route_method::RouteMethod,
     endpoint: Endpoint,
 ) -> crate::axum_route_method_router::AxumRouteMethodRouter<State>
 where
@@ -8,7 +8,7 @@ where
     Endpoint: axum::handler::Handler<Marker, State> + Clone + Send + Sync + 'static,
     Marker: 'static,
 {
-    crate::axum_route_method_router::AxumRouteMethodRouter::from(match method {
+    crate::axum_route_method_router::AxumRouteMethodRouter::from(match route_method {
         crate::route_method::RouteMethod::Connect => axum::routing::connect(endpoint),
         crate::route_method::RouteMethod::Delete => axum::routing::delete(endpoint),
         crate::route_method::RouteMethod::Get => axum::routing::get(endpoint),

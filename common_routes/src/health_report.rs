@@ -37,14 +37,14 @@ impl HealthReport {
     }
     #[must_use]
     pub fn readiness(
-        database_available: crate::health_database_available::HealthDatabaseAvailable,
+        health_database_available: crate::health_database_available::HealthDatabaseAvailable,
     ) -> Self {
-        let database_status = if database_available.is_available() {
+        let database_status = if health_database_available.is_available() {
             crate::health_status::HealthStatus::Ok
         } else {
             crate::health_status::HealthStatus::Error
         };
-        let status = if database_available.is_available() {
+        let status = if health_database_available.is_available() {
             crate::health_status::HealthStatus::Ok
         } else {
             crate::health_status::HealthStatus::Degraded

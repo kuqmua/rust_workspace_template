@@ -28,7 +28,7 @@ where
     #[must_use]
     pub fn capture(
         source: Source,
-        error_code: crate::observed_error_code::ObservedErrorCode,
+        observed_error_code: crate::observed_error_code::ObservedErrorCode,
     ) -> Self {
         let current_span = tracing::Span::current();
         let span_trace = current_span.metadata().map_or_else(
@@ -39,7 +39,7 @@ where
             backtrace: crate::observed_error_backtrace::ObservedErrorBacktrace::from(
                 std::backtrace::Backtrace::force_capture(),
             ),
-            error_code,
+            error_code: observed_error_code,
             location: crate::std_panic_location::StdPanicLocation::from(
                 std::panic::Location::caller(),
             ),

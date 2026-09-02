@@ -1,8 +1,8 @@
 const PRODUCTION_MODULE_MAX_LINES: usize = 2_500usize;
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_024usize;
 
-fn identifier_snake_case(identifier: &syn::Ident) -> crate::types::SourceText {
-    let characters = identifier.to_string().chars().collect::<Vec<_>>();
+fn identifier_snake_case(ident: &syn::Ident) -> crate::types::SourceText {
+    let characters = ident.to_string().chars().collect::<Vec<_>>();
     crate::types::SourceText::try_from(characters.iter().enumerate().fold(
         String::new(),
         |mut output, (index, character)| {
@@ -709,19 +709,19 @@ fn test_workspace_modules_reject_local_root_use_imports() {
         lines: Vec<usize>,
     }
     impl<'ast> syn::visit::Visit<'ast> for CrateImportVisitor {
-        fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
-            if matches!(i.vis, syn::Visibility::Inherited)
+        fn visit_item_use(&mut self, item_use: &'ast syn::ItemUse) {
+            if matches!(item_use.vis, syn::Visibility::Inherited)
                 && matches!(
-                    &i.tree,
+                    &item_use.tree,
                     syn::UseTree::Path(path)
                         if path.ident == constants_str::CRATE
                             || path.ident == constants_str::SELF_ALT
                             || path.ident == constants_str::SUPER
                 )
             {
-                self.lines.push(i.use_token.span.start().line);
+                self.lines.push(item_use.use_token.span.start().line);
             }
-            syn::visit::visit_item_use(self, i);
+            syn::visit::visit_item_use(self, item_use);
         }
     }
     let grouped_import = syn::parse_file(constants_str::LOCAL_IMPORT_POLICY_FIXTURE)

@@ -6,7 +6,7 @@ pub(super) const fn success_status<
     PermissionAction,
     StatusCode,
 >(
-    dsc: &crate::operation_dsc::OperationDsc<
+    operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
         Capability,
         HttpMethod,
         Operation,
@@ -18,5 +18,5 @@ pub(super) const fn success_status<
 where
     StatusCode: Copy,
 {
-    crate::route_success_status::route_success_status(dsc)
+    crate::route_success_status::route_success_status(operation_descriptor)
 }

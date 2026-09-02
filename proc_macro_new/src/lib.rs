@@ -7,9 +7,9 @@
 struct GenerateConstructorTestDependencyMarker;
 
 #[proc_macro_derive(New, attributes(constructor))]
-pub fn new(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn new(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     (|| -> syn::Result<proc_macro2::TokenStream> {
-        let parsed_input = syn::parse::<syn::DeriveInput>(input)?;
+        let parsed_input = syn::parse::<syn::DeriveInput>(token_stream)?;
         let syn::Data::Struct(data) = &parsed_input.data else {
             return Err(syn::Error::new_spanned(
                 &parsed_input,

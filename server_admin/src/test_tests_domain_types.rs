@@ -2,17 +2,17 @@
 fn test_cleanup_configuration_enforces_positive_bounded_values() {
     assert_eq!(
         crate::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(constants_i64::ZERO),
-        Err(crate::admin_cleanup_cfg_error::AdminCleanupCfgError::BatchSizeOutOfRange)
+        Err(crate::admin_cleanup_configuration_error::AdminCleanupConfigurationError::BatchSizeOutOfRange)
     );
     assert_eq!(
         crate::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(10_001i64),
-        Err(crate::admin_cleanup_cfg_error::AdminCleanupCfgError::BatchSizeOutOfRange)
+        Err(crate::admin_cleanup_configuration_error::AdminCleanupConfigurationError::BatchSizeOutOfRange)
     );
     assert_eq!(
         crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds::try_from(
             constants_i64::ZERO
         ),
-        Err(crate::admin_cleanup_cfg_error::AdminCleanupCfgError::RetentionMustBePositive)
+        Err(crate::admin_cleanup_configuration_error::AdminCleanupConfigurationError::RetentionMustBePositive)
     );
     assert_eq!(
         crate::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(1_000i64).map(|_value| ()),
@@ -24,12 +24,12 @@ fn test_cleanup_configuration_enforces_positive_bounded_values() {
         Ok(())
     );
 }
-fn admin_secret(value: &str) -> server_admin_core::secrecy_admin_string::SecrecyAdminString {
-    server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(value.to_owned())
+fn admin_secret(str: &str) -> server_admin_core::secrecy_admin_string::SecrecyAdminString {
+    server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(str.to_owned())
         .expect(constants_str::DIAGNOSTIC_C2116874)
 }
-fn password(value: &str) -> crate::runtime_admin_password::RuntimeAdminPassword {
-    crate::runtime_admin_password::RuntimeAdminPassword::new(admin_secret(value))
+fn password(str: &str) -> crate::runtime_admin_password::RuntimeAdminPassword {
+    crate::runtime_admin_password::RuntimeAdminPassword::new(admin_secret(str))
 }
 #[test]
 fn test_permission_round_trip_is_exhaustive() {

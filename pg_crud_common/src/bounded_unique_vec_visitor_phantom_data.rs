@@ -12,7 +12,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
         formatter.write_str(constants_str::BOUNDED_UNIQUE_VEC_EXPECTING)
     }
 
-    fn visit_seq<Access>(self, mut seq: Access) -> Result<Self::Value, Access::Error>
+    fn visit_seq<Access>(self, mut access: Access) -> Result<Self::Value, Access::Error>
     where
         Access: serde::de::SeqAccess<'de>,
     {
@@ -20,14 +20,15 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
             .map_err(crate::unique_vec_error::UniqueVecError::from)
             .map_err(serde::de::Error::custom)?;
         let mut values = Vec::with_capacity(
-            seq.size_hint()
+            access
+                .size_hint()
                 .unwrap_or(constants_usize::ZERO)
                 .min(MAX)
                 .min(super::serde_prealloc_max_items::SERDE_PREALLOC_MAX_ITEMS),
         );
         loop {
             if values.len() == MAX {
-                return seq.next_element::<serde::de::IgnoredAny>()?.map_or_else(
+                return access.next_element::<serde::de::IgnoredAny>()?.map_or_else(
                     || {
                         crate::bounded_unique_vec::BoundedUniqueVec::try_from(values)
                             .map_err(serde::de::Error::custom)
@@ -39,7 +40,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
                     },
                 );
             }
-            let Some(item) = seq.next_element::<T>()? else {
+            let Some(item) = access.next_element::<T>()? else {
                 return crate::bounded_unique_vec::BoundedUniqueVec::try_from(values)
                     .map_err(serde::de::Error::custom);
             };

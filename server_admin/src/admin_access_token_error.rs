@@ -8,12 +8,16 @@ pub enum AdminAccessTokenError {
 impl From<crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError>
     for AdminAccessTokenError
 {
-    fn from(value: crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError) -> Self {
-        Self::Bounds(value)
+    fn from(
+        std_admin_access_token_try_from_string_error: crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError,
+    ) -> Self {
+        Self::Bounds(std_admin_access_token_try_from_string_error)
     }
 }
 impl From<crate::jsonwebtoken_admin_error::JsonwebtokenAdminError> for AdminAccessTokenError {
-    fn from(value: crate::jsonwebtoken_admin_error::JsonwebtokenAdminError) -> Self {
-        Self::Token(value)
+    fn from(
+        jsonwebtoken_admin_error: crate::jsonwebtoken_admin_error::JsonwebtokenAdminError,
+    ) -> Self {
+        Self::Token(jsonwebtoken_admin_error)
     }
 }

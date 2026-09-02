@@ -1,17 +1,18 @@
 #[must_use]
 pub fn deduplicate_preserving_order_by_key<Value, Key, AccessKey>(
-    mut values: crate::order_preserving_values::OrderPreservingValues<Value>,
+    mut order_preserving_values: crate::order_preserving_values::OrderPreservingValues<Value>,
     access_key: AccessKey,
 ) -> crate::order_preserving_values::OrderPreservingValues<Value>
 where
     Key: Eq + std::hash::Hash,
     AccessKey: Fn(&Value) -> Key,
 {
-    let mut seen = std::collections::HashSet::with_capacity(values.get_inner().len());
-    values
+    let mut seen =
+        std::collections::HashSet::with_capacity(order_preserving_values.get_inner().len());
+    order_preserving_values
         .get_inner_mut()
         .retain(|value| seen.insert(access_key(value)));
-    values
+    order_preserving_values
 }
 
 #[cfg(test)]

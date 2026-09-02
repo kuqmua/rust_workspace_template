@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
-    fn assert_quote_str(actual: &crate::quoted_literal::QuotedLiteral, expected: &str) {
-        assert_eq!(actual.as_ref(), expected);
+    fn assert_quote_str(quoted_literal: &crate::quoted_literal::QuotedLiteral, str: &str) {
+        assert_eq!(quoted_literal.as_ref(), str);
     }
     fn assert_quote_token_stream(
-        actual: &crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream,
-        expected: &str,
+        proc_macro2_quoted_literal_token_stream: &crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream,
+        str: &str,
     ) {
-        assert_eq!(actual.to_string(), expected);
+        assert_eq!(proc_macro2_quoted_literal_token_stream.to_string(), str);
     }
     #[test]
     fn test_quote_str_helpers_return_expected_literals() {

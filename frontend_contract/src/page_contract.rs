@@ -14,17 +14,17 @@ pub struct PageContract {
 impl PageContract {
     #[must_use]
     pub const fn new(
-        actions: crate::action_contracts::ActionContracts,
-        fields: crate::field_contracts::FieldContracts,
+        action_contracts: crate::action_contracts::ActionContracts,
+        field_contracts: crate::field_contracts::FieldContracts,
         path: crate::contract_str::ContractStr,
-        routes: crate::route_contracts::RouteContracts,
+        route_contracts: crate::route_contracts::RouteContracts,
         title: crate::contract_str::ContractStr,
     ) -> Self {
         Self {
-            actions,
-            fields,
+            actions: action_contracts,
+            fields: field_contracts,
             path,
-            routes,
+            routes: route_contracts,
             title,
         }
     }

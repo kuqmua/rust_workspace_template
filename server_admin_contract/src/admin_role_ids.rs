@@ -15,8 +15,8 @@ pub struct AdminRoleIds(
 );
 impl TryFrom<Vec<crate::admin_role_id::AdminRoleId>> for AdminRoleIds {
     type Error = crate::admin_collection_error::AdminCollectionError;
-    fn try_from(value: Vec<crate::admin_role_id::AdminRoleId>) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
+    fn try_from(vec: Vec<crate::admin_role_id::AdminRoleId>) -> Result<Self, Self::Error> {
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(vec).map(Self)
     }
 }
 impl AdminRoleIds {
@@ -34,8 +34,8 @@ impl Default for AdminRoleIds {
     }
 }
 impl From<crate::admin_empty_collection::AdminEmptyCollection> for AdminRoleIds {
-    fn from(value: crate::admin_empty_collection::AdminEmptyCollection) -> Self {
-        let _: crate::admin_empty_collection::AdminEmptyCollection = value;
+    fn from(admin_empty_collection: crate::admin_empty_collection::AdminEmptyCollection) -> Self {
+        let _: crate::admin_empty_collection::AdminEmptyCollection = admin_empty_collection;
         Self(crate::admin_bounded_vec::AdminBoundedVec::from([]))
     }
 }

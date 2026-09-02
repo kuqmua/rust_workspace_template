@@ -33,8 +33,8 @@ impl AdminGeneratedTable {
 
     pub(crate) fn filter_value(
         self,
-        field: frontend_contract::form_field_name_ref::FormFieldNameRef<'_>,
-        value: frontend_contract::form_value_ref::FormValueRef<'_>,
+        form_field_name_ref: frontend_contract::form_field_name_ref::FormFieldNameRef<'_>,
+        form_value_ref: frontend_contract::form_value_ref::FormValueRef<'_>,
     ) -> Option<
         Result<
             frontend_contract::filter_wire_json::FilterWireJson,
@@ -42,60 +42,70 @@ impl AdminGeneratedTable {
         >,
     > {
         match self {
-            Self::Roles => crate::admin_roles::AdminRoles::frontend_filter_value(field, value),
+            Self::Roles => crate::admin_roles::AdminRoles::frontend_filter_value(
+                form_field_name_ref,
+                form_value_ref,
+            ),
             Self::RolePermissions => {
                 crate::admin_role_permissions::AdminRolePermissions::frontend_filter_value(
-                    field, value,
+                    form_field_name_ref,
+                    form_value_ref,
                 )
             }
-            Self::Users => crate::admin_users::AdminUsers::frontend_filter_value(field, value),
-            Self::Permissions => {
-                crate::admin_permissions::AdminPermissions::frontend_filter_value(field, value)
-            }
+            Self::Users => crate::admin_users::AdminUsers::frontend_filter_value(
+                form_field_name_ref,
+                form_value_ref,
+            ),
+            Self::Permissions => crate::admin_permissions::AdminPermissions::frontend_filter_value(
+                form_field_name_ref,
+                form_value_ref,
+            ),
             Self::SystemSettings => {
                 crate::admin_system_settings::AdminSystemSettings::frontend_filter_value(
-                    field, value,
+                    form_field_name_ref,
+                    form_value_ref,
                 )
             }
-            Self::UserRoles => {
-                crate::admin_user_roles::AdminUserRoles::frontend_filter_value(field, value)
-            }
+            Self::UserRoles => crate::admin_user_roles::AdminUserRoles::frontend_filter_value(
+                form_field_name_ref,
+                form_value_ref,
+            ),
         }
     }
 
     pub(crate) fn parse_filter(
         self,
-        payload: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
+        std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
     ) -> Result<crate::data_flt::DataFlt, crate::admin_repository_error::AdminRepositoryError> {
         let parsed = match self {
             Self::Permissions => serde_json::from_str::<
                 crate::admin_permissions::StdOptionalOptionalAdminPermissionsWhereMany,
-            >(payload.get())
+            >(std_admin_str_ref.get())
             .map(crate::data_permissions_flt::DataPermissionsFlt::from)
             .map(crate::data_flt::DataFlt::Permissions),
             Self::RolePermissions => serde_json::from_str::<
                 crate::admin_role_permissions::StdOptionalOptionalAdminRolePermissionsWhereMany,
-            >(payload.get())
+            >(std_admin_str_ref.get())
             .map(crate::data_role_permissions_flt::DataRolePermissionsFlt::from)
             .map(crate::data_flt::DataFlt::RolePermissions),
             Self::Roles => serde_json::from_str::<
                 crate::admin_roles::StdOptionalOptionalAdminRolesWhereMany,
-            >(payload.get())
+            >(std_admin_str_ref.get())
             .map(crate::data_roles_flt::DataRolesFlt::from)
             .map(crate::data_flt::DataFlt::Roles),
             Self::SystemSettings => serde_json::from_str::<
                 crate::admin_system_settings::StdOptionalOptionalAdminSystemSettingsWhereMany,
-            >(payload.get())
+            >(std_admin_str_ref.get())
             .map(crate::data_system_settings_flt::DataSystemSettingsFlt::from)
             .map(crate::data_flt::DataFlt::SystemSettings),
             Self::UserRoles => serde_json::from_str::<
                 crate::admin_user_roles::StdOptionalOptionalAdminUserRolesWhereMany,
-            >(payload.get())
+            >(std_admin_str_ref.get())
             .map(crate::data_user_roles_flt::DataUserRolesFlt::from)
             .map(crate::data_flt::DataFlt::UserRoles),
             Self::Users => serde_json::from_str::<
                 crate::admin_users::StdOptionalOptionalAdminUsersWhereMany,
-            >(payload.get())
+            >(std_admin_str_ref.get())
             .map(crate::data_users_flt::DataUsersFlt::from)
             .map(crate::data_flt::DataFlt::Users),
         };
@@ -105,9 +115,9 @@ impl AdminGeneratedTable {
     }
 
     pub(crate) const fn for_data_table(
-        table: server_admin_contract::admin_data_table::AdminDataTable,
+        admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
     ) -> Option<Self> {
-        match table {
+        match admin_data_table {
             server_admin_contract::admin_data_table::AdminDataTable::Permissions => {
                 Some(Self::Permissions)
             }
@@ -148,49 +158,50 @@ impl AdminGeneratedTable {
 
     pub(crate) fn routes(
         self,
-        app_state: &crate::shared_admin_generated_table_state_arc::SharedAdminGeneratedTableStateArc,
+        shared_admin_generated_table_state_arc: &crate::shared_admin_generated_table_state_arc::SharedAdminGeneratedTableStateArc,
     ) -> server_runtime_http::axum_router::AxumRouter {
         server_runtime_http::axum_router::AxumRouter::from(match self {
-            Self::Roles => {
-                crate::admin_roles::AdminRoles::routes(std::sync::Arc::clone(app_state.get_inner()))
-            }
+            Self::Roles => crate::admin_roles::AdminRoles::routes(std::sync::Arc::clone(
+                shared_admin_generated_table_state_arc.get_inner(),
+            )),
             Self::RolePermissions => crate::admin_role_permissions::AdminRolePermissions::routes(
-                std::sync::Arc::clone(app_state.get_inner()),
+                std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
             ),
-            Self::Users => {
-                crate::admin_users::AdminUsers::routes(std::sync::Arc::clone(app_state.get_inner()))
-            }
+            Self::Users => crate::admin_users::AdminUsers::routes(std::sync::Arc::clone(
+                shared_admin_generated_table_state_arc.get_inner(),
+            )),
             Self::Permissions => crate::admin_permissions::AdminPermissions::routes(
-                std::sync::Arc::clone(app_state.get_inner()),
+                std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
             ),
             Self::SystemSettings => crate::admin_system_settings::AdminSystemSettings::routes(
-                std::sync::Arc::clone(app_state.get_inner()),
+                std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
             ),
             Self::UserRoles => crate::admin_user_roles::AdminUserRoles::routes(
-                std::sync::Arc::clone(app_state.get_inner()),
+                std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
             ),
         })
     }
 
     pub(crate) fn route_contract(
         self,
-        path: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
+        std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
     ) -> Option<crate::admin_generated_route_contract::AdminGeneratedRouteContract> {
         match self {
-            Self::Roles => {
-                crate::admin_roles::AdminRolesRouteContract::for_path(path.get()).map(|contract| {
-                    crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
-                        contract
-                            .permission()
-                            .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
-                        server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
-                        contract.frontend_contract().method(),
-                    )
-                })
-            }
+            Self::Roles => crate::admin_roles::AdminRolesRouteContract::for_path(
+                std_admin_str_ref.get(),
+            )
+            .map(|contract| {
+                crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
+                    contract
+                        .permission()
+                        .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
+                    server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
+                    contract.frontend_contract().method(),
+                )
+            }),
             Self::RolePermissions => {
                 crate::admin_role_permissions::AdminRolePermissionsRouteContract::for_path(
-                    path.get(),
+                    std_admin_str_ref.get(),
                 )
                 .map(|contract| {
                     crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
@@ -202,19 +213,20 @@ impl AdminGeneratedTable {
                     )
                 })
             }
-            Self::Users => {
-                crate::admin_users::AdminUsersRouteContract::for_path(path.get()).map(|contract| {
-                    crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
-                        contract
-                            .permission()
-                            .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
-                        server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
-                        contract.frontend_contract().method(),
-                    )
-                })
-            }
+            Self::Users => crate::admin_users::AdminUsersRouteContract::for_path(
+                std_admin_str_ref.get(),
+            )
+            .map(|contract| {
+                crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
+                    contract
+                        .permission()
+                        .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
+                    server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
+                    contract.frontend_contract().method(),
+                )
+            }),
             Self::Permissions => crate::admin_permissions::AdminPermissionsRouteContract::for_path(
-                path.get(),
+                std_admin_str_ref.get(),
             )
             .map(|contract| {
                 crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
@@ -226,21 +238,21 @@ impl AdminGeneratedTable {
                 )
             }),
             Self::SystemSettings => {
-                crate::admin_system_settings::AdminSystemSettingsRouteContract::for_path(path.get())
-                    .map(|contract| {
-                        crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
-                            contract
-                                .permission()
-                                .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
-                            server_admin_core::std_admin_bool::StdAdminBool::from(
-                                contract.mutates(),
-                            ),
-                            contract.frontend_contract().method(),
-                        )
-                    })
+                crate::admin_system_settings::AdminSystemSettingsRouteContract::for_path(
+                    std_admin_str_ref.get(),
+                )
+                .map(|contract| {
+                    crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
+                        contract
+                            .permission()
+                            .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
+                        server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
+                        contract.frontend_contract().method(),
+                    )
+                })
             }
             Self::UserRoles => crate::admin_user_roles::AdminUserRolesRouteContract::for_path(
-                path.get(),
+                std_admin_str_ref.get(),
             )
             .map(|contract| {
                 crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(

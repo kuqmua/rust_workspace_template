@@ -27,8 +27,8 @@ pub(super) enum RustTypeName {
     SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtc,
 }
 impl From<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for RustTypeName {
-    fn from(value: &crate::pg_type_catalog_kind::PgTypeCatalogKind) -> Self {
-        match &value {
+    fn from(pg_type_catalog_kind: &crate::pg_type_catalog_kind::PgTypeCatalogKind) -> Self {
+        match &pg_type_catalog_kind {
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => Self::F32,
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => Self::F64,
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg => Self::I16,

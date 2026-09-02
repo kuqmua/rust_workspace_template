@@ -9,23 +9,23 @@ pub struct CursorCodec {
 impl CursorCodec {
     #[must_use]
     pub const fn new(
-        key: crate::cursor_signing_key::CursorSigningKey,
-        maximum_length: crate::cursor_maximum_length::CursorMaximumLength,
+        cursor_signing_key: crate::cursor_signing_key::CursorSigningKey,
+        cursor_maximum_length: crate::cursor_maximum_length::CursorMaximumLength,
     ) -> Self {
         Self {
-            key,
-            maximum_length,
+            key: cursor_signing_key,
+            maximum_length: cursor_maximum_length,
         }
     }
 
     pub fn encode(
         &self,
-        payload: &crate::cursor_payload::CursorPayload,
+        cursor_payload: &crate::cursor_payload::CursorPayload,
     ) -> Result<crate::signed_cursor::SignedCursor, crate::cursor_encode_error::CursorEncodeError>
     {
         let encoded_payload = base64::Engine::encode(
             &base64::engine::general_purpose::URL_SAFE_NO_PAD,
-            payload.as_ref().as_bytes(),
+            cursor_payload.as_ref().as_bytes(),
         );
         let signed_text = format!("{}.{encoded_payload}", constants_str::CURSOR_VERSION_V1);
         let mut mac = <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(
@@ -47,13 +47,13 @@ impl CursorCodec {
 
     pub fn decode(
         &self,
-        cursor: &crate::signed_cursor::SignedCursor,
+        signed_cursor: &crate::signed_cursor::SignedCursor,
     ) -> Result<crate::cursor_payload::CursorPayload, crate::cursor_decode_error::CursorDecodeError>
     {
-        if cursor.as_ref().len() > self.maximum_length.get_inner().get() {
+        if signed_cursor.as_ref().len() > self.maximum_length.get_inner().get() {
             return Err(crate::cursor_decode_error::CursorDecodeError::MaximumLengthExceeded);
         }
-        let mut parts = cursor.as_ref().split('.');
+        let mut parts = signed_cursor.as_ref().split('.');
         let version = parts
             .next()
             .ok_or(crate::cursor_decode_error::CursorDecodeError::InvalidFormat)?;

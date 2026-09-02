@@ -1,6 +1,6 @@
 #[must_use]
 pub fn common_routes(
-    app_state_b9fc2d94: crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
+    arc_common_routes_app_state: crate::arc_common_routes_app_state::ArcCommonRoutesAppState,
 ) -> crate::axum_common_routes::AxumCommonRoutes {
     crate::axum_common_routes::AxumCommonRoutes::from(
         super::common_route_registry::router()
@@ -32,6 +32,6 @@ pub fn common_routes(
                     )
                 },
             )
-            .with_state(app_state_b9fc2d94),
+            .with_state(arc_common_routes_app_state),
     )
 }

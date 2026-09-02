@@ -1,16 +1,16 @@
 pub(crate) fn authorization_session_context_hash(
-    headers: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
-    peer: crate::admin_peer_addr::AdminPeerAddr,
+    http_admin_header_map_ref: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
+    admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,
 ) -> Result<
     crate::admin_token_hash::AdminTokenHash,
     crate::admin_secret_text_error::AdminSecretTextError,
 > {
     let mut context = String::with_capacity(352usize);
     context.push_str(constants_str::CLIENT_ADDRESS);
-    let client_address = peer.get_inner().as_ref().ip().to_string();
+    let client_address = admin_peer_addr.get_inner().as_ref().ip().to_string();
     context.extend(client_address.chars().take(256usize));
     context.push_str(constants_str::USER_AGENT);
-    let user_agent = headers
+    let user_agent = http_admin_header_map_ref
         .get()
         .get(http::header::USER_AGENT)
         .and_then(|value| value.to_str().ok())

@@ -4,10 +4,10 @@
 )]
 
 pub async fn cleanup_pg_table_idempotency(
-    pool: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    sqlx_pg_pool_ref: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
     completed_retention_seconds: crate::pg_table_idempotency_cleanup_retention_seconds::PgTableIdempotencyCleanupRetentionSeconds,
     pending_retention_seconds: crate::pg_table_idempotency_cleanup_retention_seconds::PgTableIdempotencyCleanupRetentionSeconds,
-    batch_size: crate::pg_table_idempotency_cleanup_batch_size::PgTableIdempotencyCleanupBatchSize,
+    pg_table_idempotency_cleanup_batch_size: crate::pg_table_idempotency_cleanup_batch_size::PgTableIdempotencyCleanupBatchSize,
 ) -> Result<
     crate::pg_table_idempotency_cleanup_rows::PgTableIdempotencyCleanupRows,
     crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError,
@@ -17,8 +17,8 @@ pub async fn cleanup_pg_table_idempotency(
     )
     .bind(completed_retention_seconds.get())
     .bind(pending_retention_seconds.get())
-    .bind(batch_size.get().get())
-    .execute(pool.as_ref())
+    .bind(pg_table_idempotency_cleanup_batch_size.get().get())
+    .execute(sqlx_pg_pool_ref.as_ref())
     .await
     .map_err(crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from)?;
     Ok(

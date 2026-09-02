@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    fn unique_path(name: &str) -> std::path::PathBuf {
+    fn unique_path(str: &str) -> std::path::PathBuf {
         std::env::temp_dir().join(format!(
-            "rust-workspace-template-bounded-read-{}-{name}",
+            "rust-workspace-template-bounded-read-{}-{str}",
             uuid::Uuid::new_v4()
         ))
     }

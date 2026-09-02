@@ -18,8 +18,12 @@
 )]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVec<T> {
+    #[allow(
+        unused_variables,
+        reason = "the schema trait implementation preserves the type-based parameter name"
+    )]
     fn compose(
-        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+        vec: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ArrayBuilder::new()
             .items(<T as utoipa::PartialSchema>::schema())
@@ -44,11 +48,14 @@ impl<T> NotEmptyUniqueVec<T> {
 }
 impl<T: PartialEq> NotEmptyUniqueVec<T> {
     pub fn try_new(
-        values: crate::duplicate_candidates::DuplicateCandidates<T>,
+        duplicate_candidates: crate::duplicate_candidates::DuplicateCandidates<T>,
     ) -> Result<Self, crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>>
     {
-        crate::try_new_unique_vec::try_new_unique_vec(values, crate::take_fst_dup::take_fst_dup)
-            .map(Self::from)
+        crate::try_new_unique_vec::try_new_unique_vec(
+            duplicate_candidates,
+            crate::take_first_duplicate::take_first_duplicate,
+        )
+        .map(Self::from)
     }
 }
 impl<T: PartialEq> TryFrom<crate::duplicate_candidates::DuplicateCandidates<T>>
@@ -56,19 +63,19 @@ impl<T: PartialEq> TryFrom<crate::duplicate_candidates::DuplicateCandidates<T>>
 {
     type Error = crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>;
     fn try_from(
-        value: crate::duplicate_candidates::DuplicateCandidates<T>,
+        duplicate_candidates: crate::duplicate_candidates::DuplicateCandidates<T>,
     ) -> Result<Self, Self::Error> {
-        Self::try_new(value)
+        Self::try_new(duplicate_candidates)
     }
 }
 impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {
     pub fn try_new_by_hash(
-        values: crate::duplicate_candidates::DuplicateCandidates<T>,
+        duplicate_candidates: crate::duplicate_candidates::DuplicateCandidates<T>,
     ) -> Result<Self, crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>>
     {
         crate::try_new_unique_vec::try_new_unique_vec(
-            values,
-            crate::take_fst_dup_by_hash::take_fst_dup_by_hash,
+            duplicate_candidates,
+            crate::take_first_duplicate_by_hash::take_first_duplicate_by_hash,
         )
         .map(Self::from)
     }
@@ -95,7 +102,7 @@ const _: () = {
     impl<'de, T: std::fmt::Debug + PartialEq + serde::Deserialize<'de>> serde::Deserialize<'de>
         for NotEmptyUniqueVec<T>
     {
-        fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+        fn deserialize<__D>(__d: __D) -> Result<Self, __D::Error>
         where
             __D: serde::Deserializer<'de>,
         {
@@ -115,10 +122,10 @@ const _: () = {
                 type Value = NotEmptyUniqueVec<T>;
                 fn expecting(
                     &self,
-                    __f: &mut std::fmt::Formatter<'_>,
+                    formatter: &mut std::fmt::Formatter<'_>,
                 ) -> _serde::__private229::fmt::Result {
                     std::fmt::Formatter::write_str(
-                        __f,
+                        formatter,
                         constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
@@ -136,12 +143,11 @@ const _: () = {
                     }
                 }
                 #[inline]
-                fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
+                fn visit_seq<__A>(self, mut __a: __A) -> Result<Self::Value, __A::Error>
                 where
                     __A: _serde::de::SeqAccess<'de>,
                 {
-                    let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
-                    else {
+                    let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __a)? else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ZERO,
                             &constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
@@ -156,7 +162,7 @@ const _: () = {
                 }
             }
             serde::Deserializer::deserialize_newtype_struct(
-                __deserializer,
+                __d,
                 constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private229::PhantomData::<Self>,
@@ -246,33 +252,33 @@ mod test_tests_not_empty_unique_vec {
         ));
     }
     #[test]
-    fn test_fst_dup_idx_returns_none_for_unique_input() {
+    fn test_first_duplicate_idx_returns_none_for_unique_input() {
         let values = vec![1u8, 2u8, 3u8];
         assert!(crate::first_duplicate_index::first_duplicate_index(&values).is_none());
     }
     #[test]
-    fn test_fst_dup_idx_returns_none_for_empty_and_single_input() {
+    fn test_first_duplicate_idx_returns_none_for_empty_and_single_input() {
         assert!(crate::first_duplicate_index::first_duplicate_index::<u8>(&[]).is_none());
         assert!(crate::first_duplicate_index::first_duplicate_index(&[1u8]).is_none());
     }
     #[test]
-    fn test_fst_dup_idx_returns_fst_repeated_value_idx() {
+    fn test_first_duplicate_idx_returns_fst_repeated_value_index() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
         assert_eq!(
             crate::first_duplicate_index::first_duplicate_index(&values),
-            Some(crate::duplicate_idx::DuplicateIdx::from(2))
+            Some(crate::duplicate_index::DuplicateIndex::from(2))
         );
     }
     #[test]
-    fn test_fst_dup_idx_by_hash_returns_fst_repeated_value_idx() {
+    fn test_first_duplicate_idx_by_hash_returns_fst_repeated_value_index() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
         assert_eq!(
             crate::first_duplicate_index_by_hash::first_duplicate_index_by_hash(&values),
-            Some(crate::duplicate_idx::DuplicateIdx::from(2))
+            Some(crate::duplicate_index::DuplicateIndex::from(2))
         );
     }
     #[test]
-    fn test_fst_dup_idx_by_hash_returns_none_for_empty_and_single_input() {
+    fn test_first_duplicate_idx_by_hash_returns_none_for_empty_and_single_input() {
         assert!(
             crate::first_duplicate_index_by_hash::first_duplicate_index_by_hash::<u8>(&[])
                 .is_none()
@@ -282,26 +288,26 @@ mod test_tests_not_empty_unique_vec {
         );
     }
     #[test]
-    fn test_take_fst_dup_returns_none_for_unique_input() {
+    fn test_take_first_duplicate_returns_none_for_unique_input() {
         let mut values =
             crate::duplicate_candidates::DuplicateCandidates::from(vec![1u8, 2u8, 3u8]);
-        let actual = crate::take_fst_dup::take_fst_dup(&mut values);
+        let actual = crate::take_first_duplicate::take_first_duplicate(&mut values);
         assert!(actual.is_none());
         assert_eq!(Vec::from(values), [1u8, 2u8, 3u8]);
     }
     #[test]
-    fn test_take_fst_dup_returns_first_duplicate_value() {
+    fn test_take_first_duplicate_returns_first_duplicate_value() {
         let mut values =
             crate::duplicate_candidates::DuplicateCandidates::from(vec![7u8, 8u8, 8u8, 7u8]);
-        let actual = crate::take_fst_dup::take_fst_dup(&mut values);
+        let actual = crate::take_first_duplicate::take_first_duplicate(&mut values);
         assert_eq!(actual, Some(8u8));
         assert_eq!(Vec::from(values).len(), 3usize);
     }
     #[test]
-    fn test_take_fst_dup_by_hash_returns_first_duplicate_value() {
+    fn test_take_first_duplicate_by_hash_returns_first_duplicate_value() {
         let mut values =
             crate::duplicate_candidates::DuplicateCandidates::from(vec![7u8, 8u8, 8u8, 7u8]);
-        let actual = crate::take_fst_dup_by_hash::take_fst_dup_by_hash(&mut values);
+        let actual = crate::take_first_duplicate_by_hash::take_first_duplicate_by_hash(&mut values);
         assert_eq!(actual, Some(8u8));
         assert_eq!(Vec::from(values).len(), 3usize);
     }
@@ -338,25 +344,25 @@ where
 {
     fn query_bind(
         self,
-        query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+        sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
     ) -> Result<crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>, crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
         self.0
             .into_iter()
-            .try_fold(query, |accumulator_query, element| {
+            .try_fold(sqlx_postgres_query, |accumulator_query, element| {
                 element.query_bind(accumulator_query)
             })
     }
     fn query_part(
         &self,
         increment: &mut dyn crate::query_part_increment_mut::QueryPartIncrementMut,
-        column: crate::sql_column_ref::SqlColumnRef<'_>,
+        sql_column_ref: crate::sql_column_ref::SqlColumnRef<'_>,
         add_operator: crate::add_operator::AddOperator,
     ) -> Result<crate::query_part_fragment::QueryPartFragment, crate::query_part_error::QueryPartError> {
         let mut accumulator = String::with_capacity(self.0.len().saturating_mul(32));
         self.0.iter().enumerate().try_for_each(|(i, element)| {
             let v = element.query_part(
                 increment,
-                column,
+                sql_column_ref,
                 if i == 0 {
                     add_operator
                 } else {

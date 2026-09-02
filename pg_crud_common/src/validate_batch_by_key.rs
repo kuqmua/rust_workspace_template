@@ -12,8 +12,8 @@ pub fn validate_batch_by_key<
     BuildDuplicateInvalidItem,
 >(
     source_items: SourceItems,
-    maximum_invalid_items: crate::batch_invalid_item_count::BatchInvalidItemCount,
-    duplicate_policy: crate::batch_duplicate_policy::BatchDuplicatePolicy,
+    batch_invalid_item_count: crate::batch_invalid_item_count::BatchInvalidItemCount,
+    batch_duplicate_policy: crate::batch_duplicate_policy::BatchDuplicatePolicy,
     validate_source_item: ValidateSourceItem,
     select_record_key: SelectRecordKey,
     build_invalid_item: BuildInvalidItem,
@@ -27,7 +27,7 @@ where
     BuildInvalidItem: Fn(usize, ValidationError) -> InvalidItem,
     BuildDuplicateInvalidItem: Fn(usize, &Key) -> InvalidItem,
 {
-    let maximum_invalid_item_count = maximum_invalid_items.get();
+    let maximum_invalid_item_count = batch_invalid_item_count.get();
     let mut records_by_key = std::collections::BTreeMap::new();
     let mut invalid_items = Vec::with_capacity(maximum_invalid_item_count);
     let mut processed_item_count = constants_usize::ZERO;
@@ -50,7 +50,7 @@ where
                             let _inserted_record = entry.insert(record);
                         }
                         std::collections::btree_map::Entry::Occupied(mut entry) => {
-                            match duplicate_policy {
+                            match batch_duplicate_policy {
                                 crate::batch_duplicate_policy::BatchDuplicatePolicy::Reject => {
                                     invalid_items.push(build_duplicate_invalid_item(
                                         item_index,

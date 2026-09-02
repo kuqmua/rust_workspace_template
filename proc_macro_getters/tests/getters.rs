@@ -50,11 +50,11 @@ mod tests {
     impl TryFrom<u64> for TupleField {
         type Error = TupleFieldError;
 
-        fn try_from(value: u64) -> Result<Self, Self::Error> {
-            if value == 0 {
+        fn try_from(u64: u64) -> Result<Self, Self::Error> {
+            if u64 == 0 {
                 Err(TupleFieldError::Zero)
             } else {
-                Ok(Self(value))
+                Ok(Self(u64))
             }
         }
     }

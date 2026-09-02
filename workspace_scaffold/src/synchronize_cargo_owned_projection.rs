@@ -1,9 +1,9 @@
 pub(crate) fn synchronize_cargo_owned_projection(
-    root: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
-    arguments: crate::cargo_args_ref::CargoArgsRef<'_>,
-    update_environment: crate::update_env_name::UpdateEnvName,
-    projection: crate::generated_projection::GeneratedProjection,
-    write_changes: crate::should_write::ShouldWrite,
+    scaffold_path_ref: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
+    cargo_args_ref: crate::cargo_args_ref::CargoArgsRef<'_>,
+    update_env_name: crate::update_env_name::UpdateEnvName,
+    generated_projection: crate::generated_projection::GeneratedProjection,
+    should_write: crate::should_write::ShouldWrite,
 ) -> Result<(), crate::scaffold_error::ScaffoldError> {
     let mut command = macro_helpers::tool_command::ToolCommand::new(
         macro_helpers::tool_program_ref::ToolProgramRef::from(
@@ -12,14 +12,14 @@ pub(crate) fn synchronize_cargo_owned_projection(
     );
     let _arguments = command
         .current_dir(macro_helpers::macro_path_ref::MacroPathRef::from(
-            root.get(),
+            scaffold_path_ref.get(),
         ))
         .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
-            arguments.get(),
+            cargo_args_ref.get(),
         ));
-    if bool::from(write_changes) {
+    if bool::from(should_write) {
         let _environment = command.env(
-            macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(update_environment.get()),
+            macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(update_env_name.get()),
             macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(constants_str::VALUE_1),
         );
     }
@@ -27,7 +27,7 @@ pub(crate) fn synchronize_cargo_owned_projection(
     if run_ok.get() {
         Ok(())
     } else {
-        Err(match projection {
+        Err(match generated_projection {
             crate::generated_projection::GeneratedProjection::CodeStyle => {
                 crate::scaffold_error::ScaffoldError::GeneratedCodeStyle
             }

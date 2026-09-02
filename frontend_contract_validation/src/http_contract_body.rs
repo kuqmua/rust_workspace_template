@@ -13,8 +13,8 @@ pub struct HttpContractBody(
 impl TryFrom<Vec<u8>> for HttpContractBody {
     type Error = frontend_contract::frontend_contract_body_error::FrontendContractBodyError;
 
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(value)
+    fn try_from(vec: Vec<u8>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(vec)
             .map(Self)
             .map_err(
                 frontend_contract::frontend_contract_body_error::FrontendContractBodyError::from,

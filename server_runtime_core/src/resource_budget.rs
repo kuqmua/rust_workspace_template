@@ -10,9 +10,11 @@ pub struct ResourceBudget {
 
 impl ResourceBudget {
     #[must_use]
-    pub fn new(maximum: crate::resource_budget_maximum::ResourceBudgetMaximum) -> Self {
+    pub fn new(
+        resource_budget_maximum: crate::resource_budget_maximum::ResourceBudgetMaximum,
+    ) -> Self {
         Self {
-            maximum,
+            maximum: resource_budget_maximum,
             reserved: crate::shared_atomic_usize_arc::SharedAtomicUsizeArc::from(
                 std::sync::Arc::from(std::sync::atomic::AtomicUsize::new(constants_usize::ZERO)),
             ),
@@ -21,7 +23,7 @@ impl ResourceBudget {
 
     pub fn reserve(
         &self,
-        amount: crate::resource_budget_amount::ResourceBudgetAmount,
+        resource_budget_amount: crate::resource_budget_amount::ResourceBudgetAmount,
     ) -> Result<
         crate::resource_budget_reservation::ResourceBudgetReservation,
         crate::resource_budget_reserve_error::ResourceBudgetReserveError,
@@ -31,18 +33,18 @@ impl ResourceBudget {
             std::sync::atomic::Ordering::Acquire,
             |current| {
                 current
-                    .checked_add(*amount)
+                    .checked_add(*resource_budget_amount)
                     .filter(|next| *next <= self.maximum.get())
             },
         );
         match result {
             Ok(_previous) => Ok(
                 crate::resource_budget_reservation::ResourceBudgetReservation::new(
-                    amount,
+                    resource_budget_amount,
                     self.reserved.clone(),
                 ),
             ),
-            Err(current) if current.checked_add(*amount).is_none() => {
+            Err(current) if current.checked_add(*resource_budget_amount).is_none() => {
                 Err(crate::resource_budget_reserve_error::ResourceBudgetReserveError::Overflow)
             }
             Err(_current) => {

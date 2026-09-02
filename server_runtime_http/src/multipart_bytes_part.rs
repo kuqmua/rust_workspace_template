@@ -16,22 +16,22 @@ impl MultipartBytesPart {
 
     #[must_use]
     pub const fn new(
-        name: crate::multipart_field_name::MultipartFieldName,
-        bytes: crate::multipart_bytes::MultipartBytes,
+        multipart_field_name: crate::multipart_field_name::MultipartFieldName,
+        multipart_bytes: crate::multipart_bytes::MultipartBytes,
     ) -> Self {
         Self {
-            bytes,
+            bytes: multipart_bytes,
             file_name: None,
-            name,
+            name: multipart_field_name,
         }
     }
 
     #[must_use]
     pub fn with_file_name(
         mut self,
-        file_name: crate::multipart_file_name::MultipartFileName,
+        multipart_file_name: crate::multipart_file_name::MultipartFileName,
     ) -> Self {
-        self.file_name = Some(file_name);
+        self.file_name = Some(multipart_file_name);
         self
     }
 }

@@ -1,13 +1,13 @@
 pub(crate) async fn revoke_refresh_token(
-    mut connection: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
-    token_hash: &crate::admin_token_hash::AdminTokenHash,
-    user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
+    mut sqlx_admin_repository_connection_mut_ref: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
+    admin_token_hash: &crate::admin_token_hash::AdminTokenHash,
+    admin_user_record_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
 ) -> Result<(), crate::sqlx_admin_error::SqlxAdminError> {
     let query = sqlx::query(constants_str::SERVER_ADMIN_REVOKE_REFRESH_TOKEN_SQL);
     query
-        .bind(token_hash.expose().as_ref())
-        .bind(user_id.get())
-        .execute(&mut **connection)
+        .bind(admin_token_hash.expose().as_ref())
+        .bind(admin_user_record_id.get())
+        .execute(&mut **sqlx_admin_repository_connection_mut_ref)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map(drop)

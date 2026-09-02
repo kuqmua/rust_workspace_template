@@ -10,7 +10,7 @@ pub fn generate_impl_default_some_one_element_token_stream(
     identifier_generic_token_stream: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let names = crate::names_ctx::NamesCtx::new();
+    let names = crate::names_context::NamesContext::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (DefaultSomeOneElementSnakeCase,) = (names.get_default_some_one_element_snake_case(),);

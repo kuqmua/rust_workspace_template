@@ -1,11 +1,11 @@
 pub(crate) fn strip_ansi_codes(
-    value: crate::ansi_text_ref::AnsiTextRef<'_>,
+    ansi_text_ref: crate::ansi_text_ref::AnsiTextRef<'_>,
 ) -> crate::clean_ansi_text::CleanAnsiText {
-    let clean = value
+    let clean = ansi_text_ref
         .get()
         .chars()
         .fold(
-            (String::with_capacity(value.get().len()), false),
+            (String::with_capacity(ansi_text_ref.get().len()), false),
             |(mut accumulator, in_escape), ch| match (in_escape, ch) {
                 (true, 'm') => (accumulator, false),
                 (false, '\u{1b}') | (true, _) => (accumulator, true),

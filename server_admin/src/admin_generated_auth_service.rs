@@ -23,12 +23,12 @@ where
         Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
     >;
     type Response = axum::response::Response;
-    fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
+    fn call(&mut self, mut request: axum::extract::Request) -> Self::Future {
         let mut inner = self.inner.clone();
         std::mem::swap(&mut inner, &mut self.inner);
         let state = self.get_state().clone();
         Box::pin(async move {
-            let path = req.uri().path();
+            let path = request.uri().path();
             let contract = crate::admin_generated_table::AdminGeneratedTable::ALL
                 .iter()
                 .copied()
@@ -71,7 +71,7 @@ where
                 ));
             };
             if !matches!(
-                (req.method(), method),
+                (request.method(), method),
                 (
                     &http::Method::DELETE,
                     frontend_contract::route_method::RouteMethod::Delete
@@ -93,7 +93,7 @@ where
                     crate::admin_error::AdminError::MethodNotAllowed,
                 ));
             }
-            let Some(peer) = req
+            let Some(peer) = request
                 .extensions()
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
                 .map(|peer| {
@@ -109,7 +109,7 @@ where
             let authenticated =
                 match crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
                     state.as_ref(),
-                    crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(req.headers()),
+                    crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(request.headers()),
                     peer,
                     server_admin_contract::admin_permission_str_ref::AdminPermissionStrRef::from(
                         permission.get(),
@@ -134,14 +134,14 @@ where
                         ));
                     }
                 };
-            let _previous_actor = req.extensions_mut().insert(actor);
-            tower::Service::call(&mut inner, req).await
+            let _previous_actor = request.extensions_mut().insert(actor);
+            tower::Service::call(&mut inner, request).await
         })
     }
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        context: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
-        tower::Service::poll_ready(&mut self.inner, cx)
+        tower::Service::poll_ready(&mut self.inner, context)
     }
 }

@@ -16,8 +16,12 @@ pub struct ExplicitValue<T> {
 }
 
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for ExplicitValue<T> {
+    #[allow(
+        unused_variables,
+        reason = "the schema trait implementation preserves the type-based parameter name"
+    )]
     fn compose(
-        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+        vec: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(

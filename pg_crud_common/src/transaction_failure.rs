@@ -23,13 +23,15 @@ where
 {
     #[must_use]
     pub fn from_operation_and_rollback(
-        operation: OperationError,
-        rollback: Result<(), RollbackError>,
+        operation_error: OperationError,
+        result: Result<(), RollbackError>,
     ) -> Self {
-        match rollback {
-            Ok(()) => Self::Operation { source: operation },
+        match result {
+            Ok(()) => Self::Operation {
+                source: operation_error,
+            },
             Err(rollback_error) => Self::OperationAndRollback {
-                operation,
+                operation: operation_error,
                 rollback: rollback_error,
             },
         }

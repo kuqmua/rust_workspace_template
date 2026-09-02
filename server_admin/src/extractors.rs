@@ -1,3 +1,8 @@
+#![allow(
+    unused_variables,
+    reason = "extractor trait implementations preserve repository type-based parameter names"
+)]
+
 impl<State> axum::extract::FromRequestParts<State> for crate::admin_peer_addr::AdminPeerAddr
 where
     State: Send + Sync,
@@ -5,7 +10,7 @@ where
     type Rejection = crate::admin_error::AdminError;
     fn from_request_parts(
         parts: &mut http::request::Parts,
-        _state: &State,
+        state: &State,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(
             parts
@@ -27,7 +32,7 @@ where
     type Rejection = std::convert::Infallible;
     fn from_request_parts(
         parts: &mut http::request::Parts,
-        _state: &S,
+        s: &S,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(Ok(Self::from(parts.headers.clone())))
     }
@@ -35,12 +40,12 @@ where
 impl
     axum::extract::FromRequestParts<
         crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
-    > for crate::admin_auth_req::AdminAuthReq
+    > for crate::admin_auth_request::AdminAuthRequest
 {
     type Rejection = crate::admin_error::AdminError;
     fn from_request_parts(
         parts: &mut http::request::Parts,
-        state: &crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+        shared_admin_auth_svc_state_arc: &crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(
             parts
@@ -51,7 +56,7 @@ impl
                         crate::http_admin_header_map::HttpAdminHeaderMap::from(
                             parts.headers.clone(),
                         ),
-                        state.clone(),
+                        shared_admin_auth_svc_state_arc.clone(),
                         crate::admin_peer_addr::AdminPeerAddr::from(
                             server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer.0),
                         ),
@@ -66,9 +71,9 @@ where
     S: Send + Sync,
 {
     type Rejection = crate::admin_error::AdminError;
-    async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
-        axum::Json::<server_admin_contract::admin_sign_in_req::AdminSignInReq>::from_request(
-            req, state,
+    async fn from_request(request: axum::extract::Request, s: &S) -> Result<Self, Self::Rejection> {
+        axum::Json::<server_admin_contract::admin_sign_in_request::AdminSignInRequest>::from_request(
+            request, s,
         )
         .await
         .map(|axum::Json(value)| Self::from(value))
@@ -87,8 +92,8 @@ where
     Value: serde::de::DeserializeOwned + Send,
 {
     type Rejection = crate::admin_error::AdminError;
-    async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
-        axum::Json::<Value>::from_request(req, state)
+    async fn from_request(request: axum::extract::Request, s: &S) -> Result<Self, Self::Rejection> {
+        axum::Json::<Value>::from_request(request, s)
             .await
             .map(|axum::Json(value)| Self::from(value))
             .map_err(|error| {
@@ -106,8 +111,8 @@ where
     Value: serde::de::DeserializeOwned + Send,
 {
     type Rejection = crate::admin_error::AdminError;
-    async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
-        axum::Form::<Value>::from_request(req, state)
+    async fn from_request(request: axum::extract::Request, s: &S) -> Result<Self, Self::Rejection> {
+        axum::Form::<Value>::from_request(request, s)
             .await
             .map(|axum::Form(value)| Self::from(value))
             .map_err(|error| {
@@ -127,9 +132,9 @@ where
     type Rejection = crate::admin_error::AdminError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
-        state: &S,
+        s: &S,
     ) -> Result<Self, Self::Rejection> {
-        axum::extract::Path::<Value>::from_request_parts(parts, state)
+        axum::extract::Path::<Value>::from_request_parts(parts, s)
             .await
             .map(|axum::extract::Path(value)| Self::from(value))
             .map_err(|_error| crate::admin_error::AdminError::Validation)
@@ -143,9 +148,9 @@ where
     type Rejection = crate::admin_error::AdminError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
-        state: &S,
+        s: &S,
     ) -> Result<Self, Self::Rejection> {
-        axum::extract::Query::<Value>::from_request_parts(parts, state)
+        axum::extract::Query::<Value>::from_request_parts(parts, s)
             .await
             .map(|axum::extract::Query(value)| Self::from(value))
             .map_err(|_error| crate::admin_error::AdminError::Validation)
@@ -159,15 +164,18 @@ impl
     type Rejection = crate::admin_error::AdminError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
-        state: &crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+        shared_admin_auth_svc_state_arc: &crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
     ) -> Result<Self, Self::Rejection> {
-        axum::extract::Path::<uuid::Uuid>::from_request_parts(parts, state)
-            .await
-            .map(|axum::extract::Path(value)| {
-                Self::from(crate::admin_session_id::AdminSessionId::from(
-                    server_admin_core::uuid_admin_value::UuidAdminValue::from(value),
-                ))
-            })
-            .map_err(|_error| crate::admin_error::AdminError::Validation)
+        axum::extract::Path::<uuid::Uuid>::from_request_parts(
+            parts,
+            shared_admin_auth_svc_state_arc,
+        )
+        .await
+        .map(|axum::extract::Path(value)| {
+            Self::from(crate::admin_session_id::AdminSessionId::from(
+                server_admin_core::uuid_admin_value::UuidAdminValue::from(value),
+            ))
+        })
+        .map_err(|_error| crate::admin_error::AdminError::Validation)
     }
 }

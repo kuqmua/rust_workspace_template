@@ -17,8 +17,9 @@ pub struct ConfigFieldDescriptor {
     sensitivity: crate::config_field_sensitivity::ConfigFieldSensitivity,
 }
 impl std::fmt::Debug for ConfigFieldDescriptor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::CONFIG_FIELD_DESCRIPTOR)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct(constants_str::CONFIG_FIELD_DESCRIPTOR)
             .field(constants_str::ENV_NAME, &self.env_name)
             .field(constants_str::EXAMPLE, &self.example)
             .field(constants_str::REQUIRED, &self.requirement)
@@ -30,30 +31,30 @@ impl std::fmt::Debug for ConfigFieldDescriptor {
 impl ConfigFieldDescriptor {
     #[must_use]
     pub const fn new(
-        env_name: crate::env_var_name_ref::EnvVarNameRef<'static>,
-        example: crate::config_field_example_ref::ConfigFieldExampleRef<'static>,
+        env_var_name_ref: crate::env_var_name_ref::EnvVarNameRef<'static>,
+        config_field_example_ref: crate::config_field_example_ref::ConfigFieldExampleRef<'static>,
         parser: fn(
             crate::std_env_var_ok::StdEnvVarOk,
         ) -> crate::config_example_validity::ConfigExampleValidity,
-        requirement: crate::config_field_requirement::ConfigFieldRequirement,
-        rust_type_name: crate::config_rust_type_name::ConfigRustTypeName,
-        sensitivity: crate::config_field_sensitivity::ConfigFieldSensitivity,
+        config_field_requirement: crate::config_field_requirement::ConfigFieldRequirement,
+        config_rust_type_name: crate::config_rust_type_name::ConfigRustTypeName,
+        config_field_sensitivity: crate::config_field_sensitivity::ConfigFieldSensitivity,
     ) -> Self {
         Self {
-            env_name,
-            example,
+            env_name: env_var_name_ref,
+            example: config_field_example_ref,
             parser,
-            rust_type_name,
-            requirement,
-            sensitivity,
+            rust_type_name: config_rust_type_name,
+            requirement: config_field_requirement,
+            sensitivity: config_field_sensitivity,
         }
     }
 
     #[must_use]
     pub fn validate_example(
         self,
-        value: crate::std_env_var_ok::StdEnvVarOk,
+        std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
     ) -> crate::config_example_validity::ConfigExampleValidity {
-        (self.parser)(value)
+        (self.parser)(std_env_var_ok)
     }
 }

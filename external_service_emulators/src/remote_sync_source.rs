@@ -10,10 +10,10 @@ pub struct RemoteSyncSource {
 impl RemoteSyncSource {
     #[must_use]
     pub fn new(
-        payload: synchronization_service_runtime::synchronization_payload::SynchronizationPayload,
+        synchronization_payload: synchronization_service_runtime::synchronization_payload::SynchronizationPayload,
     ) -> Self {
         Self {
-            payload,
+            payload: synchronization_payload,
             request_count: crate::remote_sync_request_count::RemoteSyncRequestCount::from(
                 constants_usize::ZERO,
             ),

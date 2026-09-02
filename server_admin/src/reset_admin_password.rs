@@ -1,29 +1,31 @@
 pub async fn reset_admin_password(
-    pool: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
-    login: server_admin_contract::admin_login::AdminLogin,
-    password: server_admin_contract::admin_new_password::AdminNewPassword,
-    password_hasher: &crate::admin_password_hasher::AdminPasswordHasher,
+    sqlx_pg_pool_ref: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    admin_login: server_admin_contract::admin_login::AdminLogin,
+    admin_new_password: server_admin_contract::admin_new_password::AdminNewPassword,
+    admin_password_hasher: &crate::admin_password_hasher::AdminPasswordHasher,
 ) -> Result<
     server_admin_core::admin_user_record_id::AdminUserRecordId,
     crate::admin_password_reset_error::AdminPasswordResetError,
 > {
-    let password_hash = password_hasher
+    let password_hash = admin_password_hasher
         .hash(
-            crate::runtime_admin_password::RuntimeAdminPassword::try_from(password.into_inner())
-                .map_err(|password_error| {
-                    let _error_text = format!("{password_error:?}");
-                    crate::admin_password_reset_error::AdminPasswordResetError::InvalidPassword
-                })?,
+            crate::runtime_admin_password::RuntimeAdminPassword::try_from(
+                admin_new_password.into_inner(),
+            )
+            .map_err(|password_error| {
+                let _error_text = format!("{password_error:?}");
+                crate::admin_password_reset_error::AdminPasswordResetError::InvalidPassword
+            })?,
         )
         .await
         .map_err(crate::admin_password_reset_error::AdminPasswordResetError::PasswordHash)?;
     let contract_login =
-        server_admin_contract::admin_login::AdminLogin::try_from(login.as_ref().to_owned())
+        server_admin_contract::admin_login::AdminLogin::try_from(admin_login.as_ref().to_owned())
             .map_err(|error| {
-                let _error_text = format!("{error:?}");
-                crate::admin_password_reset_error::AdminPasswordResetError::InvalidLogin
-            })?;
-    let mut tx = pool.as_ref().begin().await.map_err(|error| {
+            let _error_text = format!("{error:?}");
+            crate::admin_password_reset_error::AdminPasswordResetError::InvalidLogin
+        })?;
+    let mut tx = sqlx_pg_pool_ref.as_ref().begin().await.map_err(|error| {
         crate::admin_password_reset_error::AdminPasswordResetError::Pg(
             crate::sqlx_admin_error::SqlxAdminError::from(error),
         )
@@ -38,7 +40,7 @@ pub async fn reset_admin_password(
         })?;
     let optional_user_id =
         sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
-            .bind(login.as_ref())
+            .bind(admin_login.as_ref())
             .fetch_optional(&mut *tx)
             .await
             .map_err(|error| {

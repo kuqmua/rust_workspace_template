@@ -1,7 +1,7 @@
 pub trait SwaggerUrlPathSelfQuotesStr {
     fn swagger_url_path_self_quotes_str(
         &self,
-        v: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
+        swagger_url_path_prefix: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
     ) -> generate_quotes::quoted_literal::QuotedLiteral;
 }
 
@@ -11,11 +11,11 @@ where
 {
     fn swagger_url_path_self_quotes_str(
         &self,
-        v: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
+        swagger_url_path_prefix: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
     ) -> generate_quotes::quoted_literal::QuotedLiteral {
         generate_quotes::double_quoted_string::double_quoted_string(&format!(
             "/{}/{}",
-            v.as_ref(),
+            swagger_url_path_prefix.as_ref(),
             self.case()
         ))
     }

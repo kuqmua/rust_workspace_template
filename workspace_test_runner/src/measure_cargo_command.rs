@@ -1,6 +1,6 @@
 pub(crate) fn measure_cargo_command(
     measurement_name: crate::measurement_name::MeasurementName,
-    args: crate::cargo_args::CargoArgs,
+    cargo_args: crate::cargo_args::CargoArgs,
 ) -> Result<(), ()> {
     let measurement_name_value = measurement_name.get();
     let started = std::time::Instant::now();
@@ -25,7 +25,9 @@ pub(crate) fn measure_cargo_command(
         .arg(macro_helpers::tool_arg_ref::ToolArgRef::from(
             constants_str::WORKSPACE_TEST_RUNNER_CARGO,
         ))
-        .args(macro_helpers::tool_args_ref::ToolArgsRef::from(args.get()))
+        .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
+            cargo_args.get(),
+        ))
         .output()
     };
     let duration = started.elapsed();

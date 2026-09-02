@@ -9,16 +9,16 @@
 pub struct RequiredNulFreeBoundedText(String);
 impl TryFrom<String> for RequiredNulFreeBoundedText {
     type Error = crate::bounded_text_policy_error::BoundedTextPolicyError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_1_048_576 {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.len() > constants_usize::VALUE_1_048_576 {
             return Err(Self::Error::TooLong);
         }
-        if value.is_empty() {
+        if string.is_empty() {
             Err(Self::Error::Empty)
-        } else if value.contains('\0') {
+        } else if string.contains('\0') {
             Err(Self::Error::ContainsNul)
         } else {
-            Ok(Self(value))
+            Ok(Self(string))
         }
     }
 }

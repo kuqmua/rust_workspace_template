@@ -4,7 +4,7 @@
 )]
 
 pub(super) fn generate_select_query_string(
-    table: crate::pg_table_name_ref::PgTableNameRef<'_>,
+    pg_table_name_ref: crate::pg_table_name_ref::PgTableNameRef<'_>,
     select_string: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     where_string: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     select_where_fmt: crate::select_where_fmt::SelectWhereFmt,
@@ -16,14 +16,14 @@ pub(super) fn generate_select_query_string(
     let mut query = String::with_capacity(
         13usize
             .saturating_add(select_string.as_ref().len())
-            .saturating_add(table.as_ref().len())
+            .saturating_add(pg_table_name_ref.as_ref().len())
             .saturating_add(where_string.as_ref().len())
             .saturating_add(where_len),
     );
     query.push_str(constants_str::SELECT_ALT);
     query.push_str(select_string.as_ref());
     query.push_str(constants_str::FROM_ALT);
-    query.push_str(table.as_ref());
+    query.push_str(pg_table_name_ref.as_ref());
     match select_where_fmt {
         crate::select_where_fmt::SelectWhereFmt::Plain => query.push(' '),
         crate::select_where_fmt::SelectWhereFmt::Where => {

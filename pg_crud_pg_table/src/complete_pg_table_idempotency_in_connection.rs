@@ -4,12 +4,14 @@
 )]
 
 pub async fn complete_pg_table_idempotency_in_connection(
-    mut connection: crate::sqlx_pg_table_pg_connection_ref::SqlxPgTablePgConnectionRef<'_>,
-    request: &crate::pg_table_idempotency_request::PgTableIdempotencyRequest,
-    response_status: crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus,
-    response_body: crate::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef<'_>,
+    mut sqlx_pg_table_pg_connection_ref: crate::sqlx_pg_table_pg_connection_ref::SqlxPgTablePgConnectionRef<'_>,
+    pg_table_idempotency_request: &crate::pg_table_idempotency_request::PgTableIdempotencyRequest,
+    pg_table_idempotency_response_status: crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus,
+    pg_table_idempotency_body_ref: crate::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef<
+        '_,
+    >,
 ) -> Result<(), crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError> {
-    if response_body.as_ref().len() > constants_usize::VALUE_1_048_576 {
+    if pg_table_idempotency_body_ref.as_ref().len() > constants_usize::VALUE_1_048_576 {
         return Err(
             crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
                 sqlx::Error::Protocol(
@@ -18,22 +20,43 @@ pub async fn complete_pg_table_idempotency_in_connection(
             ),
         );
     }
-    let response_status_i16 = i16::try_from(u16::from(response_status)).map_err(|_error| {
-        crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
-            sqlx::Error::Protocol(
-                constants_str::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
-            ),
-        )
-    })?;
+    let response_status_i16 = i16::try_from(u16::from(pg_table_idempotency_response_status))
+        .map_err(|_error| {
+            crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
+                sqlx::Error::Protocol(
+                    constants_str::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
+                ),
+            )
+        })?;
     let result = sqlx::query(constants_str::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
-        .bind(request.get_scope().get_actor().as_ref())
-        .bind(request.get_scope().get_method().as_ref())
-        .bind(request.get_scope().get_route().as_ref())
-        .bind(request.get_scope().get_key().as_ref())
-        .bind(request.get_request_hash().get().as_slice())
+        .bind(
+            pg_table_idempotency_request
+                .get_scope()
+                .get_actor()
+                .as_ref(),
+        )
+        .bind(
+            pg_table_idempotency_request
+                .get_scope()
+                .get_method()
+                .as_ref(),
+        )
+        .bind(
+            pg_table_idempotency_request
+                .get_scope()
+                .get_route()
+                .as_ref(),
+        )
+        .bind(pg_table_idempotency_request.get_scope().get_key().as_ref())
+        .bind(
+            pg_table_idempotency_request
+                .get_request_hash()
+                .get()
+                .as_slice(),
+        )
         .bind(response_status_i16)
-        .bind(response_body.as_ref())
-        .execute(connection.as_mut())
+        .bind(pg_table_idempotency_body_ref.as_ref())
+        .execute(sqlx_pg_table_pg_connection_ref.as_mut())
         .await
         .map_err(crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from)?;
     if result.rows_affected() == 1u64 {

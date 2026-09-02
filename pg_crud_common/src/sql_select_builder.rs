@@ -34,9 +34,12 @@ impl SqlSelectBuilder {
 
     #[must_use]
     pub const fn new(
-        table: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
-        columns: crate::sql_identifiers::SqlIdentifiers,
+        sql_qualified_identifier: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
+        sql_identifiers: crate::sql_identifiers::SqlIdentifiers,
     ) -> Self {
-        Self { columns, table }
+        Self {
+            columns: sql_identifiers,
+            table: sql_qualified_identifier,
+        }
     }
 }

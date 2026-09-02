@@ -20,9 +20,13 @@ mod tests {
     )]
     struct SerializeFails;
     impl serde::Serialize for SerializeFails {
+        #[allow(
+            unused_variables,
+            reason = "the failure fixture preserves the repository type-based parameter name"
+        )]
         fn serialize<Serializer>(
             &self,
-            _serializer: Serializer,
+            serializer: Serializer,
         ) -> Result<Serializer::Ok, Serializer::Error>
         where
             Serializer: serde::Serializer,

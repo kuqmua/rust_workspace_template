@@ -1,6 +1,6 @@
 pub(super) fn bind_count_matches(
-    spec: crate::filter_spec::FilterSpec,
-    placeholders: crate::filter_placeholder_count::FilterPlaceholderCount,
+    filter_spec: crate::filter_spec::FilterSpec,
+    filter_placeholder_count: crate::filter_placeholder_count::FilterPlaceholderCount,
 ) -> crate::filter_spec_valid::FilterSpecValid {
-    spec.bind_count_matches(placeholders)
+    filter_spec.bind_count_matches(filter_placeholder_count)
 }

@@ -1,12 +1,13 @@
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn admin_user_roles(
-    item: &server_admin_contract::admin_user_summary::AdminUserSummary,
-    page: &server_admin_contract::admin_users_page::AdminUsersPage,
+    admin_user_summary: &server_admin_contract::admin_user_summary::AdminUserSummary,
+    admin_users_page: &server_admin_contract::admin_users_page::AdminUsersPage,
 ) -> impl leptos::prelude::IntoView + use<> {
     let names = String::from(crate::join_text::join_text(
-        page.roles()
+        admin_users_page
+            .roles()
             .iter()
-            .filter(|role| item.role_ids().contains(&role.id()))
+            .filter(|role| admin_user_summary.role_ids().contains(&role.id()))
             .map(server_admin_contract::admin_role_summary::AdminRoleSummary::name)
             .map(|name| name.as_ref().as_str()),
     ));

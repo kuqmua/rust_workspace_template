@@ -20,8 +20,8 @@ where
     >;
     type Response = axum::response::Response;
 
-    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
-        let method = match *req.method() {
+    fn call(&mut self, request: axum::extract::Request) -> Self::Future {
+        let method = match *request.method() {
             http::Method::CONNECT => constants_str::HTTP_METHOD_CONNECT_LABEL,
             http::Method::DELETE => constants_str::DELETE,
             http::Method::GET => constants_str::GET,
@@ -33,17 +33,17 @@ where
             http::Method::TRACE => constants_str::HTTP_METHOD_TRACE_LABEL,
             _ => constants_str::HTTP_METHOD_OTHER_LABEL,
         };
-        let normalized_path = req
+        let normalized_path = request
             .extensions()
             .get::<axum::extract::MatchedPath>()
             .is_none()
             .then(|| {
                 crate::normalize_identifier_path::normalize_identifier_path(
-                    crate::http_request_path_ref::HttpRequestPathRef::from(req.uri().path()),
+                    crate::http_request_path_ref::HttpRequestPathRef::from(request.uri().path()),
                 )
             })
             .flatten();
-        let path_text = req
+        let path_text = request
             .extensions()
             .get::<axum::extract::MatchedPath>()
             .map(axum::extract::MatchedPath::as_str)
@@ -53,7 +53,7 @@ where
             .paths
             .label(crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(path_text));
         let started_at = std::time::Instant::now();
-        let response_future = tower::Service::call(&mut self.inner, req);
+        let response_future = tower::Service::call(&mut self.inner, request);
         Box::pin(async move {
             let response = response_future.await?;
             let status = crate::metrics_shared_string::MetricsSharedString::from(
@@ -81,8 +81,8 @@ where
 
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        context: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
+        self.inner.poll_ready(context)
     }
 }

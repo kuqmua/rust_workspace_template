@@ -15,42 +15,42 @@ impl
     for QueryPartFragment
 {
     fn from(
-        value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
+        pg_crud_string_wrapper_try_from_string_error: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
     ) -> Self {
-        Self(value.to_string())
+        Self(pg_crud_string_wrapper_try_from_string_error.to_string())
     }
 }
 impl TryFrom<String> for QueryPartFragment {
     type Error =
         crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
             return Err(Self::Error::TooLong {
-                len: value.len(),
+                len: string.len(),
                 max: crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN,
             });
         }
-        Ok(Self(value))
+        Ok(Self(string))
     }
 }
 impl std::fmt::Write for QueryPartFragment {
-    fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        if self.0.len().checked_add(s.len()).is_none_or(|length| {
+    fn write_str(&mut self, str: &str) -> std::fmt::Result {
+        if self.0.len().checked_add(str.len()).is_none_or(|length| {
             length > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
         }) {
             return Err(std::fmt::Error);
         }
-        self.0.push_str(s);
+        self.0.push_str(str);
         Ok(())
     }
 }
 impl QueryPartFragment {
     pub(crate) fn append_read_bind_index(
         &mut self,
-        bind_index: super::read_query_bind_index_non_zero_u32::ReadQueryBindIndexNonZeroU32,
+        read_query_bind_index_non_zero_u32: super::read_query_bind_index_non_zero_u32::ReadQueryBindIndexNonZeroU32,
     ) -> Result<(), crate::read_query_plan_error::ReadQueryPlanError> {
         let mut digits = [constants_u8::ZERO; 10usize];
-        let mut value = bind_index.get();
+        let mut value = read_query_bind_index_non_zero_u32.get();
         let mut start = digits.len();
         while value != constants_u32::ZERO {
             start = start.saturating_sub(constants_usize::ONE);

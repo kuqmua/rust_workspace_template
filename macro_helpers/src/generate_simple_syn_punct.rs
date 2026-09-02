@@ -3,14 +3,14 @@
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[must_use]
-pub fn generate_simple_syn_punct<I, S>(v: I) -> crate::syn_path_segments::SynPathSegments
+pub fn generate_simple_syn_punct<I, S>(i: I) -> crate::syn_path_segments::SynPathSegments
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
 {
     let mut accumulator =
         syn::punctuated::Punctuated::<syn::PathSegment, syn::token::PathSep>::new();
-    let mut iter = v.into_iter().peekable();
+    let mut iter = i.into_iter().peekable();
     while let Some(element) = iter.next() {
         accumulator.push_value(syn::PathSegment {
             ident: proc_macro2::Ident::new(element.as_ref(), proc_macro2::Span::call_site()),

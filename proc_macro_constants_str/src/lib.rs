@@ -25,21 +25,21 @@ struct ConstantParts(Vec<ConstantPart>);
 
 impl TryFrom<Vec<ConstantPart>> for ConstantParts {
     type Error = syn::Error;
-    fn try_from(value: Vec<ConstantPart>) -> Result<Self, Self::Error> {
-        if value.len() > COLLECTION_MAX_LEN {
+    fn try_from(vec: Vec<ConstantPart>) -> Result<Self, Self::Error> {
+        if vec.len() > COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 stringify!(c93f714a too many constant parts),
             ))
         } else {
-            Ok(Self(value))
+            Ok(Self(vec))
         }
     }
 }
 
 impl syn::parse::Parse for ConstantParts {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        parse_stream
             .parse_terminated(
                 |part_input| {
                     if part_input.peek(syn::LitStr) {
@@ -67,14 +67,14 @@ struct Constants(Vec<Constant>);
 
 impl TryFrom<Vec<Constant>> for Constants {
     type Error = syn::Error;
-    fn try_from(value: Vec<Constant>) -> Result<Self, Self::Error> {
-        if value.len() > COLLECTION_MAX_LEN {
+    fn try_from(vec: Vec<Constant>) -> Result<Self, Self::Error> {
+        if vec.len() > COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 stringify!(2bd1b963 too many constants),
             ))
         } else {
-            Ok(Self(value))
+            Ok(Self(vec))
         }
     }
 }
@@ -96,9 +96,9 @@ struct RustFragments(Vec<RustFragment>);
 
 impl TryFrom<Vec<RustFragment>> for RustFragments {
     type Error = syn::Error;
-    fn try_from(value: Vec<RustFragment>) -> Result<Self, Self::Error> {
-        if value.len() <= COLLECTION_MAX_LEN {
-            return Ok(Self(value));
+    fn try_from(vec: Vec<RustFragment>) -> Result<Self, Self::Error> {
+        if vec.len() <= COLLECTION_MAX_LEN {
+            return Ok(Self(vec));
         }
         Err(syn::Error::new(
             proc_macro2::Span::call_site(),
@@ -116,14 +116,14 @@ struct Fragments(Vec<Fragment>);
 )]
 impl TryFrom<Vec<Fragment>> for Fragments {
     type Error = syn::Error;
-    fn try_from(value: Vec<Fragment>) -> Result<Self, Self::Error> {
-        if value.len() > COLLECTION_MAX_LEN {
+    fn try_from(vec: Vec<Fragment>) -> Result<Self, Self::Error> {
+        if vec.len() > COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 concat!("883ea6b2 too many fragments"),
             ))
         } else {
-            Ok(Self(value))
+            Ok(Self(vec))
         }
     }
 }
@@ -132,14 +132,14 @@ impl TryFrom<Vec<Fragment>> for Fragments {
 struct SynIdent(syn::Ident);
 
 impl From<syn::Ident> for SynIdent {
-    fn from(value: syn::Ident) -> Self {
-        Self(value)
+    fn from(ident: syn::Ident) -> Self {
+        Self(ident)
     }
 }
 
 impl syn::parse::Parse for SynIdent {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input.parse().map(Self)
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        parse_stream.parse().map(Self)
     }
 }
 
@@ -147,14 +147,14 @@ impl syn::parse::Parse for SynIdent {
 struct SynLitStr(syn::LitStr);
 
 impl From<syn::LitStr> for SynLitStr {
-    fn from(value: syn::LitStr) -> Self {
-        Self(value)
+    fn from(lit_str: syn::LitStr) -> Self {
+        Self(lit_str)
     }
 }
 
 impl syn::parse::Parse for SynLitStr {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input.parse().map(Self)
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        parse_stream.parse().map(Self)
     }
 }
 
@@ -162,14 +162,14 @@ impl syn::parse::Parse for SynLitStr {
 struct SynVisibility(syn::Visibility);
 
 impl From<syn::Visibility> for SynVisibility {
-    fn from(value: syn::Visibility) -> Self {
-        Self(value)
+    fn from(visibility: syn::Visibility) -> Self {
+        Self(visibility)
     }
 }
 
 impl syn::parse::Parse for SynVisibility {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input.parse().map(Self)
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        parse_stream.parse().map(Self)
     }
 }
 
@@ -182,10 +182,10 @@ pub(crate) struct DefineStrConstantsInput {
 }
 
 impl syn::parse::Parse for DefineStrConstantsInput {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        let _: keyword::fragments = input.parse()?;
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let _: keyword::fragments = parse_stream.parse()?;
         let fragment_content;
-        let _ = syn::braced!(fragment_content in input);
+        let _ = syn::braced!(fragment_content in parse_stream);
         let mut fragments = Vec::new();
         while !fragment_content.is_empty() {
             fragments.push(Fragment {
@@ -198,9 +198,9 @@ impl syn::parse::Parse for DefineStrConstantsInput {
             let _: syn::Token![;] = fragment_content.parse()?;
         }
 
-        let _: keyword::rust_fragments = input.parse()?;
+        let _: keyword::rust_fragments = parse_stream.parse()?;
         let rust_fragment_content;
-        let _ = syn::braced!(rust_fragment_content in input);
+        let _ = syn::braced!(rust_fragment_content in parse_stream);
         let mut raw_rust_fragments = Vec::new();
         while !rust_fragment_content.is_empty() {
             let name = rust_fragment_content.parse()?;
@@ -236,16 +236,16 @@ impl syn::parse::Parse for DefineStrConstantsInput {
             Ok::<Vec<Constant>, syn::Error>(constants)
         };
 
-        let _: keyword::rust_constants = input.parse()?;
+        let _: keyword::rust_constants = parse_stream.parse()?;
         let rust_constant_content;
-        let _ = syn::braced!(rust_constant_content in input);
+        let _ = syn::braced!(rust_constant_content in parse_stream);
         let rust_constants = parse_constants(&rust_constant_content)?;
 
-        let _: keyword::constants = input.parse()?;
+        let _: keyword::constants = parse_stream.parse()?;
         let constant_content;
-        let _ = syn::braced!(constant_content in input);
+        let _ = syn::braced!(constant_content in parse_stream);
         let constants = parse_constants(&constant_content)?;
-        if input.is_empty() {
+        if parse_stream.is_empty() {
             Ok(Self {
                 constants: Constants::try_from(constants)?,
                 fragments: Fragments::try_from(fragments)?,
@@ -253,7 +253,7 @@ impl syn::parse::Parse for DefineStrConstantsInput {
                 rust_fragments,
             })
         } else {
-            Err(input.error(stringify!(
+            Err(parse_stream.error(stringify!(
                 d53e729b unexpected tokens after constants block
             )))
         }
@@ -261,22 +261,26 @@ impl syn::parse::Parse for DefineStrConstantsInput {
 }
 
 impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
-    fn from(value: DefineStrConstantsInput) -> Self {
+    fn from(define_str_constants_input: DefineStrConstantsInput) -> Self {
         let generated = (|| {
-            let fragments = value.fragments.0.into_iter().try_fold(
-                std::collections::BTreeMap::new(),
-                |mut fragments, fragment| {
-                    let name = fragment.name.0.to_string();
-                    if fragments.insert(name, fragment.value.0.value()).is_some() {
-                        Err(syn::Error::new(
-                            fragment.name.0.span(),
-                            stringify!(5bbbde57 duplicate string fragment),
-                        ))
-                    } else {
-                        Ok(fragments)
-                    }
-                },
-            )?;
+            let fragments = define_str_constants_input
+                .fragments
+                .0
+                .into_iter()
+                .try_fold(
+                    std::collections::BTreeMap::new(),
+                    |mut fragments, fragment| {
+                        let name = fragment.name.0.to_string();
+                        if fragments.insert(name, fragment.value.0.value()).is_some() {
+                            Err(syn::Error::new(
+                                fragment.name.0.span(),
+                                stringify!(5bbbde57 duplicate string fragment),
+                            ))
+                        } else {
+                            Ok(fragments)
+                        }
+                    },
+                )?;
             let mut fragment_values = std::collections::HashSet::with_capacity(fragments.len());
             fragments.iter().try_for_each(|(name, fragment_value)| {
                 if fragment_value.is_empty()
@@ -308,14 +312,16 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                         let _: Option<usize> = use_counts.insert(name.clone(), 0usize);
                         use_counts
                     });
-            let mut rust_fragment_use_counts = value.rust_fragments.0.iter().fold(
-                std::collections::BTreeMap::new(),
-                |mut use_counts, fragment| {
-                    let _: Option<usize> = use_counts.insert(fragment.name.0.to_string(), 0usize);
-                    use_counts
-                },
-            );
-            let rust_fragments = value.rust_fragments.0.into_iter().try_fold(
+            let mut rust_fragment_use_counts =
+                define_str_constants_input.rust_fragments.0.iter().fold(
+                    std::collections::BTreeMap::new(),
+                    |mut use_counts, fragment| {
+                        let _: Option<usize> =
+                            use_counts.insert(fragment.name.0.to_string(), 0usize);
+                        use_counts
+                    },
+                );
+            let rust_fragments = define_str_constants_input.rust_fragments.0.into_iter().try_fold(
                 std::collections::BTreeMap::new(),
                 |mut rust_fragments, fragment| {
                     let name = fragment.name.0.to_string();
@@ -369,12 +375,16 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                 .values()
                 .cloned()
                 .collect::<std::collections::HashSet<_>>();
-            let constant_count = value
+            let constant_count = define_str_constants_input
                 .constants
                 .0
                 .len()
-                .saturating_add(value.rust_constants.0.len());
-            let mut constants = value.rust_constants.0.into_iter().chain(value.constants.0);
+                .saturating_add(define_str_constants_input.rust_constants.0.len());
+            let mut constants = define_str_constants_input
+                .rust_constants
+                .0
+                .into_iter()
+                .chain(define_str_constants_input.constants.0);
             let (_, _, generated) = constants.try_fold(
                 (
                     std::collections::HashSet::with_capacity(constant_count),
@@ -536,16 +546,16 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
 }
 
 #[proc_macro]
-pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    match syn::parse::<DefineStrConstantsInput>(input) {
+pub fn define_str_constants(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    match syn::parse::<DefineStrConstantsInput>(token_stream) {
         Ok(parsed) => proc_macro::TokenStream::from(proc_macro2::TokenStream::from(parsed)),
         Err(error) => proc_macro::TokenStream::from(error.into_compile_error()),
     }
 }
 
 #[proc_macro]
-pub fn define_git_info_constants(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    if input.is_empty() {
+pub fn define_git_info_constants(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    if token_stream.is_empty() {
         proc_macro::TokenStream::from(quote::quote! {
             pub const GIT_INFO_PROJECT_GIT_COMMIT_ID: &str =
                 git_version::git_version!(args = ["--always", "--abbrev=40"]);

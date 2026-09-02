@@ -4,33 +4,33 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct RuntimePanicExpectUnwrapVisitor {
-    ers: crate::types::DiagnosticMsgs,
+    errors: crate::types::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
-    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == constants_str::CODE_STYLE_EXPECT_METHOD_NAME {
-            self.ers.push(constants_str::EXPECT_CALL.to_owned());
+    fn visit_expr_method_call(&mut self, expr_method_call: &'ast syn::ExprMethodCall) {
+        if expr_method_call.method == constants_str::CODE_STYLE_EXPECT_METHOD_NAME {
+            self.errors.push(constants_str::EXPECT_CALL.to_owned());
         }
-        if i.method == constants_str::UNWRAP {
-            self.ers.push(constants_str::UNWRAP_CALL.to_owned());
+        if expr_method_call.method == constants_str::UNWRAP {
+            self.errors.push(constants_str::UNWRAP_CALL.to_owned());
         }
-        syn::visit::visit_expr_method_call(self, i);
+        syn::visit::visit_expr_method_call(self, expr_method_call);
     }
-    fn visit_item(&mut self, i: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(i)).get() {
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
             return;
         }
-        syn::visit::visit_item(self, i);
+        syn::visit::visit_item(self, item);
     }
-    fn visit_macro(&mut self, i: &'ast syn::Macro) {
+    fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
         let is_panic =
-            i.path.segments.last().is_some_and(|segment| {
+            r#macro.path.segments.last().is_some_and(|segment| {
                 segment.ident == constants_str::CODE_STYLE_PANIC_METHOD_NAME
             });
         if is_panic {
-            self.ers.push(constants_str::PANIC_CALL.to_owned());
+            self.errors.push(constants_str::PANIC_CALL.to_owned());
         }
-        syn::visit::visit_macro(self, i);
+        syn::visit::visit_macro(self, r#macro);
     }
 }
 #[derive(
@@ -42,22 +42,22 @@ pub(super) struct RuntimeMutexVisitor {
     found_count: crate::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
-    fn visit_item(&mut self, i: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(i)).get() {
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
             return;
         }
-        syn::visit::visit_item(self, i);
+        syn::visit::visit_item(self, item);
     }
-    fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
+    fn visit_type_path(&mut self, type_path: &'ast syn::TypePath) {
         if crate::code_style::path_has_segment(
-            crate::types::SynPathRef::from(&i.path),
+            crate::types::SynPathRef::from(&type_path.path),
             crate::types::SourceTextRef::from(constants_str::MUTEX),
         )
         .get()
         {
             self.found_count.saturating_inc();
         }
-        syn::visit::visit_type_path(self, i);
+        syn::visit::visit_type_path(self, type_path);
     }
 }
 #[derive(
@@ -68,13 +68,13 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub(super) struct RuntimeArcVisitor {
-    ers: crate::types::DiagnosticMsgs,
+    errors: crate::types::DiagnosticMessages,
     allow_arc_value_usage: crate::types::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
-    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
-        if crate::code_style::expr_call_path(crate::types::SynExprCallRef::from(i)).is_some_and(
-            |path| {
+    fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
+        if crate::code_style::expr_call_path(crate::types::SynExprCallRef::from(expr_call))
+            .is_some_and(|path| {
                 crate::code_style::path_ends_with(
                     path,
                     crate::types::StaticStrSliceRef::from(
@@ -82,24 +82,24 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
                     ),
                 )
                 .get()
-            },
-        ) && !self.allow_arc_value_usage.get()
+            })
+            && !self.allow_arc_value_usage.get()
         {
-            self.ers.push(
+            self.errors.push(
                 constants_str::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION
                     .to_owned(),
             );
         }
-        syn::visit::visit_expr_call(self, i);
+        syn::visit::visit_expr_call(self, expr_call);
     }
-    fn visit_item(&mut self, i: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(i)).get() {
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
             return;
         }
-        syn::visit::visit_item(self, i);
+        syn::visit::visit_item(self, item);
     }
-    fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
-        let contains_arc = match i.ty.as_ref() {
+    fn visit_item_type(&mut self, item_type: &'ast syn::ItemType) {
+        let contains_arc = match item_type.ty.as_ref() {
             syn::Type::Path(path) => crate::code_style::path_has_segment(
                 crate::types::SynPathRef::from(&path.path),
                 crate::types::SourceTextRef::from(constants_str::ARC),
@@ -122,14 +122,14 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
             | _ => false,
         };
         if contains_arc {
-            let name = i.ident.to_string();
+            let name = item_type.ident.to_string();
             if !name.contains(constants_str::SHARED) && !name.contains(constants_str::DYNARC) {
-                self.ers.push(format!(
+                self.errors.push(format!(
                     "Arc type alias `{name}` must be explicitly named as shared cross-thread state"
                 ));
             }
         }
-        syn::visit::visit_item_type(self, i);
+        syn::visit::visit_item_type(self, item_type);
     }
 }
 #[derive(
@@ -139,18 +139,18 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
 )]
 pub(super) struct AsyncBlockingCallVisitor {
     async_fn_depth: crate::types::AnalyzerCount,
-    ers: crate::types::DiagnosticMsgs,
+    errors: crate::types::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
-    fn visit_expr_async(&mut self, i: &'ast syn::ExprAsync) {
+    fn visit_expr_async(&mut self, expr_async: &'ast syn::ExprAsync) {
         self.async_fn_depth.saturating_inc();
-        syn::visit::visit_expr_async(self, i);
+        syn::visit::visit_expr_async(self, expr_async);
         self.async_fn_depth.saturating_dec();
     }
-    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+    fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
         if self.async_fn_depth.get() != 0
-            && crate::code_style::expr_call_path(crate::types::SynExprCallRef::from(i)).is_some_and(
-                |path| {
+            && crate::code_style::expr_call_path(crate::types::SynExprCallRef::from(expr_call))
+                .is_some_and(|path| {
                     let path_text = crate::code_style::path_to_string(path);
                     crate::code_style::path_ends_with(
                         path,
@@ -190,26 +190,25 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                         .get()
                         || constants_str::BLOCKING_STD_FS_CALLS.contains(&path_text.as_ref())
                         || constants_str::BLOCKING_STD_NET_CALLS.contains(&path_text.as_ref())
-                },
-            )
+                })
         {
-            self.ers
+            self.errors
                 .push(constants_str::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
         }
-        syn::visit::visit_expr_call(self, i);
+        syn::visit::visit_expr_call(self, expr_call);
     }
-    fn visit_expr_closure(&mut self, i: &'ast syn::ExprClosure) {
-        let is_async = i.asyncness.is_some();
+    fn visit_expr_closure(&mut self, expr_closure: &'ast syn::ExprClosure) {
+        let is_async = expr_closure.asyncness.is_some();
         if is_async {
             self.async_fn_depth.saturating_inc();
         }
-        syn::visit::visit_expr_closure(self, i);
+        syn::visit::visit_expr_closure(self, expr_closure);
         if is_async {
             self.async_fn_depth.saturating_dec();
         }
     }
-    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        let method = i.method.to_string();
+    fn visit_expr_method_call(&mut self, expr_method_call: &'ast syn::ExprMethodCall) {
+        let method = expr_method_call.method.to_string();
         if self.async_fn_depth.get() != 0
             && matches!(
                 method.as_str(),
@@ -219,45 +218,45 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                     | constants_str::BLOCKING_SEND
             )
         {
-            self.ers.push(format!(
+            self.errors.push(format!(
                 ".{}() blocking method call inside async function",
-                i.method
+                expr_method_call.method
             ));
         }
-        syn::visit::visit_expr_method_call(self, i);
+        syn::visit::visit_expr_method_call(self, expr_method_call);
     }
-    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
-        let is_async = i.sig.asyncness.is_some();
+    fn visit_impl_item_fn(&mut self, impl_item_fn: &'ast syn::ImplItemFn) {
+        let is_async = impl_item_fn.sig.asyncness.is_some();
         if is_async {
             self.async_fn_depth.saturating_inc();
         }
-        syn::visit::visit_impl_item_fn(self, i);
+        syn::visit::visit_impl_item_fn(self, impl_item_fn);
         if is_async {
             self.async_fn_depth.saturating_dec();
         }
     }
-    fn visit_item(&mut self, i: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(i)).get() {
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
             return;
         }
-        syn::visit::visit_item(self, i);
+        syn::visit::visit_item(self, item);
     }
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        let is_async = i.sig.asyncness.is_some();
+    fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
+        let is_async = item_fn.sig.asyncness.is_some();
         if is_async {
             self.async_fn_depth.saturating_inc();
         }
-        syn::visit::visit_item_fn(self, i);
+        syn::visit::visit_item_fn(self, item_fn);
         if is_async {
             self.async_fn_depth.saturating_dec();
         }
     }
-    fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
-        let is_async = i.sig.asyncness.is_some();
+    fn visit_trait_item_fn(&mut self, trait_item_fn: &'ast syn::TraitItemFn) {
+        let is_async = trait_item_fn.sig.asyncness.is_some();
         if is_async {
             self.async_fn_depth.saturating_inc();
         }
-        syn::visit::visit_trait_item_fn(self, i);
+        syn::visit::visit_trait_item_fn(self, trait_item_fn);
         if is_async {
             self.async_fn_depth.saturating_dec();
         }
@@ -269,26 +268,26 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct UnitTestExternalServiceVisitor {
-    ers: crate::types::DiagnosticMsgs,
+    errors: crate::types::DiagnosticMessages,
     test_depth: crate::types::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
-    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+    fn visit_expr_method_call(&mut self, expr_method_call: &'ast syn::ExprMethodCall) {
         if self.test_depth.get() != 0
             && matches!(
-                i.method.to_string().as_str(),
+                expr_method_call.method.to_string().as_str(),
                 constants_str::CONNECT | constants_str::VALUE_3DFFA238
             )
         {
-            self.ers.push(format!(
+            self.errors.push(format!(
                 "unit tests must not connect to an external service with `.{}()`",
-                i.method
+                expr_method_call.method
             ));
         }
-        syn::visit::visit_expr_method_call(self, i);
+        syn::visit::visit_expr_method_call(self, expr_method_call);
     }
-    fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
-        let path = crate::types::SynPathRef::from(&i.path);
+    fn visit_expr_path(&mut self, expr_path: &'ast syn::ExprPath) {
+        let path = crate::types::SynPathRef::from(&expr_path.path);
         let path_text = crate::code_style::path_to_string(path);
         let is_external_service_client = [
             [
@@ -352,15 +351,16 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
         ]
         .contains(&path_text.as_ref());
         if self.test_depth.get() != 0 && is_external_service_client {
-            self.ers.push(format!(
+            self.errors.push(format!(
                 "unit tests must not depend on external service client `{}`",
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&i.path)).as_ref()
+                crate::code_style::path_to_string(crate::types::SynPathRef::from(&expr_path.path))
+                    .as_ref()
             ));
         }
-        syn::visit::visit_expr_path(self, i);
+        syn::visit::visit_expr_path(self, expr_path);
     }
-    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
-        if i.attrs.iter().any(|attribute| {
+    fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
+        if item_fn.attrs.iter().any(|attribute| {
             attribute.path().is_ident(constants_str::VALUE_5F0AF516)
                 && matches!(
                     &attribute.meta,
@@ -377,25 +377,26 @@ impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
             return;
         }
         let is_test = self.test_depth.get() != 0
-            || crate::code_style::item_fn_is_unit_test(crate::types::SynItemFnRef::from(i)).get();
+            || crate::code_style::item_fn_is_unit_test(crate::types::SynItemFnRef::from(item_fn))
+                .get();
         if is_test {
             self.test_depth.saturating_inc();
         }
-        syn::visit::visit_item_fn(self, i);
+        syn::visit::visit_item_fn(self, item_fn);
         if is_test {
             self.test_depth.saturating_dec();
         }
     }
-    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+    fn visit_item_mod(&mut self, item_mod: &'ast syn::ItemMod) {
         let is_test = self.test_depth.get() != 0
-            || i.attrs.iter().any(|attr| {
+            || item_mod.attrs.iter().any(|attr| {
                 crate::code_style::attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr))
                     .get()
             });
         if is_test {
             self.test_depth.saturating_inc();
         }
-        syn::visit::visit_item_mod(self, i);
+        syn::visit::visit_item_mod(self, item_mod);
         if is_test {
             self.test_depth.saturating_dec();
         }

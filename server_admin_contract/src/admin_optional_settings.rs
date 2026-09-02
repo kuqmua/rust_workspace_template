@@ -18,8 +18,8 @@ pub struct AdminOptionalSettings(
 impl TryFrom<Vec<crate::admin_optional_setting::AdminOptionalSetting>> for AdminOptionalSettings {
     type Error = crate::admin_collection_error::AdminCollectionError;
     fn try_from(
-        value: Vec<crate::admin_optional_setting::AdminOptionalSetting>,
+        vec: Vec<crate::admin_optional_setting::AdminOptionalSetting>,
     ) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(vec).map(Self)
     }
 }

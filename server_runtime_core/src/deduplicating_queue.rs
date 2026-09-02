@@ -17,15 +17,17 @@ where
     Item: Clone + Eq + std::hash::Hash,
 {
     #[must_use]
-    pub fn new(maximum: crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize) -> Self {
+    pub fn new(
+        queue_maximum_non_zero_usize: crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize,
+    ) -> Self {
         Self {
             items: crate::collections_vec_deque::CollectionsVecDeque::from(
-                std::collections::VecDeque::with_capacity(maximum.get()),
+                std::collections::VecDeque::with_capacity(queue_maximum_non_zero_usize.get()),
             ),
             keys: crate::collections_hash_set::CollectionsHashSet::from(
-                std::collections::HashSet::with_capacity(maximum.get()),
+                std::collections::HashSet::with_capacity(queue_maximum_non_zero_usize.get()),
             ),
-            maximum,
+            maximum: queue_maximum_non_zero_usize,
         }
     }
 

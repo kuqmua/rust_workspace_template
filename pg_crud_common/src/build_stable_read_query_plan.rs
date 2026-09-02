@@ -1,14 +1,14 @@
 pub fn build_stable_read_query_plan(
-    base: crate::query_part_fragment::QueryPartFragment,
+    query_part_fragment: crate::query_part_fragment::QueryPartFragment,
     sort_column: &crate::sql_identifier::SqlIdentifier,
     tie_break_column: &crate::sql_identifier::SqlIdentifier,
-    order: crate::query_sort_order::QuerySortOrder,
+    query_sort_order: crate::query_sort_order::QuerySortOrder,
     limit_bind: crate::read_query_bind_index_non_zero_u32::ReadQueryBindIndexNonZeroU32,
     offset_bind: crate::read_query_bind_index_non_zero_u32::ReadQueryBindIndexNonZeroU32,
 ) -> Result<crate::read_query_plan::ReadQueryPlan, crate::read_query_plan_error::ReadQueryPlanError>
 {
-    let mut query = base.into_inner();
-    let order_sql = order.sql();
+    let mut query = query_part_fragment.into_inner();
+    let order_sql = query_sort_order.sql();
     let tie_break_len = if sort_column == tie_break_column {
         constants_usize::ZERO
     } else {
@@ -52,8 +52,8 @@ pub fn build_stable_read_query_plan(
 
 #[cfg(test)]
 mod tests {
-    fn stable_read_identifier(value: &str) -> crate::sql_identifier::SqlIdentifier {
-        crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
+    fn stable_read_identifier(str: &str) -> crate::sql_identifier::SqlIdentifier {
+        crate::sql_identifier::SqlIdentifier::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_CD7C83ED)
     }
 

@@ -18,20 +18,20 @@ pub struct AdminPageSpec {
 }
 impl AdminPageSpec {
     pub(super) const fn new(
-        capability: crate::admin_page_capability::AdminPageCapability,
-        metadata: crate::admin_page_metadata::AdminPageMetadata,
-        page: crate::admin_page::AdminPage,
-        path: crate::admin_frontend_path::AdminFrontendPath,
-        route: crate::admin_route::AdminRoute,
-        title: crate::admin_page_title::AdminPageTitle,
+        admin_page_capability: crate::admin_page_capability::AdminPageCapability,
+        admin_page_metadata: crate::admin_page_metadata::AdminPageMetadata,
+        admin_page: crate::admin_page::AdminPage,
+        admin_frontend_path: crate::admin_frontend_path::AdminFrontendPath,
+        admin_route: crate::admin_route::AdminRoute,
+        admin_page_title: crate::admin_page_title::AdminPageTitle,
     ) -> Self {
         Self {
-            route,
-            capability,
-            metadata,
-            page,
-            path,
-            title,
+            route: admin_route,
+            capability: admin_page_capability,
+            metadata: admin_page_metadata,
+            page: admin_page,
+            path: admin_frontend_path,
+            title: admin_page_title,
         }
     }
 

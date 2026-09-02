@@ -12,14 +12,14 @@ pub struct UnitIntervalF64(f64);
 impl TryFrom<f64> for UnitIntervalF64 {
     type Error = crate::unit_interval_f64_error::UnitIntervalF64Error;
 
-    fn try_from(value: f64) -> Result<Self, Self::Error> {
-        if !value.is_finite() {
+    fn try_from(f64: f64) -> Result<Self, Self::Error> {
+        if !f64.is_finite() {
             return Err(crate::unit_interval_f64_error::UnitIntervalF64Error::NotFinite);
         }
-        if !(0.0f64..=1.0f64).contains(&value) {
+        if !(0.0f64..=1.0f64).contains(&f64) {
             return Err(crate::unit_interval_f64_error::UnitIntervalF64Error::OutOfRange);
         }
-        Ok(Self(value))
+        Ok(Self(f64))
     }
 }
 

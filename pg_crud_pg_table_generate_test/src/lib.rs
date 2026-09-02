@@ -10,7 +10,7 @@ mod tests {
     struct JsonContractValue {
         operation: String,
     }
-    fn table_input(field_attrs: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    fn table_input(token_stream: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         quote::quote! {
             #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[proc_macro_generate_pg_table::generate_pg_table_config{{
@@ -30,7 +30,7 @@ mod tests {
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
                 primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
-                #field_attrs
+                #token_stream
             }
         }
     }

@@ -1,7 +1,7 @@
 pub(crate) fn template_fs_should_skip(
-    path: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
+    scaffold_path_ref: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
 ) -> crate::should_skip::ShouldSkip {
-    crate::should_skip::ShouldSkip::from(path.get().components().any(|component| {
+    crate::should_skip::ShouldSkip::from(scaffold_path_ref.get().components().any(|component| {
         matches!(
             component.as_os_str().to_str(),
             Some(

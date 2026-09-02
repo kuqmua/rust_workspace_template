@@ -5,4 +5,4 @@
     proc_macro_newtype::IntoInner,
     proc_macro_getters::Getters,
 )]
-pub(crate) struct AdminSignInJson(server_admin_contract::admin_sign_in_req::AdminSignInReq);
+pub(crate) struct AdminSignInJson(server_admin_contract::admin_sign_in_request::AdminSignInRequest);

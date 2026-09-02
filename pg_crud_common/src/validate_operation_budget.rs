@@ -1,11 +1,16 @@
 pub const fn validate_operation_budget(
-    actual: crate::operation_count::OperationCount,
-    budget: crate::operation_budget::OperationBudget,
+    operation_count: crate::operation_count::OperationCount,
+    operation_budget: crate::operation_budget::OperationBudget,
 ) -> Result<(), crate::operation_budget_exceeded::OperationBudgetExceeded> {
-    if actual.get() <= budget.get() {
+    if operation_count.get() <= operation_budget.get() {
         Ok(())
     } else {
-        Err(crate::operation_budget_exceeded::OperationBudgetExceeded::Exceeded { actual, budget })
+        Err(
+            crate::operation_budget_exceeded::OperationBudgetExceeded::Exceeded {
+                actual: operation_count,
+                budget: operation_budget,
+            },
+        )
     }
 }
 

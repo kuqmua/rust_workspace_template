@@ -19,13 +19,13 @@ pub struct AdminDataColumn {
 impl AdminDataColumn {
     #[must_use]
     pub const fn new(
-        filters: crate::admin_data_filters::AdminDataFilters,
+        admin_data_filters: crate::admin_data_filters::AdminDataFilters,
         input_kind: frontend_contract::input_kind::InputKind,
         label: crate::admin_text::AdminText,
         name: crate::admin_text::AdminText,
     ) -> Self {
         Self {
-            filters,
+            filters: admin_data_filters,
             label,
             name,
             input_kind,

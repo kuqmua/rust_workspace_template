@@ -6,10 +6,10 @@ mod tests {
         ))
         .expect(constants_str::DIAGNOSTIC_0F4B54A3)
     }
-    fn text_part(value: &str) -> crate::multipart_text_part::MultipartTextPart {
+    fn text_part(str: &str) -> crate::multipart_text_part::MultipartTextPart {
         crate::multipart_text_part::MultipartTextPart::new(
             field_name(),
-            crate::multipart_text_value::MultipartTextValue::try_from(value.to_owned())
+            crate::multipart_text_value::MultipartTextValue::try_from(str.to_owned())
                 .expect(constants_str::DIAGNOSTIC_93B34391),
         )
     }
@@ -135,7 +135,7 @@ mod tests {
         let full_request = (constants_usize::ZERO..32usize)
             .try_fold(
                 crate::multipart_upload_request::MultipartUploadRequest::new(),
-                |accumulator, _idx| {
+                |accumulator, _index| {
                     accumulator.with_text_part(
                         text_part(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                         crate::multipart_payload_maximum::MultipartPayloadMaximum::from(

@@ -8,7 +8,7 @@ pub struct ChildProcessSet {
 impl ChildProcessSet {
     pub fn insert(
         &mut self,
-        process: crate::child_process_supervisor::ChildProcessSupervisor,
+        child_process_supervisor: crate::child_process_supervisor::ChildProcessSupervisor,
     ) -> Result<
         crate::child_process_id::ChildProcessId,
         crate::child_process_set_error::ChildProcessSetError,
@@ -23,17 +23,17 @@ impl ChildProcessSet {
                 .ok_or(crate::child_process_set_error::ChildProcessSetError::IdOverflow)?,
         );
         self.processes
-            .try_insert(id, process)
+            .try_insert(id, child_process_supervisor)
             .map(|_previous| id)
             .map_err(crate::child_process_set_error::ChildProcessSetError::from)
     }
 
     #[must_use]
     pub fn new(
-        maximum: crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize,
+        child_process_set_maximum_non_zero_usize: crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize,
     ) -> Self {
         Self {
-            maximum,
+            maximum: child_process_set_maximum_non_zero_usize,
             next_id: crate::child_process_id::ChildProcessId::from(constants_u64::ZERO),
             processes:
                 crate::std_collections_child_process_map::StdCollectionsChildProcessMap::from(
@@ -44,7 +44,7 @@ impl ChildProcessSet {
 
     pub async fn shutdown_all(
         mut self,
-        timeout: crate::request_timeout_duration::RequestTimeoutDuration,
+        request_timeout_duration: crate::request_timeout_duration::RequestTimeoutDuration,
     ) -> Result<
         crate::child_process_reports::ChildProcessReports,
         crate::child_process_set_error::ChildProcessSetError,
@@ -53,7 +53,7 @@ impl ChildProcessSet {
         while let Some((_id, process)) = self.processes.pop_first() {
             reports.push(
                 process
-                    .shutdown(timeout)
+                    .shutdown(request_timeout_duration)
                     .await
                     .map_err(crate::child_process_set_error::ChildProcessSetError::Process)?,
             );
@@ -66,8 +66,8 @@ impl ChildProcessSet {
     #[cfg(test)]
     pub(crate) const fn set_next_id_for_test(
         &mut self,
-        value: crate::child_process_id::ChildProcessId,
+        child_process_id: crate::child_process_id::ChildProcessId,
     ) {
-        self.next_id = value;
+        self.next_id = child_process_id;
     }
 }

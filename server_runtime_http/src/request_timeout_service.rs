@@ -20,8 +20,8 @@ where
     >;
     type Response = axum::response::Response;
 
-    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
-        let response_future = tower::Service::call(&mut self.inner, req);
+    fn call(&mut self, request: axum::extract::Request) -> Self::Future {
+        let response_future = tower::Service::call(&mut self.inner, request);
         let timeout = self.timeout;
         Box::pin(async move {
             match tokio::time::timeout(timeout.get(), response_future).await {
@@ -42,8 +42,8 @@ where
 
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        context: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
+        self.inner.poll_ready(context)
     }
 }

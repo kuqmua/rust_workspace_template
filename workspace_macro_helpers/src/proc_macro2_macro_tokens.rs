@@ -3,21 +3,21 @@
 #[derive(Debug, Clone, Default)]
 pub struct ProcMacro2MacroTokens(Vec<proc_macro2::TokenTree>);
 impl From<proc_macro2::TokenStream> for ProcMacro2MacroTokens {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value.into_iter().collect())
+    fn from(token_stream: proc_macro2::TokenStream) -> Self {
+        Self(token_stream.into_iter().collect())
     }
 }
 impl From<ProcMacro2MacroTokens> for proc_macro2::TokenStream {
-    fn from(value: ProcMacro2MacroTokens) -> Self {
-        value.0.into_iter().collect()
+    fn from(proc_macro2_macro_tokens: ProcMacro2MacroTokens) -> Self {
+        proc_macro2_macro_tokens.0.into_iter().collect()
     }
 }
 impl ProcMacro2MacroTokens {
-    pub fn from_into<T>(value: T) -> Self
+    pub fn from_into<T>(t: T) -> Self
     where
         T: Into<proc_macro2::TokenStream>,
     {
-        Self::from(value.into())
+        Self::from(t.into())
     }
     #[must_use]
     pub fn into_inner(self) -> proc_macro2::TokenStream {
@@ -38,22 +38,22 @@ impl IntoIterator for ProcMacro2MacroTokens {
     }
 }
 impl quote::ToTokens for ProcMacro2MacroTokens {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        tokens.extend(self.0.iter().cloned());
+    fn to_tokens(&self, token_stream: &mut proc_macro2::TokenStream) {
+        token_stream.extend(self.0.iter().cloned());
     }
 }
 impl std::fmt::Display for ProcMacro2MacroTokens {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0
             .iter()
             .cloned()
             .collect::<proc_macro2::TokenStream>()
-            .fmt(f)
+            .fmt(formatter)
     }
 }
 impl syn::parse::Parse for ProcMacro2MacroTokens {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        input.step(|cursor| {
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        parse_stream.step(|cursor| {
             let mut rest = *cursor;
             let mut tokens = proc_macro2::TokenStream::new();
             while let Some((token, next)) = rest.token_tree() {

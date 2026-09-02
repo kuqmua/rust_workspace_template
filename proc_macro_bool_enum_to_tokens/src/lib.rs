@@ -1,6 +1,6 @@
 #[proc_macro]
-pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let mut iter = proc_macro2::TokenStream::from(input).into_iter();
+pub fn bool_enum_to_tokens(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let mut iter = proc_macro2::TokenStream::from(token_stream).into_iter();
     let Some(name) =
         workspace_macro_helpers::parse_first_identifier::parse_first_identifier(&mut iter)
     else {

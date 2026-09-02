@@ -1,5 +1,5 @@
 pub(crate) async fn account_me_context_view_ref(
-    auth: &crate::admin_auth_req::AdminAuthReq,
+    admin_auth_request: &crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<
     (
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
@@ -8,9 +8,11 @@ pub(crate) async fn account_me_context_view_ref(
     crate::admin_error::AdminError,
 > {
     crate::authorization_authenticate::authorization_authenticate(
-        auth.get_state().as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
-        *auth.get_peer(),
+        admin_auth_request.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(
+            admin_auth_request.get_headers().as_ref(),
+        ),
+        *admin_auth_request.get_peer(),
     )
     .await
     .and_then(|authenticated| {

@@ -1,16 +1,16 @@
 pub async fn create_initial_administrator(
-    pool: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
-    login: server_admin_contract::admin_login::AdminLogin,
-    display_name: server_admin_contract::admin_display_name::AdminDisplayName,
-    password: server_admin_contract::admin_new_password::AdminNewPassword,
-    password_hasher: &crate::admin_password_hasher::AdminPasswordHasher,
+    sqlx_pg_pool_ref: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
+    admin_login: server_admin_contract::admin_login::AdminLogin,
+    admin_display_name: server_admin_contract::admin_display_name::AdminDisplayName,
+    admin_new_password: server_admin_contract::admin_new_password::AdminNewPassword,
+    admin_password_hasher: &crate::admin_password_hasher::AdminPasswordHasher,
 ) -> Result<
     server_admin_core::admin_user_record_id::AdminUserRecordId,
     crate::initial_administrator_creation_error::InitialAdministratorCreationError,
 > {
-    let password_hash = password_hasher
+    let password_hash = admin_password_hasher
         .hash(
-            crate::runtime_admin_password::RuntimeAdminPassword::try_from(password.into_inner()).map_err(
+            crate::runtime_admin_password::RuntimeAdminPassword::try_from(admin_new_password.into_inner()).map_err(
                 |password_error| {
                     let _error_text = format!("{password_error:?}");
                     crate::initial_administrator_creation_error::InitialAdministratorCreationError::InvalidPassword
@@ -19,7 +19,7 @@ pub async fn create_initial_administrator(
         )
         .await
         .map_err(crate::initial_administrator_creation_error::InitialAdministratorCreationError::PasswordHash)?;
-    let mut tx = pool.as_ref().begin().await.map_err(|error| {
+    let mut tx = sqlx_pg_pool_ref.as_ref().begin().await.map_err(|error| {
         crate::initial_administrator_creation_error::InitialAdministratorCreationError::Pg(
             crate::sqlx_admin_error::SqlxAdminError::from(error),
         )
@@ -47,8 +47,8 @@ pub async fn create_initial_administrator(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        &login,
-        &display_name,
+        &admin_login,
+        &admin_display_name,
         &password_hash,
     )
     .await
@@ -63,7 +63,7 @@ pub async fn create_initial_administrator(
             )
         })?;
     let contract_login = server_admin_contract::admin_login::AdminLogin::try_from(
-        login.as_ref().to_owned(),
+        admin_login.as_ref().to_owned(),
     )
     .map_err(|error| {
         let _error_text = format!("{error:?}");

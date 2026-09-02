@@ -10,7 +10,7 @@ pub(crate) struct AdminCsrfToken(
 );
 
 impl std::fmt::Debug for AdminCsrfToken {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(constants_str::REDACTED_ALT_3)
     }
 }

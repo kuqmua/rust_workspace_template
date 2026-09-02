@@ -13,15 +13,17 @@ pub struct AdminPasswordHashConcurrency(std::num::NonZeroUsize);
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
     type Error = crate::try_from_std_env_var_ok_admin_password_hash_concurrency_error::TryFromStdEnvVarOkAdminPasswordHashConcurrencyError;
 
-    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed =
-            v.parse::<usize>()
-                .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
-                    admin_positive_usize_parsing:
-                        crate::config_parse_int_error::ConfigParseIntError::from(
-                            admin_positive_usize_parsing,
-                        ),
-                })?;
+    fn try_from_std_env_var_ok(
+        std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
+    ) -> Result<Self, Self::Error> {
+        let parsed = std_env_var_ok
+            .parse::<usize>()
+            .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
+                admin_positive_usize_parsing:
+                    crate::config_parse_int_error::ConfigParseIntError::from(
+                        admin_positive_usize_parsing,
+                    ),
+            })?;
         std::num::NonZeroUsize::new(parsed)
             .map(Self)
             .ok_or(Self::Error::IsZero)

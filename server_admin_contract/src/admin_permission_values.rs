@@ -18,8 +18,8 @@ pub struct AdminPermissionValues(
 impl TryFrom<Vec<crate::admin_permission_value::AdminPermissionValue>> for AdminPermissionValues {
     type Error = crate::admin_collection_error::AdminCollectionError;
     fn try_from(
-        value: Vec<crate::admin_permission_value::AdminPermissionValue>,
+        vec: Vec<crate::admin_permission_value::AdminPermissionValue>,
     ) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(vec).map(Self)
     }
 }

@@ -10,8 +10,9 @@ pub struct CursorSigningKey(
 );
 
 impl std::fmt::Debug for CursorSigningKey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(std::any::type_name::<Self>())
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct(std::any::type_name::<Self>())
             .finish_non_exhaustive()
     }
 }
@@ -19,8 +20,8 @@ impl std::fmt::Debug for CursorSigningKey {
 impl TryFrom<Vec<u8>> for CursorSigningKey {
     type Error = crate::cursor_signing_key_error::CursorSigningKeyError;
 
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(value)
+    fn try_from(vec: Vec<u8>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(vec)
             .map(Self)
             .map_err(|_error| crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)
     }

@@ -10,7 +10,7 @@ pub mod generate_pg_table_field_count;
 pub mod generate_pg_table_model;
 pub mod generate_pg_table_pipeline_error;
 pub mod idempotency_capable;
-pub mod operation_dsc;
+pub mod operation_descriptor;
 pub mod optimistic_concurrency_capable;
 pub mod parse_generate_pg_table;
 pub mod pg_table_compile_error_message;

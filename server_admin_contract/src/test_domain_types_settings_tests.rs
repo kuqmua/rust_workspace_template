@@ -1,6 +1,6 @@
 #[test]
 fn test_empty_settings_update_has_no_fields_and_is_valid() {
-    let request = crate::admin_update_settings_req::AdminUpdateSettingsReq::new(
+    let request = crate::admin_update_settings_request::AdminUpdateSettingsRequest::new(
         None,
         None,
         None,
@@ -52,7 +52,7 @@ fn test_setting_types_match_database_constraints() {
 
 #[test]
 fn test_update_reports_whether_it_contains_a_field() {
-    let empty = crate::admin_update_settings_req::AdminUpdateSettingsReq::new(
+    let empty = crate::admin_update_settings_request::AdminUpdateSettingsRequest::new(
         None,
         None,
         None,
@@ -65,7 +65,7 @@ fn test_update_reports_whether_it_contains_a_field() {
             .expect(constants_str::DIAGNOSTIC_C4A1E2D3),
     );
     assert!(!bool::from(empty.has_fields()));
-    let with_site_name = crate::admin_update_settings_req::AdminUpdateSettingsReq::new(
+    let with_site_name = crate::admin_update_settings_request::AdminUpdateSettingsRequest::new(
         None,
         None,
         None,
@@ -82,7 +82,7 @@ fn test_update_reports_whether_it_contains_a_field() {
     );
     assert!(bool::from(with_site_name.has_fields()));
     assert!(bool::from(with_site_name.is_valid()));
-    let clear_logo = crate::admin_update_settings_req::AdminUpdateSettingsReq::new(
+    let clear_logo = crate::admin_update_settings_request::AdminUpdateSettingsRequest::new(
         None,
         None,
         None,
@@ -104,7 +104,7 @@ fn test_update_reports_whether_it_contains_a_field() {
 fn test_catalog_covers_read_and_update_wire_fields() {
     let empty_clear = crate::admin_optional_settings::AdminOptionalSettings::try_from(Vec::new())
         .expect(constants_str::DIAGNOSTIC_7F3A9C2E);
-    let update = crate::admin_update_settings_req::AdminUpdateSettingsReq::new(
+    let update = crate::admin_update_settings_request::AdminUpdateSettingsRequest::new(
         None,
         None,
         None,

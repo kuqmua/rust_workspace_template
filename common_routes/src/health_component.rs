@@ -19,9 +19,12 @@ pub struct HealthComponent {
 impl HealthComponent {
     #[must_use]
     pub(crate) const fn new(
-        kind: crate::health_component_kind::HealthComponentKind,
-        status: crate::health_status::HealthStatus,
+        health_component_kind: crate::health_component_kind::HealthComponentKind,
+        health_status: crate::health_status::HealthStatus,
     ) -> Self {
-        Self { kind, status }
+        Self {
+            kind: health_component_kind,
+            status: health_status,
+        }
     }
 }

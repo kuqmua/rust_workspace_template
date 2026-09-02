@@ -1,4 +1,6 @@
-pub(crate) fn show_mutation_error(error: &crate::admin_table_load_error::AdminTableLoadError) {
+pub(crate) fn show_mutation_error(
+    admin_table_load_error: &crate::admin_table_load_error::AdminTableLoadError,
+) {
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {
         return;
     };
@@ -23,10 +25,10 @@ pub(crate) fn show_mutation_error(error: &crate::admin_table_load_error::AdminTa
     {
         return;
     }
-    alert.set_text_content(Some(&error.to_string()));
+    alert.set_text_content(Some(&admin_table_load_error.to_string()));
     alert.set_class_name(constants_str::ADMIN_FIELD_ERROR_CLASS);
     if root.append_child(&alert).is_err() {
-        root.set_text_content(Some(&error.to_string()));
+        root.set_text_content(Some(&admin_table_load_error.to_string()));
         root.set_class_name(constants_str::ADMIN_FIELD_ERROR_CLASS);
     }
 }

@@ -1,7 +1,7 @@
 pub trait SwaggerUrlPathSelfQuotesTokenStream {
     fn swagger_url_path_self_quotes_token_stream(
         &self,
-        v: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
+        swagger_url_path_prefix: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
     ) -> generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream;
 }
 
@@ -11,11 +11,11 @@ where
 {
     fn swagger_url_path_self_quotes_token_stream(
         &self,
-        v: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
+        swagger_url_path_prefix: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
     ) -> generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream
     {
         match self
-            .swagger_url_path_self_quotes_str(v)
+            .swagger_url_path_self_quotes_str(swagger_url_path_prefix)
             .as_ref()
             .parse::<proc_macro2::TokenStream>()
         {

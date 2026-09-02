@@ -13,9 +13,9 @@
     error_policy = frontend_contract::route_error_policy::RouteErrorPolicy::Authentication,
     openapi_operation_id = "sign_in",
     path = "/auth/sign_in",
-    request = crate::admin_sign_in_req::AdminSignInReq,
+    request = crate::admin_sign_in_request::AdminSignInRequest,
     request_body = frontend_contract::route_request_body::RouteRequestBody::Json,
-    response = crate::admin_sign_in_res::AdminSignInRes,
+    response = crate::admin_sign_in_response::AdminSignInResponse,
     success_status = frontend_contract::success_status::SuccessStatus::Code200,
     transport = frontend_contract::public_transport::PublicTransport,
 )]

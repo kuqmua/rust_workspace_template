@@ -80,65 +80,80 @@ impl FieldContract {
     }
 
     #[must_use]
-    pub const fn with_creatable(mut self, value: crate::field_capability::FieldCapability) -> Self {
-        self.creatable = value;
+    pub const fn with_creatable(
+        mut self,
+        field_capability: crate::field_capability::FieldCapability,
+    ) -> Self {
+        self.creatable = field_capability;
         self
     }
     #[must_use]
     pub const fn with_filterable(
         mut self,
-        value: crate::field_capability::FieldCapability,
+        field_capability: crate::field_capability::FieldCapability,
     ) -> Self {
-        self.filterable = value;
+        self.filterable = field_capability;
         self
     }
     #[must_use]
-    pub const fn with_filters(mut self, value: crate::filter_contracts::FilterContracts) -> Self {
-        self.filters = value;
+    pub const fn with_filters(
+        mut self,
+        filter_contracts: crate::filter_contracts::FilterContracts,
+    ) -> Self {
+        self.filters = filter_contracts;
         self
     }
     #[must_use]
-    pub const fn with_order(mut self, value: crate::field_order::FieldOrder) -> Self {
-        self.order = value;
+    pub const fn with_order(mut self, field_order: crate::field_order::FieldOrder) -> Self {
+        self.order = field_order;
         self
     }
     #[must_use]
     pub const fn with_placeholder(
         mut self,
-        value: crate::field_placeholder::FieldPlaceholder,
+        field_placeholder: crate::field_placeholder::FieldPlaceholder,
     ) -> Self {
-        self.placeholder = value;
+        self.placeholder = field_placeholder;
         self
     }
     #[must_use]
     pub const fn with_primary_key(
         mut self,
-        value: crate::primary_key_kind::PrimaryKeyKind,
+        primary_key_kind: crate::primary_key_kind::PrimaryKeyKind,
     ) -> Self {
-        self.primary_key = value;
+        self.primary_key = primary_key_kind;
         self
     }
     #[must_use]
-    pub const fn with_readable(mut self, value: crate::field_capability::FieldCapability) -> Self {
-        self.readable = value;
+    pub const fn with_readable(
+        mut self,
+        field_capability: crate::field_capability::FieldCapability,
+    ) -> Self {
+        self.readable = field_capability;
         self
     }
     #[must_use]
-    pub const fn with_sortable(mut self, value: crate::field_capability::FieldCapability) -> Self {
-        self.sortable = value;
+    pub const fn with_sortable(
+        mut self,
+        field_capability: crate::field_capability::FieldCapability,
+    ) -> Self {
+        self.sortable = field_capability;
         self
     }
     #[must_use]
-    pub const fn with_updatable(mut self, value: crate::field_capability::FieldCapability) -> Self {
-        self.updatable = value;
+    pub const fn with_updatable(
+        mut self,
+        field_capability: crate::field_capability::FieldCapability,
+    ) -> Self {
+        self.updatable = field_capability;
         self
     }
     #[must_use]
     pub const fn with_visibility(
         mut self,
-        value: crate::field_visibility::FieldVisibility,
+        field_visibility: crate::field_visibility::FieldVisibility,
     ) -> Self {
-        self.visibility = value;
+        self.visibility = field_visibility;
         self
     }
 }

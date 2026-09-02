@@ -1,5 +1,5 @@
 pub(super) const fn schema_wire_kind<CanBeNullable, CanBePrimaryKey, FilterKind, PgName, WireKind>(
-    spec: &crate::pg_type_spec::PgTypeSpec<
+    pg_type_spec: &crate::pg_type_spec::PgTypeSpec<
         CanBeNullable,
         CanBePrimaryKey,
         FilterKind,
@@ -10,5 +10,5 @@ pub(super) const fn schema_wire_kind<CanBeNullable, CanBePrimaryKey, FilterKind,
 where
     WireKind: Copy,
 {
-    *spec.get_wire_kind()
+    *pg_type_spec.get_wire_kind()
 }

@@ -17,9 +17,9 @@ pub struct RouteSchemaContracts(
 impl TryFrom<Vec<crate::route_schema_contract::RouteSchemaContract>> for RouteSchemaContracts {
     type Error = bounded_types::bounded_value_error::BoundedValueError;
     fn try_from(
-        value: Vec<crate::route_schema_contract::RouteSchemaContract>,
+        vec: Vec<crate::route_schema_contract::RouteSchemaContract>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(vec).map(Self::from)
     }
 }
 impl RouteSchemaContracts {

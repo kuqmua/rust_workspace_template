@@ -15,8 +15,8 @@ impl MultipartUploadRequest {
 
     fn ensure_additional_part(
         &mut self,
-        part_bytes: crate::multipart_value_length::MultipartValueLength,
-        maximum: crate::multipart_payload_maximum::MultipartPayloadMaximum,
+        multipart_value_length: crate::multipart_value_length::MultipartValueLength,
+        multipart_payload_maximum: crate::multipart_payload_maximum::MultipartPayloadMaximum,
     ) -> Result<(), crate::multipart_request_error::MultipartRequestError> {
         if self
             .bytes_parts
@@ -30,9 +30,9 @@ impl MultipartUploadRequest {
         let payload_bytes = self
             .payload_bytes
             .get()
-            .checked_add(part_bytes.get())
+            .checked_add(multipart_value_length.get())
             .ok_or(crate::multipart_request_error::MultipartRequestError::PayloadTooLarge)?;
-        if payload_bytes > maximum.get() {
+        if payload_bytes > multipart_payload_maximum.get() {
             return Err(crate::multipart_request_error::MultipartRequestError::PayloadTooLarge);
         }
         self.payload_bytes =
@@ -52,27 +52,31 @@ impl MultipartUploadRequest {
 
     pub fn with_bytes_part(
         mut self,
-        part: crate::multipart_bytes_part::MultipartBytesPart,
-        maximum: crate::multipart_payload_maximum::MultipartPayloadMaximum,
+        multipart_bytes_part: crate::multipart_bytes_part::MultipartBytesPart,
+        multipart_payload_maximum: crate::multipart_payload_maximum::MultipartPayloadMaximum,
     ) -> Result<Self, crate::multipart_request_error::MultipartRequestError> {
         self.ensure_additional_part(
-            crate::multipart_value_length::MultipartValueLength::from(part.bytes().as_ref().len()),
-            maximum,
+            crate::multipart_value_length::MultipartValueLength::from(
+                multipart_bytes_part.bytes().as_ref().len(),
+            ),
+            multipart_payload_maximum,
         )?;
-        Vec::push(&mut self.bytes_parts, part);
+        Vec::push(&mut self.bytes_parts, multipart_bytes_part);
         Ok(self)
     }
 
     pub fn with_text_part(
         mut self,
-        part: crate::multipart_text_part::MultipartTextPart,
-        maximum: crate::multipart_payload_maximum::MultipartPayloadMaximum,
+        multipart_text_part: crate::multipart_text_part::MultipartTextPart,
+        multipart_payload_maximum: crate::multipart_payload_maximum::MultipartPayloadMaximum,
     ) -> Result<Self, crate::multipart_request_error::MultipartRequestError> {
         self.ensure_additional_part(
-            crate::multipart_value_length::MultipartValueLength::from(part.value().as_ref().len()),
-            maximum,
+            crate::multipart_value_length::MultipartValueLength::from(
+                multipart_text_part.value().as_ref().len(),
+            ),
+            multipart_payload_maximum,
         )?;
-        self.text_parts.push(part);
+        self.text_parts.push(multipart_text_part);
         Ok(self)
     }
 }

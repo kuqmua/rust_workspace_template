@@ -2,14 +2,16 @@
 pub struct AdminInputName(Box<str>);
 
 impl From<&'static str> for AdminInputName {
-    fn from(value: &'static str) -> Self {
-        Self(Box::<str>::from(value))
+    fn from(str: &'static str) -> Self {
+        Self(Box::<str>::from(str))
     }
 }
 
 impl From<server_admin_contract::admin_setting_name::AdminSettingName> for AdminInputName {
-    fn from(value: server_admin_contract::admin_setting_name::AdminSettingName) -> Self {
-        Self(value.as_ref().to_owned().into_boxed_str())
+    fn from(
+        admin_setting_name: server_admin_contract::admin_setting_name::AdminSettingName,
+    ) -> Self {
+        Self(admin_setting_name.as_ref().to_owned().into_boxed_str())
     }
 }
 

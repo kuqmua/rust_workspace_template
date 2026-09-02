@@ -41,12 +41,12 @@ impl<'de> serde::Deserializer<'de> for TestDeserializerValue {
 }
 
 fn assert_above_max(
-    error: crate::bounded_value_error::BoundedValueError,
+    bounded_value_error: crate::bounded_value_error::BoundedValueError,
     actual: usize,
     max: usize,
 ) {
     assert_eq!(
-        error,
+        bounded_value_error,
         crate::bounded_value_error::BoundedValueError::AboveMax {
             actual: crate::bounded_len::BoundedLen::from(actual),
             max: crate::bounded_len::BoundedLen::from(max),

@@ -19,13 +19,13 @@ pub(crate) struct AdminPageRange {
 impl AdminPageRange {
     #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
     pub(crate) fn new(
-        offset: server_admin_contract::admin_page_offset::AdminPageOffset,
-        limit: server_admin_contract::admin_page_limit::AdminPageLimit,
-        total: server_admin_contract::admin_page_total::AdminPageTotal,
+        admin_page_offset: server_admin_contract::admin_page_offset::AdminPageOffset,
+        admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
+        admin_page_total: server_admin_contract::admin_page_total::AdminPageTotal,
     ) -> Self {
-        let offset_value = u32::from(offset);
-        let limit_value = u16::from(limit);
-        let total_value = u64::from(total);
+        let offset_value = u32::from(admin_page_offset);
+        let limit_value = u16::from(admin_page_limit);
+        let total_value = u64::from(admin_page_total);
         let previous_offset = offset_value.saturating_sub(u32::from(limit_value));
         let next_offset = offset_value.saturating_add(u32::from(limit_value));
         Self {
@@ -57,15 +57,15 @@ impl AdminPageRange {
 
 #[cfg(test)]
 mod tests {
-    fn page_range(offset: u32, limit: u16, total: u64) -> super::AdminPageRange {
-        let Ok(limit) = server_admin_contract::admin_page_limit::AdminPageLimit::try_from(limit)
+    fn page_range(u32: u32, u16: u16, u64: u64) -> super::AdminPageRange {
+        let Ok(limit) = server_admin_contract::admin_page_limit::AdminPageLimit::try_from(u16)
         else {
             std::panic::panic_any(constants_str::PANIC_1543EFB0);
         };
         super::AdminPageRange::new(
-            server_admin_contract::admin_page_offset::AdminPageOffset::from(offset),
+            server_admin_contract::admin_page_offset::AdminPageOffset::from(u32),
             limit,
-            server_admin_contract::admin_page_total::AdminPageTotal::from(total),
+            server_admin_contract::admin_page_total::AdminPageTotal::from(u64),
         )
     }
 

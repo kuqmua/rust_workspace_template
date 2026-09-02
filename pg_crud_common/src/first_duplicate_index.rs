@@ -1,5 +1,5 @@
 #[must_use]
-pub fn first_duplicate_index<T>(values: &[T]) -> Option<crate::duplicate_idx::DuplicateIdx>
+pub fn first_duplicate_index<T>(values: &[T]) -> Option<crate::duplicate_index::DuplicateIndex>
 where
     T: PartialEq,
 {
@@ -9,6 +9,6 @@ where
     values
         .iter()
         .enumerate()
-        .find(|(idx, current)| values.iter().take(*idx).any(|prev| prev == *current))
-        .map(|(idx, _)| crate::duplicate_idx::DuplicateIdx::from(idx))
+        .find(|(index, current)| values.iter().take(*index).any(|prev| prev == *current))
+        .map(|(index, _)| crate::duplicate_index::DuplicateIndex::from(index))
 }

@@ -5,13 +5,13 @@
 
 #[must_use]
 pub fn add_uo_optimistic_revision_predicate(
-    query: crate::pg_table_query_string::PgTableQueryString,
+    pg_table_query_string: crate::pg_table_query_string::PgTableQueryString,
     revision_column: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     expected_revision_query_part: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
 ) -> crate::pg_table_query_string::PgTableQueryString {
-    let query_text = query.to_string();
+    let query_text = pg_table_query_string.to_string();
     let Some((statement, returning)) = query_text.rsplit_once(constants_str::RETURNING) else {
-        return query;
+        return pg_table_query_string;
     };
     let mut optimistic_query = String::with_capacity(
         query_text

@@ -3,27 +3,27 @@ struct DatetimeFmt<'location_lt> {
     location: &'location_lt crate::location::Location,
 }
 impl std::fmt::Display for DatetimeFmt<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.location
-            .fmt_datetime(crate::formatter_ref_mut::FormatterRefMut::from(f))
+            .fmt_datetime(crate::formatter_ref_mut::FormatterRefMut::from(formatter))
     }
 }
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct PlaceFmt<'location_lt> {
     location: &'location_lt crate::location::Location,
-    src_place_type: config_lib::src_place_type::SrcPlaceType,
+    source_place_type: config_lib::source_place_type::SourcePlaceType,
 }
 impl std::fmt::Display for PlaceFmt<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.location.fmt_place(
-            self.src_place_type,
-            crate::formatter_ref_mut::FormatterRefMut::from(f),
+            self.source_place_type,
+            crate::formatter_ref_mut::FormatterRefMut::from(formatter),
         )
     }
 }
 fn test_location(
     duration: std::time::Duration,
-    occr: Option<crate::occr::Occr>,
+    option: Option<crate::occurrence::Occurrence>,
 ) -> crate::location::Location {
     crate::location::Location::from((
         crate::location_file::LocationFile::try_from(String::from(constants_str::SRC_LIB_RS))
@@ -33,14 +33,14 @@ fn test_location(
         ))
         .unwrap_or_else(crate::location_commit::LocationCommit::from),
         crate::location_duration::LocationDuration::from(duration),
-        occr,
+        option,
         crate::location_line::LocationLine::try_from(10).expect(constants_str::DIAGNOSTIC_FC5A52E8),
         crate::location_column::LocationColumn::try_from(20)
             .expect(constants_str::DIAGNOSTIC_8A180198),
     ))
 }
-fn test_occr() -> crate::occr::Occr {
-    crate::occr::Occr::new(
+fn test_occurrence() -> crate::occurrence::Occurrence {
+    crate::occurrence::Occurrence::new(
         crate::location_file::LocationFile::try_from(String::from(constants_str::SRC_ERROR_RS))
             .unwrap_or_else(crate::location_file::LocationFile::from),
         crate::location_line::LocationLine::try_from(30).expect(constants_str::DIAGNOSTIC_1FBD3424),
@@ -50,37 +50,46 @@ fn test_occr() -> crate::occr::Occr {
 }
 fn fmt_place(
     location: &crate::location::Location,
-    src_place_type: config_lib::src_place_type::SrcPlaceType,
+    source_place_type: config_lib::source_place_type::SourcePlaceType,
 ) -> String {
     format!(
         "{:}",
         PlaceFmt {
             location,
-            src_place_type
+            source_place_type
         }
     )
 }
 #[test]
-fn test_fmt_place_src_without_occr() {
+fn test_fmt_place_src_without_occurrence() {
     let location = test_location(std::time::Duration::from_secs(0), None);
     assert_eq!(
-        fmt_place(&location, config_lib::src_place_type::SrcPlaceType::Src),
+        fmt_place(
+            &location,
+            config_lib::source_place_type::SourcePlaceType::Src
+        ),
         constants_str::VALUE_2FF162D0
     );
 }
 #[test]
-fn test_fmt_place_src_with_occr() {
-    let location = test_location(std::time::Duration::from_secs(0), Some(test_occr()));
+fn test_fmt_place_src_with_occurrence() {
+    let location = test_location(std::time::Duration::from_secs(0), Some(test_occurrence()));
     assert_eq!(
-        fmt_place(&location, config_lib::src_place_type::SrcPlaceType::Src),
+        fmt_place(
+            &location,
+            config_lib::source_place_type::SourcePlaceType::Src
+        ),
         constants_str::VALUE_C5939F43
     );
 }
 #[test]
-fn test_fmt_place_github_without_occr() {
+fn test_fmt_place_github_without_occurrence() {
     let location = test_location(std::time::Duration::from_secs(0), None);
     assert_eq!(
-        fmt_place(&location, config_lib::src_place_type::SrcPlaceType::Github),
+        fmt_place(
+            &location,
+            config_lib::source_place_type::SourcePlaceType::Github
+        ),
         format!(
             "{}/blob/abc123/src/lib.rs#L10",
             constants_str::NAMING_GITHUB_URL
@@ -88,10 +97,13 @@ fn test_fmt_place_github_without_occr() {
     );
 }
 #[test]
-fn test_fmt_place_github_with_occr() {
-    let location = test_location(std::time::Duration::from_secs(0), Some(test_occr()));
+fn test_fmt_place_github_with_occurrence() {
+    let location = test_location(std::time::Duration::from_secs(0), Some(test_occurrence()));
     assert_eq!(
-        fmt_place(&location, config_lib::src_place_type::SrcPlaceType::Github),
+        fmt_place(
+            &location,
+            config_lib::source_place_type::SourcePlaceType::Github
+        ),
         format!(
             "{}/blob/abc123/src/lib.rs#L10 ({}/blob/abc123/src/error.rs#L30)",
             constants_str::NAMING_GITHUB_URL,

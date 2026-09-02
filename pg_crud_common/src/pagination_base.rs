@@ -24,14 +24,14 @@ impl PaginationBase {
     }
 
     #[must_use]
-    pub fn new_unchecked<LimitTy, OffsetTy>(limit: LimitTy, offset: OffsetTy) -> Self
+    pub fn new_unchecked<LimitTy, OffsetTy>(limit_ty: LimitTy, offset_ty: OffsetTy) -> Self
     where
         LimitTy: Into<crate::pagination_limit::PaginationLimit>,
         OffsetTy: Into<crate::pagination_offset::PaginationOffset>,
     {
         Self {
-            limit: limit.into(),
-            offset: offset.into(),
+            limit: limit_ty.into(),
+            offset: offset_ty.into(),
         }
     }
 
@@ -44,33 +44,37 @@ impl PaginationBase {
 impl<'query_lt> crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt> for PaginationBase {
     fn query_bind(
         self,
-        mut query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+        mut sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
     ) -> Result<
         crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
         crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
-        if let Err(error) = query.as_mut().try_bind(self.limit.get()) {
+        if let Err(error) = sqlx_postgres_query.as_mut().try_bind(self.limit.get()) {
             return Err(
                 crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(error),
             );
         }
-        if let Err(error) = query.as_mut().try_bind(self.offset.get()) {
+        if let Err(error) = sqlx_postgres_query.as_mut().try_bind(self.offset.get()) {
             return Err(
                 crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(error),
             );
         }
-        Ok(query)
+        Ok(sqlx_postgres_query)
     }
 
     fn query_part(
         &self,
         increment: &mut dyn crate::query_part_increment_mut::QueryPartIncrementMut,
-        _: crate::sql_column_ref::SqlColumnRef<'_>,
-        _: crate::add_operator::AddOperator,
+        sql_column_ref: crate::sql_column_ref::SqlColumnRef<'_>,
+        add_operator: crate::add_operator::AddOperator,
     ) -> Result<
         crate::query_part_fragment::QueryPartFragment,
         crate::query_part_error::QueryPartError,
     > {
+        let _: (
+            crate::sql_column_ref::SqlColumnRef<'_>,
+            crate::add_operator::AddOperator,
+        ) = (sql_column_ref, add_operator);
         let limit_increment =
             crate::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(increment)?;
         let offset_increment =

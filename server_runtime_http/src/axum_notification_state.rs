@@ -17,13 +17,15 @@ where
 
     fn from_request_parts(
         parts: &mut http::request::Parts,
-        state: &crate::notification_service_state::NotificationServiceState<Sender>,
+        notification_service_state: &crate::notification_service_state::NotificationServiceState<
+            Sender,
+        >,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(Ok(Self {
             headers: crate::http_notification_header_map::HttpNotificationHeaderMap::from(
                 parts.headers.clone(),
             ),
-            state: state.clone(),
+            state: notification_service_state.clone(),
         }))
     }
 }

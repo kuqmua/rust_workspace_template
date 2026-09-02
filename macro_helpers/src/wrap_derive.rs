@@ -4,9 +4,11 @@
 )]
 #[must_use]
 pub fn wrap_derive(
-    v: crate::proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef<'_>,
+    proc_macro2_derive_tokens_ref: crate::proc_macro2_derive_tokens_ref::ProcMacro2DeriveTokensRef<
+        '_,
+    >,
 ) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let tokens = v.tokens();
+    let tokens = proc_macro2_derive_tokens_ref.tokens();
     quote::quote! {#[derive(#(#tokens),*)]}.into()
 }
 #[cfg(test)]

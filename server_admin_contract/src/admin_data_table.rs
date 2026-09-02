@@ -71,9 +71,9 @@ impl AdminDataTable {
 
     #[must_use]
     pub fn from_frontend_path(
-        path: crate::admin_page_path_ref::AdminPagePathRef<'_>,
+        admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
-        let value = path
+        let value = admin_page_path_ref
             .get()
             .strip_prefix(crate::admin_frontend_path::AdminFrontendPath::Root.get())
             .and_then(|value| value.strip_prefix('/'))
@@ -202,14 +202,14 @@ impl AdminDataTable {
 }
 
 impl std::fmt::Display for AdminDataTable {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.as_str().get())
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str().get())
     }
 }
 
 impl TryFrom<String> for AdminDataTable {
     type Error = AdminDataTableTryFromStrError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::try_from(value.as_str())
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        Self::try_from(string.as_str())
     }
 }

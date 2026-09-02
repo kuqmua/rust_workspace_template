@@ -19,8 +19,12 @@ pub struct PgTypeWhere<T> {
     operator: crate::operator::Operator,
 }
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
+    #[allow(
+        unused_variables,
+        reason = "the schema trait implementation preserves the type-based parameter name"
+    )]
     fn compose(
-        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+        vec: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
@@ -46,17 +50,20 @@ impl<T: PartialEq + Clone> PgTypeWhere<T> {
     #[must_use]
     pub const fn new(
         operator: crate::operator::Operator,
-        values: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
+        not_empty_unique_vec: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
     ) -> Self {
-        Self { values, operator }
+        Self {
+            values: not_empty_unique_vec,
+            operator,
+        }
     }
 
     pub fn try_new(
         operator: crate::operator::Operator,
-        values: crate::duplicate_candidates::DuplicateCandidates<T>,
+        duplicate_candidates: crate::duplicate_candidates::DuplicateCandidates<T>,
     ) -> Result<Self, crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>>
     {
-        match crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(values) {
+        match crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(duplicate_candidates) {
             Ok(validated_values) => Ok(Self {
                 values: validated_values,
                 operator,
@@ -79,7 +86,7 @@ const _: () = {
     impl<'de, T: std::fmt::Debug + PartialEq + Clone + serde::Deserialize<'de>>
         serde::Deserialize<'de> for PgTypeWhere<T>
     {
-        fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+        fn deserialize<__D>(__d: __D) -> Result<Self, __D::Error>
         where
             __D: serde::Deserializer<'de>,
         {
@@ -99,28 +106,28 @@ const _: () = {
                 type Value = __Field;
                 fn expecting(
                     &self,
-                    __f: &mut std::fmt::Formatter<'_>,
+                    formatter: &mut std::fmt::Formatter<'_>,
                 ) -> _serde::__private229::fmt::Result {
                     _serde::__private229::Formatter::write_str(
-                        __f,
+                        formatter,
                         constants_str::PG_CRUD_FIELD_IDENTIFIER,
                     )
                 }
-                fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
+                fn visit_u64<__E>(self, u64: u64) -> Result<Self::Value, __E>
                 where
                     __E: _serde::de::Error,
                 {
-                    match v {
+                    match u64 {
                         constants_u64::ZERO => Ok(__Field::f0),
                         1u64 => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
-                fn visit_str<__E>(self, v: &str) -> Result<Self::Value, __E>
+                fn visit_str<__E>(self, str: &str) -> Result<Self::Value, __E>
                 where
                     __E: _serde::de::Error,
                 {
-                    match v {
+                    match str {
                         constants_str::PG_CRUD_OPERATOR_FIELD => Ok(__Field::f0),
                         constants_str::PG_CRUD_VALUES_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
@@ -139,11 +146,11 @@ const _: () = {
             }
             impl<'de> serde::Deserialize<'de> for __Field {
                 #[inline]
-                fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+                fn deserialize<__D>(__d: __D) -> Result<Self, __D::Error>
                 where
                     __D: serde::Deserializer<'de>,
                 {
-                    serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
+                    serde::Deserializer::deserialize_identifier(__d, __FieldVisitor)
                 }
             }
             #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
@@ -158,29 +165,27 @@ const _: () = {
                 type Value = PgTypeWhere<T>;
                 fn expecting(
                     &self,
-                    __f: &mut std::fmt::Formatter<'_>,
+                    formatter: &mut std::fmt::Formatter<'_>,
                 ) -> _serde::__private229::fmt::Result {
                     std::fmt::Formatter::write_str(
-                        __f,
+                        formatter,
                         constants_str::PG_CRUD_PG_TYPE_WHERE_STRUCT_NAME,
                     )
                 }
                 #[inline]
-                fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
+                fn visit_seq<__A>(self, mut __a: __A) -> Result<Self::Value, __A::Error>
                 where
                     __A: _serde::de::SeqAccess<'de>,
                 {
-                    let Some(f0) = _serde::de::SeqAccess::next_element::<crate::operator::Operator>(
-                        &mut __seq,
-                    )?
+                    let Some(f0) =
+                        _serde::de::SeqAccess::next_element::<crate::operator::Operator>(&mut __a)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ZERO,
                             &constants_str::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
-                    let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
-                    else {
+                    let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __a)? else {
                         return Err(_serde::de::Error::invalid_length(
                             constants_usize::ONE,
                             &constants_str::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
@@ -192,13 +197,13 @@ const _: () = {
                     }
                 }
                 #[inline]
-                fn visit_map<__A>(self, mut __map: __A) -> Result<Self::Value, __A::Error>
+                fn visit_map<__A>(self, mut __a: __A) -> Result<Self::Value, __A::Error>
                 where
                     __A: _serde::de::MapAccess<'de>,
                 {
                     let mut f0: Option<crate::operator::Operator> = None;
                     let mut f1: Option<Vec<T>> = None;
-                    while let Some(__k) = _serde::de::MapAccess::next_key::<__Field>(&mut __map)? {
+                    while let Some(__k) = _serde::de::MapAccess::next_key::<__Field>(&mut __a)? {
                         match __k {
                             __Field::f0 => {
                                 if Option::is_some(&f0) {
@@ -210,7 +215,7 @@ const _: () = {
                                 }
                                 f0 = Some(_serde::de::MapAccess::next_value::<
                                     crate::operator::Operator,
-                                >(&mut __map)?);
+                                >(&mut __a)?);
                             }
                             __Field::f1 => {
                                 if Option::is_some(&f1) {
@@ -220,12 +225,12 @@ const _: () = {
                                         ),
                                     );
                                 }
-                                f1 = Some(_serde::de::MapAccess::next_value::<Vec<T>>(&mut __map)?);
+                                f1 = Some(_serde::de::MapAccess::next_value::<Vec<T>>(&mut __a)?);
                             }
                             __Field::__ignore => {
                                 let _: serde::de::IgnoredAny =
                                     _serde::de::MapAccess::next_value::<_serde::de::IgnoredAny>(
-                                        &mut __map,
+                                        &mut __a,
                                     )?;
                             }
                         }
@@ -249,7 +254,7 @@ const _: () = {
                 }
             }
             serde::Deserializer::deserialize_struct(
-                __deserializer,
+                __d,
                 constants_str::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME,
                 constants_str::PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS,
                 __Visitor {
@@ -265,25 +270,25 @@ impl<'query_lt, T: crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>>
 {
     fn query_bind(
         self,
-        query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+        sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
     ) -> Result<
         crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
         crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
-        self.values
-            .into_vec()
-            .into_iter()
-            .try_fold(query, |accumulator_query, element| {
+        self.values.into_vec().into_iter().try_fold(
+            sqlx_postgres_query,
+            |accumulator_query, element| {
                 crate::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     element,
                     accumulator_query,
                 )
-            })
+            },
+        )
     }
     fn query_part(
         &self,
         increment: &mut dyn crate::query_part_increment_mut::QueryPartIncrementMut,
-        column: crate::sql_column_ref::SqlColumnRef<'_>,
+        sql_column_ref: crate::sql_column_ref::SqlColumnRef<'_>,
         add_operator: crate::add_operator::AddOperator,
     ) -> Result<
         crate::query_part_fragment::QueryPartFragment,
@@ -305,7 +310,7 @@ impl<'query_lt, T: crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>>
             let v = crate::pg_type_where_filter::PgTypeWhereFilter::query_part(
                 element,
                 increment,
-                column,
+                sql_column_ref,
                 element_add_operator,
             )?;
             if is_first {

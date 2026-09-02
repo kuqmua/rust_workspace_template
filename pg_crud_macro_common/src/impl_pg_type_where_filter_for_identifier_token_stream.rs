@@ -15,7 +15,7 @@ pub fn impl_pg_type_where_filter_for_identifier_token_stream(
     query_bind_token_stream: &dyn quote::ToTokens,
     import: &crate::import::Import,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let names = crate::names_ctx::NamesCtx::new();
+    let names = crate::names_context::NamesContext::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (

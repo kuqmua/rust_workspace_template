@@ -1,8 +1,8 @@
 #[must_use]
 pub fn generate_serde_version_of_named_syn_variant(
-    v: crate::syn_variant_ref::SynVariantRef<'_>,
+    syn_variant_ref: crate::syn_variant_ref::SynVariantRef<'_>,
 ) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let variant = v.variant();
+    let variant = syn_variant_ref.variant();
     let hash_map_upper_camel_case = naming::hash_map_upper_camel_case::HashMapUpperCamelCase;
     let location_snake_case = naming::domain_types::LocationSnakeCase;
     let string_token_stream = token_patterns::StringTokenStream;

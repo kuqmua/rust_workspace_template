@@ -1,6 +1,6 @@
 #[must_use]
 pub fn emit_generate_pg_types(
-    validated: crate::validated_generate_pg_types_config::ValidatedGeneratePgTypesConfig,
+    validated_generate_pg_types_config: crate::validated_generate_pg_types_config::ValidatedGeneratePgTypesConfig,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     panic_location::panic_location();
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
@@ -8,7 +8,7 @@ pub fn emit_generate_pg_types(
         Date,
         Time,
     }
-    let (generate_pg_types_config, _entry_count) = validated.into_parts();
+    let (generate_pg_types_config, _entry_count) = validated_generate_pg_types_config.into_parts();
     let (
         generate_pg_types_variant,
         pg_table_cols_write_into_file,
@@ -2971,14 +2971,14 @@ pub(super) enum IsConst {
         let (identifier_where_token_stream, frontend_filter_contracts_token_stream) = {
             let pg_type_filters = {
                 fn generate_flts_with<T>(
-                    mut base: Vec<pg_crud_macro_common::pg_type_filter::PgTypeFilter>,
-                    extra: T,
+                    mut vec: Vec<pg_crud_macro_common::pg_type_filter::PgTypeFilter>,
+                    t: T,
                 ) -> Vec<pg_crud_macro_common::pg_type_filter::PgTypeFilter>
                 where
                     T: IntoIterator<Item = pg_crud_macro_common::pg_type_filter::PgTypeFilter>,
                 {
-                    base.extend(extra);
-                    base
+                    vec.extend(t);
+                    vec
                 }
                 let generate_common_pg_type_filters = || {
                     vec![pg_crud_macro_common::pg_type_filter::PgTypeFilter::Eq {

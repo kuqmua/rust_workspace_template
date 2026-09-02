@@ -1,8 +1,8 @@
-fn table(v: &'static str) -> crate::pg_table_name_ref::PgTableNameRef<'static> {
-    crate::pg_table_name_ref::PgTableNameRef::from(v)
+fn table(str: &'static str) -> crate::pg_table_name_ref::PgTableNameRef<'static> {
+    crate::pg_table_name_ref::PgTableNameRef::from(str)
 }
-fn sql(v: &'static str) -> crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'static> {
-    crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(v)
+fn sql(str: &'static str) -> crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'static> {
+    crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(str)
 }
 fn users_base() -> (
     crate::pg_table_name_ref::PgTableNameRef<'static>,

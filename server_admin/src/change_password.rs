@@ -1,14 +1,16 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlChangePasswordError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn change_password(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    form: crate::axum_admin_form::AxumAdminForm<crate::change_password_form::ChangePasswordForm>,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_form: crate::axum_admin_form::AxumAdminForm<
+        crate::change_password_form::ChangePasswordForm,
+    >,
 ) -> axum::response::Response {
-    match crate::form_auth_impl::form_auth_impl(auth) {
+    match crate::form_auth_impl::form_auth_impl(admin_auth_request) {
         Ok(auth) => {
-            let request = server_admin_contract::admin_change_own_password_req::AdminChangeOwnPasswordReq::new(
-                form.get_current_password().clone(),
-                form.get_new_password().clone(),
+            let request = server_admin_contract::admin_change_own_password_request::AdminChangeOwnPasswordRequest::new(
+                axum_admin_form.get_current_password().clone(),
+                axum_admin_form.get_new_password().clone(),
             );
             match crate::account_change_own_password::account_change_own_password(
                 auth,

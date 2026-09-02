@@ -1,11 +1,11 @@
 pub(crate) async fn delete_confirmed_entity(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    target: crate::confirmed_delete_target::ConfirmedDeleteTarget,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    confirmed_delete_target: crate::confirmed_delete_target::ConfirmedDeleteTarget,
 ) -> axum::response::Response {
-    match target {
+    match confirmed_delete_target {
         crate::confirmed_delete_target::ConfirmedDeleteTarget::Role(form) => {
             crate::confirmed_authenticated_action_impl::confirmed_authenticated_action_impl(
-                auth,
+                admin_auth_request,
                 *form.get_confirmation(),
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
                 |auth| {
@@ -21,7 +21,7 @@ pub(crate) async fn delete_confirmed_entity(
         }
         crate::confirmed_delete_target::ConfirmedDeleteTarget::User(form) => {
             crate::confirmed_authenticated_action_impl::confirmed_authenticated_action_impl(
-                auth,
+                admin_auth_request,
                 *form.get_confirmation(),
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
                 |auth| {

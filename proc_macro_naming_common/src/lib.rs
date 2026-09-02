@@ -1,7 +1,9 @@
 #[proc_macro]
-pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn case_trait_pair(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     );
     if parts.len() != 4 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(

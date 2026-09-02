@@ -18,9 +18,9 @@ pub struct AdminUserSummaries(
 impl TryFrom<Vec<crate::admin_user_summary::AdminUserSummary>> for AdminUserSummaries {
     type Error = crate::admin_collection_error::AdminCollectionError;
     fn try_from(
-        value: Vec<crate::admin_user_summary::AdminUserSummary>,
+        vec: Vec<crate::admin_user_summary::AdminUserSummary>,
     ) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(vec).map(Self)
     }
 }
 impl AdminUserSummaries {

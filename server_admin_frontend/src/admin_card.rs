@@ -26,11 +26,11 @@ use leptos::prelude::{AddAnyAttr};
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminCard(
     #[prop(default = crate::admin_card_variant::AdminCardVariant::default())]
-    variant: crate::admin_card_variant::AdminCardVariant,
+    admin_card_variant: crate::admin_card_variant::AdminCardVariant,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <singlestage::Card attr:data-name="Card" attr:data-size="default" attr:class=variant.class()>
+        <singlestage::Card attr:data-name="Card" attr:data-size="default" attr:class=admin_card_variant.class()>
             <singlestage::CardContent attr:data-name="CardContent" attr:class="px-6">{children()}</singlestage::CardContent>
         </singlestage::Card>
     }

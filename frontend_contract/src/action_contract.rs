@@ -15,22 +15,22 @@ pub struct ActionContract {
 impl ActionContract {
     #[must_use]
     pub const fn new(
-        operation: crate::operation_kind::OperationKind,
-        route: crate::route_contract::RouteContract,
+        operation_kind: crate::operation_kind::OperationKind,
+        route_contract: crate::route_contract::RouteContract,
     ) -> Self {
         Self {
             confirmation: crate::confirmation_requirement::ConfirmationRequirement::NotRequired,
-            operation,
-            route,
+            operation: operation_kind,
+            route: route_contract,
         }
     }
 
     #[must_use]
     pub const fn with_confirmation(
         mut self,
-        value: crate::confirmation_requirement::ConfirmationRequirement,
+        confirmation_requirement: crate::confirmation_requirement::ConfirmationRequirement,
     ) -> Self {
-        self.confirmation = value;
+        self.confirmation = confirmation_requirement;
         self
     }
 }

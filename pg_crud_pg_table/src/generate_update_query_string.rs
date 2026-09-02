@@ -4,7 +4,7 @@
 )]
 
 pub(super) fn generate_update_query_string(
-    table: crate::pg_table_name_ref::PgTableNameRef<'_>,
+    pg_table_name_ref: crate::pg_table_name_ref::PgTableNameRef<'_>,
     cols_or_els: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     primary_key_field_name: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     primary_key_selector: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
@@ -17,7 +17,7 @@ pub(super) fn generate_update_query_string(
     };
     let mut query = String::with_capacity(
         30usize
-            .saturating_add(table.as_ref().len())
+            .saturating_add(pg_table_name_ref.as_ref().len())
             .saturating_add(cols_or_els.as_ref().len())
             .saturating_add(primary_key_field_name.as_ref().len())
             .saturating_add(primary_key_selector.as_ref().len())
@@ -25,7 +25,7 @@ pub(super) fn generate_update_query_string(
             .saturating_add(selector_len),
     );
     query.push_str(constants_str::UPDATE_ALT);
-    query.push_str(table.as_ref());
+    query.push_str(pg_table_name_ref.as_ref());
     query.push_str(constants_str::SET);
     query.push_str(cols_or_els.as_ref());
     query.push_str(constants_str::WHERE);

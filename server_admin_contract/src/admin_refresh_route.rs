@@ -14,7 +14,7 @@
     openapi_operation_id = "refresh",
     path = "/auth/refresh",
     request = crate::admin_no_body::AdminNoBody,
-    response = crate::admin_sign_in_res::AdminSignInRes,
+    response = crate::admin_sign_in_response::AdminSignInResponse,
     success_status = frontend_contract::success_status::SuccessStatus::Code200,
     transport = frontend_contract::public_transport::PublicTransport,
 )]

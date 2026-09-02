@@ -1,10 +1,10 @@
 pub fn parse_cors_allow_origin(
-    value: crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef<'_>,
+    http_cors_allow_origin_text_ref: crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef<'_>,
 ) -> Result<
     crate::http_cors_allow_origin_header_values::HttpCorsAllowOriginHeaderValues,
     crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError,
 > {
-    let value_text = value.get();
+    let value_text = http_cors_allow_origin_text_ref.get();
     if value_text.len() > crate::cors_allow_origin_max_bytes::CORS_ALLOW_ORIGIN_MAX_BYTES {
         return Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooLong);
     }

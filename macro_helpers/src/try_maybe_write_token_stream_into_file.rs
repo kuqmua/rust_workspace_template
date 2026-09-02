@@ -1,7 +1,7 @@
 pub fn try_maybe_write_token_stream_into_file<P>(
     should_write_token_stream_into_file: crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile,
-    file_name: P,
-    ts: crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
+    p: P,
+    proc_macro2_token_stream_ref: crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
     format_with_cargofmt: &crate::format_with_cargofmt::FormatWithCargofmt,
 ) -> std::io::Result<()>
 where
@@ -13,10 +13,10 @@ where
     ) {
         return Ok(());
     }
-    let string_cnt = ts.as_ref().to_string();
+    let string_cnt = proc_macro2_token_stream_ref.as_ref().to_string();
     let wr_outcome =
         crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(
-            file_name,
+            p,
             crate::string_file_content_ref::StringFileContentRef::from(string_cnt.as_str()),
         )?;
     if bool::from(wr_outcome.is_changed())

@@ -4,12 +4,12 @@
 )]
 pub fn check_commit(
     enable_api_git_commit_check: crate::enable_api_git_commit_check::EnableApiGitCommitCheck,
-    headers: crate::axum_headers_ref::AxumHeadersRef<'_>,
+    axum_headers_ref: crate::axum_headers_ref::AxumHeadersRef<'_>,
 ) -> Result<(), crate::commit_error::CommitError> {
     if !enable_api_git_commit_check.is_enabled() {
         return Ok(());
     }
-    let commit = headers
+    let commit = axum_headers_ref
         .header(crate::commit_header_name::COMMIT_HEADER_NAME)
         .ok_or_else(|| crate::commit_error::CommitError::NoCommitHeader {
             no_commit_header: crate::no_commit_header_message::NoCommitHeaderMessage::from(
@@ -41,27 +41,27 @@ pub fn check_commit(
 #[cfg(test)]
 mod tests {
     fn check_commit_enabled(
-        headers: &axum::http::HeaderMap,
+        header_map: &axum::http::HeaderMap,
     ) -> Result<(), crate::commit_error::CommitError> {
         crate::check_commit::check_commit(
             true.into(),
-            crate::axum_headers_ref::AxumHeadersRef::from(headers),
+            crate::axum_headers_ref::AxumHeadersRef::from(header_map),
         )
     }
     fn make_headers_with_commit_header_value<ValueTy>(
-        value: ValueTy,
+        value_ty: ValueTy,
     ) -> crate::axum_test_headers::AxumTestHeaders
     where
         ValueTy: Into<crate::axum_test_header_value::AxumTestHeaderValue>,
     {
         crate::make_headers_with_entry::make_headers_with_entry(
             crate::commit_header_name::COMMIT_HEADER_NAME,
-            value,
+            value_ty,
         )
     }
-    fn make_headers_with_commit(commit: &str) -> crate::axum_test_headers::AxumTestHeaders {
+    fn make_headers_with_commit(str: &str) -> crate::axum_test_headers::AxumTestHeaders {
         make_headers_with_commit_header_value(
-            axum::http::HeaderValue::from_str(commit).expect(constants_str::DIAGNOSTIC_9F2DB59C),
+            axum::http::HeaderValue::from_str(str).expect(constants_str::DIAGNOSTIC_9F2DB59C),
         )
     }
     fn make_headers_with_wrong_commit() -> crate::axum_test_headers::AxumTestHeaders {
@@ -77,31 +77,29 @@ mod tests {
     fn make_headers_with_non_utf8_commit() -> crate::axum_test_headers::AxumTestHeaders {
         make_headers_with_commit_header_value(crate::non_utf8_header_value::non_utf8_header_value())
     }
-    fn check_commit_ok(
-        enable_api_git_commit_check: bool,
-        headers: &axum::http::HeaderMap,
-        exp_id: &'static str,
-    ) {
+    fn check_commit_ok(bool: bool, header_map: &axum::http::HeaderMap, str: &'static str) {
         crate::expect_ok::expect_ok(
             crate::check_commit::check_commit(
-                enable_api_git_commit_check.into(),
-                crate::axum_headers_ref::AxumHeadersRef::from(headers),
+                bool.into(),
+                crate::axum_headers_ref::AxumHeadersRef::from(header_map),
             ),
-            exp_id,
+            str,
         );
     }
-    fn check_commit_enabled_ok(headers: &axum::http::HeaderMap, exp_id: &'static str) {
-        check_commit_ok(true, headers, exp_id);
+    fn check_commit_enabled_ok(header_map: &axum::http::HeaderMap, str: &'static str) {
+        check_commit_ok(true, header_map, str);
     }
-    fn check_commit_bad_request(headers: &axum::http::HeaderMap, exp_id: &'static str) {
+    fn check_commit_bad_request(header_map: &axum::http::HeaderMap, str: &'static str) {
         crate::assert_err_status_code_only::assert_err_status_code_only(
-            check_commit_enabled(headers),
-            exp_id,
+            check_commit_enabled(header_map),
+            str,
             crate::axum_http_status_code::AxumHttpStatusCode::bad_request(),
         );
     }
-    fn no_commit_header_message(v: &crate::commit_error::CommitError) -> Option<&'static str> {
-        match v {
+    fn no_commit_header_message(
+        commit_error: &crate::commit_error::CommitError,
+    ) -> Option<&'static str> {
+        match commit_error {
             crate::commit_error::CommitError::NoCommitHeader {
                 no_commit_header, ..
             } => Some(no_commit_header.as_str()),
@@ -109,17 +107,17 @@ mod tests {
             | crate::commit_error::CommitError::CommitToStrConversion { .. } => None,
         }
     }
-    fn is_commit_to_str_conversion(v: &crate::commit_error::CommitError) -> Option<()> {
-        match v {
+    fn is_commit_to_str_conversion(commit_error: &crate::commit_error::CommitError) -> Option<()> {
+        match commit_error {
             crate::commit_error::CommitError::CommitToStrConversion { .. } => Some(()),
             crate::commit_error::CommitError::CommitNotEq { .. }
             | crate::commit_error::CommitError::NoCommitHeader { .. } => None,
         }
     }
     fn commit_not_eq_fields(
-        v: &crate::commit_error::CommitError,
+        commit_error: &crate::commit_error::CommitError,
     ) -> Option<(&'static str, &'static str)> {
-        match v {
+        match commit_error {
             crate::commit_error::CommitError::CommitNotEq {
                 commit_not_eq,
                 commit_to_use,
@@ -129,16 +127,16 @@ mod tests {
             | crate::commit_error::CommitError::NoCommitHeader { .. } => None,
         }
     }
-    fn assert_no_commit_header_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
+    fn assert_no_commit_header_err(header_map: &axum::http::HeaderMap, str: &'static str) {
         let no_commit_header =
-            expect_check_commit_err_variant(headers, exp_id, no_commit_header_message);
+            expect_check_commit_err_variant(header_map, str, no_commit_header_message);
         assert_eq!(
             no_commit_header,
             constants_str::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG
         );
     }
-    fn expect_commit_to_str_conversion_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
-        expect_check_commit_err_variant(headers, exp_id, is_commit_to_str_conversion);
+    fn expect_commit_to_str_conversion_err(header_map: &axum::http::HeaderMap, str: &'static str) {
+        expect_check_commit_err_variant(header_map, str, is_commit_to_str_conversion);
     }
     fn assert_wrong_commit_fields(fields: (&'static str, &'static str)) {
         let (commit_not_eq, commit_to_use) = fields;
@@ -153,32 +151,32 @@ mod tests {
             ),
         );
     }
-    fn assert_wrong_commit_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
-        let fields = expect_check_commit_err_variant(headers, exp_id, commit_not_eq_fields);
+    fn assert_wrong_commit_err(header_map: &axum::http::HeaderMap, str: &'static str) {
+        let fields = expect_check_commit_err_variant(header_map, str, commit_not_eq_fields);
         assert_wrong_commit_fields(fields);
     }
     fn expect_check_commit_err_variant<R>(
-        headers: &axum::http::HeaderMap,
-        exp_id: &'static str,
+        header_map: &axum::http::HeaderMap,
+        str: &'static str,
         map: impl FnOnce(&crate::commit_error::CommitError) -> Option<R>,
     ) -> R {
         crate::expect_err_variant_ref_with_status::expect_err_variant_ref_with_status(
-            check_commit_enabled(headers),
-            exp_id,
+            check_commit_enabled(header_map),
+            str,
             Some(crate::axum_http_status_code::AxumHttpStatusCode::bad_request()),
             map,
         )
     }
     fn expect_get_commit_header_str_err_variant<R>(
-        headers: &axum::http::HeaderMap,
-        exp_id: &'static str,
+        header_map: &axum::http::HeaderMap,
+        str: &'static str,
         map: impl FnOnce(&crate::commit_error::CommitError) -> Option<R>,
     ) -> R {
         crate::expect_err_variant_ref_with_status::expect_err_variant_ref_with_status(
             crate::read_commit_header_str::read_commit_header_str(
-                crate::axum_headers_ref::AxumHeadersRef::from(headers),
+                crate::axum_headers_ref::AxumHeadersRef::from(header_map),
             ),
-            exp_id,
+            str,
             None,
             map,
         )

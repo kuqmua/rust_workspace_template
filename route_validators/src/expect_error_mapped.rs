@@ -1,8 +1,8 @@
 #[track_caller]
 pub(crate) fn expect_error_mapped<T, E, R>(
-    v: Result<T, E>,
+    result: Result<T, E>,
     exp_id: impl Into<crate::test_exp_id::TestExpId>,
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R {
-    crate::map_err::map_err(v, exp_id, |_| (), map)
+    crate::map_err::map_err(result, exp_id, |_| (), map)
 }

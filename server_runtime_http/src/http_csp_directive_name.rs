@@ -10,19 +10,19 @@ impl HttpCspDirectiveName {
 impl TryFrom<String> for HttpCspDirectiveName {
     type Error = crate::http_csp_token_error::HttpCspTokenError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.is_empty() {
             return Err(crate::http_csp_token_error::HttpCspTokenError::Empty);
         }
-        if value.len() > constants_usize::VALUE_64 {
+        if string.len() > constants_usize::VALUE_64 {
             return Err(crate::http_csp_token_error::HttpCspTokenError::TooLong);
         }
-        if !value
+        if !string
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte == b'-')
         {
             return Err(crate::http_csp_token_error::HttpCspTokenError::InvalidCharacter);
         }
-        Ok(Self(value))
+        Ok(Self(string))
     }
 }

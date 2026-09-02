@@ -1,12 +1,12 @@
 pub(crate) async fn settings_branding_view_ref(
-    auth: &crate::admin_auth_req::AdminAuthReq,
+    admin_auth_request: &crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<
     server_admin_contract::admin_branding_view::AdminBrandingView,
     crate::admin_error::AdminError,
 > {
     let settings = crate::read_settings::read_settings(
         crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-            auth.get_state().as_ref().get_pool().as_ref(),
+            admin_auth_request.get_state().as_ref().get_pool().as_ref(),
         ),
     )
     .await

@@ -1,7 +1,7 @@
 pub(crate) fn cargo_subcommand_available(
-    subcommand: crate::tool_name::ToolName,
+    tool_name: crate::tool_name::ToolName,
 ) -> crate::tool_available::ToolAvailable {
-    let args = [subcommand.get(), constants_str::VERSION];
+    let args = [tool_name.get(), constants_str::VERSION];
     macro_helpers::tool_command::ToolCommand::new(
         macro_helpers::tool_program_ref::ToolProgramRef::from(
             constants_str::WORKSPACE_TEST_RUNNER_CARGO,

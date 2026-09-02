@@ -21,7 +21,7 @@ pub(super) fn reset() {
         crate::mutation::reload_after(
             crate::admin_mutation_method::AdminMutationMethod::Patch,
             path,
-            server_admin_contract::admin_update_settings_req::AdminUpdateSettingsReq::new(
+            server_admin_contract::admin_update_settings_request::AdminUpdateSettingsRequest::new(
                 Some(request_default_route),
                 None,
                 None,

@@ -1,8 +1,8 @@
-pub fn parse_first_identifier<I>(input: &mut I) -> Option<crate::first_identifier::FirstIdentifier>
+pub fn parse_first_identifier<I>(i: &mut I) -> Option<crate::first_identifier::FirstIdentifier>
 where
     I: Iterator<Item = proc_macro2::TokenTree>,
 {
-    match input.next()? {
+    match i.next()? {
         proc_macro2::TokenTree::Ident(identifier) => Some(
             crate::first_identifier::FirstIdentifier::try_from(identifier.to_string())
                 .unwrap_or_else(crate::first_identifier::FirstIdentifier::from),

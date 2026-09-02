@@ -1,3 +1,8 @@
+#![allow(
+    unused_variables,
+    reason = "test notification trait fixtures preserve repository type-based parameter names"
+)]
+
 #[cfg(test)]
 mod tests {
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
@@ -6,7 +11,7 @@ mod tests {
         type Error = std::convert::Infallible;
         fn send(
             &self,
-            _message: crate::runtime_notification_message::RuntimeNotificationMessage,
+            runtime_notification_message: crate::runtime_notification_message::RuntimeNotificationMessage,
         ) -> impl Future<Output = Result<(), Self::Error>> + Send {
             std::future::ready(Ok(()))
         }

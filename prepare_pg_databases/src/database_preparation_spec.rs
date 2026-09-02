@@ -17,12 +17,12 @@ impl DatabasePreparationSpec {
 
     #[must_use]
     pub const fn new(
-        url: crate::database_url::DatabaseUrl,
+        database_url: crate::database_url::DatabaseUrl,
         migrations_source: crate::migrations_source::MigrationsSource,
     ) -> Self {
         Self {
             migrations_source,
-            url,
+            url: database_url,
         }
     }
 }

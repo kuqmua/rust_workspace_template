@@ -19,13 +19,13 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
 {
     type Error = crate::unique_vec_error::UniqueVecError;
 
-    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        let bounded_values = bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(value)
+    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
+        let bounded_values = bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(vec)
             .map_err(crate::unique_vec_error::UniqueVecError::from)?
             .into_inner();
-        if bounded_values.iter().enumerate().any(|(idx, item)| {
+        if bounded_values.iter().enumerate().any(|(index, item)| {
             bounded_values
-                .get(..idx)
+                .get(..index)
                 .is_some_and(|seen| seen.contains(item))
         }) {
             return Err(Self::Error::Duplicate);

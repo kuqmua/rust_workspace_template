@@ -1,16 +1,16 @@
 pub(super) fn validate_pg_table_idempotency_text(
-    value: String,
+    string: String,
 ) -> Result<String, crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError> {
-    if value.is_empty() {
+    if string.is_empty() {
         Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty)
-    } else if value.len()
+    } else if string.len()
         > crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES
     {
         Err(
             crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
                 actual_bytes:
                     crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
-                        value.len(),
+                        string.len(),
                     ),
                 maximum_bytes:
                     crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
@@ -19,6 +19,6 @@ pub(super) fn validate_pg_table_idempotency_text(
             },
         )
     } else {
-        Ok(value)
+        Ok(string)
     }
 }

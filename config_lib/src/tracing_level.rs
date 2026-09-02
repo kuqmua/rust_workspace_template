@@ -29,7 +29,7 @@ impl TracingLevel {
     }
 }
 impl std::fmt::Display for TracingLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", (*self).as_str())
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "{}", (*self).as_str())
     }
 }

@@ -14,9 +14,13 @@ where
 {
     type Rejection = std::convert::Infallible;
 
+    #[allow(
+        unused_variables,
+        reason = "the extractor trait implementation preserves type-based parameter names"
+    )]
     fn from_request_parts(
         parts: &mut axum::http::request::Parts,
-        _state: &State,
+        state: &State,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(Ok(Self::from(parts.uri.clone())))
     }

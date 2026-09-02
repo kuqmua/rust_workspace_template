@@ -11,7 +11,7 @@ impl<'lt, T> From<&'lt T> for PgTableSqlFragmentRef<'lt>
 where
     T: AsRef<str> + ?Sized,
 {
-    fn from(value: &'lt T) -> Self {
-        Self(value.as_ref())
+    fn from(t: &'lt T) -> Self {
+        Self(t.as_ref())
     }
 }

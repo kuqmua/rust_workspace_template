@@ -11,11 +11,11 @@ impl TryFrom<String> for VersionedUrlSafeWireTokenText {
     type Error =
         crate::versioned_url_safe_wire_token_text_error::VersionedUrlSafeWireTokenTextError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_8_192 {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.len() > constants_usize::VALUE_8_192 {
             return Err(Self::Error::TooLong);
         }
-        let mut parts = value.split('.');
+        let mut parts = string.split('.');
         let (Some(version), Some(encoded_payload), Some(encoded_signature)) =
             (parts.next(), parts.next(), parts.next())
         else {

@@ -27,8 +27,8 @@ impl PaginationStartsWithZero {
     }
 
     pub fn try_new<LimitTy, OffsetTy>(
-        limit: LimitTy,
-        offset: OffsetTy,
+        limit_ty: LimitTy,
+        offset_ty: OffsetTy,
     ) -> Result<
         Self,
         crate::pagination_starts_with_zero_try_new_error::PaginationStartsWithZeroTryNewError,
@@ -37,8 +37,8 @@ impl PaginationStartsWithZero {
         LimitTy: Into<crate::pagination_limit::PaginationLimit>,
         OffsetTy: Into<crate::pagination_offset::PaginationOffset>,
     {
-        let limit_value = limit.into();
-        let offset_value = offset.into();
+        let limit_value = limit_ty.into();
+        let offset_value = offset_ty.into();
         if limit_value.get() <= 0 || offset_value.get() < 0 {
             if limit_value.get() <= 0 {
                 Err(crate::pagination_starts_with_zero_try_new_error::PaginationStartsWithZeroTryNewError::LimitIsLessThanOrEqToZero {
@@ -72,9 +72,12 @@ impl TryFrom<crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw
         crate::pagination_starts_with_zero_try_new_error::PaginationStartsWithZeroTryNewError;
 
     fn try_from(
-        value: crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw,
+        pagination_starts_with_zero_raw: crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw,
     ) -> Result<Self, Self::Error> {
-        Self::try_new(*value.get_limit(), *value.get_offset())
+        Self::try_new(
+            *pagination_starts_with_zero_raw.get_limit(),
+            *pagination_starts_with_zero_raw.get_offset(),
+        )
     }
 }
 
@@ -83,24 +86,24 @@ impl<'query_lt> crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>
 {
     fn query_bind(
         self,
-        query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+        sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
     ) -> Result<
         crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
         crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
-        self.0.query_bind(query)
+        self.0.query_bind(sqlx_postgres_query)
     }
 
     fn query_part(
         &self,
         increment: &mut dyn crate::query_part_increment_mut::QueryPartIncrementMut,
-        column: crate::sql_column_ref::SqlColumnRef<'_>,
+        sql_column_ref: crate::sql_column_ref::SqlColumnRef<'_>,
         add_operator: crate::add_operator::AddOperator,
     ) -> Result<
         crate::query_part_fragment::QueryPartFragment,
         crate::query_part_error::QueryPartError,
     > {
-        self.0.query_part(increment, column, add_operator)
+        self.0.query_part(increment, sql_column_ref, add_operator)
     }
 }
 

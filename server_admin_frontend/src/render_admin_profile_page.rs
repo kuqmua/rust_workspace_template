@@ -11,19 +11,22 @@ use leptos::prelude::{
 
 #[must_use]
 pub fn render_admin_profile_page(
-    admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+    authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
     let roles = String::from(crate::join_text::join_text(
-        admin.roles().iter().map(|name| name.as_ref().as_str()),
+        authenticated_admin
+            .roles()
+            .iter()
+            .map(|name| name.as_ref().as_str()),
     ));
-    let display_name = admin.display_name().to_string();
-    let login = admin.login().to_string();
+    let display_name = authenticated_admin.display_name().to_string();
+    let login = authenticated_admin.login().to_string();
     let content_view = leptos::view! {
-        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Profile><crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>{display_name}</crate::admin_card_title::AdminCardTitle><crate::admin_card_description::AdminCardDescription>{login}</crate::admin_card_description::AdminCardDescription></crate::admin_card_header::AdminCardHeader><p>{roles}</p></crate::admin_card::AdminCard>
-        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Security><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::ProfilePassword.get()>
-            <crate::admin_field::AdminField label="Current password"><crate::admin_input::AdminInput name="current_password" kind=crate::admin_input_kind::AdminInputKind::Password required=true /></crate::admin_field::AdminField>
-            <crate::admin_field::AdminField label="New password"><crate::admin_input::AdminInput name="new_password" kind=crate::admin_input_kind::AdminInputKind::Password minlength=server_admin_contract::identity::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::identity::ADMIN_PASSWORD_MAX_CHARS required=true /><singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_PASSWORD_POLICY_DESCRIPTION}</singlestage::FieldDescription></crate::admin_field::AdminField>
+        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Profile><crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>{display_name}</crate::admin_card_title::AdminCardTitle><crate::admin_card_description::AdminCardDescription>{login}</crate::admin_card_description::AdminCardDescription></crate::admin_card_header::AdminCardHeader><p>{roles}</p></crate::admin_card::AdminCard>
+        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Security><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::ProfilePassword.get()>
+            <crate::admin_field::AdminField admin_field_label="Current password"><crate::admin_input::AdminInput admin_input_name="current_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password required=true /></crate::admin_field::AdminField>
+            <crate::admin_field::AdminField admin_field_label="New password"><crate::admin_input::AdminInput admin_input_name="new_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password minlength=server_admin_contract::identity::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::identity::ADMIN_PASSWORD_MAX_CHARS required=true /><singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_PASSWORD_POLICY_DESCRIPTION}</singlestage::FieldDescription></crate::admin_field::AdminField>
             <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>"Change password"</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
         </form></crate::admin_card::AdminCard>
     };
@@ -31,7 +34,7 @@ pub fn render_admin_profile_page(
     crate::render_admin_page_with_access::render_admin_page_with_access(
         server_admin_contract::admin_page::AdminPage::Profile,
         content,
-        Some(admin),
-        Some(branding),
+        Some(authenticated_admin),
+        Some(admin_branding_view),
     )
 }

@@ -10,11 +10,11 @@ impl HttpOriginSchemeText {
 impl TryFrom<String> for HttpOriginSchemeText {
     type Error = crate::allowed_origin_error::AllowedOriginError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() || value.len() > 16usize {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.is_empty() || string.len() > 16usize {
             Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
         } else {
-            Ok(Self(value))
+            Ok(Self(string))
         }
     }
 }

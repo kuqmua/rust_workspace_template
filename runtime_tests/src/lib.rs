@@ -20,7 +20,7 @@ pub fn local_config()
 }
 
 pub fn run(
-    config: &runtime_test_config::RuntimeTestConfig,
+    runtime_test_config: &runtime_test_config::RuntimeTestConfig,
 ) -> Result<runtime_test_report::RuntimeTestReport, runtime_test_error::RuntimeTestError> {
     let client = reqwest_runtime_test_client::ReqwestRuntimeTestClient::from(
         reqwest::blocking::Client::builder()
@@ -33,28 +33,28 @@ pub fn run(
 
     run_health_test(
         &client,
-        config.application_base_url(),
+        runtime_test_config.application_base_url(),
         common_routes::common_route::CommonRoute::HealthLive,
         runtime_test_kind::RuntimeTestKind::ApplicationLiveness,
     )?;
     passed.push(runtime_test_kind::RuntimeTestKind::ApplicationLiveness);
     run_health_test(
         &client,
-        config.application_base_url(),
+        runtime_test_config.application_base_url(),
         common_routes::common_route::CommonRoute::HealthReady,
         runtime_test_kind::RuntimeTestKind::ApplicationReadiness,
     )?;
     passed.push(runtime_test_kind::RuntimeTestKind::ApplicationReadiness);
     run_health_test(
         &client,
-        config.notification_service_base_url(),
+        runtime_test_config.notification_service_base_url(),
         common_routes::common_route::CommonRoute::HealthLive,
         runtime_test_kind::RuntimeTestKind::NotificationServiceLiveness,
     )?;
     passed.push(runtime_test_kind::RuntimeTestKind::NotificationServiceLiveness);
     run_health_test(
         &client,
-        config.notification_service_base_url(),
+        runtime_test_config.notification_service_base_url(),
         common_routes::common_route::CommonRoute::HealthReady,
         runtime_test_kind::RuntimeTestKind::NotificationServiceReadiness,
     )?;
@@ -66,10 +66,15 @@ pub fn run(
         )
         .map_err(runtime_test_error::RuntimeTestError::NotificationMessage)?;
     let request =
-        notification_service_contract::create_notification_req::CreateNotificationReq::new(message);
+        notification_service_contract::create_notification_request::CreateNotificationRequest::new(
+            message,
+        );
     let route =
         notification_service_contract::notification_route::NotificationRoute::Create.contract();
-    let url = route_url(config.notification_service_base_url(), route.path())?;
+    let url = route_url(
+        runtime_test_config.notification_service_base_url(),
+        route.path(),
+    )?;
     let response = client
         .send_notification(&url, &request)
         .map_err(|source| runtime_test_error::RuntimeTestError::Request { test, source })?;
@@ -89,51 +94,62 @@ pub fn run(
 }
 
 fn run_health_test(
-    client: &reqwest_runtime_test_client::ReqwestRuntimeTestClient,
-    base_url: &service_base_url::ServiceBaseUrl,
-    route: common_routes::common_route::CommonRoute,
-    test: runtime_test_kind::RuntimeTestKind,
+    reqwest_runtime_test_client: &reqwest_runtime_test_client::ReqwestRuntimeTestClient,
+    service_base_url: &service_base_url::ServiceBaseUrl,
+    common_route: common_routes::common_route::CommonRoute,
+    runtime_test_kind: runtime_test_kind::RuntimeTestKind,
 ) -> Result<(), runtime_test_error::RuntimeTestError> {
-    let url = route_url(base_url, route.path())?;
-    let response = client
+    let url = route_url(service_base_url, common_route.path())?;
+    let response = reqwest_runtime_test_client
         .send_get(&url)
-        .map_err(|source| runtime_test_error::RuntimeTestError::Request { test, source })?;
+        .map_err(|source| runtime_test_error::RuntimeTestError::Request {
+            test: runtime_test_kind,
+            source,
+        })?;
     require_status(
-        test,
+        runtime_test_kind,
         &response,
         http_runtime_test_status::HttpRuntimeTestStatus::from(200u16),
     )?;
-    let report = response
-        .into_health_report()
-        .map_err(|source| runtime_test_error::RuntimeTestError::Response { test, source })?;
+    let report = response.into_health_report().map_err(|source| {
+        runtime_test_error::RuntimeTestError::Response {
+            test: runtime_test_kind,
+            source,
+        }
+    })?;
     if report.status() != common_routes::health_status::HealthStatus::Ok {
-        return Err(runtime_test_error::RuntimeTestError::Unhealthy { test });
+        return Err(runtime_test_error::RuntimeTestError::Unhealthy {
+            test: runtime_test_kind,
+        });
     }
     Ok(())
 }
 
 fn require_status(
-    test: runtime_test_kind::RuntimeTestKind,
-    response: &reqwest_runtime_test_response::ReqwestRuntimeTestResponse,
-    expected: http_runtime_test_status::HttpRuntimeTestStatus,
+    runtime_test_kind: runtime_test_kind::RuntimeTestKind,
+    reqwest_runtime_test_response: &reqwest_runtime_test_response::ReqwestRuntimeTestResponse,
+    http_runtime_test_status: http_runtime_test_status::HttpRuntimeTestStatus,
 ) -> Result<(), runtime_test_error::RuntimeTestError> {
-    let actual = response.status();
-    if actual == expected {
+    let actual = reqwest_runtime_test_response.status();
+    if actual == http_runtime_test_status {
         Ok(())
     } else {
         Err(runtime_test_error::RuntimeTestError::Status {
-            test,
+            test: runtime_test_kind,
             actual,
-            expected,
+            expected: http_runtime_test_status,
         })
     }
 }
 
 fn route_url(
-    base_url: &service_base_url::ServiceBaseUrl,
-    path: frontend_contract::contract_str::ContractStr,
+    service_base_url: &service_base_url::ServiceBaseUrl,
+    contract_str: frontend_contract::contract_str::ContractStr,
 ) -> Result<runtime_test_url::RuntimeTestUrl, service_base_url_error::ServiceBaseUrlError> {
-    runtime_test_url::RuntimeTestUrl::try_from(format!("{}{path}", base_url.as_ref()))
+    runtime_test_url::RuntimeTestUrl::try_from(format!(
+        "{}{contract_str}",
+        service_base_url.as_ref()
+    ))
 }
 
 #[cfg(test)]

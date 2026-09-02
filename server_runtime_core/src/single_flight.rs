@@ -12,10 +12,10 @@ impl SingleFlight {
     #[allow(clippy::missing_const_for_fn)] // the lock-backed return value cannot be constructed in const context
     pub fn acquire(
         &self,
-        key: crate::single_flight_key::SingleFlightKey,
+        single_flight_key: crate::single_flight_key::SingleFlightKey,
     ) -> crate::single_flight_acquire::SingleFlightAcquire {
         let mut inner = crate::write_inner::write_inner(&self.inner);
-        if let Some(sender) = inner.get(&key) {
+        if let Some(sender) = inner.get(&single_flight_key) {
             return crate::single_flight_acquire::SingleFlightAcquire::Waiter(
                 crate::single_flight_waiter::SingleFlightWaiter::from(
                     crate::tokio_single_flight_receiver::TokioSingleFlightReceiver::from(
@@ -30,7 +30,7 @@ impl SingleFlight {
         let (sender, _) =
             tokio::sync::watch::channel(crate::single_flight_signal::SingleFlightSignal::Running);
         let insertion = inner.try_insert(
-            key.clone(),
+            single_flight_key.clone(),
             crate::tokio_single_flight_sender::TokioSingleFlightSender::from(sender),
         );
         if insertion.is_err() {
@@ -38,17 +38,20 @@ impl SingleFlight {
         }
         drop(inner);
         crate::single_flight_acquire::SingleFlightAcquire::Owner(
-            crate::single_flight_owner::SingleFlightOwner::new(self.inner.clone(), Some(key)),
+            crate::single_flight_owner::SingleFlightOwner::new(
+                self.inner.clone(),
+                Some(single_flight_key),
+            ),
         )
     }
 
     #[must_use]
     pub fn new(
-        maximum: crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize,
+        single_flight_maximum_non_zero_usize: crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize,
     ) -> Self {
         Self {
             inner: crate::arc_single_flight_rw_lock::ArcSingleFlightRwLock::default(),
-            maximum,
+            maximum: single_flight_maximum_non_zero_usize,
         }
     }
 }

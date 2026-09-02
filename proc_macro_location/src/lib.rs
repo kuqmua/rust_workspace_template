@@ -49,8 +49,10 @@ pub fn errors_with_location(
 }
 
 #[cfg(test)]
-fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> syn::Result<()> {
-    let item_ref = item.into_inner();
+fn add_location_fields(
+    syn_item_enum_mut_ref: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>,
+) -> syn::Result<()> {
+    let item_ref = syn_item_enum_mut_ref.into_inner();
     item_ref.variants.iter_mut().try_for_each(|variant| {
         let syn::Fields::Named(fields) = &mut variant.fields else {
             return Err(syn::Error::new_spanned(
@@ -90,7 +92,7 @@ fn add_location_fields(item: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>) -> sy
         location_to_schema,
     )
 )]
-pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn derive_location(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(
         Debug, Clone, Copy, PartialEq, Eq, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
@@ -99,7 +101,7 @@ pub fn derive_location(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
         Unnamed,
     }
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse(input).expect(constants_str::DIAGNOSTIC_D94F091A);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_D94F091A);
     let utoipa_to_schema_token_stream = di
         .attrs
         .iter()

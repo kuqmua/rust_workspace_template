@@ -1,18 +1,18 @@
 pub fn resolve_pg_operational_limit_update(
     current: crate::pg_operational_limit::PgOperationalLimit,
     requested: crate::pg_operational_limit::PgOperationalLimit,
-    current_usage: crate::pg_counter_value::PgCounterValue,
-    authority: crate::pg_operational_limit_update_authority::PgOperationalLimitUpdateAuthority,
+    pg_counter_value: crate::pg_counter_value::PgCounterValue,
+    pg_operational_limit_update_authority: crate::pg_operational_limit_update_authority::PgOperationalLimitUpdateAuthority,
 ) -> Result<
     crate::pg_operational_limit::PgOperationalLimit,
     crate::pg_operational_limit_error::PgOperationalLimitError,
 > {
-    match authority {
+    match pg_operational_limit_update_authority {
         crate::pg_operational_limit_update_authority::PgOperationalLimitUpdateAuthority::MigrationDefault => {
             Ok(current.max(requested))
         }
         crate::pg_operational_limit_update_authority::PgOperationalLimitUpdateAuthority::Operator
-            if requested.get_inner().get() < *current_usage.get_inner() =>
+            if requested.get_inner().get() < *pg_counter_value.get_inner() =>
         {
             Err(crate::pg_operational_limit_error::PgOperationalLimitError::BelowCurrentUsage)
         }
@@ -22,8 +22,8 @@ pub fn resolve_pg_operational_limit_update(
 
 #[cfg(test)]
 mod tests {
-    fn limit(value: u64) -> crate::pg_operational_limit::PgOperationalLimit {
-        crate::pg_operational_limit::PgOperationalLimit::try_from(value)
+    fn limit(u64: u64) -> crate::pg_operational_limit::PgOperationalLimit {
+        crate::pg_operational_limit::PgOperationalLimit::try_from(u64)
             .expect(constants_str::DIAGNOSTIC_2710E8B4)
     }
 

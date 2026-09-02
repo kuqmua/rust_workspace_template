@@ -6,8 +6,10 @@
     tag = "admin_audit"
 )]
 pub(crate) async fn api_export_audit_log(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    query: crate::axum_admin_query::AxumAdminQuery<crate::admin_audit_query::AdminAuditQuery>,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
+        crate::admin_audit_query::AdminAuditQuery,
+    >,
 ) -> Result<
     crate::axum_admin_response::AxumAdminResponse,
     crate::application_auth::AdminAuditExportError,

@@ -1,8 +1,12 @@
 #[must_use]
 pub fn classify_optional_json_content_type(
-    value: crate::http_content_type_text_ref::HttpContentTypeTextRef<'_>,
+    http_content_type_text_ref: crate::http_content_type_text_ref::HttpContentTypeTextRef<'_>,
 ) -> crate::optional_json_content_type::OptionalJsonContentType {
-    let Some(text) = value.get().map(str::trim).filter(|text| !text.is_empty()) else {
+    let Some(text) = http_content_type_text_ref
+        .get()
+        .map(str::trim)
+        .filter(|text| !text.is_empty())
+    else {
         return crate::optional_json_content_type::OptionalJsonContentType::Missing;
     };
     if text.len() > constants_usize::VALUE_4_096 {

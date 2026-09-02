@@ -10,8 +10,8 @@ pub enum RuntimeTestKind {
 }
 
 impl std::fmt::Display for RuntimeTestKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
             Self::ApplicationLiveness => constants_str::VALUE_2AE6635F,
             Self::ApplicationReadiness => constants_str::VALUE_27B02AA0,
             Self::NotificationCreation => constants_str::VALUE_D1712BA9,

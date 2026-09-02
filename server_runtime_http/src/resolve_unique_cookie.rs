@@ -1,10 +1,13 @@
 #[must_use]
 pub fn resolve_unique_cookie<'value_lt>(
-    headers: crate::http_cookie_headers_ref::HttpCookieHeadersRef<'value_lt>,
-    name: crate::http_cookie_name_ref::HttpCookieNameRef<'_>,
+    http_cookie_headers_ref: crate::http_cookie_headers_ref::HttpCookieHeadersRef<'value_lt>,
+    http_cookie_name_ref: crate::http_cookie_name_ref::HttpCookieNameRef<'_>,
 ) -> crate::cookie_resolution::CookieResolution<'value_lt> {
-    let mut header_values = headers.get().get_all(http::header::COOKIE).iter();
-    let cookie_name = name.get();
+    let mut header_values = http_cookie_headers_ref
+        .get()
+        .get_all(http::header::COOKIE)
+        .iter();
+    let cookie_name = http_cookie_name_ref.get();
     let Some(header) = header_values.next() else {
         return crate::cookie_resolution::CookieResolution::Missing;
     };

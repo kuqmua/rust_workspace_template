@@ -1,5 +1,5 @@
 pub async fn run_batched_cleanup<Cleanup, CleanupFuture, CleanupError, Continue>(
-    batch_size: crate::cleanup_batch_size::CleanupBatchSize,
+    cleanup_batch_size: crate::cleanup_batch_size::CleanupBatchSize,
     mut cleanup: Cleanup,
     mut continuation: Continue,
 ) -> Result<crate::cleanup_report::CleanupReport, CleanupError>
@@ -18,10 +18,10 @@ where
                 crate::cleanup_completion::CleanupCompletion::Stopped,
             ));
         }
-        let batch_rows = u64::from(cleanup(batch_size).await?);
+        let batch_rows = u64::from(cleanup(cleanup_batch_size).await?);
         batches = batches.saturating_add(constants_u64::ONE);
         rows = rows.saturating_add(batch_rows);
-        if batch_rows < batch_size.get() {
+        if batch_rows < cleanup_batch_size.get() {
             return Ok(crate::cleanup_report::CleanupReport::new(
                 crate::cleanup_batch_count::CleanupBatchCount::from(batches),
                 crate::cleanup_rows::CleanupRows::from(rows),

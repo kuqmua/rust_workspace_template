@@ -19,15 +19,15 @@ pub enum HttpCorsAllowOriginHeaderValuesError {
 impl From<crate::allowed_origin_error::AllowedOriginError>
     for HttpCorsAllowOriginHeaderValuesError
 {
-    fn from(value: crate::allowed_origin_error::AllowedOriginError) -> Self {
-        let _: crate::allowed_origin_error::AllowedOriginError = value;
+    fn from(allowed_origin_error: crate::allowed_origin_error::AllowedOriginError) -> Self {
+        let _: crate::allowed_origin_error::AllowedOriginError = allowed_origin_error;
         Self::InvalidOrigin
     }
 }
 
 impl From<http::header::InvalidHeaderValue> for HttpCorsAllowOriginHeaderValuesError {
-    fn from(value: http::header::InvalidHeaderValue) -> Self {
-        let _: http::header::InvalidHeaderValue = value;
+    fn from(invalid_header_value: http::header::InvalidHeaderValue) -> Self {
+        let _: http::header::InvalidHeaderValue = invalid_header_value;
         Self::InvalidOrigin
     }
 }

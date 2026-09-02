@@ -19,8 +19,8 @@ pub struct RouteTestCategories(
 impl TryFrom<Vec<crate::route_test_category::RouteTestCategory>> for RouteTestCategories {
     type Error = bounded_types::bounded_value_error::BoundedValueError;
     fn try_from(
-        value: Vec<crate::route_test_category::RouteTestCategory>,
+        vec: Vec<crate::route_test_category::RouteTestCategory>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(vec).map(Self::from)
     }
 }

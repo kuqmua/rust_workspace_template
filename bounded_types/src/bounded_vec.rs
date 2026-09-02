@@ -33,10 +33,7 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
         crate::bounded_len::BoundedLen::from(self.0.len())
     }
 
-    pub fn try_push(
-        &mut self,
-        value: T,
-    ) -> Result<(), crate::bounded_value_error::BoundedValueError> {
+    pub fn try_push(&mut self, t: T) -> Result<(), crate::bounded_value_error::BoundedValueError> {
         let next_len = self
             .0
             .len()
@@ -46,15 +43,15 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
                 max: crate::bounded_len::BoundedLen::from(MAX),
             })?;
         crate::validate_len::validate_len::<0, MAX>(crate::bounded_len::BoundedLen::from(next_len))
-            .map(|()| self.0.push(value))
+            .map(|()| self.0.push(t))
     }
 }
 impl<T> BoundedVec<T, 0, { usize::MAX }> {
     pub fn try_from_collection_vec(
-        value: Vec<T>,
+        vec: Vec<T>,
     ) -> Result<Self, crate::bounded_value_error::BoundedValueError> {
         let bounded_value =
-            BoundedVec::<T, 0, { crate::collection_max_len::COLLECTION_MAX_LEN }>::try_from(value)?;
+            BoundedVec::<T, 0, { crate::collection_max_len::COLLECTION_MAX_LEN }>::try_from(vec)?;
         Self::try_from(bounded_value.into_inner())
     }
 
@@ -74,8 +71,8 @@ impl<T> BoundedVec<T, 0, { usize::MAX }> {
         bounded
     }
 
-    pub fn push_max_capacity(&mut self, value: T) {
-        self.0.push(value);
+    pub fn push_max_capacity(&mut self, t: T) {
+        self.0.push(t);
     }
 }
 impl<T, const MAX: usize> Default for BoundedVec<T, 0, MAX> {
@@ -92,11 +89,11 @@ impl<T, const MAX: usize> From<[T; 0]> for BoundedVec<T, 0, MAX> {
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {
     type Error = crate::bounded_value_error::BoundedValueError;
 
-    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
+    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
         crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(
-            value.len(),
+            vec.len(),
         ))
-        .map(|()| Self(value))
+        .map(|()| Self(vec))
     }
 }
 impl<T, const MIN: usize, const MAX: usize> AsRef<[T]> for BoundedVec<T, MIN, MAX> {
@@ -135,8 +132,9 @@ impl<T: utoipa::PartialSchema, const MIN: usize, const MAX: usize> utoipa::__dev
     for BoundedVec<T, MIN, MAX>
 {
     fn compose(
-        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+        vec: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        drop(vec);
         let builder = utoipa::openapi::ArrayBuilder::new()
             .items(<T as utoipa::PartialSchema>::schema())
             .min_items(Some(MIN));

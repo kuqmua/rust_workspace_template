@@ -9,24 +9,26 @@ pub struct AsyncRunHistory<RunReport> {
 impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
     #[must_use]
     pub fn new(
-        maximum_len: super::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize,
+        async_run_history_maximum_len_non_zero_usize: super::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize,
     ) -> Self {
         let reports = super::run_reports_vec_deque::RunReportsVecDeque::from(
-            std::collections::VecDeque::with_capacity(maximum_len.get()),
+            std::collections::VecDeque::with_capacity(
+                async_run_history_maximum_len_non_zero_usize.get(),
+            ),
         );
         Self {
-            maximum_len,
+            maximum_len: async_run_history_maximum_len_non_zero_usize,
             reports: super::shared_run_reports_arc::SharedRunReportsArc::from(
                 std::sync::Arc::from(tokio::sync::RwLock::new(reports)),
             ),
         }
     }
-    pub async fn push(&self, report: RunReport) {
+    pub async fn push(&self, run_report: RunReport) {
         let mut reports = self.reports.write().await;
         if reports.len() == self.maximum_len.get() {
             let _removed = reports.pop_front();
         }
-        reports.push_back(report);
+        reports.push_back(run_report);
     }
 }
 impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {

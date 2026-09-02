@@ -3,13 +3,13 @@ fn make_git_info() -> git_info::project_git_info::ProjectGitInfo<'static> {
         git_info::git_commit_id_ref::GitCommitIdRef::from(constants_str::TEST_VALUES_COMMIT),
     )
 }
-fn app_state_test_env<T>(value: &str) -> T
+fn app_state_test_env<T>(str: &str) -> T
 where
     T: config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk,
     T::Error: std::fmt::Debug,
 {
     T::try_from_std_env_var_ok(
-        config_lib::std_env_var_ok::StdEnvVarOk::try_from(value.to_owned())
+        config_lib::std_env_var_ok::StdEnvVarOk::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_53A63100),
     )
     .expect(constants_str::DIAGNOSTIC_3879E38D)
@@ -85,8 +85,8 @@ async fn test_cfg_accessors_forward_to_inner_config() {
     let git_info = make_git_info();
     let structure = make_structure(git_info);
     assert_eq!(
-        config_lib::domain_types::SrcPlaceTypeProvider::src_place_type(&structure),
-        &config_lib::src_place_type::SrcPlaceType::Github
+        config_lib::domain_types::SourcePlaceTypeProvider::source_place_type(&structure),
+        &config_lib::source_place_type::SourcePlaceType::Github
     );
     assert_eq!(
         config_lib::chrono_timezone::ChronoTimezoneProvider::chrono_timezone(&structure)

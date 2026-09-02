@@ -1,10 +1,10 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlUpdateSettingsError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn update_settings(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    form: crate::axum_admin_form::AxumAdminForm<crate::settings_form::SettingsForm>,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_form: crate::axum_admin_form::AxumAdminForm<crate::settings_form::SettingsForm>,
 ) -> axum::response::Response {
-    let Ok(auth) = crate::form_auth_impl::form_auth_impl(auth) else {
+    let Ok(auth) = crate::form_auth_impl::form_auth_impl(admin_auth_request) else {
         return axum::response::IntoResponse::into_response(crate::admin_error::AdminError::Csrf);
     };
     let (
@@ -16,7 +16,7 @@ pub(crate) async fn update_settings(
         site_name,
         support_url_form,
         tab_title_form,
-    ) = form.into_inner().into_parts();
+    ) = axum_admin_form.into_inner().into_parts();
     let parsed = (
         crate::optional_setting_impl::optional_setting_impl::<
             server_admin_contract::admin_main_logo::AdminMainLogo,
@@ -93,17 +93,18 @@ pub(crate) async fn update_settings(
             crate::admin_error::AdminError::Validation,
         );
     };
-    let request = server_admin_contract::admin_update_settings_req::AdminUpdateSettingsReq::new(
-        Some(default_admin_route),
-        main_logo,
-        organization_contacts,
-        organization_name,
-        primary_color,
-        Some(site_name),
-        support_url,
-        tab_title,
-        clear,
-    );
+    let request =
+        server_admin_contract::admin_update_settings_request::AdminUpdateSettingsRequest::new(
+            Some(default_admin_route),
+            main_logo,
+            organization_contacts,
+            organization_name,
+            primary_color,
+            Some(site_name),
+            support_url,
+            tab_title,
+            clear,
+        );
     crate::action_result_impl::action_result_impl(
         crate::settings_update::settings_update(
             auth,

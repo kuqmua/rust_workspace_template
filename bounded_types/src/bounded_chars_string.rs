@@ -13,9 +13,9 @@
 pub struct BoundedCharsString<const MIN: usize, const MAX: usize>(String);
 
 impl<const MIN: usize, const MAX: usize> BoundedCharsString<MIN, MAX> {
-    pub fn validate_str(value: &str) -> Result<(), crate::bounded_value_error::BoundedValueError> {
+    pub fn validate_str(str: &str) -> Result<(), crate::bounded_value_error::BoundedValueError> {
         crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(
-            value.chars().count(),
+            str.chars().count(),
         ))
     }
 
@@ -39,8 +39,8 @@ impl<const MIN: usize, const MAX: usize> AsRef<str> for BoundedCharsString<MIN, 
 impl<const MIN: usize, const MAX: usize> TryFrom<String> for BoundedCharsString<MIN, MAX> {
     type Error = crate::bounded_value_error::BoundedValueError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::validate_str(value.as_str()).map(|()| Self(value))
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        Self::validate_str(string.as_str()).map(|()| Self(string))
     }
 }
 

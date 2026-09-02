@@ -3,7 +3,7 @@ pub(crate) enum RunServerError {
     #[error("failed to build administrator authentication state: {0}")]
     AdminAuthState(server_admin::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError),
     #[error("invalid administrator cleanup configuration: {0}")]
-    AdminCleanupConfig(server_admin::admin_cleanup_cfg_error::AdminCleanupCfgError),
+    AdminCleanupConfig(server_admin::admin_cleanup_configuration_error::AdminCleanupConfigurationError),
     #[error("administrator cleanup task shutdown failed: {0}")]
     AdminCleanupShutdown(server_runtime_http::background_task_shutdown_error::BackgroundTaskShutdownError),
     #[error("failed to bind service socket: {0}")]

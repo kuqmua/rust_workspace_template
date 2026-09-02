@@ -20,18 +20,18 @@ pub struct AuthenticatedAdmin {
 impl AuthenticatedAdmin {
     #[must_use]
     pub const fn new(
-        display_name: crate::admin_display_name::AdminDisplayName,
-        id: crate::admin_user_id::AdminUserId,
-        login: crate::admin_login::AdminLogin,
-        permissions: crate::admin_permission_values::AdminPermissionValues,
-        roles: crate::admin_role_names::AdminRoleNames,
+        admin_display_name: crate::admin_display_name::AdminDisplayName,
+        admin_user_id: crate::admin_user_id::AdminUserId,
+        admin_login: crate::admin_login::AdminLogin,
+        admin_permission_values: crate::admin_permission_values::AdminPermissionValues,
+        admin_role_names: crate::admin_role_names::AdminRoleNames,
     ) -> Self {
         Self {
-            display_name,
-            id,
-            login,
-            permissions,
-            roles,
+            display_name: admin_display_name,
+            id: admin_user_id,
+            login: admin_login,
+            permissions: admin_permission_values,
+            roles: admin_role_names,
         }
     }
 
@@ -47,9 +47,9 @@ impl AuthenticatedAdmin {
     #[must_use]
     pub fn has_permission(
         &self,
-        permission: crate::admin_permission::AdminPermission,
+        admin_permission: crate::admin_permission::AdminPermission,
     ) -> crate::admin_bool::AdminBool {
-        let required = permission.as_str();
+        let required = admin_permission.as_str();
         crate::admin_bool::AdminBool::from(
             self.permissions
                 .as_ref()
@@ -58,8 +58,11 @@ impl AuthenticatedAdmin {
         )
     }
     #[must_use]
-    pub fn can_access(&self, page: crate::admin_page::AdminPage) -> crate::admin_bool::AdminBool {
-        crate::admin_bool::AdminBool::from(match page.authentication() {
+    pub fn can_access(
+        &self,
+        admin_page: crate::admin_page::AdminPage,
+    ) -> crate::admin_bool::AdminBool {
+        crate::admin_bool::AdminBool::from(match admin_page.authentication() {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Authenticated
             | frontend_contract::authentication_requirement::AuthenticationRequirement::Public => true,
             frontend_contract::authentication_requirement::AuthenticationRequirement::Permission(required) => self

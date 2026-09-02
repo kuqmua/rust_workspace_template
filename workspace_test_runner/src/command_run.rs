@@ -5,7 +5,7 @@
     proc_macro_new::New,
 )]
 pub(super) struct CommandRun {
-    command_index: crate::command_idx::CommandIdx,
+    command_index: crate::command_index::CommandIndex,
     duration: crate::command_duration::CommandDuration,
     log_text: crate::command_text::CommandText,
     status_text: crate::command_text::CommandText,

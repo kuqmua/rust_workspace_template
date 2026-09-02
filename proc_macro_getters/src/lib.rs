@@ -7,8 +7,8 @@
 struct GenerateAccessorTestDependencyMarker;
 
 #[proc_macro_derive(Getters, attributes(getters))]
-pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let parsed_input = match syn::parse::<syn::DeriveInput>(input) {
+pub fn getters(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let parsed_input = match syn::parse::<syn::DeriveInput>(token_stream) {
         Ok(value) => value,
         Err(error) => return error.into_compile_error().into(),
     };

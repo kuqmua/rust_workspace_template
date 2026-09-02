@@ -1,22 +1,26 @@
 pub(crate) fn data_filter(
-    table: server_admin_contract::admin_data_table::AdminDataTable,
-    query: &server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery,
+    admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
+    admin_data_table_filter_query: &server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery,
 ) -> Result<Option<crate::data_flt::DataFlt>, crate::admin_repository_error::AdminRepositoryError> {
     let payload = (|| {
-        let (Some(field), Some(operation)) = (query.field(), query.operation()) else {
-            return if query.field().is_none()
-                && query.operation().is_none()
-                && query.value().is_none()
-                && query.end().is_none()
+        let (Some(field), Some(operation)) = (
+            admin_data_table_filter_query.field(),
+            admin_data_table_filter_query.operation(),
+        ) else {
+            return if admin_data_table_filter_query.field().is_none()
+                && admin_data_table_filter_query.operation().is_none()
+                && admin_data_table_filter_query.value().is_none()
+                && admin_data_table_filter_query.end().is_none()
             {
                 Ok(None)
             } else {
                 Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
             };
         };
-        let fields = crate::admin_generated_table::AdminGeneratedTable::for_data_table(table)
-            .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
-            .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
+        let fields =
+            crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
+                .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
+                .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
         let field_contract = fields
             .as_ref()
             .iter()
@@ -27,7 +31,7 @@ pub(crate) fn data_filter(
         }
         let parse_value = |value: &server_admin_contract::admin_filter_value::AdminFilterValue| {
             let wire_value =
-                crate::admin_generated_table::AdminGeneratedTable::for_data_table(table)
+                crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
                     .and_then(|generated| {
                         generated.filter_value(
                             frontend_contract::form_field_name_ref::FormFieldNameRef::from(
@@ -51,18 +55,20 @@ pub(crate) fn data_filter(
         );
         match operation.value_shape() {
             frontend_contract::filter_value_shape::FilterValueShape::None => {
-                if query.value().is_some() || query.end().is_some() {
+                if admin_data_table_filter_query.value().is_some()
+                    || admin_data_table_filter_query.end().is_some()
+                {
                     return Err(
                         crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
                     );
                 }
             }
             frontend_contract::filter_value_shape::FilterValueShape::Range => {
-                let start = query
+                let start = admin_data_table_filter_query
                     .value()
                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                     .and_then(parse_value)?;
-                let end = query
+                let end = admin_data_table_filter_query
                     .end()
                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                     .and_then(parse_value)?;
@@ -77,12 +83,12 @@ pub(crate) fn data_filter(
                 );
             }
             frontend_contract::filter_value_shape::FilterValueShape::List => {
-                if query.end().is_some() {
+                if admin_data_table_filter_query.end().is_some() {
                     return Err(
                         crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
                     );
                 }
-                let values = query
+                let values = admin_data_table_filter_query
                     .value()
                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
                     .as_ref()
@@ -103,12 +109,12 @@ pub(crate) fn data_filter(
                 );
             }
             frontend_contract::filter_value_shape::FilterValueShape::Regex => {
-                if query.end().is_some() {
+                if admin_data_table_filter_query.end().is_some() {
                     return Err(
                         crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
                     );
                 }
-                let value = query
+                let value = admin_data_table_filter_query
                     .value()
                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                     .and_then(parse_value)?;
@@ -122,12 +128,12 @@ pub(crate) fn data_filter(
                     body.insert(constants_str::PG_CRUD_VALUES_FIELD.to_owned(), value);
             }
             frontend_contract::filter_value_shape::FilterValueShape::EncodedText => {
-                if query.end().is_some() {
+                if admin_data_table_filter_query.end().is_some() {
                     return Err(
                         crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
                     );
                 }
-                let value = query.value().ok_or(
+                let value = admin_data_table_filter_query.value().ok_or(
                     crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
                 )?;
                 let _body_encode_format_replaced = body.insert(
@@ -142,12 +148,12 @@ pub(crate) fn data_filter(
                 );
             }
             frontend_contract::filter_value_shape::FilterValueShape::Scalar => {
-                if query.end().is_some() {
+                if admin_data_table_filter_query.end().is_some() {
                     return Err(
                         crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
                     );
                 }
-                let value = query
+                let value = admin_data_table_filter_query
                     .value()
                     .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
                     .and_then(parse_value)?;
@@ -185,7 +191,7 @@ pub(crate) fn data_filter(
     let Some(payload_wrapper) = payload else {
         return Ok(None);
     };
-    crate::admin_generated_table::AdminGeneratedTable::for_data_table(table)
+    crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
         .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
         .parse_filter(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
             payload_wrapper.as_ref(),

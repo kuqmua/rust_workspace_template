@@ -1,11 +1,11 @@
 #[must_use]
 pub fn add_health_routes(
-    router: crate::axum_router::AxumRouter,
-    readiness: &crate::health_readiness::HealthReadiness,
+    axum_router: crate::axum_router::AxumRouter,
+    health_readiness: &crate::health_readiness::HealthReadiness,
 ) -> crate::axum_router::AxumRouter {
-    let readiness_for_route = readiness.clone();
+    let readiness_for_route = health_readiness.clone();
     crate::axum_router::AxumRouter::from(
-        axum::Router::from(router)
+        axum::Router::from(axum_router)
             .route(
                 constants_str::LIVE_PATH,
                 axum::routing::get(async || {

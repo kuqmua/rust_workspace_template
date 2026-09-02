@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
     fn validate_batch_fixture(
-        values: Vec<i32>,
-        maximum_invalid_items: usize,
-        duplicate_policy: crate::batch_duplicate_policy::BatchDuplicatePolicy,
+        vec: Vec<i32>,
+        usize: usize,
+        batch_duplicate_policy: crate::batch_duplicate_policy::BatchDuplicatePolicy,
     ) -> crate::batch_validation_report::BatchValidationReport<i32, i32, (usize, &'static str)>
     {
         crate::validate_batch_by_key::validate_batch_by_key(
-            values,
-            crate::batch_invalid_item_count::BatchInvalidItemCount::from(maximum_invalid_items),
-            duplicate_policy,
+            vec,
+            crate::batch_invalid_item_count::BatchInvalidItemCount::from(usize),
+            batch_duplicate_policy,
             |value| {
                 if value >= constants_i32::ZERO {
                     Ok(value)

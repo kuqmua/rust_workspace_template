@@ -9,7 +9,7 @@
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
 
 impl std::fmt::Debug for NotificationApiTokenRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(constants_str::NOTIFICATION_API_TOKEN_REDACTED)
     }
 }

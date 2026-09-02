@@ -1,5 +1,5 @@
 pub fn canonical_json_contract_snapshot<Payload>(
-    value: &Payload,
+    payload: &Payload,
     dynamic_fields: &[crate::json_snapshot_dynamic_field_ref::JsonSnapshotDynamicFieldRef<'_>],
 ) -> Result<
     crate::json_contract_snapshot::JsonContractSnapshot,
@@ -8,7 +8,7 @@ pub fn canonical_json_contract_snapshot<Payload>(
 where
     Payload: serde::Serialize,
 {
-    let mut normalized = serde_json::to_value(value).map_err(|_error| {
+    let mut normalized = serde_json::to_value(payload).map_err(|_error| {
         crate::json_contract_snapshot_error::JsonContractSnapshotError::Serialization
     })?;
     let mut pending = vec![&mut normalized];

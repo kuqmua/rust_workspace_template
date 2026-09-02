@@ -1,7 +1,8 @@
 pub fn validate_test_database_url(
-    url: crate::url_ref::UrlRef<'_>,
+    url_ref: crate::url_ref::UrlRef<'_>,
 ) -> Result<crate::sanitized_database_target::SanitizedDatabaseTarget, crate::url_error::UrlError> {
-    let Some((scheme, after_scheme)) = url.as_str().split_once(constants_str::TEXT_ALT_10) else {
+    let Some((scheme, after_scheme)) = url_ref.as_str().split_once(constants_str::TEXT_ALT_10)
+    else {
         return Err(crate::url_error::UrlError::Malformed);
     };
     if !matches!(scheme, constants_str::POSTGRES | constants_str::POSTGRESQL) {

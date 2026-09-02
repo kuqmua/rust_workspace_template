@@ -24,7 +24,7 @@ use leptos::prelude::{AddAnyAttr};
 pub(crate) fn AdminCheckbox(
     name: &'static str,
     value: &'static str,
-    #[prop(optional)] required: bool,
+    #[prop(optional)] bool: bool,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
         <singlestage::Checkbox
@@ -32,7 +32,7 @@ pub(crate) fn AdminCheckbox(
             class="peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs outline-none transition-shadow dark:bg-input/30 checked:border-primary checked:bg-primary checked:text-primary-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
             name=name
             value=value
-            required=required
+            required=bool
         />
     }
 }

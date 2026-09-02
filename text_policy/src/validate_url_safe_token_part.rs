@@ -1,9 +1,9 @@
 pub fn validate_url_safe_token_part(
-    value: crate::url_safe_token_part_ref::UrlSafeTokenPartRef<'_>,
-    maximum_bytes: crate::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes,
+    url_safe_token_part_ref: crate::url_safe_token_part_ref::UrlSafeTokenPartRef<'_>,
+    url_safe_token_part_maximum_bytes: crate::url_safe_token_part_maximum_bytes::UrlSafeTokenPartMaximumBytes,
 ) -> Result<(), crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError> {
-    let value_text: &str = value.into();
-    if value_text.len() > usize::from(maximum_bytes) {
+    let value_text: &str = url_safe_token_part_ref.into();
+    if value_text.len() > usize::from(url_safe_token_part_maximum_bytes) {
         return Err(crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError::TooLong);
     }
     if value_text.is_empty() {

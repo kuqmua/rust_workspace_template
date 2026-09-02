@@ -7,8 +7,9 @@ impl<T: utoipa::PartialSchema, const MAX: usize> utoipa::__dev::ComposeSchema
     for AdminOpenApiVec<T, MAX>
 {
     fn compose(
-        _new_generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+        vec: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        drop(vec);
         utoipa::openapi::ArrayBuilder::new()
             .items(<T as utoipa::PartialSchema>::schema())
             .max_items(Some(MAX))
@@ -18,15 +19,15 @@ impl<T: utoipa::PartialSchema, const MAX: usize> utoipa::__dev::ComposeSchema
 }
 impl<T: utoipa::ToSchema, const MAX: usize> utoipa::ToSchema for AdminOpenApiVec<T, MAX> {
     fn schemas(
-        schemas: &mut Vec<(
+        vec: &mut Vec<(
             String,
             utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
         )>,
     ) {
-        schemas.push((
+        vec.push((
             T::name().into_owned(),
             <T as utoipa::PartialSchema>::schema(),
         ));
-        T::schemas(schemas);
+        T::schemas(vec);
     }
 }

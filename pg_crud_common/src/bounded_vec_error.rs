@@ -28,8 +28,8 @@ pub enum BoundedVecError {
 }
 
 impl From<bounded_types::bounded_value_error::BoundedValueError> for BoundedVecError {
-    fn from(value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
-        match value {
+    fn from(bounded_value_error: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+        match bounded_value_error {
             bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual, max } => {
                 Self::AboveMax {
                     actual: crate::pg_bounded_vec_len::PgBoundedVecLen::from(actual.get()),

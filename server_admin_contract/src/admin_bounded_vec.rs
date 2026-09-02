@@ -31,8 +31,8 @@ impl<T> From<[T; 0]> for AdminBoundedVec<T> {
 }
 impl<T> TryFrom<Vec<T>> for AdminBoundedVec<T> {
     type Error = crate::admin_collection_error::AdminCollectionError;
-    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(value)
+    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(vec)
             .map(Self)
             .map_err(|_error| crate::admin_collection_error::AdminCollectionError::TooLong)
     }

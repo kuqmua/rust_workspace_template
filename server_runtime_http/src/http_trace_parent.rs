@@ -11,8 +11,8 @@ pub struct HttpTraceParent(String);
 impl TryFrom<String> for HttpTraceParent {
     type Error = crate::http_trace_parent_error::HttpTraceParentError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let bytes = value.as_bytes();
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        let bytes = string.as_bytes();
         if bytes.len() != 55usize
             || bytes.get(constants_usize::ZERO..3usize) != Some(b"00-")
             || bytes.get(35usize) != Some(&b'-')
@@ -20,8 +20,8 @@ impl TryFrom<String> for HttpTraceParent {
             || !bytes
                 .iter()
                 .enumerate()
-                .filter(|(idx, _byte)| !matches!(idx, 2usize | 35usize | 52usize))
-                .all(|(_idx, byte)| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+                .filter(|(index, _byte)| !matches!(index, 2usize | 35usize | 52usize))
+                .all(|(_index, byte)| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
         {
             return Err(Self::Error::Format);
         }
@@ -37,6 +37,6 @@ impl TryFrom<String> for HttpTraceParent {
         if parent_id.iter().all(|byte| *byte == b'0') {
             return Err(Self::Error::ZeroParentId);
         }
-        Ok(Self(value))
+        Ok(Self(string))
     }
 }

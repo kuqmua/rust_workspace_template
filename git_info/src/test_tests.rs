@@ -17,70 +17,69 @@ impl crate::git_commit_id_provider::GitCommitIdProvider for TestGitCommit {
             .then_some(crate::git_commit_id_ref::GitCommitIdRef::from(self.commit))
     }
 }
-fn make_test_git_commit(commit: &'static str, borrow_commit_ref: bool) -> TestGitCommit {
+fn make_test_git_commit(str: &'static str, bool: bool) -> TestGitCommit {
     TestGitCommit {
-        commit,
-        borrow_commit_ref,
+        commit: str,
+        borrow_commit_ref: bool,
         fallback_calls: std::cell::Cell::new(0),
     }
 }
-fn make_owned_test_git_commit(commit: &'static str) -> TestGitCommit {
-    make_test_git_commit(commit, false)
+fn make_owned_test_git_commit(str: &'static str) -> TestGitCommit {
+    make_test_git_commit(str, false)
 }
-fn make_borrowed_test_git_commit(commit: &'static str) -> TestGitCommit {
-    make_test_git_commit(commit, true)
+fn make_borrowed_test_git_commit(str: &'static str) -> TestGitCommit {
+    make_test_git_commit(str, true)
 }
-fn assert_fallback_calls(v: &TestGitCommit, exp: usize) {
-    assert_eq!(v.fallback_calls.get(), exp);
+fn assert_fallback_calls(test_git_commit: &TestGitCommit, usize: usize) {
+    assert_eq!(test_git_commit.fallback_calls.get(), usize);
 }
-fn assert_expected_git_commit_link(actual: impl AsRef<str>, exp_commit_id: &str) {
-    assert_eq!(actual.as_ref(), expected_git_commit_link(exp_commit_id));
+fn assert_expected_git_commit_link(actual: impl AsRef<str>, str: &str) {
+    assert_eq!(actual.as_ref(), expected_git_commit_link(str));
 }
-fn assert_commit_link_and_fallback_calls(
-    v: &TestGitCommit,
-    exp_commit_id: &str,
-    exp_fallback_calls: usize,
-) {
-    let link = crate::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link(v);
-    assert_expected_git_commit_link(&link, exp_commit_id);
-    assert_fallback_calls(v, exp_fallback_calls);
+fn assert_commit_link_and_fallback_calls(test_git_commit: &TestGitCommit, str: &str, usize: usize) {
+    let link = crate::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link(
+        test_git_commit,
+    );
+    assert_expected_git_commit_link(&link, str);
+    assert_fallback_calls(test_git_commit, usize);
 }
 fn assert_commit_id_cow_and_fallback_calls(
-    v: &TestGitCommit,
-    exp_commit_id: &str,
-    exp_is_borrowed: bool,
-    exp_fallback_calls: usize,
+    test_git_commit: &TestGitCommit,
+    str: &str,
+    bool: bool,
+    usize: usize,
 ) {
-    let commit_id = crate::git_commit_id_provider::GitCommitIdProvider::git_commit_id_cow(v);
-    assert_eq!(commit_id.as_ref(), exp_commit_id);
+    let commit_id =
+        crate::git_commit_id_provider::GitCommitIdProvider::git_commit_id_cow(test_git_commit);
+    assert_eq!(commit_id.as_ref(), str);
     assert_eq!(
         matches!(
             std::borrow::Cow::from(commit_id),
             std::borrow::Cow::Borrowed(_)
         ),
-        exp_is_borrowed,
+        bool,
     );
-    assert_fallback_calls(v, exp_fallback_calls);
+    assert_fallback_calls(test_git_commit, usize);
 }
 fn assert_commit_len_and_fallback_calls(
-    v: &TestGitCommit,
+    test_git_commit: &TestGitCommit,
     exp_commit_len: usize,
     exp_fallback_calls: usize,
 ) {
-    let commit_len =
-        crate::git_commit_id_provider::GitCommitIdProvider::with_git_commit_id(v, |commit_id| {
-            commit_id.as_ref().len()
-        });
+    let commit_len = crate::git_commit_id_provider::GitCommitIdProvider::with_git_commit_id(
+        test_git_commit,
+        |commit_id| commit_id.as_ref().len(),
+    );
     assert_eq!(commit_len, exp_commit_len);
-    assert_fallback_calls(v, exp_fallback_calls);
+    assert_fallback_calls(test_git_commit, exp_fallback_calls);
 }
 fn assert_with_git_commit_id_ref_or(
-    v: &TestGitCommit,
+    test_git_commit: &TestGitCommit,
     exp_commit_len: usize,
     exp_fallback_calls: usize,
 ) {
     let commit_len = crate::with_git_commit_id_ref_or::with_git_commit_id_ref_or(
-        v,
+        test_git_commit,
         |commit_id| commit_id.as_ref().len(),
         |src| {
             crate::git_commit_id_provider::GitCommitIdProvider::git_commit_id(src)
@@ -89,7 +88,7 @@ fn assert_with_git_commit_id_ref_or(
         },
     );
     assert_eq!(commit_len, exp_commit_len);
-    assert_fallback_calls(v, exp_fallback_calls);
+    assert_fallback_calls(test_git_commit, exp_fallback_calls);
 }
 fn expected_git_commit_link(commit_id_src: impl AsRef<str>) -> String {
     format!(

@@ -1,3 +1,8 @@
+#![allow(
+    unused_variables,
+    reason = "test tracing trait fixtures preserve repository type-based parameter names"
+)]
+
 const HTTP_ERROR_EVENT_REQUIRED_FIELD_MASK: u16 = (1u16 << 12u16) - 1u16;
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 struct HttpErrorEventCapture {
@@ -11,7 +16,7 @@ where
     fn on_event(
         &self,
         event: &tracing::Event<'_>,
-        _context: tracing_subscriber::layer::Context<'_, Subscriber>,
+        context: tracing_subscriber::layer::Context<'_, Subscriber>,
     ) {
         if *event.metadata().level() != tracing::Level::ERROR {
             return;
@@ -54,7 +59,7 @@ impl tracing::field::Visit for HttpErrorEventFieldVisitor {
     fn record_debug(&mut self, field: &tracing::field::Field, _value: &dyn std::fmt::Debug) {
         self.record_field(field);
     }
-    fn record_u64(&mut self, field: &tracing::field::Field, _value: u64) {
+    fn record_u64(&mut self, field: &tracing::field::Field, u64: u64) {
         self.record_field(field);
     }
 }
@@ -508,5 +513,3 @@ fn test_observed_client_preparation_injects_context_and_creates_child_span() {
         .shutdown()
         .expect(constants_str::DIAGNOSTIC_721FF26E);
 }
-
-// Root-owned module compatibility wrappers.

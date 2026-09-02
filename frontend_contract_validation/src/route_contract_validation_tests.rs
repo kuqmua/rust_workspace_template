@@ -17,12 +17,12 @@ mod tests {
     }
 
     fn route_validation_metadata(
-        method: frontend_contract::route_method::RouteMethod,
+        route_method: frontend_contract::route_method::RouteMethod,
         operation_id: &'static str,
         path: &'static str,
     ) -> frontend_contract::route_metadata::RouteMetadata {
         frontend_contract::route_metadata::RouteMetadata::new(
-            method,
+            route_method,
             operation_id.into(),
             path.into(),
         )

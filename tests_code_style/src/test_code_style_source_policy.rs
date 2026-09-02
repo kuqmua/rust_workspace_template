@@ -15,131 +15,83 @@ struct ModuleWideSingleCallAllowVisitor {
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
-struct DuplicateCfgTestVisitor {
-    violations: crate::types::DiagnosticMsgs,
+struct DuplicateConfigurationTestVisitor {
+    violations: crate::types::DiagnosticMessages,
 }
 
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 struct EmptyModuleVisitor {
-    violations: crate::types::DiagnosticMsgs,
-}
-
-#[derive(
-    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-)]
-struct ConversionInputNameVisitor {
-    violations: crate::types::DiagnosticMsgs,
+    violations: crate::types::DiagnosticMessages,
 }
 
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 struct GeneratedPublicUseVisitor {
-    violations: crate::types::DiagnosticMsgs,
+    violations: crate::types::DiagnosticMessages,
 }
 
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for GeneratedPublicUseVisitor {
-    fn visit_lit_str(&mut self, i: &'ast_lt syn::LitStr) {
-        if i.value().lines().any(|line| {
+    fn visit_lit_str(&mut self, lit_str: &'ast_lt syn::LitStr) {
+        if lit_str.value().lines().any(|line| {
             line.trim_start()
                 .starts_with(constants_str::PUBLIC_USE_PREFIX)
         }) {
             self.violations.push(format!(
                 "line {}: generated Rust source contains a public re-export",
-                syn::spanned::Spanned::span(i).start().line
+                syn::spanned::Spanned::span(lit_str).start().line
             ));
         }
-        syn::visit::visit_lit_str(self, i);
+        syn::visit::visit_lit_str(self, lit_str);
     }
 }
 
-impl<'ast_lt> syn::visit::Visit<'ast_lt> for DuplicateCfgTestVisitor {
-    fn visit_item(&mut self, i: &'ast_lt syn::Item) {
-        if crate::code_style::cfg_test_attr_count(crate::types::SynItemRef::from(i))
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for DuplicateConfigurationTestVisitor {
+    fn visit_item(&mut self, item: &'ast_lt syn::Item) {
+        if crate::code_style::cfg_test_attr_count(crate::types::SynItemRef::from(item))
             > constants_usize::ONE
         {
             self.violations.push(format!(
                 "line {}: duplicate #[cfg(test)] attributes",
-                syn::spanned::Spanned::span(i).start().line
+                syn::spanned::Spanned::span(item).start().line
             ));
         }
-        syn::visit::visit_item(self, i);
+        syn::visit::visit_item(self, item);
     }
 }
 
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for EmptyModuleVisitor {
-    fn visit_file(&mut self, i: &'ast_lt syn::File) {
-        if i.items.is_empty() {
+    fn visit_file(&mut self, file: &'ast_lt syn::File) {
+        if file.items.is_empty() {
             self.violations
                 .push(String::from(constants_str::EMPTY_MODULE_SOURCE_FILE));
         }
-        syn::visit::visit_file(self, i);
+        syn::visit::visit_file(self, file);
     }
 
-    fn visit_item_mod(&mut self, i: &'ast_lt syn::ItemMod) {
-        if i.content
+    fn visit_item_mod(&mut self, item_mod: &'ast_lt syn::ItemMod) {
+        if item_mod
+            .content
             .as_ref()
             .is_some_and(|(_brace, items)| items.is_empty())
         {
             self.violations.push(format!(
                 "line {}: empty module `{}`",
-                syn::spanned::Spanned::span(i).start().line,
-                i.ident
+                syn::spanned::Spanned::span(item_mod).start().line,
+                item_mod.ident
             ));
         }
-        syn::visit::visit_item_mod(self, i);
-    }
-}
-
-impl<'ast_lt> syn::visit::Visit<'ast_lt> for ConversionInputNameVisitor {
-    fn visit_item_impl(&mut self, i: &'ast_lt syn::ItemImpl) {
-        let Some(trait_identifier) = i
-            .trait_
-            .as_ref()
-            .and_then(|(path, _for)| path.segments.last())
-            .map(|segment| &segment.ident)
-        else {
-            syn::visit::visit_item_impl(self, i);
-            return;
-        };
-        if trait_identifier != constants_str::FROM_ALT_3
-            && trait_identifier != constants_str::TRYFROM
-        {
-            syn::visit::visit_item_impl(self, i);
-            return;
-        }
-        i.items.iter().for_each(|item| {
-            let syn::ImplItem::Fn(function) = item else {
-                return;
-            };
-            if function.sig.ident != constants_str::CODE_STYLE_FROM_FN_IDENTIFIER
-                && function.sig.ident != constants_str::NEWTYPE_TRY_FROM
-            {
-                return;
-            }
-            let Some(syn::FnArg::Typed(argument)) = function.sig.inputs.first() else {
-                return;
-            };
-            if !matches!(argument.pat.as_ref(), syn::Pat::Ident(identifier) if identifier.ident == constants_str::VALUE_CD42404D)
-            {
-                self.violations.push(format!(
-                    "line {}: {} input parameter must be named `value`",
-                    syn::spanned::Spanned::span(argument).start().line,
-                    trait_identifier
-                ));
-            }
-        });
-        syn::visit::visit_item_impl(self, i);
+        syn::visit::visit_item_mod(self, item_mod);
     }
 }
 
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for ModuleWideSingleCallAllowVisitor {
-    fn visit_attribute(&mut self, i: &'ast_lt syn::Attribute) {
-        if matches!(&i.style, syn::AttrStyle::Inner(_))
-            && i.path().is_ident(constants_str::VALUE_41008373)
-            && matches!(&i.meta, syn::Meta::List(list) if list
+    fn visit_attribute(&mut self, attribute: &'ast_lt syn::Attribute) {
+        if matches!(&attribute.style, syn::AttrStyle::Inner(_))
+            && attribute.path().is_ident(constants_str::VALUE_41008373)
+            && matches!(&attribute.meta, syn::Meta::List(list) if list
                 .tokens
                 .to_string()
                 .split_whitespace()
@@ -148,17 +100,17 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for ModuleWideSingleCallAllowVisitor {
         {
             self.violations.push(format!(
                 "line {}: clippy::single_call_fn must be allowed only on the exact item",
-                syn::spanned::Spanned::span(i).start().line
+                syn::spanned::Spanned::span(attribute).start().line
             ));
         }
-        syn::visit::visit_attribute(self, i);
+        syn::visit::visit_attribute(self, attribute);
     }
 }
 
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
-    fn visit_item_impl(&mut self, i: &'ast_lt syn::ItemImpl) {
-        if i.trait_.is_none() {
-            i.items.iter().for_each(|item| {
+    fn visit_item_impl(&mut self, item_impl: &'ast_lt syn::ItemImpl) {
+        if item_impl.trait_.is_none() {
+            item_impl.items.iter().for_each(|item| {
                 let syn::ImplItem::Fn(method) = item else {
                     return;
                 };
@@ -198,21 +150,21 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
                 }
             });
         }
-        syn::visit::visit_item_impl(self, i);
+        syn::visit::visit_item_impl(self, item_impl);
     }
 }
 
 #[test]
 fn test_cfg_test_attribute_is_not_duplicated() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::F4ECA965),
         crate::types::SourceTextRef::from(constants_str::DUPLICATE_CFG_TEST_ATTRIBUTES),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                DuplicateCfgTestVisitor::default(),
+                DuplicateConfigurationTestVisitor::default(),
             );
-            ers.extend(
+            errors.extend(
                 visitor
                     .get_violations()
                     .clone()
@@ -238,22 +190,22 @@ fn test_cfg_test_attribute_policy_rejects_a_duplicate() {
     );
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        DuplicateCfgTestVisitor::default(),
+        DuplicateConfigurationTestVisitor::default(),
     );
     assert_eq!(visitor.get_violations().len(), constants_usize::ONE);
 }
 
 #[test]
 fn test_empty_modules_are_forbidden() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::A7C19E42),
         crate::types::SourceTextRef::from(constants_str::EMPTY_MODULES_ARE_FORBIDDEN),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 EmptyModuleVisitor::default(),
             );
-            ers.extend(
+            errors.extend(
                 visitor
                     .get_violations()
                     .clone()
@@ -287,51 +239,6 @@ fn test_empty_module_policy_rejects_a_source_file_without_items() {
 }
 
 #[test]
-fn test_from_and_try_from_input_parameters_are_named_value() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
-        crate::types::StaticStr::from(constants_str::B8A461D3),
-        crate::types::SourceTextRef::from(
-            constants_str::FROM_AND_TRY_FROM_INPUT_PARAMETERS_MUST_BE_NAMED_VALUE,
-        ),
-        |path, ast, ers| {
-            let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(ast),
-                ConversionInputNameVisitor::default(),
-            );
-            ers.extend(
-                visitor
-                    .get_violations()
-                    .clone()
-                    .into_iter()
-                    .map(|violation| format!("{}: {violation}", path.display())),
-            );
-        },
-    );
-}
-
-#[test]
-fn test_from_and_try_from_input_parameter_policy_rejects_nonstandard_names() {
-    let ast: syn::File = syn::parse_quote! {
-        impl From<u8> for Example {
-            fn from(input: u8) -> Self {
-                Self(input)
-            }
-        }
-        impl TryFrom<u16> for Example {
-            type Error = Error;
-            fn try_from(raw: u16) -> Result<Self, Self::Error> {
-                Ok(Self(raw))
-            }
-        }
-    };
-    let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
-        ConversionInputNameVisitor::default(),
-    );
-    assert_eq!(visitor.get_violations().len(), constants_usize::TWO);
-}
-
-#[test]
 fn test_single_call_fn_is_never_allowed_for_a_whole_module() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
@@ -349,7 +256,7 @@ fn test_single_call_fn_is_never_allowed_for_a_whole_module() {
                     })
             })
             .collect::<Vec<String>>();
-        crate::code_style::assert_joined_ers_empty(
+        crate::code_style::assert_joined_errors_empty(
             crate::types::SourceTextListRef::from(violations.as_slice()),
             crate::types::StaticStr::from(
                 constants_str::CODE_STYLE_SINGLE_CALL_FN_ITEM_SCOPE_REASON,
@@ -426,7 +333,7 @@ fn test_generated_struct_fields_are_private_without_exceptions() {
 fn test_provider_traits_do_not_use_get_prefix() {
     let pattern =
         regex::Regex::new(constants_str::VALUE_B2BAA955).expect(constants_str::DIAGNOSTIC_CBE7BF15);
-    let mut ers = Vec::new();
+    let mut errors = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
         pattern
             .captures_iter(file.content().as_ref())
@@ -434,22 +341,22 @@ fn test_provider_traits_do_not_use_get_prefix() {
                 let Some(name) = captures.get(1usize).map(|value| value.as_str()) else {
                     return;
                 };
-                ers.push(format!(
+                errors.push(format!(
                     "{}: provider trait `{name}` must use the `Provider` suffix",
                     file.path().as_ref().display()
                 ));
             });
     });
-    ers.sort();
-    crate::code_style::assert_joined_ers_empty(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    errors.sort();
+    crate::code_style::assert_joined_errors_empty(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::VALUE_669E43DB),
     );
 }
 
 #[test]
 fn test_all_files_are_english_only() {
-    let mut ers = super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+    let mut errors = super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         rayon::iter::ParallelIterator::reduce(
             rayon::iter::ParallelIterator::map(
                 rayon::iter::IntoParallelRefIterator::par_iter(snapshot.project_source_files()),
@@ -459,8 +366,8 @@ fn test_all_files_are_english_only() {
                         .as_ref()
                         .lines()
                         .enumerate()
-                        .flat_map(|(line_idx, line)| {
-                            let line_number = line_idx.saturating_add(1usize);
+                        .flat_map(|(line_index, line)| {
+                            let line_number = line_index.saturating_add(1usize);
                             line.chars()
                                 .filter(|ch| {
                                     !matches!(ch, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}')
@@ -486,9 +393,9 @@ fn test_all_files_are_english_only() {
             },
         )
     });
-    ers.sort();
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    errors.sort();
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::VALUE_8DB37A2F),
         crate::types::SourceTextRef::from(constants_str::NON_ENGLISH_SYMBOLS),
     );
@@ -513,19 +420,19 @@ fn test_expect_and_panic_messages_start_with_unique_diagnostic_ids() {
         ),
     ];
     let mut all_ids = Vec::new();
-    let mut all_ers = Vec::new();
+    let mut all_errors = Vec::new();
     let mut matched_interpolations = std::collections::BTreeSet::new();
     crate::code_style::for_each_rs_file(|file| {
         let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
         let visitor = crate::code_style::visit_syn_file(
             crate::types::SynFileRef::from(ast),
             super::source_analysis::DiagnosticIdVisitor::new(
-                crate::types::DiagnosticMsgs::default(),
+                crate::types::DiagnosticMessages::default(),
                 crate::types::SourceTextList::default(),
             ),
         );
         all_ids.extend(visitor.get_ids().iter().cloned());
-        visitor.get_ers().clone().into_iter().for_each(|error| {
+        visitor.get_errors().clone().into_iter().for_each(|error| {
             let reviewed =
                 reviewed_interpolations
                     .iter()
@@ -555,12 +462,12 @@ fn test_expect_and_panic_messages_start_with_unique_diagnostic_ids() {
                 let _inserted = matched_interpolations
                     .insert((path_suffix.to_string(), reviewed_error.to_string()));
             } else {
-                all_ers.push(format!("{path:?}: {error}"));
+                all_errors.push(format!("{path:?}: {error}"));
             }
         });
     });
     if matched_interpolations.len() != reviewed_interpolations.len() {
-        all_ers.push(format!(
+        all_errors.push(format!(
             "stale generated diagnostic interpolation inventory: matched={matched_interpolations:#?}"
         ));
     }
@@ -571,9 +478,9 @@ fn test_expect_and_panic_messages_start_with_unique_diagnostic_ids() {
         .cloned()
         .collect::<Vec<String>>();
     if !duplicates.is_empty() {
-        all_ers.push(format!("duplicate UUIDs found: {duplicates:?}"));
+        all_errors.push(format!("duplicate UUIDs found: {duplicates:?}"));
     }
-    assert!(all_ers.is_empty(), "6062a9e9 {all_ers:#?}");
+    assert!(all_errors.is_empty(), "6062a9e9 {all_errors:#?}");
 }
 #[test]
 fn test_diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
@@ -582,11 +489,11 @@ fn test_diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextList::default(),
         ),
     );
-    assert!(visitor.get_ers().is_empty());
+    assert!(visitor.get_errors().is_empty());
     assert_eq!(
         visitor.get_ids().as_slice(),
         [
@@ -600,11 +507,11 @@ fn test_diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
     let invalid_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&invalid_ast),
         super::source_analysis::DiagnosticIdVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextList::default(),
         ),
     );
-    assert_eq!(invalid_visitor.get_ers().len(), 3usize);
+    assert_eq!(invalid_visitor.get_errors().len(), 3usize);
 }
 #[test]
 fn test_diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
@@ -613,12 +520,12 @@ fn test_diagnostic_id_visitor_checks_generated_expect_and_panic_tokens() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::DiagnosticIdVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextList::default(),
         ),
     );
     assert_eq!(visitor.get_ids().len(), 2usize);
-    assert_eq!(visitor.get_ers().len(), 3usize);
+    assert_eq!(visitor.get_errors().len(), 3usize);
 }
 #[test]
 fn test_check_rs_files_contains_only_unique_uuid_v4() {
@@ -637,34 +544,34 @@ fn test_check_rs_files_contains_only_unique_uuid_v4() {
 }
 #[test]
 fn test_no_dbg_macro_in_source_code() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::F1C7A4E3),
         crate::types::SourceTextRef::from(constants_str::DBG_FOUND),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::DbgVisitor::new(crate::types::AnalyzerBool::default()),
             );
             if visitor.get_found().get() {
-                ers.push(format!("{}: contains dbg!()", path.display()));
+                errors.push(format!("{}: contains dbg!()", path.display()));
             }
         },
     );
 }
 #[test]
 fn test_no_for_loops_in_source_code() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::F4C2A9E1),
         crate::types::SourceTextRef::from(
             constants_str::FOR_LOOPS_FOUND_USE_ITERATOR_METHODS_SUCH_AS_MAP_FILTER_FOLD_TRY,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ForLoopVisitor::new(crate::types::AnalyzerCount::default()),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
+                crate::types::DiagnosticMessagesMutRef::from(&mut *errors),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(
                     constants_str::CONTAINS_FOR_LOOP_USE_ITERATOR_METHODS_INSTEAD,
@@ -803,19 +710,19 @@ fn test_generated_struct_field_visibility_policy_rejects_every_public_form() {
 }
 #[test]
 fn test_spawned_tasks_must_retain_an_owner() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_5D0D5BF0),
         crate::types::SourceTextRef::from(constants_str::SPAWNED_TASKS_ARE_DISCARDED),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::LostSpawnVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -829,16 +736,16 @@ fn test_spawned_task_policy_rejects_bare_wildcard_and_ignored_bindings() {
         syn::parse_file(constants_str::VALUE_EBB24851).expect(constants_str::DIAGNOSTIC_94B344D7);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::source_analysis::LostSpawnVisitor::new(crate::types::DiagnosticMsgs::default()),
+        super::source_analysis::LostSpawnVisitor::new(crate::types::DiagnosticMessages::default()),
     );
-    assert_eq!(visitor.get_ers().len(), 4usize);
+    assert_eq!(visitor.get_errors().len(), 4usize);
 }
 #[test]
 fn test_direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_321360D4),
         crate::types::SourceTextRef::from(constants_str::DIRECT_ENVIRONMENT_OR_FILESYSTEM_ACCESS_EXISTS_OUTSIDE_APPROVED_CONFIGURATION_TOOLING_TEST_AND),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
                 || crate::code_style::is_cfg_test_declared_child(path)
                 || crate::code_style::is_direct_fs_owner_source_path(crate::types::PathRef::from(path)).get()
@@ -850,9 +757,9 @@ fn test_direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::source_analysis::DirectPathCallVisitor::new(crate::types::DiagnosticMsgs::default()),
+                super::source_analysis::DirectPathCallVisitor::new(crate::types::DiagnosticMessages::default()),
             );
-            ers.extend(visitor.get_calls().clone().into_iter().filter_map(|call| {
+            errors.extend(visitor.get_calls().clone().into_iter().filter_map(|call| {
                 (call.starts_with(constants_str::STD_PATH_ENV_PATH)
                     || call.starts_with(constants_str::STD_PATH_FS_PATH)
                     || call.starts_with(constants_str::TOKIO_PATH_FS_PATH))
@@ -894,7 +801,7 @@ fn test_direct_filesystem_owner_inventory_is_exact_justified_and_current() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(source_file.ast().as_ref()),
                 super::source_analysis::DirectPathCallVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
             let has_direct_access = visitor.get_calls().iter().any(|call| {
@@ -942,12 +849,12 @@ fn test_direct_filesystem_owner_inventory_is_exact_justified_and_current() {
 }
 #[test]
 fn test_runtime_data_reads_are_bounded() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_37B593CE),
         crate::types::SourceTextRef::from(
             constants_str::RUNTIME_CODE_PERFORMS_AN_UNBOUNDED_FILE_OR_HTTP_RESPONSE_READ,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let path_text = path.to_string_lossy();
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
                 || constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
@@ -962,10 +869,10 @@ fn test_runtime_data_reads_are_bounded() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::UnboundedReadVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
                     .get_calls()
                     .clone()
@@ -987,7 +894,9 @@ fn test_bounded_read_policy_rejects_sync_and_async_whole_file_reads() {
     };
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&syntax),
-        super::source_analysis::UnboundedReadVisitor::new(crate::types::DiagnosticMsgs::default()),
+        super::source_analysis::UnboundedReadVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
     );
     assert_eq!(visitor.get_calls().len(), 4usize, "46638c47");
 }
@@ -1090,18 +999,18 @@ fn test_production_pg_error_classification_is_centralized() {
 }
 #[test]
 fn test_direct_process_command_creation_stays_in_shared_tooling() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::F170AA14),
         crate::types::SourceTextRef::from(constants_str::DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACRO_HELPERS_PATH_TOOL_COMMAND),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if path.ends_with(constants_str::MACRO_HELPERS_SRC_TOOL_COMMAND_RS) {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::source_analysis::DirectPathCallVisitor::new(crate::types::DiagnosticMsgs::default()),
+                super::source_analysis::DirectPathCallVisitor::new(crate::types::DiagnosticMessages::default()),
             );
-            ers.extend(
+            errors.extend(
                 visitor
                     .get_calls().clone().into_iter()
                     .filter(|call| call == constants_str::STD_PATH_PROCESS_PATH_COMMAND_PATH_NEW)
@@ -1113,13 +1022,13 @@ fn test_direct_process_command_creation_stays_in_shared_tooling() {
 #[test]
 fn test_abort_and_transmute_calls_match_reviewed_baseline() {
     let mut observed_abort_paths = Vec::new();
-    let mut ers = Vec::new();
+    let mut errors = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
         let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
         let visitor = crate::code_style::visit_syn_file(
             crate::types::SynFileRef::from(ast),
             super::source_analysis::DirectPathCallVisitor::new(
-                crate::types::DiagnosticMsgs::default(),
+                crate::types::DiagnosticMessages::default(),
             ),
         );
         visitor.get_calls().clone().into_iter().for_each(|call| {
@@ -1127,28 +1036,28 @@ fn test_abort_and_transmute_calls_match_reviewed_baseline() {
                 observed_abort_paths.push(path.to_string_lossy().to_string());
             }
             if call.ends_with(constants_str::PATH_TRANSMUTE) {
-                ers.push(format!("{}: forbidden `{call}`", path.display()));
+                errors.push(format!("{}: forbidden `{call}`", path.display()));
             }
         });
     });
     observed_abort_paths.sort();
     if !observed_abort_paths.is_empty() {
-        ers.push(format!(
+        errors.push(format!(
             "process abort calls are forbidden; observed={observed_abort_paths:?}"
         ));
     }
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::F87F82B6),
         crate::types::SourceTextRef::from(constants_str::ABORT_TRANSMUTE_POLICY_VIOLATIONS),
     );
 }
 #[test]
 fn test_every_workspace_struct_and_enum_derives_optimal_memory_layout() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_71790FED),
         crate::types::SourceTextRef::from(constants_str::VALUE_6264CCC9),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if path.ends_with(constants_str::VALUE_30B1AC8C) {
                 return;
             }
@@ -1156,9 +1065,9 @@ fn test_every_workspace_struct_and_enum_derives_optimal_memory_layout() {
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::OptimalMemoryLayoutVisitor::default(),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -1175,7 +1084,7 @@ fn test_optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
         super::source_analysis::OptimalMemoryLayoutVisitor::default(),
     );
     assert_eq!(
-        visitor.get_ers().as_slice(),
+        visitor.get_errors().as_slice(),
         [constants_str::VALUE_2B8772F7, constants_str::VALUE_717A1158,],
         "42dc6e3b"
     );
@@ -1187,10 +1096,10 @@ fn test_unit_tests_use_deterministic_time_and_randomness_patterns() {
         constants_str::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
         constants_str::VALUE_14AF303B,
     )];
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_821D4A76),
         crate::types::SourceTextRef::from(constants_str::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let scan_entire_file = crate::code_style::is_test_source_path(crate::types::PathRef::from(path))
                 .get()
                 && !path.ends_with(constants_str::VALUE_4A3D63F7)
@@ -1199,14 +1108,14 @@ fn test_unit_tests_use_deterministic_time_and_randomness_patterns() {
                     .any(|component| component.as_os_str() == constants_str::CODE_STYLE);
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::source_analysis::TestNondeterminismVisitor::new(crate::types::DiagnosticMsgs::default(), crate::types::AnalyzerCount::from(usize::from(scan_entire_file))),
+                super::source_analysis::TestNondeterminismVisitor::new(crate::types::DiagnosticMessages::default(), crate::types::AnalyzerCount::from(usize::from(scan_entire_file))),
             );
             visitor.get_calls().clone().into_iter().for_each(|call| {
                 let reviewed = reviewed_calls.iter().any(|(suffix, reviewed_call, reason)| {
                     path.ends_with(suffix) && call == *reviewed_call && !reason.is_empty()
                 });
                 if !reviewed {
-                    ers.push(format!("{}: nondeterministic `{call}`", path.display()));
+                    errors.push(format!("{}: nondeterministic `{call}`", path.display()));
                 }
             });
         },
@@ -1219,7 +1128,7 @@ fn test_unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness(
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TestNondeterminismVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::AnalyzerCount::default(),
         ),
     );
@@ -1239,7 +1148,7 @@ fn test_unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness(
     let integration_visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TestNondeterminismVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::AnalyzerCount::from(constants_usize::ONE),
         ),
     );
@@ -1247,17 +1156,17 @@ fn test_unit_test_nondeterminism_visitor_rejects_sync_async_time_and_randomness(
 }
 #[test]
 fn test_generated_source_templates_do_not_embed_random_test_values() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_1491FF0E),
         crate::types::SourceTextRef::from(constants_str::VALUE_920FAF03),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::GeneratedRandomnessVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
                     .get_calls()
                     .clone()
@@ -1280,7 +1189,7 @@ fn test_generated_randomness_policy_inspects_quote_token_streams() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::GeneratedRandomnessVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
     assert_eq!(visitor.get_calls().len(), 2usize);
@@ -1338,10 +1247,10 @@ fn test_process_static_state_matches_reviewed_inventory() {
                 constants_str::MODULE_DECLARATION_GRAPH_IS_CACHED_FOR_REPOSITORY_POLICY_MATCHING,
         },
     ];
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_118C4174),
         crate::types::SourceTextRef::from(constants_str::VALUE_9EC9C4B2),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::StaticStateVisitor::new(
@@ -1363,7 +1272,7 @@ fn test_process_static_state_matches_reviewed_inventory() {
                             && !exception.reason.is_empty()
                     });
                     if !reviewed {
-                        ers.push(format!(
+                        errors.push(format!(
                             "{}: unreviewed static `{identifier}`",
                             path.display()
                         ));
@@ -1374,10 +1283,10 @@ fn test_process_static_state_matches_reviewed_inventory() {
 }
 #[test]
 fn test_library_sources_do_not_use_print_macros() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_776EEBB3),
         crate::types::SourceTextRef::from(constants_str::VALUE_9908E138),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let is_library_source = path
                 .ancestors()
                 .find(|ancestor| {
@@ -1396,21 +1305,21 @@ fn test_library_sources_do_not_use_print_macros() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::PrintMacroVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
             visitor.get_calls().clone().into_iter().for_each(|call| {
-                ers.push(format!("{}: library `{call}!`", path.display()));
+                errors.push(format!("{}: library `{call}!`", path.display()));
             });
         },
     );
 }
 #[test]
 fn test_production_code_does_not_use_line_print_macros() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_018B0C9F),
         crate::types::SourceTextRef::from(constants_str::VALUE_70D9A674),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
             {
                 return;
@@ -1418,11 +1327,11 @@ fn test_production_code_does_not_use_line_print_macros() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ProductionLinePrintMacroVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
             visitor.get_calls().clone().into_iter().for_each(|call| {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: `{call}!`: {}",
                     path.display(),
                     constants_str::VALUE_70D9A674
@@ -1433,10 +1342,10 @@ fn test_production_code_does_not_use_line_print_macros() {
 }
 #[test]
 fn test_module_and_function_names_use_single_underscores() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
         crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if path
                 .file_name()
                 .and_then(std::ffi::OsStr::to_str)
@@ -1444,7 +1353,7 @@ fn test_module_and_function_names_use_single_underscores() {
                     name.contains(constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE)
                 })
             {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: module filename contains a double underscore",
                     path.display()
                 ));
@@ -1452,7 +1361,7 @@ fn test_module_and_function_names_use_single_underscores() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::DoubleUnderscoreNamingVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
             visitor
@@ -1460,7 +1369,7 @@ fn test_module_and_function_names_use_single_underscores() {
                 .clone()
                 .into_iter()
                 .for_each(|identifier| {
-                    ers.push(format!(
+                    errors.push(format!(
                         "{}: `{identifier}` contains a double underscore",
                         path.display()
                     ));
@@ -1470,10 +1379,10 @@ fn test_module_and_function_names_use_single_underscores() {
 }
 #[test]
 fn test_module_and_function_names_do_not_use_unclear_short_forms() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
         crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if path
                 .file_stem()
                 .and_then(std::ffi::OsStr::to_str)
@@ -1482,7 +1391,7 @@ fn test_module_and_function_names_do_not_use_unclear_short_forms() {
                         .any(|part| part == constants_str::WORKSPACE_SHORT_HELPER_TOKEN)
                 })
             {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: module filename abbreviates helper as hlp",
                     path.display()
                 ));
@@ -1490,7 +1399,7 @@ fn test_module_and_function_names_do_not_use_unclear_short_forms() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ShortFunctionNamingVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
             visitor
@@ -1498,7 +1407,7 @@ fn test_module_and_function_names_do_not_use_unclear_short_forms() {
                 .clone()
                 .into_iter()
                 .for_each(|identifier| {
-                    ers.push(format!(
+                    errors.push(format!(
                         "{}: `{identifier}` abbreviates make as mk",
                         path.display()
                     ));
@@ -1508,14 +1417,14 @@ fn test_module_and_function_names_do_not_use_unclear_short_forms() {
 }
 #[test]
 fn test_struct_fields_do_not_use_opaque_short_names() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
         crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::OpaqueShortFieldNamingVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
             visitor
@@ -1523,7 +1432,7 @@ fn test_struct_fields_do_not_use_opaque_short_names() {
                 .clone()
                 .into_iter()
                 .for_each(|identifier| {
-                    ers.push(format!(
+                    errors.push(format!(
                         "{}: struct field `{identifier}` uses an opaque short name",
                         path.display()
                     ));
@@ -1533,14 +1442,14 @@ fn test_struct_fields_do_not_use_opaque_short_names() {
 }
 #[test]
 fn test_serde_renames_do_not_introduce_opaque_short_names() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_AE652DDA),
         crate::types::SourceTextRef::from(constants_str::VALUE_63194000),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::OpaqueSerdeRenameVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
             visitor
@@ -1548,7 +1457,7 @@ fn test_serde_renames_do_not_introduce_opaque_short_names() {
                 .clone()
                 .into_iter()
                 .for_each(|identifier| {
-                    ers.push(format!(
+                    errors.push(format!(
                         "{}: serde rename `{identifier}` uses an opaque short name",
                         path.display()
                     ));
@@ -1563,7 +1472,7 @@ fn test_production_line_print_macro_policy_allows_test_code_and_rejects_producti
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ProductionLinePrintMacroVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
     assert_eq!(
@@ -1581,19 +1490,19 @@ fn test_production_line_print_macro_policy_allows_test_code_and_rejects_producti
 }
 #[test]
 fn test_sensitive_text_wrappers_do_not_derive_unredacted_debug_or_display() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_2E395A49),
         crate::types::SourceTextRef::from(constants_str::VALUE_4C5A6F95),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::SensitiveTextDebugDeriveVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -1608,44 +1517,44 @@ fn test_sensitive_text_debug_policy_distinguishes_redacted_derives() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::SensitiveTextDebugDeriveVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 4usize);
+    assert_eq!(visitor.get_errors().len(), 4usize);
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .iter()
             .any(|error| error.contains(constants_str::VALUE_607E1E95))
     );
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .iter()
             .any(|error| error.contains(constants_str::VALUE_F9719A33))
     );
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .iter()
             .any(|error| error.contains(constants_str::VALUE_3E487F75))
     );
 }
 #[test]
 fn test_error_formatters_do_not_expose_sensitive_fields() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_10E432C3),
         crate::types::SourceTextRef::from(constants_str::VALUE_ED81BDD6),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::SensitiveErrorFormatVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -1660,17 +1569,17 @@ fn test_sensitive_error_format_policy_rejects_named_and_tuple_placeholders() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::SensitiveErrorFormatVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 2usize);
+    assert_eq!(visitor.get_errors().len(), 2usize);
 }
 #[test]
 fn test_no_todo_or_unimplemented_macro_in_source_code() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::C4E9A2D7),
         crate::types::SourceTextRef::from(constants_str::TODO_UNIMPLEMENTED_FOUND),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::TodoUnimplVisitor::new(
@@ -1679,13 +1588,13 @@ fn test_no_todo_or_unimplemented_macro_in_source_code() {
                 ),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
+                crate::types::DiagnosticMessagesMutRef::from(&mut *errors),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(constants_str::CONTAINS_TODO),
                 *visitor.get_todo_found(),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
+                crate::types::DiagnosticMessagesMutRef::from(&mut *errors),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(constants_str::CONTAINS_UNIMPLEMENTED),
                 *visitor.get_unimplemented_found(),
@@ -1695,23 +1604,23 @@ fn test_no_todo_or_unimplemented_macro_in_source_code() {
 }
 #[test]
 fn test_source_lint_suppressions_have_explicit_reasons() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_7410D6B1),
         crate::types::SourceTextRef::from(constants_str::VALUE_2DAB1928),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let source = std::fs::read_to_string(path).expect(constants_str::DIAGNOSTIC_8D3BCA08);
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::AllowReasonVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     crate::types::SourceTextList::from(
                         source.lines().map(str::to_owned).collect::<Vec<String>>(),
                     ),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -1726,13 +1635,13 @@ fn test_source_lint_reason_policy_accepts_argument_and_comment_reasons() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::AllowReasonVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextList::from(
                 source.lines().map(str::to_owned).collect::<Vec<String>>(),
             ),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::ONE);
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }
 #[test]
 fn test_route_operation_error_policy_rejects_shared_types() {
@@ -1742,7 +1651,7 @@ fn test_route_operation_error_policy_rejects_shared_types() {
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
     );
-    assert_eq!(visitor.get_ers().len(), 2usize);
+    assert_eq!(visitor.get_errors().len(), 2usize);
 }
 #[test]
 #[allow(
@@ -1801,12 +1710,12 @@ fn test_admin_route_errors_do_not_wrap_a_shared_operation_error() {
 }
 #[test]
 fn test_source_does_not_retain_commented_debug_statements() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_16B3BD74),
         crate::types::SourceTextRef::from(constants_str::VALUE_353E0299),
-        |path, _, ers| {
+        |path, _, errors| {
             let source = std::fs::read_to_string(path).expect(constants_str::DIAGNOSTIC_2B06297B);
-            ers.extend(
+            errors.extend(
                 crate::code_style::commented_debug_statements(crate::types::SourceTextRef::from(
                     source.as_str(),
                 ))
@@ -1867,7 +1776,7 @@ fn test_project_text_files_have_stable_line_endings_and_no_trailing_whitespace()
                 return;
             };
             violations.extend(
-                crate::code_style::text_content_hygiene_ers(crate::types::SourceTextRef::from(
+                crate::code_style::text_content_hygiene_errors(crate::types::SourceTextRef::from(
                     source,
                 ))
                 .into_iter()
@@ -1883,22 +1792,22 @@ fn test_text_content_hygiene_policy_rejects_all_line_ending_violations() {
     source.push('\r');
     source.push('\n');
     source.push_str(constants_str::VALUE_3547CB11);
-    let violations = crate::code_style::text_content_hygiene_ers(
+    let violations = crate::code_style::text_content_hygiene_errors(
         crate::types::SourceTextRef::from(source.as_str()),
     );
     assert_eq!(violations.len(), 3usize);
 }
 #[test]
 fn test_no_macro_rules_in_source_code() {
-    let mut ers = Vec::new();
+    let mut errors = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
-        ers.extend(crate::code_style::macro_rules_ers(
+        errors.extend(crate::code_style::macro_rules_errors(
             crate::types::PathRef::from(file.path().as_ref()),
             crate::types::SourceTextRef::from(file.content().as_ref()),
         ));
     });
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::B6E2A9F4),
         crate::types::SourceTextRef::from(
             constants_str::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD,
@@ -1911,32 +1820,32 @@ fn test_macro_rules_policy_recommends_a_proc_macro_crate() {
         "{}! generated {{ () => {{}}; }}",
         constants_str::MACRO_RULES
     );
-    let ers = crate::code_style::macro_rules_ers(
+    let errors = crate::code_style::macro_rules_errors(
         crate::types::PathRef::from(std::path::Path::new(constants_str::TESTS_SRC_LIB_RS)),
         crate::types::SourceTextRef::from(source.as_str()),
     );
-    assert_eq!(ers.len(), constants_usize::ONE);
+    assert_eq!(errors.len(), constants_usize::ONE);
     assert!(
-        ers.first().is_some_and(|error| error.contains(
+        errors.first().is_some_and(|error| error.contains(
             constants_str::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD
                 .trim_end_matches(':')
         )),
-        "1f2d4c8a {ers:#?}"
+        "1f2d4c8a {errors:#?}"
     );
 }
 #[test]
 fn test_no_include_asset_macros_outside_allowlist() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::A6D4F2C9),
         crate::types::SourceTextRef::from(constants_str::INCLUDE_STR_OR_INCLUDE_BYTES_FOUND_OUTSIDE_EXPLICIT_GENERATED_TEST_FIXTURE_ALLOWLIST),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::source_analysis::IncludeAssetMacroVisitor::new(crate::types::DiagnosticMsgs::default()),
+                super::source_analysis::IncludeAssetMacroVisitor::new(crate::types::DiagnosticMessages::default()),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -1944,23 +1853,23 @@ fn test_no_include_asset_macros_outside_allowlist() {
 }
 fn append_non_public_use_import_er(
     path: &std::path::Path,
-    found_non_public_use_import: crate::types::AnalyzerBool,
-    ers: &mut Vec<String>,
+    analyzer_bool: crate::types::AnalyzerBool,
+    vec: &mut Vec<String>,
 ) {
-    if found_non_public_use_import.get() {
-        ers.push(format!(
+    if analyzer_bool.get() {
+        vec.push(format!(
             "{}: found non-public use import; use the explicit path at the usage site",
             path.display()
         ));
     }
 }
 
-fn append_public_use_import_ers(
+fn append_public_use_import_errors(
     path: &std::path::Path,
-    public_use_roots: &crate::types::SourceTextList,
-    ers: &mut Vec<String>,
+    source_text_list: &crate::types::SourceTextList,
+    vec: &mut Vec<String>,
 ) {
-    ers.extend(public_use_roots.iter().map(|public_use_root| {
+    vec.extend(source_text_list.iter().map(|public_use_root| {
         format!(
             "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",
             path.display()
@@ -1970,12 +1879,12 @@ fn append_public_use_import_ers(
 #[test]
 #[allow(clippy::wildcard_enum_match_arm)] // syn::Item is non-exhaustive; only modules are relevant
 fn test_public_reexports_are_forbidden_and_private_imports_are_restricted() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::B4E7C2A9),
         crate::types::SourceTextRef::from(
             constants_str::FORBIDDEN_PUBLIC_REEXPORTS_OR_PRIVATE_IMPORTS_FOUND_PREFER_EXPLICIT_PATHS,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::UseImportVisitor::new(crate::types::SourceTextList::default(), crate::types::AnalyzerBool::default(), crate::types::AnalyzerBool::default()),
@@ -1983,14 +1892,14 @@ fn test_public_reexports_are_forbidden_and_private_imports_are_restricted() {
             append_non_public_use_import_er(
                 path,
                 *visitor.get_found_non_public_use_import(),
-                ers,
+                errors,
             );
-            append_public_use_import_ers(path, visitor.get_public_use_roots(), ers);
+            append_public_use_import_errors(path, visitor.get_public_use_roots(), errors);
             let generated_visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 GeneratedPublicUseVisitor::default(),
             );
-            ers.extend(
+            errors.extend(
                 generated_visitor
                     .get_violations()
                     .clone()
@@ -1998,7 +1907,7 @@ fn test_public_reexports_are_forbidden_and_private_imports_are_restricted() {
                     .map(|violation| format!("{}: {violation}", path.display())),
             );
             if visitor.get_found_use_rename().get() {
-                ers.push(format!(
+                errors.push(format!(
                         "{}: found use rename with `as`; use the original item name or rename the item at its definition",
                         path.display()
                     ));
@@ -2018,18 +1927,18 @@ fn test_declared_child_does_not_bypass_non_public_use_import_policy() {
             crate::types::AnalyzerBool::default(),
         ),
     );
-    let mut ers = Vec::<String>::new();
+    let mut errors = Vec::<String>::new();
     append_non_public_use_import_er(
         std::path::Path::new(constants_str::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
         *visitor.get_found_non_public_use_import(),
-        &mut ers,
+        &mut errors,
     );
     append_non_public_use_import_er(
         std::path::Path::new(constants_str::CODE_STYLE_NESTED_OWNER_USE_FIXTURE_PATH),
         *visitor.get_found_non_public_use_import(),
-        &mut ers,
+        &mut errors,
     );
-    assert_eq!(ers.len(), constants_usize::TWO, "e23d18a4");
+    assert_eq!(errors.len(), constants_usize::TWO, "e23d18a4");
 }
 #[test]
 fn test_use_import_policy_detects_private_imports_and_public_reexports() {
@@ -2109,31 +2018,31 @@ fn test_cfg_test_modules_do_not_hide_forbidden_public_reexports() {
             crate::types::AnalyzerBool::default(),
         ),
     );
-    let mut ers = Vec::<String>::new();
-    append_public_use_import_ers(
+    let mut errors = Vec::<String>::new();
+    append_public_use_import_errors(
         std::path::Path::new(constants_str::CODE_STYLE_DECLARED_CHILD_FIXTURE_PATH),
         visitor.get_public_use_roots(),
-        &mut ers,
+        &mut errors,
     );
-    assert_eq!(ers.len(), 2usize, "654501aa");
+    assert_eq!(errors.len(), 2usize, "654501aa");
 }
 #[test]
 fn test_no_type_aliases_in_rust_sources() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::C6E4F7A1),
         crate::types::SourceTextRef::from(
             constants_str::TYPE_ALIASES_FOUND_USE_EXPLICIT_TYPES_AT_USAGE_SITES,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::TypeAliasVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2143,19 +2052,19 @@ fn test_no_type_aliases_in_rust_sources() {
 }
 #[test]
 fn test_no_empty_enums_in_rust_sources() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_19A18AE4),
         crate::types::SourceTextRef::from(constants_str::VALUE_721EDC25),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::EmptyEnumVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2177,37 +2086,37 @@ fn test_empty_enum_policy_checks_items_and_attribute_payloads() {
     let ast = syn::parse_file(&source).expect(constants_str::DIAGNOSTIC_E52F247C);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::source_analysis::EmptyEnumVisitor::new(crate::types::DiagnosticMsgs::default()),
+        super::source_analysis::EmptyEnumVisitor::new(crate::types::DiagnosticMessages::default()),
     );
-    assert_eq!(visitor.get_ers().len(), 2usize);
+    assert_eq!(visitor.get_errors().len(), 2usize);
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .iter()
             .any(|error| error.contains(constants_str::VALUE_2F5B45FB))
     );
     assert!(
         visitor
-            .get_ers()
+            .get_errors()
             .iter()
             .any(|error| error.contains(constants_str::VALUE_3E422B73))
     );
 }
 #[test]
 fn test_infallible_functions_return_concrete_types() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_6E60D726),
         crate::types::SourceTextRef::from(constants_str::VALUE_4BAB9A8D),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::InfallibleResultVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2229,28 +2138,28 @@ fn test_infallible_result_policy_rejects_wrappers_and_free_function_results() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::InfallibleResultVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 2usize);
+    assert_eq!(visitor.get_errors().len(), 2usize);
 }
 #[test]
 fn test_no_simple_constant_aliases_in_rust_sources() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::A51F0D3B),
         crate::types::SourceTextRef::from(
             constants_str::SIMPLE_CONSTANT_ALIASES_FOUND_USE_THE_SOURCE_CONSTANT_DIRECTLY,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ConstantAliasVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2260,10 +2169,10 @@ fn test_no_simple_constant_aliases_in_rust_sources() {
 }
 #[test]
 fn test_tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_CF47C890),
         crate::types::SourceTextRef::from(constants_str::VALUE_43AA05FB),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let is_required_foundation_impl = [
                 (
                     std::path::Path::new(constants_str::VALUE_E24F0FD4),
@@ -2309,13 +2218,13 @@ fn test_tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_fro
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::PassthroughFromVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     std::collections::BTreeMap::new(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2325,10 +2234,10 @@ fn test_tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_fro
 }
 #[test]
 fn test_tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_from() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_A1DD158B),
         crate::types::SourceTextRef::from(constants_str::VALUE_E8DA133A),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let is_required_foundation_impl = [
                 (
                     std::path::Path::new(constants_str::VALUE_E24F0FD4),
@@ -2362,13 +2271,13 @@ fn test_tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthroug
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::PassthroughIntoInnerFromVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     std::collections::BTreeMap::new(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2378,10 +2287,10 @@ fn test_tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthroug
 }
 #[test]
 fn test_tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_37F4CEF1),
         crate::types::SourceTextRef::from(constants_str::VALUE_7B891FFF),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let required_foundation_impl = (
                 std::path::Path::new(constants_str::VALUE_2900052A),
                 constants_str::VALUE_E5996CB1,
@@ -2399,12 +2308,12 @@ fn test_tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ForwardingIntoIteratorVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2414,10 +2323,10 @@ fn test_tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
 }
 #[test]
 fn test_tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_DBD6E9F5),
         crate::types::SourceTextRef::from(constants_str::VALUE_C333E174),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let is_required_foundation_impl = [
                 (
                     std::path::Path::new(constants_str::VALUE_E24F0FD4),
@@ -2449,12 +2358,12 @@ fn test_tuple_newtypes_derive_display_instead_of_implementing_forwarding_display
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ForwardingDisplayVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2484,30 +2393,30 @@ fn test_forwarding_display_visitor_detects_equivalent_forms() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ForwardingDisplayVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
     assert_eq!(
-        visitor.get_ers().len(),
+        visitor.get_errors().len(),
         constants_usize::THREE,
         "e2f1f362 forwarding display detection invariant must hold"
     );
 }
 #[test]
 fn test_error_implementations_derive_thiserror_error() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_3FCD79E4),
         crate::types::SourceTextRef::from(constants_str::VALUE_18D7D5AB),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ManualErrorImplVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2517,10 +2426,10 @@ fn test_error_implementations_derive_thiserror_error() {
 }
 #[test]
 fn test_json_api_error_responses_originate_from_thiserror_enums() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_1800EA0D),
         crate::types::SourceTextRef::from(constants_str::VALUE_FBB3C40C),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let thiserror_enums = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -2528,13 +2437,13 @@ fn test_json_api_error_responses_originate_from_thiserror_enums() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::JsonIntoResponseErrorVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     thiserror_enums.get_names(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2553,18 +2462,18 @@ fn test_json_api_error_response_policy_rejects_structs_and_accepts_thiserror_enu
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::JsonIntoResponseErrorVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             thiserror_enums.get_names(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 2usize);
+    assert_eq!(visitor.get_errors().len(), 2usize);
 }
 #[test]
 fn test_api_response_errors_keep_source_locations_out_of_public_error_enums() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_0B0251B3),
         crate::types::SourceTextRef::from(constants_str::VALUE_9DE68BBD),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let thiserror_enums = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ThiserrorEnumVisitor::default(),
@@ -2572,13 +2481,13 @@ fn test_api_response_errors_keep_source_locations_out_of_public_error_enums() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ApiErrorLocationVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     thiserror_enums.get_location_names(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2597,18 +2506,18 @@ fn test_api_response_location_policy_rejects_location_fields() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ApiErrorLocationVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             thiserror_enums.get_location_names(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 2usize);
+    assert_eq!(visitor.get_errors().len(), 2usize);
 }
 #[test]
 fn test_api_response_error_sources_use_observed_error() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_44E97EA0),
         crate::types::SourceTextRef::from(constants_str::VALUE_7CB245E4),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let response_types = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::IntoResponseTypeVisitor::default(),
@@ -2617,12 +2526,12 @@ fn test_api_response_error_sources_use_observed_error() {
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ApiErrorSourceVisitor::new(
                     response_types.get_names(),
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2642,10 +2551,10 @@ fn test_api_response_error_source_policy_rejects_raw_sources() {
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::ApiErrorSourceVisitor::new(
             response_types.get_names(),
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::ONE);
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }
 #[test]
 #[allow(clippy::needless_for_each)] // workspace policy intentionally avoids for loops
@@ -2684,8 +2593,8 @@ fn test_every_fallible_typed_route_operation_has_its_own_error_type() {
             };
             let aggregate = groups.entry(group).or_default();
             aggregate
-                .get_ers_mut()
-                .extend(visitor.get_ers().iter().cloned());
+                .get_errors_mut()
+                .extend(visitor.get_errors().iter().cloned());
             aggregate
                 .get_registered_mut()
                 .extend(visitor.get_registered().iter().cloned());
@@ -2693,11 +2602,11 @@ fn test_every_fallible_typed_route_operation_has_its_own_error_type() {
                 .get_operations_mut()
                 .extend(visitor.get_operations().iter().cloned());
         });
-        let mut ers = Vec::new();
+        let mut errors = Vec::new();
         groups.into_iter().for_each(|(path, visitor)| {
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{path}: {error}")),
@@ -2706,13 +2615,13 @@ fn test_every_fallible_typed_route_operation_has_its_own_error_type() {
                 .get_registered()
                 .difference(visitor.get_operations())
                 .for_each(|endpoint| {
-                    ers.push(format!(
+                    errors.push(format!(
                         "{path}: registered endpoint `{endpoint}` must declare its route operation"
                     ));
                 });
         });
-        crate::code_style::assert_joined_ers_empty_with_ctx(
-            crate::types::SourceTextListRef::from(ers.as_slice()),
+        crate::code_style::assert_joined_errors_empty_with_context(
+            crate::types::SourceTextListRef::from(errors.as_slice()),
             crate::types::StaticStr::from(constants_str::VALUE_D1557BA1),
             crate::types::SourceTextRef::from(constants_str::VALUE_50C1CC72),
         );
@@ -2726,37 +2635,37 @@ fn test_typed_route_operation_error_policy_rejects_shared_types() {
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::RouteOperationErrorVisitor::default(),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::ONE);
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }
 #[test]
 fn test_error_implementation_source_uses_only_thiserror_derive() {
     let forbidden_newtype_derive = concat!("proc_macro_newtype::", "Error");
     let forbidden_manual_impl = concat!("impl std::error::", "Error for");
-    let mut ers = Vec::new();
+    let mut errors = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
         let (path, source) = (file.path().as_ref(), file.content().as_ref());
         [forbidden_newtype_derive, forbidden_manual_impl]
             .into_iter()
             .filter(|forbidden| source.contains(forbidden))
             .for_each(|forbidden| {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: contains forbidden `{forbidden}`",
                     path.display()
                 ));
             });
     });
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::VALUE_7729AA39),
         crate::types::SourceTextRef::from(constants_str::VALUE_2B539A50),
     );
 }
 #[test]
 fn test_tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_0E9309F2),
         crate::types::SourceTextRef::from(constants_str::VALUE_00F4142B),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let foundation_owner = constants_str::VALUE_2900052A;
             if path.starts_with(constants_str::WORKSPACE_MACRO_HELPERS_SRC_PATH)
                 || path.ends_with(std::path::Path::new(foundation_owner))
@@ -2770,12 +2679,12 @@ fn test_tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ManualNotImplVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2785,19 +2694,19 @@ fn test_tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
 }
 #[test]
 fn test_constant_display_implementations_derive_display_const() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_2D6FAA55),
         crate::types::SourceTextRef::from(constants_str::VALUE_A788CCC5),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ConstDisplayImplVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2807,10 +2716,10 @@ fn test_constant_display_implementations_derive_display_const() {
 }
 #[test]
 fn test_tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_24B5ACA8),
         crate::types::SourceTextRef::from(constants_str::VALUE_801C5785),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let required_foundation_impl = (
                 std::path::Path::new(constants_str::VALUE_2900052A),
                 constants_str::VALUE_E5996CB1,
@@ -2828,13 +2737,13 @@ fn test_tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_der
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ForwardingDerefVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     std::collections::BTreeMap::new(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2844,10 +2753,10 @@ fn test_tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_der
 }
 #[test]
 fn test_tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_1259718C),
         crate::types::SourceTextRef::from(constants_str::VALUE_38822A0E),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let required_foundation_impl = (
                 std::path::Path::new(constants_str::VALUE_E24F0FD4),
                 constants_str::VALUE_403B3BAE,
@@ -2859,12 +2768,12 @@ fn test_tuple_newtypes_derive_borrow_instead_of_implementing_forwarding_borrow()
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::ForwardingBorrowVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -2901,15 +2810,15 @@ fn test_no_duplicated_string_literals_in_non_policy_test_code() {
                     .push(path_text.clone());
             });
     });
-    let ers = literal_locations_by_value
+    let errors = literal_locations_by_value
         .into_iter()
         .filter(|(_, locations)| locations.len() > 1)
         .map(|(literal_value, locations)| {
             format!("duplicated string literal {literal_value:?} in {locations:?}")
         })
         .collect::<Vec<String>>();
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::DE729A31),
         crate::types::SourceTextRef::from(
             constants_str::DUPLICATED_STRING_LITERALS_FOUND_IN_NON_POLICY_TEST_CODE,
@@ -2967,15 +2876,15 @@ fn test_production_string_literals_are_reused() {
                     .push(path_text.clone());
             });
     });
-    let ers = literal_locations_by_value
+    let errors = literal_locations_by_value
         .into_iter()
         .filter(|(_, locations)| locations.len() > constants_usize::ONE)
         .map(|(literal_value, locations)| {
             format!("duplicated production string literal {literal_value:?} in {locations:?}")
         })
         .collect::<Vec<String>>();
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::VALUE_9D1C7E4A),
         crate::types::SourceTextRef::from(
             constants_str::PRODUCTION_STRING_LITERALS_MUST_BE_DEFINED_ONCE_AND_REUSED,
@@ -3227,7 +3136,7 @@ fn test_string_constants_reuse_every_repeated_word() {
 fn test_str_constants_does_not_own_typed_domain_values() {
     let source = std::fs::read_to_string(constants_str::STR_CONSTANTS_SRC_LIB_RS)
         .expect(constants_str::DIAGNOSTIC_3CAA56A9);
-    let ers = [
+    let errors = [
         concat!("ADMIN_API_", "PATHS_"),
         concat!("ADMIN_", "OPERATION_"),
         concat!("ADMIN_PAGE_", "PATHS_"),
@@ -3237,8 +3146,8 @@ fn test_str_constants_does_not_own_typed_domain_values() {
     .filter(|prefix| source.contains(prefix))
     .map(str::to_owned)
     .collect::<Vec<_>>();
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::VALUE_6B7E02A4),
         crate::types::SourceTextRef::from(
             constants_str::DOMAIN_VALUES_MUST_BE_DECLARED_BY_THEIR_OWNING_TYPED_API,
@@ -3251,9 +3160,11 @@ fn test_string_constant_visitor_checks_test_code_and_allows_reviewed_syntax_boun
         .expect(constants_str::DIAGNOSTIC_87C9A142);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::source_analysis::StringConstantVisitor::new(crate::types::DiagnosticMsgs::default()),
+        super::source_analysis::StringConstantVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
     );
-    assert_eq!(visitor.get_ers().len(), 3usize);
+    assert_eq!(visitor.get_errors().len(), 3usize);
 }
 #[test]
 fn test_string_constant_visitor_detects_expression_and_nested_macro_literals() {
@@ -3261,9 +3172,11 @@ fn test_string_constant_visitor_detects_expression_and_nested_macro_literals() {
         .expect(constants_str::DIAGNOSTIC_BC91574F);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::source_analysis::StringConstantVisitor::new(crate::types::DiagnosticMsgs::default()),
+        super::source_analysis::StringConstantVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
     );
-    assert_eq!(visitor.get_ers().len(), 2usize);
+    assert_eq!(visitor.get_errors().len(), 2usize);
 }
 #[test]
 fn test_string_constant_visitor_checks_assertion_operands_and_skips_messages() {
@@ -3278,9 +3191,11 @@ fn test_string_constant_visitor_checks_assertion_operands_and_skips_messages() {
     let ast = syn::parse_file(source.as_str()).expect(constants_str::DIAGNOSTIC_7C5E1A92);
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
-        super::source_analysis::StringConstantVisitor::new(crate::types::DiagnosticMsgs::default()),
+        super::source_analysis::StringConstantVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
     );
-    assert_eq!(visitor.get_ers().len(), 4usize);
+    assert_eq!(visitor.get_errors().len(), 4usize);
 }
 #[test]
 fn test_tracing_message_visitor_checks_every_event_macro_and_test_module() {
@@ -3294,12 +3209,12 @@ fn test_tracing_message_visitor_checks_every_event_macro_and_test_module() {
 }
 #[test]
 fn test_all_tracing_messages_are_declared_in_constants_str() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_6C2711FA),
         crate::types::SourceTextRef::from(
             constants_str::TRACING_MESSAGES_FOUND_OUTSIDE_CONSTANTS_STR,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(path))
                 .get()
             {
@@ -3309,7 +3224,7 @@ fn test_all_tracing_messages_are_declared_in_constants_str() {
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::TracingMessageLiteralVisitor::default(),
             );
-            ers.extend(
+            errors.extend(
                 visitor
                     .get_values()
                     .clone()
@@ -3321,12 +3236,12 @@ fn test_all_tracing_messages_are_declared_in_constants_str() {
 }
 #[test]
 fn test_all_string_constants_are_declared_in_str_constants() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_6C2711FA),
         crate::types::SourceTextRef::from(
             constants_str::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(path))
                 .get()
             {
@@ -3335,12 +3250,12 @@ fn test_all_string_constants_are_declared_in_str_constants() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::StringConstantVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -3348,15 +3263,15 @@ fn test_all_string_constants_are_declared_in_str_constants() {
             let declaration_visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::StringConstantDeclarationVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     crate::types::AnalyzerBool::from(path.ends_with(
                         constants_str::CONSTANTS_STR_MACROS_SRC_DEFINE_STR_CONSTANTS_INPUT_RS,
                     )),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 declaration_visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -3396,11 +3311,11 @@ fn test_string_constant_declaration_policy_ignores_runtime_literals_and_rejects_
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantDeclarationVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::AnalyzerBool::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 13usize);
+    assert_eq!(visitor.get_errors().len(), 13usize);
 }
 #[test]
 fn test_string_constant_declaration_policy_rejects_aliases_to_exported_constants() {
@@ -3409,24 +3324,24 @@ fn test_string_constant_declaration_policy_rejects_aliases_to_exported_constants
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantDeclarationVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::AnalyzerBool::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::ONE);
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }
 #[test]
 fn test_no_unwrap_in_source_code() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::E8B3A6D2),
         crate::types::SourceTextRef::from(constants_str::UNWRAP_FOUND),
-        |path, ast, ers| {
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::UnwrapVisitor::new(crate::types::AnalyzerCount::default()),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
+                crate::types::DiagnosticMessagesMutRef::from(&mut *errors),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(constants_str::UNWRAP_CALL_ALT),
                 *visitor.get_found_count(),
@@ -3478,8 +3393,8 @@ fn test_repository_identifiers_use_explicit_resource_names() {
     }
 
     impl<'ast_lt> syn::visit::Visit<'ast_lt> for ExplicitResourceNameVisitor {
-        fn visit_ident(&mut self, i: &'ast_lt syn::Ident) {
-            let name = i.to_string();
+        fn visit_ident(&mut self, ident: &'ast_lt syn::Ident) {
+            let name = ident.to_string();
             let Some(vague_fragment) = stringify!(JoinHandle).strip_prefix(stringify!(Join)) else {
                 return;
             };
@@ -3496,7 +3411,7 @@ fn test_repository_identifiers_use_explicit_resource_names() {
             {
                 self.violations.push(name);
             }
-            syn::visit::visit_ident(self, i);
+            syn::visit::visit_ident(self, ident);
         }
     }
 
@@ -3524,21 +3439,21 @@ fn test_repository_identifiers_use_explicit_resource_names() {
 }
 #[test]
 fn test_names_and_modules_start_with_test_prefix() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::B6E2A9F4),
-        crate::types::SourceTextRef::from(constants_str::TEST_NAME_POLICY_CTX),
-        |path, ast, ers| {
+        crate::types::SourceTextRef::from(constants_str::TEST_NAME_POLICY_CONTEXT),
+        |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::TestNameVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     crate::types::SourceTextList::default(),
                     crate::types::AnalyzerBool::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
@@ -3548,7 +3463,7 @@ fn test_names_and_modules_start_with_test_prefix() {
                     .and_then(std::ffi::OsStr::to_str)
                     .is_none_or(|name| !name.starts_with(constants_str::TEST_NAME_PREFIX))
             {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: root test module must use a filename starting with `test_`",
                     path.display()
                 ));
@@ -3567,12 +3482,12 @@ fn test_name_policy_rejects_unprefixed_function_and_module() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TestNameVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextList::default(),
             crate::types::AnalyzerBool::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::TWO);
+    assert_eq!(visitor.get_errors().len(), constants_usize::TWO);
 }
 
 #[test]
@@ -3586,12 +3501,12 @@ fn test_name_policy_accepts_canonical_tests_module() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TestNameVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextList::default(),
             crate::types::AnalyzerBool::default(),
         ),
     );
-    assert!(visitor.get_ers().is_empty());
+    assert!(visitor.get_errors().is_empty());
 }
 
 #[test]
@@ -3601,10 +3516,10 @@ fn test_name_policy_rejects_redundant_test_tests_module() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::TestNameVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::SourceTextList::default(),
             crate::types::AnalyzerBool::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::ONE);
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }

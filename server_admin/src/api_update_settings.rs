@@ -5,9 +5,9 @@
     tag = "admin_settings"
 )]
 pub(crate) async fn api_update_settings(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    request: crate::axum_admin_json::AxumAdminJson<
-        server_admin_contract::admin_update_settings_req::AdminUpdateSettingsReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_json: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_update_settings_request::AdminUpdateSettingsRequest,
     >,
 ) -> Result<
     crate::axum_admin_response::AxumAdminResponse,

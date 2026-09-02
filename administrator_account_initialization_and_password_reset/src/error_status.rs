@@ -1,7 +1,7 @@
 pub(crate) fn error_status(
-    error: &crate::administrator_account_command_error::AdministratorAccountCommandError,
+    administrator_account_command_error: &crate::administrator_account_command_error::AdministratorAccountCommandError,
 ) -> crate::administrator_account_command_status::AdministratorAccountCommandStatus {
-    crate::administrator_account_command_status::AdministratorAccountCommandStatus::from(match error {
+    crate::administrator_account_command_status::AdministratorAccountCommandStatus::from(match administrator_account_command_error {
         crate::administrator_account_command_error::AdministratorAccountCommandError::Args(_)
         | crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFileValue => 2u8,
         crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(

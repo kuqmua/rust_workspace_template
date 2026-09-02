@@ -9,32 +9,32 @@ mod tests {
         ToStr,
     }
     fn header(
-        headers: &axum::http::HeaderMap,
+        header_map: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<crate::header_str_ref::HeaderStrRef<'_>, TestError> {
         crate::required_header_str::required_header_str(
-            crate::axum_headers_ref::AxumHeadersRef::from(headers),
+            crate::axum_headers_ref::AxumHeadersRef::from(header_map),
             name,
             || TestError::NoHeader,
             |_| TestError::ToStr,
         )
     }
     fn raw_header(
-        headers: &axum::http::HeaderMap,
+        header_map: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<crate::axum_header_value_ref::AxumHeaderValueRef<'_>, TestError> {
         crate::required_header_value::required_header_value(
-            crate::axum_headers_ref::AxumHeadersRef::from(headers),
+            crate::axum_headers_ref::AxumHeadersRef::from(header_map),
             name,
             || TestError::NoHeader,
         )
     }
     fn bool_header(
-        headers: &axum::http::HeaderMap,
+        header_map: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<bool, TestError> {
         crate::required_header_str_parsed::required_header_str_parsed(
-            crate::axum_headers_ref::AxumHeadersRef::from(headers),
+            crate::axum_headers_ref::AxumHeadersRef::from(header_map),
             name,
             || TestError::NoHeader,
             |_to_str_error| TestError::ToStr,
@@ -45,17 +45,17 @@ mod tests {
             },
         )
     }
-    fn make_test_headers<ValueTy>(value: ValueTy) -> crate::axum_test_headers::AxumTestHeaders
+    fn make_test_headers<ValueTy>(value_ty: ValueTy) -> crate::axum_test_headers::AxumTestHeaders
     where
         ValueTy: Into<crate::axum_test_header_value::AxumTestHeaderValue>,
     {
-        crate::make_headers_with_entry::make_headers_with_entry(TEST_HEADER_NAME, value)
+        crate::make_headers_with_entry::make_headers_with_entry(TEST_HEADER_NAME, value_ty)
     }
-    fn make_test_headers_static(value: &'static str) -> crate::axum_test_headers::AxumTestHeaders {
-        make_test_headers(axum::http::HeaderValue::from_static(value))
+    fn make_test_headers_static(str: &'static str) -> crate::axum_test_headers::AxumTestHeaders {
+        make_test_headers(axum::http::HeaderValue::from_static(str))
     }
-    fn assert_header_err<T>(actual: Result<T, TestError>, exp: &TestError) {
-        assert!(matches!(actual, Err(v) if &v == exp));
+    fn assert_header_err<T>(result: Result<T, TestError>, test_error: &TestError) {
+        assert!(matches!(result, Err(v) if &v == test_error));
     }
     #[test]
     fn test_required_header_str_returns_header_when_present_and_utf8() {

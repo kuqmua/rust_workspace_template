@@ -51,7 +51,7 @@ pub mod maximum_size_of_http_body_in_bytes_try_from_usize_error;
 pub mod parse_admin_positive_u64;
 pub mod parse_admin_token_text;
 pub mod parse_bool_error;
-pub mod parse_ctx_ref;
+pub mod parse_context_ref;
 pub mod parse_east_fixed_offset;
 pub mod parse_env_var_name_ref;
 #[cfg(test)]
@@ -59,7 +59,7 @@ pub mod parse_from_env_var_from_str_tests;
 #[cfg(test)]
 pub mod parse_from_env_var_with_tests;
 #[cfg(test)]
-pub mod parse_from_str_with_ctx_tests;
+pub mod parse_from_str_with_context_tests;
 pub mod parse_from_str_with_error;
 pub mod parse_pg_pool_non_zero_seconds;
 pub mod parse_required_env_var;
@@ -75,7 +75,7 @@ pub mod pg_pool_tests;
 pub mod production_mode;
 pub mod request_timeout_seconds;
 pub mod secrecy_secret_box_string;
-pub mod src_place_type;
+pub mod source_place_type;
 pub mod std_config_secret_string;
 pub mod std_env_var_ok;
 pub mod std_env_var_ok_ref;

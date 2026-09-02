@@ -21,14 +21,14 @@ impl AdminSessionView {
     pub const fn new(
         created_at: super::admin_session_timestamp::AdminSessionTimestamp,
         expires_at: super::admin_session_timestamp::AdminSessionTimestamp,
-        id: super::admin_session_identifier::AdminSessionIdentifier,
-        is_current: crate::admin_bool::AdminBool,
+        admin_session_identifier: super::admin_session_identifier::AdminSessionIdentifier,
+        admin_bool: crate::admin_bool::AdminBool,
     ) -> Self {
         Self {
             created_at,
             expires_at,
-            id,
-            is_current,
+            id: admin_session_identifier,
+            is_current: admin_bool,
         }
     }
 }

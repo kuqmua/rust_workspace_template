@@ -24,14 +24,14 @@ use leptos::prelude::{AddAnyAttr, ElementChild};
 )]
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminField(
-    #[prop(into)] label: crate::admin_field_label::AdminFieldLabel,
+    #[prop(into)] admin_field_label: crate::admin_field_label::AdminFieldLabel,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
-    let label = String::from(label.into_inner());
+    let admin_field_label = String::from(admin_field_label.into_inner());
     crate::with_owner::with_owner(move || {
         leptos::view! {
             <singlestage::Field attr:data-name="Field" class="ui-field group/field flex w-full flex-col gap-3 data-[invalid=true]:text-destructive [&>*]:w-full [&>.hidden]:w-auto">
-                <singlestage::FieldLabel attr:data-name="Label" class="group/field-label peer/field-label flex w-fit flex-col gap-2 text-sm font-medium leading-snug group-data-[disabled=true]/field:opacity-50"><span>{label}</span>{children()}</singlestage::FieldLabel>
+                <singlestage::FieldLabel attr:data-name="Label" class="group/field-label peer/field-label flex w-fit flex-col gap-2 text-sm font-medium leading-snug group-data-[disabled=true]/field:opacity-50"><span>{admin_field_label}</span>{children()}</singlestage::FieldLabel>
             </singlestage::Field>
         }
     })

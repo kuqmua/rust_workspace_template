@@ -2,9 +2,9 @@
 pub fn identifier_file_storage_relative_path(
     identifier: &crate::storage_path_segment::StoragePathSegment,
     unique_file_identifier: &crate::storage_path_segment::StoragePathSegment,
-    file_name: &crate::multipart_file_name::MultipartFileName,
+    multipart_file_name: &crate::multipart_file_name::MultipartFileName,
 ) -> crate::runtime_storage_relative_path_buf::RuntimeStorageRelativePathBuf {
-    let extension = std::path::Path::new(file_name.as_ref())
+    let extension = std::path::Path::new(multipart_file_name.as_ref())
         .extension()
         .and_then(|value| value.to_str());
     let stored_file_name = extension.map_or_else(

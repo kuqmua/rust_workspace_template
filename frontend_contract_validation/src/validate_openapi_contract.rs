@@ -1,6 +1,6 @@
 pub fn validate_openapi_contract<Document>(
     document: &Document,
-    runtime_routes: crate::runtime_routes_ref::RuntimeRoutesRef<'_>,
+    runtime_routes_ref: crate::runtime_routes_ref::RuntimeRoutesRef<'_>,
 ) -> Result<(), crate::open_api_validation_error::OpenApiValidationError>
 where
     Document: serde::Serialize,
@@ -82,7 +82,7 @@ where
                 Ok(())
             })
     })?;
-    runtime_routes.iter().try_for_each(|route| {
+    runtime_routes_ref.iter().try_for_each(|route| {
         let method = route.method().as_ref().to_ascii_uppercase();
         let path = route.path().as_ref().to_owned();
         let Some(operation_id) = documented.get(&(method.clone(), path.clone())) else {
@@ -125,7 +125,7 @@ where
         }
     })?;
     documented.into_iter().try_for_each(|((method, path), _)| {
-        if runtime_routes.iter().any(|route| {
+        if runtime_routes_ref.iter().any(|route| {
             route
                 .method()
                 .as_ref()

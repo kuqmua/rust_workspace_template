@@ -19,12 +19,12 @@ pub(super) struct LeaseRegistryInner {
 impl LeaseRegistryInner {
     pub(super) fn heartbeat(
         &mut self,
-        id: &crate::lease_id::LeaseId,
-        now: tokio::time::Instant,
+        lease_id: &crate::lease_id::LeaseId,
+        instant: tokio::time::Instant,
     ) -> crate::lease_heartbeat::LeaseHeartbeat {
-        match self.by_id.get_mut(id) {
+        match self.by_id.get_mut(lease_id) {
             Some(entry) if !entry.is_stale() => {
-                entry.refresh(now);
+                entry.refresh(instant);
                 crate::lease_heartbeat::LeaseHeartbeat::Accepted
             }
             Some(_) | None => crate::lease_heartbeat::LeaseHeartbeat::Missing,
@@ -33,9 +33,9 @@ impl LeaseRegistryInner {
 
     pub(super) fn release(
         &mut self,
-        id: &crate::lease_id::LeaseId,
+        lease_id: &crate::lease_id::LeaseId,
     ) -> crate::lease_heartbeat::LeaseHeartbeat {
-        let Some(entry) = self.by_id.remove(id) else {
+        let Some(entry) = self.by_id.remove(lease_id) else {
             return crate::lease_heartbeat::LeaseHeartbeat::Missing;
         };
         let _removed = self.by_key.remove(&entry.into_key());
@@ -44,12 +44,12 @@ impl LeaseRegistryInner {
 
     pub(super) fn reserve(
         &mut self,
-        id: crate::lease_id::LeaseId,
-        key: &crate::lease_key::LeaseKey,
-        maximum: crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize,
-        now: tokio::time::Instant,
+        lease_id: crate::lease_id::LeaseId,
+        lease_key: &crate::lease_key::LeaseKey,
+        lease_registry_maximum_non_zero_usize: crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize,
+        instant: tokio::time::Instant,
     ) -> crate::lease_reservation::LeaseReservation {
-        if let Some(existing_id) = self.by_key.get(key)
+        if let Some(existing_id) = self.by_key.get(lease_key)
             && self
                 .by_id
                 .get(existing_id)
@@ -73,29 +73,29 @@ impl LeaseRegistryInner {
             }
             // paired indexes have both been updated before the next stale id
         });
-        if self.by_id.len().get() >= maximum.get() {
+        if self.by_id.len().get() >= lease_registry_maximum_non_zero_usize.get() {
             return crate::lease_reservation::LeaseReservation::LimitReached;
         }
-        if let Some(previous) = self.by_id.remove(&id) {
+        if let Some(previous) = self.by_id.remove(&lease_id) {
             let _removed = self.by_key.remove(&previous.into_key());
         }
-        if let Some(previous_id) = self.by_key.remove(key) {
+        if let Some(previous_id) = self.by_key.remove(lease_key) {
             let _removed = self.by_id.remove(&previous_id);
         }
-        let id_insertion = self.by_key.try_insert(key.clone(), id.clone());
+        let id_insertion = self.by_key.try_insert(lease_key.clone(), lease_id.clone());
         if id_insertion.is_err() {
             return crate::lease_reservation::LeaseReservation::LimitReached;
         }
         let entry_insertion = self.by_id.try_insert(
-            id,
+            lease_id,
             crate::lease_entry::LeaseEntry::new(
-                crate::tokio_lease_instant::TokioLeaseInstant::from(now),
-                key.clone(),
+                crate::tokio_lease_instant::TokioLeaseInstant::from(instant),
+                lease_key.clone(),
                 crate::lease_state::LeaseState::Reserved,
             ),
         );
         if entry_insertion.is_err() {
-            let _removed_id = self.by_key.remove(key);
+            let _removed_id = self.by_key.remove(lease_key);
             return crate::lease_reservation::LeaseReservation::LimitReached;
         }
         crate::lease_reservation::LeaseReservation::Reserved
@@ -103,15 +103,15 @@ impl LeaseRegistryInner {
 
     pub(super) fn stale(
         &mut self,
-        now: tokio::time::Instant,
-        timeout: crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration,
+        instant: tokio::time::Instant,
+        lease_stale_timeout_duration: crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration,
     ) -> crate::lease_ids::LeaseIds {
         let mut stale_ids = bounded_types::bounded_vec::BoundedVec::default();
         self.by_id
             .iter_mut()
             .filter_map(|(id, entry)| {
                 entry
-                    .mark_stale_if_expired(now, timeout)
+                    .mark_stale_if_expired(instant, lease_stale_timeout_duration)
                     .then(|| id.clone())
             })
             .for_each(|id| stale_ids.push_max_capacity(id));

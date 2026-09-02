@@ -1,16 +1,22 @@
-pub(super) fn save(signals: crate::admin_settings_form_signals::AdminSettingsFormSignals) {
-    let default_route =
-        signals.get(server_admin_contract::admin_setting::AdminSetting::DefaultRoute);
-    let main_logo = signals.get(server_admin_contract::admin_setting::AdminSetting::MainLogo);
-    let organization_contacts =
-        signals.get(server_admin_contract::admin_setting::AdminSetting::OrganizationContacts);
-    let organization_name =
-        signals.get(server_admin_contract::admin_setting::AdminSetting::OrganizationName);
-    let primary_color =
-        signals.get(server_admin_contract::admin_setting::AdminSetting::PrimaryColor);
-    let site_name = signals.get(server_admin_contract::admin_setting::AdminSetting::SiteName);
-    let support_url = signals.get(server_admin_contract::admin_setting::AdminSetting::SupportUrl);
-    let tab_title = signals.get(server_admin_contract::admin_setting::AdminSetting::TabTitle);
+pub(super) fn save(
+    admin_settings_form_signals: crate::admin_settings_form_signals::AdminSettingsFormSignals,
+) {
+    let default_route = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::DefaultRoute);
+    let main_logo = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::MainLogo);
+    let organization_contacts = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::OrganizationContacts);
+    let organization_name = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::OrganizationName);
+    let primary_color = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::PrimaryColor);
+    let site_name = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::SiteName);
+    let support_url = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::SupportUrl);
+    let tab_title = admin_settings_form_signals
+        .get(server_admin_contract::admin_setting::AdminSetting::TabTitle);
     let default_route_value = default_route.value().as_ref().to_owned();
     let main_logo_value = main_logo.value().as_ref().to_owned();
     let organization_contacts_value = organization_contacts.value().as_ref().to_owned();
@@ -25,7 +31,7 @@ pub(super) fn save(signals: crate::admin_settings_form_signals::AdminSettingsFor
             .filter_map(|setting| match setting.spec().optionality() {
                 server_admin_contract::admin_setting_optionality::AdminSettingOptionality::Clearable(
                     optional,
-                ) if signals.get(setting).value().as_ref().is_empty() => Some(optional),
+                ) if admin_settings_form_signals.get(setting).value().as_ref().is_empty() => Some(optional),
                 server_admin_contract::admin_setting_optionality::AdminSettingOptionality::Clearable(_)
                 | server_admin_contract::admin_setting_optionality::AdminSettingOptionality::Required => None,
             })
@@ -87,7 +93,7 @@ pub(super) fn save(signals: crate::admin_settings_form_signals::AdminSettingsFor
         crate::mutation::reload_after(
             crate::admin_mutation_method::AdminMutationMethod::Patch,
             path,
-            server_admin_contract::admin_update_settings_req::AdminUpdateSettingsReq::new(
+            server_admin_contract::admin_update_settings_request::AdminUpdateSettingsRequest::new(
                 Some(request_default_route),
                 request_main_logo,
                 request_organization_contacts,

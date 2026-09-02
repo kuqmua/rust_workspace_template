@@ -25,12 +25,12 @@ fn generate_impl_to_tokens_token_stream(
 }
 #[proc_macro]
 pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
     let regex = regex::Regex::new(constants_str::NAMING_REGEX_VALUE)
         .expect(constants_str::DIAGNOSTIC_20948D87);
-    let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string())
+    let ts = serde_json::from_str::<Vec<Vec<String>>>(&token_stream.to_string())
         .expect(constants_str::DIAGNOSTIC_90E5793B)
         .into_iter()
         .map(|element| {
@@ -136,12 +136,12 @@ pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
 }
 #[proc_macro]
 pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
     let regex = regex::Regex::new(constants_str::NAMING_REGEX_VALUE)
         .expect(constants_str::DIAGNOSTIC_CBA1B5FB);
-    let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string()).expect(constants_str::DIAGNOSTIC_9D6A20AF).into_iter().map(|element| {
+    let ts = serde_json::from_str::<Vec<Vec<String>>>(&token_stream.to_string()).expect(constants_str::DIAGNOSTIC_9D6A20AF).into_iter().map(|element| {
         assert!(element.iter().all(|el0| regex.is_match(el0)), "4a12d90f");
         let self_match_name = constants_str::SELF_ALT;
         {
@@ -272,11 +272,11 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
 }
 fn generate_impl_trait_for_identifier_token_stream(
     name_token_stream: &dyn quote::ToTokens,
-    identifier: syn_enum_identifier_ref::SynEnumIdentifierRef<'_>,
-    vrts_matching_token_stream: proc_macro2_variant_matching_tokens_ref::ProcMacro2VariantMatchingTokensRef<'_>,
+    syn_enum_identifier_ref: syn_enum_identifier_ref::SynEnumIdentifierRef<'_>,
+    proc_macro2_variant_matching_tokens_ref: proc_macro2_variant_matching_tokens_ref::ProcMacro2VariantMatchingTokensRef<'_>,
 ) -> proc_macro2_generated_naming_token_stream::ProcMacro2GeneratedNamingTokenStream {
-    let identifier_ref = identifier.as_ref();
-    let variant_tokens = vrts_matching_token_stream.as_ref();
+    let identifier_ref = syn_enum_identifier_ref.as_ref();
+    let variant_tokens = proc_macro2_variant_matching_tokens_ref.as_ref();
     let string_token_stream = token_patterns::StringTokenStream;
     proc_macro2_generated_naming_token_stream::ProcMacro2GeneratedNamingTokenStream::from(
         quote::quote! {
@@ -290,11 +290,10 @@ fn generate_impl_trait_for_identifier_token_stream(
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr)]
 pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let di: syn::DeriveInput =
-        syn::parse(input_token_stream).expect(constants_str::DIAGNOSTIC_A8F22481);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_A8F22481);
     let identifier = &di.ident;
     let syn::Data::Enum(data_enum) = di.data else {
         std::panic::panic_any(constants_str::PANIC_D26BF85E)
@@ -325,11 +324,10 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToSnakeCaseStr)]
 pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let di: syn::DeriveInput =
-        syn::parse(input_token_stream).expect(constants_str::DIAGNOSTIC_DEA5CBCF);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_DEA5CBCF);
     let identifier = &di.ident;
     let syn::Data::Enum(data_enum) = di.data else {
         std::panic::panic_any(constants_str::PANIC_ED6EFE2E);
@@ -360,11 +358,10 @@ pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperSnakeCaseStr)]
 pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let di: syn::DeriveInput =
-        syn::parse(input_token_stream).expect(constants_str::DIAGNOSTIC_EDABBC24);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_EDABBC24);
     let identifier = &di.ident;
     let syn::Data::Enum(data_enum) = di.data else {
         std::panic::panic_any(constants_str::PANIC_B2263E7E);
@@ -393,17 +390,16 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
 }
 
 fn enum_with_unit_fields_to_case_str(
-    input_token_stream: proc_macro::TokenStream,
-    case: EnumCase,
+    token_stream: proc_macro::TokenStream,
+    enum_case: EnumCase,
 ) -> proc_macro::TokenStream {
-    let di: syn::DeriveInput =
-        syn::parse(input_token_stream).expect(constants_str::DIAGNOSTIC_C0E870DF);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_C0E870DF);
     let identifier = &di.ident;
     let syn::Data::Enum(data_enum) = di.data else {
         std::panic::panic_any(constants_str::PANIC_3FDBA6EF)
     };
     let method_identifier = syn::Ident::new(
-        match case {
+        match enum_case {
             EnumCase::Snake => stringify!(as_snake_case_str),
             EnumCase::UpperCamel => stringify!(as_upper_camel_case_str),
             EnumCase::UpperSnake => stringify!(as_upper_snake_case_str),
@@ -413,7 +409,7 @@ fn enum_with_unit_fields_to_case_str(
     let variant_tokens = data_enum.variants.iter().map(|variant| {
         assert!(matches!(variant.fields, syn::Fields::Unit), "4a95589f");
         let variant_identifier = &variant.ident;
-        let value = match case {
+        let value = match enum_case {
             EnumCase::Snake => {
                 naming_common::domain_types::ToTokensToSnakeCaseStr::case(variant_identifier)
             }
@@ -448,21 +444,21 @@ fn enum_with_unit_fields_to_case_str(
 
 #[proc_macro_derive(EnumWithUnitFieldsToSnakeCaseStr)]
 pub fn enum_with_unit_fields_to_snake_case_str(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    enum_with_unit_fields_to_case_str(input_token_stream, EnumCase::Snake)
+    enum_with_unit_fields_to_case_str(token_stream, EnumCase::Snake)
 }
 
 #[proc_macro_derive(EnumWithUnitFieldsToUpperCamelCaseStr)]
 pub fn enum_with_unit_fields_to_upper_camel_case_str(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    enum_with_unit_fields_to_case_str(input_token_stream, EnumCase::UpperCamel)
+    enum_with_unit_fields_to_case_str(token_stream, EnumCase::UpperCamel)
 }
 
 #[proc_macro_derive(EnumWithUnitFieldsToUpperSnakeCaseStr)]
 pub fn enum_with_unit_fields_to_upper_snake_case_str(
-    input_token_stream: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    enum_with_unit_fields_to_case_str(input_token_stream, EnumCase::UpperSnake)
+    enum_with_unit_fields_to_case_str(token_stream, EnumCase::UpperSnake)
 }

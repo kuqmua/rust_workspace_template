@@ -1,20 +1,21 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlSignInError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn sign_in(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    peer: crate::admin_peer_addr::AdminPeerAddr,
-    form: crate::axum_admin_form::AxumAdminForm<crate::sign_in_form::SignInForm>,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,
+    axum_admin_form: crate::axum_admin_form::AxumAdminForm<crate::sign_in_form::SignInForm>,
 ) -> axum::response::Response {
-    let branding = crate::settings_branding_view_ref::settings_branding_view_ref(&auth)
-        .await
-        .ok();
+    let branding =
+        crate::settings_branding_view_ref::settings_branding_view_ref(&admin_auth_request)
+            .await
+            .ok();
     match crate::authn_sign_in::authn_sign_in(
-        auth,
-        peer,
+        admin_auth_request,
+        admin_peer_addr,
         crate::admin_sign_in_json::AdminSignInJson::from(
-            server_admin_contract::admin_sign_in_req::AdminSignInReq::new(
-                form.get_login().clone(),
-                form.get_password().clone(),
+            server_admin_contract::admin_sign_in_request::AdminSignInRequest::new(
+                axum_admin_form.get_login().clone(),
+                axum_admin_form.get_password().clone(),
             ),
         ),
     )

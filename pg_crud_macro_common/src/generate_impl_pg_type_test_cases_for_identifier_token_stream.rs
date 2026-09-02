@@ -23,7 +23,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         &dyn quote::ToTokens,
     >,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let names = crate::names_ctx::NamesCtx::new();
+    let names = crate::names_context::NamesContext::new();
     #[allow(
         non_snake_case,
         reason = "generated Rust identifiers intentionally mirror emitted naming tokens"
@@ -74,7 +74,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     > = optional_vec_create_token_stream.map(|ts| {
         {
-    let snippet_names_1 = crate::names_ctx::NamesCtx::new();
+    let snippet_names_1 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (CreateUpperCamelCaseSnippet1, OptionalVecCreateSnakeCaseSnippet1) = (
             snippet_names_1.get_create_upper_camel_case(),
@@ -89,7 +89,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
 }
     });
     let read_ids_to_2_dimensions_vec_read_inner_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
-        let snippet_names_2 = crate::names_ctx::NamesCtx::new();
+        let snippet_names_2 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
             ReadIdsSnakeCaseSnippet2,
@@ -128,7 +128,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
             &read_inner_into_update_with_new_or_try_new_unwraped_token_stream,
         );
     let update_to_read_ids_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
-        let snippet_names_3 = crate::names_ctx::NamesCtx::new();
+        let snippet_names_3 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (ReadIdsUpperCamelCaseSnippet3, UpdateToReadIdsSnakeCaseSnippet3, UpdateUpperCamelCaseSnippet3, VSnakeCaseSnippet3) = (
             snippet_names_3.get_read_ids_upper_camel_case(),
@@ -146,7 +146,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         .into()
     };
     let read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
-        let snippet_names_4 = crate::names_ctx::NamesCtx::new();
+        let snippet_names_4 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
             ReadIdsToOptionalExplicitValueReadDefaultSomeOneElementSnakeCaseSnippet4,
@@ -169,7 +169,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         .into()
     };
     let previous_read_and_optional_update_into_read_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
-        let snippet_names_5 = crate::names_ctx::NamesCtx::new();
+        let snippet_names_5 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
             OptionalUpdateSnakeCaseSnippet5,
@@ -195,7 +195,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         .into()
     };
     let read_ids_and_create_into_read_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
-        let snippet_names_6 = crate::names_ctx::NamesCtx::new();
+        let snippet_names_6 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
             CreateSnakeCaseSnippet6,
@@ -223,7 +223,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         .into()
     };
     let read_ids_and_create_into_optional_explicit_value_read_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
-        let snippet_names_7 = crate::names_ctx::NamesCtx::new();
+        let snippet_names_7 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
             CreateSnakeCaseSnippet7,
@@ -251,7 +251,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         .into()
     };
     let read_ids_and_create_into_table_type_token_stream_gnrtd: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream = {
-        let snippet_names_8 = crate::names_ctx::NamesCtx::new();
+        let snippet_names_8 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (
             CreateSnakeCaseSnippet8,
@@ -298,7 +298,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
     > =
         read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream.map(|ts| {
             {
-    let snippet_names_9 = crate::names_ctx::NamesCtx::new();
+    let snippet_names_9 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
         let (CreateSnakeCaseSnippet9, ReadIdsAndCreateIntoOptionalVecWhereEqToFieldSnakeCaseSnippet9, ReadIdsSnakeCaseSnippet9) = (
             snippet_names_9.get_create_snake_case(),

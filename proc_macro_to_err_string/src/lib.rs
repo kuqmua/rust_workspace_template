@@ -1,7 +1,9 @@
 #[proc_macro]
-pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_to_err_string_with(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let Some((types_raw, closure)) = workspace_macro_helpers::split_fat_arrow::split_fat_arrow(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     ) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
             constants_str::COMPILE_ERROR_CE_062,
@@ -33,9 +35,11 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
     .into()
 }
 #[proc_macro]
-pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_to_err_string_const(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parsed_pairs_res = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     )
     .into_iter()
     .filter(|part| !part.is_empty())
@@ -53,12 +57,12 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
         Ok(v) => v,
         Err(error) => return error.into_inner().into(),
     };
-    let (types, msgs): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
+    let (types, messages): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
     quote::quote! {
         #(impl crate::to_err_string::ToErrString for #types {
             fn to_err_string(&self) -> crate::error_text::ErrorText {
                 crate::static_str_to_owned::static_str_to_owned(
-                    crate::static_str_to_owned_input::StaticStrToOwnedInput::from(#msgs),
+                    crate::static_str_to_owned_input::StaticStrToOwnedInput::from(#messages),
                 )
             }
         })*
@@ -66,9 +70,13 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
     .into()
 }
 #[proc_macro]
-pub fn impl_to_err_string_as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_to_err_string_as_ref_str(
+    token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let types = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     )
     .into_iter()
     .filter(|part| !part.is_empty())

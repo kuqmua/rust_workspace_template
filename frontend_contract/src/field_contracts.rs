@@ -12,8 +12,8 @@ pub struct FieldContracts(
 );
 impl TryFrom<Vec<crate::field_contract::FieldContract>> for FieldContracts {
     type Error = bounded_types::bounded_value_error::BoundedValueError;
-    fn try_from(value: Vec<crate::field_contract::FieldContract>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
+    fn try_from(vec: Vec<crate::field_contract::FieldContract>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(vec).map(Self::from)
     }
 }
 impl FieldContracts {

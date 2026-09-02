@@ -32,9 +32,9 @@ impl From<AdminSignInUser>
         server_admin_core::std_admin_bool::StdAdminBool,
     )
 {
-    fn from(value: AdminSignInUser) -> Self {
-        let id = *value.get_id();
-        let is_banned = *value.get_is_banned();
-        (id, value.password_hash, is_banned)
+    fn from(admin_sign_in_user: AdminSignInUser) -> Self {
+        let id = *admin_sign_in_user.get_id();
+        let is_banned = *admin_sign_in_user.get_is_banned();
+        (id, admin_sign_in_user.password_hash, is_banned)
     }
 }

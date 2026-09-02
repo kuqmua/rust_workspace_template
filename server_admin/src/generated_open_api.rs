@@ -2,21 +2,21 @@
 pub fn generated_open_api() -> crate::utoipa_admin_open_api::UtoipaAdminOpenApi {
     fn collect_schema_refs(
         value: &serde_json::Value,
-        refs: &mut std::collections::BTreeSet<String>,
+        b_tree_set: &mut std::collections::BTreeSet<String>,
     ) {
         match value {
             serde_json::Value::Array(values) => values
                 .iter()
-                .for_each(|child| collect_schema_refs(child, refs)),
+                .for_each(|child| collect_schema_refs(child, b_tree_set)),
             serde_json::Value::Object(values) => values.iter().for_each(|(key, child)| {
                 if key == constants_str::DOLLAR_REF
                     && let Some(name) = child.as_str().and_then(|reference| {
                         reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS)
                     })
                 {
-                    let _inserted = refs.insert(name.to_owned());
+                    let _inserted = b_tree_set.insert(name.to_owned());
                 }
-                collect_schema_refs(child, refs);
+                collect_schema_refs(child, b_tree_set);
             }),
             serde_json::Value::Null
             | serde_json::Value::Bool(_)

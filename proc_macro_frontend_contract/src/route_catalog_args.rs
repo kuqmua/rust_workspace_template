@@ -10,19 +10,19 @@ pub(crate) struct RouteCatalogArgs {
 }
 
 impl syn::parse::Parse for RouteCatalogArgs {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+    fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut body_limit = None;
         let mut family = None;
-        while !input.is_empty() {
-            let name = input.parse::<syn::Ident>()?;
-            let _equals = input.parse::<syn::Token![=]>()?;
+        while !parse_stream.is_empty() {
+            let name = parse_stream.parse::<syn::Ident>()?;
+            let _equals = parse_stream.parse::<syn::Token![=]>()?;
             if name == constants_str::ROUTE_CATALOG_FAMILY {
                 family = Some(crate::contract_syn_ident::ContractSynIdent::from(
-                    input.parse::<syn::Ident>()?,
+                    parse_stream.parse::<syn::Ident>()?,
                 ));
             } else if name == constants_str::ROUTE_CATALOG_BODY_LIMIT {
                 body_limit = Some(crate::contract_syn_expr::ContractSynExpr::from(
-                    input.parse::<syn::Expr>()?,
+                    parse_stream.parse::<syn::Expr>()?,
                 ));
             } else {
                 return Err(syn::Error::new_spanned(
@@ -30,15 +30,16 @@ impl syn::parse::Parse for RouteCatalogArgs {
                     constants_str::UNSUPPORTED_TYPED_ROUTE_FIELD,
                 ));
             }
-            if !input.is_empty() {
-                let _comma = input.parse::<syn::Token![,]>()?;
+            if !parse_stream.is_empty() {
+                let _comma = parse_stream.parse::<syn::Token![,]>()?;
             }
         }
         Ok(Self {
-            body_limit: body_limit
-                .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_BODY_LIMIT))?,
+            body_limit: body_limit.ok_or_else(|| {
+                parse_stream.error(constants_str::ROUTE_CATALOG_REQUIRES_BODY_LIMIT)
+            })?,
             family: family
-                .ok_or_else(|| input.error(constants_str::ROUTE_CATALOG_REQUIRES_FAMILY))?,
+                .ok_or_else(|| parse_stream.error(constants_str::ROUTE_CATALOG_REQUIRES_FAMILY))?,
         })
     }
 }

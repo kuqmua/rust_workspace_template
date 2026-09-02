@@ -1,9 +1,9 @@
 #[cfg(not(target_arch = "wasm32"))]
 #[must_use]
 pub fn to_axum_method_filter(
-    method: crate::route_method::RouteMethod,
+    route_method: crate::route_method::RouteMethod,
 ) -> crate::axum_method_filter::AxumMethodFilter {
-    crate::axum_method_filter::AxumMethodFilter::from(match method {
+    crate::axum_method_filter::AxumMethodFilter::from(match route_method {
         crate::route_method::RouteMethod::Connect => axum::routing::MethodFilter::CONNECT,
         crate::route_method::RouteMethod::Delete => axum::routing::MethodFilter::DELETE,
         crate::route_method::RouteMethod::Get => axum::routing::MethodFilter::GET,

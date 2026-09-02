@@ -1,8 +1,8 @@
 #[must_use]
 pub fn redact_url_userinfo(
-    value: crate::redacted_url_text_ref::RedactedUrlTextRef<'_>,
+    redacted_url_text_ref: crate::redacted_url_text_ref::RedactedUrlTextRef<'_>,
 ) -> crate::redacted_url::RedactedUrl {
-    let input = value.get();
+    let input = redacted_url_text_ref.get();
     if let Ok(mut url) = reqwest::Url::parse(input) {
         if url.username().is_empty() && url.password().is_none() {
             return crate::redacted_url::RedactedUrl::from(

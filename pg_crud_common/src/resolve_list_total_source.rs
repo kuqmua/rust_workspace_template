@@ -1,10 +1,14 @@
 #[must_use]
 pub const fn resolve_list_total_source(
-    offset: crate::list_offset::ListOffset,
-    rows: crate::list_rows_presence::ListRowsPresence,
-    window_total: crate::window_total_presence::WindowTotalPresence,
+    list_offset: crate::list_offset::ListOffset,
+    list_rows_presence: crate::list_rows_presence::ListRowsPresence,
+    window_total_presence: crate::window_total_presence::WindowTotalPresence,
 ) -> crate::list_total_source::ListTotalSource {
-    match (rows, window_total, *offset.get_inner()) {
+    match (
+        list_rows_presence,
+        window_total_presence,
+        *list_offset.get_inner(),
+    ) {
         (
             crate::list_rows_presence::ListRowsPresence::Present,
             crate::window_total_presence::WindowTotalPresence::Present,

@@ -12,8 +12,11 @@
 pub struct AdminSwaggerEnabled(bool);
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminSwaggerEnabled {
     type Error = crate::parse_bool_error::ParseBoolError;
-    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.parse::<bool>()
+    fn try_from_std_env_var_ok(
+        std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
+    ) -> Result<Self, Self::Error> {
+        std_env_var_ok
+            .parse::<bool>()
             .map(Self)
             .map_err(crate::parse_bool_error::ParseBoolError::from)
     }

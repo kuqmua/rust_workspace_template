@@ -1,7 +1,7 @@
 pub(crate) fn naming_validate_project_name(
-    value: crate::project_name_ref::ProjectNameRef<'_>,
+    project_name_ref: crate::project_name_ref::ProjectNameRef<'_>,
 ) -> Result<(), crate::scaffold_error::ScaffoldError> {
-    let text = value.get();
+    let text = project_name_ref.get();
     if text.is_empty()
         || text.starts_with('_')
         || text.ends_with('_')

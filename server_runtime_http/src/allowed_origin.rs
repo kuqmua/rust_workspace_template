@@ -9,9 +9,9 @@ pub struct AllowedOrigin {
 impl TryFrom<String> for AllowedOrigin {
     type Error = crate::allowed_origin_error::AllowedOriginError;
 
-    fn try_from(mut value: String) -> Result<Self, Self::Error> {
+    fn try_from(mut string: String) -> Result<Self, Self::Error> {
         let (scheme, authority_start) = {
-            let (scheme, remainder) = value
+            let (scheme, remainder) = string
                 .split_once(constants_str::TEXT_ALT_10)
                 .ok_or(crate::allowed_origin_error::AllowedOriginError::Invalid)?;
             if (!scheme.eq_ignore_ascii_case(constants_str::HTTP)
@@ -28,9 +28,11 @@ impl TryFrom<String> for AllowedOrigin {
                     .saturating_add(constants_str::TEXT_ALT_10.len()),
             )
         };
-        drop(value.drain(..authority_start));
+        drop(string.drain(..authority_start));
         Ok(Self {
-            authority: crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(value)?,
+            authority: crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(
+                string,
+            )?,
             scheme: crate::http_origin_scheme_text::HttpOriginSchemeText::try_from(scheme)?,
         })
     }

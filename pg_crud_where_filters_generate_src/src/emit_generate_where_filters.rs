@@ -1,6 +1,6 @@
 #[must_use]
 pub fn emit_generate_where_filters(
-    validated: crate::validated_generate_where_filters_config::ValidatedGenerateWhereFiltersConfig,
+    validated_generate_where_filters_config: crate::validated_generate_where_filters_config::ValidatedGenerateWhereFiltersConfig,
 ) -> crate::proc_macro2_generate_where_filters_token_stream::ProcMacro2GenerateWhereFiltersTokenStream
 {
     #[derive(Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
@@ -32,7 +32,7 @@ pub fn emit_generate_where_filters(
     panic_location::panic_location();
     let generate_where_filters_config =
         crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig::from(
-            validated,
+            validated_generate_where_filters_config,
         );
     let (pg_types_write_into_file, whole_write_into_file) =
         generate_where_filters_config.into_parts();

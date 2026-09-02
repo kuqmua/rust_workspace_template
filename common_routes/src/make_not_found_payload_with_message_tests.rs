@@ -1,11 +1,11 @@
 #[cfg(test)]
 pub(super) fn make_not_found_payload_with_message(
-    message: to_err_string::error_text::ErrorText,
-    commit: git_info::git_commit_link_cow::GitCommitLinkCow,
+    error_text: to_err_string::error_text::ErrorText,
+    git_commit_link_cow: git_info::git_commit_link_cow::GitCommitLinkCow,
 ) -> crate::not_found_payload::NotFoundPayload {
     crate::not_found_payload::NotFoundPayload::from_parts(
-        commit,
-        message,
+        git_commit_link_cow,
+        error_text,
         crate::open_api_specification_path::OpenApiSpecificationPath::from(
             constants_str::COMMON_ROUTES_SWAGGER_UI,
         ),

@@ -1,5 +1,5 @@
 pub(crate) fn base_sql(
-    table: server_admin_contract::admin_data_table::AdminDataTable,
+    admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
 ) -> Result<
     (
         server_admin_core::std_admin_string::StdAdminString,
@@ -7,8 +7,8 @@ pub(crate) fn base_sql(
     ),
     crate::admin_repository_error::AdminRepositoryError,
 > {
-    let spec = table.spec();
-    let table_name = table.to_string();
+    let spec = admin_data_table.spec();
+    let table_name = admin_data_table.to_string();
     let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
     count.push_str(table_name.as_str());
     let mut data = spec.columns().get().split(',').enumerate().fold(

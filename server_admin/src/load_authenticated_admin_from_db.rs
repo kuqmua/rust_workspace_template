@@ -1,15 +1,15 @@
 pub(crate) async fn load_authenticated_admin_from_db(
-    db: &mut crate::admin_db_ref::AdminDbRef<'_, '_>,
-    user_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
-    session_id: crate::admin_session_id::AdminSessionId,
+    admin_db_ref: &mut crate::admin_db_ref::AdminDbRef<'_, '_>,
+    admin_user_record_id: server_admin_core::admin_user_record_id::AdminUserRecordId,
+    admin_session_id: crate::admin_session_id::AdminSessionId,
 ) -> Result<
     crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
     crate::admin_error::AdminError,
 > {
     let user_query =
         sqlx::query_as::<_, (String, String, bool)>(constants_str::SERVER_ADMIN_READ_AUTH_USER_SQL)
-            .bind(user_id.get());
-    let optional_user = match db {
+            .bind(admin_user_record_id.get());
+    let optional_user = match admin_db_ref {
         crate::admin_db_ref::AdminDbRef::Connection(connection) => {
             user_query.fetch_optional(&mut ***connection).await
         }
@@ -21,8 +21,8 @@ pub(crate) async fn load_authenticated_admin_from_db(
         optional_user.ok_or(crate::admin_error::AdminError::Authentication)?;
     let roles_query =
         sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_ROLES_SQL)
-            .bind(user_id.get());
-    let raw_roles = match db {
+            .bind(admin_user_record_id.get());
+    let raw_roles = match admin_db_ref {
         crate::admin_db_ref::AdminDbRef::Connection(connection) => {
             roles_query.fetch_all(&mut ***connection).await
         }
@@ -32,8 +32,8 @@ pub(crate) async fn load_authenticated_admin_from_db(
     .map_err(crate::admin_error::AdminError::postgresql)?;
     let permissions_query =
         sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL)
-            .bind(user_id.get());
-    let raw_permissions = match db {
+            .bind(admin_user_record_id.get());
+    let raw_permissions = match admin_db_ref {
         crate::admin_db_ref::AdminDbRef::Connection(connection) => {
             permissions_query.fetch_all(&mut ***connection).await
         }
@@ -69,11 +69,11 @@ pub(crate) async fn load_authenticated_admin_from_db(
     Ok(
         crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin::new(
             display_name,
-            user_id,
+            admin_user_record_id,
             login,
             permissions,
             roles,
-            session_id,
+            admin_session_id,
             password_change_required,
         ),
     )

@@ -1,13 +1,11 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
 #[cfg(test)]
-pub(crate) fn rs_file_path<P>(file_name: P) -> crate::rs_file_path_buf::RsFilePathBuf
+pub(crate) fn rs_file_path<P>(p: P) -> crate::rs_file_path_buf::RsFilePathBuf
 where
     P: AsRef<std::path::Path>,
 {
-    crate::rs_file_path_buf::RsFilePathBuf::from(
-        file_name.as_ref().with_extension(constants_str::RS),
-    )
+    crate::rs_file_path_buf::RsFilePathBuf::from(p.as_ref().with_extension(constants_str::RS))
 }
 #[cfg(test)]
 mod tests {

@@ -39,7 +39,7 @@ fn test_authenticated_admin_checks_owned_permissions() {
 
 #[test]
 fn test_change_own_password_has_no_session_revocation_choice() {
-    let request = crate::admin_change_own_password_req::AdminChangeOwnPasswordReq::new(
+    let request = crate::admin_change_own_password_request::AdminChangeOwnPasswordRequest::new(
         crate::admin_password::AdminPassword::try_from(String::from(constants_str::VALUE_A1AB879D))
             .expect(constants_str::DIAGNOSTIC_C10E4DB7),
         crate::admin_new_password::AdminNewPassword::try_from(String::from(
@@ -56,7 +56,7 @@ fn test_change_own_password_has_no_session_revocation_choice() {
         })
     );
     let Err(_unknown_field_error) = serde_json::from_str::<
-        crate::admin_change_own_password_req::AdminChangeOwnPasswordReq,
+        crate::admin_change_own_password_request::AdminChangeOwnPasswordRequest,
     >(constants_str::VALUE_4A4AAF28) else {
         std::panic::panic_any(constants_str::PANIC_ABAA9CDF);
     };
@@ -86,7 +86,7 @@ fn test_sign_in_accepts_only_login_and_password() {
         "password": "correct_password"
     });
     let Ok(_basic_request) =
-        serde_json::from_value::<crate::admin_sign_in_req::AdminSignInReq>(basic)
+        serde_json::from_value::<crate::admin_sign_in_request::AdminSignInRequest>(basic)
     else {
         std::panic::panic_any(constants_str::PANIC_AF47412D);
     };
@@ -96,7 +96,7 @@ fn test_sign_in_accepts_only_login_and_password() {
         "password": "correct_password"
     });
     let Err(_legacy_mfa_error) =
-        serde_json::from_value::<crate::admin_sign_in_req::AdminSignInReq>(legacy_mfa)
+        serde_json::from_value::<crate::admin_sign_in_request::AdminSignInRequest>(legacy_mfa)
     else {
         std::panic::panic_any(constants_str::PANIC_89071E97);
     };

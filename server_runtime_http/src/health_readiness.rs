@@ -27,8 +27,13 @@ impl HealthReadiness {
         )
     }
 
-    pub fn store_database_probe(&self, value: crate::health_probe_succeeded::HealthProbeSucceeded) {
-        self.shared
-            .store(bool::from(value), std::sync::atomic::Ordering::Release);
+    pub fn store_database_probe(
+        &self,
+        health_probe_succeeded: crate::health_probe_succeeded::HealthProbeSucceeded,
+    ) {
+        self.shared.store(
+            bool::from(health_probe_succeeded),
+            std::sync::atomic::Ordering::Release,
+        );
     }
 }

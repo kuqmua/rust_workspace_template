@@ -21,9 +21,9 @@ pub struct DevelopmentIdentityCreationSummary {
 impl DevelopmentIdentityCreationSummary {
     pub(crate) const fn record(
         &mut self,
-        decision: server_runtime_core::identity_creation_decision::IdentityCreationDecision,
+        identity_creation_decision: server_runtime_core::identity_creation_decision::IdentityCreationDecision,
     ) {
-        match decision {
+        match identity_creation_decision {
             server_runtime_core::identity_creation_decision::IdentityCreationDecision::AlreadyExists => {
                 self.already_exists.increment();
             }

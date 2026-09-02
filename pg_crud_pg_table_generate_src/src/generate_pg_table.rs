@@ -4,11 +4,13 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_variables)]
 pub fn generate_pg_table(
-    input: macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
+    proc_macro2_token_stream_ref: macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let validated = match crate::parse_generate_pg_table::parse_generate_pg_table(input)
-        .and_then(crate::build_generate_pg_table::build_generate_pg_table)
-        .and_then(crate::validate_generate_pg_table::validate_generate_pg_table)
+    let validated = match crate::parse_generate_pg_table::parse_generate_pg_table(
+        proc_macro2_token_stream_ref,
+    )
+    .and_then(crate::build_generate_pg_table::build_generate_pg_table)
+    .and_then(crate::validate_generate_pg_table::validate_generate_pg_table)
     {
         Ok(validated) => validated,
         Err(error) => {

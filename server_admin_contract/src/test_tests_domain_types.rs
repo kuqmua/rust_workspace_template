@@ -1,9 +1,14 @@
+#![allow(
+    unused_variables,
+    reason = "test trait fixtures preserve repository type-based parameter names"
+)]
+
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct ClientTransport;
 impl frontend_contract::transport::Transport for ClientTransport {
     fn send(
         &self,
-        _request: frontend_contract::transport_request::TransportRequest,
+        transport_request: frontend_contract::transport_request::TransportRequest,
     ) -> impl Future<
         Output = Result<
             frontend_contract::transport_response::TransportResponse,
@@ -105,11 +110,11 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
     .into_iter()
     .for_each(|size| assert_eq!(size, constants_usize::ZERO));
 }
-fn assert_rejects_unknown_field<Value>(json: &str)
+fn assert_rejects_unknown_field<Value>(str: &str)
 where
     Value: serde::de::DeserializeOwned,
 {
-    let Err(_error) = serde_json::from_str::<Value>(json) else {
+    let Err(_error) = serde_json::from_str::<Value>(str) else {
         std::panic::panic_any(constants_str::PANIC_30BBF690);
     };
 }
@@ -163,34 +168,34 @@ fn test_authentication_route_family_has_valid_coverage() {
 }
 #[test]
 fn test_request_payloads_reject_unknown_fields() {
-    assert_rejects_unknown_field::<crate::admin_sign_in_req::AdminSignInReq>(
+    assert_rejects_unknown_field::<crate::admin_sign_in_request::AdminSignInRequest>(
         constants_str::LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<crate::admin_create_user_req::AdminCreateUserReq>(
+    assert_rejects_unknown_field::<crate::admin_create_user_request::AdminCreateUserRequest>(
         constants_str::DISPLAY_NAME_ADMIN_LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<crate::admin_update_user_req::AdminUpdateUserReq>(
+    assert_rejects_unknown_field::<crate::admin_update_user_request::AdminUpdateUserRequest>(
         constants_str::DISPLAY_NAME_ADMIN_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<crate::admin_set_user_password_req::AdminSetUserPasswordReq>(
-        constants_str::PASSWORD_SECRET_UNKNOWN_TRUE,
-    );
-    assert_rejects_unknown_field::<crate::admin_set_user_ban_req::AdminSetUserBanReq>(
+    assert_rejects_unknown_field::<
+        crate::admin_set_user_password_request::AdminSetUserPasswordRequest,
+    >(constants_str::PASSWORD_SECRET_UNKNOWN_TRUE);
+    assert_rejects_unknown_field::<crate::admin_set_user_ban_request::AdminSetUserBanRequest>(
         constants_str::IS_BANNED_TRUE_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<crate::admin_create_role_req::AdminCreateRoleReq>(
+    assert_rejects_unknown_field::<crate::admin_create_role_request::AdminCreateRoleRequest>(
         constants_str::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<crate::admin_update_role_req::AdminUpdateRoleReq>(
+    assert_rejects_unknown_field::<crate::admin_update_role_request::AdminUpdateRoleRequest>(
         constants_str::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<crate::admin_set_user_roles_req::AdminSetUserRolesReq>(
+    assert_rejects_unknown_field::<crate::admin_set_user_roles_request::AdminSetUserRolesRequest>(
         constants_str::ROLE_IDS_1_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<crate::admin_set_role_permissions_req::AdminSetRolePermissionsReq>(
-        constants_str::PERMISSION_IDS_1_UNKNOWN_TRUE,
-    );
-    assert_rejects_unknown_field::<crate::admin_update_settings_req::AdminUpdateSettingsReq>(
+    assert_rejects_unknown_field::<
+        crate::admin_set_role_permissions_request::AdminSetRolePermissionsRequest,
+    >(constants_str::PERMISSION_IDS_1_UNKNOWN_TRUE);
+    assert_rejects_unknown_field::<crate::admin_update_settings_request::AdminUpdateSettingsRequest>(
         constants_str::SITE_NAME_ADMIN_UNKNOWN_TRUE,
     );
 }

@@ -18,13 +18,13 @@ impl TryFrom<Vec<crate::pg_relation_resource_id::PgRelationResourceId>> for PgRe
     type Error = crate::pg_relation_lock_error::PgRelationLockError;
 
     fn try_from(
-        value: Vec<crate::pg_relation_resource_id::PgRelationResourceId>,
+        vec: Vec<crate::pg_relation_resource_id::PgRelationResourceId>,
     ) -> Result<Self, Self::Error> {
         let mut resources = bounded_types::bounded_vec::BoundedVec::<
             crate::pg_relation_resource_id::PgRelationResourceId,
             { constants_usize::ZERO },
             { crate::maximum_resource_count::MAXIMUM_RESOURCE_COUNT },
-        >::try_from(value)
+        >::try_from(vec)
         .map_err(|_error| crate::pg_relation_lock_error::PgRelationLockError::TooManyResources)?
         .into_inner();
         resources.sort();

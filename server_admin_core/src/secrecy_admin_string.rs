@@ -6,15 +6,15 @@
 pub struct SecrecyAdminString(secrecy::SecretBox<crate::std_admin_string::StdAdminString>);
 
 impl std::fmt::Debug for SecrecyAdminString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(constants_str::REDACTED_ALT_3)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(constants_str::REDACTED_ALT_3)
     }
 }
 impl TryFrom<String> for SecrecyAdminString {
     type Error = crate::std_admin_string::StdAdminStringTryFromStringError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        crate::std_admin_string::StdAdminString::try_from(value)
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        crate::std_admin_string::StdAdminString::try_from(string)
             .map(|bounded| Self::from(secrecy::SecretBox::new(Box::new(bounded))))
     }
 }

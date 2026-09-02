@@ -12,8 +12,8 @@ pub(crate) struct AdminHtmlFormText(
 );
 impl TryFrom<String> for AdminHtmlFormText {
     type Error = crate::admin_html_form_text_error::AdminHtmlFormTextError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        bounded_types::bounded_string::BoundedString::try_from(value)
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        bounded_types::bounded_string::BoundedString::try_from(string)
             .map(Self)
             .map_err(crate::admin_html_form_text_error::AdminHtmlFormTextError::from)
     }

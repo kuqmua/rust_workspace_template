@@ -139,8 +139,8 @@ pub fn common_logic(
         generate_pg_table_primary_key
     )
 )]
-pub fn derive_generate_pg_table(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input_token_stream = input.into();
+pub fn derive_generate_pg_table(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input_token_stream = token_stream.into();
     generate_pg_table_src::generate_pg_table::generate_pg_table(
         macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
             &input_token_stream,

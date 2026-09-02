@@ -10,18 +10,18 @@ impl serde::de::Visitor<'_> for AdminPageLimitVisitor {
             crate::admin_page_limit::AdminPageLimit::MAX
         )
     }
-    fn visit_str<Error>(self, v: &str) -> Result<Self::Value, Error>
+    fn visit_str<Error>(self, str: &str) -> Result<Self::Value, Error>
     where
         Error: serde::de::Error,
     {
-        let parsed = v.parse::<u16>().map_err(serde::de::Error::custom)?;
+        let parsed = str.parse::<u16>().map_err(serde::de::Error::custom)?;
         crate::admin_page_limit::AdminPageLimit::try_from(parsed).map_err(serde::de::Error::custom)
     }
-    fn visit_u64<Error>(self, v: u64) -> Result<Self::Value, Error>
+    fn visit_u64<Error>(self, u64: u64) -> Result<Self::Value, Error>
     where
         Error: serde::de::Error,
     {
-        let parsed = u16::try_from(v).map_err(serde::de::Error::custom)?;
+        let parsed = u16::try_from(u64).map_err(serde::de::Error::custom)?;
         crate::admin_page_limit::AdminPageLimit::try_from(parsed).map_err(serde::de::Error::custom)
     }
 }

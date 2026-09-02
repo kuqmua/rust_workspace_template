@@ -4,23 +4,22 @@
 )]
 #[cfg(test)]
 mod tests {
-    fn range(value: &str) -> crate::trusted_proxy_range::TrustedProxyRange {
-        crate::trusted_proxy_range::TrustedProxyRange::try_from(value.to_owned())
+    fn range(str: &str) -> crate::trusted_proxy_range::TrustedProxyRange {
+        crate::trusted_proxy_range::TrustedProxyRange::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_46CC9E0A)
     }
     fn resolved(
-        headers: &http::HeaderMap,
-        peer_value: &str,
-        ranges: Vec<crate::trusted_proxy_range::TrustedProxyRange>,
+        header_map: &http::HeaderMap,
+        str: &str,
+        vec: Vec<crate::trusted_proxy_range::TrustedProxyRange>,
     ) -> String {
         crate::resolve_client_ip::resolve_client_ip(
-            crate::http_header_map_ref::HttpHeaderMapRef::from(headers),
+            crate::http_header_map_ref::HttpHeaderMapRef::from(header_map),
             crate::client_socket_addr::ClientSocketAddr::from(
-                peer_value
-                    .parse::<std::net::SocketAddr>()
+                str.parse::<std::net::SocketAddr>()
                     .expect(constants_str::DIAGNOSTIC_262819A8),
             ),
-            &crate::trusted_proxy_ranges::TrustedProxyRanges::try_from(ranges)
+            &crate::trusted_proxy_ranges::TrustedProxyRanges::try_from(vec)
                 .expect(constants_str::DIAGNOSTIC_38546D0B),
         )
         .to_string()

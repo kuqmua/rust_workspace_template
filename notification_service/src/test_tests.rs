@@ -1,11 +1,11 @@
-fn state(pool: sqlx::PgPool) -> crate::notification_state::NotificationState {
+fn state(pg_pool: sqlx::PgPool) -> crate::notification_state::NotificationState {
     crate::notification_state::NotificationState::new(
         crate::notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer::from(
             metrics_exporter_prometheus::PrometheusBuilder::new()
                 .build_recorder()
                 .handle(),
         ),
-        app_state::sqlx_pg_pool::SqlxPgPool::from(pool),
+        app_state::sqlx_pg_pool::SqlxPgPool::from(pg_pool),
         git_info::project_git_info_value::project_git_info_value(),
     )
 }
@@ -286,7 +286,7 @@ async fn test_create_notification_persists_through_http_route() {
         )
         .expect(constants_str::DIAGNOSTIC_F9605432);
     let body = serde_json::to_vec(
-        &notification_service_contract::create_notification_req::CreateNotificationReq::new(
+        &notification_service_contract::create_notification_request::CreateNotificationRequest::new(
             message,
         ),
     )
@@ -321,7 +321,7 @@ async fn test_create_notification_persists_through_http_route() {
     let response_body = axum::body::to_bytes(response.into_body(), 16_384usize)
         .await
         .expect(constants_str::DIAGNOSTIC_0AACE9DD);
-    let created: notification_service_contract::create_notification_res::CreateNotificationRes =
+    let created: notification_service_contract::create_notification_response::CreateNotificationResponse =
         serde_json::from_slice(response_body.as_ref()).expect(constants_str::DIAGNOSTIC_E5352EEF);
     assert_ne!(
         created.id(),

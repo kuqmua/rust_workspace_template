@@ -5,7 +5,7 @@
     reason = "route registry owns this Axum handler"
 )]
 pub(super) async fn health_live() -> Result<
-    crate::json_res::JsonRes<crate::health_report::HealthReport>,
+    crate::json_response::JsonResponse<crate::health_report::HealthReport>,
     crate::health_error::HealthError,
 > {
     super::health_report_response::health_report_response(

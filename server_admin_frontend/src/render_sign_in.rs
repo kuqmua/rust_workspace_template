@@ -27,11 +27,11 @@ pub fn render_sign_in(
             .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from),
         leptos::view! {
             <main class="auth-layout" style=primary_color>
-                <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Auth>
+                <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Auth>
                     {error.map(|message| leptos::view! { <crate::admin_alert::AdminAlert>{message.to_string()}</crate::admin_alert::AdminAlert> })}
                     <form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignIn.get()>
-                        <crate::admin_field::AdminField label="Login"><crate::admin_input::AdminInput name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
-                        <crate::admin_field::AdminField label="Password"><crate::admin_input::AdminInput name="password" kind=crate::admin_input_kind::AdminInputKind::Password autocomplete="current-password" required=true /></crate::admin_field::AdminField>
+                        <crate::admin_field::AdminField admin_field_label="Login"><crate::admin_input::AdminInput admin_input_name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
+                        <crate::admin_field::AdminField admin_field_label="Password"><crate::admin_input::AdminInput admin_input_name="password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password autocomplete="current-password" required=true /></crate::admin_field::AdminField>
                         <crate::admin_button::AdminButton>"Sign in"</crate::admin_button::AdminButton>
                     </form>
                 </crate::admin_card::AdminCard>

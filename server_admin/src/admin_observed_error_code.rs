@@ -15,12 +15,12 @@ impl crate::admin_error::AdminError {
     #[track_caller]
     fn observed<Source>(
         source: Source,
-        code: AdminObservedErrorCode,
+        admin_observed_error_code: AdminObservedErrorCode,
     ) -> server_observability::observed_error::ObservedError<Source>
     where
         Source: std::error::Error + 'static,
     {
-        let value = match code {
+        let value = match admin_observed_error_code {
             AdminObservedErrorCode::AuthenticationSecretText => {
                 constants_str::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT
             }
@@ -73,18 +73,18 @@ impl crate::admin_error::AdminError {
 
     #[track_caller]
     pub(crate) fn authentication_secret_text(
-        source: crate::admin_secret_text_error::AdminSecretTextError,
+        admin_secret_text_error: crate::admin_secret_text_error::AdminSecretTextError,
     ) -> Self {
         Self::AuthenticationSecretText(Self::observed(
-            source,
+            admin_secret_text_error,
             AdminObservedErrorCode::AuthenticationSecretText,
         ))
     }
 
     pub(crate) const fn body_rejection(
-        is_payload_too_large: server_admin_core::std_admin_bool::StdAdminBool,
+        std_admin_bool: server_admin_core::std_admin_bool::StdAdminBool,
     ) -> Self {
-        if is_payload_too_large.get() {
+        if std_admin_bool.get() {
             Self::PayloadTooLarge
         } else {
             Self::Validation
@@ -93,60 +93,80 @@ impl crate::admin_error::AdminError {
 
     #[track_caller]
     pub(crate) fn csrf_secret_text(
-        source: crate::admin_secret_text_error::AdminSecretTextError,
+        admin_secret_text_error: crate::admin_secret_text_error::AdminSecretTextError,
     ) -> Self {
         Self::CsrfSecretText(Self::observed(
-            source,
+            admin_secret_text_error,
             AdminObservedErrorCode::CsrfSecretText,
         ))
     }
 
     #[track_caller]
     pub(crate) fn header(
-        source: crate::http_admin_header_value_error::HttpAdminHeaderValueError,
+        http_admin_header_value_error: crate::http_admin_header_value_error::HttpAdminHeaderValueError,
     ) -> Self {
-        Self::Header(Self::observed(source, AdminObservedErrorCode::Header))
+        Self::Header(Self::observed(
+            http_admin_header_value_error,
+            AdminObservedErrorCode::Header,
+        ))
     }
 
     #[track_caller]
     pub(crate) fn password_hash(
-        source: crate::admin_password_hash_error::AdminPasswordHashError,
+        admin_password_hash_error: crate::admin_password_hash_error::AdminPasswordHashError,
     ) -> Self {
-        Self::PasswordHash(Self::observed(source, AdminObservedErrorCode::PasswordHash))
+        Self::PasswordHash(Self::observed(
+            admin_password_hash_error,
+            AdminObservedErrorCode::PasswordHash,
+        ))
     }
 
     #[track_caller]
     pub(crate) fn password_text(
-        source: crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError,
+        admin_password_try_from_string_error: crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError,
     ) -> Self {
-        Self::PasswordText(Self::observed(source, AdminObservedErrorCode::PasswordText))
+        Self::PasswordText(Self::observed(
+            admin_password_try_from_string_error,
+            AdminObservedErrorCode::PasswordText,
+        ))
     }
 
     #[track_caller]
-    pub(crate) fn postgresql(source: crate::sqlx_admin_error::SqlxAdminError) -> Self {
-        Self::Pg(Self::observed(source, AdminObservedErrorCode::Database))
+    pub(crate) fn postgresql(sqlx_admin_error: crate::sqlx_admin_error::SqlxAdminError) -> Self {
+        Self::Pg(Self::observed(
+            sqlx_admin_error,
+            AdminObservedErrorCode::Database,
+        ))
     }
 
     #[track_caller]
-    pub(crate) fn session(source: crate::admin_session_error::AdminSessionError) -> Self {
-        Self::Session(Self::observed(source, AdminObservedErrorCode::Session))
+    pub(crate) fn session(
+        admin_session_error: crate::admin_session_error::AdminSessionError,
+    ) -> Self {
+        Self::Session(Self::observed(
+            admin_session_error,
+            AdminObservedErrorCode::Session,
+        ))
     }
 
     #[track_caller]
     pub(crate) fn secret_text(
-        source: crate::admin_secret_text_error::AdminSecretTextError,
+        admin_secret_text_error: crate::admin_secret_text_error::AdminSecretTextError,
     ) -> Self {
-        Self::SecretText(Self::observed(source, AdminObservedErrorCode::SecretText))
+        Self::SecretText(Self::observed(
+            admin_secret_text_error,
+            AdminObservedErrorCode::SecretText,
+        ))
     }
 }
 impl From<sqlx::Error> for crate::admin_error::AdminError {
-    fn from(value: sqlx::Error) -> Self {
-        Self::postgresql(crate::sqlx_admin_error::SqlxAdminError::from(value))
+    fn from(error: sqlx::Error) -> Self {
+        Self::postgresql(crate::sqlx_admin_error::SqlxAdminError::from(error))
     }
 }
 impl From<crate::sqlx_admin_error::SqlxAdminError> for crate::admin_error::AdminError {
-    fn from(value: crate::sqlx_admin_error::SqlxAdminError) -> Self {
-        Self::postgresql(value)
+    fn from(sqlx_admin_error: crate::sqlx_admin_error::SqlxAdminError) -> Self {
+        Self::postgresql(sqlx_admin_error)
     }
 }
 impl axum::response::IntoResponse for crate::admin_error::AdminError {

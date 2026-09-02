@@ -25,13 +25,13 @@ impl Drop for remove_dir_on_drop::RemoveDirOnDrop {
     }
 }
 #[cfg(feature = "test-utils")]
-fn remove_dir_all_if_exists(path: &std::path::Path, error_id: &str) {
+fn remove_dir_all_if_exists(path: &std::path::Path, str: &str) {
     if let Err(error) = std::fs::remove_dir_all(path)
         && error.kind() != std::io::ErrorKind::NotFound
     {
         std::panic::panic_any(
             constants_str::PANIC_AF2FFBC7
-                .replacen(constants_str::PANIC_PLACEHOLDER_81766C62, error_id, 1usize)
+                .replacen(constants_str::PANIC_PLACEHOLDER_81766C62, str, 1usize)
                 .replacen(
                     constants_str::PANIC_PLACEHOLDER_81240055,
                     error.to_string().as_str(),
@@ -166,17 +166,18 @@ categories = ["category"]
                 });
                 if !dep_entry.contains(constants_str::FEATURES)
                     && let Some(features) = feature_list
-                    && let Some(idx) = dep_entry.rfind('}')
+                    && let Some(index) = dep_entry.rfind('}')
                 {
-                    dep_entry.insert_str(idx, &format!(", features = {features}"));
+                    dep_entry.insert_str(index, &format!(", features = {features}"));
                 }
-                if let Some(path_prefix_idx) = dep_entry.find(constants_str::PATH_ALT_4) {
-                    let dot_idx = path_prefix_idx.saturating_add(constants_str::PATH_ALT_3.len());
-                    if dep_entry.get(dot_idx..dot_idx.saturating_add(constants_usize::ONE))
+                if let Some(path_prefix_index) = dep_entry.find(constants_str::PATH_ALT_4) {
+                    let dot_index =
+                        path_prefix_index.saturating_add(constants_str::PATH_ALT_3.len());
+                    if dep_entry.get(dot_index..dot_index.saturating_add(constants_usize::ONE))
                         == Some(constants_str::DOT)
                     {
                         dep_entry.replace_range(
-                            dot_idx..dot_idx.saturating_add(constants_usize::ONE),
+                            dot_index..dot_index.saturating_add(constants_usize::ONE),
                             &root_path,
                         );
                     }

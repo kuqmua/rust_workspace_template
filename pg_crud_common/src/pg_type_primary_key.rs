@@ -5,18 +5,18 @@ pub trait PgTypePrimaryKey {
     type TableType: crate::domain_types::TableTypeAlias + PartialOrd;
 
     fn read_ids_into_table_type(
-        v: <Self::PgType as crate::pg_type::PgType>::ReadIds,
+        read_ids: <Self::PgType as crate::pg_type::PgType>::ReadIds,
     ) -> <Self::PgType as crate::pg_type::PgType>::TableType;
 
     fn read_ids_into_read(
-        v: <Self::PgType as crate::pg_type::PgType>::ReadIds,
+        read_ids: <Self::PgType as crate::pg_type::PgType>::ReadIds,
     ) -> <Self::PgType as crate::pg_type::PgType>::Read;
 
     fn read_ids_into_update(
-        v: <Self::PgType as crate::pg_type::PgType>::ReadIds,
+        read_ids: <Self::PgType as crate::pg_type::PgType>::ReadIds,
     ) -> <Self::PgType as crate::pg_type::PgType>::Update;
 
     fn read_into_table_type(
-        v: <Self::PgType as crate::pg_type::PgType>::Read,
+        read: <Self::PgType as crate::pg_type::PgType>::Read,
     ) -> <Self::PgType as crate::pg_type::PgType>::TableType;
 }

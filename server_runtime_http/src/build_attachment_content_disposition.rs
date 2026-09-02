@@ -1,10 +1,12 @@
 pub fn build_attachment_content_disposition(
-    file_name: crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef<'_>,
+    http_attachment_file_name_ref: crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef<
+        '_,
+    >,
 ) -> Result<
     crate::http_content_disposition::HttpContentDisposition,
     crate::http_content_disposition_error::HttpContentDispositionError,
 > {
-    let file_name_text = file_name.get();
+    let file_name_text = http_attachment_file_name_ref.get();
     if file_name_text.is_empty() {
         return Err(crate::http_content_disposition_error::HttpContentDispositionError::Empty);
     }

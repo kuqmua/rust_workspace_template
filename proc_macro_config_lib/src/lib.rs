@@ -3,9 +3,13 @@ pub(crate) mod proc_macro2_try_from_parse_input;
 pub(crate) mod proc_macro_try_from_parse_token_stream;
 
 #[proc_macro]
-pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_try_from_non_empty_string(
+    token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
@@ -68,9 +72,11 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
     .into()
 }
 #[proc_macro]
-pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_try_from_secret_url(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
@@ -126,19 +132,21 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
     .into()
 }
 #[proc_macro]
-pub fn impl_try_from_parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_try_from_parse(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     proc_macro::TokenStream::from(impl_try_from_parse_with_error_ty(
         proc_macro2_try_from_parse_input::ProcMacro2TryFromParseInput::from(
-            proc_macro2::TokenStream::from(input),
+            proc_macro2::TokenStream::from(token_stream),
         ),
         proc_macro2_try_from_parse_fixed_error_ty::ProcMacro2TryFromParseFixedErrorTy::from(None),
     ))
 }
 #[proc_macro]
-pub fn impl_try_from_parse_string_error(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_try_from_parse_string_error(
+    token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     proc_macro::TokenStream::from(impl_try_from_parse_with_error_ty(
         proc_macro2_try_from_parse_input::ProcMacro2TryFromParseInput::from(
-            proc_macro2::TokenStream::from(input),
+            proc_macro2::TokenStream::from(token_stream),
         ),
         proc_macro2_try_from_parse_fixed_error_ty::ProcMacro2TryFromParseFixedErrorTy::from(Some(
             quote::quote! {String},
@@ -146,13 +154,14 @@ pub fn impl_try_from_parse_string_error(input: proc_macro::TokenStream) -> proc_
     ))
 }
 fn impl_try_from_parse_with_error_ty(
-    input: proc_macro2_try_from_parse_input::ProcMacro2TryFromParseInput,
-    fixed_error_ty: proc_macro2_try_from_parse_fixed_error_ty::ProcMacro2TryFromParseFixedErrorTy,
+    proc_macro2_try_from_parse_input: proc_macro2_try_from_parse_input::ProcMacro2TryFromParseInput,
+    proc_macro2_try_from_parse_fixed_error_ty: proc_macro2_try_from_parse_fixed_error_ty::ProcMacro2TryFromParseFixedErrorTy,
 ) -> proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        proc_macro2::TokenStream::from(input),
+        proc_macro2::TokenStream::from(proc_macro2_try_from_parse_input),
     );
-    let fixed_error_ty_opt = Option::<proc_macro2::TokenStream>::from(fixed_error_ty);
+    let fixed_error_ty_opt =
+        Option::<proc_macro2::TokenStream>::from(proc_macro2_try_from_parse_fixed_error_ty);
     let min_len = if fixed_error_ty_opt.is_some() { 5 } else { 6 };
     if parts.len() < min_len {
         return proc_macro_try_from_parse_token_stream::ProcMacroTryFromParseTokenStream::from(
@@ -264,9 +273,11 @@ fn impl_try_from_parse_with_error_ty(
     )
 }
 #[proc_macro]
-pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn assert_parse_ok_matches(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
@@ -302,9 +313,11 @@ pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::To
     .into()
 }
 #[proc_macro]
-pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn assert_parse_err_matches(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
@@ -340,9 +353,13 @@ pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::T
     .into()
 }
 #[proc_macro]
-pub fn assert_empty_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn assert_empty_parse_err_matches(
+    token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(input),
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+            token_stream,
+        ),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(

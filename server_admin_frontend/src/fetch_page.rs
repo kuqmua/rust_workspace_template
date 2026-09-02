@@ -1,10 +1,10 @@
 #[allow(
     clippy::future_not_send,
-    reason = "browser page loads run exclusively on wasm_bindgen_futures::spawn_local"
+    reason = "browser admin_page loads run exclusively on wasm_bindgen_futures::spawn_local"
 )]
 pub(crate) async fn fetch_page(
-    page: server_admin_contract::admin_page::AdminPage,
-    query: &super::admin_csr_query::AdminCsrQuery,
+    admin_page: server_admin_contract::admin_page::AdminPage,
+    admin_csr_query: &super::admin_csr_query::AdminCsrQuery,
 ) -> Result<
     super::state::admin_load_state::AdminLoadState,
     super::state::admin_table_load_error::AdminTableLoadError,
@@ -20,14 +20,14 @@ pub(crate) async fn fetch_page(
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
     >(&me_url)
     .await?;
-    let route = match page {
+    let route = match admin_page {
         server_admin_contract::admin_page::AdminPage::Profile => {
             return Ok(super::state::admin_load_state::AdminLoadState::Profile(
                 admin,
             ));
         }
         server_admin_contract::admin_page::AdminPage::Tables => {
-            let Some(table) = query.table else {
+            let Some(table) = admin_csr_query.table else {
                 return Ok(super::state::admin_load_state::AdminLoadState::Empty(admin));
             };
             let table_search = web_sys::window()
@@ -49,14 +49,14 @@ pub(crate) async fn fetch_page(
         | server_admin_contract::admin_page::AdminPage::Roles
         | server_admin_contract::admin_page::AdminPage::Sessions
         | server_admin_contract::admin_page::AdminPage::Settings
-        | server_admin_contract::admin_page::AdminPage::Users => page.spec().route(),
+        | server_admin_contract::admin_page::AdminPage::Users => admin_page.spec().route(),
         server_admin_contract::admin_page::AdminPage::Metrics
         | server_admin_contract::admin_page::AdminPage::OpenApi
         | server_admin_contract::admin_page::AdminPage::Version => {
             return Err(super::state::admin_table_load_error::AdminTableLoadError::Query);
         }
     };
-    let suffix = if bool::from(page.uses_table_query()) {
+    let suffix = if bool::from(admin_page.uses_table_query()) {
         search
     } else {
         String::new()
@@ -65,7 +65,7 @@ pub(crate) async fn fetch_page(
         route,
         super::http::url::AdminCsrApiUrlSuffixRef::from(suffix.as_str()),
     )?;
-    match page {
+    match admin_page {
         server_admin_contract::admin_page::AdminPage::Permissions => {
             super::http::fetch_json::fetch_json(&url)
                 .await

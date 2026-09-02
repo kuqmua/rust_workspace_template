@@ -8,14 +8,18 @@ pub struct ChildProcessSupervisor {
 
 impl ChildProcessSupervisor {
     pub fn new(
-        child: crate::tokio_child_process::TokioChildProcess,
-        maximum: crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize,
+        tokio_child_process: crate::tokio_child_process::TokioChildProcess,
+        child_diagnostic_maximum_non_zero_usize: crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize,
     ) -> Self {
-        let mut child_process = child.into_inner();
+        let mut child_process = tokio_child_process.into_inner();
         let diagnostic = child_process.stderr.take().map(|stderr| {
             crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(tokio::spawn(
                 async move {
-                    crate::read_child_diagnostic::read_child_diagnostic(stderr, maximum).await
+                    crate::read_child_diagnostic::read_child_diagnostic(
+                        stderr,
+                        child_diagnostic_maximum_non_zero_usize,
+                    )
+                    .await
                 },
             ))
         });
@@ -29,7 +33,7 @@ impl ChildProcessSupervisor {
 
     pub async fn shutdown(
         mut self,
-        timeout: crate::request_timeout_duration::RequestTimeoutDuration,
+        request_timeout_duration: crate::request_timeout_duration::RequestTimeoutDuration,
     ) -> Result<
         crate::child_process_report::ChildProcessReport,
         crate::child_process_error::ChildProcessError,
@@ -38,31 +42,32 @@ impl ChildProcessSupervisor {
             .child
             .take()
             .ok_or(crate::child_process_error::ChildProcessError::MissingChild)?;
-        let (completion, status) = match tokio::time::timeout(timeout.get(), child.wait()).await {
-            Ok(result) => (
-                crate::child_process_completion::ChildProcessCompletion::Exited,
-                result
-                    .map_err(crate::child_process_io_error::ChildProcessIoError::from)
-                    .map_err(crate::child_process_error::ChildProcessError::Io)?,
-            ),
-            Err(_graceful_elapsed) => {
-                child
-                    .start_kill()
-                    .map_err(crate::child_process_io_error::ChildProcessIoError::from)
-                    .map_err(crate::child_process_error::ChildProcessError::Io)?;
-                let status = tokio::time::timeout(timeout.get(), child.wait())
-                    .await
-                    .map_err(|_kill_elapsed| {
-                        crate::child_process_error::ChildProcessError::Timeout
-                    })?
-                    .map_err(crate::child_process_io_error::ChildProcessIoError::from)
-                    .map_err(crate::child_process_error::ChildProcessError::Io)?;
-                (
-                    crate::child_process_completion::ChildProcessCompletion::KilledAfterTimeout,
-                    status,
-                )
-            }
-        };
+        let (completion, status) =
+            match tokio::time::timeout(request_timeout_duration.get(), child.wait()).await {
+                Ok(result) => (
+                    crate::child_process_completion::ChildProcessCompletion::Exited,
+                    result
+                        .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+                        .map_err(crate::child_process_error::ChildProcessError::Io)?,
+                ),
+                Err(_graceful_elapsed) => {
+                    child
+                        .start_kill()
+                        .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+                        .map_err(crate::child_process_error::ChildProcessError::Io)?;
+                    let status = tokio::time::timeout(request_timeout_duration.get(), child.wait())
+                        .await
+                        .map_err(|_kill_elapsed| {
+                            crate::child_process_error::ChildProcessError::Timeout
+                        })?
+                        .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+                        .map_err(crate::child_process_error::ChildProcessError::Io)?;
+                    (
+                        crate::child_process_completion::ChildProcessCompletion::KilledAfterTimeout,
+                        status,
+                    )
+                }
+            };
         let diagnostic = crate::join_diagnostic::join_diagnostic(self.diagnostic.take()).await?;
         Ok(crate::child_process_report::ChildProcessReport::new(
             diagnostic,

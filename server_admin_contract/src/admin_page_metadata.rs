@@ -13,12 +13,12 @@ pub struct AdminPageMetadata {
 }
 impl AdminPageMetadata {
     pub(super) const fn new(
-        client_mode: crate::admin_page_client_mode::AdminPageClientMode,
-        navigation: Option<crate::admin_page_navigation::AdminPageNavigation>,
+        admin_page_client_mode: crate::admin_page_client_mode::AdminPageClientMode,
+        option: Option<crate::admin_page_navigation::AdminPageNavigation>,
     ) -> Self {
         Self {
-            client_mode,
-            navigation,
+            client_mode: admin_page_client_mode,
+            navigation: option,
         }
     }
 }

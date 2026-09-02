@@ -18,10 +18,10 @@ where
         Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
     >;
     type Response = axum::response::Response;
-    fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
+    fn call(&mut self, mut request: axum::extract::Request) -> Self::Future {
         let remote_context = crate::extract_remote_trace_context::extract_remote_trace_context(
             crate::http_opentelemetry_header_map_ref::HttpOpentelemetryHeaderMapRef::from(
-                req.headers(),
+                request.headers(),
             ),
         );
         let request_id_and_header_value = [
@@ -30,7 +30,7 @@ where
         ]
         .into_iter()
         .find_map(|header_name| {
-            req.headers().get(header_name).and_then(|value| {
+            request.headers().get(header_name).and_then(|value| {
                 crate::request_id::RequestId::try_from(value)
                     .ok()
                     .map(|request_id| (request_id, value.clone()))
@@ -47,20 +47,21 @@ where
             }
         });
         let started_at = tokio::time::Instant::now();
-        let matched_route = req
+        let matched_route = request
             .extensions()
             .get::<axum::extract::MatchedPath>()
             .map(axum::extract::MatchedPath::as_str);
         let route = matched_route.unwrap_or(constants_str::HTTP_METRICS_UNMATCHED_PATH);
         let safe_url_path = matched_route.filter(|matched_path| {
-            !matched_path.contains('{') && *matched_path == req.uri().path()
+            !matched_path.contains('{') && *matched_path == request.uri().path()
         });
         let client_address = self.span_config.as_ref().and_then(|span_config| {
-            req.extensions()
+            request
+                .extensions()
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
                 .map(|connect_info| {
                     crate::resolve_client_ip::resolve_client_ip(
-                        crate::http_header_map_ref::HttpHeaderMapRef::from(req.headers()),
+                        crate::http_header_map_ref::HttpHeaderMapRef::from(request.headers()),
                         crate::client_socket_addr::ClientSocketAddr::from(connect_info.0),
                         span_config.trusted_proxy_ranges(),
                     )
@@ -72,7 +73,7 @@ where
             otel.name = tracing::field::Empty,
             otel.status_code = tracing::field::Empty,
             request_id = %request_id_and_header_value.0,
-            "http.request.method" = %req.method(),
+            "http.request.method" = %request.method(),
             "http.route" = %route,
             "http.response.status_code" = tracing::field::Empty,
             "url.path" = tracing::field::Empty,
@@ -86,7 +87,7 @@ where
         );
         let _server_name_record = span.record(
             constants_str::OTEL_NAME,
-            format_args!("{} {route}", req.method()),
+            format_args!("{} {route}", request.method()),
         );
         if let Some(path) = safe_url_path {
             let _url_path_record = span.record(constants_str::OTEL_URL_PATH, path);
@@ -121,7 +122,7 @@ where
         let trace_id = opentelemetry_span.span_context().trace_id().to_string();
         let span_id = opentelemetry_span.span_context().span_id().to_string();
         let request_id = request_id_and_header_value.0.clone();
-        let http_method = req.method().clone();
+        let http_method = request.method().clone();
         let http_route = route.to_owned();
         let service_name = self
             .span_config
@@ -129,9 +130,10 @@ where
             .map_or_else(String::new, |config| config.service_name().to_string());
         let _trace_id_record = span.record(constants_str::OTEL_TRACE_ID, trace_id.as_str());
         let _span_id_record = span.record(constants_str::OTEL_SPAN_ID, span_id.as_str());
-        let _previous_extension_request_id =
-            req.extensions_mut().insert(request_id_and_header_value.0);
-        let response_future = tower::Service::call(&mut self.inner, req);
+        let _previous_extension_request_id = request
+            .extensions_mut()
+            .insert(request_id_and_header_value.0);
+        let response_future = tower::Service::call(&mut self.inner, request);
         Box::pin(tracing::Instrument::instrument(
             async move {
                 let mut response = response_future.await?;
@@ -239,8 +241,8 @@ where
     }
     fn poll_ready(
         &mut self,
-        cx: &mut std::task::Context<'_>,
+        context: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
+        self.inner.poll_ready(context)
     }
 }

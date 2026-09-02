@@ -2,11 +2,11 @@
 
 #[cfg(test)]
 pub(super) fn should_write_string_into_file(
-    path: crate::written_file_path_ref::WrittenFilePathRef<'_>,
-    string_cnt: crate::string_file_content_ref::StringFileContentRef<'_>,
+    written_file_path_ref: crate::written_file_path_ref::WrittenFilePathRef<'_>,
+    string_file_content_ref: crate::string_file_content_ref::StringFileContentRef<'_>,
 ) -> std::io::Result<crate::should_write_string::ShouldWriteString> {
-    let path_ref = path.as_ref();
-    let string_cnt_ref = string_cnt.as_ref();
+    let path_ref = written_file_path_ref.as_ref();
+    let string_cnt_ref = string_file_content_ref.as_ref();
     match std::fs::metadata(path_ref) {
         Ok(v) => {
             let new_len_u64 = u64::try_from(string_cnt_ref.len()).map_err(|_error| {
@@ -25,7 +25,7 @@ pub(super) fn should_write_string_into_file(
                         return Ok(crate::should_write_string::ShouldWriteString::from(false));
                     }
                     crate::validate_existing_file_text::validate_existing_file_text(
-                        path,
+                        written_file_path_ref,
                         crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes::from(
                             string_cnt_ref.len(),
                         ),
@@ -39,7 +39,7 @@ pub(super) fn should_write_string_into_file(
                 })?;
                 let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
                     crate::validate_existing_file_text::validate_existing_file_text(
-                        path,
+                        written_file_path_ref,
                         crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes::from(
                             string_cnt_ref.len(),
                         ),
@@ -51,7 +51,7 @@ pub(super) fn should_write_string_into_file(
                 };
                 if old_chunk_read != new_chunk {
                     crate::validate_existing_file_text::validate_existing_file_text(
-                        path,
+                        written_file_path_ref,
                         crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes::from(
                             string_cnt_ref.len(),
                         ),

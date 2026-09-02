@@ -1,5 +1,5 @@
 pub fn build_pg_scoped_foreign_key_clause(
-    foreign_key: &crate::pg_scoped_foreign_key::PgScopedForeignKey,
+    pg_scoped_foreign_key: &crate::pg_scoped_foreign_key::PgScopedForeignKey,
 ) -> Result<
     crate::query_part_fragment::QueryPartFragment,
     crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
@@ -10,21 +10,30 @@ pub fn build_pg_scoped_foreign_key_clause(
         )?;
     crate::push_identifier_list::push_identifier_list(
         &mut clause,
-        foreign_key.get_local_columns().get_inner().as_slice(),
+        pg_scoped_foreign_key
+            .get_local_columns()
+            .get_inner()
+            .as_slice(),
     );
     clause.get_inner_mut().push_str(constants_str::REFERENCES);
-    clause
-        .get_inner_mut()
-        .push_str(foreign_key.get_referenced_table().to_string().as_str());
+    clause.get_inner_mut().push_str(
+        pg_scoped_foreign_key
+            .get_referenced_table()
+            .to_string()
+            .as_str(),
+    );
     clause.get_inner_mut().push('(');
     crate::push_identifier_list::push_identifier_list(
         &mut clause,
-        foreign_key.get_referenced_columns().get_inner().as_slice(),
+        pg_scoped_foreign_key
+            .get_referenced_columns()
+            .get_inner()
+            .as_slice(),
     );
     clause.get_inner_mut().push(')');
     clause
         .get_inner_mut()
-        .push_str(match foreign_key.get_on_delete() {
+        .push_str(match pg_scoped_foreign_key.get_on_delete() {
             crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Cascade => {
                 constants_str::ON_DELETE_CASCADE
             }
@@ -37,8 +46,8 @@ pub fn build_pg_scoped_foreign_key_clause(
 
 #[cfg(test)]
 mod tests {
-    fn scoped_foreign_key_identifier(value: &str) -> crate::sql_identifier::SqlIdentifier {
-        crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
+    fn scoped_foreign_key_identifier(str: &str) -> crate::sql_identifier::SqlIdentifier {
+        crate::sql_identifier::SqlIdentifier::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_2EC15E48)
     }
 

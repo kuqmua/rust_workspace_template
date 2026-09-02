@@ -19,8 +19,8 @@ pub struct LocationColumn(std::num::NonZeroU32);
 impl TryFrom<u32> for LocationColumn {
     type Error = crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error;
 
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        std::num::NonZeroU32::new(value)
+    fn try_from(u32: u32) -> Result<Self, Self::Error> {
+        std::num::NonZeroU32::new(u32)
             .map(Self::from)
             .ok_or(crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error::OutOfRange)
     }

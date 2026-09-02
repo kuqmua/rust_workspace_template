@@ -82,7 +82,7 @@ fn main() -> server_exit_code::ServerExitCode {
                             server_admin::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds::try_from(seconds)
                                 .map_err(run_server_error::RunServerError::AdminCleanupConfig)
                         };
-                        let cleanup_cfg = server_admin::admin_cleanup_cfg::AdminCleanupCfg::new(
+                        let cleanup_cfg = server_admin::admin_cleanup_configuration::AdminCleanupConfiguration::new(
                             cleanup_batch_size,
                             cleanup_retention(604_800i64)?,
                             cleanup_retention(7_776_000i64)?,

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     fn env_result(
-        value: Result<String, std::env::VarError>,
+        result: Result<String, std::env::VarError>,
     ) -> crate::env_var_result_var_error::EnvVarResultVarError {
-        crate::env_var_result_var_error::EnvVarResultVarError::try_from(value)
+        crate::env_var_result_var_error::EnvVarResultVarError::try_from(result)
             .expect(constants_str::DIAGNOSTIC_A4AA0C6F)
     }
     #[test]
@@ -62,35 +62,35 @@ mod tests {
         assert_parse_display_roundtrip_variants::<crate::tracing_level::TracingLevel>();
     }
     #[test]
-    fn test_src_place_type_from_str_roundtrip_is_stable_for_all_variants() {
-        assert_parse_display_roundtrip_variants::<crate::src_place_type::SrcPlaceType>();
+    fn test_source_place_type_from_str_roundtrip_is_stable_for_all_variants() {
+        assert_parse_display_roundtrip_variants::<crate::source_place_type::SourcePlaceType>();
     }
     #[test]
-    fn test_src_place_type_from_str_accepts_src_value() {
+    fn test_source_place_type_from_str_accepts_src_value() {
         assert_eq!(
-            <crate::src_place_type::SrcPlaceType as std::str::FromStr>::from_str(
+            <crate::source_place_type::SourcePlaceType as std::str::FromStr>::from_str(
                 constants_str::SRC_ALT
             ),
-            Ok(crate::src_place_type::SrcPlaceType::Src)
+            Ok(crate::source_place_type::SourcePlaceType::Src)
         );
     }
     #[test]
-    fn test_src_place_type_from_str_rejects_unknown_value() {
-        let _error = <crate::src_place_type::SrcPlaceType as std::str::FromStr>::from_str(
+    fn test_source_place_type_from_str_rejects_unknown_value() {
+        let _error = <crate::source_place_type::SourcePlaceType as std::str::FromStr>::from_str(
             constants_str::BAD,
         )
         .expect_err(constants_str::VALUE_8D6F70BB);
     }
     #[test]
-    fn test_src_place_type_default_is_github() {
+    fn test_source_place_type_default_is_github() {
         assert_eq!(
-            crate::src_place_type::SrcPlaceType::default(),
-            crate::src_place_type::SrcPlaceType::Github
+            crate::source_place_type::SourcePlaceType::default(),
+            crate::source_place_type::SourcePlaceType::Github
         );
     }
     #[test]
-    fn test_src_place_type_parse_error_contains_expected_context() {
-        let error = <crate::src_place_type::SrcPlaceType as std::str::FromStr>::from_str(
+    fn test_source_place_type_parse_error_contains_expected_context() {
+        let error = <crate::source_place_type::SourcePlaceType as std::str::FromStr>::from_str(
             constants_str::UNKNOWN_ALT,
         )
         .expect_err(constants_str::F2CC7D6B);
@@ -98,22 +98,29 @@ mod tests {
         assert!(error.contains(constants_str::VALUE_0C0C9A7B));
     }
     #[test]
-    fn test_parse_src_place_type_env_value_parses_case_insensitively() {
-        let parsed = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<
-            crate::src_place_type::SrcPlaceType,
+    fn test_parse_source_place_type_env_value_parses_case_insensitively() {
+        let parsed = crate::parse_from_str_with_context_tests::parse_from_str_with_context::<
+            crate::source_place_type::SourcePlaceType,
         >(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::GITHUB),
-            crate::parse_ctx_ref::ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
+            crate::parse_context_ref::ParseContextRef::from(
+                constants_str::CONFIG_SOURCE_PLACE_TYPE_PARSE_CONTEXT,
+            ),
         );
-        assert_eq!(parsed, Ok(crate::src_place_type::SrcPlaceType::Github));
+        assert_eq!(
+            parsed,
+            Ok(crate::source_place_type::SourcePlaceType::Github)
+        );
     }
     #[test]
-    fn test_parse_src_place_type_env_value_wraps_parse_context() {
-        let error = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<
-            crate::src_place_type::SrcPlaceType,
+    fn test_parse_source_place_type_env_value_wraps_parse_context() {
+        let error = crate::parse_from_str_with_context_tests::parse_from_str_with_context::<
+            crate::source_place_type::SourcePlaceType,
         >(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::BAD),
-            crate::parse_ctx_ref::ParseCtxRef::from(constants_str::CONFIG_SRC_PLACE_TYPE_PARSE_CTX),
+            crate::parse_context_ref::ParseContextRef::from(
+                constants_str::CONFIG_SOURCE_PLACE_TYPE_PARSE_CONTEXT,
+            ),
         )
         .expect_err(constants_str::VALUE_8C9F2A17);
         let error_text = error.to_string();
@@ -125,7 +132,7 @@ mod tests {
         let parsed = crate::parse_from_env_var_with_tests::parse_from_env_var_with(
             env_result(Err(std::env::VarError::NotPresent)),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
-                constants_str::ENV_NAMES_SRC_PLACE_TYPE,
+                constants_str::ENV_NAMES_SOURCE_PLACE_TYPE,
             ),
             |_v| Ok(()),
         );
@@ -143,7 +150,7 @@ mod tests {
         let parsed = crate::parse_from_env_var_with_tests::parse_from_env_var_with(
             env_result(Ok(String::from(constants_str::SRC_ALT))),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
-                constants_str::ENV_NAMES_SRC_PLACE_TYPE,
+                constants_str::ENV_NAMES_SOURCE_PLACE_TYPE,
             ),
             |v| Ok(v.as_ref().to_owned()),
         );
@@ -154,9 +161,9 @@ mod tests {
         let parsed = crate::parse_from_env_var_from_str_tests::parse_from_env_var_from_str::<bool>(
             env_result(Ok(String::from(constants_str::TRUE))),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
-                constants_str::ENV_NAMES_SRC_PLACE_TYPE,
+                constants_str::ENV_NAMES_SOURCE_PLACE_TYPE,
             ),
-            crate::parse_ctx_ref::ParseCtxRef::from(constants_str::BOOL_PARSE),
+            crate::parse_context_ref::ParseContextRef::from(constants_str::BOOL_PARSE),
         );
         assert_eq!(parsed, Ok(true));
     }
@@ -165,41 +172,43 @@ mod tests {
         let error = crate::parse_from_env_var_from_str_tests::parse_from_env_var_from_str::<bool>(
             env_result(Ok(String::from(constants_str::X))),
             crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
-                constants_str::ENV_NAMES_SRC_PLACE_TYPE,
+                constants_str::ENV_NAMES_SOURCE_PLACE_TYPE,
             ),
-            crate::parse_ctx_ref::ParseCtxRef::from(constants_str::BOOL_PARSE),
+            crate::parse_context_ref::ParseContextRef::from(constants_str::BOOL_PARSE),
         )
         .expect_err(constants_str::VALUE_7E4B3F19);
         assert!(error.to_string().contains(constants_str::VALUE_3461D5B9));
     }
     #[test]
-    fn test_parse_src_place_type_from_env_var_wraps_missing_var_context() {
-        let error = crate::src_place_type::SrcPlaceType::parse_src_place_type_from_env_var(
-            env_result(Err(std::env::VarError::NotPresent)),
-        )
-        .expect_err(constants_str::VALUE_5A83F2BE);
+    fn test_parse_source_place_type_from_env_var_wraps_missing_var_context() {
+        let error =
+            crate::source_place_type::SourcePlaceType::parse_source_place_type_from_env_var(
+                env_result(Err(std::env::VarError::NotPresent)),
+            )
+            .expect_err(constants_str::VALUE_5A83F2BE);
         assert!(error.to_string().contains(constants_str::VALUE_48766AEF));
     }
     #[test]
-    fn test_parse_src_place_type_from_env_var_parses_ok_value() {
-        let parsed = crate::src_place_type::SrcPlaceType::parse_src_place_type_from_env_var(
-            env_result(Ok(String::from(constants_str::SRC_ALT))),
-        );
-        assert_eq!(parsed, Ok(crate::src_place_type::SrcPlaceType::Src));
+    fn test_parse_source_place_type_from_env_var_parses_ok_value() {
+        let parsed =
+            crate::source_place_type::SourcePlaceType::parse_source_place_type_from_env_var(
+                env_result(Ok(String::from(constants_str::SRC_ALT))),
+            );
+        assert_eq!(parsed, Ok(crate::source_place_type::SourcePlaceType::Src));
     }
     #[test]
-    fn test_parse_from_str_with_ctx_parses_value_when_input_is_valid() {
-        let parsed = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<bool>(
+    fn test_parse_from_str_with_context_parses_value_when_input_is_valid() {
+        let parsed = crate::parse_from_str_with_context_tests::parse_from_str_with_context::<bool>(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::TRUE),
-            crate::parse_ctx_ref::ParseCtxRef::from(constants_str::BOOL_PARSE),
+            crate::parse_context_ref::ParseContextRef::from(constants_str::BOOL_PARSE),
         );
         assert_eq!(parsed, Ok(true));
     }
     #[test]
-    fn test_parse_from_str_with_ctx_wraps_context_when_parsing_fails() {
-        let error = crate::parse_from_str_with_ctx_tests::parse_from_str_with_ctx::<bool>(
+    fn test_parse_from_str_with_context_wraps_context_when_parsing_fails() {
+        let error = crate::parse_from_str_with_context_tests::parse_from_str_with_context::<bool>(
             crate::env_var_value_ref::EnvVarValueRef::from(constants_str::X),
-            crate::parse_ctx_ref::ParseCtxRef::from(constants_str::BOOL_PARSE),
+            crate::parse_context_ref::ParseContextRef::from(constants_str::BOOL_PARSE),
         )
         .expect_err(constants_str::VALUE_13FE8A6D);
         assert!(error.to_string().contains(constants_str::VALUE_3461D5B9));

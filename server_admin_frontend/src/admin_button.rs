@@ -24,10 +24,10 @@ use leptos::prelude::{Callable, ClassAttribute, ElementChild, OnAttribute};
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminButton(
     #[prop(default = crate::admin_button_variant::AdminButtonVariant::default())]
-    variant: crate::admin_button_variant::AdminButtonVariant,
+    admin_button_variant: crate::admin_button_variant::AdminButtonVariant,
     #[prop(default = crate::admin_button_kind::AdminButtonKind::default())]
-    kind: crate::admin_button_kind::AdminButtonKind,
-    #[prop(optional)] disabled: bool,
+    admin_button_kind: crate::admin_button_kind::AdminButtonKind,
+    #[prop(optional)] bool: bool,
     #[prop(optional)] command_for: Option<String>,
     #[prop(optional)] command: Option<&'static str>,
     #[prop(optional)] popover_target: Option<String>,
@@ -40,10 +40,10 @@ pub(crate) fn AdminButton(
 ) -> impl leptos::prelude::IntoView {
     match on_click {
         Some(callback) => leptos::prelude::IntoAny::into_any(leptos::view! {
-            <span class="contents" on:click=move |event| callback.run(event)><singlestage::Button class=variant.class() button_type=kind.value() disabled=disabled commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button></span>
+            <span class="contents" on:click=move |event| callback.run(event)><singlestage::Button class=admin_button_variant.class() button_type=admin_button_kind.value() disabled=bool commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button></span>
         }),
         None => leptos::prelude::IntoAny::into_any(leptos::view! {
-            <singlestage::Button class=variant.class() button_type=kind.value() disabled=disabled commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button>
+            <singlestage::Button class=admin_button_variant.class() button_type=admin_button_kind.value() disabled=bool commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button>
         }),
     }
 }

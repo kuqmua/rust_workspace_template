@@ -6,15 +6,17 @@ pub(crate) struct AdminSettingsFormValues(
 impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
     for AdminSettingsFormValues
 {
-    fn from(value: &server_admin_contract::admin_settings_view::AdminSettingsView) -> Self {
+    fn from(
+        admin_settings_view: &server_admin_contract::admin_settings_view::AdminSettingsView,
+    ) -> Self {
         fn optional<Value>(
-            value: Option<&Value>,
+            option: Option<&Value>,
         ) -> super::admin_setting_input_value::AdminSettingInputValue
         where
             Value: AsRef<str>,
         {
             super::admin_setting_input_value::AdminSettingInputValue::from(
-                value
+                option
                     .map(|item| item.as_ref().to_owned())
                     .unwrap_or_default()
                     .into_boxed_str(),
@@ -24,7 +26,7 @@ impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
             server_admin_contract::admin_setting::AdminSetting::ALL.map(|setting| match setting {
                 server_admin_contract::admin_setting::AdminSetting::DefaultRoute => {
                     super::admin_setting_input_value::AdminSettingInputValue::from(
-                        value
+                        admin_settings_view
                             .default_admin_route()
                             .as_ref()
                             .to_owned()
@@ -32,27 +34,31 @@ impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
                     )
                 }
                 server_admin_contract::admin_setting::AdminSetting::MainLogo => {
-                    optional(value.main_logo())
+                    optional(admin_settings_view.main_logo())
                 }
                 server_admin_contract::admin_setting::AdminSetting::OrganizationContacts => {
-                    optional(value.organization_contacts())
+                    optional(admin_settings_view.organization_contacts())
                 }
                 server_admin_contract::admin_setting::AdminSetting::OrganizationName => {
-                    optional(value.organization_name())
+                    optional(admin_settings_view.organization_name())
                 }
                 server_admin_contract::admin_setting::AdminSetting::PrimaryColor => {
-                    optional(value.primary_color())
+                    optional(admin_settings_view.primary_color())
                 }
                 server_admin_contract::admin_setting::AdminSetting::SiteName => {
                     super::admin_setting_input_value::AdminSettingInputValue::from(
-                        value.site_name().as_ref().to_owned().into_boxed_str(),
+                        admin_settings_view
+                            .site_name()
+                            .as_ref()
+                            .to_owned()
+                            .into_boxed_str(),
                     )
                 }
                 server_admin_contract::admin_setting::AdminSetting::SupportUrl => {
-                    optional(value.support_url())
+                    optional(admin_settings_view.support_url())
                 }
                 server_admin_contract::admin_setting::AdminSetting::TabTitle => {
-                    optional(value.tab_title())
+                    optional(admin_settings_view.tab_title())
                 }
             }),
         )
@@ -61,12 +67,12 @@ impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
 impl AdminSettingsFormValues {
     pub(crate) const fn get(
         &self,
-        setting: server_admin_contract::admin_setting::AdminSetting,
+        admin_setting: server_admin_contract::admin_setting::AdminSetting,
     ) -> &super::admin_setting_input_value::AdminSettingInputValue {
         #[allow(
             clippy::indexing_slicing,
             reason = "UnitEnumIndex generates a total index below AdminSetting::COUNT"
         )]
-        &self.0[setting.index()]
+        &self.0[admin_setting.index()]
     }
 }

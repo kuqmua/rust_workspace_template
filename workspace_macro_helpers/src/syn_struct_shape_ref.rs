@@ -6,10 +6,10 @@ pub enum SynStructShapeRef<'shape_lt> {
 }
 impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shape_lt> {
     type Error = syn::Error;
-    fn try_from(value: &'shape_lt syn::DeriveInput) -> Result<Self, Self::Error> {
-        let syn::Data::Struct(data) = &value.data else {
+    fn try_from(derive_input: &'shape_lt syn::DeriveInput) -> Result<Self, Self::Error> {
+        let syn::Data::Struct(data) = &derive_input.data else {
             return Err(syn::Error::new_spanned(
-                value,
+                derive_input,
                 constants_str::EXPECTED_A_STRUCT,
             ));
         };

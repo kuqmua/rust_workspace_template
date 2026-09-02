@@ -16,13 +16,13 @@ pub enum LocationFieldAttr {
 impl std::str::FromStr for LocationFieldAttr {
     type Err = ();
 
-    fn from_str(v: &str) -> Result<Self, Self::Err> {
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
         Self::ALL
             .into_iter()
             .find(|item| {
                 crate::attr_identifier_str::AttrIdentifierStr::attribute_identifier_string(item)
                     .as_ref()
-                    == v
+                    == str
             })
             .ok_or(())
     }
@@ -31,8 +31,8 @@ impl std::str::FromStr for LocationFieldAttr {
 impl TryFrom<&syn::Field> for LocationFieldAttr {
     type Error = String;
 
-    fn try_from(value: &syn::Field) -> Result<Self, Self::Error> {
-        let mut supported_attrs = value.attrs.iter().filter_map(|element| {
+    fn try_from(field: &syn::Field) -> Result<Self, Self::Error> {
+        let mut supported_attrs = field.attrs.iter().filter_map(|element| {
             if element.path().segments.len() != 1 {
                 return None;
             }

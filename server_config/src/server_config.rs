@@ -66,7 +66,7 @@ pub struct ServerConfig {
     #[config(example = "10800")]
     timezone: config_lib::chrono_timezone::ChronoTimezone,
     #[config(example = "src")]
-    src_place_type: config_lib::domain_types::SrcPlaceType,
+    source_place_type: config_lib::domain_types::SourcePlaceType,
     #[config(example = "info")]
     tracing_level: config_lib::domain_types::TracingLevel,
     #[config(example = "text")]
@@ -159,9 +159,9 @@ impl config_lib::chrono_timezone::ChronoTimezoneProvider for ServerConfig {
         &self.timezone
     }
 }
-impl config_lib::domain_types::SrcPlaceTypeProvider for ServerConfig {
-    fn src_place_type(&self) -> &config_lib::src_place_type::SrcPlaceType {
-        self.src_place_type.get_inner()
+impl config_lib::domain_types::SourcePlaceTypeProvider for ServerConfig {
+    fn source_place_type(&self) -> &config_lib::source_place_type::SourcePlaceType {
+        self.source_place_type.get_inner()
     }
 }
 impl config_lib::domain_types::TracingLevelProvider for ServerConfig {

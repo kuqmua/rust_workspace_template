@@ -7,8 +7,8 @@
 pub(super) struct HttpHeaderExtractor<'headers_lt>(&'headers_lt http::HeaderMap);
 
 impl opentelemetry::propagation::Extractor for HttpHeaderExtractor<'_> {
-    fn get(&self, key: &str) -> Option<&str> {
-        let value = self.0.get(key)?;
+    fn get(&self, str: &str) -> Option<&str> {
+        let value = self.0.get(str)?;
         value.to_str().ok()
     }
 

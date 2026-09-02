@@ -17,7 +17,7 @@ pub struct Location {
     file: crate::location_file::LocationFile,
     commit: crate::location_commit::LocationCommit,
     duration: crate::location_duration::LocationDuration,
-    occr: Option<crate::occr::Occr>,
+    occurrence: Option<crate::occurrence::Occurrence>,
     line: crate::location_line::LocationLine,
     column: crate::location_column::LocationColumn,
 }
@@ -26,28 +26,32 @@ pub struct Location {
 impl Location {
     fn fmt_github_location(
         &self,
-        f: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
-        file: crate::location_file_ref::LocationFileRef<'_>,
-        line: crate::location_line::LocationLine,
+        formatter_ref_mut: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
+        location_file_ref: crate::location_file_ref::LocationFileRef<'_>,
+        location_line: crate::location_line::LocationLine,
     ) -> std::fmt::Result {
-        let formatter: &mut std::fmt::Formatter<'_> = f.into();
+        let formatter: &mut std::fmt::Formatter<'_> = formatter_ref_mut.into();
         write!(
             formatter,
             "{}/blob/{}/{}#L{}",
             constants_str::NAMING_GITHUB_URL,
             self.commit.as_ref(),
-            <&str>::from(file),
-            line
+            <&str>::from(location_file_ref),
+            location_line
         )
     }
     fn fmt_src_location(
-        f: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
-        file: crate::location_file_ref::LocationFileRef<'_>,
-        line: crate::location_line::LocationLine,
-        column: crate::location_column::LocationColumn,
+        formatter_ref_mut: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
+        location_file_ref: crate::location_file_ref::LocationFileRef<'_>,
+        location_line: crate::location_line::LocationLine,
+        location_column: crate::location_column::LocationColumn,
     ) -> std::fmt::Result {
-        let formatter: &mut std::fmt::Formatter<'_> = f.into();
-        write!(formatter, "{}:{line}:{column}", <&str>::from(file))
+        let formatter: &mut std::fmt::Formatter<'_> = formatter_ref_mut.into();
+        write!(
+            formatter,
+            "{}:{location_line}:{location_column}",
+            <&str>::from(location_file_ref)
+        )
     }
     pub(super) fn datetime_with_tz(
         &self,
@@ -66,9 +70,9 @@ impl Location {
     }
     pub(super) fn fmt_datetime(
         &self,
-        f: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
+        formatter_ref_mut: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
     ) -> std::fmt::Result {
-        let formatter: &mut std::fmt::Formatter<'_> = f.into();
+        let formatter: &mut std::fmt::Formatter<'_> = formatter_ref_mut.into();
         match self.datetime_with_tz() {
             Some(v) => write!(
                 formatter,
@@ -80,19 +84,19 @@ impl Location {
     }
     pub(super) fn fmt_place(
         &self,
-        src_place_type: config_lib::src_place_type::SrcPlaceType,
-        f: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
+        source_place_type: config_lib::source_place_type::SourcePlaceType,
+        formatter_ref_mut: crate::formatter_ref_mut::FormatterRefMut<'_, '_>,
     ) -> std::fmt::Result {
-        let formatter: &mut std::fmt::Formatter<'_> = f.into();
-        match src_place_type {
-            config_lib::src_place_type::SrcPlaceType::Src => {
+        let formatter: &mut std::fmt::Formatter<'_> = formatter_ref_mut.into();
+        match source_place_type {
+            config_lib::source_place_type::SourcePlaceType::Src => {
                 Self::fmt_src_location(
                     crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                     crate::location_file_ref::LocationFileRef::from(self.file.as_ref()),
                     self.line,
                     self.column,
                 )?;
-                if let Some(v) = self.occr.as_ref() {
+                if let Some(v) = self.occurrence.as_ref() {
                     formatter.write_str(constants_str::TEXT)?;
                     Self::fmt_src_location(
                         crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
@@ -105,13 +109,13 @@ impl Location {
                     Ok(())
                 }
             }
-            config_lib::src_place_type::SrcPlaceType::Github => {
+            config_lib::source_place_type::SourcePlaceType::Github => {
                 self.fmt_github_location(
                     crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
                     crate::location_file_ref::LocationFileRef::from(self.file.as_ref()),
                     self.line,
                 )?;
-                if let Some(v) = self.occr.as_ref() {
+                if let Some(v) = self.occurrence.as_ref() {
                     formatter.write_str(constants_str::TEXT)?;
                     self.fmt_github_location(
                         crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
@@ -127,19 +131,19 @@ impl Location {
     }
     #[must_use]
     pub fn new<FileTy>(
-        file: FileTy,
-        line: crate::location_line::LocationLine,
-        column: crate::location_column::LocationColumn,
-        occr: Option<crate::occr::Occr>,
+        file_ty: FileTy,
+        location_line: crate::location_line::LocationLine,
+        location_column: crate::location_column::LocationColumn,
+        option: Option<crate::occurrence::Occurrence>,
     ) -> Self
     where
         FileTy: AsRef<str>,
     {
         Self {
-            file: crate::location_file::LocationFile::try_from(file.as_ref().to_owned())
+            file: crate::location_file::LocationFile::try_from(file_ty.as_ref().to_owned())
                 .unwrap_or_else(crate::location_file::LocationFile::from),
-            line,
-            column,
+            line: location_line,
+            column: location_column,
             commit: crate::location_commit::LocationCommit::try_from(
                 git_info::project_git_info_value::project_git_info_value()
                     .commit()
@@ -152,7 +156,7 @@ impl Location {
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap_or_default(),
             ),
-            occr,
+            occurrence: option,
         }
     }
 }
@@ -162,7 +166,7 @@ impl
         crate::location_file::LocationFile,
         crate::location_commit::LocationCommit,
         crate::location_duration::LocationDuration,
-        Option<crate::occr::Occr>,
+        Option<crate::occurrence::Occurrence>,
         crate::location_line::LocationLine,
         crate::location_column::LocationColumn,
     )> for Location
@@ -172,7 +176,7 @@ impl
             crate::location_file::LocationFile,
             crate::location_commit::LocationCommit,
             crate::location_duration::LocationDuration,
-            Option<crate::occr::Occr>,
+            Option<crate::occurrence::Occurrence>,
             crate::location_line::LocationLine,
             crate::location_column::LocationColumn,
         ),
@@ -181,19 +185,21 @@ impl
             file: value.0,
             commit: value.1,
             duration: value.2,
-            occr: value.3,
+            occurrence: value.3,
             line: value.4,
             column: value.5,
         }
     }
 }
 impl std::fmt::Display for Location {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.fmt_place(
-            config_lib::src_place_type::SrcPlaceType::from_env_or_default(),
-            crate::formatter_ref_mut::FormatterRefMut::from(&mut *f),
+            config_lib::source_place_type::SourcePlaceType::from_env_or_default(),
+            crate::formatter_ref_mut::FormatterRefMut::from(&mut *formatter),
         )?;
-        f.write_str(constants_str::SPACE)?;
-        self.fmt_datetime(crate::formatter_ref_mut::FormatterRefMut::from(&mut *f))
+        formatter.write_str(constants_str::SPACE)?;
+        self.fmt_datetime(crate::formatter_ref_mut::FormatterRefMut::from(
+            &mut *formatter,
+        ))
     }
 }

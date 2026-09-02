@@ -1,19 +1,19 @@
 #[test]
 fn test_runtime_code_does_not_use_expect_unwrap_or_panic() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::C71F2A8D),
         crate::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_FORBIDDEN_EXPECT_UNWRAP_PANIC_CALLS_USE_RESULT_WITH_A),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path)).get() {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::RuntimePanicExpectUnwrapVisitor::new(crate::types::DiagnosticMsgs::default()),
+                super::runtime_analysis::RuntimePanicExpectUnwrapVisitor::new(crate::types::DiagnosticMessages::default()),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -21,10 +21,10 @@ fn test_runtime_code_does_not_use_expect_unwrap_or_panic() {
 }
 #[test]
 fn test_runtime_code_does_not_use_mutex() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::E3F8A1C5),
         crate::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_MUTEX_USE_IT_ONLY_FOR_JUSTIFIED_INTERIOR_MUTABILITY),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path)).get() {
                 return;
             }
@@ -33,7 +33,7 @@ fn test_runtime_code_does_not_use_mutex() {
                 super::runtime_analysis::RuntimeMutexVisitor::new(crate::types::AnalyzerCount::default()),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMsgsMutRef::from(&mut *ers),
+                crate::types::DiagnosticMessagesMutRef::from(&mut *errors),
                 crate::types::PathRef::from(path),
                 crate::types::SourceTextRef::from(constants_str::MUTEX_TYPE_USAGE),
                 *visitor.get_found_count(),
@@ -64,12 +64,12 @@ fn test_runtime_arc_usage_is_limited_to_cross_thread_state() {
                 })
         })
     };
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::F9C2D4A8),
         crate::types::SourceTextRef::from(
             constants_str::RUNTIME_ARC_USAGE_MUST_BE_LIMITED_TO_EXPLICIT_CROSS_THREAD_SHARED_STATE,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path))
                 .get()
             {
@@ -78,13 +78,13 @@ fn test_runtime_arc_usage_is_limited_to_cross_thread_state() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::runtime_analysis::RuntimeArcVisitor::new(
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                     crate::types::AnalyzerBool::from(defines_explicit_shared_arc_wrapper(ast)),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -138,12 +138,12 @@ fn test_environment_initializer_is_in_runtime_policy_scope() {
 }
 #[test]
 fn test_async_functions_do_not_make_blocking_executor_calls() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::A8E1C6F3),
         crate::types::SourceTextRef::from(
             constants_str::ASYNC_FUNCTIONS_CONTAIN_BLOCKING_EXECUTOR_CALLS,
         ),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path))
                 .get()
             {
@@ -153,12 +153,12 @@ fn test_async_functions_do_not_make_blocking_executor_calls() {
                 crate::types::SynFileRef::from(ast),
                 super::runtime_analysis::AsyncBlockingCallVisitor::new(
                     crate::types::AnalyzerCount::default(),
-                    crate::types::DiagnosticMsgs::default(),
+                    crate::types::DiagnosticMessages::default(),
                 ),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers()
+                    .get_errors()
                     .clone()
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
@@ -174,27 +174,27 @@ fn test_async_blocking_policy_rejects_sync_filesystem_network_and_executor_calls
         crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::AsyncBlockingCallVisitor::new(
             crate::types::AnalyzerCount::default(),
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 7usize);
+    assert_eq!(visitor.get_errors().len(), 7usize);
 }
 #[test]
 fn test_unit_tests_do_not_create_external_service_clients() {
-    crate::code_style::assert_rs_ast_ers_empty_with_ctx(
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::D1F5B9C7),
         crate::types::SourceTextRef::from(constants_str::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
-        |path, ast, ers| {
+        |path, ast, errors| {
             if crate::code_style::is_test_source_path(crate::types::PathRef::from(path)).get() {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::UnitTestExternalServiceVisitor::new(crate::types::DiagnosticMsgs::default(), crate::types::AnalyzerCount::default()),
+                super::runtime_analysis::UnitTestExternalServiceVisitor::new(crate::types::DiagnosticMessages::default(), crate::types::AnalyzerCount::default()),
             );
-            ers.extend(
+            errors.extend(
                 visitor
-                    .get_ers().clone().into_iter()
+                    .get_errors().clone().into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
@@ -208,11 +208,11 @@ fn test_external_service_policy_rejects_http_database_and_socket_clients() {
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::AnalyzerCount::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), 5usize, "e165d841");
+    assert_eq!(visitor.get_errors().len(), 5usize, "e165d841");
 }
 
 #[test]
@@ -222,9 +222,9 @@ fn test_external_service_policy_requires_a_reason_for_ignored_integration_tests(
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor::new(
-            crate::types::DiagnosticMsgs::default(),
+            crate::types::DiagnosticMessages::default(),
             crate::types::AnalyzerCount::default(),
         ),
     );
-    assert_eq!(visitor.get_ers().len(), constants_usize::ONE, "31fd7ca0");
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE, "31fd7ca0");
 }

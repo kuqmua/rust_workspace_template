@@ -1,18 +1,18 @@
 pub(crate) async fn user_mutations_delete(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_path: crate::axum_admin_path::AxumAdminPath<
         server_admin_core::admin_user_record_id::AdminUserRecordId,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
-        &auth,
+        &admin_auth_request,
         server_admin_contract::admin_permission::AdminPermission::UsersDelete,
     )
     .await?;
-    if *actor.get_id() == *path.get_inner() {
+    if *actor.get_id() == *axum_admin_path.get_inner() {
         return Err(crate::admin_error::AdminError::Conflict);
     }
-    let mut tx = auth
+    let mut tx = admin_auth_request
         .get_state()
         .as_ref()
         .get_pool()
@@ -31,7 +31,7 @@ pub(crate) async fn user_mutations_delete(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
-        *path.get_inner(),
+        *axum_admin_path.get_inner(),
     )
     .await
     .map_err(crate::admin_error::AdminError::from)?;
@@ -39,7 +39,7 @@ pub(crate) async fn user_mutations_delete(
         return Err(crate::admin_error::AdminError::Conflict);
     }
     sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_DELETE_USER_SQL)
-        .bind(path.get_inner().get())
+        .bind(axum_admin_path.get_inner().get())
         .fetch_optional(&mut *tx)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
@@ -56,7 +56,9 @@ pub(crate) async fn user_mutations_delete(
             crate::admin_audit_action::AdminAuditAction::Delete,
             actor.get_login(),
             crate::admin_audit_resource::AdminAuditResource::User,
-            crate::admin_audit_resource_id::AdminAuditResourceId::User(*path.get_inner()),
+            crate::admin_audit_resource_id::AdminAuditResourceId::User(
+                *axum_admin_path.get_inner(),
+            ),
             *actor.get_id(),
         ),
     )

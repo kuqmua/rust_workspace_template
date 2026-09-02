@@ -29,8 +29,8 @@ impl PaginationStartsWithOne {
         )
     }
     pub fn try_new<L, O>(
-        limit: L,
-        offset: O,
+        l: L,
+        o: O,
     ) -> Result<
         Self,
         crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError,
@@ -39,8 +39,8 @@ impl PaginationStartsWithOne {
         L: Into<crate::pagination_starts_with_one_value::PaginationStartsWithOneValue>,
         O: Into<crate::pagination_starts_with_one_value::PaginationStartsWithOneValue>,
     {
-        let limit_value = limit.into();
-        let offset_value = offset.into();
+        let limit_value = l.into();
+        let offset_value = o.into();
         if limit_value.get() <= 0 || offset_value.get() < 1 {
             if limit_value.get() <= 0 {
                 Err(
@@ -82,9 +82,9 @@ impl TryFrom<crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw>
     type Error =
         crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError;
     fn try_from(
-        value: crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw,
+        pagination_starts_with_one_raw: crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw,
     ) -> Result<Self, Self::Error> {
-        let (limit, offset) = value.into_parts();
+        let (limit, offset) = pagination_starts_with_one_raw.into_parts();
         Self::try_new(limit, offset)
     }
 }
@@ -92,23 +92,23 @@ impl TryFrom<crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw>
 impl<'lt> pg_crud_common::pg_type_where_filter::PgTypeWhereFilter<'lt> for PaginationStartsWithOne {
     fn query_bind(
         self,
-        query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
+        sqlx_postgres_query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
     ) -> Result<
         pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
         pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
-        self.0.query_bind(query)
+        self.0.query_bind(sqlx_postgres_query)
     }
     fn query_part(
         &self,
         increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut,
-        column: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
+        sql_column_ref: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
         add_operator: pg_crud_common::add_operator::AddOperator,
     ) -> Result<
         pg_crud_common::query_part_fragment::QueryPartFragment,
         pg_crud_common::query_part_error::QueryPartError,
     > {
-        self.0.query_part(increment, column, add_operator)
+        self.0.query_part(increment, sql_column_ref, add_operator)
     }
 }
 

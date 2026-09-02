@@ -1,0 +1,26 @@
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    thiserror::Error,
+)]
+pub enum AdminCleanupConfigurationError {
+    #[error("{}", constants_str::CLEANUP_BATCH_SIZE_MUST_BE_BETWEEN_1_AND_10000)]
+    BatchSizeOutOfRange,
+    #[error("{}", constants_str::CLEANUP_RETENTION_MUST_BE_GREATER_THAN_ZERO)]
+    RetentionMustBePositive,
+}
+impl From<server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error>
+    for AdminCleanupConfigurationError
+{
+    fn from(
+        admin_id_try_from_i64_error: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
+    ) -> Self {
+        let _: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error =
+            admin_id_try_from_i64_error;
+        Self::RetentionMustBePositive
+    }
+}

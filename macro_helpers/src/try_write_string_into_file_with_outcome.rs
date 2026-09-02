@@ -1,15 +1,14 @@
 pub fn try_write_string_into_file_with_outcome<P>(
-    file_name: P,
-    string_cnt: crate::string_file_content_ref::StringFileContentRef<'_>,
+    p: P,
+    string_file_content_ref: crate::string_file_content_ref::StringFileContentRef<'_>,
 ) -> std::io::Result<crate::write_path_outcome::WritePathOutcome>
 where
     P: AsRef<std::path::Path>,
 {
-    let path = crate::rs_file_path_buf::RsFilePathBuf::from(
-        file_name.as_ref().with_extension(constants_str::RS),
-    );
+    let path =
+        crate::rs_file_path_buf::RsFilePathBuf::from(p.as_ref().with_extension(constants_str::RS));
     let path_ref = path.as_ref();
-    let string_cnt_ref = string_cnt.as_ref();
+    let string_cnt_ref = string_file_content_ref.as_ref();
     let should_write = match std::fs::metadata(path_ref) {
         Ok(metadata) => {
             let new_len_u64 = u64::try_from(string_cnt_ref.len()).map_err(|_error| {

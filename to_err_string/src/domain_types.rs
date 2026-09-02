@@ -36,8 +36,8 @@ proc_macro_to_err_string::impl_to_err_string_const!(
 );
 #[cfg(test)]
 mod tests {
-    fn assert_to_err_string(v: impl crate::to_err_string::ToErrString, exp: &str) {
-        assert_eq!(v.to_err_string().as_ref(), exp);
+    fn assert_to_err_string(v: impl crate::to_err_string::ToErrString, str: &str) {
+        assert_eq!(v.to_err_string().as_ref(), str);
     }
     #[test]
     fn test_to_err_string_for_primitives_and_options() {

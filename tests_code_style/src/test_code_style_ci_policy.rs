@@ -8,9 +8,11 @@ fn workflow() -> crate::types::SourceText {
     .expect(constants_str::DIAGNOSTIC_DA504E54);
     active_workflow_source(crate::types::SourceTextRef::from(source.as_str()))
 }
-fn active_workflow_source(source: crate::types::SourceTextRef<'_>) -> crate::types::SourceText {
+fn active_workflow_source(
+    source_text_ref: crate::types::SourceTextRef<'_>,
+) -> crate::types::SourceText {
     crate::types::SourceText::try_from(
-        source
+        source_text_ref
             .as_ref()
             .lines()
             .map(|line| {

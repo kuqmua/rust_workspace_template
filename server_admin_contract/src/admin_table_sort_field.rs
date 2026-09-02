@@ -44,7 +44,7 @@ impl AdminTableSortField {
     }
     pub fn try_from_key(
         options: &[Self],
-        key: crate::admin_table_sort_key_ref::AdminTableSortKeyRef<'_>,
+        admin_table_sort_key_ref: crate::admin_table_sort_key_ref::AdminTableSortKeyRef<'_>,
     ) -> Result<
         Self,
         crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError,
@@ -52,7 +52,7 @@ impl AdminTableSortField {
         options
             .iter()
             .copied()
-            .find(|option| option.key().as_ref() == key.get())
+            .find(|option| option.key().as_ref() == admin_table_sort_key_ref.get())
             .ok_or(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)
     }
     fn values(self) -> crate::admin_table_sort_values::AdminTableSortValues {

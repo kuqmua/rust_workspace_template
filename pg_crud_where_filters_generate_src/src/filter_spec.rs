@@ -23,9 +23,11 @@ impl FilterSpec {
     }
     pub(crate) fn bind_count_matches(
         self,
-        value: crate::filter_placeholder_count::FilterPlaceholderCount,
+        filter_placeholder_count: crate::filter_placeholder_count::FilterPlaceholderCount,
     ) -> crate::filter_spec_valid::FilterSpecValid {
-        crate::filter_spec_valid::FilterSpecValid::from(usize::from(self.bind_count) == value.get())
+        crate::filter_spec_valid::FilterSpecValid::from(
+            usize::from(self.bind_count) == filter_placeholder_count.get(),
+        )
     }
     pub(crate) fn contains() -> Self {
         Self::scalar(crate::filter_sql_operator::FilterSqlOperator::from(
@@ -58,10 +60,10 @@ impl FilterSpec {
             constants_str::PG_CRUD_RIGHT_OF_SQL_OPERATOR,
         ))
     }
-    fn scalar(sql_operator: crate::filter_sql_operator::FilterSqlOperator) -> Self {
+    fn scalar(filter_sql_operator: crate::filter_sql_operator::FilterSqlOperator) -> Self {
         Self {
             bind_count: crate::bind_count::BindCount::from(constants_usize::ONE),
-            sql_operator,
+            sql_operator: filter_sql_operator,
             sql_suffix: crate::filter_sql_suffix::FilterSqlSuffix::from(
                 constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
             ),

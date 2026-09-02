@@ -23,17 +23,17 @@ pub struct RouteContract {
 impl RouteContract {
     #[must_use]
     pub const fn new(
-        authentication: crate::authentication_requirement::AuthenticationRequirement,
-        method: crate::route_method::RouteMethod,
-        mutation: crate::mutation_kind::MutationKind,
-        path: crate::contract_str::ContractStr,
+        authentication_requirement: crate::authentication_requirement::AuthenticationRequirement,
+        route_method: crate::route_method::RouteMethod,
+        mutation_kind: crate::mutation_kind::MutationKind,
+        contract_str: crate::contract_str::ContractStr,
         success_status: crate::success_status::SuccessStatus,
     ) -> Self {
         Self {
-            path,
-            authentication,
-            method,
-            mutation,
+            path: contract_str,
+            authentication: authentication_requirement,
+            method: route_method,
+            mutation: mutation_kind,
             success_status,
         }
     }

@@ -16,8 +16,8 @@ pub(crate) struct NewtypeAttrs {
 impl NewtypeAttrs {
     pub(crate) fn contains(
         &self,
-        option: crate::newtype_option::NewtypeOption,
+        newtype_option: crate::newtype_option::NewtypeOption,
     ) -> crate::newtype_bool::NewtypeBool {
-        crate::newtype_bool::NewtypeBool::from(self.options.contains(option).get())
+        crate::newtype_bool::NewtypeBool::from(self.options.contains(newtype_option).get())
     }
 }

@@ -21,21 +21,21 @@ fn test_primitives_render_semantic_accessible_markup() {
     ));
     assert_eq!(owned_label.as_ref(), constants_str::VALUE_9E41A9D1);
     let html = render_owned_view(leptos::view! {
-        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Settings>
+        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Settings>
             <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>"Settings"</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
             <crate::admin_alert::AdminAlert>"Invalid value"</crate::admin_alert::AdminAlert>
-        <crate::admin_field::AdminField label="Login">
-            <crate::admin_input::AdminInput name="login" required=true />
+        <crate::admin_field::AdminField admin_field_label="Login">
+            <crate::admin_input::AdminInput admin_input_name="login" required=true />
             <singlestage::FieldDescription>"Account login"</singlestage::FieldDescription>
             <singlestage::FieldError>"Login is invalid"</singlestage::FieldError>
         </crate::admin_field::AdminField>
-        <crate::admin_field::AdminField label=String::from("Owned label")>
+        <crate::admin_field::AdminField admin_field_label=String::from("Owned label")>
             <crate::admin_empty::AdminEmpty>"Owned value"</crate::admin_empty::AdminEmpty>
         </crate::admin_field::AdminField>
-            <crate::admin_button::AdminButton kind=crate::admin_button_kind::AdminButtonKind::Button>"Save"</crate::admin_button::AdminButton>
-            <crate::admin_badge::AdminBadge variant=crate::admin_badge_variant::AdminBadgeVariant::Success>"Active"</crate::admin_badge::AdminBadge>
-            <crate::admin_textarea::AdminTextarea name="notes" />
-            <crate::admin_alert_dialog::AdminAlertDialog id=String::from("test-alert-dialog") title="Confirm action?" description="This action changes data." trigger="Delete" confirm="Confirm" on_confirm=leptos::prelude::Callback::new(|()| {}) />
+            <crate::admin_button::AdminButton admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button>"Save"</crate::admin_button::AdminButton>
+            <crate::admin_badge::AdminBadge admin_badge_variant=crate::admin_badge_variant::AdminBadgeVariant::Success>"Active"</crate::admin_badge::AdminBadge>
+            <crate::admin_textarea::AdminTextarea admin_input_name="notes" />
+            <crate::admin_alert_dialog::AdminAlertDialog string=String::from("test-alert-dialog") title="Confirm action?" description="This action changes data." trigger="Delete" confirm="Confirm" callback=leptos::prelude::Callback::new(|()| {}) />
         </crate::admin_card::AdminCard>
         <crate::admin_empty::AdminEmpty>"Nothing here"</crate::admin_empty::AdminEmpty>
         <crate::admin_spinner::AdminSpinner />
@@ -84,10 +84,10 @@ fn test_primitives_render_semantic_accessible_markup() {
 #[test]
 fn test_button_variants_preserve_native_control_attributes() {
     let html = render_owned_view(leptos::view! {
-        <crate::admin_button::AdminButton disabled=true>"Primary"</crate::admin_button::AdminButton>
+        <crate::admin_button::AdminButton bool=true>"Primary"</crate::admin_button::AdminButton>
         <crate::admin_button::AdminButton
-            variant=crate::admin_button_variant::AdminButtonVariant::Secondary
-            kind=crate::admin_button_kind::AdminButtonKind::Button
+            admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary
+            admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button
             popover_target=String::from("filters")
             popover_target_action="hide"
             aria_label=String::from("Close filters")
@@ -96,8 +96,8 @@ fn test_button_variants_preserve_native_control_attributes() {
             "Secondary"
         </crate::admin_button::AdminButton>
         <crate::admin_button::AdminButton
-            variant=crate::admin_button_variant::AdminButtonVariant::Danger
-            kind=crate::admin_button_kind::AdminButtonKind::Button
+            admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger
+            admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button
             command_for=String::from("confirmation")
             command="show-modal"
         >
@@ -122,7 +122,7 @@ fn test_button_variants_preserve_native_control_attributes() {
 fn test_form_controls_render_every_supported_kind_and_constraint() {
     let html = render_owned_view(leptos::view! {
         <crate::admin_input::AdminInput
-            name="login"
+            admin_input_name="login"
             autocomplete="username"
             required=true
             minlength=2
@@ -130,19 +130,19 @@ fn test_form_controls_render_every_supported_kind_and_constraint() {
             initial_value=String::from("alice")
         />
         <crate::admin_input::AdminInput
-            name="password"
-            kind=crate::admin_input_kind::AdminInputKind::Password
-            disabled=true
+            admin_input_name="password"
+            admin_input_kind=crate::admin_input_kind::AdminInputKind::Password
+            required=true
         />
         <crate::admin_input::AdminInput
-            name="limit"
-            kind=crate::admin_input_kind::AdminInputKind::Number
+            admin_input_name="limit"
+            admin_input_kind=crate::admin_input_kind::AdminInputKind::Number
             min=1
             max=100
         />
-        <crate::admin_input::AdminInput name="url" kind=crate::admin_input_kind::AdminInputKind::Url />
-        <crate::admin_textarea::AdminTextarea name="notes" required=true disabled=true />
-        <crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />
+        <crate::admin_input::AdminInput admin_input_name="url" admin_input_kind=crate::admin_input_kind::AdminInputKind::Url />
+        <crate::admin_textarea::AdminTextarea admin_input_name="notes" required=true disabled=true />
+        <crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />
     });
 
     assert!(html.contains(constants_str::VALUE_AAD09AEC));
@@ -177,8 +177,8 @@ fn test_bound_form_controls_render_signal_values() {
             leptos::prelude::RwSignal::new(String::from(constants_str::VALUE_F013164D)),
         );
         render_owned_view(leptos::view! {
-            <crate::admin_input::AdminInput name="bound_input" bind_value=input />
-            <crate::admin_textarea::AdminTextarea name="bound_textarea" bind_value=textarea />
+            <crate::admin_input::AdminInput admin_input_name="bound_input" bind_value=input />
+            <crate::admin_textarea::AdminTextarea admin_input_name="bound_textarea" option=textarea />
         })
     });
 
@@ -190,14 +190,14 @@ fn test_bound_form_controls_render_signal_values() {
 #[test]
 fn test_visual_variants_keep_their_rust_ui_contracts() {
     let html = render_owned_view(leptos::view! {
-        <crate::admin_alert::AdminAlert variant=crate::admin_alert_variant::AdminAlertVariant::Success id="saved">"Saved"</crate::admin_alert::AdminAlert>
+        <crate::admin_alert::AdminAlert admin_alert_variant=crate::admin_alert_variant::AdminAlertVariant::Success option="saved">"Saved"</crate::admin_alert::AdminAlert>
         <crate::admin_badge::AdminBadge>"Neutral"</crate::admin_badge::AdminBadge>
-        <crate::admin_badge::AdminBadge variant=crate::admin_badge_variant::AdminBadgeVariant::Success>"Success"</crate::admin_badge::AdminBadge>
+        <crate::admin_badge::AdminBadge admin_badge_variant=crate::admin_badge_variant::AdminBadgeVariant::Success>"Success"</crate::admin_badge::AdminBadge>
         <crate::admin_card::AdminCard>"Default"</crate::admin_card::AdminCard>
-        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Auth>"Auth"</crate::admin_card::AdminCard>
-        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Code>"Code"</crate::admin_card::AdminCard>
-        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Profile>"Profile"</crate::admin_card::AdminCard>
-        <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Security>"Security"</crate::admin_card::AdminCard>
+        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Auth>"Auth"</crate::admin_card::AdminCard>
+        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Code>"Code"</crate::admin_card::AdminCard>
+        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Profile>"Profile"</crate::admin_card::AdminCard>
+        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Security>"Security"</crate::admin_card::AdminCard>
     });
 
     assert!(html.contains(constants_str::VALUE_6F0EA044));
@@ -215,8 +215,8 @@ fn test_visual_variants_keep_their_rust_ui_contracts() {
 #[test]
 fn test_navigation_distinguishes_current_and_inactive_destinations() {
     let html = render_owned_view(leptos::view! {
-        <crate::admin_navigation_link::AdminNavigationLink href=String::from("/admin/users") active=true>"Users"</crate::admin_navigation_link::AdminNavigationLink>
-        <crate::admin_navigation_link::AdminNavigationLink href=String::from("/admin/roles") active=false>"Roles"</crate::admin_navigation_link::AdminNavigationLink>
+        <crate::admin_navigation_link::AdminNavigationLink string=String::from("/admin/users") bool=true>"Users"</crate::admin_navigation_link::AdminNavigationLink>
+        <crate::admin_navigation_link::AdminNavigationLink string=String::from("/admin/roles") bool=false>"Roles"</crate::admin_navigation_link::AdminNavigationLink>
     });
 
     assert!(html.contains(constants_str::VALUE_9938B0AD));
@@ -265,13 +265,13 @@ fn test_table_primitives_preserve_structure_and_class_merging() {
 fn test_alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
     let html = render_owned_view(leptos::view! {
         <crate::admin_alert_dialog::AdminAlertDialog
-            id=String::from("delete-dialog")
+            string=String::from("delete-dialog")
             title="Delete item?"
             description="The item will be removed."
             trigger="Delete"
             confirm="Confirm"
-            disabled=true
-            on_confirm=leptos::prelude::Callback::new(|()| {})
+            bool=true
+            callback=leptos::prelude::Callback::new(|()| {})
         />
     });
 

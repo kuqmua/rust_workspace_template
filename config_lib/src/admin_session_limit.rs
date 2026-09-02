@@ -14,8 +14,10 @@ pub struct AdminSessionLimit(std::num::NonZeroUsize);
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminSessionLimit {
     type Error = crate::try_from_std_env_var_ok_admin_positive_u64_error::TryFromStdEnvVarOkAdminPositiveU64Error;
 
-    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        let value = super::parse_admin_positive_u64::parse_admin_positive_u64(&v)?;
+    fn try_from_std_env_var_ok(
+        std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
+    ) -> Result<Self, Self::Error> {
+        let value = super::parse_admin_positive_u64::parse_admin_positive_u64(&std_env_var_ok)?;
         usize::try_from(value.get())
             .ok()
             .and_then(std::num::NonZeroUsize::new)

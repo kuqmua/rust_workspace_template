@@ -11,8 +11,10 @@
 )]
 pub struct AdminPageLimit(u16);
 impl From<crate::admin_default_page_limit::AdminDefaultPageLimit> for AdminPageLimit {
-    fn from(value: crate::admin_default_page_limit::AdminDefaultPageLimit) -> Self {
-        let _: crate::admin_default_page_limit::AdminDefaultPageLimit = value;
+    fn from(
+        admin_default_page_limit: crate::admin_default_page_limit::AdminDefaultPageLimit,
+    ) -> Self {
+        let _: crate::admin_default_page_limit::AdminDefaultPageLimit = admin_default_page_limit;
         Self(Self::DEFAULT)
     }
 }
@@ -33,9 +35,9 @@ impl Default for AdminPageLimit {
 }
 impl TryFrom<u16> for AdminPageLimit {
     type Error = crate::admin_page_limit_error::AdminPageLimitError;
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        if (Self::MIN..=Self::MAX).contains(&value) {
-            Ok(Self(value))
+    fn try_from(u16: u16) -> Result<Self, Self::Error> {
+        if (Self::MIN..=Self::MAX).contains(&u16) {
+            Ok(Self(u16))
         } else {
             Err(crate::admin_page_limit_error::AdminPageLimitError::OutOfRange)
         }

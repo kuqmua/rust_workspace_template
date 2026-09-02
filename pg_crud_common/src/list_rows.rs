@@ -24,12 +24,12 @@ impl<Item> ListRows<Item> {
 
     #[must_use]
     pub const fn new(
-        items: crate::list_items::ListItems<Item>,
-        window_total: Option<crate::list_total::ListTotal>,
+        list_items: crate::list_items::ListItems<Item>,
+        option: Option<crate::list_total::ListTotal>,
     ) -> Self {
         Self {
-            items,
-            window_total,
+            items: list_items,
+            window_total: option,
         }
     }
 }

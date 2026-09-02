@@ -40,8 +40,9 @@ pub struct AdminUsers {
 }
 #[allow(clippy::missing_fields_in_debug)] // password_hash is intentionally represented by a redacted constant
 impl std::fmt::Debug for AdminUsers {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(constants_str::ADMINUSERS)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct(constants_str::ADMINUSERS)
             .field(constants_str::SQL_NAMES_ID, self.get_id())
             .field(constants_str::LOGIN, self.get_login())
             .field(constants_str::DISPLAY_NAME, self.get_display_name())

@@ -18,9 +18,9 @@ pub struct PgScopedForeignKey {
 impl PgScopedForeignKey {
     pub fn new(
         local_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,
-        referenced_table: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
+        sql_qualified_identifier: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
         referenced_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,
-        on_delete: crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete,
+        pg_scoped_foreign_key_on_delete: crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete,
     ) -> Result<Self, crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError> {
         if local_columns.get_inner().len() != referenced_columns.get_inner().len() {
             return Err(
@@ -49,8 +49,8 @@ impl PgScopedForeignKey {
         Ok(Self {
             local_columns,
             referenced_columns,
-            referenced_table,
-            on_delete,
+            referenced_table: sql_qualified_identifier,
+            on_delete: pg_scoped_foreign_key_on_delete,
         })
     }
 }

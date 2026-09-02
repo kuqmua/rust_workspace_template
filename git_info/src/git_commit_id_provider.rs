@@ -19,13 +19,14 @@ pub trait GitCommitIdProvider {
     }
     fn git_commit_id_or_else<'commit_id_lt>(
         &'commit_id_lt self,
-        fallback: &'commit_id_lt mut crate::git_commit_id_fallback::GitCommitIdFallback,
+        git_commit_id_fallback: &'commit_id_lt mut crate::git_commit_id_fallback::GitCommitIdFallback,
     ) -> crate::git_commit_id_ref::GitCommitIdRef<'commit_id_lt> {
         crate::with_git_commit_id_ref_or::with_git_commit_id_ref_or(
             self,
             |commit_id| commit_id,
             |src| {
-                let fallback_commit = fallback.get_or_insert_with(|| src.git_commit_id());
+                let fallback_commit =
+                    git_commit_id_fallback.get_or_insert_with(|| src.git_commit_id());
                 crate::git_commit_id_ref::GitCommitIdRef::from(AsRef::<str>::as_ref(
                     &*fallback_commit,
                 ))

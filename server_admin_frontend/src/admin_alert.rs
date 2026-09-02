@@ -26,11 +26,11 @@ use leptos::prelude::{AddAnyAttr};
 #[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
 pub(crate) fn AdminAlert(
     #[prop(default = crate::admin_alert_variant::AdminAlertVariant::default())]
-    variant: crate::admin_alert_variant::AdminAlertVariant,
-    #[prop(optional)] id: Option<&'static str>,
+    admin_alert_variant: crate::admin_alert_variant::AdminAlertVariant,
+    #[prop(optional)] option: Option<&'static str>,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <singlestage::Alert attr:data-name="Alert" id=id.map(String::from) attr:class=variant.class() role=variant.role()>{children()}</singlestage::Alert>
+        <singlestage::Alert attr:data-name="Alert" id=option.map(String::from) attr:class=admin_alert_variant.class() role=admin_alert_variant.role()>{children()}</singlestage::Alert>
     }
 }

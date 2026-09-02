@@ -17,20 +17,20 @@
 pub struct UnsignedPartOfI32(i32);
 
 impl From<u16> for UnsignedPartOfI32 {
-    fn from(value: u16) -> Self {
-        Self(i32::from(value))
+    fn from(u16: u16) -> Self {
+        Self(i32::from(u16))
     }
 }
 
 impl TryFrom<i32> for UnsignedPartOfI32 {
     type Error = crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error;
 
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if value >= 0 {
-            Ok(Self(value))
+    fn try_from(i32: i32) -> Result<Self, Self::Error> {
+        if i32 >= 0 {
+            Ok(Self(i32))
         } else {
             Err(Self::Error::LessThanZero {
-                v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(value),
+                v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(i32),
                 location: proc_macro_location_bang::location!(),
             })
         }
@@ -45,8 +45,8 @@ impl to_err_string::to_err_string::ToErrString for UnsignedPartOfI32 {
 }
 
 impl sqlx::Type<sqlx::Postgres> for UnsignedPartOfI32 {
-    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
-        <i32 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
+    fn compatible(type_info: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <i32 as sqlx::Type<sqlx::Postgres>>::compatible(type_info)
     }
 
     fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
@@ -57,9 +57,9 @@ impl sqlx::Type<sqlx::Postgres> for UnsignedPartOfI32 {
 impl sqlx::Encode<'_, sqlx::Postgres> for UnsignedPartOfI32 {
     fn encode_by_ref(
         &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
+        pg_argument_buffer: &mut sqlx::postgres::PgArgumentBuffer,
     ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
-        <i32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.0, buf)
+        <i32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.0, pg_argument_buffer)
     }
 }
 

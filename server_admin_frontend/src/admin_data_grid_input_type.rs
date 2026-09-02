@@ -10,8 +10,8 @@ pub(super) enum AdminDataGridInputType {
 }
 
 impl From<frontend_contract::input_kind::InputKind> for AdminDataGridInputType {
-    fn from(value: frontend_contract::input_kind::InputKind) -> Self {
-        match value {
+    fn from(input_kind: frontend_contract::input_kind::InputKind) -> Self {
+        match input_kind {
             frontend_contract::input_kind::InputKind::Date => Self::Date,
             frontend_contract::input_kind::InputKind::DateTime => Self::DateTime,
             frontend_contract::input_kind::InputKind::Number => Self::Number,

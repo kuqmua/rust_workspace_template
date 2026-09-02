@@ -1,11 +1,11 @@
 pub(crate) async fn crud_page<View, Load, LoadFuture, Render>(
-    auth: crate::admin_auth_req::AdminAuthReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     permissions: &[server_admin_contract::admin_permission::AdminPermission],
     load: Load,
     render: Render,
 ) -> axum::response::Response
 where
-    Load: FnOnce(crate::admin_auth_req::AdminAuthReq) -> LoadFuture,
+    Load: FnOnce(crate::admin_auth_request::AdminAuthRequest) -> LoadFuture,
     LoadFuture: Future<Output = Result<View, crate::admin_error::AdminError>>,
     Render: FnOnce(
         &View,
@@ -13,7 +13,7 @@ where
         &server_admin_contract::admin_branding_view::AdminBrandingView,
     ) -> server_admin_frontend::admin_ssr_html::AdminSsrHtml,
 {
-    match crate::page_context_impl::page_context_impl(&auth).await {
+    match crate::page_context_impl::page_context_impl(&admin_auth_request).await {
         Ok((_admin, _branding, password_change_required)) if *password_change_required => {
             axum::response::IntoResponse::into_response(axum::response::Redirect::to(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get(),
@@ -24,7 +24,7 @@ where
                 .iter()
                 .any(|permission| bool::from(admin.has_permission(*permission))) =>
         {
-            match load(auth).await {
+            match load(admin_auth_request).await {
                 Ok(view) => {
                     crate::html_response_impl::html_response_impl(render(&view, &admin, &branding))
                 }

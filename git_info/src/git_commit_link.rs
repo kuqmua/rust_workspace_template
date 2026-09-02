@@ -18,21 +18,25 @@
 )]
 pub struct GitCommitLink(String);
 impl From<crate::git_commit_link_cow::GitCommitLinkCow> for GitCommitLink {
-    fn from(value: crate::git_commit_link_cow::GitCommitLinkCow) -> Self {
-        Self::try_from(std::borrow::Cow::from(value).into_owned()).unwrap_or_else(Self::from)
+    fn from(git_commit_link_cow: crate::git_commit_link_cow::GitCommitLinkCow) -> Self {
+        Self::try_from(std::borrow::Cow::from(git_commit_link_cow).into_owned())
+            .unwrap_or_else(Self::from)
     }
 }
 impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError>
     for GitCommitLink
 {
     fn from(
-        value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+        git_info_string_try_from_string_error: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
     ) -> Self {
-        Self(value.to_string())
+        Self(git_info_string_try_from_string_error.to_string())
     }
 }
 impl PartialEq<crate::project_git_commit_link_ref::ProjectGitCommitLinkRef> for GitCommitLink {
-    fn eq(&self, other: &crate::project_git_commit_link_ref::ProjectGitCommitLinkRef) -> bool {
-        self.as_ref() == <&str>::from(*other)
+    fn eq(
+        &self,
+        project_git_commit_link_ref: &crate::project_git_commit_link_ref::ProjectGitCommitLinkRef,
+    ) -> bool {
+        self.as_ref() == <&str>::from(*project_git_commit_link_ref)
     }
 }

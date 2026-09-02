@@ -9,12 +9,12 @@ pub(crate) struct AdminJoinedText(String);
 impl TryFrom<String> for AdminJoinedText {
     type Error = crate::admin_joined_text_try_from_string_error::AdminJoinedTextTryFromStringError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.len().checked_sub(constants_usize::VALUE_16_777_216) {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        match string.len().checked_sub(constants_usize::VALUE_16_777_216) {
             Some(excess) if excess > constants_usize::ZERO => {
                 Err(crate::admin_joined_text_try_from_string_error::AdminJoinedTextTryFromStringError::TooLong)
             }
-            _within_limit => Ok(Self(value)),
+            _within_limit => Ok(Self(string)),
         }
     }
 }
@@ -23,8 +23,8 @@ impl From<crate::admin_joined_text_try_from_string_error::AdminJoinedTextTryFrom
     for AdminJoinedText
 {
     fn from(
-        value: crate::admin_joined_text_try_from_string_error::AdminJoinedTextTryFromStringError,
+        admin_joined_text_try_from_string_error: crate::admin_joined_text_try_from_string_error::AdminJoinedTextTryFromStringError,
     ) -> Self {
-        Self(value.to_string())
+        Self(admin_joined_text_try_from_string_error.to_string())
     }
 }

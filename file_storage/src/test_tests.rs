@@ -52,7 +52,7 @@ async fn test_stale_staging_cleanup_is_bounded_and_removes_regular_files() {
     let report = storage
         .cleanup_stale_staging(
             crate::file_storage_staging_area::FileStorageStagingArea::Upload,
-            crate::stale_staging_cleanup_cfg::StaleStagingCleanupCfg::new(
+            crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(
                 stale_before.into(),
                 limit,
                 limit,

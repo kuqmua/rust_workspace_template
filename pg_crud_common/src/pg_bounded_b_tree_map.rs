@@ -14,8 +14,8 @@ impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
 {
     type Error = super::bounded_b_tree_map_error::BoundedBTreeMapError;
 
-    fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_b_tree_map::BoundedBTreeMap::<K, V, MAX>::try_from(value)
+    fn try_from(b_tree_map: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_b_tree_map::BoundedBTreeMap::<K, V, MAX>::try_from(b_tree_map)
             .map(bounded_types::bounded_b_tree_map::BoundedBTreeMap::into_inner)
             .map(Self)
             .map_err(|_error| {
@@ -29,23 +29,23 @@ impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
 impl<K: serde::Serialize, V: serde::Serialize, const MAX: usize> serde::Serialize
     for PgBoundedBTreeMap<K, V, MAX>
 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        self.0.serialize(serializer)
+        self.0.serialize(s)
     }
 }
 
 impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MAX: usize>
     serde::Deserialize<'de> for PgBoundedBTreeMap<K, V, MAX>
 {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(d: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
         let value = <bounded_types::bounded_b_tree_map::BoundedBTreeMap<K, V, MAX> as serde::Deserialize>::deserialize(
-            deserializer,
+            d,
         )?
         .into_inner();
         Self::try_from(value).map_err(serde::de::Error::custom)

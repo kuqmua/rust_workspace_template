@@ -26,7 +26,7 @@ impl<
     pub fn pg_type_query_part(
         &self,
         increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut,
-        column: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
+        sql_column_ref: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
         add_operator: pg_crud_common::add_operator::AddOperator,
     ) -> Result<
         pg_crud_common::query_part_fragment::QueryPartFragment,
@@ -34,7 +34,7 @@ impl<
     > {
         self.query_part(
             increment,
-            column,
+            sql_column_ref,
             add_operator,
             &crate::variant::Variant::Normal,
         )
@@ -42,7 +42,7 @@ impl<
     pub fn pg_type_query_part_minus_one(
         &self,
         increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut,
-        column: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
+        sql_column_ref: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
         add_operator: pg_crud_common::add_operator::AddOperator,
     ) -> Result<
         pg_crud_common::query_part_fragment::QueryPartFragment,
@@ -50,21 +50,21 @@ impl<
     > {
         self.query_part(
             increment,
-            column,
+            sql_column_ref,
             add_operator,
             &crate::variant::Variant::MinusOne,
         )
     }
     pub fn query_bind(
         self,
-        query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
+        sqlx_postgres_query: pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
     ) -> Result<
         pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery<'lt>,
         pg_crud_common::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
         self.0
             .into_iter()
-            .try_fold(query, |mut accumulator_query, element| {
+            .try_fold(sqlx_postgres_query, |mut accumulator_query, element| {
                 accumulator_query
                     .as_mut()
                     .try_bind(element)
@@ -72,11 +72,15 @@ impl<
                 Ok(accumulator_query)
             })
     }
+    #[allow(
+        unused_variables,
+        reason = "the query contract preserves repository type-based parameter names"
+    )]
     fn query_part(
         &self,
         increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut,
-        _: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
-        _add_operator: pg_crud_common::add_operator::AddOperator,
+        sql_column_ref: pg_crud_common::sql_column_ref::SqlColumnRef<'_>,
+        add_operator: pg_crud_common::add_operator::AddOperator,
         variant: &crate::variant::Variant,
     ) -> Result<
         pg_crud_common::query_part_fragment::QueryPartFragment,
@@ -112,9 +116,9 @@ impl<
 }
 impl<T, const LENGTH: usize> TryFrom<Vec<T>> for PgFilterVec<T, LENGTH> {
     type Error = crate::bounded_vec_try_new_error::BoundedVecTryNewError;
-    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
-        let len = value.len();
-        bounded_types::bounded_vec::BoundedVec::<T, LENGTH, LENGTH>::try_from(value)
+    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
+        let len = vec.len();
+        bounded_types::bounded_vec::BoundedVec::<T, LENGTH, LENGTH>::try_from(vec)
             .map(bounded_types::bounded_vec::BoundedVec::into_inner)
             .map(Self)
             .map_err(|_error| {

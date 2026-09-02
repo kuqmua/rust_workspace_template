@@ -23,12 +23,12 @@ impl TypeContract {
     #[must_use]
     pub const fn new(
         input_kind: crate::input_kind::InputKind,
-        format: crate::value_format::ValueFormat,
+        value_format: crate::value_format::ValueFormat,
         nullability: crate::nullability::Nullability,
     ) -> Self {
         Self {
             example: crate::value_example::ValueExample::None,
-            format,
+            format: value_format,
             input_kind,
             maximum: crate::numeric_bound::NumericBound::None,
             minimum: crate::numeric_bound::NumericBound::None,
@@ -62,23 +62,23 @@ impl TypeContract {
         }
     }
     #[must_use]
-    pub const fn with_example(mut self, value: crate::value_example::ValueExample) -> Self {
-        self.example = value;
+    pub const fn with_example(mut self, value_example: crate::value_example::ValueExample) -> Self {
+        self.example = value_example;
         self
     }
     #[must_use]
-    pub const fn with_maximum(mut self, value: crate::numeric_bound::NumericBound) -> Self {
-        self.maximum = value;
+    pub const fn with_maximum(mut self, numeric_bound: crate::numeric_bound::NumericBound) -> Self {
+        self.maximum = numeric_bound;
         self
     }
     #[must_use]
-    pub const fn with_minimum(mut self, value: crate::numeric_bound::NumericBound) -> Self {
-        self.minimum = value;
+    pub const fn with_minimum(mut self, numeric_bound: crate::numeric_bound::NumericBound) -> Self {
+        self.minimum = numeric_bound;
         self
     }
     #[must_use]
-    pub const fn with_step(mut self, value: crate::input_step::InputStep) -> Self {
-        self.step = value;
+    pub const fn with_step(mut self, input_step: crate::input_step::InputStep) -> Self {
+        self.step = input_step;
         self
     }
 }

@@ -11,9 +11,9 @@
 pub struct AdminSsrText(String);
 impl TryFrom<String> for AdminSsrText {
     type Error = crate::admin_ssr_text_try_from_string_error::AdminSsrTextTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.len() {
-            0..=constants_usize::VALUE_16_777_216 => Ok(Self(value)),
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        match string.len() {
+            0..=constants_usize::VALUE_16_777_216 => Ok(Self(string)),
             _ => Err(
                 crate::admin_ssr_text_try_from_string_error::AdminSsrTextTryFromStringError::TooLarge,
             ),
@@ -24,8 +24,8 @@ impl From<crate::admin_ssr_text_try_from_string_error::AdminSsrTextTryFromString
     for AdminSsrText
 {
     fn from(
-        value: crate::admin_ssr_text_try_from_string_error::AdminSsrTextTryFromStringError,
+        admin_ssr_text_try_from_string_error: crate::admin_ssr_text_try_from_string_error::AdminSsrTextTryFromStringError,
     ) -> Self {
-        Self(value.to_string())
+        Self(admin_ssr_text_try_from_string_error.to_string())
     }
 }

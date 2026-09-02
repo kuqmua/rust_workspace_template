@@ -57,7 +57,7 @@ pub mod generate_read_inner_into_read_or_update_with_new_or_try_new_unwraped_tok
 pub mod generate_return_err_query_part_error_write_into_buffer_token_stream;
 pub mod generate_sqlx_types_json_type_declaration_token_stream;
 pub mod generate_struct_identifier_double_quoted_token_stream;
-pub mod generate_struct_identifier_with_number_els_double_quoted_token_stream;
+pub mod generate_struct_identifier_with_number_elements_double_quoted_token_stream;
 pub mod generate_vec_tokens_declaration_token_stream;
 pub mod impl_pg_type_eq_operator_for_identifier_token_stream;
 pub mod impl_pg_type_where_filter_for_identifier_token_stream;
@@ -69,7 +69,7 @@ pub mod is_nullable;
 pub mod is_nullable_prefix_str;
 pub mod is_standard_non_null;
 pub mod maybe_wrap_into_braces_token_stream;
-pub mod names_ctx;
+pub mod names_context;
 pub mod non_null_or_nullable_str;
 pub mod panic_uuid_ref;
 pub mod parse_error_id_ref;
@@ -82,7 +82,7 @@ pub mod pg_type_filter;
 pub mod proc_macro2_generated_rust_token_stream_vec;
 pub mod read_or_update;
 pub mod serde_error_enum_d_token_stream_builder;
-pub mod struct_els_len;
+pub mod struct_elements_length;
 pub mod syn_field_refs;
 pub mod syn_identifier_type_refs;
 #[cfg(test)]

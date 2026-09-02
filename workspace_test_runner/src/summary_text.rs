@@ -13,18 +13,18 @@ pub(super) struct SummaryText(
     >,
 );
 impl SummaryText {
-    pub(super) fn push_str(&mut self, value: crate::text_ref::TextRef<'_>) -> Result<(), ()> {
+    pub(super) fn push_str(&mut self, text_ref: crate::text_ref::TextRef<'_>) -> Result<(), ()> {
         if self
             .0
             .as_str()
             .len()
-            .checked_add(value.as_ref().len())
+            .checked_add(text_ref.as_ref().len())
             .is_none_or(|len| len > constants_usize::VALUE_1_048_576)
         {
             return Err(());
         }
         let mut candidate = self.0.as_str().to_owned();
-        candidate.push_str(value.as_ref());
+        candidate.push_str(text_ref.as_ref());
         self.0 = bounded_types::bounded_string::BoundedString::try_from(candidate)
             .map_err(|_error| ())?;
         Ok(())

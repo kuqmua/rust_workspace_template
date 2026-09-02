@@ -1,9 +1,9 @@
 #[must_use]
 pub const fn plan_identity_creation(
-    identity: crate::identity_presence::IdentityPresence,
-    role: crate::identity_role_presence::IdentityRolePresence,
+    identity_presence: crate::identity_presence::IdentityPresence,
+    identity_role_presence: crate::identity_role_presence::IdentityRolePresence,
 ) -> crate::identity_creation_decision::IdentityCreationDecision {
-    match (identity, role) {
+    match (identity_presence, identity_role_presence) {
         (
             crate::identity_presence::IdentityPresence::Present,
             crate::identity_role_presence::IdentityRolePresence::Missing

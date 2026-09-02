@@ -1,9 +1,14 @@
+#![allow(
+    unused_variables,
+    reason = "test trait fixtures preserve repository type-based parameter names"
+)]
+
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct ClientTransport;
 impl frontend_contract::transport::Transport for ClientTransport {
     fn send(
         &self,
-        _request: frontend_contract::transport_request::TransportRequest,
+        transport_request: frontend_contract::transport_request::TransportRequest,
     ) -> impl Future<
         Output = Result<
             frontend_contract::transport_response::TransportResponse,
@@ -17,18 +22,18 @@ impl frontend_contract::transport::Transport for ClientTransport {
 }
 
 fn typed_operation(
-    document: &serde_json::Value,
-    metadata: frontend_contract::route_metadata::RouteMetadata,
+    value: &serde_json::Value,
+    route_metadata: frontend_contract::route_metadata::RouteMetadata,
 ) -> &serde_json::Value {
-    document
+    value
         .get(constants_str::PATHS)
-        .and_then(|paths| paths.get(metadata.path().as_ref()))
-        .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
+        .and_then(|paths| paths.get(route_metadata.path().as_ref()))
+        .and_then(|path| path.get(route_metadata.method().as_ref().to_ascii_lowercase()))
         .expect(constants_str::DIAGNOSTIC_61B8F042)
 }
 
-fn parameter_names(operation: &serde_json::Value, location: &str) -> Vec<String> {
-    operation
+fn parameter_names(value: &serde_json::Value, str: &str) -> Vec<String> {
+    value
         .get(constants_str::VALUE_F528212A)
         .and_then(serde_json::Value::as_array)
         .into_iter()
@@ -37,7 +42,7 @@ fn parameter_names(operation: &serde_json::Value, location: &str) -> Vec<String>
             parameter
                 .get(constants_str::VALUE_58296753)
                 .and_then(serde_json::Value::as_str)
-                == Some(location)
+                == Some(str)
         })
         .filter_map(|parameter| {
             parameter

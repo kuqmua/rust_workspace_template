@@ -1,5 +1,5 @@
 pub fn init_service_observability(
-    format: crate::service_tracing_format::ServiceTracingFormat,
+    service_tracing_format: crate::service_tracing_format::ServiceTracingFormat,
     service_name: crate::service_name::ServiceName,
 ) -> Result<
     crate::observability_guard::ObservabilityGuard,
@@ -29,7 +29,7 @@ pub fn init_service_observability(
     let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_error| {
         tracing_subscriber::EnvFilter::new(constants_str::CONFIG_TRACING_INFO)
     });
-    let init_result = match format {
+    let init_result = match service_tracing_format {
         crate::service_tracing_format::ServiceTracingFormat::Json => {
             tracing_subscriber::util::SubscriberInitExt::try_init(
                 tracing_subscriber::layer::SubscriberExt::with(

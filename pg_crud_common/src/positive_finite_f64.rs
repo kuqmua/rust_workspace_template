@@ -12,14 +12,14 @@ pub struct PositiveFiniteF64(f64);
 impl TryFrom<f64> for PositiveFiniteF64 {
     type Error = crate::positive_finite_f64_error::PositiveFiniteF64Error;
 
-    fn try_from(value: f64) -> Result<Self, Self::Error> {
-        if !value.is_finite() {
+    fn try_from(f64: f64) -> Result<Self, Self::Error> {
+        if !f64.is_finite() {
             return Err(crate::positive_finite_f64_error::PositiveFiniteF64Error::NotFinite);
         }
-        if value <= 0.0f64 {
+        if f64 <= 0.0f64 {
             return Err(crate::positive_finite_f64_error::PositiveFiniteF64Error::NotPositive);
         }
-        Ok(Self(value))
+        Ok(Self(f64))
     }
 }
 

@@ -12,14 +12,14 @@ pub struct HttpContractExpectation {
 impl HttpContractExpectation {
     #[must_use]
     pub const fn new(
-        metadata: frontend_contract::route_metadata::RouteMetadata,
-        status: crate::http_contract_status::HttpContractStatus,
-        body_kind: crate::http_contract_body_kind::HttpContractBodyKind,
+        route_metadata: frontend_contract::route_metadata::RouteMetadata,
+        http_contract_status: crate::http_contract_status::HttpContractStatus,
+        http_contract_body_kind: crate::http_contract_body_kind::HttpContractBodyKind,
     ) -> Self {
         Self {
-            metadata,
-            status,
-            body_kind,
+            metadata: route_metadata,
+            status: http_contract_status,
+            body_kind: http_contract_body_kind,
         }
     }
 

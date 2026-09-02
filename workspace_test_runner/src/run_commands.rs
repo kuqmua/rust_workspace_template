@@ -1,4 +1,4 @@
-pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Result<(), ()> {
+pub(crate) fn run_commands(commands_ref: crate::commands_ref::CommandsRef<'_>) -> Result<(), ()> {
     let timestamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -15,10 +15,10 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
             eprintln!("failed to create test result directory: {error}");
         })?;
     let mut command_runs = std::thread::scope(|scope| {
-        commands
+        commands_ref
             .iter()
             .enumerate()
-            .map(|(idx, (program, args))| {
+            .map(|(index, (program, args))| {
                 scope.spawn(move || {
                     let started_at =
                         crate::command_started_at_instant::CommandStartedAtInstant::from(
@@ -48,7 +48,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
                         ),
                     };
                     crate::command_run::CommandRun::new(
-                        crate::command_idx::CommandIdx::from(idx),
+                        crate::command_index::CommandIndex::from(index),
                         started_at.elapsed(),
                         crate::command_text::CommandText::try_from(log_text)
                             .unwrap_or_else(crate::command_text::CommandText::from),
@@ -81,7 +81,7 @@ pub(crate) fn run_commands(commands: crate::commands_ref::CommandsRef<'_>) -> Re
                 return Ok(());
             }
         };
-        let (program, args) = commands
+        let (program, args) = commands_ref
             .get(usize::from(*command_run.get_command_index()))
             .copied()
             .ok_or(())?;

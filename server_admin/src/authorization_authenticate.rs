@@ -1,18 +1,18 @@
 pub(crate) async fn authorization_authenticate(
-    state: &crate::admin_auth_svc_state::AdminAuthSvcState,
-    headers: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
-    peer: crate::admin_peer_addr::AdminPeerAddr,
+    admin_auth_svc_state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    http_admin_header_map_ref: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
+    admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,
 ) -> Result<
     crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
     crate::admin_error::AdminError,
 > {
     let token = crate::find_admin_cookie::find_admin_cookie(
-        headers,
+        http_admin_header_map_ref,
         crate::admin_cookie_kind::AdminCookieKind::Access,
     )
     .ok_or(crate::admin_error::AdminError::Authentication)?;
     let validation = crate::admin_access_token_validation::admin_access_token_validation();
-    let claims = state
+    let claims = admin_auth_svc_state
         .get_decoding_keys()
         .as_ref()
         .iter()
@@ -25,8 +25,8 @@ pub(crate) async fn authorization_authenticate(
             .ok()?;
             match crate::validate_admin_access_claims::validate_admin_access_claims(
                 &data.claims,
-                state.get_issuer(),
-                state.get_audience(),
+                admin_auth_svc_state.get_issuer(),
+                admin_auth_svc_state.get_audience(),
             ) {
                 Ok(()) => Some(data.claims),
                 Err(error) => {
@@ -38,7 +38,8 @@ pub(crate) async fn authorization_authenticate(
         .ok_or(crate::admin_error::AdminError::Authentication)?;
     let context_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
-            headers, peer,
+            http_admin_header_map_ref,
+            admin_peer_addr,
         )
         .map_err(crate::admin_error::AdminError::secret_text)?;
     let active =
@@ -46,7 +47,7 @@ pub(crate) async fn authorization_authenticate(
             .bind(claims.session_id().get().get())
             .bind(claims.user_id().get())
             .bind(context_hash.expose().as_ref())
-            .fetch_one(state.get_pool().as_ref())
+            .fetch_one(admin_auth_svc_state.get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
             .map(server_admin_core::std_admin_bool::StdAdminBool::from)
@@ -57,7 +58,7 @@ pub(crate) async fn authorization_authenticate(
     crate::load_authenticated_admin_from_db::load_authenticated_admin_from_db(
         &mut crate::admin_db_ref::AdminDbRef::Pool(
             crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-                state.get_pool().as_ref(),
+                admin_auth_svc_state.get_pool().as_ref(),
             ),
         ),
         claims.user_id(),

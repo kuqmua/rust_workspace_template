@@ -17,12 +17,12 @@ impl ServiceRuntime {
 
     #[must_use]
     pub const fn new(
-        router: crate::axum_router::AxumRouter,
-        optional_task: Option<crate::background_task::BackgroundTask>,
+        axum_router: crate::axum_router::AxumRouter,
+        option: Option<crate::background_task::BackgroundTask>,
     ) -> Self {
         Self {
-            optional_task,
-            router,
+            optional_task: option,
+            router: axum_router,
         }
     }
 }

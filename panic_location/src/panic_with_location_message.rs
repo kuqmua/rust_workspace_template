@@ -1,15 +1,15 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
 pub(crate) fn panic_with_location_message(
-    file: crate::panic_file::PanicFile<'_>,
-    line: crate::panic_line::PanicLine,
-    column: crate::panic_column::PanicColumn,
+    panic_file: crate::panic_file::PanicFile<'_>,
+    panic_line: crate::panic_line::PanicLine,
+    panic_column: crate::panic_column::PanicColumn,
 ) -> to_err_string::error_text::ErrorText {
     to_err_string::error_text::ErrorText::try_from(format!(
         "panic occurred in {}:{}:{}",
-        file.get(),
-        line.get(),
-        column.get()
+        panic_file.get(),
+        panic_line.get(),
+        panic_column.get()
     ))
     .unwrap_or_else(to_err_string::error_text::ErrorText::from)
 }

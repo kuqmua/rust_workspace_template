@@ -1,10 +1,12 @@
 pub fn parse_trusted_proxy_ranges(
-    value: crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef<'_>,
+    trusted_proxy_ranges_text_ref: crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef<
+        '_,
+    >,
 ) -> Result<
     crate::trusted_proxy_ranges::TrustedProxyRanges,
     crate::trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError,
 > {
-    let value_text = value.get();
+    let value_text = trusted_proxy_ranges_text_ref.get();
     if value_text.trim().is_empty() {
         return Ok(crate::trusted_proxy_ranges::TrustedProxyRanges::default());
     }

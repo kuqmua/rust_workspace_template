@@ -5,13 +5,13 @@
     reason = "Axum registers this generic route handler indirectly"
 )]
 pub(super) async fn send_notification<Sender>(
-    state: crate::axum_notification_state::AxumNotificationState<Sender>,
-    request: crate::axum_notification_json::AxumNotificationJson,
+    axum_notification_state: crate::axum_notification_state::AxumNotificationState<Sender>,
+    axum_notification_json: crate::axum_notification_json::AxumNotificationJson,
 ) -> http::StatusCode
 where
     Sender: crate::notification_sender::NotificationSender,
 {
-    let authorization = state
+    let authorization = axum_notification_state
         .headers()
         .get()
         .get(http::header::AUTHORIZATION)
@@ -22,7 +22,7 @@ where
         ),
     ) {
         crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(token) => {
-            bool::from(state.state().token().authorizes(
+            bool::from(axum_notification_state.state().token().authorizes(
                 crate::notification_api_token_ref::NotificationApiTokenRef::from(token.as_ref()),
             ))
         }
@@ -32,15 +32,15 @@ where
     if !authorized {
         return http::StatusCode::UNAUTHORIZED;
     }
-    let Some(_permit) = state.state().permits().try_acquire() else {
+    let Some(_permit) = axum_notification_state.state().permits().try_acquire() else {
         return http::StatusCode::TOO_MANY_REQUESTS;
     };
-    match state
+    match axum_notification_state
         .state()
         .sender()
         .send(
             crate::runtime_notification_message::RuntimeNotificationMessage::from(
-                request.into_inner(),
+                axum_notification_json.into_inner(),
             ),
         )
         .await

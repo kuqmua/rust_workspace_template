@@ -23,14 +23,16 @@ pub struct AdminBrandingView {
 
 impl AdminBrandingView {
     #[must_use]
-    pub fn from_settings(value: &crate::admin_settings_view::AdminSettingsView) -> Self {
+    pub fn from_settings(
+        admin_settings_view: &crate::admin_settings_view::AdminSettingsView,
+    ) -> Self {
         Self {
-            default_admin_route: value.default_admin_route().clone(),
-            main_logo: value.main_logo().cloned(),
-            primary_color: value.primary_color().cloned(),
-            site_name: value.site_name().clone(),
-            support_url: value.support_url().cloned(),
-            tab_title: value.tab_title().cloned(),
+            default_admin_route: admin_settings_view.default_admin_route().clone(),
+            main_logo: admin_settings_view.main_logo().cloned(),
+            primary_color: admin_settings_view.primary_color().cloned(),
+            site_name: admin_settings_view.site_name().clone(),
+            support_url: admin_settings_view.support_url().cloned(),
+            tab_title: admin_settings_view.tab_title().cloned(),
         }
     }
 

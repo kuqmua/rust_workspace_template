@@ -22,7 +22,9 @@ impl<'query_lt> AsMut<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgr
 }
 
 impl std::fmt::Debug for SqlxPostgresQuery<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(constants_str::SQLXPOSTGRESQUERY).finish()
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_tuple(constants_str::SQLXPOSTGRESQUERY)
+            .finish()
     }
 }

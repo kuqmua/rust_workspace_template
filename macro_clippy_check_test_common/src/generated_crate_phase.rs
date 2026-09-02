@@ -15,7 +15,7 @@ pub(crate) enum GeneratedCratePhase {
 }
 
 impl std::fmt::Display for GeneratedCratePhase {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.as_snake_case_str())
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_snake_case_str())
     }
 }

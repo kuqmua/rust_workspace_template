@@ -1,19 +1,21 @@
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn sessions(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    query: crate::axum_admin_query::AxumAdminQuery<
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
         server_admin_contract::admin_table_query::AdminTableQuery,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let authenticated = crate::authorization_authenticate::authorization_authenticate(
-        auth.get_state().as_ref(),
-        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(auth.get_headers().as_ref()),
-        *auth.get_peer(),
+        admin_auth_request.get_state().as_ref(),
+        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(
+            admin_auth_request.get_headers().as_ref(),
+        ),
+        *admin_auth_request.get_peer(),
     )
     .await?;
     let total = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
         .bind(authenticated.get_id().get())
-        .fetch_one(auth.get_state().as_ref().get_pool().as_ref())
+        .fetch_one(admin_auth_request.get_state().as_ref().get_pool().as_ref())
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_error::AdminError::from)?;
@@ -21,9 +23,9 @@ pub(crate) async fn sessions(
         constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
     .bind(authenticated.get_id().get())
-    .bind(i64::from(u16::from(query.get_inner().limit())))
-    .bind(i64::from(u32::from(query.get_inner().offset())))
-    .fetch_all(auth.get_state().as_ref().get_pool().as_ref())
+    .bind(i64::from(u16::from(axum_admin_query.get_inner().limit())))
+    .bind(i64::from(u32::from(axum_admin_query.get_inner().offset())))
+    .fetch_all(admin_auth_request.get_state().as_ref().get_pool().as_ref())
     .await
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     .map_err(crate::admin_error::AdminError::from)?

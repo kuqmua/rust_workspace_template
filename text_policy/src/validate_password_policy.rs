@@ -1,9 +1,9 @@
 pub fn validate_password_policy(
-    password: crate::password_text_ref::PasswordTextRef<'_>,
-    range: crate::password_length_range::PasswordLengthRange,
+    password_text_ref: crate::password_text_ref::PasswordTextRef<'_>,
+    password_length_range: crate::password_length_range::PasswordLengthRange,
 ) -> Result<(), crate::password_policy_violation::PasswordPolicyViolation> {
-    let password_text: &str = password.into();
-    let (minimum, maximum) = range.into_parts();
+    let password_text: &str = password_text_ref.into();
+    let (minimum, maximum) = password_length_range.into_parts();
     if password_text.len() < usize::from(minimum) {
         return Err(crate::password_policy_violation::PasswordPolicyViolation::TooShort);
     }

@@ -5,18 +5,21 @@ pub struct SecurityHeadersLayer {
 }
 
 impl From<crate::forwarded_proto_trust::ForwardedProtoTrust> for SecurityHeadersLayer {
-    fn from(value: crate::forwarded_proto_trust::ForwardedProtoTrust) -> Self {
+    fn from(forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust) -> Self {
         Self {
             content_security_policy: None,
-            forwarded_proto_trust: value,
+            forwarded_proto_trust,
         }
     }
 }
 
 impl SecurityHeadersLayer {
     #[must_use]
-    pub fn apply(self, router: crate::axum_router::AxumRouter) -> crate::axum_router::AxumRouter {
-        crate::axum_router::AxumRouter::from(axum::Router::from(router).layer(
+    pub fn apply(
+        self,
+        axum_router: crate::axum_router::AxumRouter,
+    ) -> crate::axum_router::AxumRouter {
+        crate::axum_router::AxumRouter::from(axum::Router::from(axum_router).layer(
             crate::security_headers_tower_layer::SecurityHeadersTowerLayer::new(
                 self.content_security_policy,
                 self.forwarded_proto_trust,
@@ -27,9 +30,9 @@ impl SecurityHeadersLayer {
     #[must_use]
     pub fn with_content_security_policy(
         mut self,
-        value: crate::http_content_security_policy::HttpContentSecurityPolicy,
+        http_content_security_policy: crate::http_content_security_policy::HttpContentSecurityPolicy,
     ) -> Self {
-        self.content_security_policy = Some(value);
+        self.content_security_policy = Some(http_content_security_policy);
         self
     }
 }

@@ -6,21 +6,21 @@ pub enum ProcessArgument {
 }
 
 impl From<crate::database_url::DatabaseUrl> for ProcessArgument {
-    fn from(value: crate::database_url::DatabaseUrl) -> Self {
-        Self::DatabaseUrl(value)
+    fn from(database_url: crate::database_url::DatabaseUrl) -> Self {
+        Self::DatabaseUrl(database_url)
     }
 }
 
 impl From<crate::migrations_source::MigrationsSource> for ProcessArgument {
-    fn from(value: crate::migrations_source::MigrationsSource) -> Self {
-        Self::MigrationsSource(value)
+    fn from(migrations_source: crate::migrations_source::MigrationsSource) -> Self {
+        Self::MigrationsSource(migrations_source)
     }
 }
 
 impl From<&'static str> for ProcessArgument {
-    fn from(value: &'static str) -> Self {
+    fn from(str: &'static str) -> Self {
         Self::Static(crate::process_static_argument::ProcessStaticArgument::from(
-            value,
+            str,
         ))
     }
 }

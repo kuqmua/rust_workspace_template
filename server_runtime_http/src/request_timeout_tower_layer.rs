@@ -10,7 +10,7 @@ pub(super) struct RequestTimeoutTowerLayer(crate::request_timeout_duration::Requ
 impl<Service> tower::Layer<Service> for RequestTimeoutTowerLayer {
     type Service = crate::request_timeout_service::RequestTimeoutService<Service>;
 
-    fn layer(&self, inner: Service) -> Self::Service {
-        crate::request_timeout_service::RequestTimeoutService::new(inner, self.0)
+    fn layer(&self, service: Service) -> Self::Service {
+        crate::request_timeout_service::RequestTimeoutService::new(service, self.0)
     }
 }

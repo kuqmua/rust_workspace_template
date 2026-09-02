@@ -1,14 +1,15 @@
 pub fn ensure_json_contract_round_trip<Value>(
-    fixture: crate::json_fixture_ref::JsonFixtureRef<'_>,
+    json_fixture_ref: crate::json_fixture_ref::JsonFixtureRef<'_>,
 ) -> Result<(), crate::contract_error::ContractError>
 where
     Value: Eq + serde::Serialize + serde::de::DeserializeOwned,
 {
-    let fixture_value = serde_json::from_str::<Value>(fixture.as_str()).map_err(|error| {
-        crate::contract_error::ContractError::DeserializeFixture(
-            crate::macro_serde_json_error::MacroSerdeJsonError::from(error),
-        )
-    })?;
+    let fixture_value =
+        serde_json::from_str::<Value>(json_fixture_ref.as_str()).map_err(|error| {
+            crate::contract_error::ContractError::DeserializeFixture(
+                crate::macro_serde_json_error::MacroSerdeJsonError::from(error),
+            )
+        })?;
     let serialized = serde_json::to_string(&fixture_value).map_err(|error| {
         crate::contract_error::ContractError::Serialize(
             crate::macro_serde_json_error::MacroSerdeJsonError::from(error),

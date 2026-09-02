@@ -42,8 +42,8 @@ pub enum ApiProblemError {
 
 impl ApiProblemError {
     #[must_use]
-    pub fn from_status(status: crate::api_problem_status::ApiProblemStatus) -> Self {
-        match u16::from(status) {
+    pub fn from_status(api_problem_status: crate::api_problem_status::ApiProblemStatus) -> Self {
+        match u16::from(api_problem_status) {
             400u16 => Self::InvalidRequest,
             401u16 => Self::Authentication,
             403u16 => Self::Authorization,
@@ -57,8 +57,8 @@ impl ApiProblemError {
             428u16 => Self::PreconditionRequired,
             429u16 => Self::RateLimited,
             503u16 => Self::ServiceUnavailable,
-            500u16..=599u16 => Self::Internal(status),
-            _ => Self::RequestFailed(status),
+            500u16..=599u16 => Self::Internal(api_problem_status),
+            _ => Self::RequestFailed(api_problem_status),
         }
     }
 

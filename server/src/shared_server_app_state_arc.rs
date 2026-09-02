@@ -15,8 +15,8 @@ impl SharedServerAppStateArc {
         reason = "shared application-state construction owns the sole Arc allocation boundary"
     )]
     pub(crate) fn from_state(
-        state: server_app_state::server_app_state::ServerAppState<'static>,
+        server_app_state: server_app_state::server_app_state::ServerAppState<'static>,
     ) -> Self {
-        Self::from(std::sync::Arc::new(state))
+        Self::from(std::sync::Arc::new(server_app_state))
     }
 }

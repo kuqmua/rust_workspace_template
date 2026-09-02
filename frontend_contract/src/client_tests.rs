@@ -1,3 +1,8 @@
+#![allow(
+    unused_variables,
+    reason = "test serialization fixtures preserve repository type-based parameter names"
+)]
+
 #[cfg(test)]
 mod tests {
     #[derive(
@@ -29,7 +34,7 @@ mod tests {
     impl serde::Serialize for FailingRequest {
         fn serialize<Serializer>(
             &self,
-            _serializer: Serializer,
+            serializer: Serializer,
         ) -> Result<Serializer::Ok, Serializer::Error>
         where
             Serializer: serde::Serializer,
@@ -60,9 +65,9 @@ mod tests {
         EmptyOk,
     }
     fn basic_route_metadata(
-        fixture: BasicRouteMetadataFixture,
+        basic_route_metadata_fixture: BasicRouteMetadataFixture,
     ) -> crate::route_metadata::RouteMetadata {
-        let (method, operation, path) = match fixture {
+        let (method, operation, path) = match basic_route_metadata_fixture {
             BasicRouteMetadataFixture::FailingRequest => (
                 crate::route_method::RouteMethod::Post,
                 crate::contract_str::ContractStr::from(constants_str::VALUE_4B7BC374),
@@ -82,9 +87,9 @@ mod tests {
         crate::route_metadata::RouteMetadata::new(method, operation, path)
     }
     fn mutating_route_metadata(
-        fixture: MutatingRouteMetadataFixture,
+        mutating_route_metadata_fixture: MutatingRouteMetadataFixture,
     ) -> crate::route_metadata::RouteMetadata {
-        let (method, operation, path, success_status) = match fixture {
+        let (method, operation, path, success_status) = match mutating_route_metadata_fixture {
             MutatingRouteMetadataFixture::Ok => (
                 crate::route_method::RouteMethod::Post,
                 crate::contract_str::ContractStr::from(constants_str::TEST_ALT_3),
@@ -231,7 +236,7 @@ mod tests {
     impl crate::transport::Transport for TestTransport {
         fn send(
             &self,
-            request: crate::transport_request::TransportRequest,
+            transport_request: crate::transport_request::TransportRequest,
         ) -> impl Future<
             Output = Result<
                 crate::transport_response::TransportResponse,
@@ -240,16 +245,18 @@ mod tests {
         > + '_ {
             match &self.expected {
                 ExpectedRequest::BodyLen(path, expected_len) => {
-                    assert_eq!(request.path(), path);
-                    assert_eq!(request.body().as_ref().len(), *expected_len);
+                    assert_eq!(transport_request.path(), path);
+                    assert_eq!(transport_request.body().as_ref().len(), *expected_len);
                 }
                 ExpectedRequest::Empty(path) => {
-                    assert_eq!(request.path(), path);
-                    assert!(request.body().as_ref().is_empty());
+                    assert_eq!(transport_request.path(), path);
+                    assert!(transport_request.body().as_ref().is_empty());
                 }
                 ExpectedRequest::Json(path, expected_body) => {
-                    assert_eq!(request.path(), path);
-                    let body = match serde_json::from_slice::<Request>(request.body().as_ref()) {
+                    assert_eq!(transport_request.path(), path);
+                    let body = match serde_json::from_slice::<Request>(
+                        transport_request.body().as_ref(),
+                    ) {
                         Ok(value) => value,
                         Err(error) => {
                             std::panic::panic_any(constants_str::PANIC_5F2D7A32.replacen(
@@ -265,8 +272,8 @@ mod tests {
             std::future::ready(self.response.clone())
         }
     }
-    fn transport_path(value: &str) -> crate::transport_path::TransportPath {
-        match crate::transport_path::TransportPath::try_from(value.to_owned()) {
+    fn transport_path(str: &str) -> crate::transport_path::TransportPath {
+        match crate::transport_path::TransportPath::try_from(str.to_owned()) {
             Ok(path) => path,
             Err(error) => std::panic::panic_any(constants_str::PANIC_E7222790.replacen(
                 constants_str::PANIC_PLACEHOLDER_04CEF635,
@@ -276,10 +283,10 @@ mod tests {
         }
     }
     fn response(
-        bytes: Vec<u8>,
-        status: crate::transport_status::TransportStatus,
+        vec: Vec<u8>,
+        transport_status: crate::transport_status::TransportStatus,
     ) -> crate::transport_response::TransportResponse {
-        let transport_body = match crate::transport_body::TransportBody::try_from(bytes) {
+        let transport_body = match crate::transport_body::TransportBody::try_from(vec) {
             Ok(value) => value,
             Err(error) => std::panic::panic_any(constants_str::PANIC_05780B24.replacen(
                 constants_str::PANIC_PLACEHOLDER_81240055,
@@ -287,7 +294,7 @@ mod tests {
                 1usize,
             )),
         };
-        crate::transport_response::TransportResponse::new(transport_body, status)
+        crate::transport_response::TransportResponse::new(transport_body, transport_status)
     }
     fn assert_static_path(prefix: &str, expected_path: &str) {
         let transport = TestTransport {

@@ -1,9 +1,9 @@
 #[proc_macro_derive(GenerateAccessorTraitsForStructFields)]
 pub fn generate_accessor_traits_for_struct_fields(
-    input: proc_macro::TokenStream,
+    token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse(input).expect(constants_str::DIAGNOSTIC_49780295);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_49780295);
     let identifier = &di.ident;
     let datastruct = match di.data {
         syn::Data::Struct(v) => v,
@@ -37,9 +37,9 @@ pub fn generate_accessor_traits_for_struct_fields(
     generated.into()
 }
 #[proc_macro_derive(GenerateAccessorTrait)]
-pub fn generate_accessor_trait(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn generate_accessor_trait(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse(input).expect(constants_str::DIAGNOSTIC_195B48F5);
+    let di: syn::DeriveInput = syn::parse(token_stream).expect(constants_str::DIAGNOSTIC_195B48F5);
     let identifier = &di.ident;
     let data_struct = match di.data {
         syn::Data::Struct(v) => v,

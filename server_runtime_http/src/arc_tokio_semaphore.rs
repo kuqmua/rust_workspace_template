@@ -10,10 +10,10 @@ pub struct ArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 impl ArcTokioSemaphore {
     #[must_use]
     pub fn new(
-        permit_count: crate::semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize,
+        semaphore_permit_count_non_zero_usize: crate::semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize,
     ) -> Self {
         Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
-            permit_count.get(),
+            semaphore_permit_count_non_zero_usize.get(),
         )))
     }
 

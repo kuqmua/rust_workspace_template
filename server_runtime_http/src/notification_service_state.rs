@@ -10,14 +10,16 @@ pub struct NotificationServiceState<Sender> {
 impl<Sender> NotificationServiceState<Sender> {
     #[must_use]
     pub fn new(
-        token: crate::notification_api_token::NotificationApiToken,
+        notification_api_token: crate::notification_api_token::NotificationApiToken,
         sender: Sender,
-        maximum_concurrency: crate::semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize,
+        semaphore_permit_count_non_zero_usize: crate::semaphore_permit_count_non_zero_usize::SemaphorePermitCountNonZeroUsize,
     ) -> Self {
         Self {
-            permits: crate::arc_tokio_semaphore::ArcTokioSemaphore::new(maximum_concurrency),
+            permits: crate::arc_tokio_semaphore::ArcTokioSemaphore::new(
+                semaphore_permit_count_non_zero_usize,
+            ),
             sender,
-            token,
+            token: notification_api_token,
         }
     }
 }

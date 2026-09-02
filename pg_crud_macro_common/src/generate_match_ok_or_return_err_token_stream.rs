@@ -3,7 +3,7 @@ pub fn generate_match_ok_or_return_err_token_stream(
     expr_token_stream: &dyn quote::ToTokens,
     ok_v_token_stream: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let names = crate::names_ctx::NamesCtx::new();
+    let names = crate::names_context::NamesContext::new();
     #[allow(
         non_snake_case,
         reason = "generated Rust identifiers intentionally mirror emitted naming tokens"

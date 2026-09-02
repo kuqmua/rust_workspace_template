@@ -1,13 +1,13 @@
 pub fn resolve_fallback_response_mode(
-    request_path: crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef<'_>,
-    api_prefix: crate::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef<'_>,
-    metrics_path: crate::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef<'_>,
-    accept: crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef<'_>,
-    maximum_accept_bytes: crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes,
+    http_fallback_request_path_ref: crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef<'_>,
+    http_fallback_api_prefix_ref: crate::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef<'_>,
+    http_fallback_metrics_path_ref: crate::http_fallback_metrics_path_ref::HttpFallbackMetricsPathRef<'_>,
+    http_optional_accept_header_ref: crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef<'_>,
+    http_accept_header_maximum_bytes: crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes,
 ) -> crate::fallback_response_mode::FallbackResponseMode {
-    let request_path_text = request_path.get();
-    let api_prefix_text = api_prefix.get();
-    let metrics_path_text = metrics_path.get();
+    let request_path_text = http_fallback_request_path_ref.get();
+    let api_prefix_text = http_fallback_api_prefix_ref.get();
+    let metrics_path_text = http_fallback_metrics_path_ref.get();
     let normalized_api_prefix = api_prefix_text.strip_suffix('/').unwrap_or(api_prefix_text);
     let api_path = request_path_text == normalized_api_prefix
         || request_path_text
@@ -16,9 +16,9 @@ pub fn resolve_fallback_response_mode(
     if api_path || request_path_text == metrics_path_text {
         return crate::fallback_response_mode::FallbackResponseMode::MachineReadable;
     }
-    let accepts_json = accept
+    let accepts_json = http_optional_accept_header_ref
         .get()
-        .filter(|value| value.as_bytes().len() <= maximum_accept_bytes.get())
+        .filter(|value| value.as_bytes().len() <= http_accept_header_maximum_bytes.get())
         .and_then(|value| value.to_str().ok())
         .is_some_and(|value| {
             value

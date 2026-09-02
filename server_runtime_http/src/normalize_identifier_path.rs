@@ -1,8 +1,8 @@
 #[must_use]
 pub fn normalize_identifier_path(
-    path: crate::http_request_path_ref::HttpRequestPathRef<'_>,
+    http_request_path_ref: crate::http_request_path_ref::HttpRequestPathRef<'_>,
 ) -> Option<crate::http_normalized_path::HttpNormalizedPath> {
-    let path_text = path.get();
+    let path_text = http_request_path_ref.get();
     if path_text.len() > constants_usize::VALUE_8_192
         || !path_text.bytes().any(|byte| byte.is_ascii_digit())
     {

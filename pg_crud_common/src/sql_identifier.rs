@@ -12,11 +12,11 @@ pub struct SqlIdentifier(String);
 impl TryFrom<String> for SqlIdentifier {
     type Error = crate::sql_identifier_error::SqlIdentifierError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 128usize {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        if string.len() > 128usize {
             return Err(crate::sql_identifier_error::SqlIdentifierError::Invalid);
         }
-        let mut bytes = value.bytes();
+        let mut bytes = string.bytes();
         let first = bytes
             .next()
             .ok_or(crate::sql_identifier_error::SqlIdentifierError::Empty)?;
@@ -25,13 +25,13 @@ impl TryFrom<String> for SqlIdentifier {
         {
             return Err(crate::sql_identifier_error::SqlIdentifierError::Invalid);
         }
-        Ok(Self(value))
+        Ok(Self(string))
     }
 }
 #[cfg(test)]
 mod tests {
-    fn sql_identifier_fixture(value: &str) -> crate::sql_identifier::SqlIdentifier {
-        crate::sql_identifier::SqlIdentifier::try_from(value.to_owned())
+    fn sql_identifier_fixture(str: &str) -> crate::sql_identifier::SqlIdentifier {
+        crate::sql_identifier::SqlIdentifier::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_940EB924)
     }
     #[test]

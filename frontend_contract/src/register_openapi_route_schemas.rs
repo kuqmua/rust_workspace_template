@@ -1,9 +1,9 @@
 pub fn register_openapi_route_schemas<Route>(
-    document: &mut crate::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut<'_>,
+    utoipa_open_api_ref_mut: &mut crate::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut<'_>,
 ) where
     Route: crate::typed_route::TypedRoute,
 {
-    let raw_components = document
+    let raw_components = utoipa_open_api_ref_mut
         .as_mut()
         .components
         .get_or_insert_with(utoipa::openapi::schema::Components::new);

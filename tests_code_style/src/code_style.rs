@@ -15,19 +15,19 @@ pub(crate) fn declared_children() -> &'static std::collections::BTreeSet<(String
     static DECLARED_CHILDREN: std::sync::OnceLock<std::collections::BTreeSet<(String, String)>> =
         std::sync::OnceLock::new();
     DECLARED_CHILDREN.get_or_init(|| {
-        fn collect_rs_paths(directory: &std::path::Path, paths: &mut Vec<std::path::PathBuf>) {
-            let Ok(entries) = std::fs::read_dir(directory) else {
+        fn collect_rs_paths(path: &std::path::Path, vec: &mut Vec<std::path::PathBuf>) {
+            let Ok(entries) = std::fs::read_dir(path) else {
                 return;
             };
             entries.filter_map(Result::ok).for_each(|entry| {
-                let path = entry.path();
-                match path.is_dir() {
-                    true => collect_rs_paths(path.as_path(), paths),
+                let entry_path = entry.path();
+                match entry_path.is_dir() {
+                    true => collect_rs_paths(entry_path.as_path(), vec),
                     false
-                        if path.extension().and_then(std::ffi::OsStr::to_str)
+                        if entry_path.extension().and_then(std::ffi::OsStr::to_str)
                             == Some(constants_str::RS) =>
                     {
-                        paths.push(path);
+                        vec.push(entry_path);
                     }
                     false => {}
                 }
@@ -73,7 +73,7 @@ pub(crate) fn declared_children() -> &'static std::collections::BTreeSet<(String
                 owner_rel: &std::path::Path,
                 parent: &std::path::Path,
                 workspace_root: &std::path::Path,
-                declarations: &mut std::collections::BTreeSet<(String, String)>,
+                b_tree_set: &mut std::collections::BTreeSet<(String, String)>,
             ) {
                 items.iter().for_each(|item| {
                     let syn::Item::Mod(item_mod) = item else {
@@ -83,7 +83,7 @@ pub(crate) fn declared_children() -> &'static std::collections::BTreeSet<(String
                         .join(item_mod.ident.to_string())
                         .with_extension(constants_str::RS);
                     if workspace_root.join(child_rel.as_path()).is_file() {
-                        let _inserted = declarations.insert((
+                        let _inserted = b_tree_set.insert((
                             owner_rel.to_string_lossy().into_owned(),
                             child_rel.to_string_lossy().into_owned(),
                         ));
@@ -101,7 +101,7 @@ pub(crate) fn declared_children() -> &'static std::collections::BTreeSet<(String
                         let syn::Lit::Str(path_lit) = &expr_lit.lit else {
                             return;
                         };
-                        let _inserted = declarations.insert((
+                        let _inserted = b_tree_set.insert((
                             owner_rel.to_string_lossy().into_owned(),
                             parent.join(path_lit.value()).to_string_lossy().into_owned(),
                         ));
@@ -112,7 +112,7 @@ pub(crate) fn declared_children() -> &'static std::collections::BTreeSet<(String
                             owner_rel,
                             parent,
                             workspace_root,
-                            declarations,
+                            b_tree_set,
                         );
                     }
                 });
@@ -184,8 +184,8 @@ pub(crate) fn declared_child_matches(path: &str, owner: &str) -> bool {
             && owner_path.parent() == child_path.parent()
     }
 }
-pub(crate) fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
-    let syn::Expr::Call(call) = expression else {
+pub(crate) fn unowned_spawn_expr(expr: &syn::Expr) -> bool {
+    let syn::Expr::Call(call) = expr else {
         return false;
     };
     let Some(path) = expr_call_path(crate::types::SynExprCallRef::from(call)) else {
@@ -209,33 +209,47 @@ pub(crate) fn unowned_spawn_expr(expression: &syn::Expr) -> bool {
     )
 }
 pub(crate) fn panic_uses_dynamic_diagnostic_id(
-    value: crate::types::SourceTextRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        value.as_ref().starts_with(constants_str::TEXT_ALT_14)
-            || value.as_ref().starts_with(constants_str::VALUE_81766C62)
-            || value.as_ref().starts_with(constants_str::VALUE_D8C45567)
-            || value.as_ref().starts_with(constants_str::VALUE_9C7DD42A),
+        source_text_ref
+            .as_ref()
+            .starts_with(constants_str::TEXT_ALT_14)
+            || source_text_ref
+                .as_ref()
+                .starts_with(constants_str::VALUE_81766C62)
+            || source_text_ref
+                .as_ref()
+                .starts_with(constants_str::VALUE_D8C45567)
+            || source_text_ref
+                .as_ref()
+                .starts_with(constants_str::VALUE_9C7DD42A),
     )
 }
 pub(crate) fn macro_path_is_quote(
-    path: crate::types::SynPathRef<'_>,
+    syn_path_ref: crate::types::SynPathRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(path.as_ref().segments.last().is_some_and(|segment| {
-        matches!(
-            segment.ident.to_string().as_str(),
-            constants_str::SHARED_VALUES_QUOTE | constants_str::SHARED_VALUES_QUOTE_SPANNED
-        )
-    }))
+    crate::types::AnalyzerBool::from(
+        syn_path_ref
+            .as_ref()
+            .segments
+            .last()
+            .is_some_and(|segment| {
+                matches!(
+                    segment.ident.to_string().as_str(),
+                    constants_str::SHARED_VALUES_QUOTE | constants_str::SHARED_VALUES_QUOTE_SPANNED
+                )
+            }),
+    )
 }
 pub(crate) fn scan_generated_diagnostic_tokens(
-    tokens: &proc_macro2::TokenStream,
-    visitor: &mut crate::source_analysis::DiagnosticIdVisitor,
+    token_stream: &proc_macro2::TokenStream,
+    diagnostic_id_visitor: &mut crate::source_analysis::DiagnosticIdVisitor,
 ) {
-    let trees = tokens.clone().into_iter().collect::<Vec<_>>();
+    let trees = token_stream.clone().into_iter().collect::<Vec<_>>();
     trees.iter().enumerate().for_each(|(index, token)| {
         if let proc_macro2::TokenTree::Group(group) = token {
-            scan_generated_diagnostic_tokens(&group.stream(), visitor);
+            scan_generated_diagnostic_tokens(&group.stream(), diagnostic_id_visitor);
         }
         let proc_macro2::TokenTree::Ident(identifier) = token else {
             return;
@@ -254,8 +268,8 @@ pub(crate) fn scan_generated_diagnostic_tokens(
         }
         let group_index = index.saturating_add(if is_panic { 2usize } else { constants_usize::ONE });
         let Some(proc_macro2::TokenTree::Group(arguments)) = trees.get(group_index) else {
-            visitor
-                .get_ers_mut()
+            diagnostic_id_visitor
+                .get_errors_mut()
                 .push(format!("generated `{identifier_text}` has no argument group"));
             return;
         };
@@ -283,15 +297,15 @@ pub(crate) fn scan_generated_diagnostic_tokens(
                         message_value.as_str(),
                     ))
                     .get() => {}
-            Some(message_value) => visitor.record(
+            Some(message_value) => diagnostic_id_visitor.record(
                 crate::types::SourceTextRef::from(identifier_text.as_str()),
                 crate::types::SourceTextRef::from(message_value.as_str()),
             ),
             None => match interpolated_identifier {
-                Some(interpolated) => visitor.get_ers_mut().push(format!(
+                Some(interpolated) => diagnostic_id_visitor.get_errors_mut().push(format!(
                     "generated `{identifier_text}` uses unchecked interpolated diagnostic message `#{interpolated}`"
                 )),
-                None => visitor.get_ers_mut().push(format!(
+                None => diagnostic_id_visitor.get_errors_mut().push(format!(
                     "generated `{identifier_text}` message must begin with a string literal"
                 )),
             },
@@ -302,9 +316,9 @@ pub(crate) fn scan_generated_diagnostic_tokens(
 pub(crate) fn assert_workspace_lints_match(
     rust_or_clippy: RustOrClippy,
     tool: crate::types::StaticStr,
-    parse_only_clippy: crate::types::AnalyzerBool,
+    analyzer_bool: crate::types::AnalyzerBool,
     exp_id: crate::types::StaticStr,
-    exceptions: crate::types::StaticStrSliceRef<'_>,
+    static_str_slice_ref: crate::types::StaticStrSliceRef<'_>,
 ) {
     let workspace = workspace_table_from_cargo_toml();
     let lints = toml_val_as_table_ref(
@@ -340,7 +354,7 @@ pub(crate) fn assert_workspace_lints_match(
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.trim().is_empty(), "cc4670a2");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let pattern = if parse_only_clippy.get() {
+    let pattern = if analyzer_bool.get() {
         regex::Regex::new(constants_str::QUESTION_M_S_ASTERISK_CLIPPY_PATH_A_Z0_9_A_Z0_9)
             .expect(constants_str::DIAGNOSTIC_FBF14346)
     } else {
@@ -365,12 +379,12 @@ pub(crate) fn assert_workspace_lints_match(
     let lints_from_cmd = crate::types::SourceTextListRef::from(command_lints.as_slice());
     let lints_from_cargo_set = str_set(lints_vec_from_cargo_toml);
     let lints_from_cmd_set = str_set(lints_from_cmd);
-    let lints_exceptions_set = exceptions
+    let lints_exceptions_set = static_str_slice_ref
         .get()
         .iter()
         .copied()
         .collect::<std::collections::HashSet<&str>>();
-    let stale_exceptions = exceptions
+    let stale_exceptions = static_str_slice_ref
         .get()
         .iter()
         .copied()
@@ -394,8 +408,10 @@ pub(crate) fn assert_workspace_lints_match(
     assert!(outdated_lints_in_file.is_empty(), "93787d2d");
 }
 
-pub(crate) fn validate_workspace_dep_default_features(v_table: crate::types::TomlTableRef<'_>) {
-    match v_table
+pub(crate) fn validate_workspace_dep_default_features(
+    toml_table_ref: crate::types::TomlTableRef<'_>,
+) {
+    match toml_table_ref
         .get()
         .get(constants_str::DEFAULT_FEATURES)
         .expect(constants_str::DIAGNOSTIC_D2A8C4E1)
@@ -411,21 +427,22 @@ pub(crate) fn validate_workspace_dep_default_features(v_table: crate::types::Tom
     }
 }
 pub(crate) fn workspace_dep_disables_default_features(
-    v: crate::types::TomlValueRef<'_>,
+    toml_value_ref: crate::types::TomlValueRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        v.as_ref()
+        toml_value_ref
+            .as_ref()
             .as_table()
             .and_then(|table| table.get(constants_str::DEFAULT_FEATURES))
             == Some(&toml::Value::Boolean(false)),
     )
 }
 pub(crate) fn unjustified_workspace_lint_allows(
-    source: crate::types::SourceTextRef<'_>,
-) -> crate::types::DiagnosticMsgs {
+    source_text_ref: crate::types::SourceTextRef<'_>,
+) -> crate::types::DiagnosticMessages {
     let mut in_workspace_lints = false;
-    crate::types::DiagnosticMsgs::from(
-        source
+    crate::types::DiagnosticMessages::from(
+        source_text_ref
             .as_ref()
             .lines()
             .enumerate()
@@ -458,10 +475,10 @@ pub(crate) fn unjustified_workspace_lint_allows(
     )
 }
 pub(crate) fn commented_debug_statements(
-    source: crate::types::SourceTextRef<'_>,
-) -> crate::types::DiagnosticMsgs {
-    crate::types::DiagnosticMsgs::from(
-        source
+    source_text_ref: crate::types::SourceTextRef<'_>,
+) -> crate::types::DiagnosticMessages {
+    crate::types::DiagnosticMessages::from(
+        source_text_ref
             .as_ref()
             .lines()
             .enumerate()
@@ -490,37 +507,37 @@ pub(crate) fn commented_debug_statements(
             .collect::<Vec<String>>(),
     )
 }
-pub(crate) fn text_content_hygiene_ers(
-    source: crate::types::SourceTextRef<'_>,
-) -> crate::types::DiagnosticMsgs {
-    let mut ers = crate::types::DiagnosticMsgs::default();
-    if !source.as_ref().is_empty() && !source.as_ref().ends_with('\n') {
-        ers.push(constants_str::VALUE_C2BE29D9.to_owned());
+pub(crate) fn text_content_hygiene_errors(
+    source_text_ref: crate::types::SourceTextRef<'_>,
+) -> crate::types::DiagnosticMessages {
+    let mut errors = crate::types::DiagnosticMessages::default();
+    if !source_text_ref.as_ref().is_empty() && !source_text_ref.as_ref().ends_with('\n') {
+        errors.push(constants_str::VALUE_C2BE29D9.to_owned());
     }
-    if source.as_ref().contains('\r') {
-        ers.push(constants_str::VALUE_A8C54D74.to_owned());
+    if source_text_ref.as_ref().contains('\r') {
+        errors.push(constants_str::VALUE_A8C54D74.to_owned());
     }
-    source
+    source_text_ref
         .as_ref()
         .lines()
         .enumerate()
         .filter(|(_, line)| line.ends_with([' ', '\t']))
         .for_each(|(index, _)| {
-            ers.push(format!(
+            errors.push(format!(
                 "line {} contains trailing whitespace",
                 index.saturating_add(constants_usize::ONE)
             ));
         });
-    ers
+    errors
 }
 
-pub(crate) fn macro_rules_ers(
-    path: crate::types::PathRef<'_>,
-    source: crate::types::SourceTextRef<'_>,
-) -> crate::types::DiagnosticMsgs {
+pub(crate) fn macro_rules_errors(
+    path_ref: crate::types::PathRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
+) -> crate::types::DiagnosticMessages {
     let forbidden = format!("{}!", constants_str::MACRO_RULES);
-    if source.as_ref().contains(forbidden.as_str()) {
-        let mut error = path.as_ref().display().to_string();
+    if source_text_ref.as_ref().contains(forbidden.as_str()) {
+        let mut error = path_ref.as_ref().display().to_string();
         error.push_str(constants_str::PATH_ERROR_SEPARATOR);
         error.push_str(
             constants_str::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD
@@ -528,12 +545,14 @@ pub(crate) fn macro_rules_ers(
         );
         vec![error].into()
     } else {
-        crate::types::DiagnosticMsgs::default()
+        crate::types::DiagnosticMessages::default()
     }
 }
 
-pub(crate) fn env_keys_from_file(path: crate::types::StaticStr) -> crate::types::SourceTextList {
-    std::fs::read_to_string(path.get())
+pub(crate) fn env_keys_from_file(
+    static_str: crate::types::StaticStr,
+) -> crate::types::SourceTextList {
+    std::fs::read_to_string(static_str.get())
         .expect(constants_str::DIAGNOSTIC_B3A7C1E4)
         .lines()
         .filter_map(|line| {
@@ -547,27 +566,27 @@ pub(crate) fn env_keys_from_file(path: crate::types::StaticStr) -> crate::types:
         .into()
 }
 pub(crate) fn collect_missing_items(
-    items: crate::types::SourceTextListRef<'_>,
-    present_set: crate::types::SourceTextRefHashSet<'_>,
+    source_text_list_ref: crate::types::SourceTextListRef<'_>,
+    source_text_ref_hash_set: crate::types::SourceTextRefHashSet<'_>,
 ) -> crate::types::SourceTextList {
     crate::types::SourceTextList::from(
-        items
+        source_text_list_ref
             .get()
             .iter()
             .map(String::as_str)
-            .filter(|item| !present_set.as_ref().contains(item))
+            .filter(|item| !source_text_ref_hash_set.as_ref().contains(item))
             .map(str::to_owned)
             .collect::<Vec<String>>(),
     )
 }
-pub(crate) fn collect_missing_key_ers(
-    source_keys: crate::types::SourceTextListRef<'_>,
-    target_set: crate::types::SourceTextRefHashSet<'_>,
+pub(crate) fn collect_missing_key_errors(
+    source_text_list_ref: crate::types::SourceTextListRef<'_>,
+    source_text_ref_hash_set: crate::types::SourceTextRefHashSet<'_>,
     source_file: crate::types::StaticStr,
     target_file: crate::types::StaticStr,
 ) -> crate::types::SourceTextList {
     crate::types::SourceTextList::from(
-        collect_missing_items(source_keys, target_set)
+        collect_missing_items(source_text_list_ref, source_text_ref_hash_set)
             .into_iter()
             .map(|key| {
                 format!(
@@ -580,129 +599,138 @@ pub(crate) fn collect_missing_key_ers(
     )
 }
 
-pub(crate) fn assert_cargo_toml_ers_empty(
-    exp_id: crate::types::StaticStr,
-    mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
+pub(crate) fn assert_cargo_toml_errors_empty(
+    static_str: crate::types::StaticStr,
+    mut make_errors: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
 ) {
-    let mut raw_ers = Vec::new();
+    let mut raw_errors = Vec::new();
     for_each_crate_manifest_file(|path| {
         let Some(parsed) = read_toml_table(crate::types::PathRef::from(path)) else {
             return;
         };
-        mk_ers(path, parsed.as_ref(), &mut raw_ers);
+        make_errors(path, parsed.as_ref(), &mut raw_errors);
     });
-    let ers = crate::types::SourceTextList::from(raw_ers);
-    assert_joined_ers_empty(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
-        exp_id,
+    let errors = crate::types::SourceTextList::from(raw_errors);
+    assert_joined_errors_empty(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
+        static_str,
     );
 }
 pub(crate) fn assert_crate_manifest_cargo_policy(
-    exp_id: crate::types::StaticStr,
-    mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
+    static_str: crate::types::StaticStr,
+    mut make_errors: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
 ) {
-    assert_cargo_toml_ers_empty(exp_id, |path, parsed, ers| {
-        mk_ers(path, parsed, ers);
+    assert_cargo_toml_errors_empty(static_str, |path, parsed, errors| {
+        make_errors(path, parsed, errors);
     });
 }
-pub(crate) fn assert_joined_ers_empty(
-    ers: crate::types::SourceTextListRef<'_>,
-    exp_id: crate::types::StaticStr,
+pub(crate) fn assert_joined_errors_empty(
+    source_text_list_ref: crate::types::SourceTextListRef<'_>,
+    static_str: crate::types::StaticStr,
 ) {
-    assert_joined_ers_empty_with_ctx(
-        ers,
-        exp_id,
+    assert_joined_errors_empty_with_context(
+        source_text_list_ref,
+        static_str,
         crate::types::SourceTextRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
     );
 }
-pub(crate) fn assert_joined_ers_empty_with_ctx(
-    ers: crate::types::SourceTextListRef<'_>,
-    exp_id: crate::types::StaticStr,
-    ctx: crate::types::SourceTextRef<'_>,
+pub(crate) fn assert_joined_errors_empty_with_context(
+    source_text_list_ref: crate::types::SourceTextListRef<'_>,
+    static_str: crate::types::StaticStr,
+    source_text_ref: crate::types::SourceTextRef<'_>,
 ) {
-    if ctx.as_ref().is_empty() {
+    if source_text_ref.as_ref().is_empty() {
         assert!(
-            ers.as_ref().is_empty(),
+            source_text_list_ref.as_ref().is_empty(),
             "{}\n{}",
-            exp_id.get(),
-            ers.as_ref().join("\n")
+            static_str.get(),
+            source_text_list_ref.as_ref().join("\n")
         );
     } else {
         assert!(
-            ers.as_ref().is_empty(),
+            source_text_list_ref.as_ref().is_empty(),
             "{} {}\n{}",
-            exp_id.get(),
-            ctx.as_ref(),
-            ers.as_ref().join("\n")
+            static_str.get(),
+            source_text_ref.as_ref(),
+            source_text_list_ref.as_ref().join("\n")
         );
     }
 }
-pub(crate) fn assert_joined_ers_empty_sorted(
-    mut ers: crate::types::DiagnosticMsgsMutRef<'_>,
-    exp_id: crate::types::StaticStr,
+pub(crate) fn assert_joined_errors_empty_sorted(
+    mut diagnostic_messages_mut_ref: crate::types::DiagnosticMessagesMutRef<'_>,
+    static_str: crate::types::StaticStr,
 ) {
-    ers.sort();
-    assert_joined_ers_empty(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
-        exp_id,
+    diagnostic_messages_mut_ref.sort();
+    assert_joined_errors_empty(
+        crate::types::SourceTextListRef::from(diagnostic_messages_mut_ref.as_slice()),
+        static_str,
     );
 }
 pub(crate) fn str_set(
-    v: crate::types::SourceTextListRef<'_>,
+    source_text_list_ref: crate::types::SourceTextListRef<'_>,
 ) -> crate::types::SourceTextHashSet<'_> {
     crate::types::SourceTextHashSet::from(
-        v.get()
+        source_text_list_ref
+            .get()
             .iter()
             .map(String::as_str)
             .collect::<std::collections::HashSet<&str>>(),
     )
 }
-pub(crate) fn visit_syn_file<V>(ast: crate::types::SynFileRef<'_>, mut visitor: V) -> V
+pub(crate) fn visit_syn_file<V>(syn_file_ref: crate::types::SynFileRef<'_>, mut v: V) -> V
 where
     V: for<'ast> syn::visit::Visit<'ast>,
 {
-    syn::visit::Visit::visit_file(&mut visitor, ast.as_ref());
-    visitor
+    syn::visit::Visit::visit_file(&mut v, syn_file_ref.as_ref());
+    v
 }
-pub(crate) fn assert_rs_ast_ers_empty_with_ctx(
-    exp_id: crate::types::StaticStr,
-    ctx: crate::types::SourceTextRef<'_>,
-    mut mk_ers: impl FnMut(&std::path::Path, &syn::File, &mut Vec<String>),
+pub(crate) fn assert_rs_ast_errors_empty_with_context(
+    static_str: crate::types::StaticStr,
+    source_text_ref: crate::types::SourceTextRef<'_>,
+    mut make_errors: impl FnMut(&std::path::Path, &syn::File, &mut Vec<String>),
 ) {
-    let mut raw_ers = Vec::new();
+    let mut raw_errors = Vec::new();
     for_each_rs_file(|file| {
-        mk_ers(file.path().as_ref(), file.ast().as_ref(), &mut raw_ers);
+        make_errors(file.path().as_ref(), file.ast().as_ref(), &mut raw_errors);
     });
-    let ers = crate::types::SourceTextList::from(raw_ers);
-    assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
-        exp_id,
-        ctx,
+    let errors = crate::types::SourceTextList::from(raw_errors);
+    assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
+        static_str,
+        source_text_ref,
     );
 }
-pub(crate) fn read_toml_table(path: crate::types::PathRef<'_>) -> Option<crate::types::TomlTable> {
+pub(crate) fn read_toml_table(
+    path_ref: crate::types::PathRef<'_>,
+) -> Option<crate::types::TomlTable> {
     crate::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        snapshot.read_toml_table(path)
+        snapshot.read_toml_table(path_ref)
     })
 }
 
 #[allow(clippy::single_call_fn)] // several policies share the cached manifest lookup through this root facade
 pub(crate) fn cargo_toml_content(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> Option<crate::types::SourceText> {
     crate::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        snapshot.cargo_toml_content(path)
+        snapshot.cargo_toml_content(path_ref)
     })
 }
 pub(crate) fn push_repeated_file_error(
-    mut ers: crate::types::DiagnosticMsgsMutRef<'_>,
-    path: crate::types::PathRef<'_>,
-    message: crate::types::SourceTextRef<'_>,
-    times: crate::types::AnalyzerCount,
+    mut diagnostic_messages_mut_ref: crate::types::DiagnosticMessagesMutRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
+    analyzer_count: crate::types::AnalyzerCount,
 ) {
-    ers.extend(
-        std::iter::repeat_with(|| format!("{}: {}", path.as_ref().display(), message.as_ref()))
-            .take(times.get()),
+    diagnostic_messages_mut_ref.extend(
+        std::iter::repeat_with(|| {
+            format!(
+                "{}: {}",
+                path_ref.as_ref().display(),
+                source_text_ref.as_ref()
+            )
+        })
+        .take(analyzer_count.get()),
     );
 }
 pub(crate) fn workspace_crate_names() -> crate::types::SourceTextBTreeSet {
@@ -717,21 +745,22 @@ pub(crate) fn for_each_crate_manifest_file(on_file: impl FnMut(&std::path::Path)
     });
 }
 pub(crate) fn path_has_segment(
-    path: crate::types::SynPathRef<'_>,
-    segment: crate::types::SourceTextRef<'_>,
+    syn_path_ref: crate::types::SynPathRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        path.as_ref()
+        syn_path_ref
+            .as_ref()
             .segments
             .iter()
-            .any(|element| element.ident == segment.as_ref()),
+            .any(|element| element.ident == source_text_ref.as_ref()),
     )
 }
 
 pub(crate) fn item_impl_self_ty_identifier(
-    item: crate::types::SynItemImplRef<'_>,
+    syn_item_impl_ref: crate::types::SynItemImplRef<'_>,
 ) -> Option<crate::types::SourceText> {
-    match item.as_ref().self_ty.as_ref() {
+    match syn_item_impl_ref.as_ref().self_ty.as_ref() {
         syn::Type::Path(ty_path) => ty_path.path.segments.last().map(|segment| {
             crate::types::SourceText::try_from(segment.ident.to_string())
                 .expect(constants_str::DIAGNOSTIC_6A9F03D2)
@@ -754,9 +783,9 @@ pub(crate) fn item_impl_self_ty_identifier(
     }
 }
 pub(crate) fn from_trait_arg_is_string(
-    path: crate::types::SynPathRef<'_>,
+    syn_path_ref: crate::types::SynPathRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(path.as_ref().segments.last().is_some_and(|segment| {
+    crate::types::AnalyzerBool::from(syn_path_ref.as_ref().segments.last().is_some_and(|segment| {
                 match &segment.arguments {
                     syn::PathArguments::AngleBracketed(args) => {
                         args.args.iter().any(|arg| {
@@ -768,9 +797,9 @@ pub(crate) fn from_trait_arg_is_string(
             }))
 }
 pub(crate) fn item_struct_is_single_string_wrapper(
-    item: crate::types::SynItemStructRef<'_>,
+    syn_item_struct_ref: crate::types::SynItemStructRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(match &item.as_ref().fields {
+    crate::types::AnalyzerBool::from(match &syn_item_struct_ref.as_ref().fields {
         syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
             fields.unnamed.first().is_some_and(|field| {
                 [constants_str::STRING, constants_str::BOUNDEDSTRING]
@@ -788,59 +817,64 @@ pub(crate) fn item_struct_is_single_string_wrapper(
     })
 }
 pub(crate) fn item_struct_is_single_field_tuple_wrapper(
-    item: crate::types::SynItemStructRef<'_>,
+    syn_item_struct_ref: crate::types::SynItemStructRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        matches!(&item.as_ref().fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1),
+        matches!(&syn_item_struct_ref.as_ref().fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1),
     )
 }
 
 pub(crate) fn item_impl_input_type_is(
-    item: crate::types::SynItemImplRef<'_>,
-    expected_input_type: &syn::Type,
+    syn_item_impl_ref: crate::types::SynItemImplRef<'_>,
+    ty: &syn::Type,
 ) -> crate::types::AnalyzerBool {
-    let source_type = item.as_ref().trait_.as_ref().and_then(|(path, _)| {
-        let segment = path.segments.last()?;
-        let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
-            return None;
-        };
-        let argument = arguments.args.first()?;
-        let syn::GenericArgument::Type(value) = argument else {
-            return None;
-        };
-        Some(value)
-    });
-    crate::types::AnalyzerBool::from(
-        source_type.is_some_and(|input_type| input_type == expected_input_type),
-    )
+    let source_type = syn_item_impl_ref
+        .as_ref()
+        .trait_
+        .as_ref()
+        .and_then(|(path, _)| {
+            let segment = path.segments.last()?;
+            let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+                return None;
+            };
+            let argument = arguments.args.first()?;
+            let syn::GenericArgument::Type(value) = argument else {
+                return None;
+            };
+            Some(value)
+        });
+    crate::types::AnalyzerBool::from(source_type.is_some_and(|input_type| input_type == ty))
 }
 pub(crate) fn item_impl_is_from_or_try_from(
-    item: crate::types::SynItemImplRef<'_>,
+    syn_item_impl_ref: crate::types::SynItemImplRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
-        path.segments.last().is_some_and(|segment| {
-            segment.ident == constants_str::FROM_ALT_3 || segment.ident == constants_str::TRYFROM
-        })
-    }))
+    crate::types::AnalyzerBool::from(syn_item_impl_ref.as_ref().trait_.as_ref().is_some_and(
+        |(path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == constants_str::FROM_ALT_3
+                    || segment.ident == constants_str::TRYFROM
+            })
+        },
+    ))
 }
 pub(crate) fn method_is_explicit_wrapper_accessor(
-    identifier: crate::types::SynIdentifierRef<'_>,
+    syn_identifier_ref: crate::types::SynIdentifierRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(matches!(
-        identifier.as_ref().to_string().as_str(),
+        syn_identifier_ref.as_ref().to_string().as_str(),
         constants_str::GET_ALT | constants_str::INTO_INNER
     ))
 }
 pub(crate) fn type_path_ends_with_identifier(
-    ty: crate::types::SynTypeRef<'_>,
-    identifier: crate::types::SourceTextRef<'_>,
+    syn_type_ref: crate::types::SynTypeRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(match ty.as_ref() {
+    crate::types::AnalyzerBool::from(match syn_type_ref.as_ref() {
         syn::Type::Path(ty_path) => ty_path
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == identifier.as_ref()),
+            .is_some_and(|segment| segment.ident == source_text_ref.as_ref()),
         syn::Type::Array(_)
         | syn::Type::FnPtr(_)
         | syn::Type::Group(_)
@@ -860,24 +894,24 @@ pub(crate) fn type_path_ends_with_identifier(
 }
 
 pub(crate) fn path_ends_with(
-    path: crate::types::SynPathRef<'_>,
-    segments: crate::types::StaticStrSliceRef<'_>,
+    syn_path_ref: crate::types::SynPathRef<'_>,
+    static_str_slice_ref: crate::types::StaticStrSliceRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    let path_ref = path.as_ref();
+    let path_ref = syn_path_ref.as_ref();
     crate::types::AnalyzerBool::from(
-        path_ref.segments.len() >= segments.get().len()
+        path_ref.segments.len() >= static_str_slice_ref.get().len()
             && path_ref
                 .segments
                 .iter()
                 .rev()
-                .zip(segments.get().iter().rev())
+                .zip(static_str_slice_ref.get().iter().rev())
                 .all(|(got, exp)| got.ident == *exp),
     )
 }
 pub(crate) fn expr_call_path(
-    call: crate::types::SynExprCallRef<'_>,
+    syn_expr_call_ref: crate::types::SynExprCallRef<'_>,
 ) -> Option<crate::types::SynPathRef<'_>> {
-    match call.get().func.as_ref() {
+    match syn_expr_call_ref.get().func.as_ref() {
         syn::Expr::Path(path) => Some(crate::types::SynPathRef::from(&path.path)),
         syn::Expr::Array(_)
         | syn::Expr::Assign(_)
@@ -923,33 +957,33 @@ pub(crate) fn expr_call_path(
 }
 
 pub(crate) fn collect_first_macro_identifier_domain_name(
-    tokens: crate::types::SourceTextRef<'_>,
-    names: &mut crate::types::SourceTextBTreeSet,
+    source_text_ref: crate::types::SourceTextRef<'_>,
+    source_text_b_tree_set: &mut crate::types::SourceTextBTreeSet,
 ) {
     let re = regex::Regex::new(constants_str::S_ASTERISK_A_ZA_Z_A_ZA_Z0_9_ASTERISK_S_ASTERISK)
         .expect(constants_str::DIAGNOSTIC_FC65B7C4);
     if let Some(name) = re
-        .captures(tokens.as_ref())
+        .captures(source_text_ref.as_ref())
         .and_then(|captures| captures.get(1))
         .map(|name| name.as_str())
     {
-        let _: bool = names.insert(name.to_owned());
+        let _: bool = source_text_b_tree_set.insert(name.to_owned());
     }
 }
 pub(crate) fn len_checked_function_names(
-    file: crate::types::SynFileRef<'_>,
+    syn_file_ref: crate::types::SynFileRef<'_>,
 ) -> crate::types::SourceTextBTreeSet {
     let mut visitor = crate::domain_analysis::LenCheckedFunctionNameVisitor::new(
         crate::types::SourceTextBTreeSet::default(),
     );
-    syn::visit::Visit::visit_file(&mut visitor, file.as_ref());
+    syn::visit::Visit::visit_file(&mut visitor, syn_file_ref.as_ref());
     visitor.get_names().clone()
 }
 pub(crate) fn string_wrapper_names(
-    ast: crate::types::SynFileRef<'_>,
+    syn_file_ref: crate::types::SynFileRef<'_>,
 ) -> crate::types::SourceTextBTreeSet {
     visit_syn_file(
-        ast,
+        syn_file_ref,
         crate::domain_analysis::StringWrapperNameVisitor::new(
             crate::types::SourceTextBTreeSet::default(),
         ),
@@ -958,22 +992,22 @@ pub(crate) fn string_wrapper_names(
     .clone()
 }
 pub(crate) fn domain_type_policy_should_check_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    if path
+    if path_ref
         .as_ref()
         .components()
         .any(|component| component.as_os_str() == constants_str::BENCHES)
-        || path
+        || path_ref
             .as_ref()
             .to_string_lossy()
             .trim_start_matches(constants_str::TEXT_ALT_9)
             .starts_with(constants_str::CODE_STYLE_MACRO_CLIPPY_CHECK_TEST_COMMON_SRC)
-        || (path.as_ref().exists() && is_test_crate_source_path(path).get())
-        || path
+        || (path_ref.as_ref().exists() && is_test_crate_source_path(path_ref).get())
+        || path_ref
             .as_ref()
             .starts_with(constants_str::CODE_STYLE_BOUNDED_TYPES_SRC)
-        || path
+        || path_ref
             .as_ref()
             .to_string_lossy()
             .starts_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_UI)
@@ -991,30 +1025,31 @@ pub(crate) fn domain_type_policy_should_check_path(
         ]
         .iter()
         .any(|owner| {
-            path.as_ref().ends_with(owner)
-                || declared_child_matches(path.as_ref().to_string_lossy().as_ref(), owner)
+            path_ref.as_ref().ends_with(owner)
+                || declared_child_matches(path_ref.as_ref().to_string_lossy().as_ref(), owner)
         })
     {
         return crate::types::AnalyzerBool::default();
     }
-    let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
+    let Some(cargo_toml_path) = nearest_cargo_toml_path(path_ref) else {
         return crate::types::AnalyzerBool::default();
     };
     crate::types::AnalyzerBool::from(cargo_toml_path.as_ref().is_file())
 }
 pub(crate) fn is_code_style_meta_harness_source_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        path.as_ref().parent().is_some_and(|parent| {
+        path_ref.as_ref().parent().is_some_and(|parent| {
             parent == std::path::Path::new(constants_str::CODE_STYLE_TESTS_SRC_ROOT)
-        }) && path.as_ref() != std::path::Path::new(constants_str::CODE_STYLE_DOMAIN_FIXTURE_PATH),
+        }) && path_ref.as_ref()
+            != std::path::Path::new(constants_str::CODE_STYLE_DOMAIN_FIXTURE_PATH),
     )
 }
 pub(crate) fn analyzer_state_raw_container_ty(
-    ty_ref: crate::types::SynTypeRef<'_>,
+    syn_type_ref: crate::types::SynTypeRef<'_>,
 ) -> Option<(crate::types::StaticStr, crate::types::StaticStr)> {
-    match ty_ref.get() {
+    match syn_type_ref.get() {
         syn::Type::Group(ty_group) => {
             analyzer_state_raw_container_ty(crate::types::SynTypeRef::from(&*ty_group.elem))
         }
@@ -1118,9 +1153,9 @@ pub(crate) fn analyzer_state_raw_container_ty(
     }
 }
 pub(crate) fn raw_text_return_ty(
-    ty_ref: crate::types::SynTypeRef<'_>,
+    syn_type_ref: crate::types::SynTypeRef<'_>,
 ) -> Option<(crate::types::StaticStr, crate::types::StaticStr)> {
-    match ty_ref.get() {
+    match syn_type_ref.get() {
         syn::Type::Group(ty_group) => {
             raw_text_return_ty(crate::types::SynTypeRef::from(&*ty_group.elem))
         }
@@ -1203,7 +1238,7 @@ pub(crate) fn raw_text_return_ty(
                 _ => None,
             }
         }
-        syn::Type::Reference(_) if type_is_str_ref(ty_ref).get() => Some((
+        syn::Type::Reference(_) if type_is_str_ref(syn_type_ref).get() => Some((
             crate::types::StaticStr::from(constants_str::STR),
             crate::types::StaticStr::from(constants_str::TYPES_PATH_SOURCETEXTREF),
         )),
@@ -1225,9 +1260,9 @@ pub(crate) fn raw_text_return_ty(
     }
 }
 pub(crate) fn single_angle_type_arg(
-    arguments: crate::types::SynPathArgumentsRef<'_>,
+    syn_path_arguments_ref: crate::types::SynPathArgumentsRef<'_>,
 ) -> Option<crate::types::SynTypeRef<'_>> {
-    let syn::PathArguments::AngleBracketed(args) = arguments.get() else {
+    let syn::PathArguments::AngleBracketed(args) = syn_path_arguments_ref.get() else {
         return None;
     };
     let mut type_args = args.args.iter().filter_map(|arg| match arg {
@@ -1246,9 +1281,9 @@ pub(crate) fn single_angle_type_arg(
     Some(first)
 }
 pub(crate) fn type_stores_string_text(
-    ty: crate::types::SynTypeRef<'_>,
+    syn_type_ref: crate::types::SynTypeRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(match ty.as_ref() {
+    crate::types::AnalyzerBool::from(match syn_type_ref.as_ref() {
         syn::Type::Array(array) => {
             type_stores_string_text(crate::types::SynTypeRef::from(array.elem.as_ref())).get()
         }
@@ -1298,8 +1333,10 @@ pub(crate) fn type_stores_string_text(
         | _ => false,
     })
 }
-pub(crate) fn type_is_string(ty: crate::types::SynTypeRef<'_>) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(match ty.get() {
+pub(crate) fn type_is_string(
+    syn_type_ref: crate::types::SynTypeRef<'_>,
+) -> crate::types::AnalyzerBool {
+    crate::types::AnalyzerBool::from(match syn_type_ref.get() {
         syn::Type::Path(ty_path) => ty_path
             .path
             .segments
@@ -1322,8 +1359,10 @@ pub(crate) fn type_is_string(ty: crate::types::SynTypeRef<'_>) -> crate::types::
         | _ => false,
     })
 }
-pub(crate) fn type_is_str_ref(ty: crate::types::SynTypeRef<'_>) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(match ty.get() {
+pub(crate) fn type_is_str_ref(
+    syn_type_ref: crate::types::SynTypeRef<'_>,
+) -> crate::types::AnalyzerBool {
+    crate::types::AnalyzerBool::from(match syn_type_ref.get() {
         syn::Type::Reference(ty_reference) => match &*ty_reference.elem {
             syn::Type::Path(ty_path) => ty_path
                 .path
@@ -1364,28 +1403,28 @@ pub(crate) fn type_is_str_ref(ty: crate::types::SynTypeRef<'_>) -> crate::types:
     })
 }
 pub(crate) fn item_fn_is_proc_macro(
-    item: crate::types::SynItemFnRef<'_>,
+    syn_item_fn_ref: crate::types::SynItemFnRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
+    crate::types::AnalyzerBool::from(syn_item_fn_ref.as_ref().attrs.iter().any(|attr| {
         attr.path().is_ident(constants_str::PROC_MACRO_ALT)
             || attr.path().is_ident(constants_str::PROC_MACRO_DERIVE)
             || attr.path().is_ident(constants_str::PROC_MACRO_ATTRIBUTE)
     }))
 }
 pub(crate) fn attrs_contain_test_only_cfg(
-    attrs: crate::types::SynAttributeListRef<'_>,
+    syn_attribute_list_ref: crate::types::SynAttributeListRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        attrs
+        syn_attribute_list_ref
             .as_ref()
             .iter()
             .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get()),
     )
 }
 pub(crate) fn item_fn_is_unit_test(
-    item: crate::types::SynItemFnRef<'_>,
+    syn_item_fn_ref: crate::types::SynItemFnRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
+    crate::types::AnalyzerBool::from(syn_item_fn_ref.as_ref().attrs.iter().any(|attr| {
         attr.path()
             .segments
             .last()
@@ -1394,14 +1433,19 @@ pub(crate) fn item_fn_is_unit_test(
     }))
 }
 pub(crate) fn derive_attr_has_terminal(
-    attr: crate::types::SynAttributeRef<'_>,
-    terminal: crate::types::SourceTextRef<'_>,
+    syn_attribute_ref: crate::types::SynAttributeRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    if !attr.as_ref().path().is_ident(constants_str::DERIVE) {
+    if !syn_attribute_ref
+        .as_ref()
+        .path()
+        .is_ident(constants_str::DERIVE)
+    {
         return crate::types::AnalyzerBool::default();
     }
     crate::types::AnalyzerBool::from(
-        attr.as_ref()
+        syn_attribute_ref
+            .as_ref()
             .parse_args_with(
                 syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
             )
@@ -1409,15 +1453,15 @@ pub(crate) fn derive_attr_has_terminal(
                 paths.iter().any(|path| {
                     path.segments
                         .last()
-                        .is_some_and(|segment| segment.ident == terminal.as_ref())
+                        .is_some_and(|segment| segment.ident == source_text_ref.as_ref())
                 })
             }),
     )
 }
 pub(crate) fn sensitive_text_wrapper_identifier(
-    identifier: crate::types::SourceTextRef<'_>,
+    source_text_ref: crate::types::SourceTextRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    let identifier_text = identifier.as_ref();
+    let identifier_text = source_text_ref.as_ref();
     let lowercase = identifier_text.to_ascii_lowercase();
     let non_secret_token_metadata = [
         constants_str::VALUE_55BFC155,
@@ -1484,9 +1528,12 @@ pub(crate) fn type_is_u8(ty: &syn::Type) -> bool {
             if path.path.segments.last().is_some_and(|segment| segment.ident == constants_str::CODE_STYLE_U8)
     )
 }
-pub(crate) fn path_to_string(path: crate::types::SynPathRef<'_>) -> crate::types::SourceText {
+pub(crate) fn path_to_string(
+    syn_path_ref: crate::types::SynPathRef<'_>,
+) -> crate::types::SourceText {
     crate::types::SourceText::try_from(
-        path.as_ref()
+        syn_path_ref
+            .as_ref()
             .segments
             .iter()
             .map(|segment| segment.ident.to_string())
@@ -1497,22 +1544,22 @@ pub(crate) fn path_to_string(path: crate::types::SynPathRef<'_>) -> crate::types
 }
 
 pub(crate) fn is_runtime_policy_source_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    if is_test_source_path(path).get() {
+    if is_test_source_path(path_ref).get() {
         return crate::types::AnalyzerBool::default();
     }
-    if is_cfg_test_declared_child(path.as_ref()) {
+    if is_cfg_test_declared_child(path_ref.as_ref()) {
         return crate::types::AnalyzerBool::default();
     }
-    if !path
+    if !path_ref
         .as_ref()
         .components()
         .any(|component| component.as_os_str() == constants_str::SRC_ALT)
     {
         return crate::types::AnalyzerBool::default();
     }
-    let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
+    let Some(cargo_toml_path) = nearest_cargo_toml_path(path_ref) else {
         return crate::types::AnalyzerBool::default();
     };
     let Some(parsed) = read_toml_table(crate::types::PathRef::from(cargo_toml_path.as_ref()))
@@ -1530,25 +1577,28 @@ pub(crate) fn is_runtime_policy_source_path(
     )
 }
 pub(crate) fn nearest_cargo_toml_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> Option<crate::types::OwnedPathBuf> {
-    path.as_ref()
+    path_ref
+        .as_ref()
         .ancestors()
         .map(|ancestor| ancestor.join(constants_str::CARGO_TOML))
         .find(|cargo_toml_path| cargo_toml_path.exists())
         .map(crate::types::OwnedPathBuf::from)
 }
 pub(crate) fn is_str_constants_source_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
     let constants_source_directory = std::path::Path::new(constants_str::STR_CONSTANTS_SRC_LIB_RS)
         .parent()
         .expect(constants_str::DIAGNOSTIC_77E3AB42);
-    crate::types::AnalyzerBool::from(path.as_ref().parent() == Some(constants_source_directory))
+    crate::types::AnalyzerBool::from(path_ref.as_ref().parent() == Some(constants_source_directory))
 }
-pub(crate) fn is_test_crate(parsed: crate::types::TomlTableRef<'_>) -> crate::types::AnalyzerBool {
+pub(crate) fn is_test_crate(
+    toml_table_ref: crate::types::TomlTableRef<'_>,
+) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        parsed
+        toml_table_ref
             .as_ref()
             .get(constants_str::PACKAGE)
             .and_then(toml::Value::as_table)
@@ -1563,12 +1613,12 @@ pub(crate) fn is_test_crate(parsed: crate::types::TomlTableRef<'_>) -> crate::ty
     )
 }
 pub(crate) fn is_test_crate_source_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    if is_test_source_path(path).get() {
+    if is_test_source_path(path_ref).get() {
         return crate::types::AnalyzerBool::from(true);
     }
-    nearest_cargo_toml_path(path)
+    nearest_cargo_toml_path(path_ref)
         .and_then(|cargo_toml_path| {
             read_toml_table(crate::types::PathRef::from(cargo_toml_path.as_ref()))
         })
@@ -1576,12 +1626,14 @@ pub(crate) fn is_test_crate_source_path(
             is_test_crate(crate::types::TomlTableRef::from(manifest.as_ref()))
         })
 }
-pub(crate) fn is_test_source_path(path: crate::types::PathRef<'_>) -> crate::types::AnalyzerBool {
+pub(crate) fn is_test_source_path(
+    path_ref: crate::types::PathRef<'_>,
+) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        path.as_ref().components().any(|component| {
+        path_ref.as_ref().components().any(|component| {
             component.as_os_str() == constants_str::TESTS_ALT
                 || component.as_os_str() == constants_str::TESTS_CODE_STYLE
-        }) || path
+        }) || path_ref
             .as_ref()
             .file_stem()
             .and_then(std::ffi::OsStr::to_str)
@@ -1593,16 +1645,16 @@ pub(crate) fn is_test_source_path(path: crate::types::PathRef<'_>) -> crate::typ
     )
 }
 pub(crate) fn is_non_policy_test_source_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
     crate::types::AnalyzerBool::from(
-        path.as_ref() == std::path::Path::new(constants_str::CODE_STYLE_DOMAIN_FIXTURE_PATH),
+        path_ref.as_ref() == std::path::Path::new(constants_str::CODE_STYLE_DOMAIN_FIXTURE_PATH),
     )
 }
 pub(crate) fn is_direct_fs_owner_source_path(
-    path: crate::types::PathRef<'_>,
+    path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    let path_text = path.as_ref().to_string_lossy();
+    let path_text = path_ref.as_ref().to_string_lossy();
     crate::types::AnalyzerBool::from(
         constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
             .iter()
@@ -1612,16 +1664,16 @@ pub(crate) fn is_direct_fs_owner_source_path(
     )
 }
 pub(crate) fn has_test_only_cfg_attr(
-    i: crate::types::SynItemRef<'_>,
+    syn_item_ref: crate::types::SynItemRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    crate::types::AnalyzerBool::from(item_attrs(i.as_ref()).is_some_and(|attrs| {
+    crate::types::AnalyzerBool::from(item_attrs(syn_item_ref.as_ref()).is_some_and(|attrs| {
         attrs
             .iter()
             .any(|attr| attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr)).get())
     }))
 }
-pub(crate) fn cfg_test_attr_count(i: crate::types::SynItemRef<'_>) -> usize {
-    item_attrs(i.as_ref()).map_or(constants_usize::ZERO, |attrs| {
+pub(crate) fn cfg_test_attr_count(syn_item_ref: crate::types::SynItemRef<'_>) -> usize {
+    item_attrs(syn_item_ref.as_ref()).map_or(constants_usize::ZERO, |attrs| {
         attrs
             .iter()
             .filter(|attr| {
@@ -1633,8 +1685,12 @@ pub(crate) fn cfg_test_attr_count(i: crate::types::SynItemRef<'_>) -> usize {
             .count()
     })
 }
-fn item_attrs(i: &syn::Item) -> Option<&[syn::Attribute]> {
-    Some(match i {
+#[allow(
+    clippy::shadow_reuse,
+    reason = "the parameter follows its type name while match bindings retain concise variant-local names"
+)]
+fn item_attrs(item: &syn::Item) -> Option<&[syn::Attribute]> {
+    Some(match item {
         syn::Item::Const(item) => item.attrs.as_slice(),
         syn::Item::Enum(item) => item.attrs.as_slice(),
         syn::Item::ExternCrate(item) => item.attrs.as_slice(),
@@ -1654,9 +1710,9 @@ fn item_attrs(i: &syn::Item) -> Option<&[syn::Attribute]> {
     })
 }
 pub(crate) fn attr_is_test_only_cfg(
-    attr: crate::types::SynAttributeRef<'_>,
+    syn_attribute_ref: crate::types::SynAttributeRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    let attr_ref = attr.as_ref();
+    let attr_ref = syn_attribute_ref.as_ref();
     if !attr_ref.path().is_ident(constants_str::CFG_ALT) {
         return crate::types::AnalyzerBool::default();
     }
@@ -1702,23 +1758,23 @@ pub(crate) fn workspace_table_from_cargo_toml() -> crate::types::TomlTable {
     }
 }
 pub(crate) fn toml_val_as_table_ref(
-    v: crate::types::TomlValueRef<'_>,
-    uuid: crate::types::StaticStr,
+    toml_value_ref: crate::types::TomlValueRef<'_>,
+    static_str: crate::types::StaticStr,
 ) -> crate::types::TomlTableRef<'_> {
-    match v.get() {
+    match toml_value_ref.get() {
         toml::Value::Table(t) => crate::types::TomlTableRef::from(t),
         toml::Value::String(_)
         | toml::Value::Integer(_)
         | toml::Value::Float(_)
         | toml::Value::Boolean(_)
         | toml::Value::Datetime(_)
-        | toml::Value::Array(_) => std::panic::panic_any(uuid.get().to_owned()),
+        | toml::Value::Array(_) => std::panic::panic_any(static_str.get().to_owned()),
     }
 }
-pub(crate) fn collect_non_workspace_dep_ers(
-    path: crate::types::PathRef<'_>,
-    parsed: crate::types::TomlTableRef<'_>,
-    mut ers: crate::types::DiagnosticMsgsMutRef<'_>,
+pub(crate) fn collect_non_workspace_dep_errors(
+    path_ref: crate::types::PathRef<'_>,
+    toml_table_ref: crate::types::TomlTableRef<'_>,
+    mut diagnostic_messages_mut_ref: crate::types::DiagnosticMessagesMutRef<'_>,
 ) {
     let root_dependency_tables = [
         constants_str::DEPENDENCIES,
@@ -1727,13 +1783,13 @@ pub(crate) fn collect_non_workspace_dep_ers(
     ]
     .into_iter()
     .filter_map(|dep_section| {
-        parsed
+        toml_table_ref
             .as_ref()
             .get(dep_section)
             .and_then(toml::Value::as_table)
             .map(|deps| (dep_section.to_owned(), deps))
     });
-    let target_dependency_tables = parsed
+    let target_dependency_tables = toml_table_ref
         .as_ref()
         .get(constants_str::TARGET)
         .and_then(toml::Value::as_table)
@@ -1766,7 +1822,7 @@ pub(crate) fn collect_non_workspace_dep_ers(
                     })
                 })
         });
-    ers.extend(
+    diagnostic_messages_mut_ref.extend(
         root_dependency_tables
             .chain(target_dependency_tables)
             .flat_map(|(dep_section, deps)| {
@@ -1782,29 +1838,29 @@ pub(crate) fn collect_non_workspace_dep_ers(
                     .map(move |(dep_name, _)| {
                         format!(
                             "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}`",
-                            path.as_ref().display(),
+                            path_ref.as_ref().display(),
                         )
                     })
             }),
     );
 }
 pub(crate) fn workspace_members_as_strs(
-    workspace: crate::types::TomlTableRef<'_>,
-    exp_id: crate::types::StaticStr,
+    toml_table_ref: crate::types::TomlTableRef<'_>,
+    static_str: crate::types::StaticStr,
 ) -> crate::types::SourceTextList {
-    let Some(members) = workspace
+    let Some(members) = toml_table_ref
         .as_ref()
         .get(constants_str::MEMBERS)
         .and_then(toml::Value::as_array)
     else {
-        std::panic::panic_any(exp_id.get().to_owned());
+        std::panic::panic_any(static_str.get().to_owned());
     };
     members
         .iter()
         .map(|member| {
             member
                 .as_str()
-                .unwrap_or_else(|| std::panic::panic_any(exp_id.get().to_owned()))
+                .unwrap_or_else(|| std::panic::panic_any(static_str.get().to_owned()))
                 .to_owned()
         })
         .collect::<Vec<String>>()

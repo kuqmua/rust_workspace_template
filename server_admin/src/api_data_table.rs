@@ -6,11 +6,11 @@
     tag = "admin_tables"
 )]
 pub(crate) async fn api_data_table(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    path: crate::axum_admin_path::AxumAdminPath<
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_path: crate::axum_admin_path::AxumAdminPath<
         server_admin_contract::admin_data_table::AdminDataTable,
     >,
-    query: crate::axum_admin_query::AxumAdminQuery<
+    axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
         server_admin_contract::admin_data_table_query::AdminDataTableQuery,
     >,
 ) -> Result<

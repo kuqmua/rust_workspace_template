@@ -18,7 +18,7 @@ impl HttpErrorDiagnostic {
     #[track_caller]
     #[must_use]
     pub fn capture(
-        telemetry: crate::http_error_telemetry::HttpErrorTelemetry,
+        http_error_telemetry: crate::http_error_telemetry::HttpErrorTelemetry,
         error: &(dyn std::error::Error + 'static),
     ) -> Self {
         let current_span = tracing::Span::current();
@@ -39,7 +39,7 @@ impl HttpErrorDiagnostic {
             span_trace: crate::tracing_http_span_trace::TracingHttpSpanTrace::from(
                 span_trace.into_boxed_str(),
             ),
-            telemetry,
+            telemetry: http_error_telemetry,
         }
     }
 
@@ -51,14 +51,14 @@ impl HttpErrorDiagnostic {
         )]
         struct ErrorChain<'error_lt>(&'error_lt (dyn std::error::Error + 'static));
         impl std::fmt::Display for ErrorChain<'_> {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 let mut is_first = true;
                 let mut current = Some(self.0);
                 while let Some(error) = current {
                     if !is_first {
-                        f.write_str(constants_str::HTTP_ERROR_CHAIN_SEPARATOR)?;
+                        formatter.write_str(constants_str::HTTP_ERROR_CHAIN_SEPARATOR)?;
                     }
-                    std::fmt::Display::fmt(error, f)?;
+                    std::fmt::Display::fmt(error, formatter)?;
                     is_first = false;
                     current = error.source();
                 }
@@ -76,32 +76,32 @@ impl HttpErrorDiagnostic {
 
     #[must_use]
     pub fn from_observed<Source>(
-        error_type: crate::http_error_type::HttpErrorType,
-        error: &server_observability::observed_error::ObservedError<Source>,
+        http_error_type: crate::http_error_type::HttpErrorType,
+        observed_error: &server_observability::observed_error::ObservedError<Source>,
     ) -> Self
     where
         Source: std::error::Error + 'static,
     {
         Self {
             backtrace: crate::std_http_error_backtrace::StdHttpErrorBacktrace::from(
-                error.backtrace().to_string().into_boxed_str(),
+                observed_error.backtrace().to_string().into_boxed_str(),
             ),
-            error_chain: Self::error_chain(error),
-            location: error.location(),
+            error_chain: Self::error_chain(observed_error),
+            location: observed_error.location(),
             span_trace: crate::tracing_http_span_trace::TracingHttpSpanTrace::from(
-                error.span_trace().to_string().into_boxed_str(),
+                observed_error.span_trace().to_string().into_boxed_str(),
             ),
             telemetry: crate::http_error_telemetry::HttpErrorTelemetry::new(
-                error_type,
-                crate::http_error_code::HttpErrorCode::from(error.error_code().get()),
+                http_error_type,
+                crate::http_error_code::HttpErrorCode::from(observed_error.error_code().get()),
             ),
         }
     }
 }
 
 impl From<&HttpErrorDiagnostic> for crate::http_error_telemetry::HttpErrorTelemetry {
-    fn from(value: &HttpErrorDiagnostic) -> Self {
-        value.telemetry
+    fn from(http_error_diagnostic: &HttpErrorDiagnostic) -> Self {
+        http_error_diagnostic.telemetry
     }
 }
 #[cfg(test)]

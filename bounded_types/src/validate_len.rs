@@ -1,5 +1,5 @@
 pub(crate) fn validate_len<const MIN: usize, const MAX: usize>(
-    len: crate::bounded_len::BoundedLen,
+    bounded_len: crate::bounded_len::BoundedLen,
 ) -> Result<(), crate::bounded_value_error::BoundedValueError> {
     if MIN > MAX {
         Err(
@@ -8,14 +8,14 @@ pub(crate) fn validate_len<const MIN: usize, const MAX: usize>(
                 max: crate::bounded_len::BoundedLen::from(MAX),
             },
         )
-    } else if len.get() < MIN {
+    } else if bounded_len.get() < MIN {
         Err(crate::bounded_value_error::BoundedValueError::BelowMin {
-            actual: len,
+            actual: bounded_len,
             min: crate::bounded_len::BoundedLen::from(MIN),
         })
-    } else if len.get() > MAX {
+    } else if bounded_len.get() > MAX {
         Err(crate::bounded_value_error::BoundedValueError::AboveMax {
-            actual: len,
+            actual: bounded_len,
             max: crate::bounded_len::BoundedLen::from(MAX),
         })
     } else {

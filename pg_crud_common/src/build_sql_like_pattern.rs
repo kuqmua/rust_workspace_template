@@ -1,16 +1,16 @@
 pub fn build_sql_like_pattern(
-    input: crate::sql_like_input_ref::SqlLikeInputRef<'_>,
-    match_mode: crate::sql_like_match_mode::SqlLikeMatchMode,
+    sql_like_input_ref: crate::sql_like_input_ref::SqlLikeInputRef<'_>,
+    sql_like_match_mode: crate::sql_like_match_mode::SqlLikeMatchMode,
 ) -> Result<
     crate::sql_like_pattern::SqlLikePattern,
     crate::sql_like_pattern_error::SqlLikePatternError,
 > {
-    let wildcard_count = match match_mode {
+    let wildcard_count = match sql_like_match_mode {
         crate::sql_like_match_mode::SqlLikeMatchMode::Contains => 2usize,
         crate::sql_like_match_mode::SqlLikeMatchMode::EndsWith
         | crate::sql_like_match_mode::SqlLikeMatchMode::StartsWith => constants_usize::ONE,
     };
-    let input_value = input.get();
+    let input_value = sql_like_input_ref.get();
     let reserved_count = input_value
         .bytes()
         .filter(|byte| matches!(byte, b'\\' | b'%' | b'_'))
@@ -22,7 +22,7 @@ pub fn build_sql_like_pattern(
             .saturating_add(wildcard_count),
     );
     if matches!(
-        match_mode,
+        sql_like_match_mode,
         crate::sql_like_match_mode::SqlLikeMatchMode::Contains
             | crate::sql_like_match_mode::SqlLikeMatchMode::EndsWith
     ) {
@@ -35,7 +35,7 @@ pub fn build_sql_like_pattern(
         output.push(character);
     });
     if matches!(
-        match_mode,
+        sql_like_match_mode,
         crate::sql_like_match_mode::SqlLikeMatchMode::Contains
             | crate::sql_like_match_mode::SqlLikeMatchMode::StartsWith
     ) {

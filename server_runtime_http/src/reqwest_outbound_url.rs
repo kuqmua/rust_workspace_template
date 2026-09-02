@@ -20,8 +20,9 @@ impl ReqwestOutboundUrl {
 }
 
 impl std::fmt::Debug for ReqwestOutboundUrl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(constants_str::OUTBOUND_URL)
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_tuple(constants_str::OUTBOUND_URL)
             .field(&crate::redact_url_userinfo::redact_url_userinfo(
                 self.0.as_str().into(),
             ))

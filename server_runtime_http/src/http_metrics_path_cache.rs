@@ -9,14 +9,14 @@ impl HttpMetricsPathCache {
     // The owner module retains lint-sensitive semantics from the original implementation.
     pub(super) fn label(
         &self,
-        path: crate::http_metrics_path_text_ref::HttpMetricsPathTextRef<'_>,
+        http_metrics_path_text_ref: crate::http_metrics_path_text_ref::HttpMetricsPathTextRef<'_>,
     ) -> crate::metrics_shared_string::MetricsSharedString {
         {
             let read_entries = self
                 .entries
                 .read()
                 .unwrap_or_else(std::sync::PoisonError::into_inner);
-            if let Some(label) = read_entries.get(*path) {
+            if let Some(label) = read_entries.get(*http_metrics_path_text_ref) {
                 return label.clone();
             }
             if read_entries.len() >= self.maximum.get() {
@@ -27,15 +27,15 @@ impl HttpMetricsPathCache {
             .entries
             .write()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        if let Some(label) = write_entries.get(*path) {
+        if let Some(label) = write_entries.get(*http_metrics_path_text_ref) {
             return label.clone();
         }
         if write_entries.len() >= self.maximum.get() {
             return self.unmatched.clone();
         }
-        let Ok(path_text) =
-            crate::http_metrics_path_text::HttpMetricsPathText::try_from((*path).to_owned())
-        else {
+        let Ok(path_text) = crate::http_metrics_path_text::HttpMetricsPathText::try_from(
+            (*http_metrics_path_text_ref).to_owned(),
+        ) else {
             return self.unmatched.clone();
         };
         let label = crate::metrics_shared_string::MetricsSharedString::from(
@@ -49,14 +49,18 @@ impl HttpMetricsPathCache {
 impl From<crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum>
     for HttpMetricsPathCache
 {
-    fn from(value: crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum) -> Self {
+    fn from(
+        http_metrics_path_cache_maximum: crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum,
+    ) -> Self {
         Self {
             entries: crate::http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock::from(
                 std::sync::RwLock::new(std::collections::HashMap::with_capacity(
-                    value.get().min(constants_usize::VALUE_4_096),
+                    http_metrics_path_cache_maximum
+                        .get()
+                        .min(constants_usize::VALUE_4_096),
                 )),
             ),
-            maximum: value,
+            maximum: http_metrics_path_cache_maximum,
             unmatched: crate::metrics_shared_string::MetricsSharedString::from(
                 metrics::SharedString::const_str(constants_str::HTTP_METRICS_UNMATCHED_PATH),
             ),

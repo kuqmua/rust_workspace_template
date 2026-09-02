@@ -22,14 +22,14 @@ pub struct RouteMetadata {
 impl RouteMetadata {
     #[must_use]
     pub const fn new(
-        method: crate::route_method::RouteMethod,
+        route_method: crate::route_method::RouteMethod,
         openapi_operation_id: crate::contract_str::ContractStr,
         path: crate::contract_str::ContractStr,
     ) -> Self {
         Self::new_with_policy(
             crate::authentication_requirement::AuthenticationRequirement::Public,
             &[],
-            method,
+            route_method,
             crate::route_mutation::RouteMutation::ReadOnly,
             openapi_operation_id,
             path,
@@ -38,21 +38,21 @@ impl RouteMetadata {
     }
     #[must_use]
     pub const fn new_with_policy(
-        authentication: crate::authentication_requirement::AuthenticationRequirement,
+        authentication_requirement: crate::authentication_requirement::AuthenticationRequirement,
         error_statuses: &'static [crate::route_error_status::RouteErrorStatus],
-        method: crate::route_method::RouteMethod,
-        mutation: crate::route_mutation::RouteMutation,
+        route_method: crate::route_method::RouteMethod,
+        route_mutation: crate::route_mutation::RouteMutation,
         openapi_operation_id: crate::contract_str::ContractStr,
         path: crate::contract_str::ContractStr,
         success_status: crate::success_status::SuccessStatus,
     ) -> Self {
         Self {
-            authentication,
+            authentication: authentication_requirement,
             error_statuses,
             openapi_operation_id,
             path,
-            method,
-            mutation,
+            method: route_method,
+            mutation: route_mutation,
             success_status,
         }
     }

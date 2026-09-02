@@ -38,7 +38,7 @@ fn test_memusage_parsers_distinguish_values_and_missing_fields() {
         crate::memusage_table_value::memusage_table_value(
             &text,
             crate::memusage_row_name::MemusageRowName::from(constants_str::VALUE_E3C52EBF),
-            crate::memusage_column_idx::MemusageColumnIdx::from(constants_usize::ONE)
+            crate::memory_usage_column_index::MemoryUsageColumnIndex::from(constants_usize::ONE)
         )
         .get(),
         constants_str::VALUE_CD70BEA0
@@ -47,7 +47,7 @@ fn test_memusage_parsers_distinguish_values_and_missing_fields() {
         crate::memusage_table_value::memusage_table_value(
             &text,
             crate::memusage_row_name::MemusageRowName::from(constants_str::VALUE_30EBF387),
-            crate::memusage_column_idx::MemusageColumnIdx::from(constants_usize::ZERO)
+            crate::memory_usage_column_index::MemoryUsageColumnIndex::from(constants_usize::ZERO)
         )
         .get(),
         constants_str::UNAVAILABLE
@@ -56,7 +56,7 @@ fn test_memusage_parsers_distinguish_values_and_missing_fields() {
         crate::memusage_table_value::memusage_table_value(
             &text,
             crate::memusage_row_name::MemusageRowName::from(constants_str::VALUE_AD95D5FA),
-            crate::memusage_column_idx::MemusageColumnIdx::from(9usize)
+            crate::memory_usage_column_index::MemoryUsageColumnIndex::from(9usize)
         )
         .get(),
         constants_str::UNAVAILABLE

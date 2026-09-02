@@ -20,8 +20,8 @@ impl secrecy::zeroize::Zeroize for StdAdminString {
     }
 }
 impl From<crate::admin_resource_text::AdminResourceText> for StdAdminString {
-    fn from(value: crate::admin_resource_text::AdminResourceText) -> Self {
-        let text = match value {
+    fn from(admin_resource_text: crate::admin_resource_text::AdminResourceText) -> Self {
+        let text = match admin_resource_text {
             crate::admin_resource_text::AdminResourceText::PositiveI64(positive_i64) => {
                 positive_i64.get().to_string()
             }
@@ -36,16 +36,18 @@ impl From<crate::admin_resource_text::AdminResourceText> for StdAdminString {
 impl StdAdminString {
     #[must_use]
     pub fn from_positive_i64(
-        value: server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,
+        positive_non_zero_i64: server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,
     ) -> Self {
         Self::from(crate::admin_resource_text::AdminResourceText::PositiveI64(
-            value,
+            positive_non_zero_i64,
         ))
     }
 
     #[must_use]
-    pub fn from_uuid(value: crate::uuid_admin_value::UuidAdminValue) -> Self {
-        Self::from(crate::admin_resource_text::AdminResourceText::Uuid(value))
+    pub fn from_uuid(uuid_admin_value: crate::uuid_admin_value::UuidAdminValue) -> Self {
+        Self::from(crate::admin_resource_text::AdminResourceText::Uuid(
+            uuid_admin_value,
+        ))
     }
 
     #[must_use]

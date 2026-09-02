@@ -1,18 +1,17 @@
 #[must_use]
 pub fn find_macro_attribute<'lt, A, S>(
-    attrs: A,
-    attr_path: S,
+    a: A,
+    s: S,
 ) -> Option<crate::syn_macro_attr_ref::SynMacroAttrRef<'lt>>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
-    attrs
-        .into_iter()
+    a.into_iter()
         .map(crate::syn_macro_attr_ref::SynMacroAttrRef::from)
         .find(|attr| {
             let mut attr_segments = attr.attr().path().segments.iter();
-            let mut expected_segments = attr_path
+            let mut expected_segments = s
                 .as_ref()
                 .split(constants_str::PATH_SEPARATOR)
                 .map(str::trim)

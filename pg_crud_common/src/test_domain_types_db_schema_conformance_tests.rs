@@ -1,5 +1,5 @@
 fn catalog_snapshot(
-    kind: crate::db_object_kind::DbObjectKind,
+    db_object_kind: crate::db_object_kind::DbObjectKind,
 ) -> crate::db_catalog_snapshot::DbCatalogSnapshot {
     crate::db_catalog_snapshot::DbCatalogSnapshot::new(
         vec![crate::db_object_snapshot::DbObjectSnapshot::new(
@@ -7,7 +7,7 @@ fn catalog_snapshot(
                 constants_str::TEST_DB_OBJECT_NAME,
             ))
             .expect(constants_str::VALUE_E84FED1B),
-            kind,
+            db_object_kind,
             crate::db_schema_text::DbSchemaText::try_from(String::from(
                 constants_str::TEST_DB_OBJECT_DEFINITION,
             ))
@@ -17,7 +17,7 @@ fn catalog_snapshot(
     )
 }
 
-fn snapshot(nullable: bool) -> crate::db_table_snapshot::DbTableSnapshot {
+fn snapshot(bool: bool) -> crate::db_table_snapshot::DbTableSnapshot {
     crate::db_table_snapshot::DbTableSnapshot::new(
         vec![crate::db_column_snapshot::DbColumnSnapshot::new(
             crate::db_schema_text::DbSchemaText::try_from(String::from(
@@ -28,7 +28,7 @@ fn snapshot(nullable: bool) -> crate::db_table_snapshot::DbTableSnapshot {
                 constants_str::TEST_DB_DATA_TYPE_UUID,
             ))
             .expect(constants_str::VALUE_9CB64C93),
-            nullable.into(),
+            bool.into(),
             None,
         )]
         .into(),

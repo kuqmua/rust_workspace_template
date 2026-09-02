@@ -8,17 +8,17 @@ pub struct AdminPasswordHasher {
 impl AdminPasswordHasher {
     #[must_use]
     pub fn new(
-        max_concurrent_hashes: crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency,
+        runtime_admin_password_hash_concurrency: crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency,
     ) -> Self {
         Self {
             semaphore: crate::admin_shared_semaphore_arc::AdminSharedSemaphoreArc::new(
-                max_concurrent_hashes,
+                runtime_admin_password_hash_concurrency,
             ),
         }
     }
     pub async fn hash(
         &self,
-        password: crate::runtime_admin_password::RuntimeAdminPassword,
+        runtime_admin_password: crate::runtime_admin_password::RuntimeAdminPassword,
     ) -> Result<
         crate::admin_password_hash::AdminPasswordHash,
         crate::admin_password_hash_error::AdminPasswordHashError,
@@ -26,7 +26,7 @@ impl AdminPasswordHasher {
         let permit = self.acquire().await?;
         tokio::task::spawn_blocking(move || {
             let result = {
-                let password_secret = password.into_inner();
+                let password_secret = runtime_admin_password.into_inner();
                 argon2::PasswordHasher::hash_password(
                     &argon2::Argon2::default(),
                     secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
@@ -58,8 +58,8 @@ impl AdminPasswordHasher {
     }
     pub async fn verify(
         &self,
-        password: crate::runtime_admin_password::RuntimeAdminPassword,
-        expected_hash: crate::admin_password_hash::AdminPasswordHash,
+        runtime_admin_password: crate::runtime_admin_password::RuntimeAdminPassword,
+        admin_password_hash: crate::admin_password_hash::AdminPasswordHash,
     ) -> Result<
         server_admin_core::std_admin_bool::StdAdminBool,
         crate::admin_password_hash_error::AdminPasswordHashError,
@@ -67,8 +67,8 @@ impl AdminPasswordHasher {
         let permit = self.acquire().await?;
         tokio::task::spawn_blocking(move || {
             let result = {
-                let password_secret = password.into_inner();
-                let expected_hash_text = expected_hash.expose();
+                let password_secret = runtime_admin_password.into_inner();
+                let expected_hash_text = admin_password_hash.expose();
                 let parsed_hash =
                     argon2::PasswordHash::new(expected_hash_text.as_ref()).map_err(|error| {
                         crate::admin_password_hash_error::AdminPasswordHashError::PasswordHash(

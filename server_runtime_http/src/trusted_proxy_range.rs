@@ -8,8 +8,8 @@ pub struct TrustedProxyRange {
 impl TryFrom<String> for TrustedProxyRange {
     type Error = crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let Some((address_text, prefix_text)) = value.split_once('/') else {
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        let Some((address_text, prefix_text)) = string.split_once('/') else {
             return Err(
                 crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::MissingPrefix,
             );
@@ -36,10 +36,10 @@ impl TryFrom<String> for TrustedProxyRange {
 impl TrustedProxyRange {
     pub(super) fn contains(
         self,
-        candidate_ip: crate::parsed_ip_addr::ParsedIpAddr,
+        parsed_ip_addr: crate::parsed_ip_addr::ParsedIpAddr,
     ) -> crate::std_range_contains::StdRangeContains {
         crate::std_range_contains::StdRangeContains::from(
-            self.network.get().contains(&candidate_ip.get()),
+            self.network.get().contains(&parsed_ip_addr.get()),
         )
     }
 }

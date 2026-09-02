@@ -14,8 +14,8 @@ impl TryFrom<std::time::Duration> for RunIntervalDuration {
     type Error =
         crate::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError;
 
-    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
-        (!value.is_zero()).then_some(Self(value)).ok_or(
+    fn try_from(duration: std::time::Duration) -> Result<Self, Self::Error> {
+        (!duration.is_zero()).then_some(Self(duration)).ok_or(
             crate::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError::Zero,
         )
     }

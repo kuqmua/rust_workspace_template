@@ -1,8 +1,8 @@
 #[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
 pub(super) fn failed_test_names(
-    log_text: crate::text_ref::TextRef<'_>,
+    text_ref: crate::text_ref::TextRef<'_>,
 ) -> crate::command_texts::CommandTexts {
-    let mut names = log_text
+    let mut names = text_ref
         .as_ref()
         .lines()
         .filter_map(|line| {

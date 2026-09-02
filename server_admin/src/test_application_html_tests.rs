@@ -10,7 +10,7 @@ async fn test_html_form_auth_rejects_cookie_without_trusted_origin() {
         .expect(constants_str::DIAGNOSTIC_1C2A7F54);
     let state = crate::application_tests_helper::auth_state(pool, constants_str::HTTP_LOCALHOST)
         .expect(constants_str::DIAGNOSTIC_ADF9C06E);
-    let request = crate::admin_auth_req::AdminAuthReq::new(
+    let request = crate::admin_auth_request::AdminAuthRequest::new(
         crate::http_admin_header_map::HttpAdminHeaderMap::from(headers),
         crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
             std::sync::Arc::new(state),
@@ -116,9 +116,9 @@ async fn test_role_assignment_form_accepts_dynamic_checkbox_fields() {
 fn test_selected_form_fields_reject_oversized_maps() {
     let values = (constants_usize::ZERO
         ..=crate::admin_html_form_selected_max_items::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
-        .map(|idx| {
+        .map(|index| {
             (
-                crate::admin_html_form_key::AdminHtmlFormKey::try_from(idx.to_string())
+                crate::admin_html_form_key::AdminHtmlFormKey::try_from(index.to_string())
                     .expect(constants_str::DIAGNOSTIC_763B9EC0),
                 crate::admin_html_form_text::AdminHtmlFormText::try_from(String::new())
                     .expect(constants_str::DIAGNOSTIC_EF54739A),

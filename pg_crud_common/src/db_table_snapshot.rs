@@ -7,11 +7,14 @@ pub struct DbTableSnapshot {
 impl DbTableSnapshot {
     #[must_use]
     pub fn new(
-        mut columns: crate::db_column_snapshots::DbColumnSnapshots,
-        mut objects: crate::db_object_snapshots::DbObjectSnapshots,
+        mut db_column_snapshots: crate::db_column_snapshots::DbColumnSnapshots,
+        mut db_object_snapshots: crate::db_object_snapshots::DbObjectSnapshots,
     ) -> Self {
-        columns.sort();
-        objects.sort();
-        Self { columns, objects }
+        db_column_snapshots.sort();
+        db_object_snapshots.sort();
+        Self {
+            columns: db_column_snapshots,
+            objects: db_object_snapshots,
+        }
     }
 }

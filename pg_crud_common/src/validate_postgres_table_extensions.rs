@@ -1,6 +1,6 @@
 pub async fn validate_postgres_table_extensions<Table>(
-    pool: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
-    schema: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
+    sqlx_pg_catalog_pool_ref: crate::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef<'_>,
+    db_schema_name_ref: crate::db_schema_name_ref::DbSchemaNameRef<'_>,
 ) -> Result<(), crate::db_schema_conformance_error::DbSchemaConformanceError>
 where
     Table: crate::db_extended_table_schema::DbExtendedTableSchema,
@@ -17,9 +17,9 @@ where
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
         )?;
     let default_rows = sqlx::query(constants_str::DB_SCHEMA_EXACT_DEFAULT_QUERY)
-        .bind(*schema.get_inner())
+        .bind(*db_schema_name_ref.get_inner())
         .bind(*Table::schema_table_text().get_inner())
-        .fetch_all(*pool.get_inner())
+        .fetch_all(*sqlx_pg_catalog_pool_ref.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
@@ -59,7 +59,7 @@ where
         );
     }
     let public_schema_qualifier = format!("{}.", constants_str::PUBLIC);
-    let observed_schema_qualifier = format!("{}.", *schema.get_inner());
+    let observed_schema_qualifier = format!("{}.", *db_schema_name_ref.get_inner());
     let mut expected_objects = Table::checks_and_indexes()
         .iter()
         .map(|spec| {
@@ -75,9 +75,9 @@ where
         .collect::<Result<Vec<_>, crate::db_schema_conformance_error::DbSchemaConformanceError>>(
         )?;
     let rows = sqlx::query(constants_str::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
-        .bind(*schema.get_inner())
+        .bind(*db_schema_name_ref.get_inner())
         .bind(*Table::schema_table_text().get_inner())
-        .fetch_all(*pool.get_inner())
+        .fetch_all(*sqlx_pg_catalog_pool_ref.get_inner())
         .await
         .map_err(|error| {
             crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(

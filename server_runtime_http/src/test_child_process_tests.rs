@@ -1,3 +1,8 @@
+#![allow(
+    unused_variables,
+    reason = "test I/O trait fixtures preserve repository type-based parameter names"
+)]
+
 #[cfg(test)]
 mod tests {
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
@@ -5,8 +10,8 @@ mod tests {
     impl tokio::io::AsyncRead for ErrorReader {
         fn poll_read(
             self: std::pin::Pin<&mut Self>,
-            _context: &mut std::task::Context<'_>,
-            _buffer: &mut tokio::io::ReadBuf<'_>,
+            context: &mut std::task::Context<'_>,
+            read_buf: &mut tokio::io::ReadBuf<'_>,
         ) -> std::task::Poll<std::io::Result<()>> {
             std::task::Poll::Ready(Err(std::io::Error::other(constants_str::VALUE_0DEDD057)))
         }

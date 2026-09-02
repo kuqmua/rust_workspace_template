@@ -1,13 +1,13 @@
 const PASSWORD_FILE_MAX_BYTES: usize = 1_024usize;
 
 pub(crate) fn password_from_file(
-    password_file: &crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf,
+    administrator_password_file_path_buf: &crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf,
 ) -> Result<
     server_admin_contract::admin_new_password::AdminNewPassword,
     crate::administrator_account_command_error::AdministratorAccountCommandError,
 > {
     let bytes = server_runtime_http::read_bounded_file::read_bounded_file(
-        password_file.as_path_ref(),
+        administrator_password_file_path_buf.as_path_ref(),
         server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
             PASSWORD_FILE_MAX_BYTES,
         ),

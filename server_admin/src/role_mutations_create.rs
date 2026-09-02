@@ -1,19 +1,19 @@
 pub(crate) async fn role_mutations_create(
-    auth: crate::admin_auth_req::AdminAuthReq,
-    request: crate::axum_admin_json::AxumAdminJson<
-        server_admin_contract::admin_create_role_req::AdminCreateRoleReq,
+    admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
+    axum_admin_json: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_create_role_request::AdminCreateRoleRequest,
     >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
-        &auth,
+        &admin_auth_request,
         server_admin_contract::admin_permission::AdminPermission::RolesCreate,
     )
     .await?;
     let name = server_admin_contract::admin_role_name::AdminRoleName::try_from(
-        request.into_inner().into_name().into_inner(),
+        axum_admin_json.into_inner().into_name().into_inner(),
     )
     .map_err(|_error| crate::admin_error::AdminError::Validation)?;
-    let mut tx = auth
+    let mut tx = admin_auth_request
         .get_state()
         .as_ref()
         .get_pool()
@@ -51,7 +51,7 @@ pub(crate) async fn role_mutations_create(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(
-                server_admin_contract::admin_create_role_res::AdminCreateRoleRes::new(
+                server_admin_contract::admin_create_role_response::AdminCreateRoleResponse::new(
                     server_admin_contract::admin_role_id::AdminRoleId::from(role_id.value()),
                 ),
             ),

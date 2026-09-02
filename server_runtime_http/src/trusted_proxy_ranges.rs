@@ -13,9 +13,9 @@ impl TryFrom<Vec<crate::trusted_proxy_range::TrustedProxyRange>> for TrustedProx
     type Error = crate::trusted_proxy_ranges_error::TrustedProxyRangesError;
 
     fn try_from(
-        value: Vec<crate::trusted_proxy_range::TrustedProxyRange>,
+        vec: Vec<crate::trusted_proxy_range::TrustedProxyRange>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(value)
+        bounded_types::bounded_vec::BoundedVec::try_from(vec)
             .map(Self)
             .map_err(crate::trusted_proxy_ranges_error::TrustedProxyRangesError::from)
     }
@@ -24,10 +24,12 @@ impl TryFrom<Vec<crate::trusted_proxy_range::TrustedProxyRange>> for TrustedProx
 impl TrustedProxyRanges {
     pub(super) fn contains(
         &self,
-        candidate: crate::parsed_ip_addr::ParsedIpAddr,
+        parsed_ip_addr: crate::parsed_ip_addr::ParsedIpAddr,
     ) -> crate::std_range_contains::StdRangeContains {
         crate::std_range_contains::StdRangeContains::from(
-            self.0.iter().any(|range| range.contains(candidate).get()),
+            self.0
+                .iter()
+                .any(|range| range.contains(parsed_ip_addr).get()),
         )
     }
 }

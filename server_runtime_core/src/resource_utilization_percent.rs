@@ -22,9 +22,9 @@ impl From<crate::resource_utilization_known_percent::ResourceUtilizationKnownPer
     for ResourceUtilizationPercent
 {
     fn from(
-        value: crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent,
+        resource_utilization_known_percent: crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent,
     ) -> Self {
-        match value {
+        match resource_utilization_known_percent {
             crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent::Max => {
                 Self(100u8)
             }

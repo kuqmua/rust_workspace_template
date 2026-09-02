@@ -9,17 +9,21 @@ use leptos::prelude::{
 };
 
 #[must_use]
+#[allow(
+    unused_variables,
+    reason = "the CSR render contract preserves repository type-based parameter names"
+)]
 pub fn render_admin_csr(
-    page: server_admin_contract::admin_page::AdminPage,
-    _active_table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
-    _admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-    branding: &server_admin_contract::admin_branding_view::AdminBrandingView,
+    admin_page: server_admin_contract::admin_page::AdminPage,
+    option: Option<server_admin_contract::admin_data_table::AdminDataTable>,
+    authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+    admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
-    let title = branding.tab_title().map_or_else(
-        || page.spec().title().as_ref().to_owned(),
+    let title = admin_branding_view.tab_title().map_or_else(
+        || admin_page.spec().title().as_ref().to_owned(),
         |value| value.as_ref().to_owned(),
     );
-    let primary_color = branding
+    let primary_color = admin_branding_view
         .primary_color()
         .map(|value| format!("--accent:{}", value.as_ref()));
     crate::render_document::render_document(

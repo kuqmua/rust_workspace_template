@@ -7,7 +7,7 @@
 fn test_crate_names_follow_workspace_vocabulary() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::types::StaticStr::from(constants_str::VALUE_4CE7AB5C),
-        |path, parsed, ers| {
+        |path, parsed, errors| {
             let Some(name) = parsed
                 .get(constants_str::PACKAGE)
                 .and_then(|package| package.get(constants_str::NAME))
@@ -31,7 +31,7 @@ fn test_crate_names_follow_workspace_vocabulary() {
                 })
                 || name.contains(constants_str::VALUE_2C90A5F7);
             if !valid_chars || has_nonstandard_word {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: crate `{name}` must use snake_case workspace vocabulary (`dev`, `env`, `pg`, `accessor`, `macro_helpers`)",
                     path.display()
                 ));
@@ -85,7 +85,7 @@ fn test_proc_macro_crate_names_use_macro_prefix_and_matching_directory() {
 fn test_all_crates_have_publish_false() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::types::StaticStr::from(constants_str::F2A8C5D3),
-        |path, parsed, ers| {
+        |path, parsed, errors| {
             let publish = parsed
                 .get(constants_str::PACKAGE)
                 .and_then(|v_1c7b4e9d| v_1c7b4e9d.get(constants_str::PUBLISH));
@@ -94,7 +94,7 @@ fn test_all_crates_have_publish_false() {
                 .and_then(|table| table.get(constants_str::WORKSPACE))
                 == Some(&toml::Value::Boolean(true));
             if !inherits_workspace {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: missing `publish.workspace = true`",
                     path.display()
                 ));
@@ -106,20 +106,20 @@ fn test_all_crates_have_publish_false() {
 fn test_all_crates_have_workspace_lints() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::types::StaticStr::from(constants_str::D5F1A4E7),
-        |path, parsed, ers| match parsed
+        |path, parsed, errors| match parsed
             .get(constants_str::LINTS)
             .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
         {
             Some(lints_table) => {
                 if lints_table.get(constants_str::WORKSPACE) != Some(&toml::Value::Boolean(true)) {
-                    ers.push(format!(
+                    errors.push(format!(
                         "{}: [lints] missing `workspace = true`",
                         path.display()
                     ));
                 }
             }
             None => {
-                ers.push(format!("{}: missing [lints] section", path.display()));
+                errors.push(format!("{}: missing [lints] section", path.display()));
             }
         },
     );
@@ -207,7 +207,7 @@ fn test_variable_lifetime_safety_lints_remain_denied() {
 fn test_all_crates_use_edition_2024() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::types::StaticStr::from(constants_str::A3D7F1C8),
-        |path, parsed, ers| {
+        |path, parsed, errors| {
             let edition = parsed
                 .get(constants_str::PACKAGE)
                 .and_then(|v_6d9f2a3e| v_6d9f2a3e.get(constants_str::EDITION));
@@ -216,7 +216,7 @@ fn test_all_crates_use_edition_2024() {
                 .and_then(|table| table.get(constants_str::WORKSPACE))
                 == Some(&toml::Value::Boolean(true));
             if !inherits_workspace {
-                ers.push(format!(
+                errors.push(format!(
                     "{}: missing `edition.workspace = true`",
                     path.display()
                 ));
@@ -228,7 +228,7 @@ fn test_all_crates_use_edition_2024() {
 fn test_all_crates_inherit_shared_package_metadata() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::types::StaticStr::from(constants_str::VALUE_EF65E2D1),
-        |path, parsed, ers| {
+        |path, parsed, errors| {
             [
                 constants_str::VERSION_ALT_3,
                 constants_str::PUBLISH,
@@ -245,7 +245,7 @@ fn test_all_crates_inherit_shared_package_metadata() {
                     .and_then(|table| table.get(constants_str::WORKSPACE))
                     == Some(&toml::Value::Boolean(true));
                 if !inherits_workspace {
-                    ers.push(format!(
+                    errors.push(format!(
                         "{}: `{field}` must inherit from `[workspace.package]`",
                         path.display()
                     ));
@@ -731,20 +731,20 @@ fn test_env_and_env_example_have_same_keys() {
     let example_keys_set = crate::code_style::str_set(crate::types::SourceTextListRef::from(
         example_keys.as_slice(),
     ));
-    let mut ers = crate::code_style::collect_missing_key_ers(
+    let mut errors = crate::code_style::collect_missing_key_errors(
         crate::types::SourceTextListRef::from(env_keys.as_slice()),
         crate::types::SourceTextRefHashSet::from(example_keys_set.as_ref()),
         crate::types::StaticStr::from(constants_str::ENV),
         crate::types::StaticStr::from(constants_str::ENV_EXAMPLE),
     );
-    ers.extend(crate::code_style::collect_missing_key_ers(
+    errors.extend(crate::code_style::collect_missing_key_errors(
         crate::types::SourceTextListRef::from(example_keys.as_slice()),
         crate::types::SourceTextRefHashSet::from(env_keys_set.as_ref()),
         crate::types::StaticStr::from(constants_str::ENV_EXAMPLE),
         crate::types::StaticStr::from(constants_str::ENV),
     ));
-    crate::code_style::assert_joined_ers_empty_sorted(
-        crate::types::DiagnosticMsgsMutRef::from(&mut ers),
+    crate::code_style::assert_joined_errors_empty_sorted(
+        crate::types::DiagnosticMessagesMutRef::from(&mut errors),
         crate::types::StaticStr::from(constants_str::C8D2F1A3),
     );
 }
@@ -761,13 +761,13 @@ fn test_server_has_one_tracked_environment_example() {
 }
 #[test]
 fn test_workspace_crates_must_use_workspace_dependencies() {
-    crate::code_style::assert_cargo_toml_ers_empty(
+    crate::code_style::assert_cargo_toml_errors_empty(
         crate::types::StaticStr::from(constants_str::VALUE_5F8A6D17),
-        |path, parsed, ers| {
-            crate::code_style::collect_non_workspace_dep_ers(
+        |path, parsed, errors| {
+            crate::code_style::collect_non_workspace_dep_errors(
                 crate::types::PathRef::from(path),
                 crate::types::TomlTableRef::from(parsed),
-                crate::types::DiagnosticMsgsMutRef::from(ers),
+                crate::types::DiagnosticMessagesMutRef::from(errors),
             );
         },
     );
@@ -777,13 +777,13 @@ fn test_target_specific_dependencies_must_use_workspace_dependencies() {
     let invalid_manifest = constants_str::VALUE_DB030A59
         .parse::<toml::Table>()
         .expect(constants_str::DIAGNOSTIC_B49E27C1);
-    let mut invalid_ers = Vec::new();
-    crate::code_style::collect_non_workspace_dep_ers(
+    let mut invalid_errors = Vec::new();
+    crate::code_style::collect_non_workspace_dep_errors(
         crate::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
         crate::types::TomlTableRef::from(&invalid_manifest),
-        crate::types::DiagnosticMsgsMutRef::from(&mut invalid_ers),
+        crate::types::DiagnosticMessagesMutRef::from(&mut invalid_errors),
     );
-    assert_eq!(invalid_ers.len(), 3usize);
+    assert_eq!(invalid_errors.len(), 3usize);
     [
         constants_str::VALUE_33C3D866,
         constants_str::VALUE_6B80EB5B,
@@ -792,7 +792,7 @@ fn test_target_specific_dependencies_must_use_workspace_dependencies() {
     .into_iter()
     .for_each(|section| {
         assert!(
-            invalid_ers
+            invalid_errors
                 .iter()
                 .any(|error| error.contains(format!("[{section}]").as_str())),
             "d2a74c90"
@@ -802,24 +802,24 @@ fn test_target_specific_dependencies_must_use_workspace_dependencies() {
     let valid_manifest = constants_str::VALUE_98F81CDD
         .parse::<toml::Table>()
         .expect(constants_str::DIAGNOSTIC_8F1C3A6D);
-    let mut valid_ers = Vec::new();
-    crate::code_style::collect_non_workspace_dep_ers(
+    let mut valid_errors = Vec::new();
+    crate::code_style::collect_non_workspace_dep_errors(
         crate::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
         crate::types::TomlTableRef::from(&valid_manifest),
-        crate::types::DiagnosticMsgsMutRef::from(&mut valid_ers),
+        crate::types::DiagnosticMessagesMutRef::from(&mut valid_errors),
     );
-    assert!(valid_ers.is_empty());
+    assert!(valid_errors.is_empty());
 }
 #[test]
 fn test_workspace_dependencies_use_inline_table_style() {
     let regex =
         regex::Regex::new(constants_str::QUESTION_M_S_ASTERISK_A_ZA_Z0_9_PLUS_WORKSPACE_S_ASTERISK)
             .expect(constants_str::DIAGNOSTIC_AC15D6B9);
-    let mut ers = Vec::new();
+    let mut errors = Vec::new();
     crate::code_style::for_each_crate_manifest_file(|path| {
         let v = crate::code_style::cargo_toml_content(crate::types::PathRef::from(path))
             .expect(constants_str::DIAGNOSTIC_762C1D9E);
-        ers.extend(regex.find_iter(v.as_ref()).filter_map(|mtch| {
+        errors.extend(regex.find_iter(v.as_ref()).filter_map(|mtch| {
             let field = mtch
                 .as_str()
                 .split_once('.')
@@ -850,8 +850,8 @@ fn test_workspace_dependencies_use_inline_table_style() {
                 ))
             }));
     });
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::D7A3C5B1),
         crate::types::SourceTextRef::from(constants_str::DOTTED_WORKSPACE_DEPENDENCY_STYLE_FOUND),
     );
@@ -863,7 +863,7 @@ fn test_workspace_members_exist_on_disk() {
         crate::types::TomlTableRef::from(workspace.as_ref()),
         crate::types::StaticStr::from(constants_str::VALUE_7F3A1C4E),
     );
-    let mut ers = crate::types::SourceTextList::from(
+    let mut errors = crate::types::SourceTextList::from(
         members
             .as_slice()
             .iter()
@@ -880,8 +880,8 @@ fn test_workspace_members_exist_on_disk() {
             })
             .collect::<Vec<String>>(),
     );
-    crate::code_style::assert_joined_ers_empty_sorted(
-        crate::types::DiagnosticMsgsMutRef::from(&mut ers),
+    crate::code_style::assert_joined_errors_empty_sorted(
+        crate::types::DiagnosticMessagesMutRef::from(&mut errors),
         crate::types::StaticStr::from(constants_str::A4E3B8D1),
     );
 }
@@ -986,7 +986,7 @@ fn test_workspace_members_sorted_alphabetically() {
     );
     let mut sorted = members_vec.clone();
     sorted.sort();
-    let ers = members_vec
+    let errors = members_vec
         .iter()
         .zip(sorted.iter())
         .enumerate()
@@ -995,8 +995,8 @@ fn test_workspace_members_sorted_alphabetically() {
             format!("index {k_4b1e6a8c}: got `{got}`, expected `{expected}`")
         })
         .collect::<Vec<String>>();
-    crate::code_style::assert_joined_ers_empty_with_ctx(
-        crate::types::SourceTextListRef::from(ers.as_slice()),
+    crate::code_style::assert_joined_errors_empty_with_context(
+        crate::types::SourceTextListRef::from(errors.as_slice()),
         crate::types::StaticStr::from(constants_str::B7C2E5F8),
         crate::types::SourceTextRef::from(constants_str::MEMBERS_NOT_SORTED),
     );

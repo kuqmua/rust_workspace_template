@@ -8,7 +8,7 @@ pub fn generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(
     type_token_stream: &dyn quote::ToTokens,
     ok_v_match_token_stream: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let names = crate::names_ctx::NamesCtx::new();
+    let names = crate::names_context::NamesContext::new();
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(non_snake_case)]
     let (ValueSnakeCase,) = (names.get_value_snake_case(),);

@@ -10,8 +10,11 @@ pub struct PgPoolMinConnections(u32);
 
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for PgPoolMinConnections {
     type Error = crate::pg_pool_config_parse_error::PgPoolConfigParseError;
-    fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-        v.parse::<u32>()
+    fn try_from_std_env_var_ok(
+        std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
+    ) -> Result<Self, Self::Error> {
+        std_env_var_ok
+            .parse::<u32>()
             .map(Self)
             .map_err(|_error| Self::Error::Parse)
     }

@@ -1,5 +1,5 @@
 pub(crate) async fn read_settings(
-    pool: crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef<'_>,
+    sqlx_admin_repository_pool_ref: crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef<'_>,
 ) -> Result<
     server_admin_contract::admin_settings_view::AdminSettingsView,
     crate::admin_repository_error::AdminRepositoryError,
@@ -17,7 +17,7 @@ pub(crate) async fn read_settings(
             String,
         ),
     >(constants_str::SERVER_ADMIN_READ_SETTINGS_SQL)
-    .fetch_one(*pool)
+    .fetch_one(*sqlx_admin_repository_pool_ref)
     .await
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
     Ok(server_admin_contract::admin_settings_view::AdminSettingsView::new(

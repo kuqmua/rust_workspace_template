@@ -1,10 +1,10 @@
 pub(super) fn parse_bounded_json_owned(
-    bytes: crate::bounded_bytes::BoundedBytes,
+    bounded_bytes: crate::bounded_bytes::BoundedBytes,
 ) -> Result<
     crate::bounded_json_text::BoundedJsonText,
     crate::bounded_json_read_error::BoundedJsonReadError,
 > {
-    let text = String::from_utf8(bytes.into_inner()).map_err(|error| {
+    let text = String::from_utf8(bounded_bytes.into_inner()).map_err(|error| {
         crate::bounded_json_read_error::BoundedJsonReadError::Read(
             crate::bounded_read_error::BoundedReadError::Utf8 {
                 source: crate::bounded_read_from_utf8_error::BoundedReadFromUtf8Error::from(error),

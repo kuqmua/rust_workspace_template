@@ -1,8 +1,8 @@
 #[must_use]
 pub fn classify_pg_error(
-    error_ref: crate::sqlx_pg_error_ref::SqlxPgErrorRef<'_>,
+    sqlx_pg_error_ref: crate::sqlx_pg_error_ref::SqlxPgErrorRef<'_>,
 ) -> crate::pg_error_kind::PgErrorKind {
-    match error_ref.get() {
+    match sqlx_pg_error_ref.get() {
         sqlx::Error::Database(database_error) => database_error.code().as_deref().map_or(
             crate::pg_error_kind::PgErrorKind::Unknown,
             crate::classify_pg_code::classify_pg_code,

@@ -2,14 +2,14 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::integer_division_remainder_used)]
 pub fn spawn_interval_task<Run, RunFuture>(
-    optional_interval: Option<crate::run_interval_duration::RunIntervalDuration>,
+    option: Option<crate::run_interval_duration::RunIntervalDuration>,
     mut run: Run,
 ) -> Option<crate::background_task::BackgroundTask>
 where
     Run: FnMut() -> RunFuture + Send + 'static,
     RunFuture: Future<Output = ()> + Send + 'static,
 {
-    let interval = optional_interval?;
+    let interval = option?;
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel();
     let task_join = tokio::spawn(async move {
         let mut timer = tokio::time::interval(interval.get());

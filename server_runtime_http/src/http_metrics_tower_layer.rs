@@ -7,16 +7,18 @@ impl From<crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheA
     for HttpMetricsTowerLayer
 {
     fn from(
-        value: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
+        shared_http_metrics_path_cache_arc: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
     ) -> Self {
-        Self { paths: value }
+        Self {
+            paths: shared_http_metrics_path_cache_arc,
+        }
     }
 }
 
 impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
     type Service = crate::http_metrics_service::HttpMetricsService<Service>;
 
-    fn layer(&self, inner: Service) -> Self::Service {
-        crate::http_metrics_service::HttpMetricsService::new(inner, self.paths.clone())
+    fn layer(&self, service: Service) -> Self::Service {
+        crate::http_metrics_service::HttpMetricsService::new(service, self.paths.clone())
     }
 }

@@ -15,8 +15,8 @@
 pub struct NotZeroUnsignedPartOfI32(std::num::NonZeroI32);
 
 impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
-    fn from(value: std::num::NonZeroU16) -> Self {
-        Self::from(std::num::NonZeroI32::from(value))
+    fn from(non_zero_u16: std::num::NonZeroU16) -> Self {
+        Self::from(std::num::NonZeroI32::from(non_zero_u16))
     }
 }
 
@@ -35,9 +35,9 @@ impl utoipa::ToSchema for NotZeroUnsignedPartOfI32 {}
 impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
     type Error = crate::not_zero_unsigned_part_of_i32_try_from_i32_error::NotZeroUnsignedPartOfI32TryFromI32Error;
 
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
+    fn try_from(i32: i32) -> Result<Self, Self::Error> {
         let unsigned =
-            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(value).map_err(|error| {
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(i32).map_err(|error| {
                 Self::Error::UnsignedPartOfI32TryFromI32Error {
                     v: error,
                     location: proc_macro_location_bang::location!(),
@@ -58,9 +58,9 @@ impl to_err_string::to_err_string::ToErrString for NotZeroUnsignedPartOfI32 {
 }
 
 impl sqlx::Type<sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
-    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+    fn compatible(type_info: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
         <crate::unsigned_part_of_i32::UnsignedPartOfI32 as sqlx::Type<sqlx::Postgres>>::compatible(
-            ty,
+            type_info,
         )
     }
 
@@ -72,11 +72,11 @@ impl sqlx::Type<sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
 impl sqlx::Encode<'_, sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
     fn encode_by_ref(
         &self,
-        buf: &mut sqlx::postgres::PgArgumentBuffer,
+        pg_argument_buffer: &mut sqlx::postgres::PgArgumentBuffer,
     ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
         <crate::unsigned_part_of_i32::UnsignedPartOfI32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(
             &crate::unsigned_part_of_i32::UnsignedPartOfI32::from(self.0),
-            buf,
+            pg_argument_buffer,
         )
     }
 }

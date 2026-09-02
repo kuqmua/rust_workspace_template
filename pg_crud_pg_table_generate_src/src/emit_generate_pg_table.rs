@@ -25,7 +25,7 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(unused_variables)]
 pub fn emit_generate_pg_table(
-    validated: crate::syn_validated_generate_pg_table_input::SynValidatedGeneratePgTableInput,
+    syn_validated_generate_pg_table_input: crate::syn_validated_generate_pg_table_input::SynValidatedGeneratePgTableInput,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[derive(proc_macro_getters::Getters)]
@@ -51,10 +51,10 @@ pub fn emit_generate_pg_table(
         True,
     }
     impl quote::ToTokens for AddBorrow {
-        fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        fn to_tokens(&self, token_stream: &mut proc_macro2::TokenStream) {
             match &self {
-                Self::False => proc_macro2::TokenStream::new().to_tokens(tokens),
-                Self::True => quote::quote! {&}.to_tokens(tokens),
+                Self::False => proc_macro2::TokenStream::new().to_tokens(token_stream),
+                Self::True => quote::quote! {&}.to_tokens(token_stream),
             }
         }
     }
@@ -165,9 +165,9 @@ pub fn emit_generate_pg_table(
         }
     }
     impl std::fmt::Display for Operation {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(
-                f,
+                formatter,
                 "{}",
                 match &self {
                     Self::Cm => "Cm",
@@ -183,8 +183,8 @@ pub fn emit_generate_pg_table(
         }
     }
     impl From<&CreateOrUpdateOrDm> for Operation {
-        fn from(value: &CreateOrUpdateOrDm) -> Self {
-            match &value {
+        fn from(create_or_update_or_dm: &CreateOrUpdateOrDm) -> Self {
+            match &create_or_update_or_dm {
                 CreateOrUpdateOrDm::Create => Self::Cm,
                 CreateOrUpdateOrDm::Update => Self::Um,
                 CreateOrUpdateOrDm::Delete => Self::Dm,
@@ -192,24 +192,24 @@ pub fn emit_generate_pg_table(
         }
     }
     impl From<&RmOrDm> for Operation {
-        fn from(value: &RmOrDm) -> Self {
-            match &value {
+        fn from(rm_or_dm: &RmOrDm) -> Self {
+            match &rm_or_dm {
                 RmOrDm::Rm => Self::Rm,
                 RmOrDm::Dm => Self::Dm,
             }
         }
     }
     impl From<&RmOrRo> for Operation {
-        fn from(value: &RmOrRo) -> Self {
-            match &value {
+        fn from(rm_or_ro: &RmOrRo) -> Self {
+            match &rm_or_ro {
                 RmOrRo::Rm => Self::Rm,
                 RmOrRo::Ro => Self::Ro,
             }
         }
     }
     impl From<&CreateOrUpdateOrDlo> for Operation {
-        fn from(value: &CreateOrUpdateOrDlo) -> Self {
-            match &value {
+        fn from(create_or_update_or_dlo: &CreateOrUpdateOrDlo) -> Self {
+            match &create_or_update_or_dlo {
                 CreateOrUpdateOrDlo::Create => Self::Co,
                 CreateOrUpdateOrDlo::Update => Self::Uo,
                 CreateOrUpdateOrDlo::Delete => Self::Dlo,
@@ -241,7 +241,7 @@ pub fn emit_generate_pg_table(
         UpdateOne,
     }
     impl
-        crate::operation_dsc::OperationDsc<
+        crate::operation_descriptor::OperationDescriptor<
             bool,
             OperationHttpMethod,
             Operation,
@@ -528,25 +528,25 @@ pub fn emit_generate_pg_table(
     );
     impl TryFrom<Vec<GeneratePgTableDbColumn>> for UsizeGeneratePgTableDbColumns {
         type Error = pg_crud_common::bounded_vec_error::BoundedVecError;
-        fn try_from(value: Vec<GeneratePgTableDbColumn>) -> Result<Self, Self::Error> {
+        fn try_from(vec: Vec<GeneratePgTableDbColumn>) -> Result<Self, Self::Error> {
             Ok(Self(
-                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(value)?,
+                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(vec)?,
             ))
         }
     }
     impl TryFrom<Vec<GeneratePgTableExcludeField>> for UsizeCreateExcludeFields {
         type Error = pg_crud_common::bounded_vec_error::BoundedVecError;
-        fn try_from(value: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
+        fn try_from(vec: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
             Ok(Self(
-                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(value)?,
+                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(vec)?,
             ))
         }
     }
     impl TryFrom<Vec<GeneratePgTableExcludeField>> for UsizeReadExcludeFields {
         type Error = pg_crud_common::bounded_vec_error::BoundedVecError;
-        fn try_from(value: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
+        fn try_from(vec: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
             Ok(Self(
-                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(value)?,
+                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(vec)?,
             ))
         }
     }
@@ -671,15 +671,15 @@ pub fn emit_generate_pg_table(
         proc_macro_newtype::FromInner,
         proc_macro_newtype::GetInner,
     )]
-    struct GeneratePgTableFieldIdx(usize);
+    struct GeneratePgTableFieldIndex(usize);
 
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableFieldsEmissionModel {
-        db_default_field_idxs: Vec<GeneratePgTableFieldIdx>,
+        db_default_field_indexes: Vec<GeneratePgTableFieldIndex>,
         fields: Vec<macro_helpers::syn_field::SynField>,
-        fields_without_primary_key_idxs: Vec<GeneratePgTableFieldIdx>,
+        fields_without_primary_key_indexes: Vec<GeneratePgTableFieldIndex>,
         frontend_fields: Vec<GeneratePgTableFrontendFieldEmission>,
-        primary_key_field_idx: GeneratePgTableFieldIdx,
+        primary_key_field_index: GeneratePgTableFieldIndex,
     }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -729,12 +729,12 @@ pub fn emit_generate_pg_table(
     struct GeneratePgTablePrimaryKeyAttrName<'name_lt>(&'name_lt str);
 
     fn generate_pg_table_syn_field_location_attr_stage(
-        field_ref: SynGeneratePgTableFieldRef<'_>,
+        syn_generate_pg_table_field_ref: SynGeneratePgTableFieldRef<'_>,
     ) -> Result<
         Option<macro_helpers::location_field_attr::LocationFieldAttr>,
         macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     > {
-        let field = field_ref.get();
+        let field = syn_generate_pg_table_field_ref.get();
         let Some(field_identifier) = field.ident.as_ref() else {
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
@@ -777,7 +777,9 @@ pub fn emit_generate_pg_table(
             import,
         );
     let parsed_input = SynGeneratePgTableDeriveInput::from(syn::DeriveInput::from(
-        validated.into_model().into_input(),
+        syn_validated_generate_pg_table_input
+            .into_model()
+            .into_input(),
     ));
     let di = parsed_input.get();
     let generate_pg_table_input_model = match (|| {
@@ -1029,7 +1031,7 @@ pub fn emit_generate_pg_table(
     let CreateTableColumnQueryPartSnakeCase =
         naming::domain_types::CreateTableColumnQueryPartSnakeCase;
     let CreateUpperCamelCase = naming::domain_types::CreateUpperCamelCase;
-    let DeResUpperCamelCase = naming::domain_types::DeResUpperCamelCase;
+    let DeResponseUpperCamelCase = naming::domain_types::DeResponseUpperCamelCase;
     let DeriveDebugSerdeSerializeSerdeDeserialize =
         token_patterns::DeriveDebugSerdeSerializeSerdeDeserialize;
     let DeriveDebugThiserrorLocation = token_patterns::DeriveDebugThiserrorLocation;
@@ -1054,11 +1056,12 @@ pub fn emit_generate_pg_table(
     let ErrorSnakeCase = naming::domain_types::ErrorSnakeCase;
     let ExecutorAcquireSnakeCase = naming::domain_types::ExecutorAcquireSnakeCase;
     let ExecutorSnakeCase = naming::domain_types::ExecutorSnakeCase;
-    let ExpectedResSnakeCase = naming::domain_types::ExpectedResSnakeCase;
+    let ExpectedResponseSnakeCase = naming::domain_types::ExpectedResponseSnakeCase;
     let ExtraParametersSnakeCase = naming::domain_types::ExtraParametersSnakeCase;
     let F32 = token_patterns::F32;
     let F64 = token_patterns::F64;
-    let FailedToGetResTextUpperCamelCase = naming::domain_types::FailedToGetResTextUpperCamelCase;
+    let FailedToGetResponseTextUpperCamelCase =
+        naming::domain_types::FailedToGetResponseTextUpperCamelCase;
     let FalseSnakeCase = naming::domain_types::FalseSnakeCase;
     let FieldAttrSerdeSkipSerializingIfOptionalIsNone =
         token_patterns::FieldAttrSerdeSkipSerializingIfOptionalIsNone;
@@ -1141,11 +1144,11 @@ pub fn emit_generate_pg_table(
     let ReadIntoTableTypeSnakeCase = naming::domain_types::ReadIntoTableTypeSnakeCase;
     let ReadUpperCamelCase = naming::domain_types::ReadUpperCamelCase;
     let RefStr = token_patterns::RefStr;
-    let ReqSnakeCase = naming::domain_types::ReqSnakeCase;
+    let RequestSnakeCase = naming::domain_types::RequestSnakeCase;
     let ReqwestSnakeCase = naming::domain_types::ReqwestSnakeCase;
     let ReqwestUpperCamelCase = naming::domain_types::ReqwestUpperCamelCase;
-    let ResSnakeCase = naming::domain_types::ResSnakeCase;
-    let ResTextSnakeCase = naming::domain_types::ResTextSnakeCase;
+    let ResponseSnakeCase = naming::domain_types::ResponseSnakeCase;
+    let ResponseTextSnakeCase = naming::domain_types::ResponseTextSnakeCase;
     let RmErrorVariantsSnakeCase = naming::domain_types::RmErrorVariantsSnakeCase;
     let RmLogicSnakeCase = naming::domain_types::RmLogicSnakeCase;
     let RoErrorVariantsSnakeCase = naming::domain_types::RoErrorVariantsSnakeCase;
@@ -1375,9 +1378,9 @@ pub fn emit_generate_pg_table(
                     is_primary_key,
                 })
                     })()?;
-                    let field_idx = GeneratePgTableFieldIdx::from(fields.len());
+                    let field_index = GeneratePgTableFieldIndex::from(fields.len());
                     if field_model.has_db_default {
-                        db_default_fields.push(field_idx);
+                        db_default_fields.push(field_index);
                     }
                     if field_model.is_primary_key {
                         if optional_primary_key_field.is_some() {
@@ -1385,9 +1388,9 @@ pub fn emit_generate_pg_table(
                                 constants_str::COMPILE_ERROR_CE_003,
                             )));
                         }
-                        optional_primary_key_field = Some(field_idx);
+                        optional_primary_key_field = Some(field_index);
                     } else {
-                        fields_without_primary_key.push(field_idx);
+                        fields_without_primary_key.push(field_index);
                     }
                     fields.push(field_model.field);
                     frontend_fields.push(field_model.frontend);
@@ -1401,13 +1404,13 @@ pub fn emit_generate_pg_table(
                 },
             );
             let (
-                db_default_field_idxs,
+                db_default_field_indexes,
                 optional_primary_key_field,
                 fields,
-                fields_without_primary_key_idxs,
+                fields_without_primary_key_indexes,
                 frontend_fields,
             ) = fields_accumulator?;
-            let Some(primary_key_field_idx) = optional_primary_key_field else {
+            let Some(primary_key_field_index) = optional_primary_key_field else {
                 return Err(
                     crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                         crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
@@ -1417,11 +1420,11 @@ pub fn emit_generate_pg_table(
                 );
             };
             Ok(GeneratePgTableFieldsEmissionModel {
-                db_default_field_idxs,
+                db_default_field_indexes,
                 fields,
-                fields_without_primary_key_idxs,
+                fields_without_primary_key_indexes,
                 frontend_fields,
-                primary_key_field_idx,
+                primary_key_field_index,
             })
         }
         Ok(
@@ -1448,7 +1451,7 @@ pub fn emit_generate_pg_table(
     let validated_fields_model = match (|| {
         if fields_model
             .fields
-            .get(fields_model.primary_key_field_idx.get())
+            .get(fields_model.primary_key_field_index.get())
             .is_none()
         {
             return Err(
@@ -1460,9 +1463,9 @@ pub fn emit_generate_pg_table(
             );
         }
         if fields_model
-            .fields_without_primary_key_idxs
+            .fields_without_primary_key_indexes
             .iter()
-            .any(|idx| fields_model.fields.get(idx.get()).is_none())
+            .any(|index| fields_model.fields.get(index.get()).is_none())
         {
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
@@ -1487,15 +1490,15 @@ pub fn emit_generate_pg_table(
         Err(error) => return error,
     };
     let GeneratePgTableFieldsEmissionModel {
-        db_default_field_idxs,
+        db_default_field_indexes,
         fields,
-        fields_without_primary_key_idxs,
+        fields_without_primary_key_indexes,
         frontend_fields,
-        primary_key_field_idx,
+        primary_key_field_index,
     } = validated_fields_model;
     let fields_len = fields.len();
-    let fields_len_without_primary_key = fields_without_primary_key_idxs.len();
-    let Some(primary_key_field) = fields.get(primary_key_field_idx.get()) else {
+    let fields_len_without_primary_key = fields_without_primary_key_indexes.len();
+    let Some(primary_key_field) = fields.get(primary_key_field_index.get()) else {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
                 constants_str::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
@@ -1503,9 +1506,9 @@ pub fn emit_generate_pg_table(
         );
     };
     let fields_without_primary_key_iter = || {
-        fields_without_primary_key_idxs
+        fields_without_primary_key_indexes
             .iter()
-            .filter_map(|field_idx| fields.get(field_idx.get()))
+            .filter_map(|field_index| fields.get(field_index.get()))
     };
     let create_exclude_fields = generate_pg_table_input_model
         .config
@@ -1563,13 +1566,13 @@ pub fn emit_generate_pg_table(
         || fields_without_primary_key_iter().filter(|field| !read_field_is_excluded(field));
     let read_fields = read_fields_iter().cloned().collect::<Vec<_>>();
     let read_fields_len = read_fields.len();
-    let optimistic_revision_field_idx = if let Some(revision_field_name) =
+    let optimistic_revision_field_index = if let Some(revision_field_name) =
         generate_pg_table_input_model
             .config
             .optimistic_revision_field
             .as_ref()
     {
-        let Some(field_idx) = fields
+        let Some(field_index) = fields
             .iter()
             .position(|field| field.get_identifier().to_string() == *revision_field_name)
         else {
@@ -1579,7 +1582,7 @@ pub fn emit_generate_pg_table(
                 ),
             );
         };
-        let revision_type_is_valid = fields.get(field_idx).is_some_and(|field| {
+        let revision_type_is_valid = fields.get(field_index).is_some_and(|field| {
             let syn::Type::Path(type_path) = &**field.get_field_type() else {
                 return false;
             };
@@ -1591,24 +1594,24 @@ pub fn emit_generate_pg_table(
                 )
             })
         });
-        if field_idx == primary_key_field_idx.get() || !revision_type_is_valid {
+        if field_index == primary_key_field_index.get() || !revision_type_is_valid {
             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
                     constants_str::COMPILE_ERROR_CE_012,
                 ),
             );
         }
-        Some(field_idx)
+        Some(field_index)
     } else {
         None
     };
-    let optimistic_revision_field_identifier = optimistic_revision_field_idx
-        .and_then(|field_idx| fields.get(field_idx))
+    let optimistic_revision_field_identifier = optimistic_revision_field_index
+        .and_then(|field_index| fields.get(field_index))
         .map(|field| field.get_identifier().clone());
     let operation_is_enabled =
         |operation: &Operation| match generate_pg_table_input_model.config.api_mode {
             GeneratePgTableApiMode::Crud => {
-                optimistic_revision_field_idx.is_none() || !matches!(operation, Operation::Um)
+                optimistic_revision_field_index.is_none() || !matches!(operation, Operation::Um)
             }
             GeneratePgTableApiMode::AppendOnly => matches!(
                 operation,
@@ -1628,19 +1631,19 @@ pub fn emit_generate_pg_table(
             GeneratePgTableApiMode::ReadOnly => matches!(operation, Operation::Rm | Operation::Ro),
             GeneratePgTableApiMode::ReadUpdate => {
                 matches!(operation, Operation::Rm | Operation::Ro | Operation::Uo)
-                    || (optimistic_revision_field_idx.is_none()
+                    || (optimistic_revision_field_index.is_none()
                         && matches!(operation, Operation::Um))
             }
         };
     let mut frontend_field_order = frontend_fields
         .iter()
         .enumerate()
-        .map(|(field_idx, config)| (config.order.unwrap_or(field_idx), field_idx))
+        .map(|(field_index, config)| (config.order.unwrap_or(field_index), field_index))
         .collect::<Vec<_>>();
-    frontend_field_order.sort_by_key(|(order, _field_idx)| *order);
+    frontend_field_order.sort_by_key(|(order, _field_index)| *order);
     let frontend_orders_are_unique = frontend_field_order
         .iter()
-        .map(|(order, _field_idx)| order)
+        .map(|(order, _field_index)| order)
         .collect::<std::collections::HashSet<_>>()
         .len()
         == frontend_field_order.len();
@@ -1653,9 +1656,9 @@ pub fn emit_generate_pg_table(
     }
     let frontend_field_contracts_token_stream = frontend_field_order
         .iter()
-        .filter_map(|(order, field_idx)| {
-            let field = fields.get(*field_idx)?;
-            let frontend = frontend_fields.get(*field_idx)?;
+        .filter_map(|(order, field_index)| {
+            let field = fields.get(*field_index)?;
+            let frontend = frontend_fields.get(*field_index)?;
             let field_name = field.get_identifier().to_string();
             let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&field_name);
             let label = frontend.label.clone().unwrap_or_else(|| {
@@ -1663,8 +1666,8 @@ pub fn emit_generate_pg_table(
                 field_name
                     .split('_')
                     .enumerate()
-                    .for_each(|(part_idx, part)| {
-                        if part_idx != constants_usize::ZERO {
+                    .for_each(|(part_index, part)| {
+                        if part_index != constants_usize::ZERO {
                             value.push(' ');
                         }
                         let mut chars = part.chars();
@@ -1677,12 +1680,12 @@ pub fn emit_generate_pg_table(
             });
             let label_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&label);
             let field_type = field.get_field_type();
-            let primary_key_token_stream = if *field_idx == primary_key_field_idx.get() {
+            let primary_key_token_stream = if *field_index == primary_key_field_index.get() {
                 quote::quote! {frontend_contract::primary_key_kind::PrimaryKeyKind::Primary}
             } else {
                 quote::quote! {frontend_contract::primary_key_kind::PrimaryKeyKind::NonPrimary}
             };
-            let creatable_token_stream = if *field_idx != primary_key_field_idx.get()
+            let creatable_token_stream = if *field_index != primary_key_field_index.get()
                 && !create_field_is_excluded(field)
                 && (operation_is_enabled(&Operation::Cm) || operation_is_enabled(&Operation::Co))
             {
@@ -1697,7 +1700,7 @@ pub fn emit_generate_pg_table(
             } else {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Disabled}
             };
-            let updatable_token_stream = if *field_idx != primary_key_field_idx.get()
+            let updatable_token_stream = if *field_index != primary_key_field_index.get()
                 && (operation_is_enabled(&Operation::Um) || operation_is_enabled(&Operation::Uo))
             {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Enabled}
@@ -1780,7 +1783,7 @@ pub fn emit_generate_pg_table(
         })
         .collect::<Vec<_>>();
     let primary_key_field_type = primary_key_field.get_field_type();
-    if fields_without_primary_key_idxs.is_empty() {
+    if fields_without_primary_key_indexes.is_empty() {
         return macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
             syn::Error::new_spanned(
                 &**primary_key_field_type,
@@ -2213,8 +2216,8 @@ pub fn emit_generate_pg_table(
         let pub_async_fn_prep_pg_table_token_stream = {
             let prep_pg_cols_fmt = fields.iter().enumerate().fold(
                 String::with_capacity(fields.len().saturating_mul(3)),
-                |mut accumulator, (idx, _)| {
-                    if idx != 0 {
+                |mut accumulator, (index, _)| {
+                    if index != 0 {
                         accumulator.push(',');
                     }
                     accumulator.push_str(constants_str::TEXT_ALT_14);
@@ -2340,14 +2343,14 @@ pub fn emit_generate_pg_table(
          status_code_token_stream: &dyn quote::ToTokens,
          add_return: &AddReturn| {
             let return_token_stream = match add_return {
-                AddReturn::False => quote::quote! {res},
-                AddReturn::True => quote::quote! {return res;},
+                AddReturn::False => quote::quote! {response},
+                AddReturn::True => quote::quote! {return response;},
             };
             quote::quote! {
-                let mut res = axum::response::IntoResponse::into_response(
+                let mut response = axum::response::IntoResponse::into_response(
                     axum::Json(#axum_json_token_stream)
                 );
-                *res.status_mut() = #status_code_token_stream;
+                *response.status_mut() = #status_code_token_stream;
                 #return_token_stream
             }
         };
@@ -2438,7 +2441,7 @@ pub fn emit_generate_pg_table(
     #[allow(clippy::items_after_statements)]
     fn new_syn_variant<DisplayValue>(
         variant_name: &dyn std::fmt::Display,
-        status_code: Option<macro_helpers::status_code::StatusCode>,
+        option: Option<macro_helpers::status_code::StatusCode>,
         variant_fields: impl IntoIterator<
             Item = (
                 macro_helpers::location_field_attr::LocationFieldAttr,
@@ -2446,7 +2449,7 @@ pub fn emit_generate_pg_table(
                 macro_helpers::syn_path_segments::SynPathSegments,
             ),
         >,
-        is_location_first: bool,
+        bool: bool,
     ) -> SynVariant
     where
         DisplayValue: std::fmt::Display,
@@ -2455,7 +2458,7 @@ pub fn emit_generate_pg_table(
             variant: syn::Variant {
                 attrs: {
                     let mut attrs = Vec::with_capacity(1);
-                    if let Some(v) = status_code.as_ref() {
+                    if let Some(v) = option.as_ref() {
                         let mut segments = syn::punctuated::Punctuated::new();
                         segments.push(syn::PathSegment {
                             ident: syn::Ident::new(
@@ -2482,7 +2485,7 @@ pub fn emit_generate_pg_table(
                 fields: syn::Fields::Named(syn::FieldsNamed {
                     brace_token: syn::token::Brace::default(),
                     named: {
-                        let initial_fields = if is_location_first {
+                        let initial_fields = if bool {
                             let mut named_fields_accumulator = syn::punctuated::Punctuated::new();
                             named_fields_accumulator.push_value(
                                 macro_helpers::location_syn_field::location_syn_field().into(),
@@ -2544,7 +2547,7 @@ pub fn emit_generate_pg_table(
                                 named_fields_accumulator
                             },
                         );
-                        if !is_location_first {
+                        if !bool {
                             named_fields_accumulator.push_value(
                                 macro_helpers::location_syn_field::location_syn_field().into(),
                             );
@@ -2554,12 +2557,12 @@ pub fn emit_generate_pg_table(
                 }),
                 discriminant: None,
             },
-            status_code,
+            status_code: option,
         }
     }
     let query_part_syn_variant = new_syn_variant(
         &QueryPartUpperCamelCase,
-        Some(macro_helpers::status_code::StatusCode::BadReq400),
+        Some(macro_helpers::status_code::StatusCode::BadRequest400),
         vec![(
             macro_helpers::location_field_attr::LocationFieldAttr::EoLocation,
             &ErrorSnakeCase,
@@ -3955,7 +3958,7 @@ enum WrapIntoOptional {
         );
     let not_unique_field_syn_variant = new_syn_variant(
         &NotUniqueFieldUpperCamelCase,
-        Some(macro_helpers::status_code::StatusCode::BadReq400),
+        Some(macro_helpers::status_code::StatusCode::BadRequest400),
         vec![(
             macro_helpers_location_field_attr_eo_to_err_string_serde,
             &NotUniqueFieldSnakeCase,
@@ -3987,8 +3990,8 @@ enum WrapIntoOptional {
         ]);
     let status_code_field_name: &dyn std::fmt::Display = &StatusCodeSnakeCase;
     let failed_to_get_res_text_syn_variant = new_syn_variant(
-        &FailedToGetResTextUpperCamelCase,
-        Some(macro_helpers::status_code::StatusCode::BadReq400),
+        &FailedToGetResponseTextUpperCamelCase,
+        Some(macro_helpers::status_code::StatusCode::BadRequest400),
         vec![
             (
                 macro_helpers_location_field_attr_eo_to_err_string,
@@ -4016,7 +4019,7 @@ enum WrapIntoOptional {
         false,
     );
     let deserialize_res_syn_variant = new_syn_variant(
-        &DeResUpperCamelCase,
+        &DeResponseUpperCamelCase,
         None,
         vec![
             (
@@ -4038,7 +4041,7 @@ enum WrapIntoOptional {
             ),
             (
                 macro_helpers_location_field_attr_eo_to_err_string_serde,
-                &ResTextSnakeCase,
+                &ResponseTextSnakeCase,
                 string_syn_punct,
             ),
             (
@@ -4075,7 +4078,7 @@ enum WrapIntoOptional {
     );
     let serde_json_syn_variant = new_syn_variant(
         &SerdeJsonUpperCamelCase,
-        Some(macro_helpers::status_code::StatusCode::BadReq400),
+        Some(macro_helpers::status_code::StatusCode::BadRequest400),
         vec![(
             macro_helpers_location_field_attr_eo_to_err_string,
             &SerdeJsonSnakeCase,
@@ -4085,7 +4088,7 @@ enum WrapIntoOptional {
     );
     let header_cnt_type_app_json_not_found_syn_variant = new_syn_variant(
         &HeaderContentTypeAppJsonNotFoundUpperCamelCase,
-        Some(macro_helpers::status_code::StatusCode::BadReq400),
+        Some(macro_helpers::status_code::StatusCode::BadRequest400),
         Vec::<(
             macro_helpers::location_field_attr::LocationFieldAttr,
             &'static dyn std::fmt::Display,
@@ -4739,7 +4742,7 @@ enum WrapIntoOptional {
         quote::quote! {location_lib::location_commit::LocationCommit},
         quote::quote! {location_lib::location_file::LocationFile},
         quote::quote! {location_lib::location_line::LocationLine},
-        quote::quote! {location_lib::occr::Occr},
+        quote::quote! {location_lib::occurrence::Occurrence},
         quote::quote! {location_lib::location_duration::LocationDuration},
         quote::quote! {pg_crud_common::order::Order},
         quote::quote! {pg_crud_common::operator::Operator},
@@ -4763,14 +4766,14 @@ enum WrapIntoOptional {
         quote::quote! {where_filters::regex_regex::RegexRegex},
         quote::quote! {pg_crud_common::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32},
     ]);
-    crate::operation_dsc::OperationDsc::ALL
+    crate::operation_descriptor::OperationDescriptor::ALL
     .iter()
-    .fold((), |(), operation_dsc| {
-        let operation = operation_dsc.get_operation();
+    .fold((), |(), operation_descriptor| {
+        let operation = operation_descriptor.get_operation();
         let idempotency_enabled = generate_pg_table_input_model.config.idempotent_mutations
-            && crate::idempotency_capable::idempotency_capable(operation_dsc);
-        let optimistic_concurrency_enabled = optimistic_revision_field_idx.is_some()
-            && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_dsc);
+            && crate::idempotency_capable::idempotency_capable(operation_descriptor);
+        let optimistic_concurrency_enabled = optimistic_revision_field_index.is_some()
+            && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_descriptor);
         let operation_execute_snake_case_token_stream = {
             let value = naming::parameter::SelfHSnakeCase::from_tokens(
                 &operation.self_snake_case_token_stream(),
@@ -4791,7 +4794,7 @@ enum WrapIntoOptional {
             format!("{identifier_snake_case_string}_{operation_snake_case_string}");
         let open_api_path_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&open_api_path);
         let open_api_tag_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&identifier_snake_case_string);
-        let open_api_http_method_token_stream = match crate::route_http_method::route_http_method(operation_dsc) {
+        let open_api_http_method_token_stream = match crate::route_http_method::route_http_method(operation_descriptor) {
             OperationHttpMethod::Post => quote::quote! {utoipa::openapi::path::HttpMethod::Post},
             OperationHttpMethod::Patch => {
                 quote::quote! {utoipa::openapi::path::HttpMethod::Patch}
@@ -4800,7 +4803,7 @@ enum WrapIntoOptional {
                 quote::quote! {utoipa::openapi::path::HttpMethod::Delete}
             }
         };
-        let open_api_status = if crate::route_success_status::route_success_status(operation_dsc)
+        let open_api_status = if crate::route_success_status::route_success_status(operation_descriptor)
             == macro_helpers::status_code::StatusCode::Created201
         {
             constants_str::VALUE_201
@@ -5161,7 +5164,7 @@ enum WrapIntoOptional {
         if operation_is_enabled(operation) {
         operation_routes_token_stream.push({
             let method_token_stream =
-                match crate::route_http_method::route_http_method(operation_dsc) {
+                match crate::route_http_method::route_http_method(operation_descriptor) {
                 OperationHttpMethod::Post => quote::quote! {post},
                 OperationHttpMethod::Patch => quote::quote! {patch},
                 OperationHttpMethod::Delete => quote::quote! {delete},
@@ -5197,12 +5200,12 @@ enum WrapIntoOptional {
                     let response_other_metric = metrics::counter!("pg_table_responses_total", "table" => #identifier_snake_case_double_quoted_token_stream, "operation" => #operation_snake_case_string, "status" => "other");
                     async move |
                         app_state_99328dfe: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_token_stream>,
-                        req: axum::extract::Request
+                        request: axum::extract::Request
                     | {
                         let started_at = std::time::Instant::now();
                         requests_metric.increment(1u64);
                         let response_2b9f176e = tracing::Instrument::instrument(
-                            Self::#operation_execute_snake_case_token_stream(app_state_99328dfe, req, &table_owned),
+                            Self::#operation_execute_snake_case_token_stream(app_state_99328dfe, request, &table_owned),
                             tracing::info_span!(
                                 "pg_table.get_operation()",
                                 table = %table_owned,
@@ -5273,7 +5276,7 @@ enum WrapIntoOptional {
                 };
                 let future_token_stream = {
                     let operation_http_method_snake_case_token_stream =
-                        naming_common::domain_types::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::route_http_method::route_http_method(operation_dsc));
+                        naming_common::domain_types::AsRefStrToSnakeCaseTokenStream::case_or_panic(&crate::route_http_method::route_http_method(operation_descriptor));
                     let commit_header_addition_token_stream = quote::quote! {
                         .header(
                             &"commit".to_owned(),
@@ -5317,17 +5320,17 @@ enum WrapIntoOptional {
                                 return Err(#identifier_try_operation_error_upper_camel_case::#ts);
                             }}
                         });
-                    quote::quote! {let #ResSnakeCase = #ts;}
+                    quote::quote! {let #ResponseSnakeCase = #ts;}
                 };
                 let error_0_res_status_token_stream = quote::quote! {
-                    let #Error0 = #ResSnakeCase.status();
+                    let #Error0 = #ResponseSnakeCase.status();
                 };
                 let headers_token_stream = quote::quote! {
-                    let #Error1 = #ResSnakeCase.headers().clone();
+                    let #Error1 = #ResponseSnakeCase.headers().clone();
                 };
                 let res_text_token_stream = {
                     let ts = generate_match_ok_err_token_stream(
-                        &quote::quote! {#ResSnakeCase.text().await},
+                        &quote::quote! {#ResponseSnakeCase.text().await},
                         &quote::quote! {v_6a62b2b9},
                         &quote::quote! {v_6a62b2b9},
                         &Error2,
@@ -5354,7 +5357,7 @@ enum WrapIntoOptional {
                             return Err(#identifier_try_operation_error_upper_camel_case::#deserialize_res_syn_variant_initialization_token_stream);
                         }},
                     );
-                    quote::quote! {let #ExpectedResSnakeCase = #ts;}
+                    quote::quote! {let #ExpectedResponseSnakeCase = #ts;}
                 };
                 let try_operation_logic_error_with_serde_upper_camel_case =
                     generate_identifier_operation_error_with_serde_upper_camel_case(operation);
@@ -5385,7 +5388,7 @@ enum WrapIntoOptional {
                             }
                         });
                     quote::quote! {
-                        let #operation_error_with_serde_snake_case = match #ExpectedResSnakeCase {
+                        let #operation_error_with_serde_snake_case = match #ExpectedResponseSnakeCase {
                             #identifier_operation_res_variants_upper_camel_case::#DesirableUpperCamelCase(#VSnakeCase) => {
                                 return Ok(#VSnakeCase);
                             },
@@ -5521,7 +5524,7 @@ enum WrapIntoOptional {
                         },
                     );
                     quote::quote! {
-                        let (parts, #BodySnakeCase) = #ReqSnakeCase.into_parts();
+                        let (parts, #BodySnakeCase) = #RequestSnakeCase.into_parts();
                         #idempotency_metadata_token_stream
                         let headers = parts.headers;
                         if !matches!(
@@ -5915,7 +5918,7 @@ enum WrapIntoOptional {
                             quote::quote! {
                                 {
                                     #increment_initialization_token_stream
-                                    let els = {
+                                    let elements = {
                                         #ts0
                                     };
                                     let pks = {
@@ -5928,7 +5931,7 @@ enum WrapIntoOptional {
                                     };
                                     pg_table::generate_um_query_string::generate_um_query_string(
                                         pg_table::pg_table_name_ref::PgTableNameRef::from(#TableSnakeCase),
-                                        pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&els),
+                                        pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&elements),
                                         pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
                                         pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&pks),
                                         pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&return_cols)
@@ -6397,12 +6400,12 @@ enum WrapIntoOptional {
                         let identifier_operation_res_variants_upper_camel_case = generate_identifier_operation_res_variants_upper_camel_case(operation);
                         quote::quote! {#identifier_operation_res_variants_upper_camel_case::#DesirableUpperCamelCase(#VSnakeCase)}
                     },
-                    &crate::success_status::success_status(operation_dsc).to_http_status_code_token_stream(),
+                    &crate::success_status::success_status(operation_descriptor).to_http_status_code_token_stream(),
                     &AddReturn::False,
                 );
                 let success_response_token_stream = if idempotency_enabled {
                     let desirable_status_token_stream =
-                        crate::success_status::success_status(operation_dsc).to_http_status_code_token_stream();
+                        crate::success_status::success_status(operation_descriptor).to_http_status_code_token_stream();
                     quote::quote! {
                         let (response_value_1a2393ae, response_body_649297c9) = #VSnakeCase;
                         let mut response = axum::response::Response::new(axum::body::Body::from(response_body_649297c9));
@@ -6416,7 +6419,7 @@ enum WrapIntoOptional {
                 quote::quote! {
                     async fn #operation_execute_snake_case_token_stream(
                         #AppStateSnakeCase: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_token_stream>,
-                        #ReqSnakeCase: axum::extract::Request,
+                        #RequestSnakeCase: axum::extract::Request,
                         #TableSnakeCase: &str,
                     ) -> axum::response::Response {
                         #req_parts_preparation_token_stream
@@ -6454,9 +6457,9 @@ enum WrapIntoOptional {
                     }
                     pub async fn #operation_snake_case_token_stream(
                         #AppStateSnakeCase: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_token_stream>,
-                        #ReqSnakeCase: axum::extract::Request,
+                        #RequestSnakeCase: axum::extract::Request,
                     ) -> axum::response::Response {
-                        Self::#operation_execute_snake_case_token_stream(#AppStateSnakeCase, #ReqSnakeCase, #self_table_name_call_token_stream).await
+                        Self::#operation_execute_snake_case_token_stream(#AppStateSnakeCase, #RequestSnakeCase, #self_table_name_call_token_stream).await
                     }
                 }
             };
@@ -7060,22 +7063,22 @@ enum WrapIntoOptional {
             #(#frontend_api_client_methods_token_stream)*
         }
     };
-    let enabled_operation_count = crate::operation_dsc::OperationDsc::ALL
+    let enabled_operation_count = crate::operation_descriptor::OperationDescriptor::ALL
         .iter()
-        .filter(|operation_dsc| operation_is_enabled(operation_dsc.get_operation()))
+        .filter(|operation_descriptor| operation_is_enabled(operation_descriptor.get_operation()))
         .count();
-    let route_contract_items_token_stream = crate::operation_dsc::OperationDsc::ALL
+    let route_contract_items_token_stream = crate::operation_descriptor::OperationDescriptor::ALL
         .iter()
-        .filter(|operation_dsc| operation_is_enabled(operation_dsc.get_operation()))
-        .map(|operation_dsc| {
-            let operation = quote::format_ident!("{}", operation_dsc.get_operation().to_string());
+        .filter(|operation_descriptor| operation_is_enabled(operation_descriptor.get_operation()))
+        .map(|operation_descriptor| {
+            let operation = quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
             let http_method =
-                match crate::route_http_method::route_http_method(operation_dsc) {
+                match crate::route_http_method::route_http_method(operation_descriptor) {
                 OperationHttpMethod::Post => quote::format_ident!("Post"),
                 OperationHttpMethod::Patch => quote::format_ident!("Patch"),
                 OperationHttpMethod::Delete => quote::format_ident!("Delete"),
             };
-            let success_status = if crate::route_success_status::route_success_status(operation_dsc)
+            let success_status = if crate::route_success_status::route_success_status(operation_descriptor)
                 == macro_helpers::status_code::StatusCode::Created201
             {
                 quote::format_ident!("Code201")
@@ -7083,9 +7086,9 @@ enum WrapIntoOptional {
                 quote::format_ident!("Code200")
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
-                && crate::idempotency_capable::idempotency_capable(operation_dsc);
-            let optimistic_revision_required = optimistic_revision_field_idx.is_some()
-                && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_dsc);
+                && crate::idempotency_capable::idempotency_capable(operation_descriptor);
+            let optimistic_revision_required = optimistic_revision_field_index.is_some()
+                && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_descriptor);
             let authentication = generate_pg_table_input_model
                 .config
                 .permission_prefix
@@ -7095,7 +7098,7 @@ enum WrapIntoOptional {
                     |permission_prefix| {
                         let permission = format!(
                             "{permission_prefix}:{}",
-                            operation_dsc.get_permission_action()
+                            operation_descriptor.get_permission_action()
                         );
                         quote::quote! {#identifier_auth_requirement_upper_camel_case::Permission(#permission)}
                     },
@@ -7112,37 +7115,37 @@ enum WrapIntoOptional {
             }
         });
     let route_contract_path_arms_token_stream =
-        crate::operation_dsc::OperationDsc::ALL
+        crate::operation_descriptor::OperationDescriptor::ALL
             .iter()
-            .map(|operation_dsc| {
+            .map(|operation_descriptor| {
                 let operation =
-                    quote::format_ident!("{}", operation_dsc.get_operation().to_string());
+                    quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
                 let path = format!(
                     "/{}/{}",
                     identifier_snake_case_string,
-                    operation_dsc.get_operation().self_snake_case_str()
+                    operation_descriptor.get_operation().self_snake_case_str()
                 );
                 quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
             });
     let route_contract_payload_example_path_arms_token_stream =
-        crate::operation_dsc::OperationDsc::ALL
+        crate::operation_descriptor::OperationDescriptor::ALL
             .iter()
-            .map(|operation_dsc| {
+            .map(|operation_descriptor| {
                 let operation =
-                    quote::format_ident!("{}", operation_dsc.get_operation().to_string());
+                    quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
                 let path = format!(
                     "/{}/{}",
                     identifier_snake_case_string,
-                    operation_dsc
+                    operation_descriptor
                         .get_operation()
                         .operation_payload_example_snake_case()
                 );
                 quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
             });
-    let route_contract_operation_kind_arms_token_stream = crate::operation_dsc::OperationDsc::ALL.iter().map(|operation_dsc| {
-        let operation = quote::format_ident!("{}", operation_dsc.get_operation().to_string());
+    let route_contract_operation_kind_arms_token_stream = crate::operation_descriptor::OperationDescriptor::ALL.iter().map(|operation_descriptor| {
+        let operation = quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
         let operation_kind =
-            match operation_dsc.get_operation_kind() {
+            match operation_descriptor.get_operation_kind() {
             PgTableOperationKind::CreateMany => quote::format_ident!("CreateMany"),
             PgTableOperationKind::CreateOne => quote::format_ident!("CreateOne"),
             PgTableOperationKind::DeleteMany => quote::format_ident!("DeleteMany"),
@@ -7614,7 +7617,7 @@ enum WrapIntoOptional {
                 },
             );
         let api_mode_assertion_token_stream = match generate_pg_table_input_model.config.api_mode {
-            GeneratePgTableApiMode::Crud if optimistic_revision_field_idx.is_some() => {
+            GeneratePgTableApiMode::Crud if optimistic_revision_field_index.is_some() => {
                 quote::quote! {
                     assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), 7usize);
                     assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| !matches!(contract.operation(), #identifier_operation_upper_camel_case::Um)));
@@ -7636,8 +7639,8 @@ enum WrapIntoOptional {
                 assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Rm | #identifier_operation_upper_camel_case::Ro | #identifier_operation_upper_camel_case::Um | #identifier_operation_upper_camel_case::Uo)));
             },
         };
-        let round_trip_tests_token_stream = crate::operation_dsc::OperationDsc::ALL.iter().map(|operation_dsc| {
-            let operation = operation_dsc.get_operation();
+        let round_trip_tests_token_stream = crate::operation_descriptor::OperationDescriptor::ALL.iter().map(|operation_descriptor| {
+            let operation = operation_descriptor.get_operation();
             let payload_type_token_stream = generate_identifier_operation_payload_upper_camel_case(operation);
             let test_identifier = quote::format_ident!(
                 "{}_{}_payload_json_round_trip",
@@ -7699,19 +7702,19 @@ enum WrapIntoOptional {
             quote::format_ident!("{}_route_open_api_parity", identifier_snake_case_string);
         let identifier_rm_payload_upper_camel_case =
             generate_identifier_operation_payload_upper_camel_case(&Operation::Rm);
-        let route_open_api_parity_assertions_token_stream = crate::operation_dsc::OperationDsc::ALL
+        let route_open_api_parity_assertions_token_stream = crate::operation_descriptor::OperationDescriptor::ALL
             .iter()
-            .filter(|operation_dsc| operation_is_enabled(operation_dsc.get_operation()))
-            .map(|operation_dsc| {
-            let operation = operation_dsc.get_operation().self_snake_case_str();
+            .filter(|operation_descriptor| operation_is_enabled(operation_descriptor.get_operation()))
+            .map(|operation_descriptor| {
+            let operation = operation_descriptor.get_operation().self_snake_case_str();
             let open_api_operation_id = format!("{identifier_snake_case_string}_{operation}");
             let path = format!("/{identifier_snake_case_string}/{operation}");
-            let method = match crate::route_http_method::route_http_method(operation_dsc) {
+            let method = match crate::route_http_method::route_http_method(operation_descriptor) {
                 OperationHttpMethod::Post => constants_str::POST_ALT,
                 OperationHttpMethod::Patch => constants_str::PATCH_ALT,
                 OperationHttpMethod::Delete => constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
             };
-            let success_status = if crate::route_success_status::route_success_status(operation_dsc)
+            let success_status = if crate::route_success_status::route_success_status(operation_descriptor)
                 == macro_helpers::status_code::StatusCode::Created201
             {
                 constants_str::VALUE_201
@@ -7719,9 +7722,9 @@ enum WrapIntoOptional {
                 constants_str::VALUE_200
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
-                && crate::idempotency_capable::idempotency_capable(operation_dsc);
-            let optimistic_revision_required = optimistic_revision_field_idx.is_some()
-                && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_dsc);
+                && crate::idempotency_capable::idempotency_capable(operation_descriptor);
+            let optimistic_revision_required = optimistic_revision_field_index.is_some()
+                && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_descriptor);
             quote::quote! {
                 let route_contract = #identifier_route_contract_upper_camel_case::for_path(#path).expect("80dc7c11 collect_refs invariant must hold");
                 assert_eq!(route_contract.idempotency_required(), #idempotency_required);
@@ -9933,7 +9936,7 @@ enum WrapIntoOptional {
                             tracing_level: <config_lib::tracing_level::TracingLevel as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::std_env_var_ok::StdEnvVarOk(
                                 "error".to_owned()
                             )).expect("957178c9 crud invariant must hold").0,
-                            src_place_type: <config_lib::src_place_type::SrcPlaceType as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::std_env_var_ok::StdEnvVarOk(
+                            source_place_type: <config_lib::source_place_type::SourcePlaceType as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::std_env_var_ok::StdEnvVarOk(
                                 "src".to_owned()
                             )).expect("bec0950e crud invariant must hold").0,
                             enable_api_git_commit_check: <config_lib::domain_types::EnableApiGitCommitCheck as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::std_env_var_ok::StdEnvVarOk(
@@ -10207,9 +10210,9 @@ enum WrapIntoOptional {
     let db_column_specs_token_stream = fields.iter().enumerate().map(|(index, field)| {
         let field_name = generate_quotes::dq_token_stream::dq_token_stream(field.get_identifier());
         let field_type = field.get_field_type();
-        let has_explicit_default = db_default_field_idxs
+        let has_explicit_default = db_default_field_indexes
             .iter()
-            .any(|field_idx| field_idx.get() == index);
+            .any(|field_index| field_index.get() == index);
         quote::quote! {
             pg_crud_common::db_column_spec::DbColumnSpec::new(
                 pg_crud_common::db_static_schema_text::DbStaticSchemaText::from(#field_name),

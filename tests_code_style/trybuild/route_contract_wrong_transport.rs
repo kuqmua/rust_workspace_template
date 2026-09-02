@@ -1,7 +1,8 @@
-fn require_public<Route>(_request: frontend_contract::route_request::RouteRequest<Route>)
+fn require_public<Route>(route_request: frontend_contract::route_request::RouteRequest<Route>)
 where
     Route: frontend_contract::typed_route::TypedRoute<Transport = frontend_contract::public_transport::PublicTransport>,
 {
+    drop(route_request);
 }
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]

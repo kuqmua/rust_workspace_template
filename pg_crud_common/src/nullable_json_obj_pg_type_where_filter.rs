@@ -46,23 +46,23 @@ where
 {
     fn query_bind(
         self,
-        query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+        sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
     ) -> Result<crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>, crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
         match self.into_option() {
-            Some(v) => v.query_bind(query),
-            None => Ok(query), //todo maybe wrong
+            Some(v) => v.query_bind(sqlx_postgres_query),
+            None => Ok(sqlx_postgres_query), //todo maybe wrong
         }
     }
     fn query_part(
         &self,
         increment: &mut dyn crate::query_part_increment_mut::QueryPartIncrementMut,
-        column: crate::sql_column_ref::SqlColumnRef<'_>,
+        sql_column_ref: crate::sql_column_ref::SqlColumnRef<'_>,
         add_operator: crate::add_operator::AddOperator,
     ) -> Result<crate::query_part_fragment::QueryPartFragment, crate::query_part_error::QueryPartError> {
         self.as_ref().map_or_else(
             || {
                 let mut query_part = String::with_capacity(16);
-                if std::fmt::Write::write_fmt(&mut query_part, format_args!("{column} = 'null'"))
+                if std::fmt::Write::write_fmt(&mut query_part, format_args!("{sql_column_ref} = 'null'"))
                     .is_err()
                 {
                     return Err(crate::query_part_error::QueryPartError::WriteIntoBuffer {
@@ -72,7 +72,7 @@ where
                 Ok(crate::query_part_fragment::QueryPartFragment::try_from(query_part)
                     .unwrap_or_else(crate::query_part_fragment::QueryPartFragment::from))
             },
-            |v| v.query_part(increment, column, add_operator),
+            |v| v.query_part(increment, sql_column_ref, add_operator),
         )
     }
 }

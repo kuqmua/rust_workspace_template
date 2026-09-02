@@ -1,5 +1,5 @@
-pub mod create_notification_req;
-pub mod create_notification_res;
+pub mod create_notification_request;
+pub mod create_notification_response;
 pub mod create_notification_route;
 pub mod notification_api_body_max_bytes;
 pub mod notification_message;

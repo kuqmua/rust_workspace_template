@@ -17,16 +17,16 @@ pub struct RouteCoverageDescriptor {
 impl RouteCoverageDescriptor {
     #[must_use]
     pub const fn new(
-        metadata: crate::route_metadata::RouteMetadata,
-        access: crate::route_access::RouteAccess,
-        mutation: crate::route_mutation::RouteMutation,
-        evidence: crate::route_coverage_evidence::RouteCoverageEvidence,
+        route_metadata: crate::route_metadata::RouteMetadata,
+        route_access: crate::route_access::RouteAccess,
+        route_mutation: crate::route_mutation::RouteMutation,
+        route_coverage_evidence: crate::route_coverage_evidence::RouteCoverageEvidence,
     ) -> Self {
         Self {
-            evidence,
-            metadata,
-            access,
-            mutation,
+            evidence: route_coverage_evidence,
+            metadata: route_metadata,
+            access: route_access,
+            mutation: route_mutation,
         }
     }
 }

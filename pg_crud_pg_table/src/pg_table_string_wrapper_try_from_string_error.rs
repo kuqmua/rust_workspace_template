@@ -5,11 +5,11 @@ pub enum PgTableStringWrapperTryFromStringError {
     TooLong { len: usize, max: usize },
 }
 impl std::fmt::Display for PgTableStringWrapperTryFromStringError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::TooLong { len, max } => {
                 write!(
-                    f,
+                    formatter,
                     "pg table string wrapper length {len} exceeds maximum {max}"
                 )
             }

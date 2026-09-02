@@ -36,21 +36,21 @@ fn test_commit_link_cow() -> git_info::git_commit_link_cow::GitCommitLinkCow {
     ))
     .expect(constants_str::DIAGNOSTIC_931B775C)
 }
-fn b_cow(v: &'static str) -> git_info::git_commit_link_cow::GitCommitLinkCow {
-    git_info::git_commit_link_cow::GitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v))
+fn b_cow(str: &'static str) -> git_info::git_commit_link_cow::GitCommitLinkCow {
+    git_info::git_commit_link_cow::GitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(str))
         .expect(constants_str::DIAGNOSTIC_36301996)
 }
 fn uri_ref(uri: &axum::http::Uri) -> crate::axum_http_uri_ref::AxumHttpUriRef<'_> {
     crate::axum_http_uri_ref::AxumHttpUriRef::from(uri)
 }
-fn suffix_ref(v: &str) -> crate::uri_suffix_ref::UriSuffixRef<'_> {
-    crate::uri_suffix_ref::UriSuffixRef::from(v)
+fn suffix_ref(str: &str) -> crate::uri_suffix_ref::UriSuffixRef<'_> {
+    crate::uri_suffix_ref::UriSuffixRef::from(str)
 }
-fn assert_git_info_commit(payload: &crate::git_info::GitInfo, exp_commit: &str) {
-    assert!(payload.commit_matches(exp_commit));
+fn assert_git_info_commit(git_info: &crate::git_info::GitInfo, str: &str) {
+    assert!(git_info.commit_matches(str));
 }
 fn assert_not_found_payload_with_commit(
-    payload: &crate::not_found_payload::NotFoundPayload,
+    not_found_payload: &crate::not_found_payload::NotFoundPayload,
     exp_commit: &str,
     exp_uri_suffix: &str,
 ) {
@@ -58,17 +58,17 @@ fn assert_not_found_payload_with_commit(
         crate::make_no_route_message_for_suffix_tests::make_no_route_message_for_suffix(
             suffix_ref(exp_uri_suffix),
         );
-    assert!(payload.matches(
+    assert!(not_found_payload.matches(
         exp_commit,
         &expected_message,
         constants_str::COMMON_ROUTES_SWAGGER_UI,
     ));
 }
-fn assert_no_route_message(actual: &to_err_string::error_text::ErrorText, uri_suffix: &str) {
+fn assert_no_route_message(error_text: &to_err_string::error_text::ErrorText, str: &str) {
     assert_eq!(
-        actual.as_ref(),
+        error_text.as_ref(),
         crate::make_no_route_message_for_suffix_tests::make_no_route_message_for_suffix(
-            suffix_ref(uri_suffix)
+            suffix_ref(str)
         )
         .as_ref()
     );
