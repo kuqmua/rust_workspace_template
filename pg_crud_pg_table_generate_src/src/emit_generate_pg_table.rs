@@ -8267,15 +8267,21 @@ enum WrapIntoOptional {
             constants_str::VALUE_9AC6D79A;
         let table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name =
             constants_str::VALUE_5A52AF33;
-        fill_table_fis_vec_token_stream(
-            vec![
-                table_read_ids_and_create_into_where_eq_name,
-                table_read_ids_and_create_into_vec_where_eq_using_fields_name,
-                table_read_ids_and_create_into_optional_vec_where_eq_to_field_name,
-                table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name,
-            ]
-            .into(),
-        );
+        let table_test_names = match crate::table_test_names::TableTestNames::try_from(vec![
+            table_read_ids_and_create_into_where_eq_name,
+            table_read_ids_and_create_into_vec_where_eq_using_fields_name,
+            table_read_ids_and_create_into_optional_vec_where_eq_to_field_name,
+            table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name,
+        ]) {
+            Ok(table_test_names) => table_test_names,
+            Err(error) => {
+                let message = error.to_string();
+                return macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
+                    quote::quote! { compile_error!(#message); },
+                );
+            }
+        };
+        fill_table_fis_vec_token_stream(table_test_names);
         let select_default_all_with_max_page_size_cloned_clone_token_stream =
             quote::quote! {select_default_all_with_max_page_size_cloned.clone()};
         let read_ids_to_2_dimensions_vec_read_inner_accumulator_fields_token_stream =

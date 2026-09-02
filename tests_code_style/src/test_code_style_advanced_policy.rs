@@ -1581,7 +1581,6 @@ fn test_raw_vec_tuple_wrappers_match_reviewed_inventory() {
         (constants_str::VALUE_9DB8F65B, constants_str::VALUE_7C37CACC),
         (constants_str::VALUE_671231A3, constants_str::VALUE_D82FE516),
         (constants_str::VALUE_DEB830DD, constants_str::VALUE_DCAEE23B),
-        (constants_str::VALUE_DD337AC0, constants_str::VALUE_C9221A63),
         (constants_str::VALUE_06C235F4, constants_str::VALUE_211A1405),
         (constants_str::VALUE_2316F647, constants_str::VALUE_0EFD8ED8),
         (constants_str::VALUE_5D687FEA, constants_str::VALUE_0C7973A9),

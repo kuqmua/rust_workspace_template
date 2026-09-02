@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:css": "tailwindcss -i ./style/tailwind.css -o ./static/rust-ui.css --minify"
+    "build:css": "tailwindcss -i ./style/tailwind.css -o ./static/rust-ui.css --minify",
+    "postbuild:css": "node -e \"const fs=require('node:fs');const p='./static/rust-ui.css';const b=fs.readFileSync(p);if(b.at(-1)!==10)fs.appendFileSync(p,'\\n')\""
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.3",
