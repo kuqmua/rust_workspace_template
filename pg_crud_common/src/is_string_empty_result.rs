@@ -8,4 +8,4 @@
     proc_macro_newtype::FromInner,
     proc_macro_newtype::IntoInnerFrom,
 )]
-pub struct IsStringEmptyRes(bool);
+pub struct IsStringEmptyResult(bool);

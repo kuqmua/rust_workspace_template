@@ -5,7 +5,7 @@ proc_macro_token_patterns::tp!(
     AxumExtractRejectionJsonRejection,
     axum::extract::rejection::JsonRejection
 );
-proc_macro_token_patterns::tp!(AxumResIntoRes, axum::response::IntoResponse);
+proc_macro_token_patterns::tp!(AxumResponseIntoResponse, axum::response::IntoResponse);
 proc_macro_token_patterns::tp!(ReqwestError, reqwest::Error);
 proc_macro_token_patterns::tp!(ReqwestHeaderHeaderMap, reqwest::header::HeaderMap);
 proc_macro_token_patterns::tp!(HttpStatusCode, http::StatusCode);

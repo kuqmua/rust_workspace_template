@@ -341,7 +341,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_test
           TIMEZONE: "10800"
           TRACING_LEVEL: debug
-          SRC_PLACE_TYPE: src
+          SOURCE_PLACE_TYPE: src
           SVC_MODE: serve
           ENABLE_API_GIT_COMMIT_CHECK: "true"
           MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: "1048576000"

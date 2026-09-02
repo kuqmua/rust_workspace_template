@@ -33,7 +33,7 @@ configMapGenerator:
       - PRODUCTION_MODE=true
       - REQUEST_TIMEOUT_SECONDS=30
       - SERVICE_SOCKET_ADDRESS=0.0.0.0:8080
-      - SRC_PLACE_TYPE=github
+      - SOURCE_PLACE_TYPE=github
       - SVC_MODE=serve
       - TIMEZONE=0
       - TRACING_FORMAT=json
