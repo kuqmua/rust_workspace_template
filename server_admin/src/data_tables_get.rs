@@ -295,7 +295,6 @@ pub(crate) async fn data_tables_get(
                     let data_sql = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                         base_sql.as_ref().as_str(),
                     );
-                    let bind_count = increment;
                     (|| {
                             let mut filtered_count = count_sql.get().to_owned();
                             filtered_count.push(' ');
@@ -307,7 +306,7 @@ pub(crate) async fn data_tables_get(
                             let order = ordered_suffix
                                 .strip_suffix(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
                                 .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                            let limit_index = bind_count.get().saturating_add(1u64);
+                            let limit_index = increment.get().saturating_add(1u64);
                             let offset_index = limit_index.saturating_add(1u64);
                             let mut filtered_data = data_prefix.to_owned();
                             filtered_data.push(' ');

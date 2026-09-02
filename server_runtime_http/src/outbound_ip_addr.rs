@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct OutboundIpAddr(std::net::IpAddr);
-
-impl OutboundIpAddr {
-    pub(crate) const fn get(self) -> std::net::IpAddr {
-        self.0
-    }
-}

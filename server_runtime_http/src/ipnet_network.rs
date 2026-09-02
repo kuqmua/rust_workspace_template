@@ -6,11 +6,7 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub(super) struct IpnetNetwork(ipnet::IpNet);
-
-impl IpnetNetwork {
-    pub(crate) const fn get(self) -> ipnet::IpNet {
-        self.0
-    }
-}

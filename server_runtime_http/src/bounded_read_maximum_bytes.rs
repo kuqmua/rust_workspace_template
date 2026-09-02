@@ -6,12 +6,8 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
     proc_macro_newtype::Display,
 )]
+#[accessor(pub(crate))]
 pub struct BoundedReadMaximumBytes(usize);
-
-impl BoundedReadMaximumBytes {
-    pub(crate) const fn get(self) -> usize {
-        self.0
-    }
-}

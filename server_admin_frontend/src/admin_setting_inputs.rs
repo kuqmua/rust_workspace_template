@@ -5,10 +5,8 @@ pub(crate) fn admin_setting_inputs(
 ) -> impl leptos::prelude::IntoView {
     leptos::view! {
         {server_admin_contract::admin_setting::AdminSetting::ALL.into_iter().map(|setting| {
-            {
-                let field = setting;
                 let value = signals.get(setting);
-                    let spec = field.spec();
+                    let spec = setting.spec();
                     let required = crate::admin_setting_required::AdminSettingRequired::from(bool::from(spec.required()));
                     match spec.input_kind() {
                         server_admin_contract::admin_setting_input_kind::AdminSettingInputKind::Text
@@ -45,7 +43,6 @@ pub(crate) fn admin_setting_inputs(
                             })
                         }
                     }
-            }
         }).collect::<Vec<_>>()}
     }
 }

@@ -87,19 +87,18 @@ pub(crate) async fn authn_refresh(
         .await;
         return Err(crate::admin_error::AdminError::Authentication);
     };
-    let admin_user_id = user_id;
     crate::revoke_refresh_token::revoke_refresh_token(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
         ),
         &token_hash,
-        admin_user_id,
+        user_id,
     )
     .await
     .map_err(crate::admin_error::AdminError::from)?;
     let session = crate::create_session_in_connection::create_session_in_connection(
         state.as_ref(),
-        admin_user_id,
+        user_id,
         &context_hash,
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
@@ -109,7 +108,7 @@ pub(crate) async fn authn_refresh(
     .map_err(crate::admin_error::AdminError::session)?;
     let login =
         sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_ACTIVE_USER_LOGIN_SQL)
-            .bind(admin_user_id.get())
+            .bind(user_id.get())
             .fetch_optional(&mut *tx)
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
@@ -127,7 +126,7 @@ pub(crate) async fn authn_refresh(
             &login,
             crate::admin_audit_resource::AdminAuditResource::Session,
             crate::admin_audit_resource_id::AdminAuditResourceId::Session(session.session_id()),
-            admin_user_id,
+            user_id,
         ),
     )
     .await?;
@@ -135,7 +134,7 @@ pub(crate) async fn authn_refresh(
         &mut crate::admin_db_ref::AdminDbRef::Connection(
             crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         ),
-        admin_user_id,
+        user_id,
         session.session_id(),
     )
     .await?;

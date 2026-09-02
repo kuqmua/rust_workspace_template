@@ -595,15 +595,13 @@ pub fn emit_generate_pg_table(
         }
     }
     #[derive(
-        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
     )]
+    #[borrow]
     struct SynGeneratePgTableDeriveInput(syn::DeriveInput);
 
-    impl SynGeneratePgTableDeriveInput {
-        const fn get(&self) -> &syn::DeriveInput {
-            &self.0
-        }
-    }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableFieldEmissionModel {
         field: macro_helpers::syn_field::SynField,
@@ -671,14 +669,10 @@ pub fn emit_generate_pg_table(
         Clone,
         Copy,
         proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
     )]
     struct GeneratePgTableFieldIdx(usize);
 
-    impl GeneratePgTableFieldIdx {
-        const fn get(self) -> usize {
-            self.0
-        }
-    }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableFieldsEmissionModel {
         db_default_field_idxs: Vec<GeneratePgTableFieldIdx>,
@@ -692,68 +686,48 @@ pub fn emit_generate_pg_table(
         Clone,
         Copy,
         proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
     )]
     struct SynGeneratePgTableFieldRef<'field_lt>(&'field_lt syn::Field);
 
-    impl<'field_lt> SynGeneratePgTableFieldRef<'field_lt> {
-        const fn get(self) -> &'field_lt syn::Field {
-            self.0
-        }
-    }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
         proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
     )]
     struct SynGeneratePgTableIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
 
-    impl<'identifier_lt> SynGeneratePgTableIdentifierRef<'identifier_lt> {
-        const fn get(self) -> &'identifier_lt syn::Ident {
-            self.0
-        }
-    }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
         proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
     )]
     struct SynGeneratePgTableTypeRef<'type_lt>(&'type_lt syn::Type);
 
-    impl<'type_lt> SynGeneratePgTableTypeRef<'type_lt> {
-        const fn get(self) -> &'type_lt syn::Type {
-            self.0
-        }
-    }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
         proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
     )]
     struct GeneratePgTableVariantLocationAttr(
         Option<macro_helpers::location_field_attr::LocationFieldAttr>,
     );
 
-    impl GeneratePgTableVariantLocationAttr {
-        const fn get(self) -> Option<macro_helpers::location_field_attr::LocationFieldAttr> {
-            self.0
-        }
-    }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
         proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
     )]
     struct GeneratePgTablePrimaryKeyAttrName<'name_lt>(&'name_lt str);
 
-    impl<'name_lt> GeneratePgTablePrimaryKeyAttrName<'name_lt> {
-        const fn get(self) -> &'name_lt str {
-            self.0
-        }
-    }
     fn generate_pg_table_syn_field_location_attr_stage(
         field_ref: SynGeneratePgTableFieldRef<'_>,
     ) -> Result<
@@ -915,9 +889,8 @@ pub fn emit_generate_pg_table(
                         let variants = data_enum.variants.into_iter().try_fold(
                             Vec::with_capacity(variants_len),
                             |mut variants_accumulator, variant| {
-                                let syn_variant = variant;
                                 let variant_model = (|| {
-                            let syn::Fields::Named(fields_named) = syn_variant.fields else {
+                            let syn::Fields::Named(fields_named) = variant.fields else {
                                 return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
                                     constants_str::COMPILE_ERROR_CE_004,
                                 )));
@@ -926,9 +899,8 @@ pub fn emit_generate_pg_table(
                             let fields = fields_named.named.into_iter().try_fold(
                                 Vec::with_capacity(fields_len),
                                 |mut variant_field_accumulator, field| {
-                                    let syn_field = field;
                                     let field_model = (|| {
-                                    let Some(identifier) = syn_field.ident else {
+                                    let Some(identifier) = field.ident else {
                                         return Err(crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
                                             constants_str::COMPILE_ERROR_CE_030,
                                         )));
@@ -938,7 +910,7 @@ pub fn emit_generate_pg_table(
                                     {
                                         None
                                     } else {
-                                        let mut location_attrs = syn_field.attrs.iter().filter_map(|element| {
+                                        let mut location_attrs = field.attrs.iter().filter_map(|element| {
                                             if element.path().segments.len() != 1 {
                                                 return None;
                                             }
@@ -964,7 +936,7 @@ pub fn emit_generate_pg_table(
                                     Ok(GeneratePgTableVariantFieldEmission {
                                         identifier,
                                         location_attr: parsed_location_attr,
-                                        field_type: syn_field.ty,
+                                        field_type: field.ty,
                                     })
                                     })()?;
                                     variant_field_accumulator.push(field_model);
@@ -976,7 +948,7 @@ pub fn emit_generate_pg_table(
                             )?;
                             Ok(GeneratePgTableVariantEmission {
                                 fields,
-                                identifier: syn_variant.ident,
+                                identifier: variant.ident,
                             })
                                 })()?;
                                 variants_accumulator.push(variant_model);
@@ -1254,12 +1226,11 @@ pub fn emit_generate_pg_table(
     let db_table_snake_case = quote::format_ident!("db_table");
     let generate_pg_table_primary_key_snake_case_str =
         GeneratePgTablePrimaryKeySnakeCase.to_string();
-    let input = &parsed_input;
     let primary_key_attr_name = GeneratePgTablePrimaryKeyAttrName::from(
         generate_pg_table_primary_key_snake_case_str.as_str(),
     );
     let fields_model = match (|| match crate::struct_shape::struct_shape(
-        workspace_macro_helpers::syn_derive_input_ref::SynDeriveInputRef::from(input.get()),
+        workspace_macro_helpers::syn_derive_input_ref::SynDeriveInputRef::from(di),
     ) {
         Ok(workspace_macro_helpers::syn_struct_shape_ref::SynStructShapeRef::Named(
             fields_named_ref,
@@ -1475,10 +1446,9 @@ pub fn emit_generate_pg_table(
         Err(error) => return error,
     };
     let validated_fields_model = match (|| {
-        let model = fields_model;
-        if model
+        if fields_model
             .fields
-            .get(model.primary_key_field_idx.get())
+            .get(fields_model.primary_key_field_idx.get())
             .is_none()
         {
             return Err(
@@ -1489,10 +1459,10 @@ pub fn emit_generate_pg_table(
                 ),
             );
         }
-        if model
+        if fields_model
             .fields_without_primary_key_idxs
             .iter()
-            .any(|idx| model.fields.get(idx.get()).is_none())
+            .any(|idx| fields_model.fields.get(idx.get()).is_none())
         {
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
@@ -1502,7 +1472,7 @@ pub fn emit_generate_pg_table(
                 ),
             );
         }
-        if model.fields.len() != model.frontend_fields.len() {
+        if fields_model.fields.len() != fields_model.frontend_fields.len() {
             return Err(
                 crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                     crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
@@ -1511,7 +1481,7 @@ pub fn emit_generate_pg_table(
                 ),
             );
         }
-        Ok(model)
+        Ok(fields_model)
     })() {
         Ok(v) => v,
         Err(error) => return error,
@@ -7865,7 +7835,7 @@ enum WrapIntoOptional {
                 #[test]
                 fn #read_query_negative_contracts_test_identifier() {
                     let original: #identifier_rm_payload_upper_camel_case = pg_crud_common::default_some_one_element::DefaultSomeOneElement::default_some_one_element();
-                    let serialized = serde_json::to_value(original).expect("bbb88adf collect_refs invariant must hold");
+                    let mut serialized = serde_json::to_value(original).expect("bbb88adf collect_refs invariant must hold");
                     let mut empty_filter_payload = serialized.clone();
                     empty_filter_payload.as_object_mut().expect("aa1919f0 collect_refs invariant must hold").insert("where_many".to_owned(), serde_json::json!({}));
                     assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(empty_filter_payload).is_err());
@@ -7889,9 +7859,8 @@ enum WrapIntoOptional {
                     assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(multi_operator_payload).is_err());
                     let duplicate_filter_json = format!("{{\"{field_name}\":{field_filter},\"{field_name}\":{field_filter}}}");
                     assert!(serde_json::from_str::<#identifier_where_upper_camel_case>(&duplicate_filter_json).is_err());
-                    let mut cursor_payload = serialized;
-                    cursor_payload.as_object_mut().expect("c12f9360 collect_refs invariant must hold").insert("cursor".to_owned(), serde_json::Value::String("forbidden".to_owned()));
-                    assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(cursor_payload).is_err());
+                    serialized.as_object_mut().expect("c12f9360 collect_refs invariant must hold").insert("cursor".to_owned(), serde_json::Value::String("forbidden".to_owned()));
+                    assert!(serde_json::from_value::<#identifier_rm_payload_upper_camel_case>(serialized).is_err());
                 }
                 #[test]
                 fn #route_open_api_parity_test_identifier() {
@@ -10022,11 +9991,8 @@ enum WrapIntoOptional {
                             let _unused = futures::future::try_join_all(
                                 table_names
                                 .iter()
-                                .map(|table_name|{
-                                    let pg_pool_3b948340 = &pg_pool;
-                                    async move {
-                                        sqlx::query(sqlx::AssertSqlSafe(format!("drop table if exists {table_name}"))).execute(pg_pool_3b948340).await
-                                    }
+                                .map(async |table_name|{
+                                    sqlx::query(sqlx::AssertSqlSafe(format!("drop table if exists {table_name}"))).execute(&pg_pool).await
                                 })
                             )
                             .await

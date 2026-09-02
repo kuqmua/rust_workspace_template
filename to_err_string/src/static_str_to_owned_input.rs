@@ -4,11 +4,6 @@
     Clone,
     Copy,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct StaticStrToOwnedInput(&'static str);
-
-impl StaticStrToOwnedInput {
-    pub(super) const fn get(self) -> &'static str {
-        self.0
-    }
-}

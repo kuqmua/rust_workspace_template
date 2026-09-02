@@ -2971,15 +2971,14 @@ pub(super) enum IsConst {
         let (identifier_where_token_stream, frontend_filter_contracts_token_stream) = {
             let pg_type_filters = {
                 fn generate_flts_with<T>(
-                    base: Vec<pg_crud_macro_common::pg_type_filter::PgTypeFilter>,
+                    mut base: Vec<pg_crud_macro_common::pg_type_filter::PgTypeFilter>,
                     extra: T,
                 ) -> Vec<pg_crud_macro_common::pg_type_filter::PgTypeFilter>
                 where
                     T: IntoIterator<Item = pg_crud_macro_common::pg_type_filter::PgTypeFilter>,
                 {
-                    let mut vec = base;
-                    vec.extend(extra);
-                    vec
+                    base.extend(extra);
+                    base
                 }
                 let generate_common_pg_type_filters = || {
                     vec![pg_crud_macro_common::pg_type_filter::PgTypeFilter::Eq {

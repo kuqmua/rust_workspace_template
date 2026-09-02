@@ -13,19 +13,17 @@ pub fn getters(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Err(error) => return error.into_compile_error().into(),
     };
     let generate = || -> syn::Result<proc_macro2::TokenStream> {
-        let parsed_input_ref = &parsed_input;
-        let syn::Data::Struct(data) = &parsed_input_ref.data else {
+        let syn::Data::Struct(data) = &parsed_input.data else {
             return Err(syn::Error::new_spanned(
-                parsed_input_ref,
+                &parsed_input,
                 constants_str::GETTERS_REQUIRES_STRUCT,
             ));
         };
-        let identifier = &parsed_input_ref.ident;
-        let visibility = &parsed_input_ref.vis;
-        let (impl_generics, type_generics, where_clause) =
-            parsed_input_ref.generics.split_for_impl();
+        let identifier = &parsed_input.ident;
+        let visibility = &parsed_input.vis;
+        let (impl_generics, type_generics, where_clause) = parsed_input.generics.split_for_impl();
         let (container_bare, container_get_mut) =
-            parsed_input_ref
+            parsed_input
                 .attrs
                 .iter()
                 .try_fold((false, false), |found, attribute| {

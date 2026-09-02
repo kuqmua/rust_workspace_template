@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct RuntimePathRef<'path_lt>(&'path_lt std::path::Path);
-
-impl<'path_lt> RuntimePathRef<'path_lt> {
-    pub(crate) const fn get(self) -> &'path_lt std::path::Path {
-        self.0
-    }
-}

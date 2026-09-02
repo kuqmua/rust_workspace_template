@@ -6,11 +6,7 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct PermitWaitTimeoutDuration(std::time::Duration);
-
-impl PermitWaitTimeoutDuration {
-    pub(crate) const fn get(self) -> std::time::Duration {
-        self.0
-    }
-}

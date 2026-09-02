@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct HttpCookieHeadersRef<'value_lt>(&'value_lt http::HeaderMap);
-
-impl<'value_lt> HttpCookieHeadersRef<'value_lt> {
-    pub(crate) const fn get(self) -> &'value_lt http::HeaderMap {
-        self.0
-    }
-}

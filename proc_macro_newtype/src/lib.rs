@@ -468,7 +468,7 @@ pub fn accessor(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     )
     .into()
 }
-#[proc_macro_derive(GetInner)]
+#[proc_macro_derive(GetInner, attributes(accessor, borrow))]
 pub fn get_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
         proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
@@ -644,13 +644,12 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
         Err(error) => return error.into_compile_error().into(),
     };
     let generated = (|| {
-        let input_ref = &input;
-        let identifier = &input_ref.ident;
-        let data_enum = match &input_ref.data {
+        let identifier = &input.ident;
+        let data_enum = match &input.data {
             syn::Data::Enum(value) => value,
             syn::Data::Struct(_) | syn::Data::Union(_) => {
                 return Err(syn::Error::new_spanned(
-                    input_ref,
+                    &input,
                     constants_str::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
                 ));
             }
@@ -1684,16 +1683,46 @@ fn generate_newtype_token_stream_with_attrs(
     let get_inner_token_stream = attrs
         .contains(newtype_option::NewtypeOption::GetInner)
         .get()
-        .then(|| {
-            quote::quote! {
+        .then(|| -> syn::Result<proc_macro2::TokenStream> {
+            let mut visibility = input_ref.vis.clone();
+            let mut accessor_attributes = input_ref
+                .attrs
+                .iter()
+                .filter(|attribute| attribute.path().is_ident(constants_str::ACCESSOR));
+            if let Some(attribute) = accessor_attributes.next() {
+                visibility = attribute.parse_args::<syn::Visibility>()?;
+            }
+            if let Some(attribute) = accessor_attributes.next() {
+                return Err(syn::Error::new_spanned(
+                    attribute,
+                    constants_str::DUPLICATE_NEWTYPE_OPTION,
+                ));
+            }
+            let borrow = input_ref
+                .attrs
+                .iter()
+                .any(|attribute| attribute.path().is_ident(constants_str::VALUE_D106CCB1));
+            let receiver = if borrow {
+                quote::quote!(&self)
+            } else {
+                quote::quote!(self)
+            };
+            let (return_type, value) = if borrow && !matches!(inner_ty_ref, syn::Type::Reference(_))
+            {
+                (quote::quote!(&#inner_ty_ref), quote::quote!(&self.0))
+            } else {
+                (quote::quote!(#inner_ty_ref), quote::quote!(self.0))
+            };
+            Ok(quote::quote! {
                 impl #impl_generics #identifier #ty_generics #where_clause {
                     #[must_use]
-                    pub const fn get(self) -> #inner_ty_ref {
-                        self.0
+                    #visibility const fn get(#receiver) -> #return_type {
+                        #value
                     }
                 }
-            }
-        });
+            })
+        })
+        .transpose()?;
     let into_inner_token_stream = attrs
         .contains(newtype_option::NewtypeOption::IntoInner)
         .get()

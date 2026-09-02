@@ -1,15 +1,16 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::GetInner,
+)]
+#[accessor(pub(crate))]
+#[borrow]
 pub struct AllowedOrigins(
     bounded_types::bounded_vec::BoundedVec<crate::allowed_origin::AllowedOrigin, 0, 128>,
 );
-
-impl AllowedOrigins {
-    pub(crate) const fn get(
-        &self,
-    ) -> &bounded_types::bounded_vec::BoundedVec<crate::allowed_origin::AllowedOrigin, 0, 128> {
-        &self.0
-    }
-}
 
 impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = crate::allowed_origins_error::AllowedOriginsError;

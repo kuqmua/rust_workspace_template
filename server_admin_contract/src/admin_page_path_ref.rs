@@ -6,10 +6,7 @@
     PartialEq,
     Eq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
-impl<'path_lt> AdminPagePathRef<'path_lt> {
-    pub(crate) const fn get(self) -> &'path_lt str {
-        self.0
-    }
-}

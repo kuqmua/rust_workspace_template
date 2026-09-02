@@ -6,10 +6,8 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(super))]
+#[borrow]
 pub struct ProcessStaticArgument(&'static str);
-impl ProcessStaticArgument {
-    pub(super) const fn get(&self) -> &'static str {
-        self.0
-    }
-}

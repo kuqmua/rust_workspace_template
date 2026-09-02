@@ -1,14 +1,14 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct PgRateLimitSubjectRef<'value_lt>(&'value_lt str);
-
-impl<'value_lt> PgRateLimitSubjectRef<'value_lt> {
-    #[must_use]
-    pub(crate) const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}
 
 impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitSubjectRef<'value_lt> {
     type Error = crate::pg_rate_limit_validation_error::PgRateLimitValidationError;

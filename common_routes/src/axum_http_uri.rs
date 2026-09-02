@@ -3,14 +3,10 @@
     Clone,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[borrow]
 pub(crate) struct AxumHttpUri(axum::http::Uri);
-
-impl AxumHttpUri {
-    pub(crate) const fn get(&self) -> &axum::http::Uri {
-        &self.0
-    }
-}
 
 impl<State> axum::extract::FromRequestParts<State> for AxumHttpUri
 where

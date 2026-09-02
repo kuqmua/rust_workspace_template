@@ -3,14 +3,10 @@
     Clone,
     Copy,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
-
-impl<'value_lt> NotificationApiTokenRef<'value_lt> {
-    pub(crate) const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}
 
 impl std::fmt::Debug for NotificationApiTokenRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -3,7 +3,9 @@
     Clone,
     proc_macro_newtype::DerefTarget,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[borrow]
 pub(crate) struct SharedServerAppStateArc(
     std::sync::Arc<server_app_state::server_app_state::ServerAppState<'static>>,
 );
@@ -16,11 +18,5 @@ impl SharedServerAppStateArc {
         state: server_app_state::server_app_state::ServerAppState<'static>,
     ) -> Self {
         Self::from(std::sync::Arc::new(state))
-    }
-
-    pub(crate) const fn get(
-        &self,
-    ) -> &std::sync::Arc<server_app_state::server_app_state::ServerAppState<'static>> {
-        &self.0
     }
 }

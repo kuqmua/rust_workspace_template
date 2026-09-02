@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
-
-impl<'value_lt> JsonSnapshotDynamicFieldRef<'value_lt> {
-    pub(crate) const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}

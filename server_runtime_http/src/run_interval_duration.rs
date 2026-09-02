@@ -1,13 +1,14 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct RunIntervalDuration(std::time::Duration);
-
-impl RunIntervalDuration {
-    pub(crate) const fn get(self) -> std::time::Duration {
-        self.0
-    }
-}
 
 impl TryFrom<std::time::Duration> for RunIntervalDuration {
     type Error =

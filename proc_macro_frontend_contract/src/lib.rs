@@ -617,7 +617,7 @@ pub fn derive_contract_struct_api(
                 }
             });
             let slice = field_args.get_slice().map(|wrapped_element_type| {
-                let element_type = &wrapped_element_type.as_ref();
+                let element_type = wrapped_element_type.as_ref();
                 quote::quote! {
                     #[must_use]
                     pub const fn #identifier(&self) -> &[#element_type] {

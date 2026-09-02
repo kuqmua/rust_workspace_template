@@ -6,11 +6,7 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub(super) struct ParsedIpAddr(std::net::IpAddr);
-
-impl ParsedIpAddr {
-    pub(crate) const fn get(self) -> std::net::IpAddr {
-        self.0
-    }
-}

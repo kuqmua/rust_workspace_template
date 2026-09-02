@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct HttpFallbackApiPrefixRef<'value_lt>(&'value_lt str);
-impl<'value_lt> HttpFallbackApiPrefixRef<'value_lt> {
-    #[must_use]
-    pub(crate) const fn get(self) -> &'value_lt str {
-        self.0
-    }
-}

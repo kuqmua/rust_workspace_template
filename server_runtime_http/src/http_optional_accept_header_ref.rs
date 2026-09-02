@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct HttpOptionalAcceptHeaderRef<'value_lt>(Option<&'value_lt http::HeaderValue>);
-
-impl<'value_lt> HttpOptionalAcceptHeaderRef<'value_lt> {
-    pub(crate) const fn get(self) -> Option<&'value_lt http::HeaderValue> {
-        self.0
-    }
-}

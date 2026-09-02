@@ -3,13 +3,10 @@
     Clone,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[borrow]
 pub(crate) struct NotificationAxumState(crate::notification_state::NotificationState);
-impl NotificationAxumState {
-    pub(crate) const fn get(&self) -> &crate::notification_state::NotificationState {
-        &self.0
-    }
-}
 impl axum::extract::FromRequestParts<crate::notification_state::NotificationState>
     for NotificationAxumState
 {

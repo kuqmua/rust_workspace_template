@@ -20,15 +20,14 @@ pub fn generate_accessor_traits_for_struct_fields(
         let upper_camel_case_field =
             naming_common::domain_types::ToTokensToUpperCamelCaseStr::case(&field_identifier);
         let trait_identifier = quote::format_ident!("{}Provider", upper_camel_case_field);
-        let fn_name_identifier = field_identifier;
         quote::quote! {
             impl app_state::#trait_identifier for #identifier {
-                fn #fn_name_identifier (&self) -> &#field_type {
+                fn #field_identifier (&self) -> &#field_type {
                     &self.#field_identifier
                 }
             }
             impl app_state::#trait_identifier for &#identifier {
-                fn #fn_name_identifier (&self) -> &#field_type {
+                fn #field_identifier (&self) -> &#field_type {
                     &self.#field_identifier
                 }
             }

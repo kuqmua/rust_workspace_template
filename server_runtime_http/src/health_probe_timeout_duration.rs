@@ -6,11 +6,7 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct HealthProbeTimeoutDuration(std::time::Duration);
-
-impl HealthProbeTimeoutDuration {
-    pub(crate) const fn get(self) -> std::time::Duration {
-        self.0
-    }
-}

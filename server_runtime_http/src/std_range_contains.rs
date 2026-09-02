@@ -6,11 +6,6 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct StdRangeContains(bool);
-
-impl StdRangeContains {
-    pub(super) const fn get(self) -> bool {
-        self.0
-    }
-}

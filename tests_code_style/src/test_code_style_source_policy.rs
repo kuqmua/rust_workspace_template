@@ -3099,6 +3099,20 @@ fn test_string_constants_reuse_every_repeated_word() {
         })
         .flatten()
         .collect::<Vec<_>>();
+    let declared_constant_part_tokens = [5usize, 7usize]
+        .into_iter()
+        .filter_map(|index| top_tokens.get(index))
+        .filter_map(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group.stream()),
+            _ => None,
+        })
+        .flatten()
+        .filter_map(|token| match token {
+            proc_macro2::TokenTree::Group(group) => Some(group.stream()),
+            _ => None,
+        })
+        .flatten()
+        .collect::<Vec<_>>();
     let mut fragment_use_counts = fragments
         .keys()
         .map(|name| (name.clone(), 0usize))
@@ -3109,22 +3123,22 @@ fn test_string_constants_reuse_every_repeated_word() {
         .map(|name| (name.clone(), 0usize))
         .collect::<std::collections::BTreeMap<_, _>>();
     let mut rust_literal_counts = std::collections::BTreeMap::<String, usize>::new();
-    rust_constant_part_tokens
-        .into_iter()
-        .for_each(|token| match token {
-            proc_macro2::TokenTree::Ident(name) => {
-                if let Some(use_count) = rust_fragment_use_counts.get_mut(&name.to_string()) {
-                    *use_count = use_count.saturating_add(constants_usize::ONE);
-                }
-            }
-            proc_macro2::TokenTree::Literal(value) => {
-                if let Ok(value) = syn::parse_str::<syn::LitStr>(&value.to_string()) {
-                    let count = rust_literal_counts.entry(value.value()).or_default();
-                    *count = count.saturating_add(constants_usize::ONE);
-                }
-            }
-            _ => {}
-        });
+    let mut literal_syntax_counts = std::collections::BTreeMap::<String, usize>::new();
+    rust_constant_part_tokens.into_iter().for_each(|token| {
+        if let proc_macro2::TokenTree::Literal(value) = token
+            && let Ok(value) = syn::parse_str::<syn::LitStr>(&value.to_string())
+        {
+            let count = rust_literal_counts.entry(value.value()).or_default();
+            *count = count.saturating_add(constants_usize::ONE);
+        }
+    });
+    declared_constant_part_tokens.iter().for_each(|token| {
+        if let proc_macro2::TokenTree::Ident(name) = token
+            && let Some(use_count) = rust_fragment_use_counts.get_mut(&name.to_string())
+        {
+            *use_count = use_count.saturating_add(constants_usize::ONE);
+        }
+    });
     constant_part_tokens
         .into_iter()
         .for_each(|token| match token {
@@ -3146,6 +3160,25 @@ fn test_string_constants_reuse_every_repeated_word() {
                 }
             }
             _ => {}
+        });
+    declared_constant_part_tokens
+        .into_iter()
+        .filter_map(|token| match token {
+            proc_macro2::TokenTree::Literal(value) => {
+                syn::parse_str::<syn::LitStr>(&value.to_string()).ok()
+            }
+            _ => None,
+        })
+        .map(|value| value.value())
+        .filter(|value| {
+            !value.is_empty()
+                && value
+                    .chars()
+                    .all(|char| !char.is_ascii_alphanumeric() && char != '_')
+        })
+        .for_each(|value| {
+            let count = literal_syntax_counts.entry(value).or_default();
+            *count = count.saturating_add(constants_usize::ONE);
         });
     assert!(!fragments.is_empty());
     assert!(!rust_fragments.is_empty());
@@ -3178,6 +3211,16 @@ fn test_string_constants_reuse_every_repeated_word() {
             .keys()
             .all(|word| !fragments.values().any(|fragment| fragment == word))
     );
+    assert!(
+        literal_syntax_counts
+            .values()
+            .all(|use_count| *use_count == constants_usize::ONE)
+    );
+    assert!(literal_syntax_counts.keys().all(|syntax| {
+        !rust_fragments
+            .values()
+            .any(|parts| parts.to_string() == proc_macro2::Literal::string(syntax).to_string())
+    }));
 }
 
 #[test]

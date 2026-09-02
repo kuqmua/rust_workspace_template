@@ -262,9 +262,8 @@ impl syn::parse::Parse for DefineStrConstantsInput {
 
 impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
     fn from(value: DefineStrConstantsInput) -> Self {
-        let parsed = value;
         let generated = (|| {
-            let fragments = parsed.fragments.0.into_iter().try_fold(
+            let fragments = value.fragments.0.into_iter().try_fold(
                 std::collections::BTreeMap::new(),
                 |mut fragments, fragment| {
                     let name = fragment.name.0.to_string();
@@ -301,6 +300,7 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                 }
             })?;
             let mut literal_word_counts = std::collections::BTreeMap::<String, usize>::new();
+            let mut literal_syntax_counts = std::collections::BTreeMap::<String, usize>::new();
             let mut fragment_use_counts =
                 fragments
                     .keys()
@@ -308,14 +308,14 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                         let _: Option<usize> = use_counts.insert(name.clone(), 0usize);
                         use_counts
                     });
-            let mut rust_fragment_use_counts = parsed.rust_fragments.0.iter().fold(
+            let mut rust_fragment_use_counts = value.rust_fragments.0.iter().fold(
                 std::collections::BTreeMap::new(),
                 |mut use_counts, fragment| {
                     let _: Option<usize> = use_counts.insert(fragment.name.0.to_string(), 0usize);
                     use_counts
                 },
             );
-            let rust_fragments = parsed.rust_fragments.0.into_iter().try_fold(
+            let rust_fragments = value.rust_fragments.0.into_iter().try_fold(
                 std::collections::BTreeMap::new(),
                 |mut rust_fragments, fragment| {
                     let name = fragment.name.0.to_string();
@@ -365,16 +365,16 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                     Ok(rust_fragments)
                 },
             )?;
-            let constant_count = parsed
+            let rust_fragment_values = rust_fragments
+                .values()
+                .cloned()
+                .collect::<std::collections::HashSet<_>>();
+            let constant_count = value
                 .constants
                 .0
                 .len()
-                .saturating_add(parsed.rust_constants.0.len());
-            let mut constants = parsed
-                .rust_constants
-                .0
-                .into_iter()
-                .chain(parsed.constants.0);
+                .saturating_add(value.rust_constants.0.len());
+            let mut constants = value.rust_constants.0.into_iter().chain(value.constants.0);
             let (_, _, generated) = constants.try_fold(
                 (
                     std::collections::HashSet::with_capacity(constant_count),
@@ -421,6 +421,16 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                             }
                             ConstantPart::Literal(literal) => {
                                 let literal_value = literal.0.value();
+                                if !literal_value.is_empty()
+                                    && literal_value
+                                        .chars()
+                                        .all(|char| !char.is_ascii_alphanumeric() && char != '_')
+                                {
+                                    let syntax_count = literal_syntax_counts
+                                        .entry(literal_value.clone())
+                                        .or_insert(0usize);
+                                    *syntax_count = syntax_count.saturating_add(1usize);
+                                }
                                 literal_value
                                     .split(|char: char| {
                                         !char.is_ascii_alphanumeric() && char != '_'
@@ -492,6 +502,28 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                 return Err(syn::Error::new(
                     proc_macro2::Span::call_site(),
                     format!("fe0fa60a: word {word} must use its declared string fragment"),
+                ));
+            }
+            if let Some((syntax, _)) = literal_syntax_counts
+                .iter()
+                .find(|(_, use_count)| **use_count > 1usize)
+            {
+                return Err(syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    format!(
+                        "f37cb2a6: repeated syntax substring {syntax:?} must use a Rust string fragment"
+                    ),
+                ));
+            }
+            if let Some(syntax) = literal_syntax_counts
+                .keys()
+                .find(|syntax| rust_fragment_values.contains(*syntax))
+            {
+                return Err(syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    format!(
+                        "c84d79e1: syntax substring {syntax:?} must use its declared Rust string fragment"
+                    ),
                 ));
             }
             Ok::<Self, syn::Error>(quote::quote! { #(#generated)* })

@@ -6,11 +6,7 @@
     Eq,
     PartialEq,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct MultipartPayloadMaximum(usize);
-
-impl MultipartPayloadMaximum {
-    pub(crate) const fn get(self) -> usize {
-        self.0
-    }
-}

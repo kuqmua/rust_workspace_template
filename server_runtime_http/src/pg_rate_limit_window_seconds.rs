@@ -1,13 +1,14 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct PgRateLimitWindowSeconds(std::num::NonZeroI32);
-
-impl PgRateLimitWindowSeconds {
-    pub(crate) const fn get(self) -> std::num::NonZeroI32 {
-        self.0
-    }
-}
 
 impl TryFrom<i32> for PgRateLimitWindowSeconds {
     type Error = crate::pg_rate_limit_validation_error::PgRateLimitValidationError;

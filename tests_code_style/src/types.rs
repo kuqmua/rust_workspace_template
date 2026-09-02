@@ -6,12 +6,10 @@ const SOURCE_TEXT_MAX_LEN: usize = 16 * 1024 * 1024;
     Copy,
     Default,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct AnalyzerCount(usize);
 impl AnalyzerCount {
-    pub(super) const fn get(self) -> usize {
-        self.0
-    }
     pub(super) fn saturating_dec(&mut self) {
         self.0 = self.0.saturating_sub(1);
     }
@@ -26,12 +24,10 @@ impl AnalyzerCount {
     Copy,
     Default,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct AnalyzerBool(bool);
 impl AnalyzerBool {
-    pub(super) const fn get(self) -> bool {
-        self.0
-    }
     pub(super) fn set_true(&mut self) {
         self.0 = true;
     }
@@ -43,13 +39,9 @@ impl AnalyzerBool {
     Clone,
     Copy,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct CargoTomlFileIdx(usize);
-impl CargoTomlFileIdx {
-    pub(super) const fn get(self) -> usize {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -65,13 +57,9 @@ pub(super) struct CargoMetadata(cargo_metadata::Metadata);
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct CargoMetadataRef<'metadata_lt>(&'metadata_lt cargo_metadata::Metadata);
-impl<'metadata_lt> CargoMetadataRef<'metadata_lt> {
-    pub(super) const fn get(self) -> &'metadata_lt cargo_metadata::Metadata {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -89,13 +77,9 @@ pub(super) struct CargoPackageIdRefHashSet<'metadata_lt>(
     Clone,
     Copy,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct StaticStr(&'static str);
-impl StaticStr {
-    pub(super) const fn get(self) -> &'static str {
-        self.0
-    }
-}
 #[derive(
     proc_macro_getters::Getters,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -103,13 +87,9 @@ impl StaticStr {
     Clone,
     Copy,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct StaticStrSliceRef<'text_lt>(&'text_lt [&'text_lt str]);
-impl<'text_lt> StaticStrSliceRef<'text_lt> {
-    pub(super) const fn get(self) -> &'text_lt [&'text_lt str] {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -117,15 +97,9 @@ impl<'text_lt> StaticStrSliceRef<'text_lt> {
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct SourceTextRef<'text_lt>(&'text_lt str);
-impl<'text_lt> SourceTextRef<'text_lt> {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-
-    pub(super) const fn get(self) -> &'text_lt str {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -231,13 +205,9 @@ pub(super) struct SourceTextList(Vec<String>);
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct SourceTextListRef<'text_lt>(&'text_lt [String]);
-impl<'text_lt> SourceTextListRef<'text_lt> {
-    pub(super) const fn get(self) -> &'text_lt [String] {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -374,13 +344,9 @@ pub(super) struct SynAttributeListRef<'syn_lt>(&'syn_lt [syn::Attribute]);
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct SynExprCallRef<'syn_lt>(&'syn_lt syn::ExprCall);
-impl<'syn_lt> SynExprCallRef<'syn_lt> {
-    pub(super) const fn get(self) -> &'syn_lt syn::ExprCall {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -442,6 +408,7 @@ pub(super) struct SynItemStructRef<'syn_lt>(&'syn_lt syn::ItemStruct);
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct SynPathArgumentsRef<'syn_lt>(&'syn_lt syn::PathArguments);
 #[derive(
@@ -451,18 +418,9 @@ pub(super) struct SynPathArgumentsRef<'syn_lt>(&'syn_lt syn::PathArguments);
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct SynPathSegmentRef<'syn_lt>(&'syn_lt syn::PathSegment);
-impl<'syn_lt> SynPathSegmentRef<'syn_lt> {
-    pub(super) const fn get(self) -> &'syn_lt syn::PathSegment {
-        self.0
-    }
-}
-impl<'syn_lt> SynPathArgumentsRef<'syn_lt> {
-    pub(super) const fn get(self) -> &'syn_lt syn::PathArguments {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -488,13 +446,9 @@ pub(super) struct SynSignatureRef<'syn_lt>(&'syn_lt syn::Signature);
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct SynTypePathRef<'syn_lt>(&'syn_lt syn::TypePath);
-impl<'syn_lt> SynTypePathRef<'syn_lt> {
-    pub(super) const fn get(self) -> &'syn_lt syn::TypePath {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -502,6 +456,7 @@ impl<'syn_lt> SynTypePathRef<'syn_lt> {
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
 #[derive(
@@ -522,11 +477,6 @@ pub(super) struct SynUseTreeRef<'syn_lt>(&'syn_lt syn::UseTree);
     proc_macro_newtype::FromInner,
 )]
 pub(super) struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
-impl<'syn_lt> SynTypeRef<'syn_lt> {
-    pub(super) const fn get(self) -> &'syn_lt syn::Type {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -543,13 +493,9 @@ pub(super) struct TomlTable(toml::Table);
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct TomlTableRef<'toml_lt>(&'toml_lt toml::value::Table);
-impl<'toml_lt> TomlTableRef<'toml_lt> {
-    pub(super) const fn get(self) -> &'toml_lt toml::value::Table {
-        self.0
-    }
-}
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
@@ -557,13 +503,9 @@ impl<'toml_lt> TomlTableRef<'toml_lt> {
     Copy,
     proc_macro_newtype::AsRefInner,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 pub(super) struct TomlValueRef<'toml_lt>(&'toml_lt toml::Value);
-impl<'toml_lt> TomlValueRef<'toml_lt> {
-    pub(super) const fn get(self) -> &'toml_lt toml::Value {
-        self.0
-    }
-}
 #[derive(
     proc_macro_getters::Getters,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,

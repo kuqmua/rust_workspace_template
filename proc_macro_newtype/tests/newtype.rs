@@ -178,6 +178,14 @@ mod tests {
     struct GetInnerBool(bool);
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype::FromInner,
+        proc_macro_newtype::GetInner,
+    )]
+    #[accessor(pub(crate))]
+    #[borrow]
+    struct BorrowedGetInnerBool(bool);
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
         PartialEq,
@@ -529,6 +537,12 @@ mod tests {
         let flag = GetInnerBool::from(true).get();
         assert_eq!(text, constants_str::ABC_ALT_3);
         assert!(std::hint::black_box(flag));
+    }
+    #[test]
+    fn test_borrowed_inner_accessor_is_generated() {
+        let value = BorrowedGetInnerBool::from(true);
+        let get: fn(&BorrowedGetInnerBool) -> &bool = BorrowedGetInnerBool::get;
+        assert!(*get(&value));
     }
     #[test]
     fn test_vec_accessors_are_generated() {

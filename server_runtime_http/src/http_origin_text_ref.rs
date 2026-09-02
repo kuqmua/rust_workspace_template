@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub(super) struct HttpOriginTextRef<'text>(&'text str);
-
-impl<'text> HttpOriginTextRef<'text> {
-    pub(crate) const fn get(self) -> &'text str {
-        self.0
-    }
-}

@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct HttpAcceptHeaderMaximumBytes(usize);
-
-impl HttpAcceptHeaderMaximumBytes {
-    pub(crate) const fn get(self) -> usize {
-        self.0
-    }
-}

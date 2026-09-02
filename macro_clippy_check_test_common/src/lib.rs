@@ -60,7 +60,7 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
         ))
     });
     let _remove_dir_on_drop = remove_dir_on_drop::RemoveDirOnDrop::new(crate_path.clone());
-    let cargo_toml_cnt = format!(
+    let mut cargo_toml_full = format!(
         r#"[package]
 name = "{crate_name}"
 publish = false
@@ -190,7 +190,6 @@ categories = ["category"]
             output
         },
     );
-    let mut cargo_toml_full = cargo_toml_cnt;
     cargo_toml_full.reserve(constants_usize::ONE.saturating_add(cargo_toml_extra.len()));
     cargo_toml_full.push('\n');
     cargo_toml_full.push_str(&cargo_toml_extra);

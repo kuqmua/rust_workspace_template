@@ -1,12 +1,13 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::GetInner,
+)]
+#[borrow]
 pub struct PgBoundedBTreeMap<K, V, const MAX: usize>(std::collections::BTreeMap<K, V>);
-
-impl<K, V, const MAX: usize> PgBoundedBTreeMap<K, V, MAX> {
-    #[must_use]
-    pub const fn get(&self) -> &std::collections::BTreeMap<K, V> {
-        &self.0
-    }
-}
 
 impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
     for PgBoundedBTreeMap<K, V, MAX>

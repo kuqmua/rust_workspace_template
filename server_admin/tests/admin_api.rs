@@ -16,7 +16,6 @@ mod test_data_tables {
             .execute(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_F8F27048);
-        let fixture_ref = &fixture;
         futures::StreamExt::fold(
             futures::stream::iter(
                 server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER,
@@ -25,13 +24,13 @@ mod test_data_tables {
             async |(), table| {
                 let uri = format!("/tables/{table}?limit=100&offset=0");
                 let response = tower::ServiceExt::oneshot(
-                    crate::router_with_pool(&fixture_ref.pool).0,
+                    crate::router_with_pool(&fixture.pool).0,
                     crate::request_with_peer(
                         super::HttpAdminApiTestMethod::from(http::Method::GET),
                         super::StdAdminApiTestStrRef::from(uri.as_str()),
                         super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                         Some(super::StdAdminApiTestStrRef::from(
-                            fixture_ref.cookie.0.as_str(),
+                            fixture.cookie.0.as_str(),
                         )),
                         None,
                     )
@@ -2120,11 +2119,10 @@ mod test_html {
                 tab_title: tab_title_b,
             },
         ];
-        let fixture_ref = &fixture;
         futures::StreamExt::fold(futures::stream::iter(states), (), async |(), values| {
             let form_body = values.form_body();
             let update_response = crate::admin_html_response(
-                fixture_ref,
+                &fixture,
                 super::HttpAdminApiTestMethod::from(http::Method::POST),
                 super::StdAdminApiTestStrRef::from(
                     server_admin_contract::admin_html_action::AdminHtmlAction::SettingsUpdate.get(),
@@ -2134,7 +2132,7 @@ mod test_html {
             .await;
             assert_eq!(update_response.status(), http::StatusCode::SEE_OTHER);
             let read_response = crate::admin_html_response(
-                fixture_ref,
+                &fixture,
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
                 super::StdAdminApiTestStrRef::from(
                     server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings.get(),
@@ -2258,7 +2256,7 @@ mod test_html {
             async |(), (values, expected_cleared)| {
                 let form_body = values.form_body();
                 let clear_response = crate::admin_html_response(
-                    fixture_ref,
+                    &fixture,
                     super::HttpAdminApiTestMethod::from(http::Method::POST),
                     super::StdAdminApiTestStrRef::from(
                         server_admin_contract::admin_html_action::AdminHtmlAction::SettingsUpdate
@@ -2272,7 +2270,7 @@ mod test_html {
                     _,
                     (String, String, String, String, String, String),
                 >(constants_str::VALUE_8CB85C2C)
-                .fetch_one(&fixture_ref.pool.0)
+                .fetch_one(&fixture.pool.0)
                 .await
                 .expect(constants_str::DIAGNOSTIC_D418F9C0);
                 assert_eq!(
@@ -2564,7 +2562,6 @@ mod test_html {
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn test_postgresql_html_router_registers_every_owned_page_and_action() {
         let fixture = crate::admin_html_test_fixture().await;
-        let fixture_ref = &fixture;
         futures::StreamExt::fold(
             futures::StreamExt::filter(
                 futures::stream::iter(
@@ -2584,7 +2581,7 @@ mod test_html {
             (),
             async |(), path| {
                 let response = crate::admin_html_response(
-                    fixture_ref,
+                    &fixture,
                     super::HttpAdminApiTestMethod::from(http::Method::GET),
                     super::StdAdminApiTestStrRef::from(path.get()),
                     super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
@@ -2619,7 +2616,7 @@ mod test_html {
             async |(), table| {
                 let uri = table.frontend_path();
                 let response = crate::admin_html_response(
-                    fixture_ref,
+                    &fixture,
                     super::HttpAdminApiTestMethod::from(http::Method::GET),
                     super::StdAdminApiTestStrRef::from(uri.as_ref()),
                     super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
@@ -2640,7 +2637,7 @@ mod test_html {
             (),
             async |(), action| {
                 let response = tower::ServiceExt::oneshot(
-                    fixture_ref.router.0.clone(),
+                    fixture.router.0.clone(),
                     crate::html_request_with_peer(
                         super::HttpAdminApiTestMethod::from(http::Method::POST),
                         super::StdAdminApiTestStrRef::from(action.get()),
@@ -3129,14 +3126,13 @@ mod test_maintenance {
         )
         .await
         .expect(constants_str::DIAGNOSTIC_518B93E4);
-        let fresh_pool_ref = &fresh_pool;
         let table_snapshots = futures::future::try_join_all(
             server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
                 .into_iter()
                 .map(async |table| {
                     pg_crud_common::inspect_postgres_table::inspect_postgres_table(
                         pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(
-                            fresh_pool_ref,
+                            &fresh_pool,
                         ),
                         pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
                             constants_str::ADMIN_MIGRATION_FRESH_TEST,

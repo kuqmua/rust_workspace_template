@@ -4,11 +4,7 @@
     Copy,
     Debug,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
+#[accessor(pub(crate))]
 pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
-
-impl<'lt> HttpHeaderMapRef<'lt> {
-    pub(crate) const fn get(self) -> &'lt http::HeaderMap {
-        self.0
-    }
-}
