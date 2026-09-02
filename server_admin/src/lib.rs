@@ -221,7 +221,6 @@ pub mod jsonwebtoken_admin_decoding_keys;
 pub mod jsonwebtoken_admin_encoding_key;
 pub mod jsonwebtoken_admin_error;
 pub mod last_admin_state;
-pub mod load_authenticated_admin;
 pub mod load_authenticated_admin_from_db;
 pub mod lock_last_admin;
 pub mod map_repository_error;

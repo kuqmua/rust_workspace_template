@@ -27,6 +27,7 @@ mod tests {
                     std::time::Duration::from_secs(2u64),
                 )
                 .expect(constants_str::DIAGNOSTIC_A1DABED3),
+                crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
             ),
         )
         .expect(constants_str::DIAGNOSTIC_8DED9D63);

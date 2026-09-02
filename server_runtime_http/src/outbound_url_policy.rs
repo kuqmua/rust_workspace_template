@@ -83,19 +83,9 @@ impl OutboundUrlPolicy {
         self,
         addresses: &[crate::outbound_ip_addr::OutboundIpAddr],
     ) -> Result<(), crate::outbound_url_error::OutboundUrlError> {
-        if addresses.is_empty() {
-            return Err(crate::outbound_url_error::OutboundUrlError::MissingResolvedAddress);
-        }
-        if self.host_policy == crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate
-            && addresses.iter().any(|address| {
-                crate::resolve_outbound_address_disposition::resolve_outbound_address_disposition(
-                    *address,
-                ) == crate::outbound_address_disposition::OutboundAddressDisposition::Forbidden
-            })
-        {
-            Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
-        } else {
-            Ok(())
-        }
+        crate::validate_outbound_resolved_addresses::validate_outbound_resolved_addresses(
+            self.host_policy,
+            addresses.iter().copied(),
+        )
     }
 }

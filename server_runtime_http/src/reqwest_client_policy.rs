@@ -6,4 +6,6 @@ pub struct ReqwestClientPolicy {
     connect_timeout: super::reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration,
     #[getters(copy)]
     request_timeout: super::reqwest_request_timeout_duration::ReqwestRequestTimeoutDuration,
+    #[getters(copy)]
+    host_policy: crate::outbound_host_policy::OutboundHostPolicy,
 }

@@ -83,7 +83,11 @@ pub(crate) async fn authn_sign_in(
                 .map_err(crate::admin_error::AdminError::password_hash)?,
         );
         crate::record_login_attempt::record_login_attempt(
-            state.as_ref(),
+            &mut crate::admin_db_ref::AdminDbRef::Pool(
+                crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
+                    state.as_ref().get_pool().as_ref(),
+                ),
+            ),
             &login,
             peer,
             server_admin_core::std_admin_bool::StdAdminBool::from(false),
@@ -104,7 +108,11 @@ pub(crate) async fn authn_sign_in(
         .map_err(|_error| crate::admin_error::AdminError::Authentication)?;
     if !verified.get() || is_banned.get() {
         crate::record_login_attempt::record_login_attempt(
-            state.as_ref(),
+            &mut crate::admin_db_ref::AdminDbRef::Pool(
+                crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
+                    state.as_ref().get_pool().as_ref(),
+                ),
+            ),
             &login,
             peer,
             server_admin_core::std_admin_bool::StdAdminBool::from(false),
@@ -120,7 +128,11 @@ pub(crate) async fn authn_sign_in(
         .await
         .map_err(crate::admin_error::AdminError::from)?;
     crate::record_login_attempt::record_login_attempt(
-        state.as_ref(),
+        &mut crate::admin_db_ref::AdminDbRef::Connection(
+            crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
+                &mut *tx,
+            ),
+        ),
         &login,
         peer,
         server_admin_core::std_admin_bool::StdAdminBool::from(true),
@@ -155,11 +167,12 @@ pub(crate) async fn authn_sign_in(
         ),
     )
     .await?;
-    tx.commit()
-        .await
-        .map_err(crate::admin_error::AdminError::from)?;
-    let authenticated = crate::load_authenticated_admin::load_authenticated_admin(
-        state.as_ref(),
+    let authenticated = crate::load_authenticated_admin_from_db::load_authenticated_admin_from_db(
+        &mut crate::admin_db_ref::AdminDbRef::Connection(
+            crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
+                &mut *tx,
+            ),
+        ),
         admin_user_id,
         session.session_id(),
     )
@@ -170,5 +183,8 @@ pub(crate) async fn authn_sign_in(
         server_admin_contract::admin_sign_in_res::AdminSignInRes::new(authenticated_contract),
     );
     crate::append_session_cookies::append_session_cookies(&mut response, state.as_ref(), &session)?;
+    tx.commit()
+        .await
+        .map_err(crate::admin_error::AdminError::from)?;
     Ok(response)
 }

@@ -35,7 +35,7 @@ impl AdminPageRange {
                     .min(total_value),
             ),
             next_disabled: super::admin_page_nav_disabled::AdminPageNavDisabled::from(
-                u64::from(next_offset) >= total_value,
+                next_offset <= offset_value || u64::from(next_offset) >= total_value,
             ),
             next_offset: server_admin_contract::admin_page_offset::AdminPageOffset::from(
                 next_offset,
@@ -98,6 +98,7 @@ mod tests {
 
         let overflow = page_range(u32::MAX, 100u16, u64::MAX);
         assert_eq!(u32::from(overflow.next_offset()), u32::MAX);
+        assert!(bool::from(overflow.next_disabled()));
         assert_eq!(u64::from(overflow.start()), u64::from(u32::MAX) + 1u64);
         assert_eq!(u64::from(overflow.end()), u64::from(u32::MAX) + 100u64);
     }

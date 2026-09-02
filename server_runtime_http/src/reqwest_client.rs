@@ -82,6 +82,9 @@ impl ReqwestClient {
         reqwest::Client::builder()
             .connect_timeout(*policy.connect_timeout())
             .timeout(*policy.request_timeout())
+            .dns_resolver(crate::outbound_dns_resolver::OutboundDnsResolver::new(
+                policy.host_policy(),
+            ))
             .redirect(reqwest::redirect::Policy::none())
             .user_agent(concat!(
                 env!("CARGO_PKG_NAME"),

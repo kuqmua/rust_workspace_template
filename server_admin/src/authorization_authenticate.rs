@@ -54,8 +54,12 @@ pub(crate) async fn authorization_authenticate(
     if !active.get() {
         return Err(crate::admin_error::AdminError::Authentication);
     }
-    crate::load_authenticated_admin::load_authenticated_admin(
-        state,
+    crate::load_authenticated_admin_from_db::load_authenticated_admin_from_db(
+        &mut crate::admin_db_ref::AdminDbRef::Pool(
+            crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
+                state.get_pool().as_ref(),
+            ),
+        ),
         claims.user_id(),
         claims.session_id(),
     )
