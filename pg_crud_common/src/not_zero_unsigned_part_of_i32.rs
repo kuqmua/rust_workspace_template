@@ -8,8 +8,8 @@
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(try_from = "i32")]
 pub struct NotZeroUnsignedPartOfI32(std::num::NonZeroI32);
@@ -40,13 +40,13 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
             crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(value).map_err(|error| {
                 Self::Error::UnsignedPartOfI32TryFromI32Error {
                     v: error,
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 }
             })?;
         std::num::NonZeroI32::new(*unsigned.get_inner())
             .map(Self)
             .ok_or_else(|| Self::Error::IsZero {
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             })
     }
 }

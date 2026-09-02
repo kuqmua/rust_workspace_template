@@ -1,14 +1,14 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     Eq,
     PartialEq,
-    newtype::AsRefTarget,
-    newtype::DerefInner,
-    newtype::DerefMutInner,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::DerefMutInner,
+    proc_macro_newtype::FromInner,
 )]
 pub(super) struct MultipartBytesParts(Vec<crate::multipart_bytes_part::MultipartBytesPart>);
 

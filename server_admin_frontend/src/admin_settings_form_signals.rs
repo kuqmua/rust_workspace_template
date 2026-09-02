@@ -3,7 +3,13 @@
     reason = "the settings signal collection keeps construction before indexed access and centralizes form state for CSR and SSR consumers"
 )]
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    proc_macro_newtype::FromInner,
+)]
 pub(crate) struct AdminSettingsFormSignals(
     [crate::leptos_admin_input_signal::LeptosAdminInputSignal;
         server_admin_contract::admin_setting::AdminSetting::COUNT],

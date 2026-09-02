@@ -1,17 +1,17 @@
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DbgVisitor {
     found: crate::types::AnalyzerBool,
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
     Default,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct CustomTypeNameVisitor {
     names: crate::types::SourceTextList,
@@ -76,10 +76,10 @@ impl<'ast> syn::visit::Visit<'ast> for CustomTypeNameVisitor {
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
     Default,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct FreeFnNameVisitor {
     names: crate::types::SourceTextList,
@@ -93,10 +93,10 @@ impl<'ast> syn::visit::Visit<'ast> for FreeFnNameVisitor {
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
     Default,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct OptimalMemoryLayoutVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -122,7 +122,7 @@ impl OptimalMemoryLayoutVisitor {
             });
         if !derives_optimal_memory_layout {
             self.ers.push(format!(
-                "{kind} `{identifier}` must derive `optimal_memory_layout::OptimalMemoryLayout`"
+                "{kind} `{identifier}` must derive `proc_macro_optimal_memory_layout::OptimalMemoryLayout`"
             ));
         }
     }
@@ -149,9 +149,9 @@ impl<'ast> syn::visit::Visit<'ast> for DbgVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TodoUnimplVisitor {
     todo_found: crate::types::AnalyzerCount,
@@ -173,9 +173,9 @@ impl<'ast> syn::visit::Visit<'ast> for TodoUnimplVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct UnwrapVisitor {
     found_count: crate::types::AnalyzerCount,
@@ -189,18 +189,18 @@ impl<'ast> syn::visit::Visit<'ast> for UnwrapVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForLoopVisitor {
     found_count: crate::types::AnalyzerCount,
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct SourceDroppingMapErrVisitor {
@@ -220,9 +220,9 @@ impl<'ast> syn::visit::Visit<'ast> for SourceDroppingMapErrVisitor {
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct NumericAsCastVisitor {
@@ -230,9 +230,9 @@ pub(super) struct NumericAsCastVisitor {
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct SerdeJsonValueFieldVisitor {
@@ -262,9 +262,9 @@ impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueFieldVisitor {
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct SerdeJsonValueTypeVisitor {
@@ -272,16 +272,18 @@ pub(super) struct SerdeJsonValueTypeVisitor {
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct PublicStructFieldVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 pub(super) struct GeneratedPublicStructFieldVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -421,9 +423,9 @@ impl<'ast> syn::visit::Visit<'ast> for ForLoopVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct IncludeAssetMacroVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -440,17 +442,17 @@ impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DirectPathCallVisitor {
     calls: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct UnboundedReadVisitor {
     calls: crate::types::DiagnosticMsgs,
@@ -496,9 +498,9 @@ impl<'ast> syn::visit::Visit<'ast> for DirectPathCallVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LostSpawnVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -543,90 +545,90 @@ impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TestNondeterminismVisitor {
     calls: crate::types::DiagnosticMsgs,
     test_depth: crate::types::AnalyzerCount,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct SensitiveTextDebugDeriveVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct SensitiveErrorFormatVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct GeneratedRandomnessVisitor {
     calls: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StaticStateVisitor {
     identifiers: crate::types::SourceTextList,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PrintMacroVisitor {
     calls: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ProductionLinePrintMacroVisitor {
     calls: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DoubleUnderscoreNamingVisitor {
     identifiers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ShortFunctionNamingVisitor {
     identifiers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct OpaqueShortFieldNamingVisitor {
     identifiers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct OpaqueSerdeRenameVisitor {
     identifiers: crate::types::DiagnosticMsgs,
@@ -731,36 +733,36 @@ impl ShortFunctionNamingVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct PublicLogicVisitor {
     found: crate::types::AnalyzerBool,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct OwnedTestVisitor {
     found: crate::types::AnalyzerBool,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct AllowReasonVisitor {
     ers: crate::types::DiagnosticMsgs,
     lines: crate::types::SourceTextList,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[getters(get_mut)]
 pub(super) struct DiagnosticIdVisitor {
@@ -1300,9 +1302,9 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[allow(
     clippy::arbitrary_source_item_ordering,
@@ -1366,9 +1368,9 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TypeAliasVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -1383,9 +1385,9 @@ impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct EmptyEnumVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -1416,9 +1418,9 @@ impl<'ast> syn::visit::Visit<'ast> for EmptyEnumVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct InfallibleResultVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -1484,9 +1486,9 @@ impl<'ast> syn::visit::Visit<'ast> for InfallibleResultVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ConstantAliasVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -1521,18 +1523,18 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingDerefVisitor {
     ers: crate::types::DiagnosticMsgs,
     inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingBorrowVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -1649,33 +1651,33 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingDisplayVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ManualErrorImplVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ManualNotImplVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ConstDisplayImplVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -1707,7 +1709,7 @@ impl<'ast> syn::visit::Visit<'ast> for ConstDisplayImplVisitor {
         if is_display_impl && writes_constant {
             let start = syn::spanned::Spanned::span(i).start();
             self.ers.push(format!(
-                "constant Display implementation at {}:{}; derive newtype::DisplayConst instead",
+                "constant Display implementation at {}:{}; derive proc_macro_newtype::DisplayConst instead",
                 start.line, start.column
             ));
         }
@@ -1724,7 +1726,7 @@ impl<'ast> syn::visit::Visit<'ast> for ManualNotImplVisitor {
         if is_not_impl {
             let start = syn::spanned::Spanned::span(i).start();
             self.ers.push(format!(
-                "manual Not implementation at {}:{}; derive newtype::NotInner instead",
+                "manual Not implementation at {}:{}; derive proc_macro_newtype::NotInner instead",
                 start.line, start.column
             ));
         }
@@ -1749,9 +1751,9 @@ impl<'ast> syn::visit::Visit<'ast> for ManualErrorImplVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct JsonCallVisitor {
@@ -1772,18 +1774,18 @@ impl<'ast> syn::visit::Visit<'ast> for JsonCallVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct JsonIntoResponseErrorVisitor<'names_lt> {
     ers: crate::types::DiagnosticMsgs,
     thiserror_enum_names: &'names_lt crate::types::SourceTextBTreeSet,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct TupleResponseVisitor {
@@ -1847,9 +1849,9 @@ impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct ThiserrorEnumVisitor {
@@ -1919,18 +1921,18 @@ impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ApiErrorLocationVisitor<'names_lt> {
     ers: crate::types::DiagnosticMsgs,
     thiserror_location_enum_names: &'names_lt crate::types::SourceTextBTreeSet,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct IntoResponseTypeVisitor {
@@ -1954,18 +1956,18 @@ impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ApiErrorSourceVisitor<'names_lt> {
     api_error_names: &'names_lt crate::types::SourceTextBTreeSet,
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 #[getters(get_mut)]
@@ -2243,9 +2245,9 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingIntoIteratorVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -2288,9 +2290,9 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PassthroughIntoInnerFromVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -2365,9 +2367,9 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PassthroughFromVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -2452,9 +2454,9 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TestStringLiteralVisitor {
     values: crate::types::SourceTextList,
@@ -2483,9 +2485,9 @@ impl<'ast> syn::visit::Visit<'ast> for TestStringLiteralVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ProductionStringLiteralVisitor {
     values: crate::types::SourceTextList,
@@ -2505,9 +2507,9 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[allow(
     clippy::arbitrary_source_item_ordering,
@@ -2518,9 +2520,9 @@ pub(super) struct StringConstantDeclarationVisitor {
     allow_generated_string_constants: crate::types::AnalyzerBool,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct ConstantInitializerStringLiteralVisitor {
@@ -2755,18 +2757,18 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StringConstantVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ExpectStringConstantVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -2789,9 +2791,9 @@ impl<'ast> syn::visit::Visit<'ast> for ExpectStringConstantVisitor {
 }
 
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct TracingMessageLiteralVisitor {
@@ -2943,9 +2945,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TestNameVisitor {
     ers: crate::types::DiagnosticMsgs,

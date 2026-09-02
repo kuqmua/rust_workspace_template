@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-    newtype::NotInner,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype::NotInner,
 )]
 pub struct ShouldWriteString(bool);

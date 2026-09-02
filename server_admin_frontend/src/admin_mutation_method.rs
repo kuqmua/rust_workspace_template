@@ -1,9 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
-    naming_macros::EnumWithUnitFieldsToUpperSnakeCaseStr,
+    proc_macro_naming::EnumWithUnitFieldsToUpperSnakeCaseStr,
 )]
 pub(crate) enum AdminMutationMethod {
     Delete,

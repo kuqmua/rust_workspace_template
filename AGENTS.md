@@ -11,7 +11,7 @@
 - Use enums and `thiserror` for errors.
 - Use repository domain wrapper types in struct fields, enum fields, function parameters, method parameters, and return values; initialize raw values through `From` or `TryFrom`.
 - Store bounded text in `bounded_types::bounded_string::BoundedString`; a struct using
-  `#[bounded_string]` must not store a raw `String` or derive the removed `newtype::BoundedString`.
+  `#[bounded_string]` must not store a raw `String` or derive the removed `proc_macro_newtype::BoundedString`.
 - Use a single async runtime across workspace; do not mix async runtimes.
 - Keep trait bounds explicit.
 - Use trait objects only when dynamic dispatch is required.
@@ -31,7 +31,7 @@
   repeated Rust syntax substring into the shared `rust_fragments` block and reference each Rust
   fragment at least twice.
 - Keep every struct field private, including tuple-struct fields. Expose required reads through
-  generated getters such as `generate_accessor::Getters` or `newtype::GetInner`, and expose
+  generated getters such as `proc_macro_getters::Getters` or `proc_macro_newtype::GetInner`, and expose
   construction through validated conversions or generated constructors.
 - Rewrite a private production function with exactly one non-test call site as a closure inside
   that call site's function when doing so preserves attributes, async behavior, architecture

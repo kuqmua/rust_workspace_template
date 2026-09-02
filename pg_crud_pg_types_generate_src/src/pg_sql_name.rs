@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
-    newtype::ToTokens,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::ToTokens,
 )]
 pub(super) struct PgSqlName(&'static str);
 impl crate::pg_type_catalog_kind::PgTypeCatalogKind {

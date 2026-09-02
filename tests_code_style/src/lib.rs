@@ -1,6 +1,6 @@
 #![allow(
     unused_crate_dependencies,
-    reason = "frontend_contract_macros is a dependency of the trybuild fixture crates"
+    reason = "proc_macro_frontend_contract is a dependency of the trybuild fixture crates"
 )]
 
 #[cfg(test)]

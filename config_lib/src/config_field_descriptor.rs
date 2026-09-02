@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub struct ConfigFieldDescriptor {
     #[getters(copy)]
     env_name: crate::env_var_name_ref::EnvVarNameRef<'static>,

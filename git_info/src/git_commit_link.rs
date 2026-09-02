@@ -3,10 +3,10 @@
     Clone,
     PartialEq,
     Eq,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsRefStr,
-    newtype::PartialEqInner,
-    newtype::TryFrom,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::PartialEqInner,
+    proc_macro_newtype::TryFrom,
 )]
 #[try_from(
     error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,

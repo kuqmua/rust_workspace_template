@@ -1,4 +1,4 @@
-#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum PgTypeDeserialize {
     Derive,
     ImplNewForDeserializeOrTryNewForDe(crate::pg_type_impl_new_for_deserialize_or_try_new_for_de::PgTypeImplNewForDeserializeOrTryNewForDe),

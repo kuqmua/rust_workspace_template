@@ -3,7 +3,7 @@ pub fn emit_generate_where_filters(
     validated: crate::validated_generate_where_filters_config::ValidatedGenerateWhereFiltersConfig,
 ) -> crate::proc_macro2_generate_where_filters_token_stream::ProcMacro2GenerateWhereFiltersTokenStream
 {
-    #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum Generic {
         False,
         True {
@@ -12,11 +12,11 @@ pub fn emit_generate_where_filters(
     }
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Clone, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum PgTypePtrn {
         Standard,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum PgTypeKind {
@@ -72,7 +72,7 @@ pub fn emit_generate_where_filters(
                 .d_schemars_json_schema()
                 .d_utoipa_to_schema()
                 .build_struct(
-                    &quote::quote! {#[derive(generate_accessor::Getters, generate_constructor::New)]},
+                    &quote::quote! {#[derive(proc_macro_getters::Getters, proc_macro_new::New)]},
                     &identifier,
                     &match &generic {
                         Generic::False => proc_macro2::TokenStream::new(),
@@ -205,7 +205,7 @@ pub fn emit_generate_where_filters(
                 .is_err()
                 {
                     return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer {
-                        location: location_macros::location!(),
+                        location: proc_macro_location_bang::location!(),
                     });
                 }
                 Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_28bc96ee)?)
@@ -319,7 +319,7 @@ pub fn emit_generate_where_filters(
                 .is_err()
                 {
                     return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer {
-                        location: location_macros::location!(),
+                        location: proc_macro_location_bang::location!(),
                     });
                 }
                 Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_1c95685d)?)
@@ -452,7 +452,7 @@ pub fn emit_generate_where_filters(
                                     )
                                     .is_err()
                                     {
-                                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                     }
                                     Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_8d4535a3)?)
                                 }
@@ -498,7 +498,7 @@ pub fn emit_generate_where_filters(
                                 let if_write_is_err_token_stream =
                                 macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                     &quote::quote! {query_part_bce8c9ae, "${v_daedba9c},"},
-                                    &quote::quote! {return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });},
+                                    &quote::quote! {return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });},
                                 );
                                 quote::quote! {
                                     #maybe_dimensions_ies_initialization_token_stream
@@ -517,7 +517,7 @@ pub fn emit_generate_where_filters(
                                     )
                                     .is_err()
                                     {
-                                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                     }
                                     values.iter().try_for_each(|_| {
                                         let v_daedba9c = #import::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(#increment_snake_case)?;
@@ -608,7 +608,7 @@ pub fn emit_generate_where_filters(
                                         )
                                         .is_err()
                                         {
-                                            return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                            return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                         }
                                         Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_1a7fed15)?)
                                     }
@@ -666,7 +666,7 @@ pub fn emit_generate_where_filters(
                                         )
                                         .is_err()
                                         {
-                                            return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                            return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                         }
                                         Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_7a76888d)?)
                                     }
@@ -755,7 +755,7 @@ pub fn emit_generate_where_filters(
                                     ),
                                 };
                                 if write_result_6e4b019d.is_err() {
-                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                 }
                                 Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_6e4b019d)?)
                             }
@@ -944,7 +944,7 @@ pub fn emit_generate_where_filters(
         quote::quote! {compile_error!("text search schema requires text value shape");}
     } else {
         quote::quote! {
-            #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
+            #[derive(Debug, Clone, Copy, PartialEq, Eq, proc_macro_newtype::IntoInnerFrom)]
             pub struct TextSearchMaximumInputBytes(usize);
             #[derive(Debug, Clone, Copy, PartialEq, Eq)]
             pub struct TextSearchPolicy {
@@ -965,7 +965,7 @@ pub fn emit_generate_where_filters(
                 EndsWith,
                 StartsWith,
             }
-            #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefStr, newtype::IntoInnerFrom)]
+            #[derive(Debug, Clone, PartialEq, Eq, proc_macro_newtype::AsRefStr, proc_macro_newtype::IntoInnerFrom)]
             pub struct TextSearchPattern(String);
             #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
             pub enum TextSearchValueError {
@@ -1062,7 +1062,7 @@ pub fn emit_generate_where_filters(
                     Ok(query)
                 }
                 fn query_part(&self, increment: &mut dyn pg_crud_common::query_part_increment_mut::QueryPartIncrementMut, column: pg_crud_common::sql_column_ref::SqlColumnRef<'_>, add_operator: pg_crud_common::add_operator::AddOperator) -> Result<pg_crud_common::query_part_fragment::QueryPartFragment, pg_crud_common::query_part_error::QueryPartError> {
-                    let parameter = increment.checked_add_one().ok_or_else(|| pg_crud_common::query_part_error::QueryPartError::CheckedAdd { location: location_macros::location!() })?;
+                    let parameter = increment.checked_add_one().ok_or_else(|| pg_crud_common::query_part_error::QueryPartError::CheckedAdd { location: proc_macro_location_bang::location!() })?;
                     let fragment = format!("{}{} {} ${parameter} {}", self.operator.to_query_part(add_operator), column, #sql_operator, #sql_suffix);
                     pg_crud_common::query_part_fragment::QueryPartFragment::try_from(fragment).map_err(pg_crud_common::query_part_error::QueryPartError::from)
                 }

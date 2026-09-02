@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
     sqlx::Type,
-    newtype::Display,
+    proc_macro_newtype::Display,
 )]
 #[sqlx(transparent)]
 pub struct PgTableRevision(i64);

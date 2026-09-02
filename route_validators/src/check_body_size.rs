@@ -21,7 +21,7 @@ where
                 error: crate::axum_body_size_error::AxumBodySizeError::from(error),
                 maximum_size_of_body_limit_in_bytes: limit_value,
                 size_hint: crate::http_body_size_hint::HttpBodySizeHint::from(size_hint),
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             },
         )
 }

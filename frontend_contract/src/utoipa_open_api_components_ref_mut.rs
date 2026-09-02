@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DerefInner,
-    newtype::DerefMutInner,
-    newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::DerefMutInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct UtoipaOpenApiComponentsRefMut<'value_lt>(
     &'value_lt mut utoipa::openapi::schema::Components,

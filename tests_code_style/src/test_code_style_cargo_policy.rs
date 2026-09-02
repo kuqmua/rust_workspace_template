@@ -18,16 +18,18 @@ fn test_crate_names_follow_workspace_vocabulary() {
             let valid_chars = name
                 .bytes()
                 .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_');
-            let has_nonstandard_word = name.split('_').any(|part| {
-                matches!(
-                    part,
-                    constants_str::VALUE_875B9380
-                        | constants_str::VALUE_BA528516
-                        | constants_str::POSTGRESQL
-                        | constants_str::VALUE_D665A09C
-                        | constants_str::VALUE_F4853BC8
-                )
-            }) || name.contains(constants_str::VALUE_2C90A5F7);
+            let has_nonstandard_word = !name.starts_with(constants_str::PROC_MACRO_CRATE_PREFIX)
+                && name.split('_').any(|part| {
+                    matches!(
+                        part,
+                        constants_str::VALUE_875B9380
+                            | constants_str::VALUE_BA528516
+                            | constants_str::POSTGRESQL
+                            | constants_str::VALUE_D665A09C
+                            | constants_str::VALUE_F4853BC8
+                    )
+                })
+                || name.contains(constants_str::VALUE_2C90A5F7);
             if !valid_chars || has_nonstandard_word {
                 ers.push(format!(
                     "{}: crate `{name}` must use snake_case workspace vocabulary (`dev`, `env`, `pg`, `accessor`, `macro_helpers`)",
@@ -36,6 +38,47 @@ fn test_crate_names_follow_workspace_vocabulary() {
             }
         },
     );
+}
+
+#[test]
+fn test_proc_macro_crate_names_use_macro_prefix_and_matching_directory() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let workspace_names = snapshot.workspace_crate_names();
+        let violations = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .filter(|package| {
+                package.targets.iter().any(|target| {
+                    target
+                        .kind
+                        .iter()
+                        .any(|kind| kind == &cargo_metadata::TargetKind::ProcMacro)
+                })
+            })
+            .filter_map(|package| {
+                let directory_name = package
+                    .manifest_path
+                    .as_std_path()
+                    .parent()
+                    .and_then(std::path::Path::file_name)
+                    .and_then(std::ffi::OsStr::to_str);
+                (!package
+                    .name
+                    .starts_with(constants_str::PROC_MACRO_CRATE_PREFIX)
+                    || directory_name != Some(package.name.as_str()))
+                .then(|| {
+                    format!(
+                        "{}: proc-macro crate `{}` must use a matching `proc_macro_<macro_name>` package and directory name",
+                        package.manifest_path, package.name
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "5d4f708c {violations:#?}");
+    });
 }
 
 #[test]

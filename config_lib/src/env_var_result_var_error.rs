@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::IntoInnerFrom)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, proc_macro_newtype::IntoInnerFrom,
+)]
 pub(super) struct EnvVarResultVarError(Result<String, std::env::VarError>);
 impl TryFrom<Result<String, std::env::VarError>> for EnvVarResultVarError {
     type Error = crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError;

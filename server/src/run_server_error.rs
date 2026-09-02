@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum RunServerError {
     #[error("failed to build administrator authentication state: {0}")]
     AdminAuthState(server_admin::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError),

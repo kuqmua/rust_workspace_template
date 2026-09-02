@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract_macros::route_openapi(
+#[proc_macro_frontend_contract::route_openapi(
     delegate = crate::user_queries_list::user_queries_list,
     params(server_admin_contract::admin_table_query::AdminTableQuery),
     tag = "admin_users"

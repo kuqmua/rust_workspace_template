@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct ReadRoute;
     impl frontend_contract::typed_route::TypedRoute for ReadRoute {
         type Request = ();

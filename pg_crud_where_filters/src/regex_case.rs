@@ -8,7 +8,7 @@
     serde::Deserialize,
     schemars::JsonSchema,
     utoipa::ToSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum RegexCase {
     Insensitive,

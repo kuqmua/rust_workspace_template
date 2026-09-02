@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -9,9 +9,9 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Display,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 #[serde(from = "u64")]
 pub struct AdminPageTotal(u64);

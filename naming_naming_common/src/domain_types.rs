@@ -1,4 +1,4 @@
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     AsRefStrToUpperCamelCaseStr,
     AsRefStrToUpperCamelCaseTokenStream,
     AsRef<str>,
@@ -10,7 +10,7 @@ naming_common_macros::case_trait_pair!(
         .into_inner()
     }
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     AsRefStrToSnakeCaseStr,
     AsRefStrToSnakeCaseTokenStream,
     AsRef<str>,
@@ -22,7 +22,7 @@ naming_common_macros::case_trait_pair!(
         .into_inner()
     }
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     AsRefStrToUpperSnakeCaseStr,
     AsRefStrToUpperSnakeCaseTokenStream,
     AsRef<str>,
@@ -32,7 +32,7 @@ naming_common_macros::case_trait_pair!(
     )
     .into_inner()
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     DisplayToUpperCamelCaseStr,
     DisplayToUpperCamelCaseTokenStream,
     std::fmt::Display,
@@ -44,7 +44,7 @@ naming_common_macros::case_trait_pair!(
         .into_inner()
     }
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     DisplayToSnakeCaseStr,
     DisplayToSnakeCaseTokenStream,
     std::fmt::Display,
@@ -56,7 +56,7 @@ naming_common_macros::case_trait_pair!(
         .into_inner()
     }
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     DisplayToUpperSnakeCaseStr,
     DisplayToUpperSnakeCaseTokenStream,
     std::fmt::Display,
@@ -66,7 +66,7 @@ naming_common_macros::case_trait_pair!(
     )
     .into_inner()
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     ToTokensToUpperCamelCaseStr,
     ToTokensToUpperCamelCaseTokenStream,
     quote::ToTokens,
@@ -78,7 +78,7 @@ naming_common_macros::case_trait_pair!(
         .into_inner()
     }
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     ToTokensToSnakeCaseStr,
     ToTokensToSnakeCaseTokenStream,
     quote::ToTokens,
@@ -90,7 +90,7 @@ naming_common_macros::case_trait_pair!(
         .into_inner()
     }
 );
-naming_common_macros::case_trait_pair!(
+proc_macro_naming_common::case_trait_pair!(
     ToTokensToUpperSnakeCaseStr,
     ToTokensToUpperSnakeCaseTokenStream,
     quote::ToTokens,

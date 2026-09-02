@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
-    newtype::AsRefTarget,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::FromInner,
 )]
 pub(crate) struct WorkspaceRootPathRef<'root_lt>(&'root_lt std::path::Path);

@@ -3,14 +3,14 @@
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    newtype::IntoInnerFrom,
-    newtype::TryFrom,
+    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype::TryFrom,
 )]
 #[try_from(
     error = crate::pg_table_idempotency_response_status_try_from_u16_error::PgTableIdempotencyResponseStatusTryFromU16Error,

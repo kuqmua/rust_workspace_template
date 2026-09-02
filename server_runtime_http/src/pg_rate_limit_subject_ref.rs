@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+)]
 pub struct PgRateLimitSubjectRef<'value_lt>(&'value_lt str);
 
 impl<'value_lt> PgRateLimitSubjectRef<'value_lt> {

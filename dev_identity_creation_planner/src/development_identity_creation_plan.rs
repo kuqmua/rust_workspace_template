@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    generate_constructor::New,
+    proc_macro_new::New,
 )]
 pub struct DevelopmentIdentityCreationPlan<Login, DisplayName, Role, SecretSource> {
     identities: crate::development_identity_specs::DevelopmentIdentitySpecs<

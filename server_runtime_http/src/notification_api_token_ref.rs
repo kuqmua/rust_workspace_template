@@ -1,4 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    proc_macro_newtype::FromInner,
+)]
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
 
 impl<'value_lt> NotificationApiTokenRef<'value_lt> {

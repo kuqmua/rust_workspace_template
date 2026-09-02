@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 pub struct AdminAccessClaims {
     audience: config_lib::admin_token_audience::AdminTokenAudience,

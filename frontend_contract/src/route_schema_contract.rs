@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct RouteSchemaContract {
     #[getters(copy)]
     metadata: crate::route_metadata::RouteMetadata,

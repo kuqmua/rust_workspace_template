@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
     Eq,
-    newtype::AsRefStr,
-    newtype::Display,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::Display,
 )]
 pub struct AdminDataTableFrontendPath(Box<str>);
 impl From<crate::admin_data_table::AdminDataTable> for AdminDataTableFrontendPath {

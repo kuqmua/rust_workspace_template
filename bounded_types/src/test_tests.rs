@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 enum TestDeserializerValue {
     Number(u8),
     Text(&'static str),
@@ -400,7 +400,7 @@ fn test_vec_deserialization_ignores_excess_item_type() {
     assert!(error.to_string().contains("exceeds maximum 1"));
 }
 
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct MisleadingSizeHintIter<Values> {
     values: Values,
 }

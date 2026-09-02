@@ -1,5 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, newtype::Display,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    proc_macro_newtype::Display,
 )]
 pub struct EnvVarName(String);
 impl From<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError> for EnvVarName {

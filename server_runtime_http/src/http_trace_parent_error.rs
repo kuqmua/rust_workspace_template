@@ -1,5 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    thiserror::Error,
 )]
 pub enum HttpTraceParentError {
     #[error("{}", constants_str::TRACEPARENT_W3C_VERSION_00_FORMAT)]

@@ -16,7 +16,7 @@ generate_pg_table_src = { workspace = true }
 macro_helpers = { workspace = true, features = ["test-utils"] }
 macro_clippy_check_test_common = { workspace = true, features = ["test-utils"] }
 token_patterns = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 serde = { workspace = true }
 [lints]
 workspace = true

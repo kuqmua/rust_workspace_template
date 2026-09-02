@@ -1,4 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::Display, newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
 )]
 pub(crate) struct StdHttpErrorBacktrace(Box<str>);

@@ -218,7 +218,7 @@ Tests marked with **Exceptions** contain an explicit allowlist, reviewed invento
 - [ ] `error_implementation_source_uses_only_thiserror_derive`
 - [ ] `error_implementations_derive_thiserror_error`
 - [ ] `every_fallible_typed_route_operation_has_its_own_error_type`
-- [ ] `every_workspace_struct_and_enum_derives_optimal_memory_layout` — **Exceptions:** `optimal_memory_layout/src/lib.rs` is exempt because it defines the derive itself; every struct and enum elsewhere, including generated syntax inspected by the visitor, must derive it.
+- [ ] `every_workspace_struct_and_enum_derives_optimal_memory_layout` — **Exceptions:** `proc_macro_optimal_memory_layout/src/lib.rs` is exempt because it defines the derive itself; every struct and enum elsewhere, including generated syntax inspected by the visitor, must derive it.
 - [ ] `expect_and_panic_messages_start_with_unique_diagnostic_ids` — **Exceptions:** three reviewed generated-message interpolations cannot begin with a literal diagnostic ID at the source site. They are matched by exact owner/error text with reasons; all literal IDs must still be unique UUID-v4 prefixes.
 - [ ] `field_getters_are_generated`
 - [ ] `generated_randomness_policy_inspects_quote_token_streams`

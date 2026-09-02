@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     PartialEq,
     Eq,
-    newtype::AsRefStr,
-    newtype::Display,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::Display,
 )]
 pub struct AdminRoutePath(Box<str>);
 impl TryFrom<String> for AdminRoutePath {

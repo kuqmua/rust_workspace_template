@@ -11,13 +11,13 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
-generate_accessor = { workspace = true }
-generate_constructor = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_new = { workspace = true }
 constants_str = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 frontend_contract = { workspace = true }
-frontend_contract_macros = { workspace = true }
-newtype = { workspace = true }
+proc_macro_frontend_contract = { workspace = true }
+proc_macro_newtype = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 utoipa = { workspace = true }

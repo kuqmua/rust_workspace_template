@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::CloneFields)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, proc_macro_newtype::CloneFields,
+)]
 pub struct AsyncRunHistory<RunReport> {
     maximum_len:
         super::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize,
@@ -44,7 +46,7 @@ impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
 mod tests {
     #[test]
     fn test_history_clone_does_not_require_report_clone() {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
         struct NotClone;
         let maximum = crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE)
             .expect(constants_str::DIAGNOSTIC_91F5D3A8);

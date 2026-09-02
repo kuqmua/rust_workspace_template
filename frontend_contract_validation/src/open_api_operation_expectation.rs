@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+)]
 pub struct OpenApiOperationExpectation {
     content_type: frontend_contract::contract_str::ContractStr,
     metadata: frontend_contract::route_metadata::RouteMetadata,

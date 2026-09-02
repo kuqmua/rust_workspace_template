@@ -3,7 +3,11 @@
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::DerefTarget, newtype::Display,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    proc_macro_newtype::DerefTarget,
+    proc_macro_newtype::Display,
 )]
 pub struct PgTableQueryPartFragment(String);
 impl From<crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError> for PgTableQueryPartFragment {

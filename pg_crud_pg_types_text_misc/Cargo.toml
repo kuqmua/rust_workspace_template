@@ -9,19 +9,19 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-optimal_memory_layout = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 sqlx = { workspace = true }
 uuid = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-generate_pg_types = { workspace = true }
+proc_macro_generate_pg_types = { workspace = true }
 frontend_contract = { workspace = true }
 pg_types_common = { workspace = true }
 pg_crud_common = { workspace = true }
 location_lib = { workspace = true }
-location_macros = { workspace = true }
-location = { workspace = true }
+proc_macro_location_bang = { workspace = true }
+proc_macro_location = { workspace = true }
 where_filters = { workspace = true }
 to_err_string = { workspace = true }
 utoipa = { workspace = true }

@@ -1,4 +1,4 @@
-#[frontend_contract_macros::route_error(AdminVersionPageError)]
+#[proc_macro_frontend_contract::route_error(AdminVersionPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn version(auth: crate::admin_auth_req::AdminAuthReq) -> axum::response::Response {
     match crate::page_context_impl::page_context_impl(&auth).await {

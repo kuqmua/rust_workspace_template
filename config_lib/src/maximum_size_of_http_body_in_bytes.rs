@@ -2,9 +2,9 @@
     Debug,
     Clone,
     Copy,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DerefInner,
+    proc_macro_generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::DerefInner,
 )]
 pub struct MaximumSizeOfHttpBodyInBytes(usize);
 

@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(crate) struct FilterSpec {
     bind_count: crate::bind_count::BindCount,
     #[getters(copy)]

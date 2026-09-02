@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeTestConfig {
     application_base_url: crate::service_base_url::ServiceBaseUrl,
     notification_service_base_url: crate::service_base_url::ServiceBaseUrl,

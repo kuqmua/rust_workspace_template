@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
-    newtype_foundation::FromInner,
-    newtype_foundation::GetInner,
+    proc_macro_newtype_foundation::FromInner,
+    proc_macro_newtype_foundation::GetInner,
 )]
 pub struct SynFieldsUnnamedRef<'fields_lt>(&'fields_lt syn::FieldsUnnamed);
 impl std::ops::Deref for SynFieldsUnnamedRef<'_> {

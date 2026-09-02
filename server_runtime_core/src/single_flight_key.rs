@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Hash, PartialEq,
+)]
 pub struct SingleFlightKey(String);
 impl TryFrom<String> for SingleFlightKey {
     type Error = crate::single_flight_key_error::SingleFlightKeyError;

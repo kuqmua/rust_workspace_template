@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ServiceRuntime {
     optional_task: Option<crate::background_task::BackgroundTask>,
     router: crate::axum_router::AxumRouter,

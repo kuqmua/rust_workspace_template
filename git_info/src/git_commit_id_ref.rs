@@ -7,11 +7,11 @@
     Eq,
     Default,
     serde_derive::Serialize,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsRefInner,
-    newtype::Display,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct GitCommitIdRef<'commit_lt>(&'commit_lt str);
 impl PartialEq<&str> for GitCommitIdRef<'_> {

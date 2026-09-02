@@ -1,5 +1,11 @@
 #[derive(
-    Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    thiserror::Error,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum BoundedStringError {
     #[error("string length {actual_length} is above maximum {maximum_length}")]

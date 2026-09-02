@@ -6,7 +6,7 @@
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(crate::not_empty_unique_vec::NotEmptyUniqueVec<T>),

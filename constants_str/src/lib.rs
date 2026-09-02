@@ -7,7 +7,7 @@
 //! conformance tests; `SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
 //! `pg_crud_common::domain_types::PgSqlIdentifier`, not an application-schema declaration.
 
-constants_str_macros::define_git_info_constants!();
+proc_macro_constants_str::define_git_info_constants!();
 
 pub const MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 4] = [
     SHARED_VALUES_CHECK,
@@ -329,7 +329,7 @@ pub const BLOCKING_STD_NET_CALLS: [&str; 3] = [V_1507958C, V_3B9B72DE, V_F270798
 
 pub const GIT_LS_FILES_ARGS: [&str; 2] = [V_DC9BC8CB, V_C0523D8F];
 
-constants_str_macros::define_str_constants! {
+proc_macro_constants_str::define_str_constants! {
     fragments {
         W_N_0 = "0";
         W_N_00 = "00";
@@ -926,7 +926,7 @@ constants_str_macros::define_str_constants! {
         W_CONSTANT = "constant";
         W_CONSTANTS = "constants";
         W_CONSTANTS_STR = "constants_str";
-        W_CONSTANTS_STR_MACROS = "constants_str_macros";
+        W_CONSTANTS_STR_MACROS = "proc_macro_constants_str";
         W_CONSTANTS_USIZE = "constants_usize";
         W_CONSTRAINT_NAME = "constraint_name";
         W_CONSTRAINT_TYPE = "constraint_type";
@@ -1185,7 +1185,7 @@ constants_str_macros::define_str_constants! {
         W_FROM_REQUEST_PARTS = "from_request_parts";
         W_FRONTEND = "frontend";
         W_FRONTEND_CONTRACT = "frontend_contract";
-        W_FRONTEND_CONTRACT_MACROS = "frontend_contract_macros";
+        W_FRONTEND_CONTRACT_MACROS = "proc_macro_frontend_contract";
         W_FRONTEND_CONTRACT_VALIDATION = "frontend_contract_validation";
         W_FS = "fs";
         W_FULL = "full";
@@ -1200,9 +1200,7 @@ constants_str_macros::define_str_constants! {
         W_GENERATE_IMPL_PG_CRUD_DEFAULT_SOME_ONE_ELEMENT_M = "generate_impl_pg_crud_default_some_one_element_max_page_size_token_stream";
         W_GENERATE_IMPL_PG_CRUD_DEFAULT_SOME_ONE_ELEMENT_T = "generate_impl_pg_crud_default_some_one_element_token_stream";
         W_GENERATE_NEW_OR_TRY_NEW = "generate_new_or_try_new";
-        W_GENERATE_PG_TABLE = "generate_pg_table";
-        W_GENERATE_ACCESSOR = "generate_accessor";
-        W_GENERATE_CONSTRUCTOR = "generate_constructor";
+        W_GENERATE_PG_TABLE = "proc_macro_generate_pg_table";
         W_GENERATE_PG_TABLE_TESTS = "generate_pg_table_Tests";
         W_GENERATE_PG_TABLE_FRONTEND = "generate_pg_table_frontend";
         W_GENERATE_PG_TABLE_TEST = "generate_pg_table_test";
@@ -1380,7 +1378,7 @@ constants_str_macros::define_str_constants! {
         W_LOCALHOST = "localhost";
         W_LOCATION_E6EAEA18 = "location";
         W_LOCATION_LIB = "location_lib";
-        W_LOCATION_MACROS = "location_macros";
+        W_BANG = "bang";
         W_LOCK = "lock";
         W_LOCKED = "locked";
         W_LOG = "log";
@@ -1506,7 +1504,9 @@ constants_str_macros::define_str_constants! {
         W_OPERATIONAL = "operational";
         W_OPERATIONS = "operations";
         W_OPS = "ops";
-        W_OPTIMAL_MEMORY_LAYOUT = "optimal_memory_layout";
+        W_OPTIMAL = "optimal";
+        W_MEMORY = "memory";
+        W_LAYOUT = "layout";
         W_OPTIMISTIC_REVISION_FIELD = "optimistic_revision_field";
         W_OPTION_A11A75E0 = "option";
         W_OPTION_BORROW = "option_borrow";
@@ -1588,9 +1588,9 @@ constants_str_macros::define_str_constants! {
         W_PG_CLASS = "pg_class";
         W_PG_CONSTRAINT = "pg_constraint";
         W_PG_CRUD_COMMON = "pg_crud_common";
-        W_PG_CRUD_COMMON_MACROS = "pg_crud_common_macros";
+        W_PG_CRUD_COMMON_MACROS = "proc_macro_trait_alias";
         W_PG_CRUD_MACRO_COMMON = "pg_crud_macro_common";
-        W_PG_CRUD_MACRO_COMMON_MACROS = "pg_crud_macro_common_macros";
+        W_PG_CRUD_MACRO_COMMON_MACROS = "proc_macro_bool_enum_to_tokens";
         W_PG_CRUD_PG_TABLE = "pg_crud_pg_table";
         W_PG_CRUD_PG_TABLE_GENERATE_SRC = "pg_crud_pg_table_generate_src";
         W_PG_CRUD_PG_TYPES_COMMON = "pg_crud_pg_types_common";
@@ -3167,7 +3167,7 @@ constants_str_macros::define_str_constants! {
         pub LOCAL_IMPORT_POLICY_FIXTURE = [W_USE, RF_52109349, W_CRATE, RF_AE9D6BA0, "EnvContentRef", RF_F240463D, "EnvKey", RF_F240463D, "EnvKeys", RF_F240463D, "InitStringError", RF_B7AEA9A9, W_USE, RF_52109349, W_SUPER, RF_5E0F6B19, "tracing_level_name", RF_5E0F6B19, "TracingLevelName", RF_6FCABFC4, W_USE, RF_52109349, W_SUPER, RF_AE9D6BA0, "ConfigLibStringWrapperTryFromStringError", RF_F240463D, "EnvVarName", RF_F240463D, "StdEnvVarOk", RF_B7AEA9A9, W_USE, RF_52109349, W_SELF_06C604B3, RF_5E0F6B19, W_NESTED, RF_5E0F6B19, W_VALUE_8E37953D, RF_8C45A543];
         pub NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS = [RF_D7A5E915, W_STRUCT, RF_52109349, "HelperState", RF_0FA7E1F6, W_NAMES, RF_6A861546, W_VEC, RF_53A56174, W_STRING, RF_14E74500, "seen", RF_6A861546, W_STD, RF_5E0F6B19, W_COLLECTIONS, RF_5E0F6B19, W_BTREESET, RF_53A56174, W_STRING, RF_14E74500, "refs", RF_6A861546, W_OPTION, RF_53A56174, W_STD, RF_5E0F6B19, W_COLLECTIONS, RF_5E0F6B19, W_HASHSET, RF_C564145D, W_STATIC, RF_52109349, W_STR, ">>,\n    ", W_WRAPPED, RF_6A861546, W_TYPES, RF_5E0F6B19, W_SOURCETEXTLIST, RF_378BC2F8, W_STRUCT, RF_52109349, W_SOURCETEXTLIST, RF_2C8B6D4A, W_VEC, RF_53A56174, W_STRING, RF_47F8C011];
         pub VALUE_BC13B693 = [RF_145E1B46, W_DERIVE, RF_2C8B6D4A, W_DEBUG, RF_F240463D, W_DISPLAY, RF_F97CAF10, W_STRUCT, RF_52109349, "ApiTokenRef", "<'", W_VALUE_LT, ">(&'", W_VALUE_LT, RF_52109349, W_STR, ");\n#[", W_DERIVE, RF_2C8B6D4A, W_DEBUGTRANSPARENT, RF_F97CAF10, W_STRUCT, RF_52109349, "ApiKeyBytes", RF_0FA7E1F6, W_VALUE_CD42404D, RF_6A861546, W_VEC, RF_53A56174, W_U8, ">,\n}\n#[", W_DERIVE, RF_2C8B6D4A, W_DISPLAYTRANSPARENT, RF_F97CAF10, W_STRUCT, RF_52109349, W_PASSWORDHASH, "([", W_U8, RF_E649B20C, W_N_32, "]);\n#[", W_DERIVE, RF_2C8B6D4A, W_NEWTYPE_CF0021B1, RF_5E0F6B19, "DebugRedacted", RF_F97CAF10, W_STRUCT, RF_52109349, "ApiSecret", RF_2C8B6D4A, W_STRING, RF_1630861E];
-        pub VALUE_936BA38B = [RF_145E1B46, W_DERIVE, RF_2C8B6D4A, W_OPTIMAL_MEMORY_LAYOUT, RF_5E0F6B19, W_OPTIMALMEMORYLAYOUT, RF_F97CAF10, W_STRUCT, RF_52109349, "CheckedStruct", RF_6FCABFC4, W_ENUM, RF_52109349, "MissingEnum", RF_68DE6583, W_VARIANT, RF_5FFFB3AD, W_STRUCT, RF_52109349, "MissingStruct", RF_A8A3F26B, W_DERIVE, RF_2C8B6D4A, W_DEBUG, RF_F240463D, W_OPTIMAL_MEMORY_LAYOUT, RF_5E0F6B19, W_OPTIMALMEMORYLAYOUT, RF_F97CAF10, W_ENUM, RF_52109349, "CheckedEnum", RF_68DE6583, W_VARIANT, RF_5FFFB3AD];
+        pub VALUE_936BA38B = [RF_145E1B46, W_DERIVE, RF_2C8B6D4A, W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, RF_5E0F6B19, W_OPTIMALMEMORYLAYOUT, RF_F97CAF10, W_STRUCT, RF_52109349, "CheckedStruct", RF_6FCABFC4, W_ENUM, RF_52109349, "MissingEnum", RF_68DE6583, W_VARIANT, RF_5FFFB3AD, W_STRUCT, RF_52109349, "MissingStruct", RF_A8A3F26B, W_DERIVE, RF_2C8B6D4A, W_DEBUG, RF_F240463D, W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, RF_5E0F6B19, W_OPTIMALMEMORYLAYOUT, RF_F97CAF10, W_ENUM, RF_52109349, "CheckedEnum", RF_68DE6583, W_VARIANT, RF_5FFFB3AD];
         pub VALUE_2CC8E3AF = [RF_145E1B46, W_DERIVE, RF_2C8B6D4A, W_THISERROR, RF_5E0F6B19, W_ERROR, RF_F97CAF10, W_ENUM, RF_52109349, "AuthenticationError", RF_03349A12, W_ERROR_CA00FCCF, RF_51F9A632, W_REJECTED, RF_52109349, W_SECRET_2BB80D53, RF_0B2E82E2, W_SECRET_2BB80D53, "}\")]\n    ", "Named", RF_68DE6583, W_SECRET_2BB80D53, RF_6A861546, W_STRING, " },\n    #[", W_ERROR_CA00FCCF, RF_51F9A632, W_REJECTED, RF_52109349, W_PASSWORD, RF_0B2E82E2, W_N_0, ":?}\")]\n    ", "Tuple", RF_2C8B6D4A, W_VEC, RF_53A56174, W_U8, ">),\n    #[", W_ERROR_CA00FCCF, RF_51F9A632, W_TOKEN, RF_52109349, "was", RF_52109349, W_REJECTED, RF_5240BAC3, "Redacted", RF_68DE6583, W_TOKEN, RF_6A861546, W_STRING, " },\n}\n"];
         pub VALUE_402DAFF0 = [RF_145E1B46, W_TEST, RF_C47F0D4B, W_FN, RF_52109349, "nondeterministic_test", RF_A6C98B93, W_TOKIO, RF_5E0F6B19, W_TIME, RF_5E0F6B19, W_SLEEP, RF_2C8B6D4A, W_STD, RF_5E0F6B19, W_TIME, RF_5E0F6B19, "Duration", RF_5E0F6B19, "from_secs", RF_2C8B6D4A, W_N_1, "));\n    ", W_UUID_75666699, RF_5E0F6B19, W_UUID, RF_5E0F6B19, W_NEW_V4, "();\n}\n#[", W_TOKIO, RF_5E0F6B19, W_TEST, RF_C47F0D4B, W_ASYNC, RF_52109349, W_FN, RF_52109349, "test_nondeterministic_async_test", RF_A6C98B93, W_STD, RF_5E0F6B19, W_TIME, RF_5E0F6B19, W_SYSTEMTIME, RF_5E0F6B19, W_NOW_ED5EB9A3, RF_CAB16D15, W_STD, RF_5E0F6B19, W_TIME, RF_5E0F6B19, W_INSTANT, RF_5E0F6B19, W_NOW_ED5EB9A3, RF_CAB16D15, W_RAND, RF_5E0F6B19, W_RNG, RF_CAB16D15, W_GETRANDOM, RF_5E0F6B19, W_FILL, RF_C8258A4D, W_MUT, RF_99742B8E, W_N_0U8, RF_E649B20C, W_N_4, "]);\n    ", W_RAND, RF_5E0F6B19, W_RNGS, RF_5E0F6B19, W_OSRNG, RF_3C39A736, W_FN, RF_52109349, W_INTEGRATION_TEST_HELPER, RF_A6C98B93, W_RAND, RF_5E0F6B19, W_RANDOM, "();\n}\n"];
         pub VALUE_9AC9CBBD = [RF_D7A5E915, W_ASYNC, RF_52109349, W_FN, RF_52109349, W_BLOCKED, RF_A6C98B93, W_STD, RF_5E0F6B19, W_FS, RF_5E0F6B19, W_READ, RF_51F9A632, W_INPUT, RF_F661B091, W_STD, RF_5E0F6B19, W_NET, RF_5E0F6B19, W_TCPSTREAM, RF_5E0F6B19, W_CONNECT, RF_51F9A632, W_N_127, RF_7299B59D, W_N_0, RF_7299B59D, W_N_0, RF_7299B59D, W_N_1, RF_194AA390, W_N_1, RF_F661B091, W_FUTURES, RF_5E0F6B19, W_EXECUTOR, RF_5E0F6B19, W_BLOCK_ON, RF_2C8B6D4A, W_ASYNC, " {});\n}\n", W_STRUCT, RF_52109349, W_SERVICE_D677190E, RF_6FCABFC4, W_IMPL, RF_52109349, W_SERVICE_D677190E, RF_0FA7E1F6, W_ASYNC, RF_52109349, W_FN, RF_52109349, "blocked_method", RF_E05EEDA7, W_STD, RF_5E0F6B19, W_FS, RF_5E0F6B19, W_METADATA, RF_51F9A632, W_INPUT, RF_0385E8CF, W_TRAIT, RF_52109349, "BlockedTrait", RF_0FA7E1F6, W_ASYNC, RF_52109349, W_FN, RF_52109349, "blocked_default", RF_E05EEDA7, W_STD, RF_5E0F6B19, W_FS, RF_5E0F6B19, W_CANONICALIZE, RF_51F9A632, W_INPUT, RF_0385E8CF, W_FN, RF_52109349, "nested_async", RF_A6C98B93, W_LET, RF_52109349, "_future", RF_166541CB, W_ASYNC, RF_4B18C51D, W_STD, RF_5E0F6B19, W_FS, RF_5E0F6B19, W_WRITE, RF_51F9A632, W_OUTPUT, "\", []);\n    };\n    ", W_LET, RF_52109349, "_closure", RF_166541CB, W_ASYNC, " || ", W_STD, RF_5E0F6B19, W_FS, RF_5E0F6B19, W_READ_TO_STRING, RF_51F9A632, W_INPUT, RF_4ED3F29F, W_FN, RF_52109349, W_SYNCHRONOUS_IS_ALLOWED, RF_A6C98B93, W_STD, RF_5E0F6B19, W_FS, RF_5E0F6B19, W_READ, RF_51F9A632, W_INPUT, RF_4ED3F29F];
@@ -4500,9 +4500,9 @@ constants_str_macros::define_str_constants! {
         pub X_CSRF_TOKEN = ["X", "-", W_CSRF, "-", "Token"];
         pub REDACTED_ALT_3 = ["[", W_REDACTED, "]"];
         pub A_Z_PLUS = ["[", W_A_CA978112, "-", W_Z, "]+"];
-        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[", W_DEPENDENCIES, "]\n", W_APP_STATE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_AXUM_AF7119DC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FUTURES, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FRONTEND_CONTRACT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_ACCESSOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_CONSTRUCTOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_HTTP_E0603C49, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_REQWEST, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE_JSON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TRACING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GIT_INFO, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_METRICS_177A7EA3, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", "pg_table", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_NUMERIC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_TEXT_MISC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_PG_TABLE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_OPTIMAL_MEMORY_LAYOUT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_ROUTE_VALIDATORS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_CORE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_HTTP, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n"];
-        pub DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE = ["[", W_DEPENDENCIES, "]\n", "chrono", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UUID_75666699, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE_JSON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FRONTEND_CONTRACT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_OPTIMAL_MEMORY_LAYOUT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SCHEMARS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n[", W_FEATURES, "]\n", W_TEST, "-", W_UTILS, " = []"];
-        pub DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE = ["[", W_DEPENDENCIES, "]\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_ACCESSOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_CONSTRUCTOR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SCHEMARS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_MACROS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_NEWTYPE_CF0021B1, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n[", W_FEATURES, "]\n", W_TEST, "-", W_UTILS, " = []"];
+        pub DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES = ["[", W_DEPENDENCIES, "]\n", W_APP_STATE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_AXUM_AF7119DC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FUTURES, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FRONTEND_CONTRACT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_GETTERS_F4853BC8, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_NEW_11507A0E, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_HTTP_E0603C49, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_REQWEST, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE_JSON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TRACING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GIT_INFO, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_LOCATION_E6EAEA18, W__, W_BANG, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_METRICS_177A7EA3, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", "pg_table", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_NUMERIC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_TEXT_MISC, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_GENERATE_PG_TABLE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_ROUTE_VALIDATORS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_CORE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERVER_RUNTIME_HTTP, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n"];
+        pub DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE = ["[", W_DEPENDENCIES, "]\n", "chrono", " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UUID_75666699, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE_JSON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_FRONTEND_CONTRACT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_LOCATION_E6EAEA18, W__, W_BANG, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_TYPES_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SCHEMARS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n[", W_FEATURES, "]\n", W_TEST, "-", W_UTILS, " = []"];
+        pub DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE = ["[", W_DEPENDENCIES, "]\n", W_SQLX, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_GETTERS_F4853BC8, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_NEW_11507A0E, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SERDE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_SCHEMARS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_THISERROR, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_UTOIPA, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_LOCATION_LIB, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_LOCATION_E6EAEA18, W__, W_BANG, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_LOCATION_E6EAEA18, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PROC_MACRO, W__, W_NEWTYPE_CF0021B1, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_PG_CRUD_COMMON, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_WHERE_FILTERS, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_CONSTANTS_USIZE, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n", W_TO_ERR_STRING, " = { ", W_WORKSPACE, " = ", W_TRUE_B5BEA41B, " }\n[", W_FEATURES, "]\n", W_TEST, "-", W_UTILS, " = []"];
         pub WORKSPACE_DEPENDENCIES = ["[", W_WORKSPACE, ".", W_DEPENDENCIES, "]"];
         pub WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE = ["[", W_WORKSPACE, "]\n", W_MEMBERS, " = [\"../", W_OUTSIDE, "\"]\n"];
         pub WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE = ["[", W_WORKSPACE, "]\n", W_MEMBERS, " = [\"", W_SERVICE_9DF6B026, "\"]\n"];
@@ -5280,6 +5280,7 @@ constants_str_macros::define_str_constants! {
         pub PRINTF = [W_PRINTF];
         pub PROC_MACRO = [W_PROC, "-", W_MACRO];
         pub PROC_MACRO_ALT = [W_PROC_MACRO];
+        pub PROC_MACRO_CRATE_PREFIX = [W_PROC_MACRO, W__];
         pub PROC_MACRO_ATTRIBUTE = ["proc_macro_attribute"];
         pub PROC_MACRO_DERIVE = ["proc_macro_derive"];
         pub PROCESSING_102 = ["processing_102"];
@@ -6657,7 +6658,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_2D81C306 = ["../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_const_new_for_identifier_token_stream", "\n../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_new_for_identifier_token_stream", "\n../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_pub_const_new_for_identifier_token_stream", "\n../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_pub_new_for_identifier_token_stream"];
         pub VALUE_F43CC42D = ["../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_const_try_new_for_identifier_token_stream", "\n../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_pub_const_try_new_for_identifier_token_stream", "\n../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_pub_try_new_for_identifier_token_stream", "\n../", W_MACRO_HELPERS, "/", W_SRC, "/", W_GENERATE_NEW_OR_TRY_NEW, ".", W_RS, "::", "generate_impl_try_new_for_identifier_token_stream"];
         pub VALUE_A744A72D = ["../", W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", W_BOUNDED_STRING, "\n../", W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", "enum_from_str"];
-        pub VALUE_11C1DCC5 = ["../", W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", W_TO_ERR_STRING, "\n../", W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", W_TO_ERR_STRING_AS_REF_STR, "\n../", W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", W_TO_ERR_STRING_DEBUG];
+        pub VALUE_11C1DCC5 = ["../", W_PROC_MACRO, W__, W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", W_TO_ERR_STRING, "\n../", W_PROC_MACRO, W__, W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", W_TO_ERR_STRING_AS_REF_STR, "\n../", W_PROC_MACRO, W__, W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS, "::", W_TO_ERR_STRING_DEBUG];
         pub VALUE_8E6C7109 = ["../", W_NOTIFICATION_SERVICE, "/", W_SRC, "/", W_ROUTES, ".", W_RS];
         pub VALUE_2D700ED6 = ["../", W_PG_CRUD_COMMON, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS, "::", W_VISIT_STR, "\n../", W_PG_CRUD_WHERE_FILTERS, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS, "::", W_VISIT_STR];
         pub VALUE_6BF051A2 = ["../", W_PG_CRUD_COMMON, "/", W_SRC, "/", "all_enum_variants", ".", W_RS, ":", "AllEnumVariants"];
@@ -6841,7 +6842,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_0C631CF4 = ["6afb4194", " ", W_NAVIGATION_ONLY_CONTAINS_ACCESSIBLE_PAGES, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub VALUE_3B1BC5FE = ["6c5a524e"];
         pub VALUE_DBD6E9F5 = ["6e0cc8df"];
-        pub VALUE_1E3961F9 = ["6e9230ab", " ", W_UNSUPPORTED, " ", W_OPTIMAL_MEMORY_LAYOUT, " ", W_ATTRIBUTE];
+        pub VALUE_1E3961F9 = ["6e9230ab", " ", W_UNSUPPORTED, " ", W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, " ", W_ATTRIBUTE];
         pub VALUE_2E395A49 = ["6f2c8a41"];
         pub VALUE_09221460 = ["729e9c33"];
         pub VALUE_51266978 = ["72c54e9a", " ", W_TYPED_STATIC_PAGES_RENDER_ROWS_ACTIONS_ROLES_AND, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
@@ -7165,9 +7166,9 @@ constants_str_macros::define_str_constants! {
         pub VALUE_2E474F0E = [W_CONFIG_LIB, "/", W_SRC, "/", "admin_jwt_tests", ".", W_RS];
         pub VALUE_237F2CE7 = [W_CONFIG_LIB, "/", W_SRC, "/", W_PG_POOL_TESTS, ".", W_RS];
         pub VALUE_ED469FC2 = [W_CONFIG_LIB, "/", W_SRC, "/", "types_tests", ".", W_RS];
-        pub VALUE_73F238C3 = ["config_lib_config_lib_macros", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_73F238C3 = ["proc_macro_config_lib", "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_516D6874 = ["config_lib_generate_accessor_traits_for_struct_fields", "/", W_SRC, "/", W_LIB, ".", W_RS];
-        pub VALUE_A57F952F = ["config_lib_try_from_env", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_A57F952F = ["proc_macro_try_from_env", "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_ACFDBB26 = [W_CONFIGURATION, " ", W_API, " ", "ordering", " ", W_PREDATES, " ", W_PER, "-", W_ATTRIBUTE, " ", W_REASONS];
         pub VALUE_586A9953 = [W_CONFIGURATION, " ", W_AND_6201111B, " ", W_ADMINISTRATOR, " ", W_IDENTIFIERS, " ", W_REQUIRE, " ", W_SEPARATE, " ", W_DOMAIN, " ", W_CONVERSION, " ", W_BOUNDARIES];
         pub VALUE_3DFFA238 = ["connect_with"];
@@ -7414,9 +7415,9 @@ constants_str_macros::define_str_constants! {
         pub VALUE_F75AB320 = [W_LOCATION_E6EAEA18, " ", W_FORMATTING, " ", W_ACCEPTS, " ", W_HETEROGENEOUS, " ", W_DISPLAY_DFBB889C, " ", W_VALUES_89445EA0];
         pub VALUE_D3009FFC = [W_LOCATION_E6EAEA18, " ", W_MACRO, " ", W_COMPATIBILITY, " ", W_PREDATES, " ", W_PER, "-", W_ATTRIBUTE, " ", W_REASONS];
         pub VALUE_EC66DC39 = [W_LOCATION_LIB, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS];
-        pub VALUE_20A65589 = ["location_lib_location", "/", W_SRC, "/", W_LIB, ".", W_RS];
-        pub VALUE_FF5D5E0E = ["location_lib_location_macros", "/", W_SRC, "/", W_LIB, ".", W_RS];
-        pub VALUE_B797AB3D = [W_LOCATION_MACROS];
+        pub VALUE_20A65589 = ["proc_macro_location", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_FF5D5E0E = ["proc_macro_location_bang", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_B797AB3D = [W_PROC_MACRO, W__, W_LOCATION_E6EAEA18, W__, W_BANG];
         pub VALUE_0C030586 = [W_LOCK];
         pub VALUE_DB488AC5 = ["lock_owned"];
         pub VALUE_761A94E7 = [W_MACRO, " ", W_ENTRY, " ", W_POINTS, " ", W_EMIT, " ", W_DIFFERENT, " ", W_TRAIT, " ", W_IMPLEMENTATIONS, " ", W_AND_6201111B, " ", W_MUST, " ", W_REMAIN, " ", W_SEPARATELY, " ", "addressable"];
@@ -7439,7 +7440,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_865824F9 = [W_MACRO_HELPERS, "/", W_SRC, "/", "test_path", ".", W_RS];
         pub VALUE_DB7F37E1 = [W_MACRO_HELPERS, "/", W_SRC, "/", "wrap_derive", ".", W_RS];
         pub VALUE_60D35589 = [W_MACRO_HELPERS, "/", W_SRC, "/", W_WRITE_STRING_INTO_FILE_TESTS, ".", W_RS];
-        pub VALUE_427B03A1 = ["macro_helpers_generate_derive_token_stream_builder", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_427B03A1 = ["proc_macro_generate_derive_token_stream_builder", "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_2C90A5F7 = ["macros_helpers"];
         pub VALUE_304B098A = [W_MAIN_LOGO];
         pub VALUE_6186A0EE = ["managed_role"];
@@ -7464,15 +7465,15 @@ constants_str_macros::define_str_constants! {
         pub VALUE_AC5E426F = [W_NAMING, " ", "generators", " ", W_FORMAT, " ", W_HETEROGENEOUS, " ", W_TOKEN, " ", W_VALUES_89445EA0];
         pub VALUE_C354B535 = ["naming_common_macros"];
         pub VALUE_B58CD11D = ["naming_macros"];
-        pub VALUE_D6A2A64F = ["naming_naming_common_macros", "/", W_SRC, "/", W_LIB, ".", W_RS];
-        pub VALUE_8CD81F6A = ["naming_naming_macros", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_D6A2A64F = ["proc_macro_naming_common", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_8CD81F6A = ["proc_macro_naming", "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_75EF2E32 = ["nest"];
         pub VALUE_4332EB14 = [W_NESTED, " ", W_SOURCE_41CF6794];
         pub VALUE_E5996CB1 = [W_NEWTYPE_CF0021B1, " ", W_DEPENDS, " ", W_DIRECTLY, " ", W_ON_B8D31E85, " ", W_WORKSPACE_MACRO_HELPERS];
         pub VALUE_2A080280 = [W_NEWTYPE_CF0021B1, " ", W_DEPENDS, " ", "transitively", " ", W_ON_B8D31E85, " ", W_CONSTANTS_STR_MACROS];
         pub VALUE_D0D0184F = [W_NEWTYPE_CF0021B1, " ", W_DOMAIN, " ", "models", " ", W_CANNOT, " ", W_INVOKE, " ", W_THEIR, " ", W_OWNING, " ", W_PROC, "-", W_MACRO, " ", W_CRATE];
-        pub VALUE_C809930D = [W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS];
-        pub VALUE_E24F0FD4 = [W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_C809930D = [W_PROC_MACRO, W__, W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS];
+        pub VALUE_E24F0FD4 = [W_PROC_MACRO, W__, W_NEWTYPE_CF0021B1, "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_34744D4C = [W_NEWTYPE_CF0021B1, "/", W_TESTS, "/", W_NEWTYPE_CF0021B1, ".", W_RS];
         pub VALUE_25E2DA35 = [W_NIGHTLY, " ", W_COMPILER, " ", W_TEST, "-", W_ONLY, " ", W_LINT];
         pub VALUE_D8B5BF9B = [W_NOT_254BB97B, " ", W_A_CA978112, " ", W_URL_28E5EBAB];
@@ -7495,8 +7496,8 @@ constants_str_macros::define_str_constants! {
         pub VALUE_3EFA7ACE = [W_OPERATIONID];
         pub VALUE_2AFAD82D = [W_OPS, "-", W_A_CA978112, "@", W_EXAMPLE_50D858E0, ".", W_COM];
         pub VALUE_E7FDD028 = [W_OPS, "-", W_B, "@", W_EXAMPLE_50D858E0, ".", W_COM];
-        pub VALUE_49A3E4A5 = [W_OPTIMAL_MEMORY_LAYOUT];
-        pub VALUE_30B1AC8C = [W_OPTIMAL_MEMORY_LAYOUT, "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_49A3E4A5 = [W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT];
+        pub VALUE_30B1AC8C = [W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_ECA7C4E3 = [W_OPTION_BORROW];
         pub VALUE_F9EA74B8 = [W_ORDER_PLATFORM];
         pub VALUE_E896B9AF = [W_ORDER_SERVICE];
@@ -7699,7 +7700,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_BEBEC57E = [W_SERVER_ADMIN_FRONTEND, "/", W_SRC, "/", "csr_page_from_location", ".", W_RS];
         pub VALUE_D0393EDD = [W_SERVER_APP_STATE];
         pub VALUE_25EADB03 = ["server_app_state_macros"];
-        pub VALUE_4B935405 = ["server_app_state_server_app_state_macros", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_4B935405 = ["proc_macro_impl_cfg_accessor", "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_B2F5A0ED = [W_SERVER_CONFIG];
         pub VALUE_D31B3088 = [W_SERVER_CONFIG, "/", W_SRC, "/", W_TESTS_DOMAIN_TYPES, ".", W_RS];
         pub VALUE_B29A11B9 = ["server_observability"];
@@ -7936,7 +7937,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_ED81BDD6 = [W_THISERROR, " ", W_FORMAT, " ", "strings", " ", W_MUST, " ", W_NOT_254BB97B, " ", "interpolate", " ", W_SECRET_2BB80D53, " ", W_TEXT_982D9E3E, " ", W_OR_7175517A, " ", W_BYTES];
         pub VALUE_EDBFCF78 = [W_TIMEOUT, " ", W_MIDDLEWARE, " ", W_ERASES, " ", W_ITS, " ", W_SERVICE_9DF6B026, " ", W_FUTURE, " ", W_BEHIND, " ", W_THE, " ", W_TOWER, " ", W_BOUNDARY];
         pub VALUE_AEC33C7D = ["to_err_string_macros"];
-        pub VALUE_744944F8 = ["to_err_string_to_err_string_macros", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_744944F8 = ["proc_macro_to_err_string", "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_E132B7C0 = [W_TO_OWNED];
         pub VALUE_C5E9F49A = [W_TO_STRING];
         pub VALUE_3C469E9D = [W_TOKEN];
@@ -7945,7 +7946,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_0E6DDA27 = [W_TOKEN, " ", W_HELPERS, " ", W_ACCEPT, " ", W_HETEROGENEOUS, " ", W_TOKEN, " ", W_FRAGMENTS];
         pub VALUE_19C32AF3 = [W_TOKEN, "-", W_STREAM, " ", W_COMPATIBILITY, " ", W_HELPERS, " ", W_PREDATE, " ", W_PER, "-", W_ATTRIBUTE, " ", W_REASONS];
         pub VALUE_DF1A7C9C = ["token_patterns_macros"];
-        pub VALUE_F8BC20AB = ["token_patterns_token_patterns_macros", "/", W_SRC, "/", W_LIB, ".", W_RS];
+        pub VALUE_F8BC20AB = ["proc_macro_token_patterns", "/", W_SRC, "/", W_LIB, ".", W_RS];
         pub VALUE_55BFC155 = ["tokenaudience"];
         pub VALUE_73F0D95A = ["tokenissuer"];
         pub VALUE_A2E10FB9 = ["tokenpart"];
@@ -7989,7 +7990,7 @@ constants_str_macros::define_str_constants! {
         pub VALUE_38A4FDFC = [W_VEC_38A4FDFC];
         pub VALUE_F7A09FE1 = [W_WHERE_B48111C1, " ", W_LOGIN_42882135, " = $", W_N_1];
         pub VALUE_9DAEB1C0 = [W_WIRE, " ", W_TOKEN, " ", W_PART, " ", W_FAILURES, " ", W_MAP, " ", W_TO, " ", W_A_CA978112, " ", W_STABLE, " ", W_PUBLIC_EFA1F375, " ", W_CATEGORY];
-        pub VALUE_6264CCC9 = [W_WORKSPACE, " ", W_STRUCTS, " ", W_AND_6201111B, " ", W_ENUMS, " ", W_WITHOUT, " ", W_OPTIMAL_MEMORY_LAYOUT, "::", W_OPTIMALMEMORYLAYOUT, " ", W_DERIVE];
+        pub VALUE_6264CCC9 = [W_WORKSPACE, " ", W_STRUCTS, " ", W_AND_6201111B, " ", W_ENUMS, " ", W_WITHOUT, " ", W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, "::", W_OPTIMALMEMORYLAYOUT, " ", W_DERIVE];
         pub VALUE_2900052A = [W_WORKSPACE_MACRO_HELPERS, "/", W_SRC, "/", W_TESTS_DOMAIN_TYPES, ".", W_RS];
         pub VALUE_1A456B0D = [W_WORKSPACE_SCAFFOLD, "/", W_SRC, "/", W_DOMAIN_TYPES, ".", W_RS];
         pub VALUE_5FB76CAF = [W_WORKSPACE_SCAFFOLD, "/", W_SRC, "/", "service_catalog", ".", W_RS];
@@ -8657,7 +8658,7 @@ constants_str_macros::define_str_constants! {
         pub DIAGNOSTIC_57CF209A = [W_57CF209A, " ", "try_write_string_into_file_with_outcome_returns_changed_and_rs_path", " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_58530F0E = [W_58530F0E, " ", W_MAKE_TEST_SERVER_APP_STATE, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_589EA31D = [W_589EA31D, " ", W_POSTGRESQL_OPTIMISTIC_REVISION_ALLOWS_ONE_CONCURRENT_WRITER, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
-        pub DIAGNOSTIC_58BD65A7 = ["58bd65a7", " ", W_OPTIMAL_MEMORY_LAYOUT, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
+        pub DIAGNOSTIC_58BD65A7 = ["58bd65a7", " ", W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_58C97CA7 = [W_58C97CA7, " ", W_COLLECT_REFS, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_58CDF783 = ["58cdf783", " ", W_GENERATED_COLUMN_METADATA_DRIVES_DATA_TABLE_MARK, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_58E2110E = ["58e2110e", " ", W_ADMINISTRATOR_CSR_PAGE_BEHAVIOR_COMES_FROM_THE_PAGE_CATALOG, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
@@ -8666,7 +8667,7 @@ constants_str_macros::define_str_constants! {
         pub DIAGNOSTIC_59114AC3 = ["59114ac3", " ", W_CREATE_NOTIFICATION_PERSISTS_THROUGH_HTTP_ROUTE, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_5994E7E2 = [W_5994E7E2, " ", W_TRY_MAYBE_WRITE_TOKEN_STREAM_INTO_FILE_SKIPS_WHEN_FLAG_IS_FALSE, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_599CA192 = ["599ca192", " ", "empty_guard_shutdown_is_idempotent_and_service_name_displays", " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
-        pub DIAGNOSTIC_5A0BB723 = [W_5A0BB723, " ", W_OPTIMAL_MEMORY_LAYOUT, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
+        pub DIAGNOSTIC_5A0BB723 = [W_5A0BB723, " ", W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_5A1D8C34 = ["5a1d8c34", " ", W_ENTRY, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_5A9F7D9C = ["5a9f7d9c", " ", W_GENERATED_FORM_VALUE_CONTRACT_PARSES_AND_FORMATS_WIRE_VALUES, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_5AF91E82 = ["5af91e82", " ", W_FIELD_TYPE, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
@@ -9087,7 +9088,7 @@ constants_str_macros::define_str_constants! {
         pub DIAGNOSTIC_A18F804C = ["a18f804c", " ", W_POSTGRESQL_CLEANUP_IS_BATCHED_AND_PRESERVES_APPEND_ONLY_POLICY, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_A1A1382A = [W_A1A1382A, " ", W_POSTGRESQL_OPTIMISTIC_REVISION_ALLOWS_ONE_CONCURRENT_WRITER, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_A1B2C3D4 = [W_A1B2C3D4, " ", W_CRUD_B349F873, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
-        pub DIAGNOSTIC_A1D306DE = [W_A1D306DE, " ", W_OPTIMAL_MEMORY_LAYOUT, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
+        pub DIAGNOSTIC_A1D306DE = [W_A1D306DE, " ", W_PROC_MACRO, W__, W_OPTIMAL, W__, W_MEMORY, W__, W_LAYOUT, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_A1DABED3 = ["a1dabed3", " ", W_VALIDATES_AND_APPLIES_W3C_TRACE_CONTEXT, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_A1EA86B8 = ["a1ea86b8", " ", W_STAGED_UPLOAD_DELETE_AND_ROLLBACK_PRESERVE_TRANSACTION_BOUNDARIES, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];
         pub DIAGNOSTIC_A25FE142 = ["a25fe142", " ", W_GENERATED_WHERE_FILTER_BUILDS_TYPED_TABLE_PREDICATE, " ", W_INVARIANT, " ", W_MUST, " ", W_HOLD];

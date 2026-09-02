@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ChildProcessSet {
     maximum: crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize,
     next_id: crate::child_process_id::ChildProcessId,

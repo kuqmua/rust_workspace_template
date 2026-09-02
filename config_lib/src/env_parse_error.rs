@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, thiserror::Error)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, thiserror::Error,
+)]
 pub(super) enum EnvParseError {
     #[error("environment variable value exceeds the size limit")]
     ValueTooLong {

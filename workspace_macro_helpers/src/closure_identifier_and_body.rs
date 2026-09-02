@@ -8,7 +8,7 @@ pub fn closure_identifier_and_body<T>(
 where
     T: Into<crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens>,
 {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct ClosureIdentifierAndBody {
         body: crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
         identifier: syn::Ident,

@@ -9,8 +9,8 @@ edition.workspace = true
 
 [dependencies]
 bounded_types = { workspace = true }
-optimal_memory_layout = { workspace = true }
-newtype = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
+proc_macro_newtype = { workspace = true }
 secrecy = { workspace = true }
 serde = { workspace = true }
 server_admin_contract = { workspace = true }

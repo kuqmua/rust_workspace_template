@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     PartialEq,
     Eq,
-    newtype::AsRefOwned,
-    newtype::BoundedStringWrapper,
-    newtype::DebugRedacted,
-    newtype::DerefInner,
+    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::DebugRedacted,
+    proc_macro_newtype::DerefInner,
 )]
 #[bounded_string(max = 1_048_576, description = "configuration secret text")]
 pub struct StdConfigSecretString(

@@ -1,5 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    Hash,
+    PartialEq,
+    proc_macro_newtype::AsRefStr,
 )]
 pub struct LeaseId(String);
 impl TryFrom<String> for LeaseId {

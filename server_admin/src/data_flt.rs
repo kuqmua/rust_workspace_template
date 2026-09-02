@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone)]
 pub(crate) enum DataFlt {
     Permissions(crate::data_permissions_flt::DataPermissionsFlt),
     RolePermissions(crate::data_role_permissions_flt::DataRolePermissionsFlt),

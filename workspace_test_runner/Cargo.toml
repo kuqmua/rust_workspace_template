@@ -13,17 +13,17 @@ constants_u64 = { workspace = true }
 constants_u128 = { workspace = true }
 constants_i32 = { workspace = true }
 constants_i64 = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 constants_str = { workspace = true }
 generate_pg_table_src = { workspace = true }
 generate_pg_types_src = { workspace = true }
 generate_where_filters_src = { workspace = true }
 frontend_contract = { workspace = true }
-generate_accessor = { workspace = true }
-generate_constructor = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_new = { workspace = true }
 macro_helpers = { workspace = true, features = ["test-utils"] }
-newtype = { workspace = true }
+proc_macro_newtype = { workspace = true }
 pg_crud_common = { workspace = true }
 quote = { workspace = true }
 server_admin_contract = { workspace = true }

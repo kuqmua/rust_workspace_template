@@ -15,12 +15,12 @@ pub fn check_commit(
             no_commit_header: crate::no_commit_header_message::NoCommitHeaderMessage::from(
                 constants_str::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
             ),
-            location: location_macros::location!(),
+            location: proc_macro_location_bang::location!(),
         })?
         .to_str()
         .map_err(|error| crate::commit_error::CommitError::CommitToStrConversion {
             commit_to_str_conversion: crate::axum_commit_to_str_conversion_error::AxumCommitToStrConversionError::from(error),
-            location: location_macros::location!(),
+            location: proc_macro_location_bang::location!(),
         })?;
     git_info::validate_project_commit::validate_project_commit(commit)
         .map_err(|error| {
@@ -34,7 +34,7 @@ pub fn check_commit(
                     constants_str::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG,
                 ),
                 commit_to_use,
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             },
         )
 }

@@ -1,4 +1,4 @@
-#[derive(Debug, serde::Serialize, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, serde::Serialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) struct NotFoundPayload {
     commit: git_info::git_commit_link_cow::GitCommitLinkCow,
     message: to_err_string::error_text::ErrorText,

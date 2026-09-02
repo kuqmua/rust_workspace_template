@@ -1,10 +1,10 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
     Debug,
     serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct GeneratePgTypesConfig {
     variant: crate::generate_pg_types_config_variant::GeneratePgTypesConfigVariant,

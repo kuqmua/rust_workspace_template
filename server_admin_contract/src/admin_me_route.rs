@@ -1,9 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
-    frontend_contract_macros::TypedRoute,
+    proc_macro_frontend_contract::TypedRoute,
 )]
 #[typed_route(
     authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Authenticated,

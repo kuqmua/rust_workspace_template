@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub(super) enum Range {

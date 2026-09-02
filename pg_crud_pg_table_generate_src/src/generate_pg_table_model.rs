@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(generate_constructor::New, optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_new::New, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct GeneratePgTableModel {
     #[getters(copy)]
     field_count: super::generate_pg_table_field_count::GeneratePgTableFieldCount,

@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum HealthError {
     #[error("service is unavailable")]
     Unavailable,

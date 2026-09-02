@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -7,8 +7,8 @@
     PartialEq,
     Ord,
     PartialOrd,
-    newtype::GetInner,
-    newtype::TryFrom,
+    proc_macro_newtype::GetInner,
+    proc_macro_newtype::TryFrom,
 )]
 #[try_from(
     error = crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error,

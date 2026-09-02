@@ -9,7 +9,7 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Location {
     // The owner module retains lint-sensitive semantics from the original implementation.

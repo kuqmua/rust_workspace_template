@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct EnableApiGitCommitCheck(bool);
 

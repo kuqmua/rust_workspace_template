@@ -1,4 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    proc_macro_newtype::FromInner,
+)]
 pub(super) struct MetricsSharedString(metrics::SharedString);
 
 impl MetricsSharedString {

@@ -1,4 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    PartialEq,
+    Eq,
+    proc_macro_newtype::FromInner,
+)]
 struct NonClone(u8);
 
 #[test]

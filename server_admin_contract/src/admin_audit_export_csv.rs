@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::BoundedStringWrapper,
-    newtype::AsRefStr,
-    newtype::Display,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::Display,
 )]
 #[bounded_string(
     max = 262_144usize,

@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminAccessTokenError {
     #[error("administrator access token has invalid bounds: {0}")]
     Bounds(crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError),

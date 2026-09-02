@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum TrustedProxyRangesParseError {
     #[error("trusted proxy range is invalid: {0}")]
     Range(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError),

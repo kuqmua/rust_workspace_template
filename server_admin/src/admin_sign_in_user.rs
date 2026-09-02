@@ -1,7 +1,7 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub(crate) struct AdminSignInUser {
     id: server_admin_core::admin_user_record_id::AdminUserRecordId,
     password_hash: crate::admin_password_hash::AdminPasswordHash,

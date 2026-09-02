@@ -1,5 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::DisplayConst,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::DisplayConst,
 )]
 #[display_const(constants_str::REDACTED_ALT_3)]
 pub struct BoundedSecretText(String);

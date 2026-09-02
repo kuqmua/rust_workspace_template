@@ -1,5 +1,8 @@
 #[derive(
-    Debug, serde::Deserialize, schemars::JsonSchema, optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PaginationStartsWithOneRaw {
     limit: crate::pagination_starts_with_one_value::PaginationStartsWithOneValue,

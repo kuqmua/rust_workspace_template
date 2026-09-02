@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DiskCacheEntry {
     modified_at: crate::disk_cache_modified_at_system_time::DiskCacheModifiedAtSystemTime,
     path: crate::storage_relative_path_buf::StorageRelativePathBuf,

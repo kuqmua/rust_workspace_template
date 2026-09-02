@@ -1,15 +1,15 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
     Eq,
     serde::Serialize,
     utoipa::ToSchema,
-    newtype::BoundedStringWrapper,
-    newtype::AsRefOwned,
-    newtype::DerefInner,
-    newtype::IntoInner,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator internal text")]
 pub struct StdAdminString(bounded_types::bounded_string::BoundedString<0usize, 8192, false>);

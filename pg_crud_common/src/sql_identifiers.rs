@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 pub struct SqlIdentifiers(crate::sql_identifier_list_text::SqlIdentifierListText);
 

@@ -3,13 +3,13 @@ where
     Route: frontend_contract::typed_route::TypedRoute<Transport = frontend_contract::public_transport::PublicTransport>,
 {
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Request;
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Response;
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct AuthenticatedRoute;
 impl frontend_contract::typed_route::TypedRoute for AuthenticatedRoute {
     type Request = Request;

@@ -1,5 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, Ord, PartialEq, PartialOrd,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
 )]
 pub enum DbKeyContractSnapshot {
     ForeignKey {

@@ -1,0 +1,18 @@
+[package]
+name = "proc_macro_to_err_string"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+[lib]
+proc-macro = true
+[dependencies]
+constants_str = { workspace = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+workspace_macro_helpers = { workspace = true }
+[lints]
+workspace = true

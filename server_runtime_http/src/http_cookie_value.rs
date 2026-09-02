@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
 pub struct HttpCookieValue(String);
 
 impl HttpCookieValue {

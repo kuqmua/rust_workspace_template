@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct ParameterizedTestRoute;
 
 impl frontend_contract::typed_route::TypedRoute for ParameterizedTestRoute {

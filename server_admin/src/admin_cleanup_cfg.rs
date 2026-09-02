@@ -1,6 +1,8 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+)]
 pub struct AdminCleanupCfg {
     #[getters(copy)]
     audit_retention: crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds,

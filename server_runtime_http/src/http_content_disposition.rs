@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct HttpContentDisposition(http::HeaderValue);

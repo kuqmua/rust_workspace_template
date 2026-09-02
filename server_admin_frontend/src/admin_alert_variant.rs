@@ -1,5 +1,11 @@
 #[derive(
-    Debug, optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq,
+    Debug,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Default,
+    PartialEq,
+    Eq,
 )]
 pub enum AdminAlertVariant {
     #[default]

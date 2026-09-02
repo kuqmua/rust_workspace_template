@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct PgTypeRecordRaw {
     pg_type: crate::pg_type_catalog_kind::PgTypeCatalogKind,
     is_nullable: pg_crud_macro_common::is_nullable::IsNullable,

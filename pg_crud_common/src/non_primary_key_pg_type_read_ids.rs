@@ -5,10 +5,10 @@
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(from = "crate::explicit_value::ExplicitValue<Option<()>>")]
-#[derive(newtype::FromInner)]
+#[derive(proc_macro_newtype::FromInner)]
 pub struct NonPrimaryKeyPgTypeReadIds(crate::explicit_value::ExplicitValue<Option<()>>);
 
 impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {

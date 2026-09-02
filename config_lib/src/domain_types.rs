@@ -1,15 +1,15 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-config_lib_macros::impl_try_from_non_empty_string!(
+proc_macro_config_lib::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
     TryFromStdEnvVarOkCorsAllowOriginError
 );
-config_lib_macros::impl_try_from_non_empty_string!(
+proc_macro_config_lib::impl_try_from_non_empty_string!(
     TrustedProxyRangesText,
     TryFromStdEnvVarOkTrustedProxyRangesTextError
 );
-config_lib_macros::impl_try_from_secret_url!(DatabaseUrl, TryFromStdEnvVarOkDatabaseUrlError);
-config_lib_macros::impl_try_from_parse!(
+proc_macro_config_lib::impl_try_from_secret_url!(DatabaseUrl, TryFromStdEnvVarOkDatabaseUrlError);
+proc_macro_config_lib::impl_try_from_parse!(
     EnableApiGitCommitCheck,
     TryFromStdEnvVarOkEnableApiGitCommitCheckError,
     bool,
@@ -19,10 +19,10 @@ config_lib_macros::impl_try_from_parse!(
     Clone,
     Copy
 );
-config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUrlError);
+proc_macro_config_lib::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUrlError);
 
-config_lib_macros::impl_try_from_secret_url!(RedisUrl, TryFromStdEnvVarOkRedisUrlError);
-config_lib_macros::impl_try_from_parse!(
+proc_macro_config_lib::impl_try_from_secret_url!(RedisUrl, TryFromStdEnvVarOkRedisUrlError);
+proc_macro_config_lib::impl_try_from_parse!(
     ServiceSocketAddress,
     TryFromStdEnvVarOkServiceSocketAddressError,
     std::net::SocketAddr,
@@ -32,14 +32,14 @@ config_lib_macros::impl_try_from_parse!(
     Clone,
     Copy
 );
-config_lib_macros::impl_try_from_parse_string_error!(
+proc_macro_config_lib::impl_try_from_parse_string_error!(
     SrcPlaceType,
     TryFromStdEnvVarOkSrcPlaceTypeError,
     crate::src_place_type::SrcPlaceType,
     AppStateSrcPlaceTypeParsing,
     app_state_src_place_type_parsing
 );
-config_lib_macros::impl_try_from_non_empty_string!(
+proc_macro_config_lib::impl_try_from_non_empty_string!(
     StartingCheckLink,
     TryFromStdEnvVarOkStartingCheckLinkError
 );
@@ -53,7 +53,7 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::tracing_forma
         })
     }
 }
-config_lib_macros::impl_try_from_parse_string_error!(
+proc_macro_config_lib::impl_try_from_parse_string_error!(
     TracingLevel,
     TryFromStdEnvVarOkTracingLevelError,
     crate::tracing_level::TracingLevel,

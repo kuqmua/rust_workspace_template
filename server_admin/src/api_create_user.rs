@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract_macros::route_openapi(delegate = crate::user_mutations_create::user_mutations_create, tag = "admin_users")]
+#[proc_macro_frontend_contract::route_openapi(delegate = crate::user_mutations_create::user_mutations_create, tag = "admin_users")]
 pub(crate) async fn api_create_user(
     auth: crate::admin_auth_req::AdminAuthReq,
     request: crate::axum_admin_json::AxumAdminJson<

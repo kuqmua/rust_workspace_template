@@ -1,6 +1,9 @@
-#[location::errors_with_location]
+#[proc_macro_location::errors_with_location]
 #[derive(
-    Debug, thiserror::Error, location::Location, optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    thiserror::Error,
+    proc_macro_location::Location,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[location_to_schema]
 pub enum BodySizeError {

@@ -1,4 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, newtype::DerefInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    proc_macro_newtype::DerefInner,
+)]
 pub struct HttpContentSecurityPolicy(http::HeaderValue);
 
 impl HttpContentSecurityPolicy {

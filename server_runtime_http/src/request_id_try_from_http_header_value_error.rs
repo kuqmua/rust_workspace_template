@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum RequestIdTryFromHttpHeaderValueError {
     #[error(transparent)]
     Invalid(crate::request_id_try_from_string_error::RequestIdTryFromStringError),

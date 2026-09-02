@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq,
+)]
 pub struct MultipartUploadRequest {
     bytes_parts: crate::multipart_bytes_parts::MultipartBytesParts,
     payload_bytes: crate::multipart_value_length::MultipartValueLength,

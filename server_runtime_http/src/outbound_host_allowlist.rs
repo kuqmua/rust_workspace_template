@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct OutboundHostAllowlist(
     bounded_types::bounded_vec::BoundedVec<
         crate::outbound_allowed_host::OutboundAllowedHost,

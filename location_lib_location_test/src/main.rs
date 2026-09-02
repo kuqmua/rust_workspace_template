@@ -30,7 +30,7 @@ fn main() {
             eo_display_with_serde_field: create_location_test_text::create_location_test_text(
                 String::from(constants_str::PG_CRUD_VALUES_FIELD),
             ),
-            location: location_macros::location!(),
+            location: proc_macro_location_bang::location!(),
         },
         eo_vec_display_field: vec![
             display_struct::DisplayStruct::new(
@@ -59,13 +59,13 @@ fn main() {
                 eo_display_with_serde_field: location_test_text::LocationTestText::from(
                     constants_str::PG_CRUD_VALUES_FIELD,
                 ),
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             }),
             error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
                 eo_display_with_serde_field: location_test_text::LocationTestText::from(
                     constants_str::VALUE_123,
                 ),
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             }),
         ],
         hashmap_string_string: std::collections::HashMap::from([
@@ -128,7 +128,7 @@ fn main() {
                         create_location_test_text::create_location_test_text(String::from(
                             constants_str::VASDFGDGDFGLUE,
                         )),
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 }),
             ),
             (
@@ -140,11 +140,11 @@ fn main() {
                         create_location_test_text::create_location_test_text(String::from(
                             constants_str::VALSDFGDSAFGDSGUE,
                         )),
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 }),
             ),
         ]),
-        location: location_macros::location!(),
+        location: proc_macro_location_bang::location!(),
     };
     println!("{error:?}");
 }

@@ -3,7 +3,7 @@ pub fn emit_generate_pg_types(
     validated: crate::validated_generate_pg_types_config::ValidatedGeneratePgTypesConfig,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     panic_location::panic_location();
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum DateOrTime {
         Date,
         Time,
@@ -182,27 +182,27 @@ pub fn emit_generate_pg_types(
     .into_iter()
     .enumerate()
     .map(|(i, element)| {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum PgTypeOrPgTypeTestCases {
             PgType,
             PgTypeTestCases,
         }
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum IsNonNullStandardCanBePrimaryKey {
             False,
             True,
         }
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum StartOrEnd {
             End,
             Start,
         }
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum ShouldImplFrom {
             False,
             True,
         }
-        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum IntRangeType {
             SqlxPgTypesPgRangeI32AsInt4Range,
             SqlxPgTypesPgRangeI64AsInt8Range,
@@ -671,7 +671,7 @@ pub(super) enum IntRangeType {
             }
         };
         let (ser_derive_or_impl, de_derive_or_impl) = if matches!(&is_standard_non_null, pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True) {
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
             enum ParameterNumber {
@@ -1090,7 +1090,7 @@ pub(super) enum IntRangeType {
             let maybe_impl_identifier_token_stream = if matches!(&pg_type_pattern, crate::pg_type_pattern::PgTypePattern::Standard) &&
                 matches!(&is_nullable, pg_crud_macro_common::is_nullable::IsNullable::False)
             {
-                #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum IsConst {
                     False,
                     True,
@@ -2023,13 +2023,13 @@ pub(super) enum IsConst {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#included_start_greater_than_included_end_upper_camel_case {
                                                             #start_snake_case,
                                                             #end_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                     if #end_snake_case == max {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#included_end_cannot_be_max_upper_camel_case {
                                                             #end_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Included(#start_snake_case), std::ops::Bound::Included(#end_snake_case))
@@ -2039,7 +2039,7 @@ pub(super) enum IsConst {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#included_start_greater_than_excluded_end_upper_camel_case {
                                                             #start_snake_case,
                                                             #end_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Included(#start_snake_case), std::ops::Bound::Excluded(#end_snake_case))
@@ -2050,13 +2050,13 @@ pub(super) enum IsConst {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#excluded_start_greater_than_included_end_upper_camel_case {
                                                             #start_snake_case,
                                                             #end_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                     if #end_snake_case == max {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#included_end_cannot_be_max_upper_camel_case {
                                                             #end_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Excluded(#start_snake_case), std::ops::Bound::Included(#end_snake_case))
@@ -2066,7 +2066,7 @@ pub(super) enum IsConst {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#excluded_start_greater_than_excluded_end_upper_camel_case {
                                                             #start_snake_case,
                                                             #end_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Excluded(#start_snake_case), std::ops::Bound::Excluded(#end_snake_case))
@@ -2076,7 +2076,7 @@ pub(super) enum IsConst {
                                                     if #end_snake_case == max {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#included_end_cannot_be_max_upper_camel_case {
                                                             #end_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Unbounded, std::ops::Bound::Included(#end_snake_case))
@@ -2094,7 +2094,7 @@ pub(super) enum IsConst {
                                                 Err(error) => {
                                                     return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#variant_token_stream {
                                                         #error_snake_case,
-                                                        location: location_macros::location!(),
+                                                        location: proc_macro_location_bang::location!(),
                                                     });
                                                 }
                                             },
@@ -2103,7 +2103,7 @@ pub(super) enum IsConst {
                                                 Err(error) => {
                                                     return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#variant_token_stream {
                                                         #error_snake_case,
-                                                        location: location_macros::location!(),
+                                                        location: proc_macro_location_bang::location!(),
                                                     });
                                                 }
                                             },
@@ -2124,7 +2124,7 @@ pub(super) enum IsConst {
                                                 Ok(Self(#v_snake_case))
                                             } else {
                                                 Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#not_finite_upper_camel_case {
-                                                    location: location_macros::location!(),
+                                                    location: proc_macro_location_bang::location!(),
                                                 })
                                             }
                                         },
@@ -2132,7 +2132,7 @@ pub(super) enum IsConst {
                                             if #v_snake_case.find('\0').is_some() {
                                                 Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#contains_null_byte_upper_camel_case {
                                                     #v_snake_case,
-                                                    location: location_macros::location!(),
+                                                    location: proc_macro_location_bang::location!(),
                                                 })
                                             } else {
                                                 Ok(Self(#v_snake_case))
@@ -2142,7 +2142,7 @@ pub(super) enum IsConst {
                                             if <#inner_type_standard_non_null_token_stream as chrono::Timelike>::nanosecond(&#v_snake_case).checked_rem(1000).expect("7c8b4e12 deserialize invariant must hold") != 0 {
                                                 return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                                     #v_snake_case: #v_snake_case.to_string(),
-                                                    location: location_macros::location!(),
+                                                    location: proc_macro_location_bang::location!(),
                                                 });
                                             }
                                             Ok(Self(#v_snake_case))
@@ -2151,7 +2151,7 @@ pub(super) enum IsConst {
                                             if #v_snake_case.nanosecond().checked_rem(1000).expect("ce47524f deserialize invariant must hold") != 0 {
                                                 return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                                     #v_snake_case: #v_snake_case.to_string(),
-                                                    location: location_macros::location!(),
+                                                    location: proc_macro_location_bang::location!(),
                                                 });
                                             }
                                             Ok(Self(#v_snake_case))
@@ -2165,7 +2165,7 @@ pub(super) enum IsConst {
                                                 Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#earlier_date_not_supported_upper_camel_case {
                                                     value: #v_snake_case.to_string(),
                                                     #earliest_supported_date_snake_case: #earliest_supported_date_snake_case.to_string(),
-                                                    location: location_macros::location!(),
+                                                    location: proc_macro_location_bang::location!(),
                                                 })
                                             }
                                         },
@@ -2177,7 +2177,7 @@ pub(super) enum IsConst {
                                                 Err(error) => {
                                                     return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#date_upper_camel_case {
                                                         #error_snake_case,
-                                                        location: location_macros::location!(),
+                                                        location: proc_macro_location_bang::location!(),
                                                     });
                                                 }
                                             };
@@ -2188,7 +2188,7 @@ pub(super) enum IsConst {
                                                 Err(error) => {
                                                     return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#time_upper_camel_case {
                                                         #error_snake_case,
-                                                        location: location_macros::location!(),
+                                                        location: proc_macro_location_bang::location!(),
                                                     });
                                                 }
                                             };
@@ -2205,7 +2205,7 @@ pub(super) enum IsConst {
                                                     Err(error) => {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#date_naive_upper_camel_case {
                                                             #error_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                 };
@@ -2214,7 +2214,7 @@ pub(super) enum IsConst {
                                                     Err(error) => {
                                                         return Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#time_upper_camel_case {
                                                             #error_snake_case,
-                                                            location: location_macros::location!(),
+                                                            location: proc_macro_location_bang::location!(),
                                                         });
                                                     }
                                                 };
@@ -2591,7 +2591,7 @@ pub(super) enum IsConst {
                                     if <#inner_type_standard_non_null_token_stream as chrono::Timelike>::nanosecond(&v_b143b9e1).checked_rem(1000).expect("c0514180 deserialize invariant must hold") != 0 {
                                         return Err(#identifier_standard_non_null_origin_try_new_for_de_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                             #v_snake_case: v_b143b9e1.to_string(),
-                                            location: location_macros::location!(),
+                                            location: proc_macro_location_bang::location!(),
                                         });
                                     }
                                     Ok(Self(v_b143b9e1))
@@ -2601,7 +2601,7 @@ pub(super) enum IsConst {
                                     #min_snake_case: v.min,
                                     #sec_snake_case: v.sec,
                                     #micro_snake_case: v.micro,
-                                    location: location_macros::location!(),
+                                    location: proc_macro_location_bang::location!(),
                                 })
                             }
                         }
@@ -2619,7 +2619,7 @@ pub(super) enum IsConst {
                                     if v_9932d535.nanosecond().checked_rem(1000).expect("0def33ce deserialize invariant must hold") != 0 {
                                         return Err(#identifier_standard_non_null_origin_try_new_for_de_error_upper_camel_case::#nanosecond_precision_is_not_supported_upper_camel_case {
                                             #v_snake_case: v_9932d535.to_string(),
-                                            location: location_macros::location!(),
+                                            location: proc_macro_location_bang::location!(),
                                         });
                                     }
                                     Ok(Self(v_9932d535))
@@ -2630,7 +2630,7 @@ pub(super) enum IsConst {
                                     #second_snake_case: v.second,
                                     #microsecond_snake_case: v.microsecond,
                                     #error_snake_case: error.to_string(),
-                                    location: location_macros::location!(),
+                                    location: proc_macro_location_bang::location!(),
                                 })
                             }
                         }
@@ -2659,7 +2659,7 @@ pub(super) enum IsConst {
                                 Ok(v0) => Ok(Self(v0)),
                                 Err(error) => Err(#identifier_standard_non_null_origin_try_new_for_de_error_upper_camel_case::#not_uuid_upper_camel_case {
                                     #v_snake_case: error.to_string(),
-                                    location: location_macros::location!(),
+                                    location: proc_macro_location_bang::location!(),
                                 })
                             }
                         }
@@ -3146,7 +3146,7 @@ pub(super) enum IsConst {
                                 )
                                 .is_err()
                                 {
-                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                 }
                                 Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_94ddf524).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from))
                             },
@@ -3320,7 +3320,7 @@ pub(super) enum IsConst {
                 quote::quote! {
                     let mut query_part_98c19394 = String::with_capacity(32);
                     if std::fmt::Write::write_fmt(&mut query_part_98c19394, format_args!(#format_token_stream)).is_err() {
-                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: location_macros::location!() });
+                        return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                     }
                     Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_98c19394).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from))
                 }
@@ -3665,7 +3665,7 @@ pub(super) enum IsConst {
             )
         };
         let impl_pg_type_test_cases_for_identifier_token_stream = {
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum IsNeedToUseInto {
                 False,
                 True,
@@ -3684,7 +3684,7 @@ pub(super) enum IsNeedToUseInto {
             let generate_standard_non_null_test_case_token_stream = |is_need_to_use_into: &IsNeedToUseInto| {
                 let generate_range_read_ids_to_2_dimensions_vec_read_inner_token_stream =
                     |min_token_stream: &dyn quote::ToTokens, negative_less_typical_token_stream: &dyn quote::ToTokens, negative_more_typical_token_stream: &dyn quote::ToTokens, near_zero_token_stream: &dyn quote::ToTokens, positive_less_typical_token_stream: &dyn quote::ToTokens, positive_more_typical_token_stream: &dyn quote::ToTokens, max_token_stream: &dyn quote::ToTokens| {
-                        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+                        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum RangeBoundToken<'token_lt> {
                             Excluded(&'token_lt dyn quote::ToTokens),
                             Included(&'token_lt dyn quote::ToTokens),
@@ -4443,13 +4443,13 @@ pub(super) enum RangeBoundToken<'token_lt> {
             };
             let read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream: Option<proc_macro2::TokenStream> = match &pg_type_pattern {
                 crate::pg_type_pattern::PgTypePattern::Standard => {
-                    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+                    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum IsNeedToImplPgTypeGreaterThanTest {
                         False,
                         TrueFromCreate,
                         TrueFromReadIds,
                     }
-                    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+                    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum CreateReadIds {
                         Create,
                         ReadIds,

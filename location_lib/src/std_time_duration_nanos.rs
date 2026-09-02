@@ -3,9 +3,9 @@
     Clone,
     Copy,
     utoipa::ToSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DerefInner,
-    newtype::TryFrom,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::TryFrom,
 )]
 #[try_from(
     error = crate::std_time_duration_nanos_try_from_u32_error::StdTimeDurationNanosTryFromU32Error,

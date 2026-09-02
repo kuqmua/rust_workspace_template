@@ -1,12 +1,12 @@
 #[derive(
-    generate_accessor::Getters,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    generate_constructor::New,
+    proc_macro_new::New,
 )]
 pub struct DbDefaultSpec {
     column: crate::db_static_schema_text::DbStaticSchemaText,

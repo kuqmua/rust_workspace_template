@@ -1,4 +1,4 @@
-#[frontend_contract_macros::route_error(AdminPermissionsPageError)]
+#[proc_macro_frontend_contract::route_error(AdminPermissionsPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn permissions(
     auth: crate::admin_auth_req::AdminAuthReq,

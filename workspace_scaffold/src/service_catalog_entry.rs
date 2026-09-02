@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    generate_accessor::Getters,
-    generate_constructor::New,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
 )]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub(super) struct ServiceCatalogEntry {

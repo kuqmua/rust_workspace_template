@@ -1,4 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Default, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Default,
+    proc_macro_newtype::FromInner,
+)]
 pub struct ProcMacro2GeneratedRustTokenStreamVec(
     Vec<macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream>,
 );

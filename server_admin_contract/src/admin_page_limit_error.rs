@@ -1,5 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    thiserror::Error,
 )]
 pub enum AdminPageLimitError {
     #[error(

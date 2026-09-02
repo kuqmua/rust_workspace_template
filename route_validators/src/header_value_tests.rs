@@ -2,7 +2,7 @@
 mod tests {
     const TEST_HEADER_NAME: axum::http::HeaderName =
         axum::http::HeaderName::from_static(constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq)]
     enum TestError {
         NoHeader,
         ParseBool,

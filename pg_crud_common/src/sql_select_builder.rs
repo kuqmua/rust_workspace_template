@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct SqlSelectBuilder {
     columns: crate::sql_identifiers::SqlIdentifiers,
     table: crate::sql_qualified_identifier::SqlQualifiedIdentifier,

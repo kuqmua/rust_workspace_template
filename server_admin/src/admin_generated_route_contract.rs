@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters, generate_constructor::New)]
+#[derive(proc_macro_getters::Getters, proc_macro_new::New)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub(crate) struct AdminGeneratedRouteContract {
     #[getters(copy)]
     permission: Option<server_admin_core::std_admin_str_ref::StdAdminStrRef<'static>>,

@@ -1,6 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 #[must_use]
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, proc_macro_newtype::FromInner)]
 pub struct FieldLocationFile(&'static str);
 
 impl FieldLocationFile {

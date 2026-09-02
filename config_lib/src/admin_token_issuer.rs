@@ -1,14 +1,14 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
     Eq,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
+    proc_macro_generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
     serde::Deserialize,
     serde::Serialize,
-    newtype::BoundedStringWrapper,
-    newtype::AsRefOwned,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator token issuer")]
 #[serde(try_from = "String")]

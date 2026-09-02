@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
     Eq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::FromInner,
 )]
 pub struct RouteContracts(
     bounded_types::bounded_vec::BoundedVec<crate::route_contract::RouteContract, 0, { usize::MAX }>,

@@ -1,9 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    newtype::CloneInner,
-    newtype::DerefInner,
-    newtype::FromInner,
+    proc_macro_newtype::CloneInner,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::FromInner,
 )]
 pub(super) struct SharedRunReportsArc<RunReport>(
     std::sync::Arc<

@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
-    frontend_contract_macros::PageCatalog,
+    proc_macro_frontend_contract::PageCatalog,
 )]
 #[page_catalog(
     spec = crate::admin_page_spec::AdminPageSpec,

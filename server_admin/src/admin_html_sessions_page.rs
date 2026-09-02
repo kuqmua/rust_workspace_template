@@ -1,4 +1,4 @@
-#[frontend_contract_macros::route_error(AdminSessionsPageError)]
+#[proc_macro_frontend_contract::route_error(AdminSessionsPageError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn admin_html_sessions_page(
     auth: crate::admin_auth_req::AdminAuthReq,

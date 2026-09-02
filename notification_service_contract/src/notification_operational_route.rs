@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    frontend_contract_macros::RouteCatalog,
+    proc_macro_frontend_contract::RouteCatalog,
 )]
 #[route_catalog(
     family = NotificationOperationalRouteFamily,

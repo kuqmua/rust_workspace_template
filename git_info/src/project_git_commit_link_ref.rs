@@ -4,10 +4,10 @@
     Copy,
     PartialEq,
     Eq,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsRefInner,
-    newtype::Display,
-    newtype::IntoInnerFrom,
-    newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype::FromInner,
 )]
 pub struct ProjectGitCommitLinkRef(&'static str);

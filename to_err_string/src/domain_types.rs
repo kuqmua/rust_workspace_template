@@ -1,14 +1,14 @@
-to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
+proc_macro_to_err_string::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
 #[cfg(not(target_arch = "wasm32"))]
-to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| format!("{v:#?}"));
-to_err_string_macros::impl_to_err_string_with!(
+proc_macro_to_err_string::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| format!("{v:#?}"));
+proc_macro_to_err_string::impl_to_err_string_with!(
     usize,
     std::io::Error,
     serde_json::Error
     => |v| v.to_string()
 );
 #[cfg(not(target_arch = "wasm32"))]
-to_err_string_macros::impl_to_err_string_with!(
+proc_macro_to_err_string::impl_to_err_string_with!(
     http::header::ToStrError,
     axum::Error,
     time::error::ComponentRange,
@@ -29,8 +29,8 @@ to_err_string_macros::impl_to_err_string_with!(
     sqlx::types::BigDecimal
     => |v| v.to_string()
 );
-to_err_string_macros::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
-to_err_string_macros::impl_to_err_string_const!(
+proc_macro_to_err_string::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
+proc_macro_to_err_string::impl_to_err_string_const!(
     tracing::dispatcher::SetGlobalDefaultError => constants_str::TRACING_PATH_DISPATCHER_PATH_SETGLOBALDEFAULTERROR,
     tracing::log::SetLoggerError => constants_str::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
 );

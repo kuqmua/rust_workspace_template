@@ -1,5 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::TryFrom,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::TryFrom,
 )]
 #[try_from(
     error = frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error,

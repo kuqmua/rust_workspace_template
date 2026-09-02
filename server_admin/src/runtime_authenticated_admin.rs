@@ -1,10 +1,10 @@
 #[derive(
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     serde::Serialize,
     utoipa::ToSchema,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 pub struct RuntimeAuthenticatedAdmin {
     display_name: server_admin_contract::admin_display_name::AdminDisplayName,

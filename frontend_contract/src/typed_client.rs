@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct TypedClient<Transport> {
     path_prefix: crate::transport_path::TransportPath,
     transport: Transport,

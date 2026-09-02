@@ -4,13 +4,13 @@
 )]
 #[derive(
     Debug,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Default,
     PartialEq,
     Eq,
-    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 pub enum AdminInputKind {
     #[default]

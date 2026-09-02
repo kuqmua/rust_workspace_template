@@ -2,7 +2,13 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::FromInner,
+)]
 pub struct RedactedUrl(
     Option<text_policy::required_nul_free_bounded_text::RequiredNulFreeBoundedText>,
 );

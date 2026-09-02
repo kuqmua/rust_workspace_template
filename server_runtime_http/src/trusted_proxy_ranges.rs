@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default, Eq, PartialEq,
+)]
 pub struct TrustedProxyRanges(
     bounded_types::bounded_vec::BoundedVec<
         crate::trusted_proxy_range::TrustedProxyRange,

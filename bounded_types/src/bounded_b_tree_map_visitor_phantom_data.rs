@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
 pub(super) struct BoundedBTreeMapVisitorPhantomData<K, V, const MAX: usize>(
     std::marker::PhantomData<(K, V)>,
 );

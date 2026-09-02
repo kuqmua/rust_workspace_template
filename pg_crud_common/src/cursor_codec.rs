@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct CursorCodec {
     key: crate::cursor_signing_key::CursorSigningKey,
     maximum_length: crate::cursor_maximum_length::CursorMaximumLength,

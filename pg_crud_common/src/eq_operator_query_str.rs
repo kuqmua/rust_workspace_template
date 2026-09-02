@@ -4,9 +4,9 @@
     Copy,
     PartialEq,
     Eq,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsRefInner,
-    newtype::Display,
-    newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
 )]
 pub struct EqOperatorQueryStr(&'static str);

@@ -4,9 +4,9 @@
     Debug,
     Clone,
     PartialEq,
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct PgTypeGreaterThanTest<T: crate::pg_type::PgType> {
     greater_than: <T as crate::pg_type::PgType>::TableType,

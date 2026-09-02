@@ -1,29 +1,41 @@
-#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct HandwrittenFieldGetterVisitor {
     violations: crate::types::SourceTextList,
 }
 
-#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct ModuleWideSingleCallAllowVisitor {
     violations: crate::types::SourceTextList,
 }
 
-#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct DuplicateCfgTestVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
 
-#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct EmptyModuleVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
 
-#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct ConversionInputNameVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
 
-#[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct GeneratedPublicUseVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -357,7 +369,7 @@ fn test_field_getters_are_generated() {
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
                 visitor.get_violations().clone().into_iter().map(|method| {
                     format!(
-                        "{} contains handwritten field getter `{method}`; derive generate_accessor::Getters",
+                        "{} contains handwritten field getter `{method}`; derive proc_macro_getters::Getters",
                         source_file.path().as_ref().display()
                     )
                 })
@@ -683,7 +695,7 @@ fn test_map_err_does_not_discard_source_with_wildcard() {
 
 #[test]
 fn test_workspace_crate_sources_do_not_use_include_macro() {
-    #[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct IncludeMacroVisitor {
         lines: Vec<usize>,
     }
@@ -1162,8 +1174,8 @@ fn test_optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
     assert_eq!(
         visitor.get_ers().as_slice(),
         [
-            "enum `MissingEnum` must derive `optimal_memory_layout::OptimalMemoryLayout`",
-            "struct `MissingStruct` must derive `optimal_memory_layout::OptimalMemoryLayout`",
+            "enum `MissingEnum` must derive `proc_macro_optimal_memory_layout::OptimalMemoryLayout`",
+            "struct `MissingStruct` must derive `proc_macro_optimal_memory_layout::OptimalMemoryLayout`",
         ],
         "42dc6e3b"
     );
@@ -1275,7 +1287,9 @@ fn test_generated_randomness_policy_inspects_quote_token_streams() {
 }
 #[test]
 fn test_process_static_state_matches_reviewed_inventory() {
-    #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(
+        proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
     struct StaticStateException {
         identifier: &'static str,
         path_suffix: &'static str,
@@ -1757,7 +1771,7 @@ fn test_admin_route_errors_do_not_wrap_a_shared_operation_error() {
             .as_ref();
         assert!(!auth.contains("Operation(AdminError)"), "7c9f1bb0");
         assert!(
-            auth.contains("frontend_contract_macros::api_operation_error!"),
+            auth.contains("proc_macro_frontend_contract::api_operation_error!"),
             "166dc25a"
         );
         assert!(macros.contains("pub fn api_operation_error"), "259e7ebd");
@@ -2715,7 +2729,7 @@ fn test_typed_route_operation_error_policy_rejects_shared_types() {
 }
 #[test]
 fn test_error_implementation_source_uses_only_thiserror_derive() {
-    let forbidden_newtype_derive = concat!("newtype::", "Error");
+    let forbidden_newtype_derive = concat!("proc_macro_newtype::", "Error");
     let forbidden_manual_impl = concat!("impl std::error::", "Error for");
     let mut ers = Vec::new();
     crate::code_style::for_each_rs_file(|file| {
@@ -3413,7 +3427,9 @@ fn test_unstable_sorting_policy_covers_every_variant() {
 }
 #[test]
 fn test_repository_identifiers_use_explicit_resource_names() {
-    #[derive(generate_accessor::Getters, Default, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(
+        proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
     struct ExplicitResourceNameVisitor {
         violations: crate::types::SourceTextList,
     }

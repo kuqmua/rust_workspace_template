@@ -1,15 +1,15 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    newtype::DerefInner,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
     serde::Deserialize,
 )]
 #[serde(
     from = "bounded_types::bounded_b_tree_map::BoundedBTreeMap<crate::admin_html_form_key::AdminHtmlFormKey, crate::admin_html_form_text::AdminHtmlFormText, { crate::admin_html_form_selected_max_items::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS }>"
 )]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub(crate) struct StdAdminHtmlSelected(
     bounded_types::bounded_b_tree_map::BoundedBTreeMap<
         crate::admin_html_form_key::AdminHtmlFormKey,

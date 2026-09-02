@@ -9,10 +9,10 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw")]
-#[derive(newtype::FromInner)]
+#[derive(proc_macro_newtype::FromInner)]
 pub struct PaginationStartsWithOne(pg_crud_common::pagination_base::PaginationBase);
 
 impl PaginationStartsWithOne {
@@ -46,14 +46,14 @@ impl PaginationStartsWithOne {
                 Err(
                     crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero {
                         limit: limit_value,
-                        location: location_macros::location!(),
+                        location: proc_macro_location_bang::location!(),
                     },
                 )
             } else {
                 Err(
                     crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne {
                         offset: offset_value,
-                        location: location_macros::location!(),
+                        location: proc_macro_location_bang::location!(),
                     },
                 )
             }
@@ -69,7 +69,7 @@ impl PaginationStartsWithOne {
                 crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow {
                     limit: limit_value,
                     offset: offset_value,
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 },
             )
         }

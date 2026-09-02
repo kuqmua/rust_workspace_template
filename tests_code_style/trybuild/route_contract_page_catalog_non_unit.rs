@@ -1,5 +1,5 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[derive(frontend_contract_macros::PageCatalog)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_frontend_contract::PageCatalog)]
 #[page_catalog(
     spec = BrokenSpec,
     path_ref = BrokenPathRef,

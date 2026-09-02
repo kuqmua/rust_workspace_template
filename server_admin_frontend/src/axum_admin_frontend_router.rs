@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    newtype::IntoInnerFrom,
-    newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype::FromInner,
 )]
 pub struct AxumAdminFrontendRouter(axum::Router);

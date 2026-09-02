@@ -1,7 +1,7 @@
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StringWrapperNameVisitor {
     names: crate::types::SourceTextBTreeSet,
@@ -19,9 +19,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct BoundedStringStorageVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -46,7 +46,7 @@ impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
                     && path
                         .segments
                         .first()
-                        .is_some_and(|segment| segment.ident == stringify!(newtype))
+                        .is_some_and(|segment| segment.ident == stringify!(proc_macro_newtype))
                     && path
                         .segments
                         .last()
@@ -55,7 +55,7 @@ impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
         });
         if derives_old_bounded_string {
             self.ers.push(format!(
-                "`{}` derives removed `newtype::BoundedString`; store `bounded_types::bounded_string::BoundedString` instead",
+                "`{}` derives removed `proc_macro_newtype::BoundedString`; store `bounded_types::bounded_string::BoundedString` instead",
                 i.ident
             ));
         }
@@ -83,9 +83,9 @@ impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StringWrapperFromVisitor<'names_lt> {
     ers: crate::types::DiagnosticMsgs,
@@ -183,7 +183,7 @@ impl StringWrapperFromVisitor<'_> {
                 })
         }) {
             self.ers.push(format!(
-                        "string wrapper `{}` derives `newtype::FromInner`; derive `newtype::TryFrom` with a length check instead",
+                        "string wrapper `{}` derives `proc_macro_newtype::FromInner`; derive `proc_macro_newtype::TryFrom` with a length check instead",
                         item_ref.ident
                     ));
         }
@@ -325,9 +325,9 @@ impl StringWrapperFromVisitor<'_> {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LenCheckedFunctionCallVisitor<'names_lt> {
     found: crate::types::AnalyzerBool,
@@ -352,9 +352,9 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionCallVisitor<'_> {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LenCheckedFunctionNameVisitor {
     names: crate::types::SourceTextBTreeSet,
@@ -407,9 +407,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LenMethodCallVisitor {
     found: crate::types::AnalyzerBool,
@@ -423,42 +423,42 @@ impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PublicTupleWrapperFieldVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DirectDeserializeTupleWrapperVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DeserializeConversionCallVisitor {
     found: crate::types::AnalyzerBool,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ManualDeserializeTupleWrapperVisitor<'names> {
     ers: crate::types::DiagnosticMsgs,
     names: &'names crate::types::SourceTextBTreeSet,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TupleWrapperConversionCollector {
     converted_names: crate::types::SourceTextBTreeSet,
@@ -470,9 +470,9 @@ pub(super) struct TupleWrapperConversionCollector {
     try_from_names: crate::types::SourceTextBTreeSet,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DirectTupleWrapperConstructorVisitor<'names> {
     current_wrapper_name: Option<String>,
@@ -751,9 +751,9 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DeclaredDomainTypeVisitor {
     names: crate::types::SourceTextBTreeSet,
@@ -917,9 +917,9 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DomainTypePolicyVisitor<'types> {
     check_non_public: crate::types::AnalyzerBool,
@@ -930,33 +930,33 @@ pub(super) struct DomainTypePolicyVisitor<'types> {
     repo_types: crate::types::SourceTextBTreeSetRef<'types>,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct AnalyzerStateRawContainerFieldVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct HelperRawTextReturnVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct RawTextLocalVisitor {
     ers: crate::types::DiagnosticMsgs,
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ExternalLeafWrapperNameVisitor<'types> {
     ers: crate::types::DiagnosticMsgs,

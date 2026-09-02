@@ -9,7 +9,7 @@ pub fn generate_query_part_error_write_into_buffer_token_stream(
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     quote::quote! {
         #import::query_part_error::QueryPartError::WriteIntoBuffer {
-            location: location_macros::location!()
+            location: proc_macro_location_bang::location!()
         }
     }
     .into()

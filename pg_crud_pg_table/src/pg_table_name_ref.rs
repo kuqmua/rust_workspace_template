@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
-    newtype::AsRefInner,
-    newtype::Display,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::Display,
 )]
 pub struct PgTableNameRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTableNameRef<'lt>

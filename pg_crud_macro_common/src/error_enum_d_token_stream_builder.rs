@@ -5,5 +5,5 @@ pub fn error_enum_d_token_stream_builder()
         .make_pub()
         .d_debug()
         .d_thiserror_error()
-        .d_location_location()
+        .d_proc_macro_location_location()
 }

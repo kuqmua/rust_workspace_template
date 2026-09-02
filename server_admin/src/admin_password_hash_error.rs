@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminPasswordHashError {
     #[error("administrator password hashing task failed: {0:?}")]
     Join(crate::tokio_admin_join_error::TokioAdminJoinError),

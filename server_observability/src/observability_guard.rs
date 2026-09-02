@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub struct ObservabilityGuard {
     tracer_provider:
         Option<crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider>,

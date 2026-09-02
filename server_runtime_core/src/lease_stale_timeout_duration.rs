@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    newtype::DerefInner,
+    proc_macro_newtype::DerefInner,
 )]
 pub struct LeaseStaleTimeoutDuration(std::time::Duration);
 impl TryFrom<std::time::Duration> for LeaseStaleTimeoutDuration {

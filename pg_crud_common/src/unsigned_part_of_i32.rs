@@ -1,5 +1,5 @@
 #[derive(
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
     Debug,
     Clone,
     Copy,
@@ -9,8 +9,8 @@
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::FromGetter,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::FromGetter,
 )]
 #[from_getter(source = std::num::NonZeroI32, getter = get)]
 #[serde(try_from = "i32")]
@@ -31,7 +31,7 @@ impl TryFrom<i32> for UnsignedPartOfI32 {
         } else {
             Err(Self::Error::LessThanZero {
                 v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(value),
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             })
         }
     }

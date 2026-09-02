@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
     strum_macros::IntoStaticStr,
-    frontend_contract_macros::UnitEnumCatalog,
+    proc_macro_frontend_contract::UnitEnumCatalog,
 )]
 pub enum AdminHtmlAction {
     #[strum(serialize = "/admin/actions/profile/password")]

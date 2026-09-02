@@ -12,12 +12,12 @@
     Clone,
     Copy,
     Hash,
-    naming_macros::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
-    naming_macros::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
-    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
-    naming_macros::EnumWithUnitFieldsToUpperCamelCaseStr,
-    naming_macros::EnumWithUnitFieldsToUpperSnakeCaseStr,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_naming::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
+    proc_macro_naming::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_naming::EnumWithUnitFieldsToUpperCamelCaseStr,
+    proc_macro_naming::EnumWithUnitFieldsToUpperSnakeCaseStr,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum StatusCode {
     Continue100,

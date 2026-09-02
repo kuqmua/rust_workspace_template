@@ -1,13 +1,13 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
     Eq,
-    newtype::BoundedStringWrapper,
-    newtype::AsRefOwned,
-    newtype::Display,
-    newtype::IntoInner,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::IntoInner,
 )]
 #[bounded_string(
     max = 8192,

@@ -3,7 +3,13 @@
     reason = "component props and wire enum variants retain their semantic presentation order"
 )]
 #[derive(
-    Debug, optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Default, PartialEq, Eq,
+    Debug,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Default,
+    PartialEq,
+    Eq,
 )]
 pub enum AdminButtonVariant {
     #[default]

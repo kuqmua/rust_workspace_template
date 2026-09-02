@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpMetricsLayer {
     paths: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
 }

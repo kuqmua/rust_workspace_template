@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct OutboundTraceContext {
     request_id: Option<crate::request_id::RequestId>,
     trace_parent: crate::http_trace_parent::HttpTraceParent,

@@ -1,5 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, thiserror::Error,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    thiserror::Error,
 )]
 pub enum UrlError {
     #[error("database name is not explicitly test-only: {target}")]

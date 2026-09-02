@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
@@ -7,7 +7,7 @@
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
-    generate_constructor::New,
+    proc_macro_new::New,
 )]
 #[serde(deny_unknown_fields)]
 pub struct CreateNotificationReq {

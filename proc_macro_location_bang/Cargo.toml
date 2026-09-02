@@ -1,0 +1,15 @@
+[package]
+name = "proc_macro_location_bang"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+[lib]
+proc-macro = true
+[dependencies]
+quote = { workspace = true }
+[lints]
+workspace = true

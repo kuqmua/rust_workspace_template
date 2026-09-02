@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract_macros::route_openapi(delegate = crate::settings_branding::settings_branding, tag = "admin_settings")]
+#[proc_macro_frontend_contract::route_openapi(delegate = crate::settings_branding::settings_branding, tag = "admin_settings")]
 pub(crate) async fn api_branding(
     auth: crate::admin_auth_req::AdminAuthReq,
 ) -> Result<

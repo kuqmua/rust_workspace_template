@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AxumNotificationState<Sender> {
     headers: crate::http_notification_header_map::HttpNotificationHeaderMap,
     state: crate::notification_service_state::NotificationServiceState<Sender>,

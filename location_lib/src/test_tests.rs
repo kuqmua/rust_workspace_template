@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct DatetimeFmt<'location_lt> {
     location: &'location_lt crate::location::Location,
 }
@@ -8,7 +8,7 @@ impl std::fmt::Display for DatetimeFmt<'_> {
             .fmt_datetime(crate::formatter_ref_mut::FormatterRefMut::from(f))
     }
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct PlaceFmt<'location_lt> {
     location: &'location_lt crate::location::Location,
     src_place_type: config_lib::src_place_type::SrcPlaceType,

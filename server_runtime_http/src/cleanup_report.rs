@@ -1,13 +1,13 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    generate_constructor::New,
+    proc_macro_new::New,
 )]
 #[constructor(pub(crate))]
 // The owner module retains lint-sensitive semantics from the original implementation.

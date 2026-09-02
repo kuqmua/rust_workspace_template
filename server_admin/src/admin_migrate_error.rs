@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminMigrateError {
     #[error("failed to prepare administrator schema: migration failed: {0:?}")]
     Migration(crate::sqlx_admin_migrate_error::SqlxAdminMigrateError),

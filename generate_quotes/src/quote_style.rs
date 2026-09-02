@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub(super) struct QuoteStyle {
     panic_id: crate::quote_panic_id::QuotePanicId,
     prefix: crate::quote_prefix::QuotePrefix,

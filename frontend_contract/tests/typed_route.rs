@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         serde::Deserialize,
@@ -13,7 +13,7 @@ mod tests {
     )]
     struct TestRequest;
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         serde::Deserialize,
@@ -22,7 +22,7 @@ mod tests {
     )]
     struct TestResponse;
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         serde::Deserialize,
@@ -30,7 +30,7 @@ mod tests {
         utoipa::ToSchema,
     )]
     struct TestErrorResponse;
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     struct TestTransport;
     impl frontend_contract::transport::Transport for TestTransport {
         fn send(
@@ -48,7 +48,10 @@ mod tests {
         }
     }
 
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, frontend_contract_macros::TypedRoute)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_frontend_contract::TypedRoute,
+    )]
     #[typed_route(
         authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
         error_response = TestErrorResponse,
@@ -70,18 +73,21 @@ mod tests {
     )]
     struct TestRoute;
 
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, frontend_contract_macros::RouteFamily)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_frontend_contract::RouteFamily,
+    )]
     #[route_family(TestRoute)]
     struct TestRouteFamily;
 
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
         Debug,
         Eq,
         PartialEq,
-        frontend_contract_macros::RouteCatalog,
+        proc_macro_frontend_contract::RouteCatalog,
     )]
     #[route_catalog(family = TestCatalogFamily, body_limit = 1024usize)]
     enum TestCatalog {

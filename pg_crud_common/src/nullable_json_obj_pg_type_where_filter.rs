@@ -8,8 +8,8 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(from = "Option<crate::not_empty_unique_vec::NotEmptyUniqueVec<T>>")]
 pub struct NullableJsonObjPgTypeWhereFilter<
@@ -66,7 +66,7 @@ where
                     .is_err()
                 {
                     return Err(crate::query_part_error::QueryPartError::WriteIntoBuffer {
-                        location: location_macros::location!(),
+                        location: proc_macro_location_bang::location!(),
                     });
                 }
                 Ok(crate::query_part_fragment::QueryPartFragment::try_from(query_part)

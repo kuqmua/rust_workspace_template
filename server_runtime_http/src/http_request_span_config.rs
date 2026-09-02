@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters, generate_constructor::New)]
+#[derive(proc_macro_getters::Getters, proc_macro_new::New)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
 pub struct HttpRequestSpanConfig {
     service_name: server_observability::service_name::ServiceName,

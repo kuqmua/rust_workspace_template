@@ -265,7 +265,9 @@ categories = ["category"]
 #[cfg(feature = "test-utils")]
 mod tests {
     static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+    )]
     struct TmpDirPathBuf(std::path::PathBuf);
 
     impl TmpDirPathBuf {

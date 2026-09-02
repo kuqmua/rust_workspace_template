@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum BackgroundTaskShutdownError {
     #[error("background task failed: {0}")]
     Join(#[source] crate::tokio_task_join_error::TokioTaskJoinError),

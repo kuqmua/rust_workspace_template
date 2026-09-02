@@ -1,4 +1,6 @@
-#[derive(Clone, Copy, Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(
+    Clone, Copy, Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 pub struct ParsedGenerateWhereFiltersConfig {
     pg_types_write_into_file:
         macro_helpers::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile,

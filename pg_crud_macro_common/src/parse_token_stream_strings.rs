@@ -1,4 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    proc_macro_newtype::FromInner,
+)]
 pub struct ParseTokenStreamStrings(Vec<String>);
 impl ParseTokenStreamStrings {
     #[must_use]

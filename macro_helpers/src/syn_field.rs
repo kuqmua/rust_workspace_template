@@ -1,9 +1,9 @@
 #[derive(
     Debug,
     Clone,
-    optimal_memory_layout::OptimalMemoryLayout,
-    generate_accessor::Getters,
-    generate_constructor::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
 )]
 pub struct SynField {
     identifier: crate::syn_field_identifier::SynFieldIdentifier,

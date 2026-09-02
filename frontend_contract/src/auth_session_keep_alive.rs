@@ -2,7 +2,9 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+)]
 pub struct AuthSessionKeepAlive {
     interval: crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration,
     next: Option<crate::auth_session_instant::AuthSessionInstant>,

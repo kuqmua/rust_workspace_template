@@ -8,7 +8,7 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct PaginationBase {
     limit: crate::pagination_limit::PaginationLimit,
@@ -83,7 +83,7 @@ impl<'query_lt> crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt> for Pa
         .is_err()
         {
             return Err(crate::query_part_error::QueryPartError::WriteIntoBuffer {
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             });
         }
         Ok(crate::query_part_fragment::QueryPartFragment::try_from(

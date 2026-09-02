@@ -1,5 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefTarget,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::AsRefTarget,
 )]
 pub struct MultipartBytes(bounded_types::bounded_vec::BoundedVec<u8, 0, 16_777_216>);
 

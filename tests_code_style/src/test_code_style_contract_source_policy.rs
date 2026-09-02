@@ -131,7 +131,7 @@ fn test_service_route_endpoint_composition_uses_shared_registries() {
                 .collect::<String>();
             assert_eq!(
                 source
-                    .matches("frontend_contract_macros::endpoint_registry")
+                    .matches("proc_macro_frontend_contract::endpoint_registry")
                     .count(),
                 *expected_registry_count,
                 "26aa4162"

@@ -1,5 +1,12 @@
 #[derive(
-    Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct BoundedString<
     const MINIMUM_LENGTH: usize = { constants_usize::ZERO },

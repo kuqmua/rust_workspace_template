@@ -13,7 +13,7 @@ pub(crate) fn validate_commit_header_value(
                     constants_str::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG,
                 ),
                 commit_to_use,
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             },
         )
 }

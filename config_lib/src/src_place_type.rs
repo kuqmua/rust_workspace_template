@@ -9,8 +9,8 @@
     strum_macros::EnumIter,
     serde::Serialize,
     serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::EnumFromStr,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::EnumFromStr,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum SrcPlaceType {

@@ -3,7 +3,7 @@
 #[allow(clippy::default_numeric_fallback, clippy::indexing_slicing)] // literal JSON assertions mirror the exact serialized OpenAPI wire values
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Eq,
         PartialEq,
         serde::Deserialize,

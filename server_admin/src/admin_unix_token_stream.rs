@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -7,8 +7,8 @@
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(from = "u64")]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub struct AdminUnixTokenStream(u64);

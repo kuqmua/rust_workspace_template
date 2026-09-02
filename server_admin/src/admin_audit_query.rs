@@ -1,8 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize, utoipa::IntoParams,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Deserialize,
+    utoipa::IntoParams,
 )]
 #[into_params(parameter_in = Query)]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub struct AdminAuditQuery {
     created_after: Option<server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp>,
     created_before: Option<server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp>,

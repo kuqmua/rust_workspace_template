@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub(crate) struct AdminCsrQuery {
     direction: Option<server_admin_contract::admin_text::AdminText>,
     filter_end: Option<server_admin_contract::admin_filter_value::AdminFilterValue>,

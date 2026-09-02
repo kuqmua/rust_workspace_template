@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum BoundedReadError {
     #[error("content exceeds maximum size of {maximum_bytes} bytes")]
     ExceedsMaximum {

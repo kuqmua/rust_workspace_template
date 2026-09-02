@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct SemaphorePermitCountNonZeroUsize(std::num::NonZeroUsize);
 

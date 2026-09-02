@@ -1,8 +1,8 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
     Debug,
     Clone,
     Copy,
@@ -11,7 +11,7 @@
     std::hash::Hash,
     serde::Serialize,
     serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "crate::pg_type_record_raw::PgTypeRecordRaw")]
 pub(super) struct PgTypeRecord {

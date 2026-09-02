@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
-    newtype::AsRefStr,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::FromInner,
 )]
 pub(crate) struct TestPathStem<'stem_lt>(&'stem_lt str);
 

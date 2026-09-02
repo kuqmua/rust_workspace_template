@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    newtype::AsRefStr,
+    proc_macro_newtype::AsRefStr,
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,

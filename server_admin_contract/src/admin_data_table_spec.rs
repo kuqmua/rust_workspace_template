@@ -1,6 +1,8 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq,
+)]
 pub struct AdminDataTableSpec {
     #[getters(copy)]
     columns: crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef<'static>,

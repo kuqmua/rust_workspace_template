@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
     Eq,
-    newtype::DerefInner,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct StdEnvVarOk(String);
 impl From<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError> for StdEnvVarOk {

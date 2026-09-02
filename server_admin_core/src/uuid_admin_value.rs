@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -8,8 +8,8 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::FromInner,
-    newtype::GetInner,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::GetInner,
 )]
 #[serde(from = "uuid::Uuid")]
 #[schema(value_type = String, format = "uuid")]

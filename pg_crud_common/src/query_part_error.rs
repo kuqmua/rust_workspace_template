@@ -6,8 +6,8 @@
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    location::Location,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_location::Location,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[location_to_schema]
 pub enum QueryPartError {
@@ -32,7 +32,7 @@ impl
         value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
     ) -> Self {
         Self::StringWrapperTryFromString {
-            location: location_macros::location!(),
+            location: proc_macro_location_bang::location!(),
             error: value,
         }
     }

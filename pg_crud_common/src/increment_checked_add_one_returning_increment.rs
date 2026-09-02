@@ -7,7 +7,7 @@ where
     increment.checked_add_one().map_or_else(
         || {
             Err(crate::query_part_error::QueryPartError::CheckedAdd {
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             })
         },
         Ok,

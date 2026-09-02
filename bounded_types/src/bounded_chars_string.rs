@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
@@ -7,8 +7,8 @@
     Ord,
     PartialEq,
     PartialOrd,
-    newtype::DerefInner,
-    newtype::Display,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::Display,
 )]
 pub struct BoundedCharsString<const MIN: usize, const MAX: usize>(String);
 

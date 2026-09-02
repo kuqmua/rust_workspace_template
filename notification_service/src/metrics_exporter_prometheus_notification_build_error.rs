@@ -1,5 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::FromInner, newtype::Display,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::Display,
 )]
 pub(crate) struct MetricsExporterPrometheusNotificationBuildError(
     metrics_exporter_prometheus::BuildError,

@@ -7,5 +7,5 @@ pub fn serde_error_enum_d_token_stream_builder()
         .d_serde_serialize()
         .d_serde_deserialize()
         .d_thiserror_error()
-        .d_location_location()
+        .d_proc_macro_location_location()
 }

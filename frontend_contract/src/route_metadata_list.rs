@@ -1,13 +1,13 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     Eq,
     PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct RouteMetadataList(
     bounded_types::bounded_vec::BoundedVec<crate::route_metadata::RouteMetadata, 0, { usize::MAX }>,

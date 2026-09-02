@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DbTableSnapshot {
     columns: crate::db_column_snapshots::DbColumnSnapshots,
     objects: crate::db_object_snapshots::DbObjectSnapshots,

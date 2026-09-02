@@ -1,5 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype_foundation::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    proc_macro_newtype_foundation::FromInner,
 )]
 pub struct UniqueOptionBTreeSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
 impl<OptionValue> Default for UniqueOptionBTreeSet<OptionValue> {

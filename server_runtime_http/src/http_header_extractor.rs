@@ -1,4 +1,9 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    proc_macro_newtype::FromInner,
+)]
 pub(super) struct HttpHeaderExtractor<'headers_lt>(&'headers_lt http::HeaderMap);
 
 impl opentelemetry::propagation::Extractor for HttpHeaderExtractor<'_> {

@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AcquirePermitError {
     #[error("concurrency limiter is closed: {0}")]
     Closed(#[source] crate::tokio_acquire_error::TokioAcquireError),

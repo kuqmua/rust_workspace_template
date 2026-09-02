@@ -1,4 +1,10 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    proc_macro_newtype::FromInner,
+)]
 pub struct FieldLocationLine(std::num::NonZeroU32);
 
 impl TryFrom<u32> for FieldLocationLine {

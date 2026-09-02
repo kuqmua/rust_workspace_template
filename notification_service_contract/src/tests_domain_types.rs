@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     struct ClientTransport;
     impl frontend_contract::transport::Transport for ClientTransport {
         fn send(

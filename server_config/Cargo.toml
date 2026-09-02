@@ -9,16 +9,16 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-generate_accessor = { workspace = true }
-generate_constructor = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_new = { workspace = true }
 bounded_types = { workspace = true }
 chrono = { workspace = true }
 thiserror = { workspace = true }
 dotenv = { workspace = true }
 secrecy = { workspace = true }
 config_lib = { workspace = true }
-try_from_env = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_try_from_env = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
 [lints]
 workspace = true

@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract_macros::route_openapi(
+#[proc_macro_frontend_contract::route_openapi(
     delegate = crate::account_change_own_password::account_change_own_password,
     tag = "admin_auth"
 )]

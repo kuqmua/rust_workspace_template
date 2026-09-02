@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub(crate) enum AdminAuditResourceId {
     Role(server_admin_core::admin_role_record_id::AdminRoleRecordId),
     Session(crate::admin_session_id::AdminSessionId),

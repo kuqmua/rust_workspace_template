@@ -1,4 +1,4 @@
-#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) struct JsonRes<T> {
     payload: crate::axum_json_payload::AxumJsonPayload<T>,
 }

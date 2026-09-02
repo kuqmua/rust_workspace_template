@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    newtype::AsRefStr,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct AdminSsrHtml(String);
 impl TryFrom<String> for AdminSsrHtml {

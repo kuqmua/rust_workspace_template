@@ -1,4 +1,4 @@
-#[derive(Debug, thiserror::Error, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, thiserror::Error, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError {
     #[error("{maximum_size_of_http_body_in_bytes:?}")]
     MaximumSizeOfHttpBodyInBytes {

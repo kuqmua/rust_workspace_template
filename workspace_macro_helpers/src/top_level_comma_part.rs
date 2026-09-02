@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype_foundation::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_foundation::FromInner,
+)]
 pub(super) struct TopLevelCommaPart(crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens);
 impl TopLevelCommaPart {
     pub(super) fn into_inner(self) -> crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens {

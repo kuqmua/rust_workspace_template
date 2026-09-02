@@ -1,7 +1,7 @@
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct RuntimePanicExpectUnwrapVisitor {
     ers: crate::types::DiagnosticMsgs,
@@ -34,9 +34,9 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct RuntimeMutexVisitor {
     found_count: crate::types::AnalyzerCount,
@@ -61,9 +61,9 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
@@ -133,9 +133,9 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct AsyncBlockingCallVisitor {
     async_fn_depth: crate::types::AnalyzerCount,
@@ -264,9 +264,9 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
     }
 }
 #[derive(
-    generate_accessor::Getters,
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct UnitTestExternalServiceVisitor {
     ers: crate::types::DiagnosticMsgs,

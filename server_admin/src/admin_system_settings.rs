@@ -4,10 +4,10 @@
     Debug,
     Clone,
     Copy,
-    generate_pg_table::GeneratePgTable,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_generate_pg_table::GeneratePgTable,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
-#[generate_pg_table::generate_pg_table_config{{
+#[proc_macro_generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "system_settings",
     "create_exclude_fields": ["updated_at"],
@@ -16,7 +16,7 @@
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub struct AdminSystemSettings {
     #[generate_pg_table_primary_key]
     id: pg_types_numeric::generate_pg_types_mod::I16AsNonNullSmallSerialInitializationByPg,

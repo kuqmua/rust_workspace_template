@@ -2,10 +2,10 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     Debug,
-    generate_constructor::New,
+    proc_macro_new::New,
     serde::Serialize,
     serde::Deserialize,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct SerdeStruct {
     one: crate::location_test_text::LocationTestText,

@@ -1,5 +1,5 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
-#[derive(frontend_contract_macros::RouteCatalog)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_frontend_contract::RouteCatalog)]
 #[route_catalog(family = BrokenFamily, body_limit = 1024usize)]
 enum BrokenCatalog {
     MissingRouteAttribute,

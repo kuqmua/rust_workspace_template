@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    newtype::BoundedStringWrapper,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 #[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub(crate) struct AdminFixtureString(

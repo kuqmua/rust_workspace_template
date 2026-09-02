@@ -28,13 +28,13 @@ pub fn emit_generate_pg_table(
     validated: crate::syn_validated_generate_pg_table_input::SynValidatedGeneratePgTableInput,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     // The owner module retains lint-sensitive semantics from the original implementation.
-    #[derive(generate_accessor::Getters)]
+    #[derive(proc_macro_getters::Getters)]
     #[getters(bare)]
     #[allow(
         clippy::arbitrary_source_item_ordering,
         reason = "the local generated-source model keeps related syntax fields together"
     )]
-    #[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct SynVariant {
         variant: syn::Variant,
         #[getters(skip)]
@@ -45,7 +45,7 @@ pub fn emit_generate_pg_table(
             self.status_code.as_ref()
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum AddBorrow {
         False,
         True,
@@ -58,7 +58,7 @@ pub fn emit_generate_pg_table(
             }
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum AddReturn {
         False,
         True,
@@ -69,9 +69,9 @@ pub fn emit_generate_pg_table(
         Debug,
         Clone,
         Copy,
-        naming_macros::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
-        naming_macros::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_naming::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
+        proc_macro_naming::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
     enum Operation {
         Cm,
@@ -83,7 +83,7 @@ pub fn emit_generate_pg_table(
         Dm,
         Dlo,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct OperationAttrs {
         error_variants: GeneratePgTableAttr,
         logic: GeneratePgTableAttr,
@@ -221,15 +221,15 @@ pub fn emit_generate_pg_table(
     #[derive(
         Clone,
         Copy,
-        naming_macros::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_naming::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
     enum OperationHttpMethod {
         Post,
         Patch,
         Delete,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     enum PgTableOperationKind {
         CreateMany,
         CreateOne,
@@ -292,14 +292,14 @@ pub fn emit_generate_pg_table(
             )
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum RmOrDm {
         Rm,
         Dm,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum RmOrRo {
         Rm,
         Ro,
@@ -315,7 +315,7 @@ pub fn emit_generate_pg_table(
         PartialOrd,
         Ord,
         strum_macros::Display,
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
     enum GeneratePgTableAttr {
         CmErrorVariants,
@@ -359,15 +359,15 @@ pub fn emit_generate_pg_table(
                 Self::DloLogic => &naming::domain_types::DloLogicSnakeCase,
                 Self::CommonLogic => &naming::domain_types::CommonLogicSnakeCase,
             };
-            format!("generate_pg_table::{attr_name}")
+            format!("proc_macro_generate_pg_table::{attr_name}")
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum ShouldWrapIntoV {
         False,
         True,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum CreateOrUpdateOrDm {
@@ -375,7 +375,7 @@ pub fn emit_generate_pg_table(
         Update,
         Delete,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum CreateOrUpdateOrDlo {
@@ -385,7 +385,7 @@ pub fn emit_generate_pg_table(
     }
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, serde::Deserialize, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableConfig {
         #[serde(default)]
         cm_max_items: Option<StdBulkItemsMax>,
@@ -415,7 +415,7 @@ pub fn emit_generate_pg_table(
         #[serde(default)]
         api_mode: GeneratePgTableApiMode,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
     struct GeneratePgTableDbForeignKey {
         columns: UsizeGeneratePgTableDbColumns,
         referenced_columns: UsizeGeneratePgTableDbColumns,
@@ -423,12 +423,12 @@ pub fn emit_generate_pg_table(
     }
     const GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN: usize = 63;
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
-        newtype::AsRefStr,
-        newtype::Display,
-        newtype::BoundedStringWrapper,
+        proc_macro_newtype::AsRefStr,
+        proc_macro_newtype::Display,
+        proc_macro_newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, serde)]
     struct GeneratePgTableDbColumn(
@@ -439,12 +439,12 @@ pub fn emit_generate_pg_table(
         >,
     );
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
-        newtype::AsRefStr,
-        newtype::Display,
-        newtype::BoundedStringWrapper,
+        proc_macro_newtype::AsRefStr,
+        proc_macro_newtype::Display,
+        proc_macro_newtype::BoundedStringWrapper,
     )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, min = constants_usize::ONE, serde)]
     struct GeneratePgTableExcludeField(
@@ -473,7 +473,12 @@ pub fn emit_generate_pg_table(
         }
     }
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Default, serde::Deserialize,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        Debug,
+        Default,
+        serde::Deserialize,
     )]
     enum GeneratePgTableApiMode {
         AppendOnly,
@@ -484,13 +489,17 @@ pub fn emit_generate_pg_table(
         ReadUpdate,
     }
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, serde::Deserialize,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        Debug,
+        serde::Deserialize,
     )]
     #[serde(from = "usize")]
-    #[derive(newtype::FromInner)]
+    #[derive(proc_macro_newtype::FromInner)]
     struct StdBulkItemsMax(usize);
 
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableDbColumn>")]
     struct UsizeGeneratePgTableDbColumns(
         pg_crud_common::pg_bounded_vec::PgBoundedVec<
@@ -499,7 +508,7 @@ pub fn emit_generate_pg_table(
             { usize::MAX },
         >,
     );
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableExcludeField>")]
     struct UsizeCreateExcludeFields(
         pg_crud_common::pg_bounded_vec::PgBoundedVec<
@@ -508,7 +517,7 @@ pub fn emit_generate_pg_table(
             { usize::MAX },
         >,
     );
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
     #[serde(try_from = "Vec<GeneratePgTableExcludeField>")]
     struct UsizeReadExcludeFields(
         pg_crud_common::pg_bounded_vec::PgBoundedVec<
@@ -541,7 +550,7 @@ pub fn emit_generate_pg_table(
             ))
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableEmissionModel {
         config: GeneratePgTableConfig,
         error_variants_by_attr:
@@ -549,7 +558,9 @@ pub fn emit_generate_pg_table(
         logic_token_stream_by_attr:
             std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+    )]
     struct ProcMacro2GeneratePgTableTestsTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableTestsTokenStream {
@@ -560,7 +571,9 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+    )]
     struct ProcMacro2GeneratePgTableCommonTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableCommonTokenStream {
@@ -568,7 +581,9 @@ pub fn emit_generate_pg_table(
             &self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+    )]
     struct ProcMacro2GeneratePgTableWholeTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableWholeTokenStream {
@@ -579,7 +594,9 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+    )]
     struct SynGeneratePgTableDeriveInput(syn::DeriveInput);
 
     impl SynGeneratePgTableDeriveInput {
@@ -587,14 +604,14 @@ pub fn emit_generate_pg_table(
             &self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableFieldEmissionModel {
         field: macro_helpers::syn_field::SynField,
         frontend: GeneratePgTableFrontendFieldEmission,
         has_db_default: bool,
         is_primary_key: bool,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
     struct GeneratePgTableFrontendFieldEmission {
@@ -606,14 +623,22 @@ pub fn emit_generate_pg_table(
         sortable: bool,
     }
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
     )]
     enum GeneratePgTableFrontendFlag {
         Filterable,
         Hidden,
         Sortable,
     }
-    #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(
+        proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
     // The owner module retains lint-sensitive semantics from the original implementation.
     #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
     struct GeneratePgTableVariantFieldEmission {
@@ -621,12 +646,14 @@ pub fn emit_generate_pg_table(
         field_type: syn::Type,
         location_attr: Option<macro_helpers::location_field_attr::LocationFieldAttr>,
     }
-    #[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(
+        proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
     struct GeneratePgTableVariantEmission {
         fields: Vec<GeneratePgTableVariantFieldEmission>,
         identifier: syn::Ident,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
     enum GeneratePgTableVariantEmissionRef<'variant_lt> {
         Model(&'variant_lt GeneratePgTableVariantEmission),
         Syn(&'variant_lt syn::Variant),
@@ -639,7 +666,12 @@ pub fn emit_generate_pg_table(
             }
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        proc_macro_newtype::FromInner,
+    )]
     struct GeneratePgTableFieldIdx(usize);
 
     impl GeneratePgTableFieldIdx {
@@ -647,7 +679,7 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableFieldsEmissionModel {
         db_default_field_idxs: Vec<GeneratePgTableFieldIdx>,
         fields: Vec<macro_helpers::syn_field::SynField>,
@@ -655,7 +687,12 @@ pub fn emit_generate_pg_table(
         frontend_fields: Vec<GeneratePgTableFrontendFieldEmission>,
         primary_key_field_idx: GeneratePgTableFieldIdx,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        proc_macro_newtype::FromInner,
+    )]
     struct SynGeneratePgTableFieldRef<'field_lt>(&'field_lt syn::Field);
 
     impl<'field_lt> SynGeneratePgTableFieldRef<'field_lt> {
@@ -663,7 +700,12 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        proc_macro_newtype::FromInner,
+    )]
     struct SynGeneratePgTableIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
 
     impl<'identifier_lt> SynGeneratePgTableIdentifierRef<'identifier_lt> {
@@ -671,7 +713,12 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        proc_macro_newtype::FromInner,
+    )]
     struct SynGeneratePgTableTypeRef<'type_lt>(&'type_lt syn::Type);
 
     impl<'type_lt> SynGeneratePgTableTypeRef<'type_lt> {
@@ -679,7 +726,12 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        proc_macro_newtype::FromInner,
+    )]
     struct GeneratePgTableVariantLocationAttr(
         Option<macro_helpers::location_field_attr::LocationFieldAttr>,
     );
@@ -689,7 +741,12 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::FromInner)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Clone,
+        Copy,
+        proc_macro_newtype::FromInner,
+    )]
     struct GeneratePgTablePrimaryKeyAttrName<'name_lt>(&'name_lt str);
 
     impl<'name_lt> GeneratePgTablePrimaryKeyAttrName<'name_lt> {
@@ -2177,7 +2234,7 @@ pub fn emit_generate_pg_table(
                 if let Err(error) = sqlx::query("create extension if not exists \"uuid-ossp\"").execute(#PoolSnakeCase).await {
                     return Err(#identifier_prep_pg_error_upper_camel_case::#CreateExtensionIfNotExistsUuidOsspUpperCamelCase {
                         error,
-                        location: location_macros::location!()
+                        location: proc_macro_location_bang::location!()
                     });
                 }
                 Ok(())
@@ -2219,7 +2276,7 @@ pub fn emit_generate_pg_table(
                     ))).execute(#PoolSnakeCase).await {
                         return Err(#identifier_prep_pg_error_upper_camel_case::#PrepPgUpperCamelCase {
                             error,
-                            location: location_macros::location!()
+                            location: proc_macro_location_bang::location!()
                         });
                     }
                     Ok(())
@@ -2231,7 +2288,7 @@ pub fn emit_generate_pg_table(
                 if let Err(error) = pg_table::ensure_pg_table_idempotency_schema::ensure_pg_table_idempotency_schema(app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(#PoolSnakeCase)).await {
                     return Err(#identifier_prep_pg_error_upper_camel_case::#prep_idempotency_upper_camel_case {
                         error,
-                        location: location_macros::location!(),
+                        location: proc_macro_location_bang::location!(),
                     });
                 }
             }
@@ -2613,7 +2670,7 @@ pub fn emit_generate_pg_table(
                 .d_utoipa_to_schema()
                 .build_struct(
                     &quote::quote! {
-                        #[derive(generate_accessor::Getters, generate_constructor::New)]
+                        #[derive(proc_macro_getters::Getters, proc_macro_new::New)]
                         #[serde(deny_unknown_fields)]
                     },
                     &identifier_create_upper_camel_case,
@@ -2878,7 +2935,7 @@ pub fn emit_generate_pg_table(
                     quote::quote! {
                         if matches!((#fields_token_stream), (#read_fields_with_comma_none_token_stream)) {
                             return Err(#identifier_where_try_new_error_upper_camel_case::#NoFieldsProvidedUpperCamelCase {
-                                location: location_macros::location!(),
+                                location: proc_macro_location_bang::location!(),
                             });
                         }
                         Ok(Self {#fields_inialization_token_stream})
@@ -3226,7 +3283,7 @@ pub fn emit_generate_pg_table(
                 .d_serde_deserialize()
                 .d_utoipa_to_schema()
                 .build_struct(
-                    &quote::quote! {#[derive(generate_accessor::Getters, generate_constructor::New)]},
+                    &quote::quote! {#[derive(proc_macro_getters::Getters, proc_macro_new::New)]},
                     &identifier_read_upper_camel_case,
                     &proc_macro2::TokenStream::new(),
                     &{
@@ -3379,11 +3436,11 @@ pub fn emit_generate_pg_table(
             let identifier_read_ids_struct_token_stream = pg_crud_macro_common::common_d_token_stream_builder::common_d_token_stream_builder()
                 .d_utoipa_to_schema()
                 .build_struct(
-                    &quote::quote! {#[derive(generate_accessor::Getters, generate_constructor::New)]},
+                    &quote::quote! {#[derive(proc_macro_getters::Getters, proc_macro_new::New)]},
                     &identifier_read_ids_upper_camel_case,
                     &proc_macro2::TokenStream::new(),
                     &{
-                        #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+                        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 enum WrapIntoOptional {
                             False,
                             True,
@@ -3638,7 +3695,7 @@ enum WrapIntoOptional {
                     quote::quote! {
                         if matches!(#left_token_stream, #right_token_stream) {
                             return Err(#identifier_update_try_new_error_upper_camel_case::#NoFieldsProvidedUpperCamelCase {
-                                location: location_macros::location!(),
+                                location: proc_macro_location_bang::location!(),
                             });
                         }
                         Ok(Self {#fields_inialization_token_stream})
@@ -6512,7 +6569,7 @@ enum WrapIntoOptional {
                                 | Operation::Uo
                                 | Operation::Dm
                                 | Operation::Dlo => quote::quote! {
-                                    #[derive(generate_accessor::Getters, generate_constructor::New)]
+                                    #[derive(proc_macro_getters::Getters, proc_macro_new::New)]
                                 },
                             };
                             let identifier_operation_payload_struct_token_stream = payload_builder
@@ -6681,7 +6738,7 @@ enum WrapIntoOptional {
                                     if !accumulator_6bf275fc.insert(&element_35facc3a.#primary_key_field_identifier) {
                                         return Err(#identifier_operation_payload_try_new_error_upper_camel_case::#NotUniquePrimaryKeyUpperCamelCase {
                                             #NotUniquePrimaryKeySnakeCase: element_35facc3a.#primary_key_field_identifier,
-                                            location: location_macros::location!(),
+                                            location: proc_macro_location_bang::location!(),
                                         });
                                     }
                                 }
@@ -6773,7 +6830,7 @@ enum WrapIntoOptional {
                     .d_debug()
                     .d_clone_if(derive_clone)
                     .d_copy_if(derive_copy)
-                    .build_struct(&quote::quote! {#[derive(generate_accessor::Getters, generate_constructor::New)]},&generate_identifier_operation_parameters_upper_camel_case(operation), &proc_macro2::TokenStream::new(), &{
+                    .build_struct(&quote::quote! {#[derive(proc_macro_getters::Getters, proc_macro_new::New)]},&generate_identifier_operation_parameters_upper_camel_case(operation), &proc_macro2::TokenStream::new(), &{
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
                         quote::quote! {{
                             #PayloadSnakeCase: #identifier_operation_payload_upper_camel_case,
@@ -8054,7 +8111,7 @@ enum WrapIntoOptional {
             field_read_ids_and_create_into_optional_explicit_value_read_read_ids_from_co_create_token_stream,
             field_read_ids_and_create_into_optional_explicit_value_read_read_ids_from_co_clone_identifier_create_clone_token_stream,
         ) = {
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             enum AddDotClone {
                 False,
                 True,
@@ -10156,7 +10213,7 @@ enum WrapIntoOptional {
         }
     }));
     let frontend_form_token_stream = quote::quote! {
-        #[derive(generate_accessor::Getters, generate_constructor::New, Clone, Debug, Default)]
+        #[derive(proc_macro_getters::Getters, proc_macro_new::New, Clone, Debug, Default)]
         pub struct #identifier_create_form_upper_camel_case {
             #(#create_form_fields_token_stream),*
         }
@@ -10168,7 +10225,7 @@ enum WrapIntoOptional {
                 })
             }
         }
-        #[derive(generate_accessor::Getters, generate_constructor::New, Clone, Debug, Default)]
+        #[derive(proc_macro_getters::Getters, proc_macro_new::New, Clone, Debug, Default)]
         pub struct #identifier_update_form_upper_camel_case {
             #(#update_form_fields_token_stream),*
         }

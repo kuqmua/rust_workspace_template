@@ -9,14 +9,14 @@ where
     if raw_values.is_empty() {
         return Err(
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::IsEmpty {
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             },
         );
     }
     if raw_values.len() > crate::not_empty_unique_vec_max_len::NOT_EMPTY_UNIQUE_VEC_MAX_LEN {
         return Err(
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::TooLong {
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             },
         );
     }
@@ -25,7 +25,7 @@ where
         return Err(
             crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::NotUnique {
                 v: duplicate,
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             },
         );
     }

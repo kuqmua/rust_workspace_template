@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct DatabasePreparationSpec {
     migrations_source: crate::migrations_source::MigrationsSource,
     url: crate::database_url::DatabaseUrl,

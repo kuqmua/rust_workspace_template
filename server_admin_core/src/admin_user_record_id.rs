@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -10,8 +10,8 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Display,
-    newtype::FromInner,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(try_from = "i64")]
 pub struct AdminUserRecordId(server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64);

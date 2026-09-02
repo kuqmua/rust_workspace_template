@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 pub struct BuiltGenerateWhereFiltersModel {
     config: crate::parsed_generate_where_filters_config::ParsedGenerateWhereFiltersConfig,
     contract_valid: crate::filter_spec_valid::FilterSpecValid,

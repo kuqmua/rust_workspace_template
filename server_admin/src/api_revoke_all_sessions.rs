@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract_macros::route_openapi(
+#[proc_macro_frontend_contract::route_openapi(
     delegate = crate::sessions_revoke_all_sessions::sessions_revoke_all_sessions,
     tag = "admin_auth"
 )]

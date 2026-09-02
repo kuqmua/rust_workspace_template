@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
-    newtype::DerefInner,
-    newtype::FromInner,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct ProductionMode(bool);
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for ProductionMode {

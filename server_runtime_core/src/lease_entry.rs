@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, generate_constructor::New)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, proc_macro_new::New)]
 #[constructor(pub(crate))]
 pub(super) struct LeaseEntry {
     heartbeat: crate::tokio_lease_instant::TokioLeaseInstant,

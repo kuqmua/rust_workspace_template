@@ -1,5 +1,8 @@
 #[derive(
-    Debug, optimal_memory_layout::OptimalMemoryLayout, newtype::DerefInner, newtype::FromInner,
+    Debug,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::FromInner,
 )]
 pub(super) struct AxumJsonPayload<T>(axum::Json<T>);
 impl<T> axum::response::IntoResponse for AxumJsonPayload<T>

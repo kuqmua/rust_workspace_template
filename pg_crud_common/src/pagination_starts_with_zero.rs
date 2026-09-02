@@ -9,10 +9,10 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw")]
-#[derive(newtype::FromInner)]
+#[derive(proc_macro_newtype::FromInner)]
 pub struct PaginationStartsWithZero(crate::pagination_base::PaginationBase);
 
 impl PaginationStartsWithZero {
@@ -43,12 +43,12 @@ impl PaginationStartsWithZero {
             if limit_value.get() <= 0 {
                 Err(crate::pagination_starts_with_zero_try_new_error::PaginationStartsWithZeroTryNewError::LimitIsLessThanOrEqToZero {
                     limit: limit_value,
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 })
             } else {
                 Err(crate::pagination_starts_with_zero_try_new_error::PaginationStartsWithZeroTryNewError::OffsetIsLessThanZero {
                     offset: offset_value,
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 })
             }
         } else if offset_value.get().checked_add(limit_value.get()).is_some() {
@@ -59,7 +59,7 @@ impl PaginationStartsWithZero {
             Err(crate::pagination_starts_with_zero_try_new_error::PaginationStartsWithZeroTryNewError::OffsetPlusLimitIsIntOverflow {
                 limit: limit_value,
                 offset: offset_value,
-                location: location_macros::location!(),
+                location: proc_macro_location_bang::location!(),
             })
         }
     }

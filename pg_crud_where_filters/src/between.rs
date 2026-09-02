@@ -7,7 +7,7 @@
     Eq,
     serde::Serialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Between<T>
 where
@@ -64,7 +64,7 @@ impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> 
                 crate::between_try_new_error::BetweenTryNewError::StartMoreOrEqToEnd {
                     start,
                     end,
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 },
             )
         }
@@ -91,7 +91,7 @@ const _: () = {
         where
             __D: _serde::Deserializer<'de>,
         {
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             // The owner module retains lint-sensitive semantics from the original implementation.
             #[expect(non_camel_case_types)]
             #[doc(hidden)]
@@ -100,7 +100,7 @@ const _: () = {
                 f1,
                 __ignore,
             }
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __FieldVisitor;
             impl _serde::de::Visitor<'_> for __FieldVisitor {
@@ -154,7 +154,7 @@ const _: () = {
                     _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
@@ -347,7 +347,7 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
         {
             return Err(
                 pg_crud_common::query_part_error::QueryPartError::WriteIntoBuffer {
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 },
             );
         }

@@ -93,7 +93,7 @@ mod tests {
     }
     #[test]
     fn test_expect_error_variant_maps_matching_error_variant() {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
         enum TestError {
             A(u8),
         }
@@ -114,7 +114,7 @@ mod tests {
     }
     #[test]
     fn test_expect_error_variant_ref_maps_matching_error_variant_without_move() {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
         enum TestError {
             A(u8),
         }
@@ -129,7 +129,7 @@ mod tests {
     }
     #[test]
     fn test_assert_err_status_code_variant_checks_status_and_extracts_variant() {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
         enum TestError {
             A,
         }
@@ -156,7 +156,7 @@ mod tests {
     }
     #[test]
     fn test_assert_err_status_code_variant_ref_checks_status_and_extracts_variant_without_move() {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
         enum TestError {
             A(u8),
         }
@@ -221,7 +221,7 @@ mod tests {
     }
     #[test]
     fn test_assert_err_status_code_returns_error_after_status_check() {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, std::fmt::Debug)]
         struct TestErr;
         impl crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider for TestErr {
             fn axum_http_status_code(&self) -> crate::axum_http_status_code::AxumHttpStatusCode {

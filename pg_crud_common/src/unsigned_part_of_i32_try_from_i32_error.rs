@@ -6,9 +6,9 @@
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    location::Location,
+    proc_macro_location::Location,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum UnsignedPartOfI32TryFromI32Error {
     LessThanZero {

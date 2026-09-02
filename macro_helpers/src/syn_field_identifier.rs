@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
-    newtype::AsRefOwned,
-    newtype::DerefInner,
-    newtype::Display,
-    newtype::FromInner,
-    newtype::ToTokens,
+    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::ToTokens,
 )]
 pub struct SynFieldIdentifier(syn::Ident);

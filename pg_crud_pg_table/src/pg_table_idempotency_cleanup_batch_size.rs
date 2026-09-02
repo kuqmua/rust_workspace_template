@@ -4,7 +4,13 @@
 )]
 
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, newtype::GetInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::GetInner,
 )]
 pub struct PgTableIdempotencyCleanupBatchSize(std::num::NonZeroI64);
 impl TryFrom<i64> for PgTableIdempotencyCleanupBatchSize {

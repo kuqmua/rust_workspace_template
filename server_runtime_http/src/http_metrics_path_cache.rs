@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(super) struct HttpMetricsPathCache {
     entries: crate::http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock,
     maximum: crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum,

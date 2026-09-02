@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Eq,
     PartialEq,
-    newtype::AsRefInner,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
 

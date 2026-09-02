@@ -1,4 +1,4 @@
-#[frontend_contract_macros::route_error(AdminHtmlUpdateRoleError)]
+#[proc_macro_frontend_contract::route_error(AdminHtmlUpdateRoleError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn update_role(
     auth: crate::admin_auth_req::AdminAuthReq,

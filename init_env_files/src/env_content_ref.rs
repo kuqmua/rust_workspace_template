@@ -1,4 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, newtype::AsRefStr, newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::FromInner,
 )]
 pub(crate) struct EnvContentRef<'content_lt>(&'content_lt str);

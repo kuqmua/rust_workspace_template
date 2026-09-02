@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
     serde::Deserialize,
     serde::Serialize,
-    newtype::AsRefStr,
+    proc_macro_newtype::AsRefStr,
 )]
 #[serde(try_from = "String")]
 pub struct SqlLikePattern(String);

@@ -1,4 +1,4 @@
-generate_derive_token_stream_builder::generate_derive_token_stream_builder!([
+proc_macro_generate_derive_token_stream_builder::generate_derive_token_stream_builder!([
     "Debug",
     "Default",
     "Clone",
@@ -13,5 +13,5 @@ generate_derive_token_stream_builder::generate_derive_token_stream_builder!([
     "utoipa::ToSchema",
     "schemars::JsonSchema",
     "thiserror::Error",
-    "location::Location"
+    "proc_macro_location::Location"
 ]);

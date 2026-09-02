@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq)]
 pub enum WritePathOutcome {
     Changed(crate::written_file_path_buf::WrittenFilePathBuf),
     Unchanged(crate::written_file_path_buf::WrittenFilePathBuf),

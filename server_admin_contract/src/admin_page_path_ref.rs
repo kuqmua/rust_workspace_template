@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     PartialEq,
     Eq,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
 impl<'path_lt> AdminPagePathRef<'path_lt> {

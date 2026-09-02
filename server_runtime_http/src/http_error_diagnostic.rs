@@ -2,9 +2,9 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HttpErrorDiagnostic {
     backtrace: crate::std_http_error_backtrace::StdHttpErrorBacktrace,
     #[getters(skip)]
@@ -46,7 +46,9 @@ impl HttpErrorDiagnostic {
     fn error_chain(
         error: &(dyn std::error::Error + 'static),
     ) -> crate::std_http_error_chain::StdHttpErrorChain {
-        #[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::FromInner)]
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+        )]
         struct ErrorChain<'error_lt>(&'error_lt (dyn std::error::Error + 'static));
         impl std::fmt::Display for ErrorChain<'_> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -1,12 +1,12 @@
 #[derive(
-    generate_accessor::Getters,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct PgRelationCapacityMaximum(std::num::NonZeroU64);
 

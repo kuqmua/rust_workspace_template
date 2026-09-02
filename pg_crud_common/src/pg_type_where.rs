@@ -1,5 +1,5 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
@@ -12,7 +12,7 @@
     Eq,
     serde::Serialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct PgTypeWhere<T> {
     values: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
@@ -83,7 +83,7 @@ const _: () = {
         where
             __D: serde::Deserializer<'de>,
         {
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             // The owner module retains lint-sensitive semantics from the original implementation.
             #[expect(non_camel_case_types)]
             #[doc(hidden)]
@@ -92,7 +92,7 @@ const _: () = {
                 f1,
                 __ignore,
             }
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __FieldVisitor;
             impl _serde::de::Visitor<'_> for __FieldVisitor {
@@ -146,7 +146,7 @@ const _: () = {
                     serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, PgTypeWhere> {
                 marker: _serde::__private229::PhantomData<PgTypeWhere>,

@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    newtype::AsRefStr,
-    newtype::TryFrom,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::TryFrom,
 )]
 #[try_from(error = crate::database_url_error::DatabaseUrlError, validator = |value: &str| {
     if value.trim().is_empty() {

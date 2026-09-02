@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     Eq,
     PartialEq,
     schemars::JsonSchema,
-    newtype::UtoipaSchema,
+    proc_macro_newtype::UtoipaSchema,
 )]
 #[serde(untagged)]
 #[utoipa_schema(Value)]
@@ -48,7 +48,7 @@ where
 #[cfg(test)]
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Eq,
         PartialEq,

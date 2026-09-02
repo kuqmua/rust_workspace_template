@@ -1,7 +1,7 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
 #[allow(clippy::single_call_fn)] // operational route registry owns this endpoint handler
-#[frontend_contract_macros::route_operation]
+#[proc_macro_frontend_contract::route_operation]
 pub(super) async fn metrics(
     state: crate::notification_axum_state::NotificationAxumState,
 ) -> Result<

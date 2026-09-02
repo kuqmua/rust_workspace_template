@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum BoundedJsonReadError {
     #[error("bounded content read failed")]
     Read(#[source] crate::bounded_read_error::BoundedReadError),

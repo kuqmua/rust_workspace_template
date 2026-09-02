@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct BackgroundJob<Report> {
     history: crate::async_run_history::AsyncRunHistory<Report>,
     retry_policy: crate::retry_policy::RetryPolicy,

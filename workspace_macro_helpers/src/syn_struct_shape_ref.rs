@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy)]
 pub enum SynStructShapeRef<'shape_lt> {
     Named(crate::syn_fields_named_ref::SynFieldsNamedRef<'shape_lt>),
     Tuple(crate::syn_fields_unnamed_ref::SynFieldsUnnamedRef<'shape_lt>),

@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 pub struct AdminPageMetadata {
     client_mode: crate::admin_page_client_mode::AdminPageClientMode,

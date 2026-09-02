@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 pub struct SecretTextRef<'value_lt>(&'value_lt str);
 
 impl<'value_lt> SecretTextRef<'value_lt> {

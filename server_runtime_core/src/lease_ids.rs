@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     Eq,
     PartialEq,
-    newtype::AsRefTarget,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::FromInner,
 )]
 pub struct LeaseIds(
     bounded_types::bounded_vec::BoundedVec<crate::lease_id::LeaseId, 0, { usize::MAX }>,

@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     PartialEq,
     Eq,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::IntoInnerFrom,
     serde::Serialize,
     utoipa::ToSchema,
 )]

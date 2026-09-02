@@ -6,9 +6,12 @@
 )]
 // generated declarations follow PostgreSQL order while the source table fields stay private to protect password hashes
 #[derive(
-    Clone, Copy, generate_pg_table::GeneratePgTable, optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    proc_macro_generate_pg_table::GeneratePgTable,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
-#[generate_pg_table::generate_pg_table_config{{
+#[proc_macro_generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "users",
     "create_exclude_fields": ["password_hash", "must_change_password", "created_at", "updated_at"],
@@ -19,7 +22,7 @@
     "whole_write_into_file": "False"
 }}]
 #[allow(dead_code)] // private descriptor fields are consumed by the macro and keep password hashes out of the API
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub struct AdminUsers {
     #[generate_pg_table_primary_key]
     id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,

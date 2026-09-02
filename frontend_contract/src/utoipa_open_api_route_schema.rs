@@ -1,5 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, newtype::FromInner, newtype::IntoInnerFrom,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
 impl std::fmt::Debug for UtoipaOpenApiRouteSchema {

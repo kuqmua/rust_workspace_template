@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    frontend_contract_macros::ContractStructApi,
+    proc_macro_frontend_contract::ContractStructApi,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,

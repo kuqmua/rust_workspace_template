@@ -1,13 +1,13 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
-    generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
-    newtype::DerefInner,
-    newtype::FromInner,
+    proc_macro_generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
+    proc_macro_newtype::DerefInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct AdminCookieSecure(bool);
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for AdminCookieSecure {

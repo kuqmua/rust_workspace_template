@@ -1,4 +1,4 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
 #[derive(
     Debug,
@@ -9,7 +9,7 @@
     PartialEq,
     Eq,
     Default,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct ProjectGitInfo<'commit_lt> {
     #[getters(copy)]

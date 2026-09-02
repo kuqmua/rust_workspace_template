@@ -1,4 +1,4 @@
-naming_macros::generate_self_upper_camel_case_and_snake_case_str_and_token_stream!([
+proc_macro_naming::generate_self_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["self", "payload"],
     ["try", "self"],
     ["self", "error", "with", "serde"],

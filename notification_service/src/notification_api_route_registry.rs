@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-frontend_contract_macros::route_registry! {
+proc_macro_frontend_contract::route_registry! {
     #[openapi()]
     pub(super);
     state = crate::notification_state::NotificationState,

@@ -15,9 +15,11 @@ mod tests {
         assert_eq!(contract.format(), crate::value_format::ValueFormat::Int64);
     }
 }
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq,
+)]
 pub struct FieldContract {
     #[getters(skip)]
     filters: crate::filter_contracts::FilterContracts,

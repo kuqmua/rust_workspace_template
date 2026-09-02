@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -8,8 +8,8 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::EnumFromStr,
-    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_newtype::EnumFromStr,
+    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AdminAuditResource {

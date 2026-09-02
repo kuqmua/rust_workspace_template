@@ -699,7 +699,7 @@ fn test_non_root_workspace_modules_are_not_reexport_only_facades() {
 
 #[test]
 fn test_workspace_modules_reject_local_root_use_imports() {
-    #[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct CrateImportVisitor {
         lines: Vec<usize>,
     }

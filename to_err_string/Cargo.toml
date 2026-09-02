@@ -11,13 +11,13 @@ edition.workspace = true
 
 [dependencies]
 bounded_types = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
 tracing = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-to_err_string_macros = { workspace = true }
-newtype = { workspace = true }
+proc_macro_to_err_string = { workspace = true }
+proc_macro_newtype = { workspace = true }
 
 [dev-dependencies]
 constants_usize = { workspace = true }

@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
     PartialEq,
     Eq,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 pub struct StdAdminFailureThreshold(
     server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,

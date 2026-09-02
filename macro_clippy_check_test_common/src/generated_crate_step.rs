@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, generate_constructor::New)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_new::New)]
 #[constructor(pub(super))]
 pub(crate) struct GeneratedCrateStep {
     #[getters(copy)]

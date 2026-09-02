@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(crate) enum AdminDbRef<'connection_lt, 'pool_lt> {
     Connection(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<

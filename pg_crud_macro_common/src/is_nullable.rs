@@ -10,7 +10,7 @@
     serde::Deserialize,
     strum_macros::Display,
     strum_macros::EnumIter,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum IsNullable {
     #[default]

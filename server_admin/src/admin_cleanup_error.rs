@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminCleanupError {
     #[error("{}", constants_str::ADMIN_CLEANUP_ROWS_EXCEED_I64)]
     Count,

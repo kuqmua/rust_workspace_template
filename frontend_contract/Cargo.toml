@@ -11,14 +11,14 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
-naming_macros = { workspace = true }
-generate_accessor = { workspace = true }
-generate_constructor = { workspace = true }
+proc_macro_naming = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_new = { workspace = true }
 constants_usize = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 constants_str = { workspace = true }
-newtype = { workspace = true }
+proc_macro_newtype = { workspace = true }
 percent-encoding = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -31,7 +31,7 @@ axum = { workspace = true }
 
 [dev-dependencies]
 constants_u8 = { workspace = true }
-frontend_contract_macros = { workspace = true }
+proc_macro_frontend_contract = { workspace = true }
 futures = { workspace = true }
 
 [lints]

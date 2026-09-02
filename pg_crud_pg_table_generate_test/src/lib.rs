@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Eq,
         PartialEq,
         serde::Deserialize,
@@ -12,21 +12,21 @@ mod tests {
     }
     fn table_input(field_attrs: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         quote::quote! {
-            #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
-            #[generate_pg_table::generate_pg_table_config{{
+            #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+            #[proc_macro_generate_pg_table::generate_pg_table_config{{
                 "tests_write_into_file": "False",
                 "common_write_into_file": "False",
                 "whole_write_into_file": "False"
             }}]
-            #[generate_pg_table::cm_logic{}]
-            #[generate_pg_table::co_logic{}]
-            #[generate_pg_table::rm_logic{}]
-            #[generate_pg_table::ro_logic{}]
-            #[generate_pg_table::um_logic{}]
-            #[generate_pg_table::uo_logic{}]
-            #[generate_pg_table::dm_logic{}]
-            #[generate_pg_table::dlo_logic{}]
-            #[generate_pg_table::common_logic{}]
+            #[proc_macro_generate_pg_table::cm_logic{}]
+            #[proc_macro_generate_pg_table::co_logic{}]
+            #[proc_macro_generate_pg_table::rm_logic{}]
+            #[proc_macro_generate_pg_table::ro_logic{}]
+            #[proc_macro_generate_pg_table::um_logic{}]
+            #[proc_macro_generate_pg_table::uo_logic{}]
+            #[proc_macro_generate_pg_table::dm_logic{}]
+            #[proc_macro_generate_pg_table::dlo_logic{}]
+            #[proc_macro_generate_pg_table::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
                 primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
@@ -97,7 +97,7 @@ mod tests {
             constants_str::PG_CRUD_PG_TABLE,
             constants_str::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
             &{
-                #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
                 enum AddGeneratePgTablePrimaryKey {
                     False,
                     True,
@@ -117,8 +117,8 @@ mod tests {
                             dead_code,
                             reason = "the compile-only macro fixture validates generated contracts without reading its source model"
                         )]
-                        #[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
-                        #[generate_pg_table::generate_pg_table_config{{
+                        #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                        #[proc_macro_generate_pg_table::generate_pg_table_config{{
                             "cm_write_into_file": "False",
                             "co_write_into_file": "False",
                             "rm_write_into_file": "False",
@@ -131,7 +131,7 @@ mod tests {
                             "common_write_into_file": "False",
                             "whole_write_into_file": "False"
                         }}]
-                        #[generate_pg_table::common_error_variants{
+                        #[proc_macro_generate_pg_table::common_error_variants{
                             enum CommonErrorVariants {
                                 CheckCommit {
                                     #[eo_location]
@@ -140,15 +140,15 @@ mod tests {
                                 },
                             }
                         }]
-                        #[generate_pg_table::cm_logic{}]
-                        #[generate_pg_table::co_logic{}]
-                        #[generate_pg_table::rm_logic{}]
-                        #[generate_pg_table::ro_logic{}]
-                        #[generate_pg_table::um_logic{}]
-                        #[generate_pg_table::uo_logic{}]
-                        #[generate_pg_table::dm_logic{}]
-                        #[generate_pg_table::dlo_logic{}]
-                        #[generate_pg_table::common_logic{}]
+                        #[proc_macro_generate_pg_table::cm_logic{}]
+                        #[proc_macro_generate_pg_table::co_logic{}]
+                        #[proc_macro_generate_pg_table::rm_logic{}]
+                        #[proc_macro_generate_pg_table::ro_logic{}]
+                        #[proc_macro_generate_pg_table::um_logic{}]
+                        #[proc_macro_generate_pg_table::uo_logic{}]
+                        #[proc_macro_generate_pg_table::dm_logic{}]
+                        #[proc_macro_generate_pg_table::dlo_logic{}]
+                        #[proc_macro_generate_pg_table::common_logic{}]
                         pub struct TableExample {
                             #maybe_generate_pg_table_primary_key_token_stream
                             primary_key_column:

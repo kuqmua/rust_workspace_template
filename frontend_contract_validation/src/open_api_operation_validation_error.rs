@@ -1,5 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DebugDisplay, thiserror::Error,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    proc_macro_newtype::DebugDisplay,
+    thiserror::Error,
 )]
 pub enum OpenApiOperationValidationError {
     DocumentSerialization(

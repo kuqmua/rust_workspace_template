@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 pub(super) struct LeaseRegistryInner {
     by_id: bounded_types::bounded_hash_map::BoundedHashMap<
         crate::lease_id::LeaseId,

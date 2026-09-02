@@ -3,13 +3,13 @@
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    newtype::AsRefTarget,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct PgBoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 

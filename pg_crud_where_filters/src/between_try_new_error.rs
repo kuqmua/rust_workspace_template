@@ -1,12 +1,12 @@
-#[location::errors_with_location]
+#[proc_macro_location::errors_with_location]
 #[derive(
     Debug,
     Clone,
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    location::Location,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_location::Location,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum BetweenTryNewError<T> {
     StartMoreOrEqToEnd {

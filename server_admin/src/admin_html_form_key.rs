@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Eq,
     Ord,
@@ -8,7 +8,7 @@
     serde::Deserialize,
 )]
 #[serde(try_from = "String")]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub(crate) struct AdminHtmlFormKey(
     bounded_types::bounded_string::BoundedString<0, { constants_usize::VALUE_8_192 }>,
 );

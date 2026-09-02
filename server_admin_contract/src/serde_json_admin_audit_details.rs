@@ -1,13 +1,13 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::AsRefOwned,
-    newtype::Display,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 #[serde(try_from = "serde_json::Value", into = "serde_json::Value")]
 pub struct SerdeJsonAdminAuditDetails(serde_json::Value);

@@ -1,9 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
-    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 pub(crate) enum AdminRateLimitScope {
     AuditExport,

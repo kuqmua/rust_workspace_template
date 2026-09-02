@@ -1,4 +1,8 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype::FromInner,
+)]
 pub struct SecrecySecretBoxString(
     secrecy::SecretBox<crate::std_config_secret_string::StdConfigSecretString>,
 );

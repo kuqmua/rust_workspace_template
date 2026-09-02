@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub enum DeriveOrImpl {
     Derive,
     Impl(

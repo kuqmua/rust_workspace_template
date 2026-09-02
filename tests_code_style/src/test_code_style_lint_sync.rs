@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
 enum LintProbeDisposition {
     Supported,
     Unknown,

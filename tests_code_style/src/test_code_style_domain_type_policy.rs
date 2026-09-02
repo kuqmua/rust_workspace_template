@@ -146,7 +146,7 @@ fn test_bounded_string_wrappers_store_bounded_string() {
 #[test]
 fn test_bounded_string_storage_visitor_rejects_raw_string_and_old_derive() {
     let ast: syn::File = syn::parse_quote! {
-        #[derive(newtype::BoundedString)]
+        #[derive(proc_macro_newtype::BoundedString)]
         #[bounded_string(max = 8usize)]
         struct Value(String);
     };
@@ -166,7 +166,7 @@ fn test_bounded_string_storage_visitor_rejects_raw_string_and_old_derive() {
 #[test]
 fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
     let ast: syn::File = syn::parse_quote! {
-            #[derive(newtype::TryFrom)]
+            #[derive(proc_macro_newtype::TryFrom)]
     #[try_from(
                 validator = validate_value
             )]
@@ -207,7 +207,7 @@ fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
 #[test]
 fn test_newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
     let ast: syn::File = syn::parse_quote! {
-        #[derive(newtype::TryFrom)]
+        #[derive(proc_macro_newtype::TryFrom)]
         #[try_from(
             error = SharedValueError,
             validator = Value::validate

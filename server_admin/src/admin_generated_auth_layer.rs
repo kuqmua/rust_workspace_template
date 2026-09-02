@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_accessor::Getters)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, proc_macro_getters::Getters,
+)]
 pub struct AdminGeneratedAuthLayer {
     state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
 }

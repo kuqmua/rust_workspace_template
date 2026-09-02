@@ -16,9 +16,9 @@ dependencies = [
  "config_lib",
  "constants_str",
  "constants_usize",
- "generate_constructor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "secrecy",
  "server_admin",
  "server_admin_contract",
@@ -107,8 +107,8 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 name = "app_state"
 version = "0.1.0"
 dependencies = [
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "sqlx",
 ]
 
@@ -453,8 +453,8 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "schemars",
  "serde",
  "thiserror 2.0.20",
@@ -681,11 +681,11 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "frontend_contract",
- "frontend_contract_macros",
- "generate_accessor",
  "git_info",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_frontend_contract",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "server_runtime_http",
@@ -733,15 +733,15 @@ version = "0.1.0"
 dependencies = [
  "bounded_types",
  "chrono",
- "config_lib_macros",
  "constants_str",
  "constants_usize",
  "dotenv",
- "generate_accessor",
- "generate_accessor_traits_for_struct_fields",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_config_lib",
+ "proc_macro_generate_accessor_traits_for_struct_fields",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "secrecy",
  "serde",
  "strum",
@@ -749,18 +749,6 @@ dependencies = [
  "thiserror 2.0.20",
  "to_err_string",
  "tracing",
-]
-
-[[package]]
-name = "config_lib_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "newtype",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "workspace_macro_helpers",
 ]
 
 [[package]]
@@ -808,18 +796,8 @@ version = "0.1.0"
 name = "constants_str"
 version = "0.1.0"
 dependencies = [
- "constants_str_macros",
  "git-version",
-]
-
-[[package]]
-name = "constants_str_macros"
-version = "0.1.0"
-dependencies = [
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
+ "proc_macro_constants_str",
 ]
 
 [[package]]
@@ -1087,10 +1065,10 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "server_runtime_core",
  "thiserror 2.0.20",
 ]
@@ -1254,9 +1232,9 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "server_runtime_http",
  "synchronization_service_runtime",
  "thiserror 2.0.20",
@@ -1277,10 +1255,10 @@ dependencies = [
  "constants_str",
  "constants_u64",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "text_policy",
  "thiserror 2.0.20",
  "tokio",
@@ -1359,34 +1337,19 @@ dependencies = [
  "constants_str",
  "constants_u8",
  "constants_usize",
- "frontend_contract_macros",
  "futures",
- "generate_accessor",
- "generate_constructor",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
  "percent-encoding",
+ "proc_macro_frontend_contract",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
  "to_err_string",
  "utoipa",
-]
-
-[[package]]
-name = "frontend_contract_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "newtype",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
 ]
 
 [[package]]
@@ -1398,8 +1361,8 @@ dependencies = [
  "constants_usize",
  "frontend_contract",
  "futures",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
@@ -1517,83 +1480,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "generate_accessor"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "constants_usize",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
-]
-
-[[package]]
-name = "generate_accessor_traits_for_struct_fields"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "naming_common",
- "panic_location",
- "quote",
- "syn 3.0.4",
-]
-
-[[package]]
-name = "generate_constructor"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
-]
-
-[[package]]
-name = "generate_derive_token_stream_builder"
-version = "0.1.0"
-dependencies = [
- "bounded_types",
- "constants_str",
- "naming",
- "naming_common",
- "newtype",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "serde_json",
-]
-
-[[package]]
-name = "generate_pg_table"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "generate_pg_table_src",
- "macro_helpers",
-]
-
-[[package]]
 name = "generate_pg_table_src"
 version = "0.1.0"
 dependencies = [
  "bounded_types",
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
  "generate_quotes",
  "macro_helpers",
  "naming",
  "naming_common",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
  "panic_location",
  "pg_crud_common",
  "pg_crud_macro_common",
  "proc-macro2",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "serde_json",
@@ -1612,20 +1517,11 @@ dependencies = [
  "generate_pg_table_src",
  "macro_clippy_check_test_common",
  "macro_helpers",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "token_patterns",
-]
-
-[[package]]
-name = "generate_pg_types"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "generate_pg_types_src",
- "macro_helpers",
 ]
 
 [[package]]
@@ -1634,17 +1530,17 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
  "generate_quotes",
  "macro_helpers",
  "naming",
- "newtype",
- "optimal_memory_layout",
  "panic_location",
  "pg_crud_common",
  "pg_crud_macro_common",
  "proc-macro2",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "serde_json",
@@ -1665,10 +1561,10 @@ dependencies = [
  "generate_pg_types_src",
  "macro_clippy_check_test_common",
  "macro_helpers",
- "optimal_memory_layout",
  "pg_types_chrono_net",
  "pg_types_numeric",
  "pg_types_text_misc",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "serde_json",
@@ -1682,18 +1578,10 @@ version = "0.1.0"
 dependencies = [
  "bounded_types",
  "constants_str",
- "newtype",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
-]
-
-[[package]]
-name = "generate_where_filters"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "generate_where_filters_src",
 ]
 
 [[package]]
@@ -1702,15 +1590,15 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
- "generate_accessor",
  "generate_quotes",
  "macro_helpers",
  "naming",
- "newtype",
- "optimal_memory_layout",
  "panic_location",
  "pg_crud_macro_common",
  "proc-macro2",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "serde_json",
@@ -1728,8 +1616,8 @@ dependencies = [
  "generate_where_filters_src",
  "macro_clippy_check_test_common",
  "macro_helpers",
- "optimal_memory_layout",
  "pg_crud_common",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "where_filters",
@@ -1836,9 +1724,9 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_derive",
 ]
@@ -2302,9 +2190,9 @@ dependencies = [
  "bounded_types",
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "server_runtime_http",
  "thiserror 2.0.20",
  "toml",
@@ -2622,23 +2510,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47d9d19d1d6efa0109d2f65ff4c85cddd50bd572e5a00127ab10987290bcefae"
 
 [[package]]
-name = "location"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "generate_quotes",
- "macro_helpers",
- "naming",
- "newtype",
- "optimal_memory_layout",
- "panic_location",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
- "token_patterns",
-]
-
-[[package]]
 name = "location_lib"
 version = "0.1.0"
 dependencies = [
@@ -2648,22 +2519,15 @@ dependencies = [
  "constants_str",
  "constants_u32",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
  "git_info",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "schemars",
  "serde",
  "thiserror 2.0.20",
  "utoipa",
-]
-
-[[package]]
-name = "location_macros"
-version = "0.1.0"
-dependencies = [
- "quote",
 ]
 
 [[package]]
@@ -2672,13 +2536,13 @@ version = "0.1.0"
 dependencies = [
  "bounded_types",
  "constants_str",
- "generate_accessor",
- "generate_constructor",
- "location",
  "location_lib",
- "location_macros",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "thiserror 2.0.20",
  "to_err_string",
@@ -2729,12 +2593,12 @@ dependencies = [
  "constants_i32",
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
  "macro_helpers",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "server_runtime_http",
 ]
 
@@ -2748,16 +2612,16 @@ dependencies = [
  "constants_u32",
  "constants_u8",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "generate_derive_token_stream_builder",
  "generate_quotes",
  "naming",
  "naming_common",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_generate_derive_token_stream_builder",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "serde_json",
@@ -2917,10 +2781,10 @@ dependencies = [
  "constants_str",
  "generate_quotes",
  "naming_common",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_naming",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "syn 3.0.4",
 ]
@@ -2932,40 +2796,11 @@ dependencies = [
  "bounded_types",
  "constants_str",
  "convert_case 0.12.0",
- "naming_common_macros",
- "newtype",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_naming_common",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
-]
-
-[[package]]
-name = "naming_common_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "proc-macro2",
- "quote",
- "workspace_macro_helpers",
-]
-
-[[package]]
-name = "naming_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "constants_usize",
- "generate_quotes",
- "naming_common",
- "newtype",
- "optimal_memory_layout",
- "panic_location",
- "proc-macro2",
- "quote",
- "regex",
- "serde_json",
- "syn 3.0.4",
- "token_patterns",
 ]
 
 [[package]]
@@ -2983,37 +2818,6 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
-]
-
-[[package]]
-name = "newtype"
-version = "0.1.0"
-dependencies = [
- "bounded_types",
- "constants_str",
- "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "newtype_foundation",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "syn 3.0.4",
- "utoipa",
- "workspace_macro_helpers",
-]
-
-[[package]]
-name = "newtype_foundation"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
 ]
 
 [[package]]
@@ -3057,16 +2861,16 @@ dependencies = [
  "config_lib",
  "constants_str",
  "frontend_contract",
- "frontend_contract_macros",
  "frontend_contract_validation",
- "generate_accessor",
  "git_info",
  "http",
  "metrics-exporter-prometheus",
- "newtype",
  "notification_service_config",
  "notification_service_contract",
- "optimal_memory_layout",
+ "proc_macro_frontend_contract",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "secrecy",
  "serde_json",
  "server_observability",
@@ -3087,9 +2891,9 @@ dependencies = [
  "config_lib",
  "constants_str",
  "dotenv",
- "optimal_memory_layout",
+ "proc_macro_optimal_memory_layout",
+ "proc_macro_try_from_env",
  "thiserror 2.0.20",
- "try_from_env",
 ]
 
 [[package]]
@@ -3099,11 +2903,11 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "frontend_contract",
- "frontend_contract_macros",
- "generate_accessor",
- "generate_constructor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_frontend_contract",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "thiserror 2.0.20",
  "utoipa",
@@ -3299,15 +3103,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "optimal_memory_layout"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.4",
-]
-
-[[package]]
 name = "or_poisoned"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3328,8 +3123,8 @@ name = "panic_location"
 version = "0.1.0"
 dependencies = [
  "constants_str",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "to_err_string",
  "tracing",
 ]
@@ -3407,17 +3202,17 @@ dependencies = [
  "constants_u8",
  "constants_usize",
  "criterion",
- "generate_accessor",
- "generate_constructor",
  "hmac",
- "location",
  "location_lib",
- "location_macros",
  "naming",
  "naming_common",
- "newtype",
- "optimal_memory_layout",
- "pg_crud_common_macros",
+ "proc_macro_getters",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "proc_macro_trait_alias",
  "proptest",
  "schemars",
  "serde",
@@ -3434,45 +3229,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "pg_crud_common_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "proc-macro2",
- "quote",
- "workspace_macro_helpers",
-]
-
-[[package]]
 name = "pg_crud_macro_common"
 version = "0.1.0"
 dependencies = [
  "bounded_types",
  "constants_str",
- "generate_accessor",
  "generate_quotes",
  "macro_helpers",
  "naming",
- "newtype",
- "optimal_memory_layout",
- "pg_crud_macro_common_macros",
  "proc-macro2",
+ "proc_macro_bool_enum_to_tokens",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
  "strum",
  "strum_macros",
  "syn 3.0.4",
  "token_patterns",
-]
-
-[[package]]
-name = "pg_crud_macro_common_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "proc-macro2",
- "quote",
- "workspace_macro_helpers",
 ]
 
 [[package]]
@@ -3486,10 +3261,10 @@ dependencies = [
  "constants_str",
  "constants_u8",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "server_runtime_core",
  "sha2 0.11.0",
  "sqlx",
@@ -3504,12 +3279,12 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "frontend_contract",
- "generate_pg_types",
- "location",
  "location_lib",
- "location_macros",
- "optimal_memory_layout",
  "pg_crud_common",
+ "proc_macro_generate_pg_types",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "sqlx",
@@ -3525,12 +3300,12 @@ version = "0.1.0"
 dependencies = [
  "constants_i64",
  "constants_str",
- "location",
  "location_lib",
- "location_macros",
- "newtype",
- "optimal_memory_layout",
  "pg_crud_common",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "schemars",
  "serde",
  "thiserror 2.0.20",
@@ -3543,13 +3318,13 @@ name = "pg_types_numeric"
 version = "0.1.0"
 dependencies = [
  "frontend_contract",
- "generate_pg_types",
- "location",
  "location_lib",
- "location_macros",
- "optimal_memory_layout",
  "pg_crud_common",
  "pg_types_common",
+ "proc_macro_generate_pg_types",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "sqlx",
@@ -3564,13 +3339,13 @@ name = "pg_types_text_misc"
 version = "0.1.0"
 dependencies = [
  "frontend_contract",
- "generate_pg_types",
- "location",
  "location_lib",
- "location_macros",
- "optimal_memory_layout",
  "pg_crud_common",
  "pg_types_common",
+ "proc_macro_generate_pg_types",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "sqlx",
@@ -3661,9 +3436,9 @@ dependencies = [
  "bounded_types",
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "thiserror 2.0.20",
 ]
 
@@ -3739,6 +3514,276 @@ dependencies = [
  "syn 2.0.119",
  "version_check",
  "yansi",
+]
+
+[[package]]
+name = "proc_macro_bool_enum_to_tokens"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "quote",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_config_lib"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_constants_str"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "proc_macro_frontend_contract"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "constants_usize",
+ "proc-macro2",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "proc_macro_generate_accessor_traits_for_struct_fields"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "naming_common",
+ "panic_location",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "proc_macro_generate_derive_token_stream_builder"
+version = "0.1.0"
+dependencies = [
+ "bounded_types",
+ "constants_str",
+ "naming",
+ "naming_common",
+ "proc-macro2",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "serde_json",
+]
+
+[[package]]
+name = "proc_macro_generate_pg_table"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "generate_pg_table_src",
+ "macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_generate_pg_types"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "generate_pg_types_src",
+ "macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_generate_where_filters"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "generate_where_filters_src",
+]
+
+[[package]]
+name = "proc_macro_getters"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "constants_usize",
+ "proc-macro2",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "proc_macro_impl_cfg_accessor"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "quote",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_location"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "generate_quotes",
+ "macro_helpers",
+ "naming",
+ "panic_location",
+ "proc-macro2",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "syn 3.0.4",
+ "token_patterns",
+]
+
+[[package]]
+name = "proc_macro_location_bang"
+version = "0.1.0"
+dependencies = [
+ "quote",
+]
+
+[[package]]
+name = "proc_macro_naming"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "constants_usize",
+ "generate_quotes",
+ "naming_common",
+ "panic_location",
+ "proc-macro2",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "regex",
+ "serde_json",
+ "syn 3.0.4",
+ "token_patterns",
+]
+
+[[package]]
+name = "proc_macro_naming_common"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "quote",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_new"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "proc_macro_newtype"
+version = "0.1.0"
+dependencies = [
+ "bounded_types",
+ "constants_str",
+ "constants_usize",
+ "proc-macro2",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype_foundation",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn 3.0.4",
+ "utoipa",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_newtype_foundation"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "proc_macro_optimal_memory_layout"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "proc_macro_to_err_string"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "quote",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_token_patterns"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_trait_alias"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "quote",
+ "workspace_macro_helpers",
+]
+
+[[package]]
+name = "proc_macro_try_from_env"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "macro_helpers",
+ "naming",
+ "naming_common",
+ "panic_location",
+ "proc-macro2",
+ "quote",
+ "syn 3.0.4",
 ]
 
 [[package]]
@@ -4250,11 +4295,11 @@ dependencies = [
  "constants_usize",
  "git_info",
  "http-body",
- "location",
  "location_lib",
- "location_macros",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "thiserror 2.0.20",
  "to_err_string",
@@ -4285,10 +4330,10 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "frontend_contract",
- "generate_accessor",
- "newtype",
  "notification_service_contract",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "reqwest 0.13.4",
  "server_runtime_http",
  "thiserror 2.0.20",
@@ -4607,10 +4652,10 @@ dependencies = [
  "frontend_contract",
  "git_info",
  "metrics-exporter-prometheus",
- "newtype",
  "num_cpus",
- "optimal_memory_layout",
  "pg_table",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "secrecy",
  "server_admin",
  "server_admin_contract",
@@ -4644,27 +4689,27 @@ dependencies = [
  "constants_u64",
  "constants_usize",
  "frontend_contract",
- "frontend_contract_macros",
  "frontend_contract_validation",
  "futures",
- "generate_accessor",
- "generate_constructor",
- "generate_pg_table",
  "git_info",
  "http",
  "jsonwebtoken",
- "location",
  "location_lib",
- "location_macros",
  "metrics",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
  "pg_crud_common",
  "pg_table",
  "pg_types_chrono_net",
  "pg_types_numeric",
  "pg_types_text_misc",
+ "proc_macro_frontend_contract",
+ "proc_macro_generate_pg_table",
+ "proc_macro_getters",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_naming",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "reqwest 0.13.4",
  "route_validators",
  "secrecy",
@@ -4698,12 +4743,12 @@ dependencies = [
  "constants_u16",
  "constants_usize",
  "frontend_contract",
- "frontend_contract_macros",
- "generate_accessor",
- "generate_constructor",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_frontend_contract",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "strum_macros",
@@ -4719,8 +4764,8 @@ dependencies = [
  "bounded_types",
  "constants_str",
  "constants_usize",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "secrecy",
  "serde",
  "server_admin_contract",
@@ -4741,11 +4786,11 @@ dependencies = [
  "constants_u64",
  "constants_usize",
  "frontend_contract",
- "generate_accessor",
  "leptos",
- "naming_macros",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "serde",
  "serde_json",
  "server_admin_contract",
@@ -4770,22 +4815,13 @@ dependencies = [
  "constants_str",
  "constants_usize",
  "git_info",
- "optimal_memory_layout",
  "pg_table",
- "server_app_state_macros",
+ "proc_macro_impl_cfg_accessor",
+ "proc_macro_optimal_memory_layout",
  "server_config",
  "server_runtime_core",
  "sqlx",
  "tokio",
-]
-
-[[package]]
-name = "server_app_state_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "quote",
- "workspace_macro_helpers",
 ]
 
 [[package]]
@@ -4797,12 +4833,12 @@ dependencies = [
  "config_lib",
  "constants_str",
  "dotenv",
- "generate_accessor",
- "generate_constructor",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_optimal_memory_layout",
+ "proc_macro_try_from_env",
  "secrecy",
  "thiserror 2.0.20",
- "try_from_env",
 ]
 
 [[package]]
@@ -4869,11 +4905,11 @@ name = "server_observability"
 version = "0.1.0"
 dependencies = [
  "constants_str",
- "newtype",
  "opentelemetry",
  "opentelemetry-otlp",
  "opentelemetry_sdk",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "thiserror 2.0.20",
  "tracing",
  "tracing-opentelemetry",
@@ -4889,10 +4925,10 @@ dependencies = [
  "constants_u64",
  "constants_u8",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "thiserror 2.0.20",
  "tokio",
 ]
@@ -4911,18 +4947,18 @@ dependencies = [
  "constants_u8",
  "constants_usize",
  "cookie",
- "generate_accessor",
- "generate_constructor",
  "geojson",
  "http",
  "ipnet",
  "metrics",
  "mime",
- "newtype",
  "opentelemetry",
  "opentelemetry_sdk",
- "optimal_memory_layout",
  "percent-encoding",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -5390,9 +5426,9 @@ version = "0.1.0"
 dependencies = [
  "bounded_types",
  "constants_str",
- "generate_accessor",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "server_runtime_core",
  "thiserror 2.0.20",
 ]
@@ -5505,13 +5541,13 @@ dependencies = [
  "constants_u32",
  "constants_usize",
  "frontend_contract",
- "frontend_contract_macros",
- "generate_accessor",
- "generate_constructor",
  "macro_helpers",
- "newtype",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_frontend_contract",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "rayon",
  "regex",
  "serde",
@@ -5529,8 +5565,8 @@ version = "0.1.0"
 dependencies = [
  "constants_str",
  "constants_usize",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "thiserror 2.0.20",
 ]
 
@@ -5668,48 +5704,26 @@ dependencies = [
  "constants_usize",
  "http",
  "http-body",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "proc_macro_to_err_string",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
  "sqlx",
  "time",
- "to_err_string_macros",
  "tracing",
-]
-
-[[package]]
-name = "to_err_string_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "proc-macro2",
- "quote",
- "workspace_macro_helpers",
 ]
 
 [[package]]
 name = "token_patterns"
 version = "0.1.0"
 dependencies = [
- "newtype",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "proc_macro_token_patterns",
  "quote",
- "token_patterns_macros",
-]
-
-[[package]]
-name = "token_patterns_macros"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "newtype",
- "optimal_memory_layout",
- "proc-macro2",
- "quote",
- "workspace_macro_helpers",
 ]
 
 [[package]]
@@ -6003,20 +6017,6 @@ name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
-
-[[package]]
-name = "try_from_env"
-version = "0.1.0"
-dependencies = [
- "constants_str",
- "macro_helpers",
- "naming",
- "naming_common",
- "panic_location",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
-]
 
 [[package]]
 name = "trybuild"
@@ -6345,15 +6345,15 @@ dependencies = [
  "bounded_types",
  "constants_str",
  "constants_usize",
- "generate_accessor",
- "generate_constructor",
- "generate_where_filters",
- "location",
  "location_lib",
- "location_macros",
- "newtype",
- "optimal_memory_layout",
  "pg_crud_common",
+ "proc_macro_generate_where_filters",
+ "proc_macro_getters",
+ "proc_macro_location",
+ "proc_macro_location_bang",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "regex",
  "schemars",
  "serde",
@@ -6583,9 +6583,9 @@ name = "workspace_macro_helpers"
 version = "0.1.0"
 dependencies = [
  "constants_str",
- "newtype_foundation",
- "optimal_memory_layout",
  "proc-macro2",
+ "proc_macro_newtype_foundation",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "syn 3.0.4",
 ]
@@ -6600,11 +6600,11 @@ dependencies = [
  "constants_u16",
  "constants_usize",
  "frontend_contract",
- "generate_accessor",
- "generate_constructor",
  "macro_helpers",
- "newtype",
- "optimal_memory_layout",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "server_runtime_http",
  "thiserror 2.0.20",
  "tracing",
@@ -6622,15 +6622,15 @@ dependencies = [
  "constants_u64",
  "constants_usize",
  "frontend_contract",
- "generate_accessor",
- "generate_constructor",
  "generate_pg_table_src",
  "generate_pg_types_src",
  "generate_where_filters_src",
  "macro_helpers",
- "newtype",
- "optimal_memory_layout",
  "pg_crud_common",
+ "proc_macro_getters",
+ "proc_macro_new",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
  "quote",
  "serde_json",
  "server_admin",

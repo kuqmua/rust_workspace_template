@@ -6,9 +6,9 @@
     Eq,
     serde::Serialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsSlice,
-    newtype::IntoInnerFrom,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsSlice,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct PgTypeNotEmptyUniqueVec<T>(Vec<T>);
 impl<T> From<[T; 1]> for PgTypeNotEmptyUniqueVec<T> {
@@ -71,7 +71,7 @@ const _: () = {
         where
             __D: _serde::Deserializer<'de>,
         {
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where

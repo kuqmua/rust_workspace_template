@@ -1,6 +1,6 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
 pub(crate) struct InitializationEntry {
     keys: crate::env_keys::EnvKeys,
     member: crate::workspace_member::WorkspaceMember,

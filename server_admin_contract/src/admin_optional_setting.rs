@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
@@ -9,7 +9,7 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    frontend_contract_macros::UnitEnumCatalog,
+    proc_macro_frontend_contract::UnitEnumCatalog,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AdminOptionalSetting {

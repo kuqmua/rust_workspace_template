@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum DbSchemaConformanceError {
     #[error("PostgreSQL catalog differs from the expected snapshot")]
     CatalogMismatch {

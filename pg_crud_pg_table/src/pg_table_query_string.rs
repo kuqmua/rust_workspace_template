@@ -1,5 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, newtype::DerefTarget, newtype::Display,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    proc_macro_newtype::DerefTarget,
+    proc_macro_newtype::Display,
 )]
 pub struct PgTableQueryString(String);
 

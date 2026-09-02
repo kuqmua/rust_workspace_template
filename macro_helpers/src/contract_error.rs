@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ContractError {
     #[error("fixture JSON deserialization failed: {0}")]
     DeserializeFixture(crate::macro_serde_json_error::MacroSerdeJsonError),

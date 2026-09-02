@@ -1,4 +1,4 @@
-#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout, Clone, PartialEq, Eq)]
+#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, PartialEq, Eq)]
 pub struct AdminInputName(Box<str>);
 
 impl From<&'static str> for AdminInputName {

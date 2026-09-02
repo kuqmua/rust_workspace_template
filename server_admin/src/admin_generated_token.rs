@@ -1,8 +1,8 @@
 #[derive(
-    generate_constructor::New,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 pub struct AdminGeneratedToken {
     hash: crate::admin_token_hash::AdminTokenHash,

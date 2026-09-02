@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(crate) enum AdminTableQueryDirection {
     #[cfg(target_arch = "wasm32")]
     Csr(Option<server_admin_contract::admin_text::AdminText>),

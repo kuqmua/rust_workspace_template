@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         serde::Deserialize,
@@ -11,7 +11,7 @@ mod tests {
         value: u64,
     }
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         Eq,
@@ -22,7 +22,9 @@ mod tests {
     struct Response {
         value: u64,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize)]
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, serde::Deserialize,
+    )]
     struct FailingRequest;
     impl serde::Serialize for FailingRequest {
         fn serialize<Serializer>(
@@ -36,7 +38,7 @@ mod tests {
         }
     }
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         serde::Deserialize,
@@ -45,13 +47,13 @@ mod tests {
     struct LargeRequest {
         value: String,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     enum MutatingRouteMetadataFixture {
         Ok,
         Created,
         NoContent,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     enum BasicRouteMetadataFixture {
         FailingRequest,
         LargeRequest,
@@ -112,7 +114,7 @@ mod tests {
             success_status,
         )
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct Route;
     impl crate::typed_route::TypedRoute for Route {
         type Request = Request;
@@ -125,7 +127,7 @@ mod tests {
             crate::route_request_body::RouteRequestBody::Json
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct CreatedRoute;
     impl crate::typed_route::TypedRoute for CreatedRoute {
         type Request = Request;
@@ -138,7 +140,7 @@ mod tests {
             crate::route_request_body::RouteRequestBody::Json
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct FailingRequestRoute;
     impl crate::typed_route::TypedRoute for FailingRequestRoute {
         type Request = FailingRequest;
@@ -151,7 +153,7 @@ mod tests {
             crate::route_request_body::RouteRequestBody::Json
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct LargeRequestRoute;
     impl crate::typed_route::TypedRoute for LargeRequestRoute {
         type Request = LargeRequest;
@@ -165,7 +167,7 @@ mod tests {
         }
     }
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
         Debug,
@@ -175,7 +177,7 @@ mod tests {
         serde::Serialize,
     )]
     struct NoBody;
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct NoContentRoute;
     impl crate::typed_route::TypedRoute for NoContentRoute {
         type Request = NoBody;
@@ -185,7 +187,7 @@ mod tests {
             mutating_route_metadata(MutatingRouteMetadataFixture::NoContent)
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
     struct EmptyOkRoute;
     impl crate::typed_route::TypedRoute for EmptyOkRoute {
         type Request = NoBody;
@@ -212,7 +214,7 @@ mod tests {
             }
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone)]
     struct TestTransport {
         expected: ExpectedRequest,
         response: Result<
@@ -220,7 +222,7 @@ mod tests {
             crate::transport_error::TransportError,
         >,
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone)]
     enum ExpectedRequest {
         BodyLen(crate::transport_path::TransportPath, usize),
         Empty(crate::transport_path::TransportPath),

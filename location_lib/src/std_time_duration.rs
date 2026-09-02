@@ -5,8 +5,8 @@
     Clone,
     Copy,
     utoipa::ToSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    generate_accessor::Getters,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
 )] //todo check somehow what its eq to std::time::Duration
 pub struct StdTimeDuration {
     secs: crate::std_time_duration_secs::StdTimeDurationSecs,

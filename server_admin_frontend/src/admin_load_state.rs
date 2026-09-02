@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(crate) enum AdminLoadState {
     Empty(server_admin_contract::authenticated_admin::AuthenticatedAdmin),
     Error(super::admin_table_load_error::AdminTableLoadError),

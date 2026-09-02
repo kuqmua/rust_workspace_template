@@ -13,10 +13,10 @@ proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
 generate_quotes = { workspace = true }
-naming_macros = { workspace = true }
+proc_macro_naming = { workspace = true }
 naming_common = { workspace = true }
-newtype = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_newtype = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 
 [dev-dependencies]
 constants_str = { workspace = true }

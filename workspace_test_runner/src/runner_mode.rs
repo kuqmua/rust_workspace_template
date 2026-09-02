@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    newtype::AsRefStr,
-    newtype::BoundedStringWrapper,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::BoundedStringWrapper,
 )]
 #[bounded_string(max = crate::domain_types::RUNNER_MODE_MAX_LEN)]
 pub(crate) struct RunnerMode(

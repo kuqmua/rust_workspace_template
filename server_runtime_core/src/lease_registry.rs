@@ -2,7 +2,7 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub struct LeaseRegistry {
     inner: crate::tokio_lease_registry_rw_lock_arc::TokioLeaseRegistryRwLockArc,
 }

@@ -1,0 +1,24 @@
+[package]
+name = "proc_macro_new"
+version.workspace = true
+publish.workspace = true
+description = "Derive macro for mechanical struct constructors"
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+constants_str = { workspace = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+
+[dev-dependencies]
+proc_macro_optimal_memory_layout = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct ErrorReader;
     impl tokio::io::AsyncRead for ErrorReader {
         fn poll_read(

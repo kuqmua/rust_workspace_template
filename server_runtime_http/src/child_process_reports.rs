@@ -1,9 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::AsRefTarget,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::FromInner,
 )]
 pub struct ChildProcessReports(
     bounded_types::bounded_vec::BoundedVec<

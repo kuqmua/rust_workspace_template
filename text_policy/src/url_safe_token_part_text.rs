@@ -1,5 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq, newtype::AsRefStr,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::AsRefStr,
 )]
 pub struct UrlSafeTokenPartText(String);
 impl TryFrom<String> for UrlSafeTokenPartText {

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
     struct TestSender;
     impl crate::notification_sender::NotificationSender for TestSender {
         type Error = std::convert::Infallible;

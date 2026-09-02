@@ -7,10 +7,10 @@
     serde::Serialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::BoundedStringWrapper,
-    newtype::AsRefStr,
-    newtype::Display,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::Display,
 )]
 #[bounded_string(max = crate::domain_types::LOC_FILE_MAX_LEN )]
 #[serde(try_from = "String")]

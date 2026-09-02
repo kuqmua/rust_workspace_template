@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdministratorAccountCommandError {
     #[error(transparent)]
     Args(crate::administrator_command_args_error::AdministratorCommandArgsError),

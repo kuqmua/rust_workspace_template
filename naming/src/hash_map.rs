@@ -1,2 +1,2 @@
-#[derive(Debug, Clone, Copy, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub struct HashMap;

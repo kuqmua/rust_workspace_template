@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-#[frontend_contract_macros::route_openapi(
+#[proc_macro_frontend_contract::route_openapi(
     delegate = crate::settings_update::settings_update,
     tag = "admin_settings"
 )]

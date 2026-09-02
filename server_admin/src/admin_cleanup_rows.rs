@@ -1,13 +1,13 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Eq,
     PartialEq,
-    newtype::Display,
-    newtype::FromInner,
-    generate_accessor::Getters,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
+    proc_macro_getters::Getters,
 )]
 pub struct AdminCleanupRows(u64);
 impl std::ops::Add for AdminCleanupRows {

@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     PartialEq,
     Eq,
-    generate_accessor::Getters,
-    generate_constructor::New,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
 )]
 pub struct FormFieldError {
     error: crate::form_value_error::FormValueError,

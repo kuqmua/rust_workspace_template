@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum RuntimeTestError {
     #[error("runtime service URL is invalid: {0}")]
     BaseUrl(#[from] crate::service_base_url_error::ServiceBaseUrlError),

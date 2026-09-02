@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct HealthReadiness {
     shared: crate::shared_health_readiness_arc::SharedHealthReadinessArc,
 }

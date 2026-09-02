@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 #[cfg_attr(test, derive(Default))]
 #[must_use]
 pub struct ChildProcessSupervisor {

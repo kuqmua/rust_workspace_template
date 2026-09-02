@@ -1,15 +1,15 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Serialize,
-    newtype::UtoipaSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::UtoipaSchema,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub(crate) struct AdminAuthPermissions(
     bounded_types::bounded_vec::BoundedVec<
         server_admin_contract::admin_permission::AdminPermission,

@@ -1,4 +1,6 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, generate_accessor::Getters)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, proc_macro_getters::Getters,
+)]
 pub struct AdminPasswordHasher {
     semaphore: crate::admin_shared_semaphore_arc::AdminSharedSemaphoreArc,
 }

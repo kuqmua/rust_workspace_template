@@ -10,11 +10,11 @@
     Eq,
     serde::Serialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::DefaultInner,
-    newtype::IntoVec,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::DefaultInner,
+    proc_macro_newtype::IntoVec,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVec<T> {
@@ -99,7 +99,7 @@ const _: () = {
         where
             __D: serde::Deserializer<'de>,
         {
-            #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
@@ -196,7 +196,11 @@ impl<T1> NotEmptyUniqueVec<T1> {
 #[cfg(test)]
 mod test_tests_not_empty_unique_vec {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq, newtype::FromInner,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        PartialEq,
+        Eq,
+        proc_macro_newtype::FromInner,
     )]
     struct NonClone(u8);
     #[test]

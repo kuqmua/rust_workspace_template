@@ -7,9 +7,9 @@
     PartialOrd,
     serde::Serialize,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsSlice,
-    newtype::IntoInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsSlice,
+    proc_macro_newtype::IntoInner,
 )]
 pub struct PgFilterVec<T, const LENGTH: usize>(Vec<T>);
 impl<T, const LENGTH: usize> From<[T; LENGTH]> for PgFilterVec<T, LENGTH> {
@@ -101,7 +101,7 @@ impl<
             if write_res.is_err() {
                 return Err(
                     pg_crud_common::query_part_error::QueryPartError::WriteIntoBuffer {
-                        location: location_macros::location!(),
+                        location: proc_macro_location_bang::location!(),
                     },
                 );
             }
@@ -121,7 +121,7 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for PgFilterVec<T, LENGTH> {
                 crate::bounded_vec_try_new_error::BoundedVecTryNewError::LenIsNotCorrect {
                     wrong_len: crate::pg_filter_vec_len::PgFilterVecLen::from(len),
                     expected: crate::pg_filter_vec_len::PgFilterVecLen::from(LENGTH),
-                    location: location_macros::location!(),
+                    location: proc_macro_location_bang::location!(),
                 }
             })
     }

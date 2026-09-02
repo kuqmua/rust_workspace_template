@@ -1,8 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    newtype::DerefTarget,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::DerefTarget,
+    proc_macro_newtype::IntoInnerFrom,
     serde::Deserialize,
 )]
 #[serde(try_from = "Vec<crate::pg_type_record::PgTypeRecord>")]

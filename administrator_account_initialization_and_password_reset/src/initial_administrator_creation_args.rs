@@ -1,4 +1,4 @@
-#[derive(generate_constructor::New, optimal_memory_layout::OptimalMemoryLayout, Debug)]
+#[derive(proc_macro_new::New, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
 pub(crate) struct InitialAdministratorCreationArgs {
     display_name: server_admin_contract::admin_display_name::AdminDisplayName,
     login: server_admin_contract::admin_login::AdminLogin,

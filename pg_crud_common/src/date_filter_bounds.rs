@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     Default,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 #[getters(get_mut)]
 pub struct DateFilterBounds<'value_lt> {

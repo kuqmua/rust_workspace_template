@@ -1,5 +1,5 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
@@ -8,8 +8,8 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(from = "server_admin_core::uuid_admin_value::UuidAdminValue")]
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 pub struct AdminSessionId(server_admin_core::uuid_admin_value::UuidAdminValue);

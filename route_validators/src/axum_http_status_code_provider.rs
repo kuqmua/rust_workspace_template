@@ -4,7 +4,7 @@ pub trait AxumHttpStatusCodeProvider {
 
 #[cfg(test)]
 mod tests {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct TestError;
 
     impl crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider for TestError {

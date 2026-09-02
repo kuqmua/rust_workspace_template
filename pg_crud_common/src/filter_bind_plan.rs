@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     Eq,
     PartialEq,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 pub struct FilterBindPlan(Vec<crate::pg_filter_bind_value::PgFilterBindValue>);
 impl FilterBindPlan {

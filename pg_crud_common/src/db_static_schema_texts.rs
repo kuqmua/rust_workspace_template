@@ -1,13 +1,13 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     Eq,
     PartialEq,
-    newtype::DerefTarget,
-    newtype::DerefMutTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::DerefTarget,
+    proc_macro_newtype::DerefMutTarget,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct DbStaticSchemaTexts(Vec<crate::db_static_schema_text::DbStaticSchemaText>);

@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 
-frontend_contract_macros::route_registry! {
+proc_macro_frontend_contract::route_registry! {
     #[openapi(tags((name = "service", description = "Service operational routes")))]
     pub(super);
     state = crate::arc_common_routes_app_state::ArcCommonRoutesAppState,

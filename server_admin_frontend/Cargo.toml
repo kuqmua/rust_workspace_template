@@ -15,14 +15,14 @@ categories = ["web-programming"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-generate_accessor = { workspace = true }
-naming_macros = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_naming = { workspace = true }
 bounded_types = { workspace = true }
 constants_usize = { workspace = true }
 constants_u32 = { workspace = true }
 frontend_contract = { workspace = true }
-optimal_memory_layout = { workspace = true }
-newtype = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
+proc_macro_newtype = { workspace = true }
 server_admin_contract = { workspace = true }
 singlestage = { workspace = true }
 constants_str = { workspace = true }

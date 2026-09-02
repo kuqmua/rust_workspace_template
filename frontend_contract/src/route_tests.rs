@@ -6,7 +6,7 @@
 #[cfg(test)]
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         Eq,
@@ -15,11 +15,11 @@ mod tests {
         serde::Serialize,
     )]
     #[serde(from = "u64")]
-    #[derive(newtype::FromInner)]
+    #[derive(proc_macro_newtype::FromInner)]
     struct Request(u64);
 
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Debug,
         Eq,
@@ -28,10 +28,10 @@ mod tests {
         serde::Serialize,
     )]
     #[serde(from = "u64")]
-    #[derive(newtype::FromInner)]
+    #[derive(proc_macro_newtype::FromInner)]
     struct Response(u64);
 
-    #[derive(optimal_memory_layout::OptimalMemoryLayout)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct Route;
     impl crate::typed_route::TypedRoute for Route {
         type Request = Request;

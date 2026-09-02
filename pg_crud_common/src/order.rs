@@ -9,7 +9,7 @@
     Eq,
     utoipa::ToSchema,
     strum_macros::EnumString,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]

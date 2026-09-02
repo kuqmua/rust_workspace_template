@@ -1,4 +1,6 @@
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Clone)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone,
+)]
 pub struct CursorSigningKey(
     bounded_types::bounded_vec::BoundedVec<
         u8,

@@ -3,7 +3,7 @@
 #[allow(clippy::needless_for_each)] // table-driven assertions avoid repository-forbidden for loops
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Eq,
         PartialEq,
         serde::Deserialize,

@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, generate_constructor::New)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_new::New)]
 pub(super) struct AdminTableSortValues {
     key: frontend_contract::contract_str::ContractStr,
     label: frontend_contract::contract_str::ContractStr,

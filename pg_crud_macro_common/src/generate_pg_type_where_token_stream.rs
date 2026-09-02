@@ -90,7 +90,7 @@ where
         };
         quote::quote! {
             #attrs_token_stream
-            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_schemars_json_schema, optimal_memory_layout::OptimalMemoryLayout)]
+            #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_schemars_json_schema, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #identifier {
                 #(#vrts_token_stream),*
             }

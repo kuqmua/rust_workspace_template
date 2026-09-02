@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum PgTypeInitializationTryNew {
     F64AsFloat8,
     StringAsText,

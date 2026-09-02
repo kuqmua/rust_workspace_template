@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum AdminResourceText {
     PositiveI64(server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64),
     SystemSettings,

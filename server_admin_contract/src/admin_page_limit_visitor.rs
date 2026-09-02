@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct AdminPageLimitVisitor;
 impl serde::de::Visitor<'_> for AdminPageLimitVisitor {
     type Value = crate::admin_page_limit::AdminPageLimit;

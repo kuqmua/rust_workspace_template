@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ChildProcessError {
     #[error("child process diagnostic read failed")]
     DiagnosticIo(crate::child_process_io_error::ChildProcessIoError),

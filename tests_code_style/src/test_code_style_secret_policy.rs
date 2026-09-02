@@ -1,10 +1,14 @@
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct SecretBoxStringVisitor {
     argument_identifiers: crate::types::SourceTextBTreeSet,
     found_count: crate::types::AnalyzerCount,
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct BoundedStringIdentifierVisitor {
     identifiers: crate::types::SourceTextBTreeSet,
 }

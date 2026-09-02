@@ -1,10 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    newtype::AsRefOwned,
-    newtype::FromInner,
-    generate_accessor::Getters,
+    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype::FromInner,
+    proc_macro_getters::Getters,
 )]
 pub struct SharedAdminAuthSvcStateArc(
     std::sync::Arc<crate::admin_auth_svc_state::AdminAuthSvcState>,

@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminMetricsError {
     #[error(transparent)]
     Render(server_runtime_http::metrics_response_body_error::MetricsResponseBodyError),

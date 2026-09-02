@@ -10,9 +10,9 @@
     serde::Deserialize,
     PartialEq,
     Eq,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::EnumFromStr,
-    naming_macros::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::EnumFromStr,
+    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum TracingLevel {

@@ -1,9 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
-    newtype::AsRefInner,
-    newtype::ToTokens,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::ToTokens,
+    proc_macro_newtype::FromInner,
 )]
 pub(crate) struct FilterSqlSuffix(&'static str);

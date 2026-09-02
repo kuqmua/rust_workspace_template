@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
 pub struct RequestIdLayer {
     span_config: Option<super::http_request_span_config::HttpRequestSpanConfig>,
 }

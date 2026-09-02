@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 /// A hash map with at most `MAX` retained keys.
 ///
 /// Hash-map deserialization also accepts at most `MAX` wire entries, including repeated keys.

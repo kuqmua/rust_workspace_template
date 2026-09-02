@@ -2,7 +2,7 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 pub struct GenerationGate {
     current: crate::generation_atomic_u64::GenerationAtomicU64,
 }

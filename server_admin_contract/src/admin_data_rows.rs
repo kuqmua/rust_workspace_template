@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_data_row::AdminDataRow>")]
 #[schema(value_type = crate::admin_open_api_vec::AdminOpenApiVec<crate::admin_data_row::AdminDataRow, 10_000>)]

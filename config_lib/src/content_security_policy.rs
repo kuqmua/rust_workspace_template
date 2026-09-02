@@ -1,5 +1,10 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq, newtype::AsRefOwned,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    proc_macro_newtype::AsRefOwned,
 )]
 pub struct ContentSecurityPolicy(String);
 

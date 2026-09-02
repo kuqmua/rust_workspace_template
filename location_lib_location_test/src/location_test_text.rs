@@ -6,9 +6,9 @@
     Hash,
     serde::Deserialize,
     serde::Serialize,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::BoundedStringWrapper,
-    newtype::ToErrStringAsRefStr,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::ToErrStringAsRefStr,
 )]
 #[bounded_string(max = crate::loc_test_text_max_len::LOC_TEST_TEXT_MAX_LEN)]
 #[serde(try_from = "String")]

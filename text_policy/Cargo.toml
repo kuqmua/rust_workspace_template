@@ -13,8 +13,8 @@ edition.workspace = true
 [dependencies]
 constants_str = { workspace = true }
 constants_usize = { workspace = true }
-optimal_memory_layout = { workspace = true }
-newtype = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
+proc_macro_newtype = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

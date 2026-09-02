@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     PartialEq,
     Eq,
-    newtype::BoundedStringWrapper,
-    newtype::AsRefStr,
-    newtype::Display,
+    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::Display,
 )]
 #[bounded_string(max = crate::case_string_max_len::CASE_STRING_MAX_LEN)]
 pub(super) struct CaseString(

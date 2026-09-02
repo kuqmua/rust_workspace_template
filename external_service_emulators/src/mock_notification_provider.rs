@@ -1,5 +1,5 @@
 #[must_use]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct MockNotificationProvider {
     sender: crate::tokio_mock_notification_sender::TokioMockNotificationSender,
 }

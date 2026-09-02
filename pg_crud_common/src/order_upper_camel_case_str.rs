@@ -1,5 +1,10 @@
 #[derive(
-    Debug, Clone, PartialEq, Eq, optimal_memory_layout::OptimalMemoryLayout, newtype::Display,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::Display,
 )]
 pub struct OrderUpperCamelCaseStr(crate::order_text_string::OrderTextString);
 

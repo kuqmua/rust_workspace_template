@@ -1,24 +1,27 @@
 #[derive(
-    generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Debug, Default,
+    proc_macro_getters::Getters,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Default,
 )]
 struct FunctionBodyComplexity {
     expression_count: usize,
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct FunctionBodyVisitor<'visitor_lt> {
     bodies: crate::types::FunctionBodyLocationsBTreeMapMutRef<'visitor_lt>,
     identifier_pattern: crate::types::RegexRegexRef<'visitor_lt>,
     path: crate::types::PathRef<'visitor_lt>,
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct ReviewedDuplicateGroup {
     locations: &'static str,
     reason: &'static str,
 }
 
-#[derive(Default, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct DomainShapeVisitor<'path_lt> {
     path: Option<&'path_lt std::path::Path>,
     shapes: std::collections::BTreeMap<String, Vec<String>>,

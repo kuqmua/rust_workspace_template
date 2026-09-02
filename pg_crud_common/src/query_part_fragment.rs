@@ -3,11 +3,11 @@
     Clone,
     PartialEq,
     Eq,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::AsRefStr,
-    newtype::DerefTarget,
-    newtype::Display,
-    newtype::IntoInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype::DerefTarget,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::IntoInner,
 )]
 pub struct QueryPartFragment(String);
 impl

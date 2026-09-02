@@ -1,32 +1,32 @@
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct RsSourceFile {
     ast: crate::types::SynFile,
     content: crate::types::SourceText,
     path: crate::types::OwnedPathBuf,
 }
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct ProjectSourceFile {
     content: crate::types::SourceText,
     path: crate::types::OwnedPathBuf,
 }
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct CargoTomlSourceFile {
     content: crate::types::SourceText,
     parsed: crate::types::TomlTable,
     path: crate::types::OwnedPathBuf,
 }
-#[derive(generate_accessor::Getters)]
+#[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) struct CodebaseSnapshot {
     rs_files: Vec<RsSourceFile>,
     source: std::sync::Arc<CodebaseSourceSnapshot>,
 }
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct CodebaseSourceSnapshot {
     cargo_toml_by_path:
         std::collections::BTreeMap<crate::types::OwnedPathBuf, crate::types::CargoTomlFileIdx>,

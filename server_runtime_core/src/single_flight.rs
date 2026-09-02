@@ -2,7 +2,7 @@
     clippy::arbitrary_source_item_ordering,
     reason = "the flat source facade keeps its owner adjacent to implementation while declaring sibling modules"
 )]
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub struct SingleFlight {
     inner: crate::arc_single_flight_rw_lock::ArcSingleFlightRwLock,
     maximum: crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize,

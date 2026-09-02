@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Eq,
         PartialEq,
@@ -12,7 +12,11 @@ mod tests {
         value: u8,
     }
     #[derive(
-        optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq, serde::Deserialize,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        Debug,
+        Eq,
+        PartialEq,
+        serde::Deserialize,
     )]
     struct SerializeFails;
     impl serde::Serialize for SerializeFails {
@@ -28,7 +32,7 @@ mod tests {
             ))
         }
     }
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
     struct ReparseFails;
     impl serde::Serialize for ReparseFails {
         fn serialize<Serializer>(

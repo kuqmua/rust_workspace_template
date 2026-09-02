@@ -18,10 +18,10 @@ http-body = { workspace = true }
 bytes = { workspace = true }
 git_info = { workspace = true }
 location_lib = { workspace = true }
-location_macros = { workspace = true }
-location = { workspace = true }
-optimal_memory_layout = { workspace = true }
-newtype = { workspace = true }
+proc_macro_location_bang = { workspace = true }
+proc_macro_location = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
+proc_macro_newtype = { workspace = true }
 to_err_string = { workspace = true }
 utoipa = { workspace = true }
 

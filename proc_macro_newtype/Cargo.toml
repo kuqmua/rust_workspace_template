@@ -1,0 +1,29 @@
+[package]
+name = "proc_macro_newtype"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+[lib]
+proc-macro = true
+[dependencies]
+constants_usize = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
+constants_str = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_new = { workspace = true }
+proc_macro_newtype_foundation = { workspace = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+workspace_macro_helpers = { workspace = true }
+[dev-dependencies]
+bounded_types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+utoipa = { workspace = true }
+[lints]
+workspace = true

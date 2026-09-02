@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum ObservedError<Source>
 where
     Source: std::error::Error + 'static,
@@ -84,7 +84,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
     enum InfrastructureTestError {
         #[error("infrastructure failed")]
         Failed,

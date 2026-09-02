@@ -8,9 +8,9 @@
     serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
-    optimal_memory_layout::OptimalMemoryLayout,
-    newtype::Display,
-    newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::Display,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(try_from = "u32")]
 #[schema(value_type = u32)]

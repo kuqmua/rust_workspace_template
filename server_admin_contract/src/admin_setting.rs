@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
     Debug,
     PartialEq,
     Eq,
-    frontend_contract_macros::UnitEnumCatalog,
-    frontend_contract_macros::UnitEnumIndex,
+    proc_macro_frontend_contract::UnitEnumCatalog,
+    proc_macro_frontend_contract::UnitEnumIndex,
 )]
 pub enum AdminSetting {
     DefaultRoute,

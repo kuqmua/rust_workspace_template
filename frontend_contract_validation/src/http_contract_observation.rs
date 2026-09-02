@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractObservation {
     body: crate::http_contract_body::HttpContractBody,
     metadata: frontend_contract::route_metadata::RouteMetadata,

@@ -1,4 +1,4 @@
-#[frontend_contract_macros::route_error(AdminHtmlDeleteRoleError)]
+#[proc_macro_frontend_contract::route_error(AdminHtmlDeleteRoleError)]
 #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
 pub(crate) async fn delete_role(
     auth: crate::admin_auth_req::AdminAuthReq,

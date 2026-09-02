@@ -1,9 +1,9 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
     Copy,
-    newtype::AsRefInner,
-    newtype::FromInner,
+    proc_macro_newtype::AsRefInner,
+    proc_macro_newtype::FromInner,
 )]
 pub(super) struct ParseEnvVarNameRef<'name_lt>(&'name_lt str);

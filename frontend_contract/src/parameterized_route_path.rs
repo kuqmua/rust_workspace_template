@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Default,
     Eq,
     PartialEq,
-    newtype::IntoInnerFrom,
+    proc_macro_newtype::IntoInnerFrom,
 )]
 pub struct ParameterizedRoutePath(String);
 impl TryFrom<String> for ParameterizedRoutePath {

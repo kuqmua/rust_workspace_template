@@ -1,6 +1,6 @@
 // The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, strum_macros::Display, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, strum_macros::Display, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum RustTypeName {
     I16,
     I32,

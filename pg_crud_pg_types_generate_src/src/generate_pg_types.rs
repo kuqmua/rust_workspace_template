@@ -1,5 +1,8 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout, Debug, newtype::DerefTarget, serde::Deserialize,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    proc_macro_newtype::DerefTarget,
+    serde::Deserialize,
 )]
 #[serde(try_from = "Vec<crate::pg_type_catalog_kind::PgTypeCatalogKind>")]
 pub(super) struct GeneratePgTypes(Vec<crate::pg_type_catalog_kind::PgTypeCatalogKind>);

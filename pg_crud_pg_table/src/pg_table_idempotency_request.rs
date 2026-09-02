@@ -3,12 +3,12 @@
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    generate_accessor::Getters,
+    proc_macro_getters::Getters,
 )]
 pub struct PgTableIdempotencyRequest {
     scope: crate::pg_table_idempotency_scope::PgTableIdempotencyScope,

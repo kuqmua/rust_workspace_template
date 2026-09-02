@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum NotificationServiceError {
     #[error("notification service configuration failed: {0}")]
     Config(notification_service_config::notification_service_config::NotificationServiceConfigTryFromEnvError),

@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
-    newtype::FromInner,
+    proc_macro_newtype::FromInner,
 )]
 #[serde(
     from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_data_filter::AdminDataFilter>"

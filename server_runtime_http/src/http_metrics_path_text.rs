@@ -1,12 +1,12 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     Hash,
     PartialEq,
-    newtype::BorrowStr,
-    newtype::DerefInner,
+    proc_macro_newtype::BorrowStr,
+    proc_macro_newtype::DerefInner,
 )]
 pub(super) struct HttpMetricsPathText(String);
 

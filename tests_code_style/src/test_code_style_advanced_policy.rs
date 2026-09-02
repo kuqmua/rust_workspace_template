@@ -5,7 +5,9 @@
     reason = "policy visitors stay grouped with their invariant, repository policy requires iterator methods, and syn non-exhaustive enums require fallback handling"
 )]
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct AwaitVisitor {
     found: crate::types::AnalyzerBool,
 }
@@ -16,7 +18,9 @@ impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct LockAcrossAwaitVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -107,7 +111,9 @@ fn expression_acquires_lock(expression: &syn::Expr) -> bool {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct LeakApiVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -155,7 +161,9 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct SpawnConsumptionVisitor {
     consumed: crate::types::SourceTextBTreeSet,
 }
@@ -226,7 +234,9 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct SpawnLifecycleVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -258,7 +268,9 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct RouteLiteralVisitor {
     violations: crate::types::DiagnosticMsgs,
 }
@@ -335,7 +347,9 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct SelectMacroVisitor {
     count: crate::types::AnalyzerCount,
     unsafe_operations: crate::types::DiagnosticMsgs,
@@ -382,7 +396,9 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct ExpressionPathVisitor {
     paths: crate::types::SourceTextList,
 }
@@ -397,7 +413,9 @@ impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct IgnoredMapErrBindingVisitor {
     entries: crate::types::DiagnosticMsgs,
 }
@@ -435,12 +453,16 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct RawVecTupleWrapperVisitor {
     identifiers: crate::types::SourceTextList,
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct FromVecImplVisitor {
     targets: crate::types::SourceTextList,
 }
@@ -484,7 +506,9 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct UsizeMaxExprVisitor {
     count: crate::types::AnalyzerCount,
 }
@@ -516,7 +540,9 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct SharedDispatchVisitor {
     arc_types: crate::types::AnalyzerCount,
     lock_types: crate::types::AnalyzerCount,
@@ -541,7 +567,7 @@ impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct PublicApiVisitor {
     entries: crate::types::SourceTextList,
     lines: crate::types::SourceTextList,
@@ -767,7 +793,9 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct StructErrorVisitor {
     identifiers: crate::types::SourceTextList,
 }
@@ -786,7 +814,9 @@ impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
     }
 }
 
-#[derive(generate_accessor::Getters, optimal_memory_layout::OptimalMemoryLayout, Default)]
+#[derive(
+    proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
+)]
 struct LoopAllocationVisitor {
     depth: crate::types::AnalyzerCount,
     entries: crate::types::DiagnosticMsgs,

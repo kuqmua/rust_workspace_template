@@ -1,11 +1,11 @@
 #[derive(
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
     Eq,
     PartialEq,
-    newtype::AsRefTarget,
-    newtype::TryFrom,
+    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype::TryFrom,
 )]
 #[try_from(
     error = crate::development_identity_specs_error::DevelopmentIdentitySpecsError,

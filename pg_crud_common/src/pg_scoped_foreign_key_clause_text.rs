@@ -1,8 +1,8 @@
 #[derive(
-    generate_accessor::Getters,
-    optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    newtype::IntoInner,
+    proc_macro_newtype::IntoInner,
 )]
 #[getters(get_mut)]
 pub(super) struct PgScopedForeignKeyClauseText(String);

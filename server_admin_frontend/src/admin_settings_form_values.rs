@@ -1,4 +1,4 @@
-#[derive(optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 pub(crate) struct AdminSettingsFormValues(
     [super::admin_setting_input_value::AdminSettingInputValue;
         server_admin_contract::admin_setting::AdminSetting::COUNT],

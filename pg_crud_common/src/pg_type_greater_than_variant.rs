@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq, optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, Clone, Copy, PartialEq, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub enum PgTypeGreaterThanVariant {
     EqNotGreaterThan,
     GreaterThan,

@@ -8,14 +8,14 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-generate_accessor = { workspace = true }
-generate_constructor = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_new = { workspace = true }
 constants_usize = { workspace = true }
 constants_u8 = { workspace = true }
 constants_u64 = { workspace = true }
-optimal_memory_layout = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
-newtype = { workspace = true }
+proc_macro_newtype = { workspace = true }
 constants_str = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
