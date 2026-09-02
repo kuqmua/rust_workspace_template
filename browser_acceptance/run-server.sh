@@ -54,7 +54,7 @@ psql "${DATABASE_URL}" --set ON_ERROR_STOP=1 \
   --command "CREATE SCHEMA public"
 
 (
-  cd "server_admin_frontend"
+  cd "frontend"
   trunk build --release
 )
 

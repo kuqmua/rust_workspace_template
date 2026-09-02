@@ -10,17 +10,15 @@ pub(crate) async fn version(
             ))
         }
         Ok((admin, branding, _password_change_required)) => match (
-            server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
-                constants_str::VERSION_ALT.to_owned(),
-            ),
-            server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
+            frontend::admin_ssr_text::AdminSsrText::try_from(constants_str::VERSION_ALT.to_owned()),
+            frontend::admin_ssr_text::AdminSsrText::try_from(
                 git_info::project_git_info_value::project_git_info_value()
                     .commit()
                     .to_string(),
             ),
         ) {
             (Ok(title), Ok(text)) => crate::html_response_impl::html_response_impl(
-                server_admin_frontend::render_text_page_with_access::render_text_page_with_access(
+                frontend::render_text_page_with_access::render_text_page_with_access(
                     server_admin_contract::admin_page::AdminPage::Version,
                     title,
                     text,

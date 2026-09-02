@@ -38,19 +38,16 @@ pub(crate) async fn sign_in(
             target
         }
         Err(_error) => {
-            let message_result =
-                server_admin_frontend::admin_ssr_error_message::AdminSsrErrorMessage::try_from(
-                    String::from(constants_str::SIGN_IN_FAILED),
-                );
+            let message_result = frontend::admin_ssr_error_message::AdminSsrErrorMessage::try_from(
+                String::from(constants_str::SIGN_IN_FAILED),
+            );
             match message_result {
                 Ok(error_message) => axum::response::IntoResponse::into_response((
                     http::StatusCode::UNAUTHORIZED,
-                    axum::response::Html(String::from(
-                        server_admin_frontend::render_sign_in::render_sign_in(
-                            Some(error_message),
-                            branding.as_ref(),
-                        ),
-                    )),
+                    axum::response::Html(String::from(frontend::render_sign_in::render_sign_in(
+                        Some(error_message),
+                        branding.as_ref(),
+                    ))),
                 )),
                 Err(_message_error) => axum::response::IntoResponse::into_response(
                     http::StatusCode::INTERNAL_SERVER_ERROR,

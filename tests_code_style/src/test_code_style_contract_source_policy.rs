@@ -340,7 +340,7 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_SETTINGS_RS)
+                    .ends_with(constants_str::FRONTEND_SRC_APP_SETTINGS_RS)
             })
             .expect(constants_str::DIAGNOSTIC_2F3AFE52)
             .content()
@@ -351,7 +351,7 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_SSR_SETTINGS_RS)
+                    .ends_with(constants_str::FRONTEND_SRC_SSR_SETTINGS_RS)
             })
             .expect(constants_str::DIAGNOSTIC_2C589B2B)
             .content()

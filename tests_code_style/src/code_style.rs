@@ -1010,18 +1010,18 @@ pub(crate) fn domain_type_policy_should_check_path(
         || path_ref
             .as_ref()
             .to_string_lossy()
-            .starts_with(constants_str::SERVER_ADMIN_FRONTEND_SRC_UI)
+            .starts_with(constants_str::FRONTEND_SRC_UI)
         || [
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_NAVIGATION_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_TABLE_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_ALERT_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BADGE_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BUTTON_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_CARD_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_FIELD_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_INPUT_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_WITH_OWNER_RS,
-            constants_str::SERVER_ADMIN_FRONTEND_SRC_ADMIN_FIELD_LABEL_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_NAVIGATION_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_TABLE_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_ALERT_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BADGE_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_BUTTON_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_CARD_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_FIELD_RS,
+            constants_str::FRONTEND_SRC_DOMAIN_TYPES_WITH_OWNER_INPUT_RS,
+            constants_str::FRONTEND_SRC_WITH_OWNER_RS,
+            constants_str::FRONTEND_SRC_ADMIN_FIELD_LABEL_RS,
         ]
         .iter()
         .any(|owner| {

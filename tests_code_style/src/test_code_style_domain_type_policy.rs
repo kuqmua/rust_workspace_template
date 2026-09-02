@@ -705,10 +705,10 @@ fn test_workspace_scaffold_is_in_domain_boundary_policy_scope() {
     );
 }
 #[test]
-fn test_server_admin_frontend_is_in_domain_boundary_policy_scope() {
+fn test_frontend_is_in_domain_boundary_policy_scope() {
     assert!(
         crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
+            std::path::Path::new(constants_str::FRONTEND_SRC_APP_RS)
         ))
         .get(),
         "73e9c20f"
@@ -716,7 +716,7 @@ fn test_server_admin_frontend_is_in_domain_boundary_policy_scope() {
 }
 
 #[test]
-fn test_server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
+fn test_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     assert!(
         !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
             std::path::Path::new(constants_str::VALUE_BAF40B19)
@@ -726,7 +726,7 @@ fn test_server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     );
     assert!(
         crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS)
+            std::path::Path::new(constants_str::FRONTEND_SRC_APP_NAVIGATION_RS)
         ))
         .get(),
         "29bc703d"

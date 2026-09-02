@@ -545,7 +545,7 @@ Header(
 )
 SsrText(
     #[source]
-    server_admin_frontend::ssr::AdminSsrTextTryFromStringError,
+    frontend::ssr::AdminSsrTextTryFromStringError,
 )
 SsrMessage(
     #[source]
@@ -834,7 +834,7 @@ enum AdminHtmlMetricsError {
     #[error("administrator HTML metrics text is invalid: {0}")]
     SsrText(
         #[source]
-        server_admin_frontend::ssr::AdminSsrTextTryFromStringError,
+        frontend::ssr::AdminSsrTextTryFromStringError,
     ),
 }
 ```

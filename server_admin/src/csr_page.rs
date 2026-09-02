@@ -18,9 +18,7 @@ pub(crate) async fn csr_page(
                     .is_none_or(|table| bool::from(admin.has_permission(table.permission()))) =>
         {
             crate::html_response_impl::html_response_impl(
-                server_admin_frontend::render_admin_csr::render_admin_csr(
-                    admin_page, option, &admin, &branding,
-                ),
+                frontend::render_admin_csr::render_admin_csr(admin_page, option, &admin, &branding),
             )
         }
         Ok(_context) => crate::html_page_error_impl::html_page_error_impl(

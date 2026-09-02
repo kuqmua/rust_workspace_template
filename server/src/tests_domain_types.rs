@@ -3,9 +3,7 @@ mod tests {
     #[tokio::test]
     async fn test_administrator_asset_route_preserves_static_file_serving() {
         let response = tower::ServiceExt::oneshot(
-            axum::Router::from(
-                server_admin_frontend::admin_frontend_routes::admin_frontend_routes(),
-            ),
+            axum::Router::from(frontend::admin_frontend_routes::admin_frontend_routes()),
             axum::http::Request::get(constants_str::VALUE_688DB289)
                 .body(axum::body::Body::empty())
                 .expect(constants_str::DIAGNOSTIC_D694B6F6),

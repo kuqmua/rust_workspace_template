@@ -1,1 +1,1 @@
-exclude = ["server_admin_frontend/dist/**", "target/**", "test_results/**"]
+exclude = ["frontend/dist/**", "target/**", "test_results/**"]

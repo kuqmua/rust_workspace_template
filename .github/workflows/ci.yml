@@ -129,13 +129,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: server_admin_frontend/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-        working-directory: server_admin_frontend
+        working-directory: frontend
       - run: npm run build:css
-        working-directory: server_admin_frontend
-      - run: cargo test -p server_admin_frontend
-      - run: cargo check -p server_admin_frontend --target wasm32-unknown-unknown
+        working-directory: frontend
+      - run: cargo test -p frontend
+      - run: cargo check -p frontend --target wasm32-unknown-unknown
   browser-acceptance:
     if: >-
       github.event_name == 'push' ||
@@ -169,14 +169,14 @@ jobs:
           cache: npm
           cache-dependency-path: |
             browser_acceptance/package-lock.json
-            server_admin_frontend/package-lock.json
+            frontend/package-lock.json
       - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
         with:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
       - run: npm ci
-        working-directory: server_admin_frontend
+        working-directory: frontend
       - if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
@@ -430,14 +430,14 @@ jobs:
           cache: npm
           cache-dependency-path: |
             browser_acceptance/package-lock.json
-            server_admin_frontend/package-lock.json
+            frontend/package-lock.json
       - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
         with:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
       - run: npm ci
-        working-directory: server_admin_frontend
+        working-directory: frontend
       - run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
       - run: npm run test:full

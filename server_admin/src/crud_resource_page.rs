@@ -9,7 +9,7 @@ pub(crate) async fn crud_resource_page(
                 &[server_admin_contract::admin_permission::AdminPermission::UsersCreate],
                 async |_auth| Ok(()),
                 |_view, admin, branding| {
-                    server_admin_frontend::render_user_create::render_user_create(admin, branding)
+                    frontend::render_user_create::render_user_create(admin, branding)
                 },
             )
             .await
@@ -29,7 +29,7 @@ pub(crate) async fn crud_resource_page(
                         ),
                     )
                 },
-                server_admin_frontend::render_user_manage::render_user_manage,
+                frontend::render_user_manage::render_user_manage,
             )
             .await
         }
@@ -39,7 +39,7 @@ pub(crate) async fn crud_resource_page(
                 &[server_admin_contract::admin_permission::AdminPermission::RolesCreate],
                 async |_auth| Ok(()),
                 |_view, admin, branding| {
-                    server_admin_frontend::render_role_create::render_role_create(admin, branding)
+                    frontend::render_role_create::render_role_create(admin, branding)
                 },
             )
             .await
@@ -59,7 +59,7 @@ pub(crate) async fn crud_resource_page(
                         ),
                     )
                 },
-                server_admin_frontend::render_role_manage::render_role_manage,
+                frontend::render_role_manage::render_role_manage,
             )
             .await
         }

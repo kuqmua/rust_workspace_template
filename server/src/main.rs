@@ -233,17 +233,17 @@ fn main() -> server_exit_code::ServerExitCode {
                                         },
                                         |body| {
                                             let title_result =
-                                                server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
+                                                frontend::admin_ssr_text::AdminSsrText::try_from(
                                                     constants_str::METRICS_ALT.to_owned(),
                                                 );
                                             let text_result =
-                                                server_admin_frontend::admin_ssr_text::AdminSsrText::try_from(
+                                                frontend::admin_ssr_text::AdminSsrText::try_from(
                                                     body.into_inner(),
                                                 );
                                             match (title_result, text_result) {
                                                 (Ok(title), Ok(text)) => axum::response::IntoResponse::into_response(
                                                     axum::response::Html(String::from(
-                                                        server_admin_frontend::render_text_page::render_text_page(
+                                                        frontend::render_text_page::render_text_page(
                                                             server_admin_contract::admin_page::AdminPage::Metrics,
                                                             title,
                                                             text,
@@ -371,7 +371,7 @@ fn main() -> server_exit_code::ServerExitCode {
                                                 ),
                                             ))
                                             .merge(axum::Router::from(
-                                                server_admin_frontend::admin_frontend_routes::admin_frontend_routes(),
+                                                frontend::admin_frontend_routes::admin_frontend_routes(),
                                             ))
                                             .merge(axum::Router::from(admin_html_routes))
                                             .merge(admin_metrics_routes)

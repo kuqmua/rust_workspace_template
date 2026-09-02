@@ -105,8 +105,8 @@ Tests marked with **Exceptions** contain an explicit allowlist, reviewed invento
 - [ ] `newtype_try_from_explicit_error_satisfies_string_wrapper_policy`
 - [ ] `newtype_try_from_validator_satisfies_string_wrapper_policy`
 - [ ] `proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt` — **Exceptions:** compiler-mandated `#[proc_macro]`, `#[proc_macro_attribute]`, and `#[proc_macro_derive]` entrypoint signatures may use raw compiler types; ordinary helper functions in the same crate remain subject to repository domain-wrapper rules.
-- [ ] `server_admin_frontend_is_in_domain_boundary_policy_scope`
-- [ ] `server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary`
+- [ ] `frontend_is_in_domain_boundary_policy_scope`
+- [ ] `frontend_ui_is_an_explicit_framework_adapter_boundary`
 - [ ] `string_wrappers_do_not_use_from_string`
 - [ ] `tuple_wrapper_deserialization_policy_rejects_direct_derive`
 - [ ] `tuple_wrapper_deserialization_uses_from_or_try_from`

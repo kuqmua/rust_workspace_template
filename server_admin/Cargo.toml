@@ -52,7 +52,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 server_admin_contract = { workspace = true }
 server_admin_core = { workspace = true }
-server_admin_frontend = { workspace = true }
+frontend = { workspace = true }
 server_observability = { workspace = true }
 server_runtime_http = { workspace = true }
 server_runtime_core = { workspace = true }

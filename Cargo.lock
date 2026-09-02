@@ -1329,6 +1329,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "frontend"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "bounded_types",
+ "constants_i64",
+ "constants_str",
+ "constants_u32",
+ "constants_u64",
+ "constants_usize",
+ "frontend_contract",
+ "leptos",
+ "proc_macro_getters",
+ "proc_macro_naming",
+ "proc_macro_newtype",
+ "proc_macro_optimal_memory_layout",
+ "serde",
+ "serde_json",
+ "server_admin_contract",
+ "singlestage",
+ "thiserror 2.0.20",
+ "to_err_string",
+ "tower-http 0.7.0",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "frontend_contract"
 version = "0.1.0"
 dependencies = [
@@ -4649,6 +4678,7 @@ dependencies = [
  "config_lib",
  "constants_str",
  "constants_usize",
+ "frontend",
  "frontend_contract",
  "git_info",
  "metrics-exporter-prometheus",
@@ -4659,7 +4689,6 @@ dependencies = [
  "secrecy",
  "server_admin",
  "server_admin_contract",
- "server_admin_frontend",
  "server_app_state",
  "server_config",
  "server_observability",
@@ -4688,6 +4717,7 @@ dependencies = [
  "constants_str",
  "constants_u64",
  "constants_usize",
+ "frontend",
  "frontend_contract",
  "frontend_contract_validation",
  "futures",
@@ -4717,7 +4747,6 @@ dependencies = [
  "serde_json",
  "server_admin_contract",
  "server_admin_core",
- "server_admin_frontend",
  "server_observability",
  "server_runtime_core",
  "server_runtime_http",
@@ -4772,35 +4801,6 @@ dependencies = [
  "thiserror 2.0.20",
  "utoipa",
  "uuid",
-]
-
-[[package]]
-name = "server_admin_frontend"
-version = "0.1.0"
-dependencies = [
- "axum",
- "bounded_types",
- "constants_i64",
- "constants_str",
- "constants_u32",
- "constants_u64",
- "constants_usize",
- "frontend_contract",
- "leptos",
- "proc_macro_getters",
- "proc_macro_naming",
- "proc_macro_newtype",
- "proc_macro_optimal_memory_layout",
- "serde",
- "serde_json",
- "server_admin_contract",
- "singlestage",
- "thiserror 2.0.20",
- "to_err_string",
- "tower-http 0.7.0",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]
