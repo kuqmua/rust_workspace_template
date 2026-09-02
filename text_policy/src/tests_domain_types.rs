@@ -30,7 +30,7 @@ mod tests {
             [
                 constants_str::ABC_ALT_3,
                 constants_str::TEST_URL_TOKEN_WITH_SEPARATOR,
-                "",
+                constants_str::EMPTY,
             ]
             .map(|value| {
                 crate::validate_url_safe_token_part::validate_url_safe_token_part(

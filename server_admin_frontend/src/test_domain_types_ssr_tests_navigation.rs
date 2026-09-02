@@ -9,14 +9,14 @@ fn test_pagination_preserves_server_side_navigation() {
             None,
         ),
     );
-    assert!(html.as_ref().contains("class=\"table-page-size\""));
-    assert!(html.as_ref().contains("<span>Rows</span><input"));
-    assert!(html.as_ref().contains("name=\"limit\""));
-    assert!(html.as_ref().contains("type=\"number\""));
-    assert!(html.as_ref().contains("name=\"offset\" value=\"20\""));
-    assert!(html.as_ref().contains(" disabled"));
-    assert!(html.as_ref().contains(">Previous</button>"));
-    assert!(!html.as_ref().contains("<script"));
+    assert!(html.as_ref().contains(constants_str::VALUE_63C4C5D8));
+    assert!(html.as_ref().contains(constants_str::VALUE_50B5BD8E));
+    assert!(html.as_ref().contains(constants_str::VALUE_0AA8ABD0));
+    assert!(html.as_ref().contains(constants_str::VALUE_C7A9349A));
+    assert!(html.as_ref().contains(constants_str::VALUE_0666A453));
+    assert!(html.as_ref().contains(constants_str::VALUE_51DD0CFC));
+    assert!(html.as_ref().contains(constants_str::VALUE_47ABB6D8));
+    assert!(!html.as_ref().contains(constants_str::VALUE_5D74223D));
 
     let table_filter =
         server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
@@ -47,33 +47,41 @@ fn test_pagination_preserves_server_side_navigation() {
     assert_eq!(
         filtered_html
             .as_ref()
-            .matches("name=\"filter_field\" value=\"login\"")
+            .matches(constants_str::VALUE_E7A7CF18)
             .count(),
         3usize
     );
     assert_eq!(
         filtered_html
             .as_ref()
-            .matches("name=\"filter_operation\" value=\"eq\"")
+            .matches(constants_str::VALUE_8D5B8BC9)
             .count(),
         3usize
     );
     assert_eq!(
         filtered_html
             .as_ref()
-            .matches("name=\"filter_value\" value=\"alice\"")
+            .matches(constants_str::VALUE_8E0ECBA0)
             .count(),
         3usize
     );
     assert_eq!(
         filtered_html
             .as_ref()
-            .matches("action=\"/admin/role_permissions\"")
+            .matches(constants_str::VALUE_AC55DE88)
             .count(),
         3usize
     );
-    assert!(!filtered_html.as_ref().contains("name=\"table\""));
-    assert!(!filtered_html.as_ref().contains("?table="));
+    assert!(
+        !filtered_html
+            .as_ref()
+            .contains(constants_str::VALUE_155A24DE)
+    );
+    assert!(
+        !filtered_html
+            .as_ref()
+            .contains(constants_str::VALUE_5EBA168E)
+    );
 }
 
 #[test]
@@ -185,7 +193,7 @@ fn test_navigation_only_contains_accessible_pages() {
                 .as_ref()
         )
     );
-    assert!(!html.as_ref().contains("?table="));
+    assert!(!html.as_ref().contains(constants_str::VALUE_5EBA168E));
 }
 
 #[test]
@@ -216,10 +224,10 @@ fn test_sign_in_uses_server_side_color_without_logo() {
     let branding =
         server_admin_contract::admin_branding_view::AdminBrandingView::from_settings(&settings);
     let html = crate::render_sign_in::render_sign_in(None, Some(&branding));
-    assert!(!html.as_ref().contains("Custom Admin"));
-    assert!(!html.as_ref().contains("auth-brand"));
-    assert!(!html.as_ref().contains("brand-mark"));
-    assert!(!html.as_ref().contains("brand-logo"));
-    assert!(html.as_ref().contains("--accent:#123456"));
-    assert!(!html.as_ref().contains("<script"));
+    assert!(!html.as_ref().contains(constants_str::VALUE_EB57AFDB));
+    assert!(!html.as_ref().contains(constants_str::VALUE_E5FF7B61));
+    assert!(!html.as_ref().contains(constants_str::VALUE_27B0E568));
+    assert!(!html.as_ref().contains(constants_str::VALUE_44ED3CA7));
+    assert!(html.as_ref().contains(constants_str::VALUE_ECD92E68));
+    assert!(!html.as_ref().contains(constants_str::VALUE_5D74223D));
 }

@@ -97,8 +97,8 @@ fn test_admin_frontend_api_urls_come_from_typed_routes() {
             })
             .map(|file| file.content().as_ref())
             .collect::<String>();
-        assert!(!source.contains("constants_str::V1"), "24e5ceeb");
-        assert!(!source.contains("ADMIN_API_"), "72b66898");
+        assert!(!source.contains(constants_str::VALUE_671B0B0E), "24e5ceeb");
+        assert!(!source.contains(constants_str::VALUE_A835B0A1), "72b66898");
     });
 }
 #[test]
@@ -130,13 +130,11 @@ fn test_service_route_endpoint_composition_uses_shared_registries() {
                 .map(|file| file.content().as_ref())
                 .collect::<String>();
             assert_eq!(
-                source
-                    .matches("proc_macro_frontend_contract::endpoint_registry")
-                    .count(),
+                source.matches(constants_str::VALUE_9E53E428).count(),
                 *expected_registry_count,
                 "26aa4162"
             );
-            assert!(!source.contains(".route("), "71f23fd6");
+            assert!(!source.contains(constants_str::VALUE_56132A61), "71f23fd6");
         });
     });
 }
@@ -154,7 +152,7 @@ fn test_typed_route_registries_own_request_bodies_and_schema_catalogs() {
                     .expect(constants_str::DIAGNOSTIC_A63A8D31)
                     .content()
                     .as_ref();
-                assert!(!source.contains("components(schemas"), "94cc9de1");
+                assert!(!source.contains(constants_str::VALUE_596358EE), "94cc9de1");
             });
         std::iter::once(&constants_str::VALUE_0690A45F).for_each(|path_suffix| {
             let source = snapshot
@@ -164,7 +162,7 @@ fn test_typed_route_registries_own_request_bodies_and_schema_catalogs() {
                 .expect(constants_str::DIAGNOSTIC_5BDE3D5C)
                 .content()
                 .as_ref();
-            assert!(!source.contains("request_body ="), "95cc867b");
+            assert!(!source.contains(constants_str::VALUE_6FEC849E), "95cc867b");
         });
         [constants_str::VALUE_AA6C3BC8, constants_str::VALUE_4DE86380]
             .iter()
@@ -176,7 +174,7 @@ fn test_typed_route_registries_own_request_bodies_and_schema_catalogs() {
                     .expect(constants_str::DIAGNOSTIC_D07BE29F)
                     .content()
                     .as_ref();
-                assert!(!source.contains("error_statuses ="), "5a8ed6cf");
+                assert!(!source.contains(constants_str::VALUE_56C923D9), "5a8ed6cf");
             });
     });
 }
@@ -204,7 +202,7 @@ fn test_generated_admin_table_consumers_use_the_shared_catalog() {
                 .join(constants_str::NEWLINE);
             assert!(!source.is_empty(), "94a2f8c1");
             assert!(!source.contains(forbidden), "8b137dd2");
-            assert!(source.contains("AdminGeneratedTable"), "e1c82f79");
+            assert!(source.contains(constants_str::VALUE_DF457648), "e1c82f79");
         });
         let server_application = snapshot
             .rs_files()
@@ -230,7 +228,7 @@ fn test_generated_admin_table_consumers_use_the_shared_catalog() {
             assert!(!server_application.contains(forbidden), "d01c1dd0");
         });
         assert!(
-            server_application.contains("server_admin::generated_routes::generated_routes"),
+            server_application.contains(constants_str::VALUE_6FE93B8D),
             "af786d19"
         );
         let admin_api = snapshot
@@ -251,7 +249,7 @@ fn test_generated_admin_table_consumers_use_the_shared_catalog() {
                 assert!(!admin_api.contains(forbidden), "535813a1");
             });
         assert!(
-            admin_api.contains("server_admin::validate_catalog_schema::validate_catalog_schema"),
+            admin_api.contains(constants_str::VALUE_6912507F),
             "de411cae"
         );
     });
@@ -297,8 +295,14 @@ fn test_administrator_data_table_queries_come_from_the_typed_spec() {
             assert!(!repository.contains(legacy_source), "7012056f");
             assert!(!admin_api.contains(legacy_source), "36154b24");
         });
-        assert!(repository.contains("let spec = table.spec()"), "67b8279d");
-        assert!(admin_api.contains("table.spec().columns()"), "92c41cb0");
+        assert!(
+            repository.contains(constants_str::VALUE_E6B53993),
+            "67b8279d"
+        );
+        assert!(
+            admin_api.contains(constants_str::VALUE_36F32728),
+            "92c41cb0"
+        );
     });
 }
 #[test]
@@ -326,10 +330,10 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .expect(constants_str::DIAGNOSTIC_04BB78AF)
             .content()
             .as_ref();
-        assert!(!query.contains("AdminCsrPage"), "438888fd");
-        assert!(query.contains("page.supports_csr()"), "d3ec99c6");
-        assert!(loader.contains("page.uses_table_query()"), "256ac244");
-        assert!(loader.contains("page.spec().route()"), "fe0906a9");
+        assert!(!query.contains(constants_str::VALUE_D57022B3), "438888fd");
+        assert!(query.contains(constants_str::VALUE_2F9537C9), "d3ec99c6");
+        assert!(loader.contains(constants_str::VALUE_225D2BF5), "256ac244");
+        assert!(loader.contains(constants_str::VALUE_A07B86DA), "fe0906a9");
         let pages = snapshot
             .rs_files()
             .iter()
@@ -352,16 +356,10 @@ fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
             .expect(constants_str::DIAGNOSTIC_2C589B2B)
             .content()
             .as_ref();
-        assert!(
-            pages.contains("crate::admin_settings_form_values::AdminSettingsFormValues::from"),
-            "3ca65c5b"
-        );
-        assert!(
-            ssr.contains("crate::admin_settings_form_values::AdminSettingsFormValues::from"),
-            "9f904035"
-        );
-        assert!(!pages.contains("page.main_logo()"), "67c3d270");
-        assert!(!ssr.contains("view.main_logo()"), "6201410d");
+        assert!(pages.contains(constants_str::VALUE_3761342B), "3ca65c5b");
+        assert!(ssr.contains(constants_str::VALUE_3761342B), "9f904035");
+        assert!(!pages.contains(constants_str::VALUE_80244FDB), "67c3d270");
+        assert!(!ssr.contains(constants_str::VALUE_A80094C6), "6201410d");
     });
 }
 #[test]
@@ -378,6 +376,6 @@ fn test_config_reference_accessors_use_generated_forwarding() {
             .expect(constants_str::DIAGNOSTIC_E210FFD6)
             .content()
             .as_ref();
-        assert!(!source.contains(" for &Config"), "c0f0354a");
+        assert!(!source.contains(constants_str::VALUE_5F4EA89E), "c0f0354a");
     });
 }

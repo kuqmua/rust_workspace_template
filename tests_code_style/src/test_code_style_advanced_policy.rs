@@ -2137,9 +2137,7 @@ fn test_spawn_lifecycle_policy_rejects_unconsumed_tasks() {
     );
     assert_eq!(
         visitor.get_violations().as_slice(),
-        [
-            "spawned task `forgotten` is retained but never awaited, aborted, or transferred to an owner"
-        ],
+        [constants_str::VALUE_B20423DF],
         "a1680c46"
     );
 }

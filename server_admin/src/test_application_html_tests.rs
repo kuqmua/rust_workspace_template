@@ -35,7 +35,9 @@ async fn test_admin_root_redirects_to_users() {
     assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
     assert_eq!(
         response.headers().get(http::header::LOCATION),
-        Some(&http::HeaderValue::from_static("/admin/users"))
+        Some(&http::HeaderValue::from_static(
+            constants_str::VALUE_074B6E5E
+        ))
     );
 }
 
@@ -47,7 +49,9 @@ fn test_successful_mutation_redirects_to_visible_server_feedback() {
     assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
     assert_eq!(
         response.headers().get(http::header::LOCATION),
-        Some(&http::HeaderValue::from_static("/admin/users#saved"))
+        Some(&http::HeaderValue::from_static(
+            constants_str::VALUE_B6E7A6E1
+        ))
     );
 }
 
@@ -101,7 +105,10 @@ async fn test_role_assignment_form_accepts_dynamic_checkbox_fields() {
     let form = form.into_inner();
 
     assert_eq!(i64::from(*form.get_user_id()), 7i64);
-    assert_eq!(form.get_expected_role_ids().as_str(), "1,2");
+    assert_eq!(
+        form.get_expected_role_ids().as_str(),
+        constants_str::VALUE_17F8AF97
+    );
     assert_eq!(form.get_selected().len().get(), 2usize);
 }
 

@@ -118,8 +118,11 @@ mod tests {
         );
         assert_eq!(
             diagnostic.telemetry.error_code().to_string(),
-            "test_failure"
+            constants_str::VALUE_CF4DCEBB
         );
-        assert_eq!(diagnostic.telemetry.error_type().to_string(), "test.error");
+        assert_eq!(
+            diagnostic.telemetry.error_type().to_string(),
+            constants_str::VALUE_AF7C24A2
+        );
     }
 }

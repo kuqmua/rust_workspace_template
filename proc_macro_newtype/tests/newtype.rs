@@ -416,11 +416,19 @@ mod tests {
     }
     #[test]
     fn test_debug_display_formats_with_debug() {
-        assert_eq!(DebugDisplayError::Failed.to_string(), "Failed", "a67e3b91");
+        assert_eq!(
+            DebugDisplayError::Failed.to_string(),
+            constants_str::VALUE_031A8F0F,
+            "a67e3b91"
+        );
     }
     #[test]
     fn test_display_const_formats_configured_expression() {
-        assert_eq!(ConstDisplayError.to_string(), "fixed", "e5a9217c");
+        assert_eq!(
+            ConstDisplayError.to_string(),
+            constants_str::VALUE_992A9345,
+            "e5a9217c"
+        );
     }
     #[test]
     fn test_clone_and_default_inner_do_not_require_value_bounds() {
@@ -446,17 +454,21 @@ mod tests {
     fn test_string_newtype_impls_are_generated() {
         let v = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
             .expect(constants_str::DIAGNOSTIC_9D27B01C);
-        assert_eq!(v.to_string(), "abc");
-        assert_eq!(v.as_ref(), "abc");
-        assert_eq!(&*v, "abc");
-        assert_eq!(StringValueProvider::string_value(&v), "abc");
+        assert_eq!(v.to_string(), constants_str::ABC_ALT_3);
+        assert_eq!(v.as_ref(), constants_str::ABC_ALT_3);
+        assert_eq!(&*v, constants_str::ABC_ALT_3);
         assert_eq!(
-            to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
-            "abc"
+            StringValueProvider::string_value(&v),
+            constants_str::ABC_ALT_3
         );
         assert_eq!(
-            StringValue::try_from("abc".to_owned()).map(|value| value.to_string()),
-            Ok(String::from("abc"))
+            to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
+            constants_str::ABC_ALT_3
+        );
+        assert_eq!(
+            StringValue::try_from(constants_str::ABC_ALT_3.to_owned())
+                .map(|value| value.to_string()),
+            Ok(String::from(constants_str::ABC_ALT_3))
         );
     }
     #[test]
@@ -484,10 +496,10 @@ mod tests {
     #[test]
     fn test_display_to_err_string_impl_is_generated() {
         let v = UsizeValue::from(42usize);
-        assert_eq!(v.to_string(), "42");
+        assert_eq!(v.to_string(), constants_str::VALUE_42);
         assert_eq!(
             to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
-            "42"
+            constants_str::VALUE_42
         );
     }
     #[test]
@@ -495,7 +507,7 @@ mod tests {
         let v = DebugValue::from(vec![1, 2]);
         assert_eq!(
             to_err_string::to_err_string::ToErrString::to_err_string(&v).as_ref(),
-            "[1, 2]"
+            constants_str::VALUE_3A316D6D
         );
     }
     #[test]
@@ -561,10 +573,7 @@ mod tests {
     fn test_bounded_string_description_is_configurable() {
         let error = DescribedValue::try_from(String::from(constants_str::ABC_ALT_3))
             .expect_err(constants_str::VALUE_3DFCA278);
-        assert_eq!(
-            error.to_string(),
-            "described value length 3 exceeds maximum 2"
-        );
+        assert_eq!(error.to_string(), constants_str::VALUE_B027E8E9);
     }
     #[test]
     fn test_bounded_string_rich_policies_share_runtime_and_serde_validation() {
@@ -583,15 +592,15 @@ mod tests {
             RichValue::try_from(bounded_value.clone()).expect(constants_str::DIAGNOSTIC_A091B772);
         assert_eq!(value.0.as_ref(), &expected);
         assert!(matches!(
-            RichValue::try_from(String::from("   ")),
+            RichValue::try_from(String::from(constants_str::THREE_SPACES)),
             Err(RichValueTryFromStringError::TooShort { len: 0, min: 1 })
         ));
         assert!(matches!(
-            RichValue::try_from(String::from("abcd")),
+            RichValue::try_from(String::from(constants_str::ABCD_ALT)),
             Err(RichValueTryFromStringError::TooLong { len: 4, max: 3 })
         ));
         assert!(matches!(
-            RichValue::try_from(String::from("a\0b")),
+            RichValue::try_from(String::from(constants_str::VALUE_59B271AE)),
             Err(RichValueTryFromStringError::ContainsNul)
         ));
         let serialized =
@@ -607,16 +616,22 @@ mod tests {
         let schema = <RichValue as utoipa::PartialSchema>::schema();
         let json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_756F3FE9);
         assert_eq!(
-            json.get("minLength"),
+            json.get(constants_str::VALUE_AF9E4183),
             Some(&serde_json::json!(constants_usize::ONE))
         );
-        assert_eq!(json.get("maxLength"), Some(&serde_json::json!(3usize)));
+        assert_eq!(
+            json.get(constants_str::VALUE_AC1DBF51),
+            Some(&serde_json::json!(3usize))
+        );
     }
     #[test]
     fn test_bounded_string_openapi_write_only_matches_secret_contract() {
         let schema = <WriteOnlyValue as utoipa::PartialSchema>::schema();
         let json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_CE9351D4);
-        assert_eq!(json.get("writeOnly"), Some(&serde_json::json!(true)));
+        assert_eq!(
+            json.get(constants_str::VALUE_ADFA9E3B),
+            Some(&serde_json::json!(true))
+        );
     }
     #[test]
     fn test_utoipa_schema_delegates_default_and_overridden_types() {
@@ -679,7 +694,7 @@ mod tests {
     fn test_token_impls_are_generated() {
         let inner = quote::quote! { sample::path };
         let v = ProcMacro2TokenValue::from(inner.clone());
-        assert_eq!(v.to_string(), "sample :: path");
+        assert_eq!(v.to_string(), constants_str::VALUE_45989ED4);
         assert_eq!(quote::quote! { #v }.to_string(), inner.to_string());
         assert_eq!(v.into_inner().to_string(), inner.to_string());
     }
@@ -693,7 +708,10 @@ mod tests {
     fn test_borrow_impls_are_generated() {
         let string = StringValue::try_from(String::from(constants_str::ABC_ALT_3))
             .expect(constants_str::DIAGNOSTIC_F37F2ED0);
-        assert_eq!(std::borrow::Borrow::<str>::borrow(&string), "abc");
+        assert_eq!(
+            std::borrow::Borrow::<str>::borrow(&string),
+            constants_str::ABC_ALT_3
+        );
         let owned = InnerValue::from(7u16);
         assert_eq!(*std::borrow::Borrow::<u16>::borrow(&owned), 7u16);
         let path = OwnedPathBuf::from(std::path::PathBuf::from(constants_str::ABC_ALT_3));
@@ -720,16 +738,19 @@ mod tests {
     }
     #[test]
     fn test_transparent_debug_forwards_inner_format() {
-        assert_eq!(format!("{:?}", TransparentDebugValue(17)), "17");
+        assert_eq!(
+            format!("{:?}", TransparentDebugValue(17)),
+            constants_str::VALUE_4523540F
+        );
     }
     #[test]
     fn test_enum_from_str_impl_is_generated() {
         assert_eq!(
-            <SampleEnum as std::str::FromStr>::from_str("FIRST_VALUE"),
+            <SampleEnum as std::str::FromStr>::from_str(constants_str::VALUE_1CD5BF5D),
             Ok(SampleEnum::FirstValue)
         );
         assert_eq!(
-            <SampleEnum as std::str::FromStr>::from_str("second"),
+            <SampleEnum as std::str::FromStr>::from_str(constants_str::SECOND_ALT),
             Ok(SampleEnum::Second)
         );
     }
@@ -737,9 +758,6 @@ mod tests {
     fn test_enum_from_str_error_mentions_allowed_values() {
         let error = <SampleEnum as std::str::FromStr>::from_str(constants_str::BAD)
             .expect_err(constants_str::VALUE_42D13F7A);
-        assert_eq!(
-            error,
-            "Unknown value: bad. Allowed values: first_value, second"
-        );
+        assert_eq!(error, constants_str::VALUE_EF3B4363);
     }
 }

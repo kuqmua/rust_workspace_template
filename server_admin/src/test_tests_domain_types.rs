@@ -50,7 +50,7 @@ fn test_permission_serializes_as_public_contract_value() {
     assert_eq!(
         serde_json::to_string(&server_admin_contract::admin_permission::AdminPermission::UsersRead)
             .expect(constants_str::DIAGNOSTIC_9A6B413E),
-        "\"users:read\""
+        constants_str::VALUE_6E7831EE
     );
 }
 #[test]
@@ -71,7 +71,7 @@ fn test_migration_inventory_is_not_empty() {
     assert!(
         migrations
             .iter()
-            .any(|migration| migration.description == "admin schema")
+            .any(|migration| migration.description == constants_str::VALUE_6A6C872E)
     );
 }
 #[test]
@@ -102,7 +102,7 @@ async fn test_password_hash_verifies_only_matching_password() {
         .expect(constants_str::DIAGNOSTIC_174A5D2F);
     assert!(
         hasher
-            .verify(password("correct password"), hash)
+            .verify(password(constants_str::CORRECT_PASSWORD_ALT), hash)
             .await
             .expect(constants_str::DIAGNOSTIC_604F40BE)
             .get()
@@ -113,7 +113,7 @@ async fn test_password_hash_verifies_only_matching_password() {
         .expect(constants_str::DIAGNOSTIC_38819B94);
     assert!(
         !hasher
-            .verify(password("wrong password"), other_hash)
+            .verify(password(constants_str::VALUE_3DFF7367), other_hash)
             .await
             .expect(constants_str::DIAGNOSTIC_ED6B499A)
             .get()
@@ -139,11 +139,8 @@ fn test_generated_token_hash_is_stable_and_does_not_expose_token() {
     ));
     let hash = crate::hash_opaque_token::hash_opaque_token(&token)
         .expect(constants_str::DIAGNOSTIC_3AF32394);
-    assert_eq!(
-        hash.expose().as_ref(),
-        "abae2c734c2b0249ef1d413fdf30c332c6875fde570f9bbeef4295966f0b4943"
-    );
-    assert!(!format!("{hash:?}").contains("fixed-test-token"));
+    assert_eq!(hash.expose().as_ref(), constants_str::VALUE_9CF3E4A3);
+    assert!(!format!("{hash:?}").contains(constants_str::FIXED_TEST_TOKEN));
 }
 #[test]
 fn test_cookie_policy_marks_only_secret_tokens_http_only() {
@@ -159,11 +156,11 @@ fn test_cookie_policy_marks_only_secret_tokens_http_only() {
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(60),
         crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(true),
     );
-    assert!(access.as_ref().contains("HttpOnly"));
-    assert!(access.as_ref().contains("Secure"));
-    assert!(access.as_ref().contains("SameSite=Strict"));
-    assert!(!csrf.as_ref().contains("HttpOnly"));
-    assert!(csrf.as_ref().contains("Secure"));
+    assert!(access.as_ref().contains(constants_str::VALUE_A0820391));
+    assert!(access.as_ref().contains(constants_str::VALUE_1BCED1D0));
+    assert!(access.as_ref().contains(constants_str::VALUE_DD7C3F04));
+    assert!(!csrf.as_ref().contains(constants_str::VALUE_A0820391));
+    assert!(csrf.as_ref().contains(constants_str::VALUE_1BCED1D0));
 }
 #[test]
 fn test_cookie_parser_matches_complete_cookie_name() {
@@ -180,7 +177,7 @@ fn test_cookie_parser_matches_complete_cookie_name() {
             crate::admin_cookie_kind::AdminCookieKind::Access,
         ),
         Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-            "expected"
+            constants_str::VALUE_CEA23DD4
         ))
     );
 }

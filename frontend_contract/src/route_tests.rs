@@ -55,7 +55,7 @@ mod tests {
             <Route as crate::typed_route::TypedRoute>::metadata()
                 .path()
                 .as_ref(),
-            "/route"
+            constants_str::ROUTE
         );
         assert_eq!(
             crate::client_route_metadata::client_route_metadata::<Route>(),

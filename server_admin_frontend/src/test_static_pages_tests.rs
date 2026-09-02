@@ -27,9 +27,21 @@ fn test_static_pages() {
         &admin,
         &branding,
     );
-    assert!(permissions_html.as_ref().contains("data-label=\"id\""));
-    assert!(permissions_html.as_ref().contains(">7</td>"));
-    assert!(permissions_html.as_ref().contains(">users.read</td>"));
+    assert!(
+        permissions_html
+            .as_ref()
+            .contains(constants_str::VALUE_E72513C4)
+    );
+    assert!(
+        permissions_html
+            .as_ref()
+            .contains(constants_str::VALUE_F424B0B2)
+    );
+    assert!(
+        permissions_html
+            .as_ref()
+            .contains(constants_str::VALUE_785F0083)
+    );
 
     let role_id = server_admin_contract::admin_role_id::AdminRoleId::try_from(3i64)
         .expect(constants_str::DIAGNOSTIC_B751E0A4);
@@ -70,11 +82,11 @@ fn test_static_pages() {
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
     );
     let users_html = crate::render_users::render_users(&users, &query, &admin, &branding);
-    assert!(users_html.as_ref().contains("data-label=\"login\""));
-    assert!(users_html.as_ref().contains(">bob</td>"));
-    assert!(users_html.as_ref().contains("data-label=\"banned\""));
-    assert!(users_html.as_ref().contains(">true</td>"));
-    assert!(users_html.as_ref().contains(">reviewer</td>"));
+    assert!(users_html.as_ref().contains(constants_str::VALUE_A39478BF));
+    assert!(users_html.as_ref().contains(constants_str::VALUE_45FF0D8E));
+    assert!(users_html.as_ref().contains(constants_str::VALUE_CCC0FA20));
+    assert!(users_html.as_ref().contains(constants_str::VALUE_AB48587B));
+    assert!(users_html.as_ref().contains(constants_str::VALUE_DA7048B9));
 
     let roles = server_admin_contract::admin_roles_page::AdminRolesPage::new(
         server_admin_contract::admin_role_summaries::AdminRoleSummaries::try_from(
@@ -88,9 +100,9 @@ fn test_static_pages() {
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
     );
     let roles_html = crate::render_roles::render_roles(&roles, &query, &admin, &branding);
-    assert!(roles_html.as_ref().contains("data-label=\"name\""));
-    assert!(roles_html.as_ref().contains(">reviewer</td>"));
-    assert!(roles_html.as_ref().contains(">users.read</td>"));
+    assert!(roles_html.as_ref().contains(constants_str::VALUE_91121F81));
+    assert!(roles_html.as_ref().contains(constants_str::VALUE_DA7048B9));
+    assert!(roles_html.as_ref().contains(constants_str::VALUE_785F0083));
 
     let sessions = server_admin_contract::admin_sessions_page::AdminSessionsPage::new(
         server_admin_contract::admin_session_views::AdminSessionViews::try_from(vec![
@@ -116,34 +128,54 @@ fn test_static_pages() {
     let sessions_html = crate::render_admin_sessions_page::render_admin_sessions_page(
         &sessions, &query, &admin, &branding,
     );
-    assert!(sessions_html.as_ref().contains("value=\"session-1\""));
     assert!(
         sessions_html
             .as_ref()
-            .contains("data-name=\"AlertDialogContent\"")
-    );
-    assert!(sessions_html.as_ref().contains("singlestage-dialog"));
-    assert!(!sessions_html.as_ref().contains("command=\"show-modal\""));
-    assert!(
-        sessions_html
-            .as_ref()
-            .contains("data-name=\"AlertDialogHeader\"")
+            .contains(constants_str::VALUE_0BDF914E)
     );
     assert!(
         sessions_html
             .as_ref()
-            .contains("data-name=\"AlertDialogFooter\"")
+            .contains(constants_str::VALUE_64474E4B)
     );
     assert!(
         sessions_html
             .as_ref()
-            .contains(">Confirm session revocation</label>")
+            .contains(constants_str::VALUE_706A5FC3)
+    );
+    assert!(
+        !sessions_html
+            .as_ref()
+            .contains(constants_str::VALUE_3B0143B5)
+    );
+    assert!(
+        sessions_html
+            .as_ref()
+            .contains(constants_str::VALUE_67B26491)
+    );
+    assert!(
+        sessions_html
+            .as_ref()
+            .contains(constants_str::VALUE_1D79EA4F)
+    );
+    assert!(
+        sessions_html
+            .as_ref()
+            .contains(constants_str::VALUE_B86DD350)
     );
 
     let profile_html =
         crate::render_admin_profile_page::render_admin_profile_page(&admin, &branding);
-    assert!(profile_html.as_ref().contains(">operator, auditor</p>"));
-    assert!(profile_html.as_ref().contains("name=\"current_password\""));
+    assert!(
+        profile_html
+            .as_ref()
+            .contains(constants_str::VALUE_4645FB8E)
+    );
+    assert!(
+        profile_html
+            .as_ref()
+            .contains(constants_str::VALUE_E8DEB11B)
+    );
 
     let public_text = crate::render_text_page::render_text_page(
         server_admin_contract::admin_page::AdminPage::Metrics,
@@ -152,7 +184,7 @@ fn test_static_pages() {
         crate::admin_ssr_text::AdminSsrText::try_from(String::from(constants_str::VALUE_242C81E4))
             .expect(constants_str::DIAGNOSTIC_107CDE83),
     );
-    assert!(public_text.as_ref().contains("&lt;ready&gt;"));
+    assert!(public_text.as_ref().contains(constants_str::VALUE_5216C7F2));
     let private_text = crate::render_text_page_with_access::render_text_page_with_access(
         server_admin_contract::admin_page::AdminPage::OpenApi,
         crate::admin_ssr_text::AdminSsrText::try_from(String::from(constants_str::VALUE_39732416))
@@ -162,7 +194,11 @@ fn test_static_pages() {
         &admin,
         &branding,
     );
-    assert!(private_text.as_ref().contains(">contract text</pre>"));
+    assert!(
+        private_text
+            .as_ref()
+            .contains(constants_str::VALUE_2A72E715)
+    );
     assert!(
         private_text
             .as_ref()

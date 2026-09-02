@@ -89,12 +89,12 @@ fn test_custom_type_name_visitor_covers_all_rust_type_declarations() {
             .into_iter()
             .collect::<Vec<String>>(),
         [
-            "StructName",
-            "EnumName",
-            "UnionName",
-            "TraitName",
-            "AliasName",
-            "TraitAliasName",
+            constants_str::VALUE_385B7D86,
+            constants_str::VALUE_A3AF6984,
+            constants_str::VALUE_F4388E4B,
+            constants_str::VALUE_960F2688,
+            constants_str::VALUE_16105334,
+            constants_str::VALUE_0E9835E7,
         ]
         .map(String::from),
         "29e8555b"
@@ -115,7 +115,12 @@ fn test_free_function_name_visitor_excludes_methods() {
             .clone()
             .into_iter()
             .collect::<Vec<String>>(),
-        ["outer", "inner", "module_function"].map(String::from),
+        [
+            constants_str::VALUE_560E3E12,
+            constants_str::VALUE_33BF6FBD,
+            constants_str::VALUE_58E2271D
+        ]
+        .map(String::from),
         "6d857f95"
     );
 }

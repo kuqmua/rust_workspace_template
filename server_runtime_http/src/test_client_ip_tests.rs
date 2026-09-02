@@ -46,21 +46,21 @@ mod tests {
             crate::resolve_client_ip::resolve_client_ip(
                 crate::http_header_map_ref::HttpHeaderMapRef::from(&http::HeaderMap::new()),
                 crate::client_socket_addr::ClientSocketAddr::from(
-                    "127.0.0.1:8080"
+                    constants_str::VALUE_127_0_0_1_8080
                         .parse::<std::net::SocketAddr>()
                         .expect(constants_str::DIAGNOSTIC_A6F1A8F9)
                 ),
                 &ranges,
             )
             .to_string(),
-            "127.0.0.1"
+            constants_str::VALUE_127_0_0_1
         );
     }
     #[test]
     fn test_trusted_proxy_ranges_text_rejects_empty_list_entries() {
         assert!(matches!(
             crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
-                "127.0.0.1/32,,::1/128",
+                constants_str::VALUE_396A5D02,
             )),
             Err(crate::trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError::Range(
                 crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::MissingPrefix
@@ -85,8 +85,8 @@ mod tests {
             http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
         );
         assert_eq!(
-            resolved(&headers, "198.51.100.2:80", Vec::new()),
-            "198.51.100.2"
+            resolved(&headers, constants_str::VALUE_BA3E0E24, Vec::new()),
+            constants_str::VALUE_8C9BBD8A
         );
     }
     #[test]
@@ -97,8 +97,12 @@ mod tests {
             http::HeaderValue::from_static(constants_str::VALUE_203_0_113_7_10_0_0_8_10_0_0),
         );
         assert_eq!(
-            resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
-            "203.0.113.7"
+            resolved(
+                &headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
+            ),
+            constants_str::VALUE_203_0_113_7
         );
     }
     #[test]
@@ -109,8 +113,12 @@ mod tests {
             http::HeaderValue::from_static(constants_str::VALUE_203_0_113_7),
         );
         assert_eq!(
-            resolved(&headers, "[::1]:80", vec![range("127.0.0.0/8")]),
-            "::1"
+            resolved(
+                &headers,
+                constants_str::VALUE_09F22780,
+                vec![range(constants_str::VALUE_4A7EA159)]
+            ),
+            constants_str::PATH_1
         );
     }
     #[test]
@@ -123,10 +131,10 @@ mod tests {
         assert_eq!(
             resolved(
                 &malformed_headers,
-                "10.0.0.10:80",
-                vec![range("10.0.0.0/24")]
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
             ),
-            "10.0.0.10"
+            constants_str::VALUE_EBB856CA
         );
         let mut mixed_headers = http::HeaderMap::new();
         let _inserted_mixed = mixed_headers.append(
@@ -134,8 +142,12 @@ mod tests {
             http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1_NOT_AN_IP),
         );
         assert_eq!(
-            resolved(&mixed_headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
-            "10.0.0.10"
+            resolved(
+                &mixed_headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
+            ),
+            constants_str::VALUE_EBB856CA
         );
         let mut headers = http::HeaderMap::new();
         let _inserted_first = headers.append(
@@ -147,8 +159,12 @@ mod tests {
             http::HeaderValue::from_static(constants_str::VALUE_203_0_113_2),
         );
         assert_eq!(
-            resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
-            "10.0.0.10"
+            resolved(
+                &headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
+            ),
+            constants_str::VALUE_EBB856CA
         );
     }
     #[test]
@@ -162,18 +178,22 @@ mod tests {
                 .expect(constants_str::DIAGNOSTIC_6353255D),
         );
         assert_eq!(
-            resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
-            "10.0.0.10"
+            resolved(
+                &headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
+            ),
+            constants_str::VALUE_EBB856CA
         );
     }
     #[test]
     fn test_prefixes_are_validated() {
         assert!(matches!(
-            crate::trusted_proxy_range::TrustedProxyRange::try_from("127.0.0.1/33".to_owned()),
+            crate::trusted_proxy_range::TrustedProxyRange::try_from(constants_str::VALUE_9604A2A6.to_owned()),
             Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::PrefixExceedsAddressWidth)
         ));
         assert!(matches!(
-            crate::trusted_proxy_range::TrustedProxyRange::try_from("::1/129".to_owned()),
+            crate::trusted_proxy_range::TrustedProxyRange::try_from(constants_str::VALUE_CB3D2AAD.to_owned()),
             Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::PrefixExceedsAddressWidth)
         ));
     }

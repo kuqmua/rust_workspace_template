@@ -81,14 +81,14 @@ fn test_crud() {
     );
 
     let user_create = crate::render_user_create::render_user_create(&admin, &branding);
-    assert!(user_create.as_ref().contains("Create user"));
+    assert!(user_create.as_ref().contains(constants_str::VALUE_F06DA128));
     assert!(
         user_create
             .as_ref()
             .contains(server_admin_contract::admin_html_action::AdminHtmlAction::UserCreate.get())
     );
     let user_manage = crate::render_user_manage::render_user_manage(&users, &admin, &branding);
-    assert!(user_manage.as_ref().contains("managed_user"));
+    assert!(user_manage.as_ref().contains(constants_str::VALUE_A7CEAFCE));
     assert!(
         user_manage
             .as_ref()
@@ -101,9 +101,9 @@ fn test_crud() {
     );
 
     let role_create = crate::render_role_create::render_role_create(&admin, &branding);
-    assert!(role_create.as_ref().contains("Create role"));
+    assert!(role_create.as_ref().contains(constants_str::CREATE_ROLE));
     let role_manage = crate::render_role_manage::render_role_manage(&roles, &admin, &branding);
-    assert!(role_manage.as_ref().contains("managed_role"));
+    assert!(role_manage.as_ref().contains(constants_str::VALUE_6186A0EE));
     assert!(
         role_manage
             .as_ref()

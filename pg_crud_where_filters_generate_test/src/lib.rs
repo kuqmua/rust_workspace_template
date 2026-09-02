@@ -50,7 +50,7 @@ mod tests {
     fn test_text_search_rejects_empty_and_oversized_values() {
         assert_eq!(
             where_filters::domain_types::build_text_search_pattern(
-                "",
+                constants_str::EMPTY,
                 where_filters::domain_types::TextSearchMode::Contains
             ),
             Err(where_filters::domain_types::TextSearchValueError::Empty)
@@ -91,7 +91,7 @@ mod tests {
             pg_crud_common::add_operator::AddOperator::from(true),
         )
         .expect(constants_str::DIAGNOSTIC_509F61F8);
-        assert_eq!(fragment.as_ref(), "and display_name ILIKE $5 ESCAPE '\\'");
+        assert_eq!(fragment.as_ref(), constants_str::VALUE_BA922EFF);
         assert_eq!(parameter_index, 5u64);
     }
     #[test]

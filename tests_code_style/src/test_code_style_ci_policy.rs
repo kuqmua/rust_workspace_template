@@ -109,17 +109,13 @@ fn test_continuous_integration_uses_the_pinned_workspace_toolchain() {
         "the workflow must consume rust-toolchain.toml instead of repeating its channel"
     );
     assert!(
-        !workflow.as_ref().contains("dtolnay/rust-toolchain"),
+        !workflow.as_ref().contains(constants_str::VALUE_3563945F),
         "Rust jobs must use the repository-owned toolchain setup action"
     );
-    assert!(
-        workflow
-            .as_ref()
-            .contains("uses: ./.github/actions/setup-rust")
-    );
+    assert!(workflow.as_ref().contains(constants_str::VALUE_394455C3));
     let setup_action = std::fs::read_to_string(repository_root.join(constants_str::VALUE_D8346474))
         .expect(constants_str::DIAGNOSTIC_830B79A6);
-    assert!(setup_action.contains("rustc --version"));
+    assert!(setup_action.contains(constants_str::VALUE_0F49E23E));
     let services = std::fs::read_to_string(repository_root.join(constants_str::VALUE_C1590960))
         .expect(constants_str::DIAGNOSTIC_6B2F8D41)
         .parse::<toml::Table>()
@@ -137,7 +133,7 @@ fn test_continuous_integration_uses_the_pinned_workspace_toolchain() {
                 .expect(constants_str::DIAGNOSTIC_3C8A1F72);
             let source = std::fs::read_to_string(repository_root.join(dockerfile))
                 .expect(constants_str::DIAGNOSTIC_5E9B4D16);
-            assert!(source.contains("rust-toolchain.toml"));
+            assert!(source.contains(constants_str::VALUE_2B1BDE2C));
             assert!(!source.contains(toolchain));
         });
 }
@@ -201,7 +197,7 @@ fn test_workflow_policy_ignores_commented_commands_and_actions() {
     ));
     assert!(!source.as_ref().contains(constants_str::CARGO_MACHETE));
     assert!(!source.as_ref().contains(constants_str::TIMEOUT_MINUTES));
-    assert!(!source.as_ref().contains("actions/checkout"));
-    assert!(source.as_ref().contains("quality # gate"));
-    assert!(source.as_ref().contains("printf #active"));
+    assert!(!source.as_ref().contains(constants_str::VALUE_728EABD6));
+    assert!(source.as_ref().contains(constants_str::VALUE_3B4E324D));
+    assert!(source.as_ref().contains(constants_str::VALUE_769E5F7B));
 }

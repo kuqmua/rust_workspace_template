@@ -20,13 +20,15 @@ mod tests {
         assert!(bool::from(
             crate::template_fs_should_skip::template_fs_should_skip(
                 crate::scaffold_path_ref::ScaffoldPathRef::from(std::path::Path::new(
-                    "target/generated"
+                    constants_str::VALUE_E1231D31
                 ))
             )
         ));
         assert!(!bool::from(
             crate::template_fs_should_skip::template_fs_should_skip(
-                crate::scaffold_path_ref::ScaffoldPathRef::from(std::path::Path::new("server/src"))
+                crate::scaffold_path_ref::ScaffoldPathRef::from(std::path::Path::new(
+                    constants_str::VALUE_4098B735
+                ))
             )
         ));
     }

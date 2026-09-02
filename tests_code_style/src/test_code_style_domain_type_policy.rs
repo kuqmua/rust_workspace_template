@@ -81,7 +81,7 @@ fn test_from_string_impl_visitor_rejects_non_string_wrappers_too() {
     assert_eq!(ers.len(), 1, "a06d3c4f {ers:#?}");
     assert!(
         ers.iter()
-            .any(|error| error.contains("`SourceText` implements `From<String>`")),
+            .any(|error| error.contains(constants_str::VALUE_1CCF1FF0)),
         "b19e40c8 {ers:#?}"
     );
 }
@@ -106,13 +106,15 @@ fn test_bounded_string_derive_satisfies_string_wrapper_policy() {
         ),
     );
     assert!(
-        visitor.get_try_from_string_names().contains("SourceText"),
+        visitor
+            .get_try_from_string_names()
+            .contains(constants_str::SOURCETEXT),
         "e4b9120c"
     );
     assert!(
         visitor
             .get_try_from_string_len_checked_names()
-            .contains("SourceText"),
+            .contains(constants_str::SOURCETEXT),
         "69f280b3"
     );
     assert!(
@@ -194,13 +196,15 @@ fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
         ),
     );
     assert!(
-        visitor.get_try_from_string_names().contains("Value"),
+        visitor
+            .get_try_from_string_names()
+            .contains(constants_str::CODE_STYLE_VALUE),
         "4d8a4c7e"
     );
     assert!(
         visitor
             .get_try_from_string_len_checked_names()
-            .contains("Value"),
+            .contains(constants_str::CODE_STYLE_VALUE),
         "7c2e4b50"
     );
 }
@@ -238,13 +242,15 @@ fn test_newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
         ),
     );
     assert!(
-        visitor.get_try_from_string_names().contains("Value"),
+        visitor
+            .get_try_from_string_names()
+            .contains(constants_str::CODE_STYLE_VALUE),
         "89c632cd"
     );
     assert!(
         visitor
             .get_try_from_string_len_checked_names()
-            .contains("Value"),
+            .contains(constants_str::CODE_STYLE_VALUE),
         "b49bc6d0"
     );
 }
@@ -282,13 +288,15 @@ fn test_manual_try_from_delegated_validator_satisfies_string_wrapper_policy() {
         ),
     );
     assert!(
-        visitor.get_try_from_string_names().contains("Value"),
+        visitor
+            .get_try_from_string_names()
+            .contains(constants_str::CODE_STYLE_VALUE),
         "49c5a28f"
     );
     assert!(
         visitor
             .get_try_from_string_len_checked_names()
-            .contains("Value"),
+            .contains(constants_str::CODE_STYLE_VALUE),
         "21d03c6b"
     );
 }
@@ -412,8 +420,8 @@ fn test_tuple_wrapper_deserialization_policy_rejects_direct_derive() {
     assert_eq!(derive_visitor.get_ers().len(), 1, "b0406560");
     assert!(
         derive_visitor.get_ers().first().is_some_and(|error| {
-            error.contains("can bypass validation or other construction invariants")
-                && error.contains("#[serde(try_from = \"RawType\")]")
+            error.contains(constants_str::VALUE_55F7B06B)
+                && error.contains(constants_str::VALUE_43E042B0)
         }),
         "f103b2f0"
     );
@@ -427,8 +435,8 @@ fn test_tuple_wrapper_deserialization_policy_rejects_direct_derive() {
     assert_eq!(manual_visitor.get_ers().len(), 1, "fbe61e18");
     assert!(
         manual_visitor.get_ers().first().is_some_and(|error| {
-            error.contains("without an explicit From/TryFrom call")
-                && error.contains("Self::try_from(raw)")
+            error.contains(constants_str::VALUE_F8243212)
+                && error.contains(constants_str::VALUE_98BCCBF1)
         }),
         "10fa222c"
     );
@@ -548,7 +556,7 @@ fn test_tuple_wrapper_rejects_from_and_try_from_for_same_inner_type() {
         .collect();
     assert_eq!(
         conflicts,
-        std::collections::BTreeSet::from([String::from("Conflict")]),
+        std::collections::BTreeSet::from([String::from(constants_str::VALUE_014659AB)]),
         "4c8f5a3d {conflicts:#?}"
     );
 }
@@ -669,7 +677,7 @@ fn test_domain_boundaries_use_repository_declared_types() {
 fn test_environment_initializer_is_in_domain_boundary_policy_scope() {
     assert!(
         crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new("init_env_files/src/initialize.rs")
+            std::path::Path::new(constants_str::VALUE_4638547C)
         ))
         .get(),
         "c4a791e2"
@@ -710,14 +718,14 @@ fn test_server_admin_frontend_is_in_domain_boundary_policy_scope() {
 fn test_server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
     assert!(
         !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new("../server_admin_frontend/src/domain_types_with_owner_button.rs")
+            std::path::Path::new(constants_str::VALUE_BAF40B19)
         ))
         .get(),
         "e33b8472"
     );
     assert!(
         crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new("server_admin_frontend/src/csr_admin_nav.rs")
+            std::path::Path::new(constants_str::SERVER_ADMIN_FRONTEND_SRC_APP_NAVIGATION_RS)
         ))
         .get(),
         "29bc703d"
@@ -727,28 +735,28 @@ fn test_server_admin_frontend_ui_is_an_explicit_framework_adapter_boundary() {
 fn test_domain_fixture_and_benchmark_directory_boundaries_are_exact() {
     assert!(
         !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new("../location_lib_location_test/src/main.rs")
+            std::path::Path::new(constants_str::VALUE_68737D5D)
         ))
         .get(),
         "4ab6e2d1"
     );
     assert!(
         crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new("../location_lib_location/src/location_test.rs")
+            std::path::Path::new(constants_str::VALUE_C80A8856)
         ))
         .get(),
         "d8c3175f"
     );
     assert!(
         !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new("../pg_crud_common/benches/query.rs")
+            std::path::Path::new(constants_str::VALUE_B9B617A7)
         ))
         .get(),
         "09e5a6bc"
     );
     assert!(
         !crate::code_style::domain_type_policy_should_check_path(crate::types::PathRef::from(
-            std::path::Path::new("../server/benches/query.rs")
+            std::path::Path::new(constants_str::VALUE_0890A317)
         ))
         .get(),
         "e5f21c07"
@@ -781,7 +789,7 @@ fn test_domain_type_policy_reports_raw_browser_external_types_natively() {
         visitor
             .get_ers()
             .first()
-            .is_some_and(|error| error.contains("web_sys")),
+            .is_some_and(|error| error.contains(constants_str::VALUE_A7FCF9B8)),
         "bd624f03"
     );
 }
@@ -812,7 +820,7 @@ fn test_proc_macro_helpers_are_checked_while_compiler_entrypoints_are_exempt() {
         visitor
             .get_ers()
             .iter()
-            .all(|error| error.contains("helper")),
+            .all(|error| error.contains(constants_str::VALUE_E81D3B0E)),
         "109eb4a7"
     );
 }
@@ -843,12 +851,12 @@ fn test_domain_type_policy_checks_explicit_closure_parameter_types() {
     assert_eq!(ers.len(), 2, "0f6d3a91 {ers:#?}");
     assert!(
         ers.iter()
-            .any(|error| error.contains("closure parameter uses `std::path::PathBuf`")),
+            .any(|error| error.contains(constants_str::VALUE_8212AC3A)),
         "d4b2f8a0 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|error| error.contains("closure parameter uses `syn::Type`")),
+            .any(|error| error.contains(constants_str::VALUE_27005C7D)),
         "60b8ae2d {ers:#?}"
     );
 }
@@ -870,7 +878,7 @@ fn test_domain_type_policy_checks_explicit_local_types() {
         visitor
             .get_ers()
             .first()
-            .is_some_and(|error| error.contains("local binding uses `String`")),
+            .is_some_and(|error| error.contains(constants_str::VALUE_CBBF3E32)),
         "0db73fec {:#?}",
         visitor.get_ers()
     );
@@ -915,7 +923,7 @@ fn test_domain_type_policy_allows_only_option_and_result_containers() {
     assert_eq!(ers.len(), 1, "c47a91e2 {ers:#?}");
     assert!(
         ers.first()
-            .is_some_and(|error| error.contains("uses `Vec`")),
+            .is_some_and(|error| error.contains(constants_str::VALUE_14A14329)),
         "d8b305f6 {ers:#?}"
     );
 }
@@ -959,17 +967,17 @@ fn test_analyzer_state_raw_container_field_visitor_reports_helper_fields() {
     assert_eq!(ers.len(), 3, "2c0b7e91 {ers:#?}");
     assert!(
         ers.iter()
-            .any(|error| error.contains("field `names` uses `Vec<String>`")),
+            .any(|error| error.contains(constants_str::VALUE_7C64B919)),
         "74e18b2d {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|error| error.contains("field `seen` uses `BTreeSet<String>`")),
+            .any(|error| error.contains(constants_str::VALUE_F6C0ACAB)),
         "4a0df351 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|error| error.contains("field `refs` uses `HashSet<&str>`")),
+            .any(|error| error.contains(constants_str::VALUE_6FCF10B8)),
         "81c6a2ef {ers:#?}"
     );
 }
@@ -1016,22 +1024,22 @@ fn test_helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
     assert_eq!(ers.len(), 4, "7b2e41a0 {ers:#?}");
     assert!(
         ers.iter()
-            .any(|error| error.contains("function `direct` return type uses `String`")),
+            .any(|error| error.contains(constants_str::VALUE_801070C4)),
         "08d4b6ea {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|error| error.contains("function `list` return type uses `Vec<String>`")),
+            .any(|error| error.contains(constants_str::VALUE_EB19F83F)),
         "ae71c3f4 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|error| error.contains("function `optional` return type uses `Option<&str>`")),
+            .any(|error| error.contains(constants_str::VALUE_8AB55626)),
         "59f0bca8 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|error| error.contains("method `nested` return type uses `String`")),
+            .any(|error| error.contains(constants_str::VALUE_F834D834)),
         "c46d8e10 {ers:#?}"
     );
 }
@@ -1092,7 +1100,7 @@ fn test_external_leaf_wrapper_type_rule_has_no_name_exceptions() {
         visitor
             .get_ers()
             .first()
-            .is_some_and(|error| error.contains("GeneratedTokens")),
+            .is_some_and(|error| error.contains(constants_str::VALUE_9CE15201)),
         "e7340ba2"
     );
 }

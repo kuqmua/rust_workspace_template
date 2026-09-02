@@ -31,11 +31,15 @@ mod tests {
             Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue),
         );
         assert_eq!(
-            crate::http_cookie_name::HttpCookieName::try_from(String::from("session/path")),
+            crate::http_cookie_name::HttpCookieName::try_from(String::from(
+                constants_str::VALUE_A463C738
+            )),
             Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName),
         );
         assert_eq!(
-            crate::http_cookie_name::HttpCookieName::try_from(String::from("session=shadow")),
+            crate::http_cookie_name::HttpCookieName::try_from(String::from(
+                constants_str::VALUE_D071C324
+            )),
             Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName),
         );
     }

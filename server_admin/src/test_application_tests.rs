@@ -22,7 +22,7 @@ fn test_rate_limited_error_includes_retry_after_header() {
     assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
     assert_eq!(
         response.headers().get(http::header::RETRY_AFTER),
-        Some(&http::HeaderValue::from_static("60")),
+        Some(&http::HeaderValue::from_static(constants_str::VALUE_60)),
     );
     assert!(
         response
@@ -145,7 +145,7 @@ fn test_audit_resource_identifier_uses_target_identifier() {
         )
         .value()
         .as_ref(),
-        "42"
+        constants_str::VALUE_42
     );
     assert_eq!(
         crate::admin_audit_resource_id::AdminAuditResourceId::Role(
@@ -154,13 +154,13 @@ fn test_audit_resource_identifier_uses_target_identifier() {
         )
         .value()
         .as_ref(),
-        "7"
+        constants_str::VALUE_7902699B
     );
     assert_eq!(
         crate::admin_audit_resource_id::AdminAuditResourceId::SystemSettings
             .value()
             .as_ref(),
-        "1"
+        constants_str::VALUE_1
     );
 }
 #[test]
@@ -178,10 +178,10 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_6E15EDEC);
     assert_eq!(paths.len(), 22usize);
-    assert!(!paths.contains_key("/auth/mfa"));
-    assert!(!paths.contains_key("/auth/mfa/enroll"));
-    assert!(!paths.contains_key("/auth/mfa/confirm"));
-    assert!(!paths.contains_key("/auth/mfa/step-up"));
+    assert!(!paths.contains_key(constants_str::VALUE_F772F137));
+    assert!(!paths.contains_key(constants_str::VALUE_1DFB120F));
+    assert!(!paths.contains_key(constants_str::VALUE_D1688529));
+    assert!(!paths.contains_key(constants_str::VALUE_69A70592));
     let documented_route_contracts = paths
         .iter()
         .flat_map(|(path, path_item)| {
@@ -216,13 +216,13 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
             })
             .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(documented_route_contracts, contracted_route_contracts);
-    assert!(paths.contains_key("/auth/sign_in"));
-    assert!(paths.contains_key("/auth/sessions/{session_id}"));
-    assert!(paths.contains_key("/users/{user_id}/password"));
-    assert!(paths.contains_key("/roles/{role_id}/permissions"));
-    assert!(paths.contains_key("/permissions"));
-    assert!(paths.contains_key("/audit_log"));
-    assert!(paths.contains_key("/system_settings"));
+    assert!(paths.contains_key(constants_str::VALUE_C764A505));
+    assert!(paths.contains_key(constants_str::VALUE_356A53CE));
+    assert!(paths.contains_key(constants_str::VALUE_2A3105E4));
+    assert!(paths.contains_key(constants_str::VALUE_FD625302));
+    assert!(paths.contains_key(constants_str::VALUE_4690F648));
+    assert!(paths.contains_key(constants_str::VALUE_FF2134BE));
+    assert!(paths.contains_key(constants_str::VALUE_E40BCD1D));
     assert_eq!(
         document
             .pointer(constants_str::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)
@@ -256,25 +256,15 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
     assert!(
         paths
             .values()
-            .all(|path| path
-                .as_object()
-                .is_some_and(|operations| operations.values().all(|operation| operation
-                    .pointer("/responses/429/headers/Retry-After")
-                    .is_some())))
+            .all(|path| path.as_object().is_some_and(|operations| operations
+                .values()
+                .all(|operation| operation.pointer(constants_str::VALUE_7BD7C79B).is_some())))
     );
-    assert!(
-        document
-            .pointer("/components/securitySchemes/admin_cookie")
-            .is_some()
-    );
-    assert!(
-        document
-            .pointer("/components/securitySchemes/admin_csrf")
-            .is_some()
-    );
+    assert!(document.pointer(constants_str::VALUE_5223FAE7).is_some());
+    assert!(document.pointer(constants_str::VALUE_03C3BB69).is_some());
     assert_eq!(
         document
-            .pointer("/components/schemas/AdminPassword/writeOnly")
+            .pointer(constants_str::VALUE_6A277FCB)
             .and_then(serde_json::Value::as_bool),
         Some(true),
     );

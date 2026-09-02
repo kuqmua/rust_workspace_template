@@ -67,11 +67,13 @@ mod tests {
             Err(crate::notification_message_try_from_string_error::NotificationMessageTryFromStringError::Empty)
         ));
         assert!(matches!(
-            crate::notification_message::NotificationMessage::try_from("ready".to_owned()),
+            crate::notification_message::NotificationMessage::try_from(
+                constants_str::VALUE_B24D6D33.to_owned()
+            ),
             Ok(_value)
         ));
         assert!(matches!(
-            crate::notification_message::NotificationMessage::try_from("x".repeat(4_097usize)),
+            crate::notification_message::NotificationMessage::try_from(constants_str::X.repeat(4_097usize)),
             Err(crate::notification_message_try_from_string_error::NotificationMessageTryFromStringError::TooLong)
         ));
     }

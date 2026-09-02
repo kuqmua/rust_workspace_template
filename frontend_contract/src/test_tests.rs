@@ -61,9 +61,9 @@ fn test_api_problem_status_mapping_is_stable_and_redacted() {
         assert_eq!(problem.kind(), expected_kind);
         assert_eq!(u16::from(problem.status()), status);
         let serialized = serde_json::to_string(&problem).expect(constants_str::DIAGNOSTIC_F459312E);
-        assert!(!serialized.contains("postgres://"));
-        assert!(!serialized.contains("sqlx"));
-        assert!(!serialized.contains("password"));
+        assert!(!serialized.contains(constants_str::VALUE_FB4B8AD6));
+        assert!(!serialized.contains(constants_str::SQLX));
+        assert!(!serialized.contains(constants_str::PASSWORD));
     });
 }
 #[test]
@@ -170,7 +170,7 @@ fn test_route_contract_keeps_transport_policy_together() {
         crate::mutation_kind::MutationKind::Mutating
     );
     assert_eq!(route.method(), crate::route_method::RouteMethod::Patch);
-    assert_eq!(route.path().as_ref(), "/users/{id}");
+    assert_eq!(route.path().as_ref(), constants_str::USERS_ID);
 }
 #[test]
 fn test_route_error_policy_derives_statuses_from_access_and_mutation() {

@@ -614,7 +614,7 @@ mod tests {
         .expect_err(constants_str::VALUE_371082FA);
         assert_eq!(
             error.to_string(),
-            "errors_with_location variant already has a location field"
+            constants_str::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD
         );
     }
     #[test]
@@ -628,7 +628,7 @@ mod tests {
         .expect_err(constants_str::VALUE_982F4D17);
         assert_eq!(
             error.to_string(),
-            "errors_with_location supports only variants with named fields"
+            constants_str::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS
         );
     }
 }

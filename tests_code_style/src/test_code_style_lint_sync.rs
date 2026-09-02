@@ -172,7 +172,10 @@ fn test_clippy_lint_exceptions_are_unique() {
 #[test]
 fn test_lint_probe_distinguishes_supported_unstable_and_unknown_lints() {
     assert_eq!(
-        probe_lint(constants_str::CLIPPY_DRIVER, "disallowed_fields"),
+        probe_lint(
+            constants_str::CLIPPY_DRIVER,
+            constants_str::SHARED_VALUES_DISALLOWED_FIELDS
+        ),
         LintProbeDisposition::Supported,
         "6bc218de"
     );
@@ -185,7 +188,7 @@ fn test_lint_probe_distinguishes_supported_unstable_and_unknown_lints() {
         "e1437af9"
     );
     assert_eq!(
-        probe_lint(constants_str::RUSTC, "code_style_nonexistent_lint"),
+        probe_lint(constants_str::RUSTC, constants_str::VALUE_373D35D1),
         LintProbeDisposition::Unknown,
         "907ca5d3"
     );

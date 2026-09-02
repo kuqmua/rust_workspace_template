@@ -103,7 +103,9 @@ mod tests {
             Err(crate::bounded_value_error::BoundedValueError::BelowMin { .. })
         ));
         assert!(matches!(
-            crate::bounded_chars_string::BoundedCharsString::<1, 2>::try_from(String::from("abc")),
+            crate::bounded_chars_string::BoundedCharsString::<1, 2>::try_from(String::from(
+                constants_str::ABC_ALT_3
+            )),
             Err(crate::bounded_value_error::BoundedValueError::AboveMax { .. })
         ));
     }

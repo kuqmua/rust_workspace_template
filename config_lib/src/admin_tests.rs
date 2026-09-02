@@ -19,6 +19,6 @@ mod tests {
                 crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::VALUE_535C6F8E)).expect(constants_str::DIAGNOSTIC_01F2DB8A),
             )
             .expect(constants_str::DIAGNOSTIC_80C5DF37);
-        assert_eq!(issuer.as_ref(), "issuer");
+        assert_eq!(issuer.as_ref(), constants_str::VALUE_535C6F8E);
     }
 }

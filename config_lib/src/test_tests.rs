@@ -333,7 +333,7 @@ fn test_parse_required_env_var_maps_missing_env_var_error() {
         parsed,
         Err(ParseRequiredEnvVarTestError::EnvVar {
             env_var_name: crate::env_var_name::EnvVarName::try_from(
-                "CONFIG_LIB_TEST_ENV_VAR_4E8A7F21".to_owned()
+                constants_str::CONFIG_LIB_TEST_ENV_VAR_4E8A7F21.to_owned()
             )
             .unwrap_or_else(crate::env_var_name::EnvVarName::from)
         })
@@ -350,7 +350,7 @@ fn test_parse_required_env_var_maps_parse_error() {
     assert_eq!(
         parsed,
         Err(ParseRequiredEnvVarTestError::Parse {
-            parse: "parse failed"
+            parse: constants_str::PARSE_FAILED
         })
     );
 }

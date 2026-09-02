@@ -512,8 +512,8 @@ mod test_flow {
         assert!(matches!(
         server_admin::create_initial_administrator::create_initial_administrator(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool.0),
-            server_admin_contract::admin_login::AdminLogin::try_from("other_admin".to_owned()).expect(constants_str::DIAGNOSTIC_8359CA1A),
-            server_admin_contract::admin_display_name::AdminDisplayName::try_from("Other Admin".to_owned())
+            server_admin_contract::admin_login::AdminLogin::try_from(constants_str::VALUE_23996F85.to_owned()).expect(constants_str::DIAGNOSTIC_8359CA1A),
+            server_admin_contract::admin_display_name::AdminDisplayName::try_from(constants_str::VALUE_C7DE0670.to_owned())
                 .expect(constants_str::DIAGNOSTIC_D968DDDB),
             repeated_password,
             &hasher,
@@ -685,7 +685,7 @@ mod test_flow {
                 .get_all(http::header::SET_COOKIE)
                 .iter()
                 .filter_map(|value| value.to_str().ok())
-                .any(|value| value.starts_with("admin_refresh_token="))
+                .any(|value| value.starts_with(constants_str::ADMIN_REFRESH_TOKEN_ALT))
         );
         let rotated_refresh = crate::cookie_value(
             super::HttpAdminApiTestResponseRef::from(&refresh_response),
@@ -2956,12 +2956,10 @@ mod test_maintenance {
             constants_usize::ONE
         );
         assert_eq!(
-            sqlx::query_scalar::<_, i64>(
-                "SELECT revision FROM pg_table_optimistic_revision_test WHERE id=1",
-            )
-            .fetch_one(&pool)
-            .await
-            .expect(constants_str::DIAGNOSTIC_C0F01A04),
+            sqlx::query_scalar::<_, i64>(constants_str::VALUE_5A622B1F,)
+                .fetch_one(&pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_C0F01A04),
             constants_i64::ONE
         );
         let stale = sqlx::query_scalar::<_, i64>(update)
@@ -3062,7 +3060,10 @@ mod test_maintenance {
         )
         .await
         .expect(constants_str::DIAGNOSTIC_A422E8D4);
-        assert_eq!(report.total_rows().to_string(), "6");
+        assert_eq!(
+            report.total_rows().to_string(),
+            constants_str::VALUE_E7F6C011
+        );
         let remaining = sqlx::query_as::<_, (i64, i64, i64)>(constants_str::SELECT_SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_SELECT_COUNT_ASTERISK_FROM)
         .fetch_one(&pool)
         .await
@@ -3379,7 +3380,9 @@ mod test_routing {
         assert_eq!(response.status(), http::StatusCode::METHOD_NOT_ALLOWED);
         assert_eq!(
             response.headers().get(http::header::CONTENT_TYPE),
-            Some(&http::HeaderValue::from_static("application/problem+json")),
+            Some(&http::HeaderValue::from_static(
+                constants_str::APPLICATION_PROBLEM_PLUS_JSON
+            )),
         );
     }
     #[tokio::test]
@@ -3408,7 +3411,9 @@ mod test_routing {
         );
         assert_eq!(
             malformed_response.headers().get(http::header::CONTENT_TYPE),
-            Some(&http::HeaderValue::from_static("application/problem+json")),
+            Some(&http::HeaderValue::from_static(
+                constants_str::APPLICATION_PROBLEM_PLUS_JSON
+            )),
         );
         let body_limit = <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::body_limit()
         .expect(constants_str::DIAGNOSTIC_A60751DB)
@@ -3440,7 +3445,9 @@ mod test_routing {
         );
         assert_eq!(
             oversized_response.headers().get(http::header::CONTENT_TYPE),
-            Some(&http::HeaderValue::from_static("application/problem+json")),
+            Some(&http::HeaderValue::from_static(
+                constants_str::APPLICATION_PROBLEM_PLUS_JSON
+            )),
         );
     }
     #[tokio::test]
@@ -3947,16 +3954,21 @@ async fn admin_html_body(response: HttpAdminHtmlTestResponse) -> AdminHtmlTestBo
 }
 fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
     assert!(
-        body.0.contains("id=\"admin-csr-root\""),
+        body.0.contains(constants_str::VALUE_03DEA637),
         "CSR root is missing"
     );
     assert!(
-        body.0
-            .contains("src=\"/admin/assets/admin_csr_application.js?v=20260801-37\""),
+        body.0.contains(constants_str::VALUE_C84BBF51),
         "CSR application script is missing"
     );
-    assert!(!body.0.contains("<table"), "server rendered a data table");
-    assert!(!body.0.contains("<form"), "server rendered a data form");
+    assert!(
+        !body.0.contains(constants_str::VALUE_EA8C92A5),
+        "server rendered a data table"
+    );
+    assert!(
+        !body.0.contains(constants_str::VALUE_C23058ED),
+        "server rendered a data form"
+    );
 }
 #[expect(
     clippy::missing_assert_message,

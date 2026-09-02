@@ -35,11 +35,11 @@ mod tests {
         assert_eq!(parts.len(), 2);
         assert_eq!(
             parts.first().map(ToString::to_string),
-            Some("Vec < Result < A , B > >".to_owned())
+            Some(constants_str::VALUE_4ECF628C.to_owned())
         );
         assert_eq!(
             parts.get(1).map(ToString::to_string),
-            Some("Option < C >".to_owned())
+            Some(constants_str::VALUE_E516A36D.to_owned())
         );
     }
     #[test]
@@ -51,11 +51,11 @@ mod tests {
         assert_eq!(parts.len(), 2);
         assert_eq!(
             parts.first().map(ToString::to_string),
-            Some("SomeType => \"message\"".to_owned())
+            Some(constants_str::VALUE_F70B3C4A.to_owned())
         );
         assert_eq!(
             parts.get(1).map(ToString::to_string),
-            Some("OtherType => format ! (\"{}\" , value)".to_owned())
+            Some(constants_str::VALUE_86A27403.to_owned())
         );
     }
     #[test]
@@ -65,7 +65,7 @@ mod tests {
         });
         assert_eq!(
             quote::quote! {#tokens}.to_string(),
-            "Result < Vec < A > , B >"
+            constants_str::VALUE_7BF22A2B
         );
     }
     #[test]
@@ -81,7 +81,7 @@ mod tests {
                 syn::Error::new(proc_macro2::Span::call_site(), constants_str::DUPLICATE)
             })
             .expect_err(constants_str::CE4826F4);
-        assert_eq!(error.to_string(), "duplicate");
+        assert_eq!(error.to_string(), constants_str::DUPLICATE);
         assert!(values.contains(1u8).get());
     }
 }

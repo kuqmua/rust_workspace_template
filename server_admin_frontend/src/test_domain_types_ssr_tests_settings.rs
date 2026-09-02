@@ -36,11 +36,8 @@ fn test_settings_page_uses_centered_layout_container() {
         server_admin_contract::admin_branding_view::AdminBrandingView::from_settings(&settings);
     let html =
         crate::render_admin_settings_page::render_admin_settings_page(&settings, &admin, &branding);
-    assert!(
-        html.as_ref()
-            .contains("<section class=\"settings-grid\"><div data-name=\"Card\"")
-    );
-    assert!(html.as_ref().contains("class=\"ui-card settings-card "));
+    assert!(html.as_ref().contains(constants_str::VALUE_073C0D6E));
+    assert!(html.as_ref().contains(constants_str::VALUE_2BEB20BD));
 }
 
 #[test]
@@ -109,11 +106,11 @@ fn test_editable_settings_render_every_input_kind_from_the_contract_catalog() {
     let html =
         crate::render_admin_settings_page::render_admin_settings_page(&settings, &admin, &branding);
 
-    assert!(html.as_ref().contains("name=\"site_name\""));
-    assert!(html.as_ref().contains("name=\"main_logo\""));
-    assert!(html.as_ref().contains("type=\"url\""));
-    assert!(html.as_ref().contains("data-name=\"Textarea\""));
-    assert!(html.as_ref().contains("name=\"organization_contacts\""));
-    assert!(html.as_ref().contains(">Support desk</textarea>"));
-    assert!(html.as_ref().contains(">Save settings</button>"));
+    assert!(html.as_ref().contains(constants_str::VALUE_58BBA249));
+    assert!(html.as_ref().contains(constants_str::VALUE_4951C9D3));
+    assert!(html.as_ref().contains(constants_str::VALUE_3F96A519));
+    assert!(html.as_ref().contains(constants_str::VALUE_345DE32F));
+    assert!(html.as_ref().contains(constants_str::VALUE_28A73F84));
+    assert!(html.as_ref().contains(constants_str::VALUE_E1A1A172));
+    assert!(html.as_ref().contains(constants_str::VALUE_ADC2C05B));
 }

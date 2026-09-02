@@ -165,13 +165,13 @@ mod tests {
         let schema = schemars::schema_for!(crate::pg_bounded_vec::PgBoundedVec<u8, 1, 2>);
         assert_eq!(
             schema
-                .get("minItems")
+                .get(constants_str::MINITEMS)
                 .and_then(sqlx::types::JsonValue::as_u64),
             Some(1u64)
         );
         assert_eq!(
             schema
-                .get("maxItems")
+                .get(constants_str::MAXITEMS)
                 .and_then(sqlx::types::JsonValue::as_u64),
             Some(2u64)
         );

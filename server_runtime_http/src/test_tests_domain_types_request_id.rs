@@ -9,7 +9,7 @@ fn test_validates_string_and_header_boundaries() {
         .expect(constants_str::DIAGNOSTIC_3FF39236);
     assert_eq!(request_id.to_string(), maximum);
     assert_eq!(
-        crate::request_id::RequestId::try_from("a".repeat(129usize)),
+        crate::request_id::RequestId::try_from(constants_str::A_ALT.repeat(129usize)),
         Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError::Invalid)
     );
     assert_eq!(

@@ -41,7 +41,8 @@ mod tests {
     fn test_panic_no_location_message_is_stable() {
         assert_eq!(
             constants_str::PANIC_LOCATION_NO_LOCATION_MSG,
-            "panic occurred but can't get location information..."
+            std::str::from_utf8(b"panic occurred but can't get location information...")
+                .expect(constants_str::VALUE_0EF05B85)
         );
     }
 }

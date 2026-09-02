@@ -140,18 +140,20 @@ fn test_optimistic_uo_query_requires_matching_revision() {
 #[test]
 fn test_revision_rejects_invalid_and_negative_values() {
     assert!(matches!(
-        crate::pg_table_revision::PgTableRevision::try_from("invalid".to_owned()),
+        crate::pg_table_revision::PgTableRevision::try_from(constants_str::VALUE_F1234D75.to_owned()),
         Err(crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Invalid(_))
     ));
     assert!(matches!(
-        crate::pg_table_revision::PgTableRevision::try_from("-1".to_owned()),
+        crate::pg_table_revision::PgTableRevision::try_from(constants_str::VALUE_1BAD6B8C.to_owned()),
         Err(crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Negative)
     ));
     assert_eq!(
-        crate::pg_table_revision::PgTableRevision::try_from("7".to_owned())
-            .expect(constants_str::DIAGNOSTIC_63520E0F)
-            .to_string(),
-        "7"
+        crate::pg_table_revision::PgTableRevision::try_from(
+            constants_str::VALUE_7902699B.to_owned()
+        )
+        .expect(constants_str::DIAGNOSTIC_63520E0F)
+        .to_string(),
+        constants_str::VALUE_7902699B
     );
 }
 #[test]
@@ -182,7 +184,7 @@ fn test_generate_um_query_string_wraps_primary_key_selector_for_in_clause() {
         sql(constants_str::DOLLAR_1_DOLLAR_2),
         sql(constants_str::ID_NAME),
     );
-    assert!(v.contains("where id in ($1,$2)"));
+    assert!(v.contains(constants_str::WHERE_ID_IN_DOLLAR_1_DOLLAR_2));
 }
 #[test]
 fn test_generate_delete_query_string_uses_provided_filter_without_rewrite() {

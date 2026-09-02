@@ -140,7 +140,7 @@ async fn test_acquire_permit_distinguishes_available_timeout_and_closed() {
     drop(closed);
     assert_eq!(
         http::HeaderValue::try_from(retry_after).expect(constants_str::DIAGNOSTIC_CB2A239C),
-        http::HeaderValue::from_static("3")
+        http::HeaderValue::from_static(constants_str::VALUE_4E074085)
     );
 }
 

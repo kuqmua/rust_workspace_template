@@ -113,14 +113,14 @@ fn test_runtime_test_crate_detection_uses_test_name_segments() {
 fn test_runtime_test_module_exclusion_uses_test_filename() {
     assert!(
         !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
-            std::path::Path::new("../server_admin_frontend/src/crud_tests.rs")
+            std::path::Path::new(constants_str::VALUE_6C37CAB1)
         ))
         .get(),
         "2e8a5d90"
     );
     assert!(
         crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
-            std::path::Path::new("../server/src/test_helper.rs")
+            std::path::Path::new(constants_str::VALUE_568F0475)
         ))
         .get(),
         "76c1f4b3"
@@ -130,7 +130,7 @@ fn test_runtime_test_module_exclusion_uses_test_filename() {
 fn test_environment_initializer_is_in_runtime_policy_scope() {
     assert!(
         crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
-            std::path::Path::new("../init_env_files/src/initialize.rs")
+            std::path::Path::new(constants_str::VALUE_40BCA356)
         ))
         .get(),
         "86c8a1dd"

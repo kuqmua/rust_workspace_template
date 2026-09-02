@@ -128,13 +128,14 @@ mod tests {
         ));
         assert!(matches!(
             document(&serde_json::json!({
-                constants_str::GEO_JSON_TYPE: "Unsupported"
+                constants_str::GEO_JSON_TYPE: constants_str::VALUE_54324658
             })),
             Err(crate::geo_json_validation_error::GeoJsonValidationError::UnsupportedGeometry)
         ));
         assert!(matches!(
             crate::geo_json_document_text::GeoJsonDocumentText::try_from(
-                " ".repeat(constants_usize::VALUE_16_777_216 + constants_usize::ONE)
+                constants_str::SPACE
+                    .repeat(constants_usize::VALUE_16_777_216 + constants_usize::ONE)
             ),
             Err(crate::geo_json_validation_error::GeoJsonValidationError::TooLarge)
         ));

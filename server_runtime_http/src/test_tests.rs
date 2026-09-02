@@ -163,15 +163,21 @@ async fn test_request_span_uses_remote_parent_and_server_kind() {
             .find(|attribute| attribute.key.as_str() == key)
             .map(|attribute| attribute.value.to_string())
     };
-    assert_eq!(attribute("http.request.method").as_deref(), Some("GET"));
-    assert_eq!(attribute("http.route").as_deref(), Some("/users/{user_id}"));
+    assert_eq!(
+        attribute(constants_str::VALUE_DB4617F9).as_deref(),
+        Some(constants_str::GET)
+    );
+    assert_eq!(
+        attribute(constants_str::VALUE_5798E451).as_deref(),
+        Some(constants_str::VALUE_2C49C991)
+    );
     assert_eq!(
         attribute(constants_str::OTEL_HTTP_RESPONSE_STATUS_CODE).as_deref(),
-        Some("200")
+        Some(constants_str::STATUS_OK)
     );
     assert_eq!(
         attribute(constants_str::OTEL_SERVER_ADDRESS).as_deref(),
-        Some("127.0.0.1:8080")
+        Some(constants_str::VALUE_127_0_0_1_8080)
     );
     assert_eq!(
         attribute(constants_str::OTEL_CLIENT_ADDRESS).as_deref(),
@@ -179,7 +185,7 @@ async fn test_request_span_uses_remote_parent_and_server_kind() {
     );
     assert_eq!(
         attribute(constants_str::OTEL_SERVICE_NAME).as_deref(),
-        Some("server-runtime-test")
+        Some(constants_str::VALUE_00BCCC04)
     );
     assert_eq!(
         attribute(constants_str::OTEL_TRACE_ID).as_deref(),
@@ -271,15 +277,15 @@ async fn test_request_span_limits_url_path_and_records_error_telemetry() {
     };
     assert_eq!(
         status_attribute(constants_str::OTEL_URL_PATH).as_deref(),
-        Some("/status")
+        Some(constants_str::STATUS)
     );
     assert_eq!(
         status_attribute(constants_str::OTEL_ERROR_TYPE).as_deref(),
-        Some("persistence.error")
+        Some(constants_str::VALUE_E4FA4A90)
     );
     assert_eq!(
         status_attribute(constants_str::OTEL_ERROR_CODE).as_deref(),
-        Some("database_unavailable")
+        Some(constants_str::VALUE_69C4B56B)
     );
     let unmatched_span = spans
         .iter()
@@ -289,7 +295,7 @@ async fn test_request_span_limits_url_path_and_records_error_telemetry() {
         unmatched_span
             .attributes
             .iter()
-            .all(|attribute| attribute.value.to_string() != "/missing/private-123")
+            .all(|attribute| attribute.value.to_string() != constants_str::VALUE_3BAC991E)
     );
     assert!(
         unmatched_span
@@ -352,7 +358,7 @@ async fn test_http_boundary_emits_one_complete_error_event_only_for_server_error
         diagnostic
             .error_chain_text()
             .to_string()
-            .contains("boundary test operation failed: nested source")
+            .contains(constants_str::VALUE_7B58171D)
     );
     assert!(!diagnostic.backtrace().to_string().is_empty());
     assert!(!diagnostic.span_trace().to_string().is_empty());

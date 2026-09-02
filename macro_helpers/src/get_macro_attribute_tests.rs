@@ -17,7 +17,7 @@ mod tests {
         assert!(
             quote::quote! {#attr}
                 .to_string()
-                .contains("sqlx :: type_name")
+                .contains(constants_str::SQLX_PATH_TYPE_NAME)
         );
     }
     #[test]
@@ -25,20 +25,27 @@ mod tests {
         let attrs = attrs();
         let ts = crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::SERDE)
             .expect(constants_str::DIAGNOSTIC_647B0C3E);
-        assert_eq!(ts.to_string(), "default");
+        assert_eq!(ts.to_string(), constants_str::VALUE_37A8EEC1);
     }
     #[test]
     fn test_find_macro_attr_returns_none_when_path_not_present() {
         let attrs = attrs();
         assert!(
-            crate::find_macro_attribute::find_macro_attribute(&attrs, "missing::attr").is_none()
+            crate::find_macro_attribute::find_macro_attribute(
+                &attrs,
+                constants_str::VALUE_947920D8
+            )
+            .is_none()
         );
     }
     #[test]
     fn test_try_get_macro_attr_returns_error_when_attr_not_found() {
         let attrs = attrs();
         assert_eq!(
-            crate::try_get_macro_attribute::try_get_macro_attribute(&attrs, "missing::attr"),
+            crate::try_get_macro_attribute::try_get_macro_attribute(
+                &attrs,
+                constants_str::VALUE_947920D8
+            ),
             Err(crate::macro_attr_error::MacroAttrError::NoAttr)
         );
     }
@@ -46,7 +53,7 @@ mod tests {
     fn test_try_get_macro_attr_meta_list_token_stream_returns_error_for_non_list_attr() {
         let attrs = vec![syn::parse_quote!(#[allow])];
         assert!(matches!(
-            crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, "allow"),
+            crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::VALUE_41008373),
             Err(crate::macro_attr_error::MacroAttrError::AttrNotList)
         ));
     }

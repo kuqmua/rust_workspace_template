@@ -12,15 +12,15 @@ mod tests {
         let value = crate::project_name_ref::ProjectNameRef::from(constants_str::VALUE_F9EA74B8);
         assert_eq!(
             crate::naming_kebab_case::naming_kebab_case(value).as_ref(),
-            "order-platform"
+            constants_str::VALUE_77A8A329
         );
         assert_eq!(
             crate::naming_title_case::naming_title_case(value).as_ref(),
-            "Order Platform"
+            constants_str::VALUE_3EEF5CDE
         );
         assert_eq!(
             crate::naming_upper_camel_case::naming_upper_camel_case(value).as_ref(),
-            "OrderPlatform"
+            constants_str::VALUE_6B0B0F05
         );
     }
 }

@@ -199,7 +199,7 @@ fn test_route_contract_keeps_custom_action_policy_and_path_together() {
     let route = crate::admin_route::AdminRoute::SetUserBan(
         crate::admin_user_id::AdminUserId::try_from(7).expect(constants_str::DIAGNOSTIC_8BED843C),
     );
-    assert_eq!(route.path().as_ref(), "/v1/admin/users/7/ban");
+    assert_eq!(route.path().as_ref(), constants_str::VALUE_FC4871BE);
     assert_eq!(
         route.contract().method(),
         frontend_contract::route_method::RouteMethod::Post
@@ -232,54 +232,54 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
     let path = crate::admin_parameterized_route_path::admin_parameterized_route_path::<
         crate::admin_revoke_session_route::AdminRevokeSessionRoute,
     >(&session_id);
-    assert_eq!(path.as_ref(), "/v1/admin/auth/sessions/test-session");
+    assert_eq!(path.as_ref(), constants_str::VALUE_C0FE54AF);
     assert_eq!(
         String::from(crate::admin_data_table_route::read_data_table_route(
             &crate::admin_data_table::AdminDataTable::Roles
         )),
-        "/tables/roles"
+        constants_str::VALUE_BCEDACF8
     );
     assert_eq!(
         String::from(crate::admin_delete_role_route::delete_role_route(&role_id)),
-        "/roles/7"
+        constants_str::VALUE_5DE652EF
     );
     assert_eq!(
         String::from(crate::admin_delete_user_route::delete_user_route(&user_id)),
-        "/users/8"
+        constants_str::VALUE_769BBFA3
     );
     assert_eq!(
         String::from(crate::admin_revoke_session_route::revoke_session_route(
             &session_id
         )),
-        "/auth/sessions/test-session"
+        constants_str::VALUE_FEF7B989
     );
     assert_eq!(
         String::from(crate::admin_set_role_permissions_route::set_role_permissions_route(&role_id)),
-        "/roles/7/permissions"
+        constants_str::VALUE_BF4EA24D
     );
     assert_eq!(
         String::from(crate::admin_set_user_ban_route::set_user_ban_route(
             &user_id
         )),
-        "/users/8/ban"
+        constants_str::VALUE_761F4C43
     );
     assert_eq!(
         String::from(crate::admin_set_user_password_route::set_user_password_route(&user_id)),
-        "/users/8/password"
+        constants_str::VALUE_21E2A4C7
     );
     assert_eq!(
         String::from(crate::admin_set_user_roles_route::set_user_roles_route(
             &user_id
         )),
-        "/users/8/roles"
+        constants_str::VALUE_EF3D9D78
     );
     assert_eq!(
         String::from(crate::admin_update_role_route::update_role_route(&role_id)),
-        "/roles/7"
+        constants_str::VALUE_5DE652EF
     );
     assert_eq!(
         String::from(crate::admin_update_user_route::update_user_route(&user_id)),
-        "/users/8"
+        constants_str::VALUE_769BBFA3
     );
 }
 #[test]
@@ -296,7 +296,7 @@ fn test_html_action_inventory_has_unique_paths() {
 #[test]
 fn test_open_api_page_uses_the_typed_authenticated_api_route() {
     let route = crate::admin_route::AdminRoute::OpenApi;
-    assert_eq!(route.path().as_ref(), "/v1/admin/openapi.json");
+    assert_eq!(route.path().as_ref(), constants_str::VALUE_72ACA5B8);
     assert_eq!(
         route.contract().authentication(),
         frontend_contract::authentication_requirement::AuthenticationRequirement::Permission(
@@ -324,7 +324,7 @@ fn test_open_api_page_uses_the_typed_authenticated_api_route() {
 fn test_removed_audit_log_page_is_not_a_frontend_route() {
     assert_eq!(
         crate::admin_page::AdminPage::from_path(
-            crate::admin_page_path_ref::AdminPagePathRef::from("/admin/audit-log")
+            crate::admin_page_path_ref::AdminPagePathRef::from(constants_str::VALUE_FF160115)
         ),
         None
     );
@@ -376,19 +376,19 @@ fn test_administrator_routes_use_snake_case_segments() {
 fn test_administrator_crud_frontend_paths_are_dedicated_pages() {
     assert_eq!(
         crate::admin_frontend_path::AdminFrontendPath::UsersCreate.get(),
-        "/admin/users/create"
+        constants_str::VALUE_846D4734
     );
     assert_eq!(
         crate::admin_frontend_path::AdminFrontendPath::UsersManage.get(),
-        "/admin/users/manage"
+        constants_str::VALUE_EE7B8FDF
     );
     assert_eq!(
         crate::admin_frontend_path::AdminFrontendPath::RolesCreate.get(),
-        "/admin/roles/create"
+        constants_str::VALUE_948D5A6C
     );
     assert_eq!(
         crate::admin_frontend_path::AdminFrontendPath::RolesManage.get(),
-        "/admin/roles/manage"
+        constants_str::VALUE_49F831CD
     );
 }
 #[test]
@@ -501,19 +501,19 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             .map(|page| page.spec().route_name().to_string())
             .collect::<Vec<_>>(),
         [
-            String::from("swagger_ui"),
-            String::from("metrics"),
-            String::from("profile"),
-            String::from("sessions"),
-            String::from("settings"),
-            String::from("version"),
+            String::from(constants_str::VALUE_E16D1963),
+            String::from(constants_str::VALUE_177A7EA3),
+            String::from(constants_str::VALUE_1900EAB6),
+            String::from(constants_str::SESSIONS),
+            String::from(constants_str::VALUE_CDE0FB0D),
+            String::from(constants_str::VERSION_ALT_3),
         ]
     );
     assert_eq!(
         crate::admin_html_action::AdminHtmlAction::SignOut
             .route_name()
             .as_ref(),
-        "sign_out"
+        constants_str::SIGN_OUT
     );
     assert_eq!(
         frontend_contract::route_registration_contract::RouteRegistrationContract::method(
@@ -558,18 +558,18 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
         crate::admin_data_table::AdminDataTable::PG_ORDER
             .map(|table| table.frontend_path().to_string()),
         [
-            String::from("/admin/users"),
-            String::from("/admin/roles"),
-            String::from("/admin/permissions"),
-            String::from("/admin/user_roles"),
-            String::from("/admin/role_permissions"),
-            String::from("/admin/refresh_tokens"),
-            String::from("/admin/access_sessions"),
-            String::from("/admin/login_attempts"),
-            String::from("/admin/audit_log"),
-            String::from("/admin/system_settings"),
-            String::from("/admin/rate_limits"),
-            String::from("/admin/cleanup_status"),
+            String::from(constants_str::VALUE_074B6E5E),
+            String::from(constants_str::VALUE_DB2C56E6),
+            String::from(constants_str::VALUE_84ECA72B),
+            String::from(constants_str::VALUE_6B410750),
+            String::from(constants_str::VALUE_1199CAE6),
+            String::from(constants_str::VALUE_00257BE7),
+            String::from(constants_str::VALUE_72DD61BC),
+            String::from(constants_str::VALUE_1C0E5BAF),
+            String::from(constants_str::VALUE_6F080C29),
+            String::from(constants_str::VALUE_760FE0DF),
+            String::from(constants_str::VALUE_20F6A07F),
+            String::from(constants_str::VALUE_72852DE9),
         ]
     );
     crate::admin_data_table::AdminDataTable::ALL
@@ -602,17 +602,23 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
                 ),
                 Some(table)
             );
-            assert!(table.permission().as_str().get().ends_with(":read"));
+            assert!(
+                table
+                    .permission()
+                    .as_str()
+                    .get()
+                    .ends_with(constants_str::VALUE_AFAFDEB2)
+            );
         });
     assert_eq!(
         crate::admin_data_table::AdminDataTable::from_frontend_path(
-            crate::admin_page_path_ref::AdminPagePathRef::from("/admin/tables",)
+            crate::admin_page_path_ref::AdminPagePathRef::from(constants_str::VALUE_596AD841,)
         ),
         None
     );
     assert_eq!(
         crate::admin_data_table::AdminDataTable::from_frontend_path(
-            crate::admin_page_path_ref::AdminPagePathRef::from("/admin/profile",)
+            crate::admin_page_path_ref::AdminPagePathRef::from(constants_str::VALUE_D23F03FD,)
         ),
         None
     );

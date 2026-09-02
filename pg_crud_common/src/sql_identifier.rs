@@ -78,8 +78,8 @@ mod tests {
         );
         let first = builder.build();
         let second = builder.build();
-        assert_eq!(first.into_inner(), "SELECT id, login FROM public.users");
-        assert_eq!(second.into_inner(), "SELECT id, login FROM public.users");
+        assert_eq!(first.into_inner(), constants_str::VALUE_F0B7B783);
+        assert_eq!(second.into_inner(), constants_str::VALUE_F0B7B783);
     }
     #[test]
     fn test_benchmark_black_box_dependency_is_available() {

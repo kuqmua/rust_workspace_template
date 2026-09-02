@@ -21,8 +21,12 @@ mod tests {
     #[test]
     fn test_joins_borrowed_text_without_an_intermediate_collection() {
         assert_eq!(
-            crate::join_text::join_text(["reader", "editor"]).as_ref(),
-            "reader, editor"
+            crate::join_text::join_text([
+                constants_str::VALUE_3D094196,
+                constants_str::VALUE_1553CC62
+            ])
+            .as_ref(),
+            constants_str::VALUE_1CF2045F
         );
         assert!(
             crate::join_text::join_text(std::iter::empty::<&str>())

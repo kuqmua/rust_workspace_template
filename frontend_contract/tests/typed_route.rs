@@ -142,10 +142,10 @@ mod tests {
             .components
             .expect(constants_str::DIAGNOSTIC_307E6E5F)
             .schemas;
-        assert!(schemas.contains_key("TestRequest"));
-        assert!(schemas.contains_key("TestResponse"));
-        assert!(schemas.contains_key("TestErrorResponse"));
-        assert!(schemas.contains_key("ApiProblem"));
+        assert!(schemas.contains_key(constants_str::VALUE_AD93C9A5));
+        assert!(schemas.contains_key(constants_str::VALUE_BEF5654C));
+        assert!(schemas.contains_key(constants_str::VALUE_7789EA8F));
+        assert!(schemas.contains_key(constants_str::VALUE_7FB184D0));
     }
 
     #[test]

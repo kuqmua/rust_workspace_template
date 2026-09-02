@@ -8,7 +8,9 @@ mod tests {
         .expect(constants_str::DIAGNOSTIC_85A01FBD);
         assert_eq!(*body_limit, constants_usize::ONE);
         assert!(matches!(
-            crate::content_security_policy::ContentSecurityPolicy::try_from(String::from("\n")),
+            crate::content_security_policy::ContentSecurityPolicy::try_from(String::from(
+                constants_str::NEWLINE
+            )),
             Err(crate::content_security_policy_error::ContentSecurityPolicyError::Empty)
         ));
     }

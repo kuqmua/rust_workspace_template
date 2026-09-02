@@ -63,8 +63,8 @@ mod tests {
             constants_str::SECRET_VALUE,
         ));
         let debug = format!("{command:?}");
-        assert!(debug.contains("printf"));
-        assert!(debug.contains("<redacted>"));
-        assert!(!debug.contains("secret-value"));
+        assert!(debug.contains(constants_str::PRINTF));
+        assert!(debug.contains(constants_str::REDACTED));
+        assert!(!debug.contains(constants_str::SECRET_VALUE));
     }
 }

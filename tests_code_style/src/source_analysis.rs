@@ -2769,31 +2769,6 @@ pub(super) struct StringConstantVisitor {
     proc_macro_getters::Getters,
     proc_macro_new::New,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-)]
-pub(super) struct ExpectStringConstantVisitor {
-    ers: crate::types::DiagnosticMsgs,
-}
-
-impl<'ast> syn::visit::Visit<'ast> for ExpectStringConstantVisitor {
-    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if matches!(
-            i.method.to_string().as_str(),
-            stringify!(expect) | stringify!(expect_err)
-        ) {
-            let mut visitor = StringConstantVisitor::new(crate::types::DiagnosticMsgs::default());
-            i.args
-                .iter()
-                .for_each(|argument| syn::visit::Visit::visit_expr(&mut visitor, argument));
-            self.ers.extend(visitor.ers);
-        }
-        syn::visit::visit_expr_method_call(self, i);
-    }
-}
-
-#[derive(
-    proc_macro_getters::Getters,
-    proc_macro_new::New,
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Default,
 )]
 pub(super) struct TracingMessageLiteralVisitor {
@@ -2888,6 +2863,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         ) {
             let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated;
             if let Ok(expressions) = syn::parse::Parser::parse2(parser, i.tokens.clone()) {
+                let mut visitor = Self::new(crate::types::DiagnosticMsgs::default());
                 let required_expression_count = if matches!(
                     macro_name.as_str(),
                     constants_str::SHARED_VALUES_ASSERT | constants_str::SHARED_VALUES_DEBUG_ASSERT
@@ -2896,8 +2872,6 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
                 } else {
                     constants_usize::TWO
                 };
-                let mut visitor =
-                    ExpectStringConstantVisitor::new(crate::types::DiagnosticMsgs::default());
                 expressions
                     .iter()
                     .take(required_expression_count)

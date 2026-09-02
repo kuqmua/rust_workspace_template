@@ -39,8 +39,9 @@ mod tests {
     #[test]
     fn test_registered_route_path_preserves_the_static_path() {
         assert_eq!(
-            crate::registered_route_path::RegisteredRoutePath::from("/health").get(),
-            "/health"
+            crate::registered_route_path::RegisteredRoutePath::from(constants_str::VALUE_0587C50E)
+                .get(),
+            constants_str::VALUE_0587C50E
         );
     }
 }

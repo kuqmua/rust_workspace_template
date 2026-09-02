@@ -18,10 +18,7 @@ mod tests {
         let source = std::error::Error::source(&error).expect(constants_str::DIAGNOSTIC_C9D460E5);
 
         assert_eq!(source.to_string(), constants_str::ERROR);
-        assert_eq!(
-            error.to_string(),
-            "failed to bind PostgreSQL query parameter"
-        );
+        assert_eq!(error.to_string(), constants_str::VALUE_0EC41F4B);
         assert_eq!(
             source
                 .source()

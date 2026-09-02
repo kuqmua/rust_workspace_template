@@ -53,7 +53,9 @@ mod tests {
         )
         .expect(constants_str::DIAGNOSTIC_C1B07056);
         assert_eq!(
-            crate::http_metrics_path_text::HttpMetricsPathText::try_from("a".repeat(8_193usize)),
+            crate::http_metrics_path_text::HttpMetricsPathText::try_from(
+                constants_str::A_ALT.repeat(8_193usize)
+            ),
             Err(crate::http_metrics_path_text_error::HttpMetricsPathTextError)
         );
     }

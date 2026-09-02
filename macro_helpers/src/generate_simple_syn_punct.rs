@@ -38,14 +38,14 @@ mod tests {
         ]);
         assert_eq!(
             quote::quote! {#punct}.to_string(),
-            "std :: string :: String"
+            constants_str::VALUE_D2C03C32
         );
     }
     #[test]
     fn test_generate_simple_syn_punct_builds_single_segment_path() {
         let punct =
             crate::generate_simple_syn_punct::generate_simple_syn_punct([constants_str::ONLY]);
-        assert_eq!(quote::quote! {#punct}.to_string(), "Only");
+        assert_eq!(quote::quote! {#punct}.to_string(), constants_str::ONLY);
     }
     #[test]
     fn test_generate_simple_syn_punct_returns_empty_path_on_empty_input() {

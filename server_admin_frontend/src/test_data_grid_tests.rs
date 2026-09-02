@@ -73,19 +73,19 @@ fn test_data_grid() {
         crate::data_table_grid::data_table_grid(&view, &default_query),
     );
 
-    assert!(html.as_ref().contains("data-field=\"id\""));
-    assert!(html.as_ref().contains("data-name=\"TableWrapper\""));
-    assert!(html.as_ref().contains("data-name=\"TableHeader\""));
-    assert!(html.as_ref().contains("data-name=\"TableBody\""));
-    assert!(html.as_ref().contains("data-name=\"TableRow\""));
-    assert!(html.as_ref().contains("data-name=\"TableHead\""));
-    assert!(html.as_ref().contains("data-name=\"TableCell\""));
-    assert!(html.as_ref().contains("data-filter-count=\"0\""));
-    assert!(html.as_ref().contains("data-filter-count=\"3\""));
-    assert!(html.as_ref().contains(">User identifier</span>"));
-    assert!(html.as_ref().contains("numeric-cell"));
-    assert!(html.as_ref().contains("data-label=\"Login name\""));
-    assert!(!html.as_ref().contains("class=\"table-column-filter\""));
+    assert!(html.as_ref().contains(constants_str::VALUE_469219C9));
+    assert!(html.as_ref().contains(constants_str::VALUE_846B8D6B));
+    assert!(html.as_ref().contains(constants_str::VALUE_31819FEE));
+    assert!(html.as_ref().contains(constants_str::VALUE_8886AF1E));
+    assert!(html.as_ref().contains(constants_str::VALUE_38C2F107));
+    assert!(html.as_ref().contains(constants_str::VALUE_447968F6));
+    assert!(html.as_ref().contains(constants_str::VALUE_0702D49A));
+    assert!(html.as_ref().contains(constants_str::VALUE_7CA6DA11));
+    assert!(html.as_ref().contains(constants_str::VALUE_0F228174));
+    assert!(html.as_ref().contains(constants_str::VALUE_50E5C8E7));
+    assert!(html.as_ref().contains(constants_str::VALUE_80DFAFAE));
+    assert!(html.as_ref().contains(constants_str::VALUE_ED7335DF));
+    assert!(!html.as_ref().contains(constants_str::VALUE_B2F8E281));
 
     let query = server_admin_contract::admin_data_table_query::AdminDataTableQuery::new(
         server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
@@ -112,14 +112,18 @@ fn test_data_grid() {
     assert!(
         filters_html
             .as_ref()
-            .contains("class=\"table-column-heading\"")
+            .contains(constants_str::VALUE_B67A1896)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains("class=\"table-column-filter\"")
+            .contains(constants_str::VALUE_B2F8E281)
     );
-    assert!(!filters_html.as_ref().contains("table-filter-tools"));
+    assert!(
+        !filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_A01DB716)
+    );
     let (_before_login, login_tail) = filters_html
         .as_ref()
         .split_once(constants_str::VALUE_3837854C)
@@ -127,10 +131,10 @@ fn test_data_grid() {
     let (login_header, _after_login) = login_tail
         .split_once(constants_str::VALUE_25C350AC)
         .expect(constants_str::DIAGNOSTIC_E8120A92);
-    assert!(login_header.contains("class=\"table-column-filter\""));
-    assert!(login_header.contains("data-name=\"Popover\""));
-    assert!(login_header.contains("data-name=\"PopoverContent\""));
-    assert!(login_header.contains("data-name=\"RadioButtonGroup\""));
+    assert!(login_header.contains(constants_str::VALUE_B2F8E281));
+    assert!(login_header.contains(constants_str::VALUE_EDC93DB7));
+    assert!(login_header.contains(constants_str::VALUE_68BB5D51));
+    assert!(login_header.contains(constants_str::VALUE_802A0142));
     let (_before_id, id_tail) = filters_html
         .as_ref()
         .split_once(constants_str::VALUE_469219C9)
@@ -138,53 +142,117 @@ fn test_data_grid() {
     let (id_header, _after_id) = id_tail
         .split_once(constants_str::VALUE_25C350AC)
         .expect(constants_str::DIAGNOSTIC_58CDF783);
-    assert!(!id_header.contains("class=\"table-column-filter\""));
+    assert!(!id_header.contains(constants_str::VALUE_B2F8E281));
     assert!(
         filters_html
             .as_ref()
-            .contains("aria-label=\"Filter Login name\"")
+            .contains(constants_str::VALUE_1665AC0E)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains("popover=\"auto\" role=\"dialog\"")
-    );
-    assert!(filters_html.as_ref().contains(">Filter by Login name</h2>"));
-    assert!(
-        filters_html
-            .as_ref()
-            .contains("class=\"table-filter-header\"><h2>Filter by Login name</h2></div>")
+            .contains(constants_str::VALUE_96BBC0EC)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains("popovertargetaction=\"hide\"")
+            .contains(constants_str::VALUE_D641BA27)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains("name=\"filter_field\" value=\"login\"")
+            .contains(constants_str::VALUE_6FB367C6)
     );
-    assert!(filters_html.as_ref().contains("name=\"filter_operation\""));
-    assert!(filters_html.as_ref().contains("value=\"eq\""));
-    assert!(filters_html.as_ref().contains("value=\"regex\""));
-    assert!(filters_html.as_ref().contains("name=\"filter_value\""));
-    assert!(filters_html.as_ref().contains("type=\"text\""));
-    assert!(filters_html.as_ref().contains("value=\"alice\""));
     assert!(
         filters_html
             .as_ref()
-            .contains("singlestage-label table-filter-input-label")
+            .contains(constants_str::VALUE_1C61CF88)
     );
-    assert!(filters_html.as_ref().contains("<span>Value</span>"));
-    assert!(filters_html.as_ref().contains("data-name=\"Input\""));
-    assert!(!filters_html.as_ref().contains("placeholder=\"Value\""));
-    assert!(filters_html.as_ref().contains("<span>Start</span>"));
-    assert!(filters_html.as_ref().contains("<span>End</span>"));
-    assert!(filters_html.as_ref().contains("placeholder=\"Start\""));
-    assert!(filters_html.as_ref().contains("name=\"filter_end\""));
-    assert!(filters_html.as_ref().contains("placeholder=\"End\""));
-    assert!(filters_html.as_ref().contains(">Clear</a>"));
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_E7A7CF18)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_5CAEF150)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_AC56ED1F)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_C7C36CF4)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_D241380B)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_26B901BB)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_022ECEBF)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_DDF681C4)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_FF2F6A65)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_FEA2007C)
+    );
+    assert!(
+        !filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_D8E97E9A)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_8C4051D1)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_69FA33B8)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_E1FD30CF)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_F37D548A)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_F969D2DE)
+    );
+    assert!(
+        filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_BD7A6256)
+    );
     let apply_position = filters_html
         .as_ref()
         .find(constants_str::VALUE_38228244)
@@ -203,25 +271,36 @@ fn test_data_grid() {
     assert_eq!(
         filters_html
             .as_ref()
-            .matches("action=\"/admin/role_permissions\"")
+            .matches(constants_str::VALUE_AC55DE88)
             .count(),
         constants_usize::ONE
     );
     assert_eq!(
-        filters_html.as_ref().matches(">Apply</button>").count(),
+        filters_html
+            .as_ref()
+            .matches(constants_str::VALUE_38228244)
+            .count(),
         constants_usize::ONE
     );
     assert!(
         filters_html
             .as_ref()
-            .contains("href=\"/admin/role_permissions\"")
+            .contains(constants_str::VALUE_FDB71479)
     );
-    assert!(!filters_html.as_ref().contains("name=\"table\""));
-    assert!(!filters_html.as_ref().contains("?table="));
+    assert!(
+        !filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_155A24DE)
+    );
+    assert!(
+        !filters_html
+            .as_ref()
+            .contains(constants_str::VALUE_5EBA168E)
+    );
     assert_eq!(
         filters_html
             .as_ref()
-            .matches("class=\"table-filter-form\"")
+            .matches(constants_str::VALUE_939560A4)
             .count(),
         constants_usize::ONE
     );
@@ -234,14 +313,10 @@ fn test_data_grid() {
         &admin,
         &branding,
     );
-    assert!(page_html.as_ref().contains("data-field=\"login\""));
-    assert!(
-        page_html
-            .as_ref()
-            .contains("action=\"/admin/role_permissions\"")
-    );
+    assert!(page_html.as_ref().contains(constants_str::VALUE_3837854C));
+    assert!(page_html.as_ref().contains(constants_str::VALUE_AC55DE88));
     let empty_html = crate::render_data_tables::render_data_tables(None, &query, &admin, &branding);
-    assert!(!empty_html.as_ref().contains("class=\"table-scroll\""));
+    assert!(!empty_html.as_ref().contains(constants_str::VALUE_BBB98D48));
     assert!(
         empty_html
             .as_ref()

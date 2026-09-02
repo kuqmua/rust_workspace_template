@@ -54,7 +54,11 @@ mod tests {
         let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
         );
-        assert!(generated.to_string().contains("35d30bd7"));
+        assert!(
+            generated
+                .to_string()
+                .contains(constants_str::VALUE_3490DFE2)
+        );
     }
     #[test]
     fn test_unknown_frontend_option_is_rejected_during_generation() {
@@ -65,7 +69,11 @@ mod tests {
         let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
         );
-        assert!(generated.to_string().contains("bc1d3b08"));
+        assert!(
+            generated
+                .to_string()
+                .contains(constants_str::VALUE_03D31649)
+        );
     }
     #[test]
     #[cfg_attr(
@@ -80,11 +88,11 @@ mod tests {
             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
         )
         .to_string();
-        assert!(generated.contains("pg_table_requests_total"));
-        assert!(generated.contains("\"table\" => \"table_example\""));
-        assert!(generated.contains("\"status\" => \"409\""));
-        assert!(generated.contains("\"status\" => \"425\""));
-        assert!(!generated.contains("\"table\" => table_owned"));
+        assert!(generated.contains(constants_str::VALUE_7D441FF7));
+        assert!(generated.contains(constants_str::VALUE_DAA8E501));
+        assert!(generated.contains(constants_str::VALUE_C3E6615B));
+        assert!(generated.contains(constants_str::VALUE_F8E6EF62));
+        assert!(!generated.contains(constants_str::VALUE_6D06D33A));
     }
     #[test]
     #[cfg_attr(

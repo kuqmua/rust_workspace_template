@@ -1,17 +1,20 @@
 #[test]
 fn test_server_rendered_pages_contain_forms_and_no_scripts() {
     let sign_in = crate::render_sign_in::render_sign_in(None, None);
-    assert!(sign_in.as_ref().contains("<form method=\"post\""));
-    assert!(!sign_in.as_ref().contains("TOTP"));
-    assert!(!sign_in.as_ref().contains("recovery code"));
+    assert!(sign_in.as_ref().contains(constants_str::VALUE_675DDC50));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_DE15FB4A));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_A684F0EC));
     assert_eq!(
-        sign_in.as_ref().matches("<form method=\"post\"").count(),
+        sign_in
+            .as_ref()
+            .matches(constants_str::VALUE_675DDC50)
+            .count(),
         constants_usize::ONE
     );
-    assert!(!sign_in.as_ref().contains("<h1"));
-    assert!(!sign_in.as_ref().contains("<h2"));
-    assert!(!sign_in.as_ref().contains("<script"));
-    assert!(!sign_in.as_ref().contains(".wasm"));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_F7EB3699));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_0350DB6E));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_5D74223D));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_0DA7C218));
     let failed_sign_in = crate::render_sign_in::render_sign_in(
         Some(
             crate::admin_ssr_error_message::AdminSsrErrorMessage::try_from(String::from(
@@ -24,23 +27,27 @@ fn test_server_rendered_pages_contain_forms_and_no_scripts() {
     assert!(
         failed_sign_in
             .as_ref()
-            .contains("Invalid credentials</div>")
+            .contains(constants_str::VALUE_D51D67DA)
     );
-    assert!(failed_sign_in.as_ref().contains("role=\"alert\""));
+    assert!(
+        failed_sign_in
+            .as_ref()
+            .contains(constants_str::VALUE_88B7E010)
+    );
 
     let page = crate::render_admin_page::render_admin_page(
         server_admin_contract::admin_page::AdminPage::Users,
         crate::admin_ssr_html::AdminSsrHtml::try_from(String::from(constants_str::VALUE_91B66961))
             .expect(constants_str::DIAGNOSTIC_C78BD3A1),
     );
-    assert!(page.as_ref().contains("<p>ready</p>"));
-    assert!(!page.as_ref().contains("<h1"));
-    assert!(!page.as_ref().contains("<h2"));
-    assert!(!page.as_ref().contains("class=\"brand\""));
-    assert!(!page.as_ref().contains("nav-dot"));
-    assert!(page.as_ref().contains(">swagger_ui</a>"));
-    assert!(page.as_ref().contains(">settings</a>"));
-    assert!(!page.as_ref().contains(">api</a>"));
+    assert!(page.as_ref().contains(constants_str::VALUE_91B66961));
+    assert!(!page.as_ref().contains(constants_str::VALUE_F7EB3699));
+    assert!(!page.as_ref().contains(constants_str::VALUE_0350DB6E));
+    assert!(!page.as_ref().contains(constants_str::VALUE_86DA447D));
+    assert!(!page.as_ref().contains(constants_str::VALUE_F1D07BED));
+    assert!(page.as_ref().contains(constants_str::VALUE_6B793D02));
+    assert!(page.as_ref().contains(constants_str::VALUE_8DE14560));
+    assert!(!page.as_ref().contains(constants_str::VALUE_A47845FB));
     assert!(
         page.as_ref().contains(
             format!(
@@ -52,7 +59,7 @@ fn test_server_rendered_pages_contain_forms_and_no_scripts() {
             .as_str()
         )
     );
-    assert!(!page.as_ref().contains("<script"));
+    assert!(!page.as_ref().contains(constants_str::VALUE_5D74223D));
 }
 
 #[test]
@@ -78,8 +85,10 @@ fn test_header_table_labels_match_table_names_and_routes() {
                     .as_ref()
                     .split_once(href.as_str())
                     .and_then(|(_prefix, link_tail)| link_tail.split_once('>'))
-                    .and_then(|(_attributes, label_tail)| label_tail.split_once("</a>"))
-                    .map_or("", |(label, _suffix)| label);
+                    .and_then(|(_attributes, label_tail)| {
+                        label_tail.split_once(constants_str::VALUE_ECD5B806)
+                    })
+                    .map_or(constants_str::EMPTY, |(label, _suffix)| label);
 
                 route_name == table_name && header_label == table_name
             })
@@ -126,8 +135,8 @@ fn test_header_items_stay_stable_between_static_and_table_pages() {
 
     assert!(!metrics_header.is_empty());
     assert_eq!(metrics_header, cleanup_status_header);
-    assert!(metrics_header.contains(">swagger_ui</a>"));
-    assert!(!metrics_header.contains(">api</a>"));
+    assert!(metrics_header.contains(constants_str::VALUE_6B793D02));
+    assert!(!metrics_header.contains(constants_str::VALUE_A47845FB));
 }
 
 #[test]
@@ -173,26 +182,19 @@ fn test_csr_page_contains_only_csr_application_shell() {
         &branding,
     );
 
-    assert!(html.as_ref().contains("id=\"admin-csr-root\""));
-    assert!(html.as_ref().contains("loading-spinner size-4"));
-    assert!(html.as_ref().contains("aria-live=\"polite\""));
-    assert!(
-        html.as_ref()
-            .contains("src=\"/admin/assets/admin_csr_application.js?v=20260801-37\"")
-    );
-    assert!(!html.as_ref().contains("<nav"));
-    assert!(!html.as_ref().contains("<table"));
-    assert!(!html.as_ref().contains("<form"));
+    assert!(html.as_ref().contains(constants_str::VALUE_03DEA637));
+    assert!(html.as_ref().contains(constants_str::VALUE_1F65EE47));
+    assert!(html.as_ref().contains(constants_str::VALUE_775BF65E));
+    assert!(html.as_ref().contains(constants_str::VALUE_C84BBF51));
+    assert!(!html.as_ref().contains(constants_str::VALUE_A0C452CB));
+    assert!(!html.as_ref().contains(constants_str::VALUE_EA8C92A5));
+    assert!(!html.as_ref().contains(constants_str::VALUE_C23058ED));
 
     let table_html = crate::render_data_tables_csr::render_data_tables_csr(
         Some(server_admin_contract::admin_data_table::AdminDataTable::Users),
         &admin,
         &branding,
     );
-    assert!(table_html.as_ref().contains("id=\"admin-csr-root\""));
-    assert!(
-        table_html
-            .as_ref()
-            .contains("src=\"/admin/assets/admin_csr_application.js?v=20260801-37\"")
-    );
+    assert!(table_html.as_ref().contains(constants_str::VALUE_03DEA637));
+    assert!(table_html.as_ref().contains(constants_str::VALUE_C84BBF51));
 }

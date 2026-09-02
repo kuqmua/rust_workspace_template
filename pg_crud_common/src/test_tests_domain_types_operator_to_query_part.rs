@@ -44,13 +44,13 @@ fn test_to_query_part_omits_operator_when_disabled_and_keeps_not_only_for_negati
         crate::operator::Operator::And
             .to_query_part(crate::add_operator::AddOperator::from(false))
             .as_ref(),
-        ""
+        constants_str::EMPTY
     );
     assert_eq!(
         crate::operator::Operator::Or
             .to_query_part(crate::add_operator::AddOperator::from(false))
             .as_ref(),
-        ""
+        constants_str::EMPTY
     );
     assert_eq!(
         crate::operator::Operator::AndNot

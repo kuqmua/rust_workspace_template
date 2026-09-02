@@ -11,7 +11,7 @@ fn test_owned_singlestage_context_renders_without_an_external_owner() {
         leptos::view! { <singlestage::Popover>"Owned popover"</singlestage::Popover> }
     }));
 
-    assert!(html.contains("Owned popover"));
+    assert!(html.contains(constants_str::VALUE_DA70E1B6));
 }
 
 #[test]
@@ -19,7 +19,7 @@ fn test_primitives_render_semantic_accessible_markup() {
     let owned_label = crate::admin_field_label::AdminFieldLabel::from(String::from(
         constants_str::VALUE_9E41A9D1,
     ));
-    assert_eq!(owned_label.as_ref(), "Owned label");
+    assert_eq!(owned_label.as_ref(), constants_str::VALUE_9E41A9D1);
     let html = render_owned_view(leptos::view! {
         <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Settings>
             <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>"Settings"</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
@@ -41,44 +41,44 @@ fn test_primitives_render_semantic_accessible_markup() {
         <crate::admin_spinner::AdminSpinner />
     });
 
-    assert!(html.contains("data-name=\"Card\""));
-    assert!(html.contains("class=\"ui-card settings-card "));
-    assert!(html.contains("data-name=\"CardContent\" class=\"px-6\""));
-    assert!(html.contains("data-name=\"CardHeader\""));
-    assert!(html.contains("data-name=\"CardTitle\""));
-    assert!(html.contains("data-name=\"Alert\""));
-    assert!(html.contains("class=\"ui-alert field-error "));
-    assert!(html.contains("role=\"alert\""));
-    assert!(html.contains("data-name=\"Field\""));
-    assert!(html.contains("ui-field "));
-    assert!(html.contains("data-name=\"Label\""));
-    assert!(html.contains("singlestage-field-description"));
-    assert!(html.contains("singlestage-field-error"));
-    assert!(html.contains("<span>Login</span>"));
-    assert!(html.contains("<span>Owned label</span>"));
-    assert!(html.contains("data-name=\"Input\""));
-    assert!(html.contains("class=\"ui-input "));
-    assert!(html.contains("name=\"login\""));
-    assert!(html.contains("ui-button ui-button-primary "));
-    assert!(html.contains("type=\"button\""));
-    assert!(html.contains("data-name=\"Badge\""));
-    assert!(html.contains("class=\"ui-badge ui-badge-success "));
-    assert!(html.contains("data-name=\"Textarea\""));
-    assert!(html.contains("class=\"ui-textarea "));
-    assert!(html.contains("name=\"notes\""));
-    assert!(html.contains("data-name=\"Empty\""));
-    assert!(html.contains("data-name=\"EmptyHeader\""));
-    assert!(html.contains("data-name=\"EmptyTitle\""));
-    assert!(html.contains("class=\"ui-empty empty-state "));
-    assert!(html.contains("role=\"status\" aria-live=\"polite\""));
-    assert!(html.contains("data-name=\"Spinner\""));
-    assert!(html.contains("Loading\u{2026}"));
-    assert!(html.contains("data-name=\"AlertDialogContent\""));
-    assert!(html.contains("data-name=\"AlertDialogBody\""));
-    assert!(html.contains("data-name=\"AlertDialogHeader\""));
-    assert!(html.contains("data-name=\"AlertDialogTitle\""));
-    assert!(html.contains("data-name=\"AlertDialogDescription\""));
-    assert!(html.contains("data-name=\"AlertDialogFooter\""));
+    assert!(html.contains(constants_str::VALUE_F1BAB7A5));
+    assert!(html.contains(constants_str::VALUE_2BEB20BD));
+    assert!(html.contains(constants_str::VALUE_591C6255));
+    assert!(html.contains(constants_str::VALUE_747256CE));
+    assert!(html.contains(constants_str::VALUE_BB0F0FC0));
+    assert!(html.contains(constants_str::VALUE_118DDD9C));
+    assert!(html.contains(constants_str::VALUE_DA7417C3));
+    assert!(html.contains(constants_str::VALUE_88B7E010));
+    assert!(html.contains(constants_str::VALUE_C849F665));
+    assert!(html.contains(constants_str::VALUE_327E27AA));
+    assert!(html.contains(constants_str::VALUE_8A98943D));
+    assert!(html.contains(constants_str::VALUE_FA2E248C));
+    assert!(html.contains(constants_str::VALUE_882C5512));
+    assert!(html.contains(constants_str::VALUE_BE03D0C6));
+    assert!(html.contains(constants_str::VALUE_875B5A65));
+    assert!(html.contains(constants_str::VALUE_FEA2007C));
+    assert!(html.contains(constants_str::VALUE_021512E6));
+    assert!(html.contains(constants_str::VALUE_AAD09AEC));
+    assert!(html.contains(constants_str::VALUE_67CBA746));
+    assert!(html.contains(constants_str::VALUE_82A744A6));
+    assert!(html.contains(constants_str::VALUE_1BEF2C87));
+    assert!(html.contains(constants_str::VALUE_3B0D4158));
+    assert!(html.contains(constants_str::VALUE_345DE32F));
+    assert!(html.contains(constants_str::VALUE_BB10EDD8));
+    assert!(html.contains(constants_str::VALUE_F7F92547));
+    assert!(html.contains(constants_str::VALUE_4BE79CDF));
+    assert!(html.contains(constants_str::VALUE_E10EAC29));
+    assert!(html.contains(constants_str::VALUE_469D8B78));
+    assert!(html.contains(constants_str::VALUE_407E5FF2));
+    assert!(html.contains(constants_str::VALUE_FAE48E86));
+    assert!(html.contains(constants_str::VALUE_F8CB664C));
+    assert!(html.contains(constants_str::VALUE_BA3BBBE1));
+    assert!(html.contains(constants_str::VALUE_64474E4B));
+    assert!(html.contains(constants_str::VALUE_6BE3FB1C));
+    assert!(html.contains(constants_str::VALUE_67B26491));
+    assert!(html.contains(constants_str::VALUE_762CF6CB));
+    assert!(html.contains(constants_str::VALUE_48CAB863));
+    assert!(html.contains(constants_str::VALUE_1D79EA4F));
 }
 
 #[test]
@@ -105,17 +105,17 @@ fn test_button_variants_preserve_native_control_attributes() {
         </crate::admin_button::AdminButton>
     });
 
-    assert!(html.contains("ui-button ui-button-primary "));
-    assert!(html.contains("disabled type=\"submit\""));
-    assert!(html.contains("ui-button ui-button-secondary "));
-    assert!(html.contains("type=\"button\""));
-    assert!(html.contains("popovertarget=\"filters\""));
-    assert!(html.contains("popovertargetaction=\"hide\""));
-    assert!(html.contains("aria-label=\"Close filters\""));
-    assert!(html.contains("style=\"width:100%;\""));
-    assert!(html.contains("ui-button ui-button-danger danger-button "));
-    assert!(html.contains("commandfor=\"confirmation\""));
-    assert!(html.contains("command=\"show-modal\""));
+    assert!(html.contains(constants_str::VALUE_67CBA746));
+    assert!(html.contains(constants_str::VALUE_97EF114C));
+    assert!(html.contains(constants_str::VALUE_24B9818D));
+    assert!(html.contains(constants_str::VALUE_82A744A6));
+    assert!(html.contains(constants_str::VALUE_6CBC6F44));
+    assert!(html.contains(constants_str::VALUE_1C61CF88));
+    assert!(html.contains(constants_str::VALUE_0BA00E46));
+    assert!(html.contains(constants_str::VALUE_C6E0E94D));
+    assert!(html.contains(constants_str::VALUE_00F2810E));
+    assert!(html.contains(constants_str::VALUE_EC530B9C));
+    assert!(html.contains(constants_str::VALUE_3B0143B5));
 }
 
 #[test]
@@ -145,25 +145,25 @@ fn test_form_controls_render_every_supported_kind_and_constraint() {
         <crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" required=true />
     });
 
-    assert!(html.contains("name=\"login\""));
-    assert!(html.contains("type=\"text\""));
-    assert!(html.contains("autocomplete=\"username\""));
-    assert!(html.contains("minlength=\"2\""));
-    assert!(html.contains("maxlength=\"32\""));
-    assert!(html.contains("value=\"alice\""));
-    assert!(html.contains("name=\"password\""));
-    assert!(html.contains("type=\"password\""));
-    assert!(html.contains("name=\"limit\""));
-    assert!(html.contains("type=\"number\""));
-    assert!(html.contains("min=\"1\""));
-    assert!(html.contains("max=\"100\""));
-    assert!(html.contains("name=\"url\""));
-    assert!(html.contains("type=\"url\""));
-    assert!(html.contains("data-name=\"Textarea\""));
-    assert!(html.contains("name=\"notes\""));
-    assert!(html.contains("data-name=\"Checkbox\""));
-    assert!(html.contains("name=\"confirmation\""));
-    assert!(html.contains("value=\"true\""));
+    assert!(html.contains(constants_str::VALUE_AAD09AEC));
+    assert!(html.contains(constants_str::VALUE_26B901BB));
+    assert!(html.contains(constants_str::VALUE_7679AE45));
+    assert!(html.contains(constants_str::VALUE_5E04A048));
+    assert!(html.contains(constants_str::VALUE_CD633D03));
+    assert!(html.contains(constants_str::VALUE_022ECEBF));
+    assert!(html.contains(constants_str::VALUE_AFCBB462));
+    assert!(html.contains(constants_str::VALUE_75D9FED9));
+    assert!(html.contains(constants_str::VALUE_0AA8ABD0));
+    assert!(html.contains(constants_str::VALUE_C7A9349A));
+    assert!(html.contains(constants_str::VALUE_3901EFC3));
+    assert!(html.contains(constants_str::VALUE_B1CE91DB));
+    assert!(html.contains(constants_str::VALUE_416538A8));
+    assert!(html.contains(constants_str::VALUE_3F96A519));
+    assert!(html.contains(constants_str::VALUE_345DE32F));
+    assert!(html.contains(constants_str::VALUE_F7F92547));
+    assert!(html.contains(constants_str::VALUE_94160202));
+    assert!(html.contains(constants_str::VALUE_7A05DAEA));
+    assert!(html.contains(constants_str::VALUE_97F214A2));
 }
 
 #[test]
@@ -182,9 +182,9 @@ fn test_bound_form_controls_render_signal_values() {
         })
     });
 
-    assert!(html.contains("name=\"bound_input\" type=\"text\""));
-    assert!(html.contains("name=\"bound_textarea\""));
-    assert!(html.contains(">bound textarea</textarea>"));
+    assert!(html.contains(constants_str::VALUE_89410775));
+    assert!(html.contains(constants_str::VALUE_14CE4117));
+    assert!(html.contains(constants_str::VALUE_C34F2EC8));
 }
 
 #[test]
@@ -200,16 +200,16 @@ fn test_visual_variants_keep_their_rust_ui_contracts() {
         <crate::admin_card::AdminCard variant=crate::admin_card_variant::AdminCardVariant::Security>"Security"</crate::admin_card::AdminCard>
     });
 
-    assert!(html.contains("id=\"saved\""));
-    assert!(html.contains("class=\"ui-alert flash-success "));
-    assert!(html.contains("role=\"status\""));
-    assert!(html.contains("class=\"ui-badge ui-badge-neutral "));
-    assert!(html.contains("class=\"ui-badge ui-badge-success "));
-    assert!(html.contains("class=\"ui-card flex "));
-    assert!(html.contains("class=\"ui-card auth-card "));
-    assert!(html.contains("class=\"ui-card code-card "));
-    assert!(html.contains("class=\"ui-card profile-card "));
-    assert!(html.contains("class=\"ui-card security-card "));
+    assert!(html.contains(constants_str::VALUE_6F0EA044));
+    assert!(html.contains(constants_str::VALUE_1030993B));
+    assert!(html.contains(constants_str::VALUE_5EB5CE93));
+    assert!(html.contains(constants_str::VALUE_26205B45));
+    assert!(html.contains(constants_str::VALUE_3B0D4158));
+    assert!(html.contains(constants_str::VALUE_9F36484B));
+    assert!(html.contains(constants_str::VALUE_45162E60));
+    assert!(html.contains(constants_str::VALUE_DDC1D093));
+    assert!(html.contains(constants_str::VALUE_E3D56718));
+    assert!(html.contains(constants_str::VALUE_ABED9301));
 }
 
 #[test]
@@ -219,13 +219,13 @@ fn test_navigation_distinguishes_current_and_inactive_destinations() {
         <crate::admin_navigation_link::AdminNavigationLink href=String::from("/admin/roles") active=false>"Roles"</crate::admin_navigation_link::AdminNavigationLink>
     });
 
-    assert!(html.contains("data-name=\"NavigationMenuLink\""));
-    assert!(html.contains("singlestage-link active "));
-    assert!(html.contains("aria-current=\"page\""));
-    assert!(html.contains("href=\"/admin/users\""));
-    assert!(html.contains("text-foreground/70 transition-colors"));
-    assert!(html.contains("href=\"/admin/roles\""));
-    assert_eq!(html.matches("aria-current=\"page\"").count(), 1);
+    assert!(html.contains(constants_str::VALUE_9938B0AD));
+    assert!(html.contains(constants_str::VALUE_A8416C94));
+    assert!(html.contains(constants_str::VALUE_5850635E));
+    assert!(html.contains(constants_str::VALUE_A6A17075));
+    assert!(html.contains(constants_str::VALUE_2977CF92));
+    assert!(html.contains(constants_str::VALUE_BB931721));
+    assert_eq!(html.matches(constants_str::VALUE_5850635E).count(), 1);
 }
 
 #[test]
@@ -251,14 +251,14 @@ fn test_table_primitives_preserve_structure_and_class_merging() {
         </crate::table_wrapper::TableWrapper>
     });
 
-    assert!(html.contains("data-name=\"TableWrapper\""));
-    assert!(html.contains("data-name=\"Table\""));
-    assert!(html.contains("data-name=\"TableHeader\""));
-    assert!(html.contains("data-name=\"TableBody\""));
-    assert!(html.contains("data-name=\"TableCaption\""));
-    assert!(html.contains("data-name=\"TableFooter\""));
-    assert_eq!(html.matches("data-name=\"TableRow\"").count(), 3);
-    assert!(html.contains("numeric-cell"));
+    assert!(html.contains(constants_str::VALUE_846B8D6B));
+    assert!(html.contains(constants_str::VALUE_6A98499E));
+    assert!(html.contains(constants_str::VALUE_31819FEE));
+    assert!(html.contains(constants_str::VALUE_8886AF1E));
+    assert!(html.contains(constants_str::VALUE_737E03AE));
+    assert!(html.contains(constants_str::VALUE_8925FFE7));
+    assert_eq!(html.matches(constants_str::VALUE_38C2F107).count(), 3);
+    assert!(html.contains(constants_str::VALUE_80DFAFAE));
 }
 
 #[test]
@@ -275,14 +275,14 @@ fn test_alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
         />
     });
 
-    assert!(html.contains("disabled"));
-    assert!(html.contains("id=\"delete-dialog\""));
-    assert!(html.contains("data-name=\"AlertDialogContent\""));
-    assert!(html.contains("Delete item?"));
-    assert_eq!(html.matches("method=\"dialog\"").count(), 1);
-    assert!(html.contains("data-name=\"AlertDialogHeader\""));
-    assert!(html.contains("data-name=\"AlertDialogTitle\""));
-    assert!(html.contains("data-name=\"AlertDialogDescription\""));
-    assert!(html.contains("data-name=\"AlertDialogFooter\""));
-    assert!(!html.contains("commandfor="));
+    assert!(html.contains(constants_str::VALUE_17EB3C01));
+    assert!(html.contains(constants_str::VALUE_AB29C21D));
+    assert!(html.contains(constants_str::VALUE_64474E4B));
+    assert!(html.contains(constants_str::VALUE_5AADB989));
+    assert_eq!(html.matches(constants_str::VALUE_65D07A5E).count(), 1);
+    assert!(html.contains(constants_str::VALUE_67B26491));
+    assert!(html.contains(constants_str::VALUE_762CF6CB));
+    assert!(html.contains(constants_str::VALUE_48CAB863));
+    assert!(html.contains(constants_str::VALUE_1D79EA4F));
+    assert!(!html.contains(constants_str::VALUE_C1451BBC));
 }

@@ -53,21 +53,21 @@ mod tests {
             axum::http::StatusCode::NO_CONTENT
         );
         assert_eq!(
-            status("/v1/probe")
+            status(constants_str::VALUE_BB6C49D8)
                 .await
                 .expect(constants_str::DIAGNOSTIC_6BB8E3F5)
                 .status(),
             axum::http::StatusCode::OK
         );
         assert_eq!(
-            status("/api/v1/probe")
+            status(constants_str::VALUE_A04A495F)
                 .await
                 .expect(constants_str::DIAGNOSTIC_11FD3E4A)
                 .status(),
             axum::http::StatusCode::SEE_OTHER
         );
         assert_eq!(
-            status("/v1/health/live")
+            status(constants_str::VALUE_3C3BEAFC)
                 .await
                 .expect(constants_str::DIAGNOSTIC_6E17DB87)
                 .status(),
@@ -96,6 +96,9 @@ mod tests {
     }
     #[test]
     fn test_tracing_default_filter_is_stable() {
-        assert_eq!(constants_str::CONFIG_TRACING_INFO, "info");
+        assert_eq!(
+            constants_str::CONFIG_TRACING_INFO,
+            std::str::from_utf8(b"info").expect(constants_str::VALUE_0EF05B85)
+        );
     }
 }

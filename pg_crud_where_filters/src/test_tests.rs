@@ -88,13 +88,16 @@ fn test_pg_type_not_empty_unique_vec_try_from_supports_non_clone_values() {
 fn test_encode_format_display_is_stable() {
     assert_eq!(
         crate::encode_format::EncodeFormat::Base64.to_string(),
-        "base64"
+        constants_str::VALUE_371A286D
     );
     assert_eq!(
         crate::encode_format::EncodeFormat::Escape.to_string(),
-        "escape"
+        constants_str::VALUE_B3140286
     );
-    assert_eq!(crate::encode_format::EncodeFormat::Hex.to_string(), "hex");
+    assert_eq!(
+        crate::encode_format::EncodeFormat::Hex.to_string(),
+        constants_str::VALUE_128DF13C
+    );
 }
 
 #[test]

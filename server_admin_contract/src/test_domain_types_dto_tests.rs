@@ -67,7 +67,7 @@ fn test_passwords_are_redacted_and_share_policy() {
     let password =
         crate::admin_password::AdminPassword::try_from(String::from(constants_str::SECRET))
             .expect(constants_str::DIAGNOSTIC_9F3F5164);
-    assert!(!format!("{password:?}").contains("secret"));
+    assert!(!format!("{password:?}").contains(constants_str::SECRET));
     let _new_password = crate::admin_new_password::AdminNewPassword::try_from(
         constants_str::TEST_STRONG_PASSWORD.to_owned(),
     )

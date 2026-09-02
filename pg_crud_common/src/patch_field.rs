@@ -63,23 +63,26 @@ mod tests {
     #[test]
     fn test_deserialization_distinguishes_omitted_null_and_value() {
         assert_eq!(
-            serde_json::from_str::<Patch>("{}").expect(constants_str::DIAGNOSTIC_D3E7AA4A),
+            serde_json::from_str::<Patch>(constants_str::TEXT_ALT_14)
+                .expect(constants_str::DIAGNOSTIC_D3E7AA4A),
             Patch {
                 value: crate::patch_field::PatchField::Omitted,
             }
         );
         assert_eq!(
-            serde_json::from_str::<Patch>(r#"{"value":null}"#)
+            serde_json::from_str::<Patch>(constants_str::VALUE_1C197DAE)
                 .expect(constants_str::DIAGNOSTIC_3C55056D),
             Patch {
                 value: crate::patch_field::PatchField::Null,
             }
         );
         assert_eq!(
-            serde_json::from_str::<Patch>(r#"{"value":"next"}"#)
+            serde_json::from_str::<Patch>(constants_str::VALUE_ABE62BC5)
                 .expect(constants_str::DIAGNOSTIC_4471155F),
             Patch {
-                value: crate::patch_field::PatchField::Value(String::from("next")),
+                value: crate::patch_field::PatchField::Value(String::from(
+                    constants_str::VALUE_C6C1C9A9
+                )),
             }
         );
     }
@@ -91,14 +94,16 @@ mod tests {
                 value: crate::patch_field::PatchField::<String>::Null,
             })
             .expect(constants_str::DIAGNOSTIC_F2053F9C),
-            r#"{"value":null}"#
+            constants_str::VALUE_1C197DAE
         );
         assert_eq!(
             serde_json::to_string(&Patch {
-                value: crate::patch_field::PatchField::Value(String::from("next")),
+                value: crate::patch_field::PatchField::Value(String::from(
+                    constants_str::VALUE_C6C1C9A9
+                )),
             })
             .expect(constants_str::DIAGNOSTIC_CCCAE65F),
-            r#"{"value":"next"}"#
+            constants_str::VALUE_ABE62BC5
         );
     }
 }

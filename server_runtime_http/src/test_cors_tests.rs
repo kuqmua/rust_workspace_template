@@ -13,8 +13,8 @@ mod tests {
         assert_eq!(
             parsed,
             [
-                http::HeaderValue::from_static("https://a.example"),
-                http::HeaderValue::from_static("https://b.example"),
+                http::HeaderValue::from_static(constants_str::VALUE_38612C96),
+                http::HeaderValue::from_static(constants_str::VALUE_35B22C6C),
             ]
         );
     }
@@ -36,9 +36,9 @@ mod tests {
             [
                 constants_str::HTTPS_A_EXAMPLE_BAD_NEWLINE_VALUE_HTTPS_B_EXAMPLE,
                 constants_str::ASTERISK,
-                "null",
-                "https://a.example/path",
-                "https://a.example,,https://b.example",
+                constants_str::JSON_NULL,
+                constants_str::VALUE_1FE3969E,
+                constants_str::VALUE_1C98CF2D,
             ]
             .into_iter()
             .all(|value| matches!(

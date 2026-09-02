@@ -324,14 +324,19 @@ mod tests {
         ];
         assert_eq!(
             phases.map(|phase| phase.to_string()),
-            ["compilation", "clippy", "formatting", "test"]
+            [
+                constants_str::VALUE_59ABF7DA,
+                constants_str::CLIPPY,
+                constants_str::VALUE_6C7AA935,
+                constants_str::TEST_ALT_3
+            ]
         );
     }
     #[test]
     fn test_generated_crate_compilation_is_offline_and_follow_up_steps_are_locked() {
         assert!(
             constants_str::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS
-                .contains(&"--offline")
+                .contains(&constants_str::SHARED_VALUES_OFFLINE)
         );
         [
             constants_str::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS.as_slice(),

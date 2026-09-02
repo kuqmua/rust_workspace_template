@@ -99,9 +99,12 @@ mod tests {
         );
         assert_eq!(
             observed.error_code(),
-            crate::observed_error_code::ObservedErrorCode::from("infrastructure_failed")
+            crate::observed_error_code::ObservedErrorCode::from(constants_str::VALUE_D99F528C)
         );
-        assert_eq!(observed.source_ref().to_string(), "infrastructure failed");
+        assert_eq!(
+            observed.source_ref().to_string(),
+            constants_str::VALUE_31572E02
+        );
         assert_eq!(observed.location().line(), expected_line);
         assert!(!observed.backtrace().to_string().is_empty());
         assert!(!observed.span_trace().to_string().is_empty());

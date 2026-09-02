@@ -56,7 +56,7 @@ mod tests {
             constants_str::VALUE_8CE7A316,
             |error, exp_id| (error, exp_id),
         );
-        assert_eq!(v, (9, "8ce7a316"));
+        assert_eq!(v, (9, constants_str::VALUE_8CE7A316));
     }
     #[test]
     fn test_panic_unexpected_variant_always_panics() {
@@ -188,7 +188,9 @@ mod tests {
         let actual = headers.get(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
         assert_eq!(
             actual,
-            Some(&axum::http::HeaderValue::from_static("deadbeef"))
+            Some(&axum::http::HeaderValue::from_static(
+                constants_str::TEST_VALUES_WRONG_COMMIT
+            ))
         );
     }
     #[test]
@@ -203,10 +205,12 @@ mod tests {
             axum::http::HeaderName::from_static(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
             constants_str::VALUE_348C0E57,
         );
-        assert!(headers.get("x-commit").is_none());
+        assert!(headers.get(constants_str::X_COMMIT).is_none());
         assert_eq!(
-            headers.get("commit"),
-            Some(&axum::http::HeaderValue::from_static("deadbeef"))
+            headers.get(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
+            Some(&axum::http::HeaderValue::from_static(
+                constants_str::TEST_VALUES_WRONG_COMMIT
+            ))
         );
     }
     #[test]

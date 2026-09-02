@@ -95,18 +95,20 @@ mod tests {
             constants_str::B_ALT_3,
         );
         assert!(
-            crate::single_quotes_token_stream::single_quotes_token_stream("")
+            crate::single_quotes_token_stream::single_quotes_token_stream(constants_str::EMPTY)
                 .to_string()
-                .contains("compile_error !")
+                .contains(constants_str::VALUE_2EDAC0BF)
         );
         assert_quote_token_stream(
             &crate::dq_token_stream::dq_token_stream(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
             constants_str::TEXT_ALT_12,
         );
         assert!(
-            crate::binary_single_quotes_token_stream::binary_single_quotes_token_stream("")
-                .to_string()
-                .contains("compile_error !")
+            crate::binary_single_quotes_token_stream::binary_single_quotes_token_stream(
+                constants_str::EMPTY
+            )
+            .to_string()
+            .contains(constants_str::VALUE_2EDAC0BF)
         );
         assert_quote_token_stream(
             &crate::binary_double_quoted_token_stream::binary_double_quoted_token_stream(

@@ -384,7 +384,7 @@ fn test_workspace_dependency_default_feature_policy_rejects_missing_and_true_val
         crate::code_style::workspace_dep_disables_default_features(
             crate::types::TomlValueRef::from(
                 valid
-                    .get("dependency")
+                    .get(constants_str::VALUE_F26350DA)
                     .expect(constants_str::DIAGNOSTIC_34136B6C),
             )
         )
@@ -394,7 +394,7 @@ fn test_workspace_dependency_default_feature_policy_rejects_missing_and_true_val
         !crate::code_style::workspace_dep_disables_default_features(
             crate::types::TomlValueRef::from(
                 missing
-                    .get("dependency")
+                    .get(constants_str::VALUE_F26350DA)
                     .expect(constants_str::DIAGNOSTIC_E9B5ED95),
             )
         )
@@ -404,7 +404,7 @@ fn test_workspace_dependency_default_feature_policy_rejects_missing_and_true_val
         !crate::code_style::workspace_dep_disables_default_features(
             crate::types::TomlValueRef::from(
                 enabled
-                    .get("dependency")
+                    .get(constants_str::VALUE_F26350DA)
                     .expect(constants_str::DIAGNOSTIC_3E8046EF),
             )
         )
@@ -434,7 +434,7 @@ fn test_workspace_uses_one_async_runtime() {
             .collect::<std::collections::BTreeSet<&str>>();
         assert_eq!(
             used,
-            std::collections::BTreeSet::from(["tokio"]),
+            std::collections::BTreeSet::from([constants_str::TOKIO]),
             "af25689c"
         );
     });
@@ -751,7 +751,7 @@ fn test_env_and_env_example_have_same_keys() {
 #[test]
 fn test_server_has_one_tracked_environment_example() {
     assert!(
-        !std::path::Path::new("../server/.envexample").exists(),
+        !std::path::Path::new(constants_str::VALUE_C93F71BE).exists(),
         "42fa780c"
     );
     assert!(

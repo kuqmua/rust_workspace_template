@@ -17,19 +17,19 @@ fn test_validates_and_converts_project_names() {
         .expect(constants_str::DIAGNOSTIC_96DE3A80);
     assert_eq!(
         crate::naming_kebab_case::naming_kebab_case(valid).as_ref(),
-        "order-platform"
+        constants_str::VALUE_77A8A329
     );
     assert_eq!(
         crate::naming_title_case::naming_title_case(valid).as_ref(),
-        "Order Platform"
+        constants_str::VALUE_3EEF5CDE
     );
     assert_eq!(
         crate::naming_upper_camel_case::naming_upper_camel_case(valid).as_ref(),
-        "OrderPlatform"
+        constants_str::VALUE_6B0B0F05
     );
     assert!(
         crate::naming_validate_project_name::naming_validate_project_name(
-            crate::project_name_ref::ProjectNameRef::from("Order-Platform")
+            crate::project_name_ref::ProjectNameRef::from(constants_str::VALUE_4F059BD8)
         )
         .is_err()
     );
@@ -43,9 +43,7 @@ fn test_requires_https_repository_url() {
     .expect(constants_str::DIAGNOSTIC_28C1E7A4);
     assert!(
         crate::naming_validate_repository_url::naming_validate_repository_url(
-            crate::repository_url_ref::RepositoryUrlRef::from(
-                "http://example.com/team/order_platform",
-            )
+            crate::repository_url_ref::RepositoryUrlRef::from(constants_str::VALUE_861AC68D,)
         )
         .is_err()
     );
@@ -104,14 +102,14 @@ fn test_service_catalog_owns_ci_and_release_projection_values() {
             entries_ref,
         )
         .as_ref(),
-        "          - name: application\n            dockerfile: Dockerfile\n"
+        constants_str::VALUE_CF9A8E24
     );
     assert_eq!(
         crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
             entries_ref
         )
         .as_ref(),
-        "          - name: application\n            dockerfile: Dockerfile\n"
+        constants_str::VALUE_CF9A8E24
     );
 }
 

@@ -12,7 +12,7 @@ fn test_bounded_string_missing_max_returns_compile_error() {
     if let Err(error) = result {
         assert_eq!(
             error.to_string(),
-            "BoundedString requires #[bounded_string(max = ...)]"
+            constants_str::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR
         );
     }
 }
@@ -30,7 +30,7 @@ fn test_bounded_string_utoipa_byte_length_returns_compile_error() {
     if let Err(error) = result {
         assert_eq!(
             error.to_string(),
-            "BoundedString utoipa requires chars so OpenAPI length semantics match runtime"
+            constants_str::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME
         );
     }
 }
@@ -45,7 +45,10 @@ fn test_duplicate_options_preserve_attribute_diagnostic() {
         crate::newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&bounded_input),
     );
     if let Err(error) = bounded_result {
-        assert_eq!(error.to_string(), "duplicate bounded_string option");
+        assert_eq!(
+            error.to_string(),
+            constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR
+        );
     } else {
         std::panic::panic_any(constants_str::PANIC_D03CED5C);
     }

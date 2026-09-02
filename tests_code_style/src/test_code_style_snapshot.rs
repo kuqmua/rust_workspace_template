@@ -337,7 +337,10 @@ fn test_invalid_project_source_content_fails_snapshot_loading() {
     let oversized = constants_str::X.repeat(16_777_217usize);
     assert!(
         std::panic::catch_unwind(|| {
-            project_source_content(std::path::Path::new("oversized.rs"), oversized)
+            project_source_content(
+                std::path::Path::new(constants_str::VALUE_AB1CDF0B),
+                oversized,
+            )
         })
         .is_err(),
         "28fb322e"
@@ -355,7 +358,7 @@ fn test_missing_project_source_file_fails_snapshot_loading() {
 fn test_walk_error_fails_snapshot_loading() {
     assert!(
         std::panic::catch_unwind(|| {
-            let missing = walkdir::WalkDir::new("code_style_snapshot_missing_directory")
+            let missing = walkdir::WalkDir::new(constants_str::VALUE_DE5C9E66)
                 .into_iter()
                 .next()
                 .expect(constants_str::DIAGNOSTIC_1DA2F4ED);

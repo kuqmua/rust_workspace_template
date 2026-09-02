@@ -11,14 +11,14 @@ mod tests {
                 .iter()
                 .map(crate::command_text::CommandText::as_ref)
                 .collect::<Vec<&str>>(),
-            ["crate::domain_types::first", "crate::domain_types::second"]
+            [constants_str::VALUE_6B4D91DC, constants_str::VALUE_B40C5E30]
         );
     }
     #[test]
     fn test_failed_test_parser_parses_partial_log() {
         assert!(
             crate::failed_test_names::failed_test_names(crate::text_ref::TextRef::from(
-                "test incomplete"
+                constants_str::VALUE_95EB9084
             ))
             .as_ref()
             .is_empty()
@@ -28,10 +28,10 @@ mod tests {
     fn test_ansi_is_removed_from_machine_summary() {
         assert_eq!(
             crate::strip_ansi::strip_ansi(crate::text_ref::TextRef::from(
-                "a\u{1b}[31mred\u{1b}[0mz"
+                constants_str::VALUE_EC39432A
             ))
             .as_ref(),
-            "aredz"
+            constants_str::VALUE_4E9A9107
         );
     }
 }

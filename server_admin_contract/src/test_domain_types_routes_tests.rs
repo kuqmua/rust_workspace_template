@@ -6,5 +6,5 @@ fn test_route_contract_tests() {
         metadata.authentication(),
         frontend_contract::authentication_requirement::AuthenticationRequirement::Public
     );
-    assert_eq!(metadata.path().as_ref(), "/auth/sign_in");
+    assert_eq!(metadata.path().as_ref(), constants_str::VALUE_C764A505);
 }

@@ -20,12 +20,14 @@ fn test_idempotency_text_types_enforce_boundaries_and_protocol_shape() {
         Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty)
     );
     assert_eq!(
-        crate::pg_table_idempotency_method::PgTableIdempotencyMethod::try_from("GET".to_owned()),
+        crate::pg_table_idempotency_method::PgTableIdempotencyMethod::try_from(
+            constants_str::GET.to_owned()
+        ),
         Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidMethod)
     );
     assert_eq!(
         crate::pg_table_idempotency_route::PgTableIdempotencyRoute::try_from(
-            "without-slash".to_owned()
+            constants_str::VALUE_4F7B3F17.to_owned()
         ),
         Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidRoute)
     );

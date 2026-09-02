@@ -485,23 +485,29 @@ mod tests {
     fn test_generated_static_names_preserve_both_cases_and_tokens() {
         assert_eq!(
             crate::domain_types::PrimaryKeyUpperCamelCase.to_string(),
-            "PrimaryKey"
+            constants_str::VALUE_F2109677
         );
         assert_eq!(
             crate::domain_types::PrimaryKeySnakeCase.to_string(),
-            "primary_key"
+            constants_str::VALUE_29269B3C
         );
         let upper_camel = crate::domain_types::PrimaryKeyUpperCamelCase;
         let snake = crate::domain_types::PrimaryKeySnakeCase;
-        assert_eq!(quote::quote!(#upper_camel).to_string(), "PrimaryKey");
-        assert_eq!(quote::quote!(#snake).to_string(), "primary_key");
+        assert_eq!(
+            quote::quote!(#upper_camel).to_string(),
+            constants_str::VALUE_F2109677
+        );
+        assert_eq!(
+            quote::quote!(#snake).to_string(),
+            constants_str::VALUE_29269B3C
+        );
         assert_eq!(
             crate::hash_map_upper_camel_case::HashMapUpperCamelCase.to_string(),
-            "HashMap"
+            constants_str::HASHMAP
         );
         assert_eq!(
             crate::hash_map_snake_case::HashMapSnakeCase.to_string(),
-            "hashmap"
+            constants_str::VALUE_77DD5D04
         );
     }
 
@@ -510,17 +516,14 @@ mod tests {
         let display = crate::parameter::SelfPayloadUpperCamelCase::from_display(
             &constants_str::VALUE_BCB2F337,
         );
-        assert_eq!(display.to_string(), "TableExamplePayload");
+        assert_eq!(display.to_string(), constants_str::VALUE_8437C316);
         let tokens =
             crate::parameter::SelfPayloadSnakeCase::from_tokens(&quote::quote!(TableExample));
-        assert_eq!(tokens.to_string(), "table_example_payload");
+        assert_eq!(tokens.to_string(), constants_str::VALUE_479ED234);
         let qualified_type: syn::Type = syn::parse_quote!(crate::model::TableExample);
         let qualified_name =
             crate::parameter::SelfPayloadUpperCamelCase::from_type_last_segment(&qualified_type);
-        assert_eq!(
-            qualified_name.to_string(),
-            "crate::model::TableExamplePayload"
-        );
+        assert_eq!(qualified_name.to_string(), constants_str::VALUE_D10CC0BC);
     }
 
     #[test]
@@ -530,7 +533,7 @@ mod tests {
             &name,
             crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
         );
-        assert_eq!(path.as_ref(), "\"/service/table_example\"");
+        assert_eq!(path.as_ref(), constants_str::VALUE_25F6ECFA);
         let tokens =
             crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
                 &name,
@@ -538,7 +541,7 @@ mod tests {
             );
         assert_eq!(
             quote::quote!(#tokens).to_string(),
-            "\"/service/table_example\""
+            constants_str::VALUE_25F6ECFA
         );
     }
 }

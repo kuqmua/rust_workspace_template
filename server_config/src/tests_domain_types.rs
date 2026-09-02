@@ -56,14 +56,14 @@ mod tests {
         );
         assert_eq!(
             config_lib::domain_types::CorsAllowOriginProvider::cors_allow_origin(&cfg),
-            "*"
+            constants_str::ASTERISK
         );
         assert_eq!(
             secrecy::ExposeSecret::expose_secret(
                 config_lib::domain_types::DatabaseUrlProvider::database_url(&cfg)
             )
             .as_ref(),
-            "postgres://db"
+            constants_str::POSTGRES_DB
         );
         assert_eq!(
             config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytesProvider::maximum_size_of_http_body_in_bytes(

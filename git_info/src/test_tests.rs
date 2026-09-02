@@ -155,7 +155,7 @@ fn test_git_commit_link_cow_owns_link_for_non_project_commit() {
         constants_str::TEST_VALUES_WRONG_COMMIT,
     );
     assert!(
-        matches!(std::borrow::Cow::from(actual), std::borrow::Cow::Owned(v) if v == expected_git_commit_link("deadbeef"))
+        matches!(std::borrow::Cow::from(actual), std::borrow::Cow::Owned(v) if v == expected_git_commit_link(constants_str::TEST_VALUES_WRONG_COMMIT))
     );
 }
 #[test]
@@ -167,7 +167,7 @@ fn test_is_project_commit_returns_true_for_project_commit() {
 #[test]
 fn test_is_project_commit_returns_false_for_other_commit() {
     assert!(!crate::check_is_project_commit::check_is_project_commit(
-        "deadbeef"
+        constants_str::TEST_VALUES_WRONG_COMMIT
     ));
 }
 #[test]
@@ -182,7 +182,9 @@ fn test_validate_project_commit_returns_ok_for_project_commit() {
 #[test]
 fn test_validate_project_commit_returns_project_link_for_non_project_commit() {
     assert_eq!(
-        crate::validate_project_commit::validate_project_commit("deadbeef"),
+        crate::validate_project_commit::validate_project_commit(
+            constants_str::TEST_VALUES_WRONG_COMMIT
+        ),
         Err(
             crate::validate_project_commit_error::ValidateProjectCommitError::from(
                 crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value()
@@ -249,12 +251,12 @@ fn test_git_commit_id_or_else_computes_fallback_once() {
         &test_git_commit,
         &mut fallback,
     );
-    assert_eq!(first, "f00dbabe");
+    assert_eq!(first, constants_str::F00DBABE);
     let second = crate::git_commit_id_provider::GitCommitIdProvider::git_commit_id_or_else(
         &test_git_commit,
         &mut fallback,
     );
-    assert_eq!(second, "f00dbabe");
+    assert_eq!(second, constants_str::F00DBABE);
     assert_fallback_calls(&test_git_commit, 1);
 }
 #[test]
@@ -265,7 +267,7 @@ fn test_git_commit_id_or_else_prefers_borrowed_ref_without_fallback() {
         &test_git_commit,
         &mut fallback,
     );
-    assert_eq!(commit, "cafebabe");
+    assert_eq!(commit, constants_str::CAFEBABE);
     assert_fallback_calls(&test_git_commit, 0);
     assert!(fallback.is_none());
 }
@@ -353,12 +355,12 @@ fn test_project_git_info_as_ref_returns_commit() {
     let info = crate::project_git_info::ProjectGitInfo::from(
         crate::git_commit_id_ref::GitCommitIdRef::from(constants_str::TEST_VALUES_COMMIT),
     );
-    assert_eq!(info.as_ref(), "abc123");
+    assert_eq!(info.as_ref(), constants_str::TEST_VALUES_COMMIT);
 }
 #[test]
 fn test_git_commit_link_capacity_supports_empty_commit() {
     assert_eq!(
-        crate::git_commit_link_capacity_value::git_commit_link_capacity_value(""),
+        crate::git_commit_link_capacity_value::git_commit_link_capacity_value(constants_str::EMPTY),
         constants_str::NAMING_GITHUB_URL.len() + constants_str::GIT_INFO_TREE_SEGMENT.len()
     );
 }

@@ -32,7 +32,7 @@ fn test_dry_run_apply_and_repeat_are_safe_and_idempotent() {
             .status(),
         crate::initialization_status::InitializationStatus::WouldCreate
     );
-    assert!(!root.join("service/.env").exists());
+    assert!(!root.join(constants_str::SERVICE_ENV).exists());
     let applied = crate::initialize::initialize(
         crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
         crate::run_mode::RunMode::Apply,
@@ -66,8 +66,8 @@ fn test_dry_run_apply_and_repeat_are_safe_and_idempotent() {
     );
     let updated_content = std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
         .expect(constants_str::DIAGNOSTIC_BD9F5208);
-    assert!(updated_content.contains("SECRET=custom"));
-    assert!(updated_content.contains("PUBLIC=value"));
+    assert!(updated_content.contains(constants_str::VALUE_F9629C76));
+    assert!(updated_content.contains(constants_str::VALUE_E120A6D3));
     let repeated = crate::initialize::initialize(
         crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
         crate::run_mode::RunMode::Apply,

@@ -61,7 +61,7 @@ mod tests {
     fn test_required_header_str_returns_header_when_present_and_utf8() {
         let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = header(&headers, TEST_HEADER_NAME);
-        assert_eq!(actual.map(<&str>::from), Ok("abc"));
+        assert_eq!(actual.map(<&str>::from), Ok(constants_str::ABC_ALT_3));
     }
     #[test]
     fn test_required_header_str_returns_no_header_error_when_absent() {
@@ -77,7 +77,7 @@ mod tests {
     fn test_required_header_str_accepts_str_header_name() {
         let headers = make_test_headers_static(constants_str::ABC_ALT_3);
         let actual = header(&headers, constants_str::ROUTE_VALIDATORS_TEST_HEADER_NAME);
-        assert_eq!(actual.map(<&str>::from), Ok("abc"));
+        assert_eq!(actual.map(<&str>::from), Ok(constants_str::ABC_ALT_3));
     }
     #[test]
     fn test_required_header_returns_header_value_when_present() {
@@ -85,7 +85,9 @@ mod tests {
         let actual = raw_header(&headers, TEST_HEADER_NAME);
         assert_eq!(
             actual.map(<&axum::http::HeaderValue>::from),
-            Ok(&axum::http::HeaderValue::from_static("abc"))
+            Ok(&axum::http::HeaderValue::from_static(
+                constants_str::ABC_ALT_3
+            ))
         );
     }
     #[test]

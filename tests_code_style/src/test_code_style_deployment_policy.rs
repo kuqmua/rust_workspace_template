@@ -111,7 +111,7 @@ fn test_service_catalog_matches_build_and_deployment_representations() {
         assert!(
             repository_root
                 .join(crate_name)
-                .join("Cargo.toml")
+                .join(constants_str::CARGO_TOML)
                 .is_file()
         );
         assert!(repository_root.join(dockerfile).is_file());
@@ -152,7 +152,7 @@ fn test_continuous_integration_uses_the_pinned_application_database_image() {
         std::fs::read_to_string(repository_root.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH))
             .expect(constants_str::DIAGNOSTIC_346C695A);
     assert!(ci.lines().any(|line| line.trim() == database_image));
-    assert!(!ci.contains("postgresql_16_with_pg_jsonschema:latest"));
+    assert!(!ci.contains(constants_str::VALUE_ADE0980F));
 }
 
 #[test]
@@ -402,14 +402,14 @@ fn test_dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
     assert_eq!(
         violations.as_slice(),
         [
-            String::from("rust:latest"),
-            String::from("alpine:3.22"),
-            String::from("busybox@sha256:abcd"),
+            String::from(constants_str::VALUE_7670C7B2),
+            String::from(constants_str::VALUE_16BB83AC),
+            String::from(constants_str::VALUE_9A532517),
         ]
     );
     assert!(
         unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(
-            "FROM rust:1.90@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef AS builder\nFROM BUILDER\n"
+            constants_str::VALUE_889A7936
         ))
         .is_empty()
     );

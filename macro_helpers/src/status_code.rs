@@ -455,15 +455,15 @@ mod tests {
     fn test_generated_case_methods_return_static_case_strings() {
         assert_eq!(
             super::StatusCode::NetworkAuthenticationRequired511.as_snake_case_str(),
-            "network_authentication_required_511"
+            constants_str::NETWORK_AUTHENTICATION_REQUIRED_511
         );
         assert_eq!(
             super::StatusCode::NetworkAuthenticationRequired511.as_upper_camel_case_str(),
-            "NetworkAuthenticationRequired511"
+            constants_str::VALUE_D9AA30CD
         );
         assert_eq!(
             super::StatusCode::NetworkAuthenticationRequired511.as_upper_snake_case_str(),
-            "NETWORK_AUTHENTICATION_REQUIRED_511"
+            constants_str::VALUE_4E8CE6AE
         );
     }
 
@@ -547,7 +547,7 @@ mod tests {
             Ok(super::StatusCode::NetworkAuthenticationRequired511)
         );
         assert_eq!(
-            super::StatusCode::try_from(&String::from("unknown_status")),
+            super::StatusCode::try_from(&String::from(constants_str::VALUE_B001675F)),
             Err(())
         );
     }

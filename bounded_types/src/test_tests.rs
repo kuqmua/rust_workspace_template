@@ -350,7 +350,11 @@ fn test_vec_deserialization_reports_lower_and_invalid_bounds() {
         ),
     )
     .expect_err(constants_str::VALUE_DA49EE30);
-    assert!(below_min.to_string().contains("below minimum 1"));
+    assert!(
+        below_min
+            .to_string()
+            .contains(constants_str::VALUE_227386E2)
+    );
 
     let invalid = <crate::bounded_vec::BoundedVec<u8, 2, 1> as serde::Deserialize>::deserialize(
         serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
@@ -358,7 +362,7 @@ fn test_vec_deserialization_reports_lower_and_invalid_bounds() {
         ),
     )
     .expect_err(constants_str::VALUE_D93AD2D2);
-    assert!(invalid.to_string().contains("minimum 2 exceeds maximum 1"));
+    assert!(invalid.to_string().contains(constants_str::VALUE_DF55C59B));
 }
 
 #[test]
@@ -369,7 +373,7 @@ fn test_zero_capacity_vec_rejects_without_deserializing_item_type() {
         ),
     )
     .expect_err(constants_str::VALUE_30A3CA27);
-    assert!(error.to_string().contains("exceeds maximum 0"));
+    assert!(error.to_string().contains(constants_str::VALUE_9016A762));
 }
 
 #[test]
@@ -397,7 +401,7 @@ fn test_vec_deserialization_ignores_excess_item_type() {
         ),
     )
     .expect_err(constants_str::VALUE_563E607E);
-    assert!(error.to_string().contains("exceeds maximum 1"));
+    assert!(error.to_string().contains(constants_str::VALUE_476C9E40));
 }
 
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
@@ -496,7 +500,11 @@ fn test_map_deserialization_bounds_wire_entries_before_excess_value() {
         ),
     )
     .expect_err(constants_str::VALUE_575CFAD6);
-    assert!(tree_error.to_string().contains("exceeds maximum 1"));
+    assert!(
+        tree_error
+            .to_string()
+            .contains(constants_str::VALUE_476C9E40)
+    );
 
     let hash_entries = [
         (
@@ -514,7 +522,11 @@ fn test_map_deserialization_bounds_wire_entries_before_excess_value() {
         ),
     )
     .expect_err(constants_str::VALUE_1DD35A8D);
-    assert!(hash_error.to_string().contains("exceeds maximum 1"));
+    assert!(
+        hash_error
+            .to_string()
+            .contains(constants_str::VALUE_476C9E40)
+    );
 }
 
 #[test]
@@ -529,7 +541,11 @@ fn test_zero_capacity_maps_reject_without_deserializing_key_or_value_types() {
         ),
     )
     .expect_err(constants_str::VALUE_4B9C9667);
-    assert!(tree_error.to_string().contains("exceeds maximum 0"));
+    assert!(
+        tree_error
+            .to_string()
+            .contains(constants_str::VALUE_9016A762)
+    );
 
     let hash_entries = [(
         TestDeserializerValue::Number(1u8),
@@ -541,7 +557,11 @@ fn test_zero_capacity_maps_reject_without_deserializing_key_or_value_types() {
         ),
     )
     .expect_err(constants_str::VALUE_C189B6DC);
-    assert!(hash_error.to_string().contains("exceeds maximum 0"));
+    assert!(
+        hash_error
+            .to_string()
+            .contains(constants_str::VALUE_9016A762)
+    );
 }
 
 #[test]

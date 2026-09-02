@@ -153,7 +153,7 @@ fn test_every_typed_route_path_and_each_path_parameter_match_open_api() {
             .for_each(|metadata| {
                 let operation = typed_operation(&document, metadata);
                 assert_eq!(
-                    operation.get("operationId").and_then(serde_json::Value::as_str),
+                    operation.get(constants_str::OPERATION_ID_JSON).and_then(serde_json::Value::as_str),
                     Some(metadata.openapi_operation_id().as_ref()),
                     "operation id differs for {} {}",
                     metadata.method().as_ref(),
@@ -165,9 +165,9 @@ fn test_every_typed_route_path_and_each_path_parameter_match_open_api() {
                     .and_then(|responses| responses.get(success_status.as_str()))
                     .expect(constants_str::DIAGNOSTIC_021E4AF7);
                 if success_status == constants_str::VALUE_FC56DBC6 {
-                    assert!(success_response.get("content").is_none());
+                    assert!(success_response.get(constants_str::OPENAPI_CONTENT).is_none());
                 } else {
-                    assert!(success_response.pointer("/content/application~1json/schema").is_some());
+                    assert!(success_response.pointer(constants_str::VALUE_711260BD).is_some());
                 }
                 let expected = metadata
                     .path()
@@ -187,8 +187,8 @@ fn test_every_typed_route_path_and_each_path_parameter_match_open_api() {
                                 && parameter.get(constants_str::VALUE_58296753).and_then(serde_json::Value::as_str) == Some(constants_str::PATH_ALT_5)
                         }))
                         .expect(constants_str::DIAGNOSTIC_7E45CD91);
-                    assert_eq!(parameter.get("required").and_then(serde_json::Value::as_bool), Some(true));
-                    assert!(parameter.get("schema").is_some(), "missing schema for path parameter {name}");
+                    assert_eq!(parameter.get(constants_str::REQUIRED).and_then(serde_json::Value::as_bool), Some(true));
+                    assert!(parameter.get(constants_str::JSON_SCHEMA).is_some(), "missing schema for path parameter {name}");
                 });
             });
 }
@@ -224,26 +224,26 @@ fn test_every_typed_route_query_parameter_matches_open_api_individually() {
                         .and_then(serde_json::Value::as_array)
                         .and_then(|parameters| parameters.iter().find(|parameter| parameter.get(constants_str::NAME).and_then(serde_json::Value::as_str) == Some(name)))
                         .expect(constants_str::DIAGNOSTIC_BA482F35);
-                    assert!(parameter.get("schema").is_some(), "missing schema for query parameter {name}");
+                    assert!(parameter.get(constants_str::JSON_SCHEMA).is_some(), "missing schema for query parameter {name}");
                     let schema = parameter.get(constants_str::VALUE_DF0AD6E4).expect(constants_str::DIAGNOSTIC_CF18A7D5);
                     match name.as_str() {
                         constants_str::DIRECTION => assert_eq!(
-                            schema.get("enum"),
+                            schema.get(constants_str::ENUM),
                             Some(&serde_json::json!(["ascending", "descending"])),
                         ),
                         constants_str::LIMIT => {
                             assert_eq!(
-                                schema.get("minimum").and_then(serde_json::Value::as_u64),
+                                schema.get(constants_str::VALUE_692E4E5D).and_then(serde_json::Value::as_u64),
                                 Some(u64::from(server_admin_contract::admin_page_limit::AdminPageLimit::MIN))
                             );
                             assert_eq!(
-                                schema.get("maximum").and_then(serde_json::Value::as_u64),
+                                schema.get(constants_str::VALUE_8A64FF09).and_then(serde_json::Value::as_u64),
                                 Some(u64::from(server_admin_contract::admin_page_limit::AdminPageLimit::MAX))
                             );
                         }
-                        constants_str::OFFSET_ALT => assert_eq!(schema.get("minimum").and_then(serde_json::Value::as_u64), Some(0)),
-                        constants_str::SEARCH_ALT => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(128)),
-                        constants_str::SORT_ALT => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(32)),
+                        constants_str::OFFSET_ALT => assert_eq!(schema.get(constants_str::VALUE_692E4E5D).and_then(serde_json::Value::as_u64), Some(0)),
+                        constants_str::SEARCH_ALT => assert_eq!(schema.get(constants_str::VALUE_AC1DBF51).and_then(serde_json::Value::as_u64), Some(128)),
+                        constants_str::SORT_ALT => assert_eq!(schema.get(constants_str::VALUE_AC1DBF51).and_then(serde_json::Value::as_u64), Some(32)),
                         _ => {}
                     }
                 });
@@ -341,22 +341,22 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
     assert_eq!(paths.len(), 34usize);
-    assert!(paths.contains_key("/auth/sign_in"));
-    assert!(!paths.contains_key("/auth/mfa"));
-    assert!(paths.contains_key("/auth/sessions/{session_id}"));
-    assert!(paths.contains_key("/users/{user_id}/password"));
-    assert!(paths.contains_key("/admin_users/rm"));
-    assert!(paths.contains_key("/admin_users/ro"));
-    assert!(!paths.contains_key("/admin_users/cm"));
-    assert!(paths.contains_key("/admin_permissions/rm"));
-    assert!(paths.contains_key("/admin_permissions/ro"));
-    assert!(!paths.contains_key("/admin_permissions/cm"));
-    assert!(!paths.contains_key("/admin_permissions/dm"));
-    assert!(paths.contains_key("/admin_system_settings/rm"));
-    assert!(!paths.contains_key("/admin_system_settings/um"));
-    assert!(paths.contains_key("/system_settings"));
-    assert!(!paths.contains_key("/admin_system_settings/cm"));
-    assert!(!paths.contains_key("/admin_system_settings/dm"));
+    assert!(paths.contains_key(constants_str::VALUE_C764A505));
+    assert!(!paths.contains_key(constants_str::VALUE_F772F137));
+    assert!(paths.contains_key(constants_str::VALUE_356A53CE));
+    assert!(paths.contains_key(constants_str::VALUE_2A3105E4));
+    assert!(paths.contains_key(constants_str::ADMIN_USERS_RM));
+    assert!(paths.contains_key(constants_str::VALUE_1FB526B2));
+    assert!(!paths.contains_key(constants_str::VALUE_0878EE4E));
+    assert!(paths.contains_key(constants_str::ADMIN_PERMISSIONS_RM));
+    assert!(paths.contains_key(constants_str::VALUE_C65AD851));
+    assert!(!paths.contains_key(constants_str::VALUE_7B7625A7));
+    assert!(!paths.contains_key(constants_str::VALUE_19E13078));
+    assert!(paths.contains_key(constants_str::ADMIN_SYSTEM_SETTINGS_RM));
+    assert!(!paths.contains_key(constants_str::VALUE_C988BF92));
+    assert!(paths.contains_key(constants_str::VALUE_E40BCD1D));
+    assert!(!paths.contains_key(constants_str::VALUE_6CC4B99E));
+    assert!(!paths.contains_key(constants_str::VALUE_3768D146));
 }
 #[test]
 #[allow(clippy::needless_for_each)] // exhaustive generated-route assertions follow the workspace no-for-loop policy
@@ -505,8 +505,8 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
         assert!(
             paths
                 .get(path)
-                .and_then(|item| item.get("post"))
-                .and_then(|operation| operation.get("requestBody"))
+                .and_then(|item| item.get(constants_str::POST_ALT))
+                .and_then(|operation| operation.get(constants_str::VALUE_FCF523FA))
                 .is_some(),
             "generated read route must accept a typed query body: {path}"
         );

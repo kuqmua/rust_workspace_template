@@ -136,11 +136,20 @@ mod tests {
     fn test_generated_integer_open_api_schema_has_format_bounds_and_example() {
         let schema = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_8AF67E13);
-        assert_eq!(schema_json["type"], "integer");
-        assert_eq!(schema_json["format"], "int32");
-        assert_eq!(schema_json["minimum"], -32768);
-        assert_eq!(schema_json["maximum"], 32767);
-        assert_eq!(schema_json["examples"], serde_json::json!([42]));
+        assert_eq!(
+            schema_json[constants_str::JSON_TYPE],
+            constants_str::INTEGER
+        );
+        assert_eq!(
+            schema_json[constants_str::SHARED_VALUES_FORMAT],
+            constants_str::VALUE_05C31294
+        );
+        assert_eq!(schema_json[constants_str::VALUE_692E4E5D], -32768);
+        assert_eq!(schema_json[constants_str::VALUE_8A64FF09], 32767);
+        assert_eq!(
+            schema_json[constants_str::VALUE_C590B3C9],
+            serde_json::json!([42])
+        );
     }
     #[test]
     fn test_generated_frontend_type_contract_matches_integer_wire_contract() {
@@ -194,14 +203,14 @@ mod tests {
             frontend_contract::form_value_contract::FormValueContract::format_form_value(&integer)
                 .expect(constants_str::DIAGNOSTIC_144C7C4C)
                 .as_ref(),
-            "42"
+            constants_str::VALUE_42
         );
         let nullable = <pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin as frontend_contract::form_value_contract::FormValueContract>::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect(constants_str::DIAGNOSTIC_502918C1);
         assert_eq!(
             frontend_contract::form_value_contract::FormValueContract::format_form_value(&nullable)
                 .expect(constants_str::DIAGNOSTIC_56531064)
                 .as_ref(),
-            ""
+            constants_str::EMPTY
         );
         let uuid_value = constants_str::VALUE_7B93D4A1_6F28_4C70_9A51_2E8D3F640C12;
         let uuid = <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as frontend_contract::form_value_contract::FormValueContract>::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(uuid_value)).expect(constants_str::DIAGNOSTIC_804F13B2);
@@ -218,38 +227,45 @@ mod tests {
             )
             .expect(constants_str::DIAGNOSTIC_5A9F7D9C)
             .as_ref(),
-            "2026-07-13T12:30:00"
+            constants_str::VALUE_2026_07_13T12_30_00
         );
     }
     #[test]
     fn test_generated_filter_form_values_preserve_json_wire_types() {
         let integer = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_42)).expect(constants_str::DIAGNOSTIC_12DF8CB5);
-        assert_eq!(integer.as_ref(), "42");
+        assert_eq!(integer.as_ref(), constants_str::VALUE_42);
         let timestamp = <pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect(constants_str::DIAGNOSTIC_98F3DF36);
-        assert_eq!(
-            timestamp.as_ref(),
-            r#"{"date":"2026-07-13","time":{"hour":12,"min":30,"sec":0,"micro":0}}"#
-        );
+        assert_eq!(timestamp.as_ref(), constants_str::VALUE_41FE6651);
         let nullable = <pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2 as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect(constants_str::DIAGNOSTIC_B5939E08);
-        assert_eq!(nullable.as_ref(), "null");
+        assert_eq!(nullable.as_ref(), constants_str::JSON_NULL);
     }
     #[test]
     fn test_generated_nullable_open_api_schema_is_nullable() {
         let schema =
             <pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_F3B5A711);
-        assert!(schema_json["oneOf"].as_array().is_some_and(|schemas| {
-            schemas
-                .iter()
-                .any(|nullable_schema| nullable_schema["type"] == "null")
-        }));
+        assert!(
+            schema_json[constants_str::ONE_OF]
+                .as_array()
+                .is_some_and(|schemas| {
+                    schemas.iter().any(|nullable_schema| {
+                        nullable_schema[constants_str::JSON_TYPE] == constants_str::JSON_NULL
+                    })
+                })
+        );
     }
     #[test]
     fn test_generated_uuid_open_api_schema_matches_wire_string() {
         let schema = <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_80CB3EA4);
-        assert_eq!(schema_json["type"], "string");
-        assert_eq!(schema_json["format"], "uuid");
+        assert_eq!(
+            schema_json[constants_str::JSON_TYPE],
+            constants_str::STRING_ALT
+        );
+        assert_eq!(
+            schema_json[constants_str::SHARED_VALUES_FORMAT],
+            constants_str::PG_CRUD_PG_UUID
+        );
     }
     #[test]
     fn test_std_bound_wire_shape_is_stable_for_range_schemas() {
@@ -279,7 +295,12 @@ mod tests {
             .as_object()
             .expect(constants_str::DIAGNOSTIC_85098DC5);
         assert!(wire_obj.keys().all(|key| schema_props.contains_key(key)));
-        assert_eq!(schema_json["required"].as_array().map(Vec::len), Some(4));
+        assert_eq!(
+            schema_json[constants_str::REQUIRED]
+                .as_array()
+                .map(Vec::len),
+            Some(4)
+        );
     }
     #[test]
     fn test_generated_range_open_api_properties_match_wire_object() {
@@ -300,7 +321,8 @@ mod tests {
             .expect(constants_str::DIAGNOSTIC_3DC31CC6);
         assert!(wire_obj.keys().all(|key| schema_props.contains_key(key)));
         assert_eq!(
-            schema_json["properties"]["start"]["oneOf"]
+            schema_json[constants_str::PROPERTIES][constants_str::PG_CRUD_START_FIELD]
+                [constants_str::ONE_OF]
                 .as_array()
                 .map(Vec::len),
             Some(3)
@@ -311,7 +333,7 @@ mod tests {
         let schema = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Where as utoipa::PartialSchema>::schema();
         let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_4BBD5367);
         assert!(
-            schema_json["oneOf"]
+            schema_json[constants_str::ONE_OF]
                 .as_array()
                 .is_some_and(|variants| !variants.is_empty())
         );
@@ -322,21 +344,21 @@ mod tests {
             <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientWhere as utoipa::PartialSchema>::schema();
         let uuid_schema_json =
             serde_json::to_string(&uuid_schema).expect(constants_str::DIAGNOSTIC_C3AF72F5);
-        assert!(uuid_schema_json.contains("In"));
-        assert!(!uuid_schema_json.contains("Regex"));
+        assert!(uuid_schema_json.contains(constants_str::VALUE_8BC1D53C));
+        assert!(!uuid_schema_json.contains(constants_str::VALUE_0F271252));
         let string_schema =
             <pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();
         assert!(
             serde_json::to_string(&string_schema)
                 .expect(constants_str::DIAGNOSTIC_2672B8C6)
-                .contains("Regex")
+                .contains(constants_str::VALUE_0F271252)
         );
         let range_schema =
             <pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeWhere as utoipa::PartialSchema>::schema();
         assert!(
             serde_json::to_string(&range_schema)
                 .expect(constants_str::DIAGNOSTIC_C7954E5C)
-                .contains("OverlapWithRange")
+                .contains(constants_str::VALUE_DBD1BC63)
         );
     }
     #[test]
@@ -544,10 +566,10 @@ mod tests {
         let secret = pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
             constants_str::SECRET_VALUE.to_owned(),
         );
-        assert_eq!(format!("{secret:?}"), "[REDACTED]");
+        assert_eq!(format!("{secret:?}"), constants_str::REDACTED_ALT_3);
         let borrowed =
             pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecretRef::from(&secret);
-        assert_eq!(format!("{borrowed:?}"), "[REDACTED]");
-        assert_eq!(borrowed.as_ref(), "secret-value");
+        assert_eq!(format!("{borrowed:?}"), constants_str::REDACTED_ALT_3);
+        assert_eq!(borrowed.as_ref(), constants_str::SECRET_VALUE);
     }
 }

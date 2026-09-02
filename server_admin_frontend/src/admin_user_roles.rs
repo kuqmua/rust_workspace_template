@@ -77,8 +77,8 @@ mod tests {
             &page,
         )
         .to_html();
-        assert!(html.contains(">editor</td>"));
-        assert!(!html.contains("reader"));
+        assert!(html.contains(constants_str::VALUE_34E9C590));
+        assert!(!html.contains(constants_str::VALUE_3D094196));
     }
 
     #[test]
@@ -134,6 +134,6 @@ mod tests {
             &page,
         )
         .to_html();
-        assert!(html.contains(">users.read, users.write</td>"));
+        assert!(html.contains(constants_str::VALUE_18C354DD));
     }
 }

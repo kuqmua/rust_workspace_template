@@ -42,11 +42,15 @@ mod tests {
     #[test]
     fn test_tracing_level_from_str_is_case_insensitive() {
         assert_eq!(
-            <crate::tracing_level::TracingLevel as std::str::FromStr>::from_str("TRACE"),
+            <crate::tracing_level::TracingLevel as std::str::FromStr>::from_str(
+                constants_str::TRACE
+            ),
             Ok(crate::tracing_level::TracingLevel::Trace)
         );
         assert_eq!(
-            <crate::tracing_level::TracingLevel as std::str::FromStr>::from_str("Warn"),
+            <crate::tracing_level::TracingLevel as std::str::FromStr>::from_str(
+                constants_str::VALUE_8448814D
+            ),
             Ok(crate::tracing_level::TracingLevel::Warn)
         );
         let _error =
@@ -64,7 +68,9 @@ mod tests {
     #[test]
     fn test_src_place_type_from_str_accepts_src_value() {
         assert_eq!(
-            <crate::src_place_type::SrcPlaceType as std::str::FromStr>::from_str("src"),
+            <crate::src_place_type::SrcPlaceType as std::str::FromStr>::from_str(
+                constants_str::SRC_ALT
+            ),
             Ok(crate::src_place_type::SrcPlaceType::Src)
         );
     }
@@ -88,8 +94,8 @@ mod tests {
             constants_str::UNKNOWN_ALT,
         )
         .expect_err(constants_str::F2CC7D6B);
-        assert!(error.contains("Unknown value"));
-        assert!(error.contains("Allowed values:"));
+        assert!(error.contains(constants_str::VALUE_21D222E0));
+        assert!(error.contains(constants_str::VALUE_0C0C9A7B));
     }
     #[test]
     fn test_parse_src_place_type_env_value_parses_case_insensitively() {
@@ -111,8 +117,8 @@ mod tests {
         )
         .expect_err(constants_str::VALUE_8C9F2A17);
         let error_text = error.to_string();
-        assert!(error_text.contains("<SrcPlaceType as std::str::FromStr>::from_str(&v):"));
-        assert!(error_text.contains("Unknown value: bad"));
+        assert!(error_text.contains(constants_str::VALUE_0D5C69DF));
+        assert!(error_text.contains(constants_str::VALUE_862F630D));
     }
     #[test]
     fn test_parse_from_env_var_with_wraps_missing_var_context() {
@@ -124,16 +130,12 @@ mod tests {
             |_v| Ok(()),
         );
         let error = parsed.expect_err(constants_str::D2F3B74A);
-        assert!(
-            error
-                .to_string()
-                .contains("std::env::var(\"SRC_PLACE_TYPE\")")
-        );
+        assert!(error.to_string().contains(constants_str::VALUE_48766AEF));
         assert_eq!(
             std::error::Error::source(&error)
                 .expect(constants_str::DIAGNOSTIC_E6FBFE6B)
                 .to_string(),
-            "environment variable not found"
+            constants_str::VALUE_0833BC56
         );
     }
     #[test]
@@ -145,7 +147,7 @@ mod tests {
             ),
             |v| Ok(v.as_ref().to_owned()),
         );
-        assert_eq!(parsed, Ok(String::from("src")));
+        assert_eq!(parsed, Ok(String::from(constants_str::SRC_ALT)));
     }
     #[test]
     fn test_parse_from_env_var_from_str_parses_bool_when_input_is_valid() {
@@ -168,7 +170,7 @@ mod tests {
             crate::parse_ctx_ref::ParseCtxRef::from(constants_str::BOOL_PARSE),
         )
         .expect_err(constants_str::VALUE_7E4B3F19);
-        assert!(error.to_string().contains("bool parse:"));
+        assert!(error.to_string().contains(constants_str::VALUE_3461D5B9));
     }
     #[test]
     fn test_parse_src_place_type_from_env_var_wraps_missing_var_context() {
@@ -176,11 +178,7 @@ mod tests {
             env_result(Err(std::env::VarError::NotPresent)),
         )
         .expect_err(constants_str::VALUE_5A83F2BE);
-        assert!(
-            error
-                .to_string()
-                .contains("std::env::var(\"SRC_PLACE_TYPE\")")
-        );
+        assert!(error.to_string().contains(constants_str::VALUE_48766AEF));
     }
     #[test]
     fn test_parse_src_place_type_from_env_var_parses_ok_value() {
@@ -204,6 +202,6 @@ mod tests {
             crate::parse_ctx_ref::ParseCtxRef::from(constants_str::BOOL_PARSE),
         )
         .expect_err(constants_str::VALUE_13FE8A6D);
-        assert!(error.to_string().contains("bool parse:"));
+        assert!(error.to_string().contains(constants_str::VALUE_3461D5B9));
     }
 }

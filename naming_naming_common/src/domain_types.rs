@@ -106,9 +106,9 @@ mod tests {
     where
         S: AsRef<str>,
     {
-        assert_eq!(to_upper_camel_case.as_ref(), "HelloWorld");
-        assert_eq!(to_snake_case.as_ref(), "hello_world");
-        assert_eq!(to_upper_snake_case.as_ref(), "HELLO_WORLD");
+        assert_eq!(to_upper_camel_case.as_ref(), constants_str::HELLOWORLD);
+        assert_eq!(to_snake_case.as_ref(), constants_str::HELLO_WORLD_ALT);
+        assert_eq!(to_upper_snake_case.as_ref(), constants_str::VALUE_6F9B5140);
     }
     #[test]
     fn test_as_ref_case_conversions_are_expected() {

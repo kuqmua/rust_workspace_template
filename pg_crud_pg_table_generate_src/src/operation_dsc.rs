@@ -34,12 +34,15 @@ mod tests {
             constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
             200u16,
         );
-        assert_eq!(*spec.get_http_method(), "PATCH");
+        assert_eq!(*spec.get_http_method(), constants_str::PATCH);
         assert!(*spec.get_idempotency_capable());
-        assert_eq!(*spec.get_operation(), "uo");
-        assert_eq!(*spec.get_operation_kind(), "update_one");
+        assert_eq!(*spec.get_operation(), constants_str::UO);
+        assert_eq!(*spec.get_operation_kind(), constants_str::UPDATE_ONE);
         assert!(*spec.get_optimistic_concurrency_capable());
-        assert_eq!(*spec.get_permission_action(), "update");
+        assert_eq!(
+            *spec.get_permission_action(),
+            constants_str::ADMIN_FIXTURE_AUDIT_ACTION
+        );
         assert_eq!(*spec.get_success_status_code(), 200u16);
     }
 }

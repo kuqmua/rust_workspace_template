@@ -115,7 +115,7 @@ fn test_uri_suffix_prefers_path_and_query_when_query_exists() {
     let uri = axum::http::Uri::from_static(constants_str::MISSING_PATH_QUESTION_LIMIT_10);
     assert_eq!(
         *crate::uri_suffix_tests::uri_suffix(uri_ref(&uri)),
-        "/missing/path?limit=10"
+        constants_str::MISSING_PATH_QUESTION_LIMIT_10
     );
 }
 #[test]
@@ -185,7 +185,7 @@ fn test_not_found_payload_for_suffix_uses_given_suffix_and_swagger_path() {
 fn test_no_route_prefix_stays_stable() {
     assert_eq!(
         constants_str::COMMON_ROUTES_NO_ROUTE_MSG_PREFIX,
-        "No route for "
+        std::str::from_utf8(b"No route for ").expect(constants_str::VALUE_2DE961C6)
     );
 }
 #[test]

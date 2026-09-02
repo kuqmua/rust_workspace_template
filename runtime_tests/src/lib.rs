@@ -151,7 +151,7 @@ mod tests {
             )
             .expect(constants_str::DIAGNOSTIC_EA911C48)
             .as_ref(),
-            "http://application/health/live"
+            constants_str::VALUE_066C8388
         );
     }
 }

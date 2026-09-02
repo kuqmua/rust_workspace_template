@@ -63,11 +63,11 @@ mod tests {
         )
         .as_ref()
         .to_string();
-        assert!(generated.starts_with("location : location_lib :: location :: Location :: new"));
-        assert!(generated.contains("\"src/example.rs\""));
-        assert!(generated.contains("try_from (1)"));
-        assert!(generated.contains("file ! ()"));
-        assert!(generated.contains("line ! ()"));
-        assert!(generated.contains("column ! ()"));
+        assert!(generated.starts_with(constants_str::VALUE_D5D0CC41));
+        assert!(generated.contains(constants_str::VALUE_B0452175));
+        assert!(generated.contains(constants_str::VALUE_FD67A0AA));
+        assert!(generated.contains(constants_str::VALUE_22354C74));
+        assert!(generated.contains(constants_str::VALUE_A37D1D7D));
+        assert!(generated.contains(constants_str::VALUE_BD7DA2C7));
     }
 }

@@ -20,12 +20,12 @@ mod tests {
     fn test_panic_with_location_message_is_formatted_as_expected() {
         assert_eq!(
             crate::panic_with_location_message::panic_with_location_message(
-                crate::panic_file::PanicFile::from("src/lib.rs"),
+                crate::panic_file::PanicFile::from(constants_str::SRC_LIB_RS),
                 crate::panic_line::PanicLine::from(7),
                 crate::panic_column::PanicColumn::from(11),
             )
             .as_ref(),
-            "panic occurred in src/lib.rs:7:11"
+            constants_str::VALUE_CCD65EB4
         );
     }
 }

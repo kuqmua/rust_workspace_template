@@ -154,7 +154,7 @@ mod tests {
             async || Ok::<_, &str>(crate::list_total::ListTotal::from(constants_u32::ZERO)),
         ))
         .expect_err(constants_str::VALUE_09221460);
-        assert_eq!(list_error, "list");
+        assert_eq!(list_error, constants_str::VALUE_A330395C);
         let count_error = block_on(crate::run_list_with_total::run_list_with_total(
             crate::pagination_offset::PaginationOffset::from(1i32).into(),
             async || {
@@ -166,7 +166,7 @@ mod tests {
             async || Err::<crate::list_total::ListTotal, _>(constants_str::VALUE_6C35493A),
         ))
         .expect_err(constants_str::VALUE_20016253);
-        assert_eq!(count_error, "count");
+        assert_eq!(count_error, constants_str::VALUE_6C35493A);
     }
 
     #[test]

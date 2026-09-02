@@ -65,7 +65,7 @@ fn test_fmt_place_src_without_occr() {
     let location = test_location(std::time::Duration::from_secs(0), None);
     assert_eq!(
         fmt_place(&location, config_lib::src_place_type::SrcPlaceType::Src),
-        "src/lib.rs:10:20"
+        constants_str::VALUE_2FF162D0
     );
 }
 #[test]
@@ -73,7 +73,7 @@ fn test_fmt_place_src_with_occr() {
     let location = test_location(std::time::Duration::from_secs(0), Some(test_occr()));
     assert_eq!(
         fmt_place(&location, config_lib::src_place_type::SrcPlaceType::Src),
-        "src/lib.rs:10:20 (src/error.rs:30:40)"
+        constants_str::VALUE_C5939F43
     );
 }
 #[test]
@@ -120,9 +120,9 @@ fn test_datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
         .expect(constants_str::DIAGNOSTIC_F5C41DD8);
     assert_eq!(
         chrono::DateTime::<chrono::FixedOffset>::from(date_time)
-            .format("%Y-%m-%d %H:%M:%S")
+            .format(constants_str::VALUE_34A18516)
             .to_string(),
-        "1970-01-01 03:00:00"
+        constants_str::VALUE_BA5B49F1
     );
 }
 #[test]

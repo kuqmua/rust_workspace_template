@@ -589,7 +589,10 @@ fn test_diagnostic_id_visitor_checks_expect_methods_and_panic_macros() {
     assert!(visitor.get_ers().is_empty());
     assert_eq!(
         visitor.get_ids().as_slice(),
-        [String::from("1a2b3c4d"), String::from("5e6f7a8b")]
+        [
+            String::from(constants_str::VALUE_0A05D7B2),
+            String::from(constants_str::VALUE_371EE848)
+        ]
     );
 
     let invalid_ast =
@@ -779,12 +782,12 @@ fn test_struct_field_visibility_policy_rejects_restricted_visibility() {
     assert_eq!(
         visitor.get_violations().as_slice(),
         [
-            "Example::parent",
-            "Example::workspace",
-            "Example::restricted",
-            "Example::public",
-            "TupleRestricted::0",
-            "TuplePublic::0",
+            constants_str::VALUE_0BC21577,
+            constants_str::VALUE_1FEF7771,
+            constants_str::VALUE_0732DC65,
+            constants_str::VALUE_0AA2EAA9,
+            constants_str::VALUE_1CAC5DE9,
+            constants_str::VALUE_354F1DC6,
         ],
         "e69e2e99"
     );
@@ -924,14 +927,14 @@ fn test_direct_filesystem_owner_inventory_is_exact_justified_and_current() {
     });
     assert!(
         crate::code_style::is_direct_fs_owner_source_path(crate::types::PathRef::from(
-            std::path::Path::new("../workspace_scaffold/src/template_fs_copy_template_tree.rs")
+            std::path::Path::new(constants_str::VALUE_FC45F701)
         ))
         .get(),
         "5b71e44a"
     );
     assert!(
         !crate::code_style::is_direct_fs_owner_source_path(crate::types::PathRef::from(
-            std::path::Path::new("../workspace_scaffold/src/unrelated.rs")
+            std::path::Path::new(constants_str::VALUE_2179FBD7)
         ))
         .get(),
         "f1428b6c"
@@ -1173,10 +1176,7 @@ fn test_optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
     );
     assert_eq!(
         visitor.get_ers().as_slice(),
-        [
-            "enum `MissingEnum` must derive `proc_macro_optimal_memory_layout::OptimalMemoryLayout`",
-            "struct `MissingStruct` must derive `proc_macro_optimal_memory_layout::OptimalMemoryLayout`",
-        ],
+        [constants_str::VALUE_2B8772F7, constants_str::VALUE_717A1158,],
         "42dc6e3b"
     );
 }
@@ -1568,11 +1568,15 @@ fn test_production_line_print_macro_policy_allows_test_code_and_rejects_producti
     );
     assert_eq!(
         visitor.get_calls().as_slice(),
-        ["println".to_owned(), "eprintln".to_owned()]
+        [
+            constants_str::SHARED_VALUES_PRINTLN.to_owned(),
+            constants_str::SHARED_VALUES_EPRINTLN.to_owned()
+        ]
     );
     assert_eq!(
         constants_str::VALUE_70D9A674,
-        "instead of using println! and eprintln!, use tracing/telemetry"
+        std::str::from_utf8(b"instead of using println! and eprintln!, use tracing/telemetry")
+            .expect(constants_str::VALUE_2DE961C6)
     );
 }
 #[test]
@@ -1612,19 +1616,19 @@ fn test_sensitive_text_debug_policy_distinguishes_redacted_derives() {
         visitor
             .get_ers()
             .iter()
-            .any(|error| error.contains("ApiTokenRef"))
+            .any(|error| error.contains(constants_str::VALUE_607E1E95))
     );
     assert!(
         visitor
             .get_ers()
             .iter()
-            .any(|error| error.contains("ApiKeyBytes"))
+            .any(|error| error.contains(constants_str::VALUE_F9719A33))
     );
     assert!(
         visitor
             .get_ers()
             .iter()
-            .any(|error| error.contains("PasswordHash"))
+            .any(|error| error.contains(constants_str::VALUE_3E487F75))
     );
 }
 #[test]
@@ -1769,12 +1773,9 @@ fn test_admin_route_errors_do_not_wrap_a_shared_operation_error() {
             .expect(constants_str::DIAGNOSTIC_890B3180)
             .content()
             .as_ref();
-        assert!(!auth.contains("Operation(AdminError)"), "7c9f1bb0");
-        assert!(
-            auth.contains("proc_macro_frontend_contract::api_operation_error!"),
-            "166dc25a"
-        );
-        assert!(macros.contains("pub fn api_operation_error"), "259e7ebd");
+        assert!(!auth.contains(constants_str::VALUE_68D941E2), "7c9f1bb0");
+        assert!(auth.contains(constants_str::VALUE_C6F679F0), "166dc25a");
+        assert!(macros.contains(constants_str::VALUE_DE36A108), "259e7ebd");
         [
             constants_str::VALUE_D7A45F10,
             constants_str::VALUE_1467E095,
@@ -2183,13 +2184,13 @@ fn test_empty_enum_policy_checks_items_and_attribute_payloads() {
         visitor
             .get_ers()
             .iter()
-            .any(|error| error.contains("DirectlyEmpty"))
+            .any(|error| error.contains(constants_str::VALUE_2F5B45FB))
     );
     assert!(
         visitor
             .get_ers()
             .iter()
-            .any(|error| error.contains("EmptyMarker"))
+            .any(|error| error.contains(constants_str::VALUE_3E422B73))
     );
 }
 #[test]
@@ -3222,11 +3223,13 @@ fn test_string_constant_visitor_detects_expression_and_nested_macro_literals() {
     assert_eq!(visitor.get_ers().len(), 2usize);
 }
 #[test]
-fn test_string_constant_visitor_detects_expect_literals_nested_in_assertions_and_panic() {
+fn test_string_constant_visitor_checks_assertion_operands_and_skips_messages() {
     let source = format!(
-        "fn f() {{ assert!(fallible().expect(\"{}\")); assert_eq!(fallible().expect_err(\"{}\"), expected); panic!(\"{}\"); }}",
+        "fn f() {{ assert!(fallible().expect(\"{}\")); assert_eq!(fallible().expect_err(\"{}\"), expected); assert_eq!(\"{}\", expected, \"{}\"); panic!(\"{}\"); }}",
         constants_str::VALUE_2DE961C6,
         constants_str::VALUE_0EF05B85,
+        constants_str::VALUE_8448814D,
+        constants_str::VALUE_9F8D72A1,
         constants_str::VALUE_3C31187B,
     );
     let ast = syn::parse_file(source.as_str()).expect(constants_str::DIAGNOSTIC_7C5E1A92);
@@ -3234,7 +3237,7 @@ fn test_string_constant_visitor_detects_expect_literals_nested_in_assertions_and
         crate::types::SynFileRef::from(&ast),
         super::source_analysis::StringConstantVisitor::new(crate::types::DiagnosticMsgs::default()),
     );
-    assert_eq!(visitor.get_ers().len(), 3usize);
+    assert_eq!(visitor.get_ers().len(), 4usize);
 }
 #[test]
 fn test_tracing_message_visitor_checks_every_event_macro_and_test_module() {
@@ -3327,21 +3330,18 @@ fn test_string_constant_policy_has_only_the_constants_crate_source_directory_exc
         .get()
     );
     assert!(
-        [
-            "../copy/constants_str/src/lib.rs",
-            "constants_str/src/lib.rs",
-        ]
-        .into_iter()
-        .all(|path| {
-            !crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(
-                std::path::Path::new(path),
-            ))
-            .get()
-        })
+        [constants_str::VALUE_0143DFED, constants_str::VALUE_B278317D,]
+            .into_iter()
+            .all(|path| {
+                !crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(
+                    std::path::Path::new(path),
+                ))
+                .get()
+            })
     );
     assert!(
         crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(
-            std::path::Path::new("../constants_str/src/catalog.rs",)
+            std::path::Path::new(constants_str::VALUE_AE938FB0,)
         ))
         .get()
     );

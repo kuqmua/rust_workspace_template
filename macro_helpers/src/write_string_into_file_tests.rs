@@ -204,7 +204,7 @@ mod tests {
         ));
         assert_eq!(
             path.as_ref().extension().and_then(|v| v.to_str()),
-            Some("rs")
+            Some(constants_str::RS)
         );
     }
     #[test]

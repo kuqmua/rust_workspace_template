@@ -24,13 +24,17 @@ mod tests {
         )
         .expect(constants_str::DIAGNOSTIC_1D3DE882);
         assert_eq!(
-            crate::multipart_field_name::MultipartFieldName::try_from("a".repeat(257usize)),
+            crate::multipart_field_name::MultipartFieldName::try_from(
+                constants_str::A_ALT.repeat(257usize)
+            ),
             Err(crate::multipart_value_error::MultipartValueError::TooLong {
                 actual: crate::multipart_value_length::MultipartValueLength::from(257usize)
             })
         );
         assert_eq!(
-            crate::multipart_field_name::MultipartFieldName::try_from(String::from("a\0b")),
+            crate::multipart_field_name::MultipartFieldName::try_from(String::from(
+                constants_str::VALUE_59B271AE
+            )),
             Err(crate::multipart_value_error::MultipartValueError::ControlCharacter)
         );
 
@@ -43,23 +47,29 @@ mod tests {
         )
         .expect(constants_str::DIAGNOSTIC_7B3CA38E);
         assert_eq!(
-            crate::multipart_file_name::MultipartFileName::try_from("a".repeat(1025usize)),
+            crate::multipart_file_name::MultipartFileName::try_from(
+                constants_str::A_ALT.repeat(1025usize)
+            ),
             Err(crate::multipart_value_error::MultipartValueError::TooLong {
                 actual: crate::multipart_value_length::MultipartValueLength::from(1025usize)
             })
         );
         assert_eq!(
-            crate::multipart_file_name::MultipartFileName::try_from(String::from("a\0b")),
-            Err(crate::multipart_value_error::MultipartValueError::ControlCharacter)
-        );
-        assert_eq!(
-            crate::multipart_field_name::MultipartFieldName::try_from(String::from(
-                "field\r\ninjected"
+            crate::multipart_file_name::MultipartFileName::try_from(String::from(
+                constants_str::VALUE_59B271AE
             )),
             Err(crate::multipart_value_error::MultipartValueError::ControlCharacter)
         );
         assert_eq!(
-            crate::multipart_file_name::MultipartFileName::try_from(String::from("..\\secret.txt")),
+            crate::multipart_field_name::MultipartFieldName::try_from(String::from(
+                constants_str::VALUE_0C6873A1
+            )),
+            Err(crate::multipart_value_error::MultipartValueError::ControlCharacter)
+        );
+        assert_eq!(
+            crate::multipart_file_name::MultipartFileName::try_from(String::from(
+                constants_str::VALUE_0B8B255E
+            )),
             Err(crate::multipart_value_error::MultipartValueError::PathComponent)
         );
 
@@ -68,21 +78,28 @@ mod tests {
         )
         .expect(constants_str::DIAGNOSTIC_C2DD1657);
         assert_eq!(
-            crate::multipart_text_value::MultipartTextValue::try_from("a".repeat(65_537usize)),
+            crate::multipart_text_value::MultipartTextValue::try_from(
+                constants_str::A_ALT.repeat(65_537usize)
+            ),
             Err(crate::multipart_value_error::MultipartValueError::TooLong {
                 actual: crate::multipart_value_length::MultipartValueLength::from(65_537usize)
             })
         );
         assert_eq!(
-            crate::multipart_text_value::MultipartTextValue::try_from(String::from("\0")),
+            crate::multipart_text_value::MultipartTextValue::try_from(String::from(
+                constants_str::VALUE_6E340B9C
+            )),
             Err(crate::multipart_value_error::MultipartValueError::Nul)
         );
     }
     #[test]
     fn test_multipart_parts_preserve_names_values_and_file_names() {
         let text = text_part(constants_str::VALUE_CD42404D);
-        assert_eq!(text.name().as_ref(), "field");
-        assert_eq!(text.value().as_ref(), "value");
+        assert_eq!(text.name().as_ref(), constants_str::FIELD);
+        assert_eq!(
+            text.value().as_ref(),
+            constants_str::CODE_STYLE_VALUE_IDENTIFIER
+        );
 
         let file_name = crate::multipart_file_name::MultipartFileName::try_from(String::from(
             constants_str::VALUE_EAFB4AFF,
@@ -92,11 +109,11 @@ mod tests {
             .expect(constants_str::DIAGNOSTIC_E9E23985);
         let bytes_part = crate::multipart_bytes_part::MultipartBytesPart::new(field_name(), bytes)
             .with_file_name(file_name);
-        assert_eq!(bytes_part.name().as_ref(), "field");
+        assert_eq!(bytes_part.name().as_ref(), constants_str::FIELD);
         assert_eq!(bytes_part.bytes().as_ref(), &[1u8, 2u8, 3u8]);
         assert_eq!(
             bytes_part.file_name().map(AsRef::as_ref),
-            Some("report.txt")
+            Some(constants_str::VALUE_EAFB4AFF)
         );
     }
     #[test]
@@ -109,7 +126,7 @@ mod tests {
             .expect(constants_str::DIAGNOSTIC_7797E0F1);
         assert_eq!(
             limited_request.with_text_part(
-                text_part("cd"),
+                text_part(constants_str::VALUE_21E721C3),
                 crate::multipart_payload_maximum::MultipartPayloadMaximum::from(3usize)
             ),
             Err(crate::multipart_request_error::MultipartRequestError::PayloadTooLarge)
@@ -131,7 +148,7 @@ mod tests {
         assert_eq!(full_request.text_parts().len(), 32usize);
         assert_eq!(
             full_request.with_text_part(
-                text_part(""),
+                text_part(constants_str::EMPTY),
                 crate::multipart_payload_maximum::MultipartPayloadMaximum::from(
                     constants_usize::ZERO
                 )
@@ -150,11 +167,15 @@ mod tests {
             Err(crate::storage_path_segment_error::StoragePathSegmentError::Invalid)
         );
         assert_eq!(
-            crate::storage_path_segment::StoragePathSegment::try_from(String::from("../escape")),
+            crate::storage_path_segment::StoragePathSegment::try_from(String::from(
+                constants_str::VALUE_1BA7343C
+            )),
             Err(crate::storage_path_segment_error::StoragePathSegmentError::Invalid)
         );
         assert_eq!(
-            crate::storage_path_segment::StoragePathSegment::try_from("a".repeat(1025usize)),
+            crate::storage_path_segment::StoragePathSegment::try_from(
+                constants_str::A_ALT.repeat(1025usize)
+            ),
             Err(crate::storage_path_segment_error::StoragePathSegmentError::Invalid)
         );
 
@@ -177,7 +198,7 @@ mod tests {
                 &file_name
             )
             .as_ref(),
-            std::path::Path::new("entity/unique.gz")
+            std::path::Path::new(constants_str::VALUE_E5F0A5A4)
         );
         let no_extension = crate::multipart_file_name::MultipartFileName::try_from(String::from(
             constants_str::VALUE_2B7814D3,
@@ -190,7 +211,7 @@ mod tests {
                 &no_extension
             )
             .as_ref(),
-            std::path::Path::new("entity/unique")
+            std::path::Path::new(constants_str::VALUE_9779C6F7)
         );
         assert_eq!(
             crate::staging_directory_name::staging_directory_name(

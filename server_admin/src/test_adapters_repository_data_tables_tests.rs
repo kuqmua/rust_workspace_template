@@ -129,7 +129,7 @@ fn test_generated_where_filter_builds_typed_table_predicate() {
         .expect(constants_str::DIAGNOSTIC_A25FE142);
 
     assert!(fragment.as_ref().contains(constants_str::LOGIN));
-    assert!(fragment.as_ref().contains("$1"));
+    assert!(fragment.as_ref().contains(constants_str::DOLLAR_1_ALT));
     assert_eq!(increment.get(), 1u64);
 }
 
@@ -237,7 +237,12 @@ fn test_scalar_and_regex_filters_reject_range_end_values() {
         frontend_contract::filter_operation::FilterOperation::Regex,
     ];
     assert!(operations.into_iter().all(|operation| {
-        let query = filter_query(constants_str::LOGIN, operation, Some("alice"), Some("bob"));
+        let query = filter_query(
+            constants_str::LOGIN,
+            operation,
+            Some(constants_str::VALUE_2BD806C9),
+            Some(constants_str::VALUE_81B637D8),
+        );
         crate::data_filter::data_filter(
             server_admin_contract::admin_data_table::AdminDataTable::Users,
             query.filter(),
@@ -320,8 +325,8 @@ fn test_filtered_sql_places_pagination_after_filter_binds() {
     })()
     .expect(constants_str::DIAGNOSTIC_C33365BA);
 
-    assert!(data.as_ref().contains("where login = $1"));
-    assert!(data.as_ref().contains("LIMIT $2 OFFSET $3"));
+    assert!(data.as_ref().contains(constants_str::VALUE_F7A09FE1));
+    assert!(data.as_ref().contains(constants_str::VALUE_51920234));
 }
 
 #[test]

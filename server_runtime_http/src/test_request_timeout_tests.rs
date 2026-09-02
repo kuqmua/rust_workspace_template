@@ -36,7 +36,7 @@ mod tests {
         assert_eq!(response.status(), http::StatusCode::SERVICE_UNAVAILABLE);
         assert_eq!(
             response.headers().get(http::header::RETRY_AFTER),
-            Some(&http::HeaderValue::from_static("2"))
+            Some(&http::HeaderValue::from_static(constants_str::VALUE_2))
         );
     }
 }

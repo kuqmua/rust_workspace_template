@@ -21,10 +21,7 @@ fn test_generate_impl_new_for_identifier_token_stream_generates_non_const_new() 
         &parameters,
         &body,
     );
-    assert_eq!(
-        cmpct(&ts.to_string()),
-        cmpct("impl Cfg { fn new(v:usize) -> Self { Self{v} } }")
-    );
+    assert_eq!(cmpct(&ts.to_string()), cmpct(constants_str::VALUE_87685B6B));
 }
 #[test]
 fn test_generate_impl_const_new_for_identifier_token_stream_generates_const_new() {
@@ -43,10 +40,7 @@ fn test_generate_impl_const_new_for_identifier_token_stream_generates_const_new(
         &parameters,
         &body,
     );
-    assert_eq!(
-        cmpct(&ts.to_string()),
-        cmpct("impl Cfg { const fn new(v:usize) -> Self { Self{v} } }")
-    );
+    assert_eq!(cmpct(&ts.to_string()), cmpct(constants_str::VALUE_C3851857));
 }
 #[test]
 fn test_generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new() {
@@ -68,8 +62,5 @@ fn test_generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_co
         &parameters,
         &body,
     );
-    assert_eq!(
-        cmpct(&ts.to_string()),
-        cmpct("impl Cfg { #[inline] pub const fn new(v:usize) -> Self { Self{v} } }")
-    );
+    assert_eq!(cmpct(&ts.to_string()), cmpct(constants_str::VALUE_BA9AA4C0));
 }

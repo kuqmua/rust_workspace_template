@@ -5,8 +5,11 @@ mod tests {
         let guard = crate::observability_guard::ObservabilityGuard::from(None);
         guard.shutdown().expect(constants_str::DIAGNOSTIC_599CA192);
         assert_eq!(
-            crate::service_name::ServiceName::from("notification_service").to_string(),
-            "notification_service"
+            crate::service_name::ServiceName::from(
+                constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE
+            )
+            .to_string(),
+            constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE
         );
     }
     #[test]
