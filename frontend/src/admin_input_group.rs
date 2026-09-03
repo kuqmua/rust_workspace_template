@@ -14,7 +14,10 @@
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin input group remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn AdminInputGroup(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {

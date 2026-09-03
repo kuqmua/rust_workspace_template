@@ -708,7 +708,10 @@ pub(crate) fn read_toml_table(
     })
 }
 
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "code style remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn cargo_toml_content(
     path_ref: crate::types::PathRef<'_>,
 ) -> Option<crate::types::SourceText> {

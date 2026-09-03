@@ -76,7 +76,7 @@ pub(crate) async fn mutations_set_permissions(
             .copied()
             .map(i64::from)
             .collect::<Vec<_>>();
-        #[allow(clippy::stable_sort_primitive, reason = "lint suppression is required here")]
+        #[allow(clippy::stable_sort_primitive, reason = "mutations set permissions requires this localized allowance for generated or framework-constrained code verified by focused tests")]
         expected_raw_ids.sort();
         if current_permission_ids != expected_raw_ids {
             return Ok::<_, crate::sqlx_admin_error::SqlxAdminError>(

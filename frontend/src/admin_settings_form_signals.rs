@@ -15,7 +15,10 @@ pub(crate) struct AdminSettingsFormSignals(
         server_admin_contract::admin_setting::AdminSetting::COUNT],
 );
 impl AdminSettingsFormSignals {
-    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::single_call_fn,
+        reason = "admin settings form signals remains a named owner because its boundary role is clearer and directly testable"
+    )]
     pub(crate) fn new(
         admin_settings_form_values: &crate::admin_settings_form_values::AdminSettingsFormValues,
     ) -> Self {

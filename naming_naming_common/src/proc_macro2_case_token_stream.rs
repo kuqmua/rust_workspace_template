@@ -3,10 +3,6 @@
     Debug,
     Clone,
     proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInner,
 )]
 pub(super) struct ProcMacro2CaseTokenStream(proc_macro2::TokenStream);
-impl ProcMacro2CaseTokenStream {
-    pub(super) fn into_inner(self) -> proc_macro2::TokenStream {
-        self.0
-    }
-}

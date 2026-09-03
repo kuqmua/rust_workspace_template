@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "audit query log remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn audit_query_log(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     axum_admin_query: crate::axum_admin_query::AxumAdminQuery<

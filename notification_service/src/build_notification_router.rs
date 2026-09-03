@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "build notification router remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn build_notification_router(
     notification_state: crate::notification_state::NotificationState,
     notification_body_maximum_bytes: crate::notification_body_maximum_bytes::NotificationBodyMaximumBytes,

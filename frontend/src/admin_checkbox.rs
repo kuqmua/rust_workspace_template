@@ -21,7 +21,10 @@ use leptos::prelude::{AddAnyAttr};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin checkbox remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn AdminCheckbox(
     name: &'static str,
     value: &'static str,

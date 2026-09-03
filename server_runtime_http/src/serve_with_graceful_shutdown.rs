@@ -1,6 +1,6 @@
 #[allow(
     clippy::integer_division_remainder_used,
-    reason = "lint suppression is required here"
+    reason = "serve with graceful shutdown requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 pub async fn serve_with_graceful_shutdown<Shutdown>(
     tokio_tcp_listener: crate::tokio_tcp_listener::TokioTcpListener,

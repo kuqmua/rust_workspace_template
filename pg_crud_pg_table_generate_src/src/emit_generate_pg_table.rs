@@ -1,6 +1,12 @@
 #[must_use]
-#[allow(non_snake_case, reason = "lint suppression is required here")]
-#[allow(unused_variables, reason = "lint suppression is required here")]
+#[allow(
+    non_snake_case,
+    reason = "emit generate pg table requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
+#[allow(
+    unused_variables,
+    reason = "emit generate pg table emits configuration-dependent bindings that are unused in some generated variants"
+)]
 pub fn emit_generate_pg_table(
     syn_validated_generate_pg_table_input: crate::syn_validated_generate_pg_table_input::SynValidatedGeneratePgTableInput,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
@@ -42,7 +48,7 @@ pub fn emit_generate_pg_table(
 
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     #[derive(
         Debug,
@@ -198,7 +204,7 @@ pub fn emit_generate_pg_table(
 
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     #[derive(
         Clone,
@@ -224,7 +230,6 @@ pub fn emit_generate_pg_table(
     }
     impl
         crate::operation_descriptor::OperationDescriptor<
-            bool,
             OperationHttpMethod,
             Operation,
             PgTableOperationKind,
@@ -245,7 +250,11 @@ pub fn emit_generate_pg_table(
         const fn from_operation(operation: Operation) -> Self {
             Self::new(
                 operation.http_method(),
-                operation.supports_idempotency(),
+                if operation.supports_idempotency() {
+                    crate::idempotency_capability::IdempotencyCapability::Enabled
+                } else {
+                    crate::idempotency_capability::IdempotencyCapability::Disabled
+                },
                 operation,
                 match operation {
                     Operation::Cm => PgTableOperationKind::CreateMany,
@@ -257,7 +266,16 @@ pub fn emit_generate_pg_table(
                     Operation::Um => PgTableOperationKind::UpdateMany,
                     Operation::Uo => PgTableOperationKind::UpdateOne,
                 },
-                matches!(operation, Operation::Uo),
+                match operation {
+                    Operation::Uo => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Enabled,
+                    Operation::Cm
+                    | Operation::Co
+                    | Operation::Dm
+                    | Operation::Dlo
+                    | Operation::Rm
+                    | Operation::Ro
+                    | Operation::Um => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Disabled,
+                },
                 match operation {
                     Operation::Cm | Operation::Co => {
                         constants_str::PG_CRUD_CREATE_PERMISSION_ACTION
@@ -277,7 +295,7 @@ pub fn emit_generate_pg_table(
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     enum RmOrDm {
         Rm,
@@ -291,7 +309,7 @@ pub fn emit_generate_pg_table(
 
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     #[derive(
         Debug,
@@ -357,7 +375,7 @@ pub fn emit_generate_pg_table(
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     enum CreateOrUpdateOrDm {
         Create,
@@ -367,7 +385,7 @@ pub fn emit_generate_pg_table(
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     enum CreateOrUpdateOrDlo {
         Create,
@@ -377,7 +395,7 @@ pub fn emit_generate_pg_table(
 
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     #[derive(Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableConfig {
@@ -553,16 +571,15 @@ pub fn emit_generate_pg_table(
             std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>,
     }
     #[derive(
-        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype::FromInner,
+        proc_macro_newtype::IntoInner,
     )]
     struct ProcMacro2GeneratePgTableTestsTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableTestsTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
-        }
-        fn into_inner(self) -> proc_macro2::TokenStream {
-            self.0
         }
     }
     #[derive(
@@ -576,16 +593,15 @@ pub fn emit_generate_pg_table(
         }
     }
     #[derive(
-        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype::FromInner,
+        proc_macro_newtype::IntoInner,
     )]
     struct ProcMacro2GeneratePgTableWholeTokenStream(proc_macro2::TokenStream);
 
     impl ProcMacro2GeneratePgTableWholeTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
-        }
-        fn into_inner(self) -> proc_macro2::TokenStream {
-            self.0
         }
     }
     #[derive(
@@ -606,7 +622,7 @@ pub fn emit_generate_pg_table(
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     struct GeneratePgTableFrontendFieldEmission {
         label: Option<String>,
@@ -635,7 +651,7 @@ pub fn emit_generate_pg_table(
     )]
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
     )]
     struct GeneratePgTableVariantFieldEmission {
         identifier: syn::Ident,
@@ -2437,7 +2453,7 @@ pub fn emit_generate_pg_table(
 
     #[allow(
         clippy::items_after_statements,
-        reason = "lint suppression is required here"
+        reason = "emit generate pg table requires this localized allowance for generated or framework-constrained code verified by focused tests"
     )]
     fn new_syn_variant<DisplayValue>(
         variant_name: &dyn std::fmt::Display,
@@ -4771,9 +4787,11 @@ enum WrapIntoOptional {
     .fold((), |(), operation_descriptor| {
         let operation = operation_descriptor.get_operation();
         let idempotency_enabled = generate_pg_table_input_model.config.idempotent_mutations
-            && crate::idempotency_capable::idempotency_capable(operation_descriptor);
+            && bool::from(crate::idempotency_capable::idempotency_capable(operation_descriptor));
         let optimistic_concurrency_enabled = optimistic_revision_field_index.is_some()
-            && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_descriptor);
+            && bool::from(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(
+                operation_descriptor,
+            ));
         let operation_execute_snake_case_token_stream = {
             let value = naming::parameter::SelfHSnakeCase::from_tokens(
                 &operation.self_snake_case_token_stream(),
@@ -5038,7 +5056,7 @@ enum WrapIntoOptional {
             generate_quotes::dq_token_stream::dq_token_stream(&constants_str::APPLICATION_JSON);
         let open_api_path_fn_token_stream = quote::quote! {
 
-            #[allow(non_camel_case_types, reason = "lint suppression is required here")]
+            #[allow(non_camel_case_types, reason = "emit generate pg table requires this localized allowance for generated or framework-constrained code verified by focused tests")]
             pub struct #open_api_path_type_identifier;
             impl utoipa::__dev::PathConfig for #open_api_path_type_identifier {
                 fn methods() -> Vec<utoipa::openapi::path::HttpMethod> {
@@ -6730,9 +6748,9 @@ enum WrapIntoOptional {
                         );
                         let impl_de_for_identifier_um_payload_token_stream = quote::quote! {
 
-                            #[allow(unused_qualifications, reason = "lint suppression is required here")]
+                            #[allow(unused_qualifications, reason = "emit generate pg table keeps explicit generated paths stable across expansion contexts")]
 
-                            #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+                            #[allow(clippy::absolute_paths, reason = "emit generate pg table uses explicit paths to comply with the workspace import policy")]
                             #AllowClippyArbitrarySrcItemOrdering
                             const _: () = {
                                 extern crate serde as _serde;
@@ -7051,7 +7069,7 @@ enum WrapIntoOptional {
             transport: Transport,
         }
 
-        #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+        #[allow(clippy::future_not_send, reason = "emit generate pg table futures remain task-local and are never transferred across threads")]
         impl<Transport> #identifier_frontend_api_client_upper_camel_case<Transport>
         where
             Transport: frontend_contract::transport::Transport,
@@ -7086,9 +7104,11 @@ enum WrapIntoOptional {
                 quote::format_ident!("Code200")
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
-                && crate::idempotency_capable::idempotency_capable(operation_descriptor);
+                && bool::from(crate::idempotency_capable::idempotency_capable(operation_descriptor));
             let optimistic_revision_required = optimistic_revision_field_index.is_some()
-                && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_descriptor);
+                && bool::from(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(
+                    operation_descriptor,
+                ));
             let authentication = generate_pg_table_input_model
                 .config
                 .permission_prefix
@@ -7477,7 +7497,7 @@ enum WrapIntoOptional {
         .collect::<Vec<_>>();
     let identifier_open_api_token_stream = quote::quote! {
 
-        #[allow(clippy::needless_for_each, reason = "lint suppression is required here")]
+        #[allow(clippy::needless_for_each, reason = "emit generate pg table uses iterator traversal to comply with the workspace no-for-loop policy")]
         pub struct #identifier_open_api_upper_camel_case;
         impl utoipa::OpenApi for #identifier_open_api_upper_camel_case {
             fn openapi() -> utoipa::openapi::OpenApi {
@@ -7504,7 +7524,7 @@ enum WrapIntoOptional {
                     .build()
             }
         }
-        #[allow(clippy::needless_for_each, reason = "lint suppression is required here")]
+        #[allow(clippy::needless_for_each, reason = "emit generate pg table uses iterator traversal to comply with the workspace no-for-loop policy")]
         impl #identifier_open_api_upper_camel_case {
             #[must_use]
             pub fn open_api() -> utoipa::openapi::OpenApi {
@@ -7722,9 +7742,11 @@ enum WrapIntoOptional {
                 constants_str::VALUE_200
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
-                && crate::idempotency_capable::idempotency_capable(operation_descriptor);
+                && bool::from(crate::idempotency_capable::idempotency_capable(operation_descriptor));
             let optimistic_revision_required = optimistic_revision_field_index.is_some()
-                && crate::optimistic_concurrency_capable::optimistic_concurrency_capable(operation_descriptor);
+                && bool::from(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(
+                    operation_descriptor,
+                ));
             quote::quote! {
                 let route_contract = #identifier_route_contract_upper_camel_case::for_path(#path).expect("80dc7c11 collect_refs invariant must hold");
                 assert_eq!(route_contract.idempotency_required(), #idempotency_required);

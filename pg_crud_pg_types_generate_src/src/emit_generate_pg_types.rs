@@ -673,7 +673,7 @@ pub(super) enum IntRangeType {
         let (ser_derive_or_impl, de_derive_or_impl) = if matches!(&is_standard_non_null, pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True) {
             #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 
-#[allow(clippy::arbitrary_source_item_ordering, reason = "lint suppression is required here")]
+#[allow(clippy::arbitrary_source_item_ordering, reason = "emit generate pg types keeps declaration order aligned with generated layout or processing flow")]
             enum ParameterNumber {
                 Two,
                 Three,
@@ -698,9 +698,9 @@ pub(super) enum IntRangeType {
                     let generate_impl_ser_for_identifier_standard_non_null_origin_tokens = |ts: &dyn quote::ToTokens| {
                         quote::quote! {
 
-                            #[allow(unused_qualifications, reason = "lint suppression is required here")]
+                            #[allow(unused_qualifications, reason = "emit generate pg types keeps explicit generated paths stable across expansion contexts")]
 
-                            #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+                            #[allow(clippy::absolute_paths, reason = "emit generate pg types uses explicit paths to comply with the workspace import policy")]
                             #allow_clippy_arbitrary_src_item_ordering
                             const _: () = {
                                 extern crate serde as _serde;
@@ -916,9 +916,9 @@ pub(super) enum IntRangeType {
                             macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                                 quote::quote! {
 
-                                    #[allow(unused_qualifications, reason = "lint suppression is required here")]
+                                    #[allow(unused_qualifications, reason = "emit generate pg types keeps explicit generated paths stable across expansion contexts")]
 
-                                    #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+                                    #[allow(clippy::absolute_paths, reason = "emit generate pg types uses explicit paths to comply with the workspace import policy")]
                                     #allow_clippy_arbitrary_src_item_ordering
                                     const _: () = {
                                         extern crate serde as _serde;

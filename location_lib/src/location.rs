@@ -1,6 +1,6 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "location keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Debug,
@@ -16,7 +16,7 @@
 pub struct Location {
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "location keeps declaration order aligned with generated layout or processing flow"
     )]
     file: crate::location_file::LocationFile,
     commit: crate::location_commit::LocationCommit,
@@ -29,7 +29,7 @@ pub struct Location {
 #[allow(
     clippy::arbitrary_source_item_ordering,
     clippy::needless_pass_by_value,
-    reason = "lint suppression is required here"
+    reason = "location keeps declaration order aligned with generated layout or processing flow"
 )]
 impl Location {
     fn fmt_github_location(

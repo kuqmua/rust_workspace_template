@@ -1,7 +1,7 @@
 #[must_use]
 #[allow(
     clippy::integer_division_remainder_used,
-    reason = "lint suppression is required here"
+    reason = "spawn interval task requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 pub fn spawn_interval_task<Run, RunFuture>(
     option: Option<crate::run_interval_duration::RunIntervalDuration>,

@@ -139,7 +139,7 @@ fn typed_route_args(str: &str) -> String {
 #[test]
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "test tests uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 fn test_typed_route_args_require_exactly_one_error_source() {
     [

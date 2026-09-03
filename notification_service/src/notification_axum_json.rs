@@ -1,16 +1,12 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, proc_macro_newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInner,
 )]
 pub(crate) struct NotificationAxumJson(
     notification_service_contract::create_notification_request::CreateNotificationRequest,
 );
-impl NotificationAxumJson {
-    pub(crate) fn into_inner(
-        self,
-    ) -> notification_service_contract::create_notification_request::CreateNotificationRequest {
-        self.0
-    }
-}
 impl axum::extract::FromRequest<crate::notification_state::NotificationState>
     for NotificationAxumJson
 {

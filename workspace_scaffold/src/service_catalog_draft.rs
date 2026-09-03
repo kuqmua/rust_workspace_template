@@ -4,7 +4,7 @@
 #[getters(get_mut)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "service catalog draft keeps declaration order aligned with generated layout or processing flow"
 )]
 pub(super) struct ServiceCatalogDraft {
     compose_file: Option<crate::service_compose_file::ServiceComposeFile>,

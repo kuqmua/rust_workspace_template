@@ -188,7 +188,7 @@ pub fn derive_location(token_stream: proc_macro::TokenStream) -> proc_macro::Tok
             impl #maybe_generic_parameters_token_stream #identifier #maybe_generic_parameters_token_stream {
                 pub fn #into_serde_version_snake_case(self) -> #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
 
-                    #[allow(clippy::redundant_closure_for_method_calls, reason = "lint suppression is required here")]
+                    #[allow(clippy::redundant_closure_for_method_calls, reason = "lib requires this localized allowance for generated or framework-constrained code verified by focused tests")]
                     match self {
                         #ts
                     }

@@ -1,6 +1,6 @@
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "register openapi schema uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 pub fn register_openapi_schema<Schema>(
     utoipa_open_api_components_ref_mut: &mut crate::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut<'_>,

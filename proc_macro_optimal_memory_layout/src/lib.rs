@@ -151,7 +151,7 @@ pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macr
     let impl_check_token_stream = quote::quote! {
         #[cfg(not(target_arch = "wasm32"))]
 
-        #[allow(unused_qualifications, reason = "lint suppression is required here")]
+        #[allow(unused_qualifications, reason = "lib keeps explicit generated paths stable across expansion contexts")]
         impl #impl_generics #identifier #ty_generics #where_clause {
             const #const_name_token_stream: () = {
                 #ts

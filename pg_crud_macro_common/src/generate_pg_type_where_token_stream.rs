@@ -16,7 +16,10 @@ where
 {
     let names = crate::names_context::NamesContext::new();
 
-    #[allow(non_snake_case, reason = "lint suppression is required here")]
+    #[allow(
+        non_snake_case,
+        reason = "generate pg type where token stream requires this localized allowance for generated or framework-constrained code verified by focused tests"
+    )]
     let (
         AddOperatorSnakeCase,
         ColumnSnakeCase,

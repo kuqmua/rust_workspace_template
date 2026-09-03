@@ -1,15 +1,17 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::IntoInner,
+)]
 
 pub struct BoundedBTreeMap<K, V, const MAX: usize>(std::collections::BTreeMap<K, V>);
 impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
     #[must_use]
     pub const fn as_map(&self) -> &std::collections::BTreeMap<K, V> {
         &self.0
-    }
-
-    #[must_use]
-    pub fn into_inner(self) -> std::collections::BTreeMap<K, V> {
-        self.0
     }
 
     #[must_use]

@@ -20,7 +20,10 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "table footer remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn TableFooter(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! { <singlestage::TableFooter attr:data-name="TableFooter" attr:class="font-medium border border-t bg-muted/50 [&>tr]:last:border-b-0">{children()}</singlestage::TableFooter> }
 }

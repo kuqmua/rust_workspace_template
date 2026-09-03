@@ -23,7 +23,7 @@ impl frontend_contract::transport::Transport for ClientTransport {
 #[test]
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "test tests domain types uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 fn test_every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(

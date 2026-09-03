@@ -9,7 +9,7 @@
 )]
 #[allow(
     clippy::module_name_repetitions,
-    reason = "lint suppression is required here"
+    reason = "bounded vec error requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 pub enum BoundedVecError {
     #[error("bounded vector length {actual} exceeds limit {max}")]

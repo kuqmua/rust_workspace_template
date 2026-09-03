@@ -12,7 +12,10 @@ pub fn generate_impl_default_some_one_element_token_stream(
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
 
-    #[allow(non_snake_case, reason = "lint suppression is required here")]
+    #[allow(
+        non_snake_case,
+        reason = "generate impl default some one element token stream requires this localized allowance for generated or framework-constrained code verified by focused tests"
+    )]
     let (DefaultSomeOneElementSnakeCase,) = (names.get_default_some_one_element_snake_case(),);
     let path_trait_token_stream = import.default_some_one_element();
     quote::quote! {

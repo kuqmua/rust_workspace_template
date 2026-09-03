@@ -1,6 +1,12 @@
 #[must_use]
-#[allow(non_snake_case, reason = "lint suppression is required here")]
-#[allow(unused_variables, reason = "lint suppression is required here")]
+#[allow(
+    non_snake_case,
+    reason = "generate pg table requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
+#[allow(
+    unused_variables,
+    reason = "generate pg table emits configuration-dependent bindings that are unused in some generated variants"
+)]
 pub fn generate_pg_table(
     proc_macro2_token_stream_ref: macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {

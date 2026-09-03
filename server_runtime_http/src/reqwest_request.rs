@@ -1,5 +1,8 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, proc_macro_newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInner,
 )]
 pub struct ReqwestRequest(reqwest::Request);
 
@@ -17,10 +20,6 @@ impl ReqwestRequest {
             .url()
             .host_str()
             .map(crate::http_host_ref::HttpHostRef::from)
-    }
-
-    pub(crate) fn into_inner(self) -> reqwest::Request {
-        self.0
     }
 
     pub(crate) fn method(&self) -> crate::http_method_ref::HttpMethodRef<'_> {

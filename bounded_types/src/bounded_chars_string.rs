@@ -9,6 +9,7 @@
     PartialOrd,
     proc_macro_newtype::DerefInner,
     proc_macro_newtype::Display,
+    proc_macro_newtype::IntoInner,
 )]
 pub struct BoundedCharsString<const MIN: usize, const MAX: usize>(String);
 
@@ -17,11 +18,6 @@ impl<const MIN: usize, const MAX: usize> BoundedCharsString<MIN, MAX> {
         crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(
             str.chars().count(),
         ))
-    }
-
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
     }
 
     #[must_use]

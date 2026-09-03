@@ -41,7 +41,10 @@ pub fn generate_impl_pg_type_token_stream(
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
 
-    #[allow(non_snake_case, reason = "lint suppression is required here")]
+    #[allow(
+        non_snake_case,
+        reason = "generate impl pg type token stream requires this localized allowance for generated or framework-constrained code verified by focused tests"
+    )]
     let (
         AllowClippyArbitrarySrcItemOrdering,
         ColumnSnakeCase,
@@ -142,7 +145,7 @@ pub fn generate_impl_pg_type_token_stream(
             type #UpdateUpperCamelCase = #identifier_update_upper_camel_case;
             type #UpdateForQueryUpperCamelCase = #identifier_update_for_query_upper_camel_case;
 
-            #[allow(unused_variables, reason = "lint suppression is required here")]
+            #[allow(unused_variables, reason = "generate impl pg type token stream emits configuration-dependent bindings that are unused in some generated variants")]
             fn #UpdateQueryPartSnakeCase(
                 #update_query_part_value_undrscr: &Self::#UpdateForQueryUpperCamelCase,
                 #update_query_part_accumulator_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,

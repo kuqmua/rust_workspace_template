@@ -7,6 +7,7 @@
     proc_macro_newtype::BoundedStringWrapper,
     proc_macro_newtype::AsRefStr,
     proc_macro_newtype::Display,
+    proc_macro_newtype::IntoInner,
 )]
 #[bounded_string(max = crate::case_string_max_len::CASE_STRING_MAX_LEN)]
 pub(super) struct CaseString(
@@ -16,8 +17,3 @@ pub(super) struct CaseString(
         false,
     >,
 );
-impl CaseString {
-    pub(super) fn into_inner(self) -> String {
-        self.0.into_string()
-    }
-}

@@ -1,5 +1,8 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlUpdateSettingsError)]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "update settings remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn update_settings(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     axum_admin_form: crate::axum_admin_form::AxumAdminForm<crate::settings_form::SettingsForm>,

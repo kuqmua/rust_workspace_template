@@ -1,5 +1,8 @@
 #[proc_macro_frontend_contract::route_error(AdminVersionPageError)]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "version remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn version(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
 ) -> axum::response::Response {

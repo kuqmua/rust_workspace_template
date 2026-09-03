@@ -66,7 +66,7 @@ pub(crate) async fn mutations_set_roles(
                 .copied()
                 .map(i64::from)
                 .collect::<Vec<_>>();
-        #[allow(clippy::stable_sort_primitive, reason = "lint suppression is required here")]
+        #[allow(clippy::stable_sort_primitive, reason = "mutations set roles requires this localized allowance for generated or framework-constrained code verified by focused tests")]
         expected_raw_ids.sort();
         if current_role_ids != expected_raw_ids {
             return Ok(crate::replace_user_roles_outcome::ReplaceUserRolesOutcome::StaleAssignment);

@@ -1,15 +1,11 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype::FromInner,
+    proc_macro_newtype::IntoInner,
+)]
 pub struct SqlxPostgresQuery<'query_lt>(
     sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
 );
-
-impl<'query_lt> SqlxPostgresQuery<'query_lt> {
-    pub fn into_inner(
-        self,
-    ) -> sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments> {
-        self.0
-    }
-}
 
 impl<'query_lt> AsMut<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>>
     for SqlxPostgresQuery<'query_lt>

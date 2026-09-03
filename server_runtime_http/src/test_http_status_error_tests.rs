@@ -3,7 +3,7 @@ mod tests {
     #[test]
     #[allow(
         clippy::needless_for_each,
-        reason = "lint suppression is required here"
+        reason = "test http status error tests uses iterator traversal to comply with the workspace no-for-loop policy"
     )]
     fn test_representative_statuses_cover_every_error_class() {
         [

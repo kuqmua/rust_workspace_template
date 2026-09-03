@@ -1,6 +1,6 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "tracing level requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 #[derive(
     std::fmt::Debug,

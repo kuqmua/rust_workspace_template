@@ -21,7 +21,10 @@ use leptos::prelude::{Callable, ClassAttribute, ElementChild, OnAttribute};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin button requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
 pub(crate) fn AdminButton(
     #[prop(default = crate::admin_button_variant::AdminButtonVariant::default())]
     admin_button_variant: crate::admin_button_variant::AdminButtonVariant,

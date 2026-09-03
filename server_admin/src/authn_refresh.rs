@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "authn refresh remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn authn_refresh(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,

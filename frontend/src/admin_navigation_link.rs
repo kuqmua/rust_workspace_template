@@ -21,7 +21,10 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin navigation link remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn AdminNavigationLink(
     string: String,
     bool: bool,

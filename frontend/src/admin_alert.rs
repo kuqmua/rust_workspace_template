@@ -23,7 +23,10 @@ use leptos::prelude::{AddAnyAttr};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin alert requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
 pub(crate) fn AdminAlert(
     #[prop(default = crate::admin_alert_variant::AdminAlertVariant::default())]
     admin_alert_variant: crate::admin_alert_variant::AdminAlertVariant,

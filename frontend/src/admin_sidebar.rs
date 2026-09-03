@@ -20,7 +20,10 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
     unreachable_pub,
     reason = "Leptos component visibility is required for navigation composition"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin sidebar remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn AdminSidebar(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! {
         <div class="nav-menu">

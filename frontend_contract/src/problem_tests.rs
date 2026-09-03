@@ -3,7 +3,7 @@ mod tests {
     #[test]
     #[allow(
         clippy::needless_for_each,
-        reason = "lint suppression is required here"
+        reason = "problem tests uses iterator traversal to comply with the workspace no-for-loop policy"
     )]
     fn test_every_api_problem_error_is_an_error_enum_with_a_json_response() {
         fn assert_error<Error>()

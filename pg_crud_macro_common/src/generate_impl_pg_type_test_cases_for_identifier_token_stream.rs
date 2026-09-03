@@ -350,13 +350,13 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         });
     quote::quote! {
 
-        #[allow(unused_qualifications, reason = "lint suppression is required here")]
+        #[allow(unused_qualifications, reason = "generate impl pg type test cases for identifier token stream keeps explicit generated paths stable across expansion contexts")]
 
-        #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+        #[allow(clippy::absolute_paths, reason = "generate impl pg type test cases for identifier token stream uses explicit paths to comply with the workspace import policy")]
         #AllowClippyArbitrarySrcItemOrdering
         #cfg_token_stream
 
-        #[allow(clippy::float_arithmetic, reason = "lint suppression is required here")]
+        #[allow(clippy::float_arithmetic, reason = "generate impl pg type test cases for identifier token stream uses explicit paths to comply with the workspace import policy")]
         impl #import::pg_type_test_cases::#PgTypeTestCasesUpperCamelCase for #identifier {
             type #PgTypeUpperCamelCase = #SelfUpperCamelCase;
             type #SelectUpperCamelCase = #identifier_select_upper_camel_case;

@@ -34,15 +34,24 @@ impl TryFrom<String> for RegexRegex {
     }
 }
 
-#[allow(unused_qualifications, reason = "lint suppression is required here")]
-#[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+#[allow(
+    unused_qualifications,
+    reason = "regex regex keeps explicit generated paths stable across expansion contexts"
+)]
+#[allow(
+    clippy::absolute_paths,
+    reason = "regex regex uses explicit paths to comply with the workspace import policy"
+)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "regex regex keeps declaration order aligned with generated layout or processing flow"
 )]
 const _: () = {
     #[automatically_derived]
-    #[allow(unused_braces, reason = "lint suppression is required here")]
+    #[allow(
+        unused_braces,
+        reason = "regex regex keeps declaration order aligned with generated layout or processing flow"
+    )]
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(

@@ -6,7 +6,7 @@
 #[constructor(pub(crate))]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "child process report keeps declaration order aligned with generated layout or processing flow"
 )]
 pub struct ChildProcessReport {
     diagnostic: crate::child_diagnostic::ChildDiagnostic,

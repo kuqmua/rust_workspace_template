@@ -2,7 +2,7 @@
     clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
     clippy::partial_pub_fields,
-    reason = "lint suppression is required here"
+    reason = "admin users keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Clone,
@@ -20,7 +20,10 @@
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[allow(dead_code, reason = "lint suppression is required here")]
+#[allow(
+    dead_code,
+    reason = "admin users declares fixture or generated API members exercised outside ordinary reachability analysis"
+)]
 #[derive(proc_macro_getters::Getters)]
 pub struct AdminUsers {
     #[generate_pg_table_primary_key]
@@ -39,7 +42,7 @@ pub struct AdminUsers {
 }
 #[allow(
     clippy::missing_fields_in_debug,
-    reason = "lint suppression is required here"
+    reason = "admin users requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

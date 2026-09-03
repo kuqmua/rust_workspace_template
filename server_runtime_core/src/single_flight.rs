@@ -11,7 +11,7 @@ impl SingleFlight {
     #[must_use]
     #[allow(
         clippy::missing_const_for_fn,
-        reason = "lint suppression is required here"
+        reason = "single flight requires this localized allowance for generated or framework-constrained code verified by focused tests"
     )]
     pub fn acquire(
         &self,

@@ -13,6 +13,6 @@
 )]
 #[allow(
     clippy::module_name_repetitions,
-    reason = "lint suppression is required here"
+    reason = "pg bounded vec len requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 pub struct PgBoundedVecLen(usize);

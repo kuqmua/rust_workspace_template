@@ -100,7 +100,10 @@ impl CodebaseSnapshot {
             })
     }
 
-    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::single_call_fn,
+        reason = "test code style snapshot remains a named owner because its boundary role is clearer and directly testable"
+    )]
     pub(super) fn workspace_crate_names(&self) -> crate::types::SourceTextBTreeSet {
         self.source.workspace_crate_names.clone()
     }

@@ -18,7 +18,10 @@ use leptos::prelude::AddAnyAttr;
     unreachable_pub,
     reason = "Leptos component visibility is required for card composition"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin card description requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
 pub(crate) fn AdminCardDescription(
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {

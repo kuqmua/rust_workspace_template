@@ -18,7 +18,10 @@
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin button link requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
 pub(crate) fn AdminButtonLink(
     str: &'static str,
     #[prop(default = crate::admin_button_variant::AdminButtonVariant::default())]

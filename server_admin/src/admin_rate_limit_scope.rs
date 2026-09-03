@@ -14,7 +14,10 @@ pub(crate) enum AdminRateLimitScope {
 }
 
 impl AdminRateLimitScope {
-    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::single_call_fn,
+        reason = "admin rate limit scope remains a named owner because its boundary role is clearer and directly testable"
+    )]
     pub(crate) fn as_str(self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'static> {
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(self.as_snake_case_str())
     }

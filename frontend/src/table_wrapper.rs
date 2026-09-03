@@ -19,7 +19,10 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "table wrapper remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn TableWrapper(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! { <singlestage::ScrollArea attr:data-name="TableWrapper" class="table-scroll max-h-96 overflow-auto rounded-md border">{children()}</singlestage::ScrollArea> }
 }

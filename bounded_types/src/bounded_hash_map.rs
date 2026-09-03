@@ -1,4 +1,11 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_newtype::IntoInner,
+)]
 
 pub struct BoundedHashMap<K: Eq + std::hash::Hash, V, const MAX: usize>(
     std::collections::HashMap<K, V>,
@@ -12,11 +19,6 @@ impl<K: Eq + std::hash::Hash, V, const MAX: usize> BoundedHashMap<K, V, MAX> {
     #[must_use]
     pub const fn as_map(&self) -> &std::collections::HashMap<K, V> {
         &self.0
-    }
-
-    #[must_use]
-    pub fn into_inner(self) -> std::collections::HashMap<K, V> {
-        self.0
     }
 
     #[must_use]

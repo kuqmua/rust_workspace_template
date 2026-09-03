@@ -145,7 +145,7 @@ proc_macro_token_patterns::tp_parts!(
     path_all_variants_default_some_one_element_max_page_size_call()
 );
 proc_macro_token_patterns::tp!(MustUse, #[must_use]);
-proc_macro_token_patterns::tp!(AllowClippyArbitrarySrcItemOrdering, #[allow(clippy::arbitrary_source_item_ordering, reason = "lint suppression is required here")]);
+proc_macro_token_patterns::tp!(AllowClippyArbitrarySrcItemOrdering, #[allow(clippy::arbitrary_source_item_ordering, reason = "lib keeps declaration order aligned with generated layout or processing flow")]);
 proc_macro_token_patterns::tp!(NoneTokenStream, None);
 proc_macro_token_patterns::ts_path_fn!(
     path_all_variants_default_some_one_element_max_page_size_call,

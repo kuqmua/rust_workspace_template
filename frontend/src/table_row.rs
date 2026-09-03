@@ -19,7 +19,10 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "table row remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn TableRow(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! { <singlestage::TableRow attr:data-name="TableRow" attr:class="border-b transition-colors data-[state=selected]:bg-muted hover:bg-muted/50">{children()}</singlestage::TableRow> }
 }

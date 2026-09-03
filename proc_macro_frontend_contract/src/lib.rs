@@ -785,7 +785,7 @@ pub fn route_registry(token_stream: proc_macro::TokenStream) -> proc_macro::Toke
         const _: [(); <#family as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT] =
             [(); #route_count];
 
-        #[allow(clippy::needless_for_each, reason = "lint suppression is required here")]
+        #[allow(clippy::needless_for_each, reason = "lib uses iterator traversal to comply with the workspace no-for-loop policy")]
         #[derive(utoipa::OpenApi)]
         #[openapi(paths(#(#endpoints),*), #openapi_metadata)]
         struct RegistryOpenApi;
@@ -1190,7 +1190,7 @@ pub fn derive_typed_route(token_stream: proc_macro::TokenStream) -> proc_macro::
             frontend_contract::typed_route_path::typed_route_path::<#identifier>()
         }
 
-        #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+        #[allow(clippy::future_not_send, reason = "lib futures remain task-local and are never transferred across threads")]
         #visibility async fn #client_function_identifier<Transport>(
             client: &frontend_contract::typed_client::TypedClient<Transport>,
             request: <#identifier as frontend_contract::typed_route::TypedRoute>::Request,
@@ -1262,7 +1262,7 @@ pub fn derive_typed_route(token_stream: proc_macro::TokenStream) -> proc_macro::
                 ) -> frontend_contract::parameterized_route_path::ParameterizedRoutePath {
                     frontend_contract::typed_parameterized_route_path::typed_parameterized_route_path::<#identifier>(parameter)
                 }
-                #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+                #[allow(clippy::future_not_send, reason = "lib futures remain task-local and are never transferred across threads")]
                 #visibility async fn #client_function_identifier<Transport>(
                     client: &frontend_contract::typed_client::TypedClient<Transport>,
                     parameter: &#parameter_path,
@@ -1889,7 +1889,7 @@ pub fn derive_route_catalog(token_stream: proc_macro::TokenStream) -> proc_macro
                         frontend_contract::contract_str::ContractStr::from(#path_expression)
                     }
 
-                    #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+                    #[allow(clippy::future_not_send, reason = "lib futures remain task-local and are never transferred across threads")]
                     #visibility async fn #client_function_identifier<Transport>(
                         client: &frontend_contract::typed_client::TypedClient<Transport>,
                     ) -> Result<frontend_contract::transport_body::TransportBody, frontend_contract::client_error::ClientError>

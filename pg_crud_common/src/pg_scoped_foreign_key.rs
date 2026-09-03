@@ -8,7 +8,7 @@
 )]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "pg scoped foreign key keeps declaration order aligned with generated layout or processing flow"
 )]
 pub struct PgScopedForeignKey {
     local_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,

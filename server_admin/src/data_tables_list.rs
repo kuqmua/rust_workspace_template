@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "data tables list remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn data_tables_list(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {

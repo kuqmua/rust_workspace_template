@@ -1,6 +1,6 @@
 #[allow(
     clippy::integer_division_remainder_used,
-    reason = "lint suppression is required here"
+    reason = "wait for service shutdown signal requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 pub async fn wait_for_service_shutdown_signal()
 -> Result<(), crate::service_runtime_io_error::ServiceRuntimeIoError> {

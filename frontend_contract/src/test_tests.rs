@@ -9,7 +9,7 @@ fn test_contract_bodies_reject_values_above_shared_limit() {
 }
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "test tests uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 #[test]
 fn test_api_problem_status_mapping_is_stable_and_redacted() {

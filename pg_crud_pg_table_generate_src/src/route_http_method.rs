@@ -1,5 +1,4 @@
 pub(super) const fn route_http_method<
-    Capability,
     HttpMethod,
     Operation,
     OperationKind,
@@ -7,7 +6,6 @@ pub(super) const fn route_http_method<
     StatusCode,
 >(
     operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
-        Capability,
         HttpMethod,
         Operation,
         OperationKind,

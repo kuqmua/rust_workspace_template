@@ -6,7 +6,6 @@
     Copy,
 )]
 pub(crate) struct OperationDescriptor<
-    Capability,
     HttpMethod,
     Operation,
     OperationKind,
@@ -14,10 +13,11 @@ pub(crate) struct OperationDescriptor<
     StatusCode,
 > {
     http_method: HttpMethod,
-    idempotency_capable: Capability,
+    idempotency_capable: crate::idempotency_capability::IdempotencyCapability,
     operation: Operation,
     operation_kind: OperationKind,
-    optimistic_concurrency_capable: Capability,
+    optimistic_concurrency_capable:
+        crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability,
     permission_action: PermissionAction,
     success_status_code: StatusCode,
 }
@@ -27,18 +27,22 @@ mod tests {
     fn test_operation_descriptor_keeps_transport_permission_and_capabilities_together() {
         let spec = crate::operation_descriptor::OperationDescriptor::new(
             constants_str::PATCH,
-            true,
+            crate::idempotency_capability::IdempotencyCapability::from(true),
             constants_str::UO,
             constants_str::UPDATE_ONE,
-            true,
+            crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::from(true),
             constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
             200u16,
         );
         assert_eq!(*spec.get_http_method(), constants_str::PATCH);
-        assert!(*spec.get_idempotency_capable());
+        let idempotency_capability: &crate::idempotency_capability::IdempotencyCapability =
+            spec.get_idempotency_capable();
+        let optimistic_concurrency_capability: &crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability =
+            spec.get_optimistic_concurrency_capable();
+        assert!(bool::from(*idempotency_capability));
         assert_eq!(*spec.get_operation(), constants_str::UO);
         assert_eq!(*spec.get_operation_kind(), constants_str::UPDATE_ONE);
-        assert!(*spec.get_optimistic_concurrency_capable());
+        assert!(bool::from(*optimistic_concurrency_capability));
         assert_eq!(
             *spec.get_permission_action(),
             constants_str::ADMIN_FIXTURE_AUDIT_ACTION

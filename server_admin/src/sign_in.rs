@@ -1,5 +1,8 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlSignInError)]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "sign in remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn sign_in(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,

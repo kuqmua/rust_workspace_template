@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "sessions revoke all sessions remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn sessions_revoke_all_sessions(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {

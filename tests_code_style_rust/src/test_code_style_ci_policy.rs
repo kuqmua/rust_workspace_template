@@ -89,6 +89,23 @@ fn test_continuous_integration_runs_specialized_test_families() {
     });
 }
 #[test]
+fn test_workspace_test_runner_runs_code_style_once() {
+    assert!(
+        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS
+            .contains(&constants_str::TESTS_CODE_STYLE_RUST)
+    );
+    assert!(
+        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS
+            .windows(constants_usize::TWO)
+            .any(|args| {
+                args == [
+                    constants_str::SHARED_VALUES_EXCLUDE,
+                    constants_str::TESTS_CODE_STYLE_RUST,
+                ]
+            })
+    );
+}
+#[test]
 fn test_continuous_integration_uses_the_pinned_workspace_toolchain() {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()

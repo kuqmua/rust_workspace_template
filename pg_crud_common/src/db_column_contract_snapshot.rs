@@ -10,7 +10,7 @@
 )]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "db column contract snapshot keeps declaration order aligned with generated layout or processing flow"
 )]
 pub struct DbColumnContractSnapshot {
     #[constructor(order = 1)]

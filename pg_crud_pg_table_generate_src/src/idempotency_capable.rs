@@ -1,5 +1,4 @@
 pub(crate) const fn idempotency_capable<
-    Capability,
     HttpMethod,
     Operation,
     OperationKind,
@@ -7,31 +6,27 @@ pub(crate) const fn idempotency_capable<
     StatusCode,
 >(
     operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
-        Capability,
         HttpMethod,
         Operation,
         OperationKind,
         PermissionAction,
         StatusCode,
     >,
-) -> Capability
-where
-    Capability: Copy,
-{
+) -> crate::idempotency_capability::IdempotencyCapability {
     *operation_descriptor.get_idempotency_capable()
 }
 #[cfg(test)]
 mod tests {
     fn descriptor(
-        idempotency_capable: bool,
-        optimistic_concurrency_capable: bool,
-    ) -> crate::operation_descriptor::OperationDescriptor<bool, (), (), (), (), ()> {
+        idempotency_capability: crate::idempotency_capability::IdempotencyCapability,
+        optimistic_concurrency_capability: crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability,
+    ) -> crate::operation_descriptor::OperationDescriptor<(), (), (), (), ()> {
         crate::operation_descriptor::OperationDescriptor::new(
             (),
-            idempotency_capable,
+            idempotency_capability,
             (),
             (),
-            optimistic_concurrency_capable,
+            optimistic_concurrency_capability,
             (),
             (),
         )
@@ -39,16 +34,26 @@ mod tests {
 
     #[test]
     fn test_capability_projection_returns_each_independent_descriptor_flag() {
-        let idempotent = descriptor(true, false);
-        assert!(crate::idempotency_capable::idempotency_capable(&idempotent));
-        assert!(
-            !crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&idempotent)
+        let idempotent = descriptor(
+            crate::idempotency_capability::IdempotencyCapability::from(true),
+            crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::from(false),
         );
-
-        let optimistic = descriptor(false, true);
-        assert!(!crate::idempotency_capable::idempotency_capable(
-            &optimistic
+        assert!(bool::from(crate::idempotency_capable::idempotency_capable(
+            &idempotent
+        )));
+        assert!(!bool::from(
+            crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&idempotent)
         ));
-        assert!(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&optimistic));
+
+        let optimistic = descriptor(
+            crate::idempotency_capability::IdempotencyCapability::from(false),
+            crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::from(true),
+        );
+        assert!(!bool::from(
+            crate::idempotency_capable::idempotency_capable(&optimistic)
+        ));
+        assert!(bool::from(
+            crate::optimistic_concurrency_capable::optimistic_concurrency_capable(&optimistic)
+        ));
     }
 }

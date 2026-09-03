@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "failed test names remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(super) fn failed_test_names(
     text_ref: crate::text_ref::TextRef<'_>,
 ) -> crate::command_texts::CommandTexts {

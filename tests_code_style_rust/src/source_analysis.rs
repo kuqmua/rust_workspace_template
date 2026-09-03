@@ -2361,7 +2361,9 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoMethodVisitor {
                     matches!(input, syn::FnArg::Receiver(receiver) if matches!(receiver.kind, syn::ReceiverKind::Value))
                 });
                 consumes_self
-                    && function.sig.ident == constants_str::INTO_MODEL
+                    && (function.sig.ident == constants_str::INTO_MODEL
+                        || function.sig.ident == constants_str::INTO_INNER)
+                    && function.sig.constness.is_none()
                     && function.block.stmts.len() == constants_usize::ONE
                     && function.block.stmts.first().is_some_and(|statement| {
                         let syn::Stmt::Expr(syn::Expr::Field(field), None) = statement else {
@@ -2383,7 +2385,22 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoMethodVisitor {
         syn::visit::visit_item_impl(self, item_impl);
     }
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
-        if matches!(&item_struct.fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == constants_usize::ONE)
+        let derives_foundation = item_struct.attrs.iter().any(|attribute| {
+            attribute.path().is_ident(constants_str::DERIVE)
+                && attribute
+                    .parse_args_with(
+                        syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+                    )
+                    .is_ok_and(|paths| {
+                        paths.iter().any(|path| {
+                            path.segments.first().is_some_and(|segment| {
+                                segment.ident == stringify!(proc_macro_newtype_foundation)
+                            })
+                        })
+                    })
+        });
+        if !derives_foundation
+            && matches!(&item_struct.fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == constants_usize::ONE)
         {
             let _inserted = self
                 .tuple_struct_names

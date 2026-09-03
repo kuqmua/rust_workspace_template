@@ -5,7 +5,7 @@
 
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "status code keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Debug,

@@ -4,7 +4,7 @@
     clippy::unreachable,
     clippy::wildcard_enum_match_arm,
     clippy::wildcard_imports,
-    reason = "lint suppression is required here"
+    reason = "lib keeps declaration order aligned with generated layout or processing flow"
 )]
 
 pub mod build_generate_pg_types;

@@ -1,5 +1,8 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-#[allow(dead_code, reason = "lint suppression is required here")]
+#[allow(
+    dead_code,
+    reason = "admin open api vec declares fixture or generated API members exercised outside ordinary reachability analysis"
+)]
 pub(crate) struct AdminOpenApiVec<T, const MAX: usize> {
     marker: crate::admin_open_api_vec_phantom_data::AdminOpenApiVecPhantomData<T>,
 }

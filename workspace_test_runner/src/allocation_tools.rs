@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "allocation tools remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn allocation_tools() -> [crate::allocation_tool::AllocationTool; 6] {
     [
         crate::allocation_tool::AllocationTool::new(

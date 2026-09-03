@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "metrics remains a named owner because its boundary role is clearer and directly testable"
+)]
 #[proc_macro_frontend_contract::route_operation]
 pub(super) async fn metrics(
     notification_axum_state: crate::notification_axum_state::NotificationAxumState,

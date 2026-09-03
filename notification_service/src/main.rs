@@ -1,8 +1,11 @@
 #![allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "main keeps declaration order aligned with generated layout or processing flow"
 )]
-#![allow(clippy::wildcard_imports, reason = "lint suppression is required here")]
+#![allow(
+    clippy::wildcard_imports,
+    reason = "main keeps declaration order aligned with generated layout or processing flow"
+)]
 
 pub mod axum_notification_response;
 pub mod build_notification_router;

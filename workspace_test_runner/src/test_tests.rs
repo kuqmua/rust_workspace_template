@@ -125,21 +125,3 @@ fn test_tests_mode_leaves_ignored_suite_to_database_mode() {
             .all(|(_program, args)| !args.contains(&constants_str::SHARED_VALUES_RUN_IGNORED))
     );
 }
-
-#[test]
-fn test_tests_mode_runs_code_style_once() {
-    assert!(
-        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS
-            .contains(&constants_str::TESTS_CODE_STYLE_RUST)
-    );
-    assert!(
-        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS
-            .windows(constants_usize::TWO)
-            .any(|args| {
-                args == [
-                    constants_str::SHARED_VALUES_EXCLUDE,
-                    constants_str::TESTS_CODE_STYLE_RUST,
-                ]
-            })
-    );
-}

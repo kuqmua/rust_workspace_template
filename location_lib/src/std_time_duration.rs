@@ -1,6 +1,6 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "std time duration keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Debug,

@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "role ids impl remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn role_ids_impl(
     admin_html_form_text: &crate::admin_html_form_text::AdminHtmlFormText,
 ) -> Result<server_admin_contract::admin_role_ids::AdminRoleIds, crate::admin_error::AdminError> {

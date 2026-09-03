@@ -674,6 +674,70 @@ fn test_domain_boundaries_use_repository_declared_types() {
         },
     );
 }
+
+#[test]
+fn test_operation_descriptor_capabilities_use_declared_domain_types() {
+    let operation_descriptor_identifier: syn::Ident = syn::parse_quote!(OperationDescriptor);
+    let idempotency_capable_identifier: syn::Ident = syn::parse_quote!(idempotency_capable);
+    let optimistic_concurrency_capable_identifier: syn::Ident =
+        syn::parse_quote!(optimistic_concurrency_capable);
+    let idempotency_capability_type: syn::Type =
+        syn::parse_quote!(crate::idempotency_capability::IdempotencyCapability);
+    let optimistic_concurrency_capability_type: syn::Type = syn::parse_quote!(
+        crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability
+    );
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let operation_descriptors = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| source_file.ast().as_ref().items.iter())
+            .filter_map(|item| match item {
+                syn::Item::Struct(item_struct)
+                    if item_struct.ident == operation_descriptor_identifier =>
+                {
+                    Some(item_struct)
+                }
+                syn::Item::Const(_)
+                | syn::Item::Enum(_)
+                | syn::Item::ExternCrate(_)
+                | syn::Item::Fn(_)
+                | syn::Item::ForeignMod(_)
+                | syn::Item::Impl(_)
+                | syn::Item::Macro(_)
+                | syn::Item::Mod(_)
+                | syn::Item::Static(_)
+                | syn::Item::Struct(_)
+                | syn::Item::Trait(_)
+                | syn::Item::TraitAlias(_)
+                | syn::Item::Type(_)
+                | syn::Item::Union(_)
+                | syn::Item::Use(_)
+                | syn::Item::Verbatim(_)
+                | _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            operation_descriptors.len(),
+            constants_usize::ONE,
+            "ff1053f9"
+        );
+        let fields = operation_descriptors
+            .first()
+            .map(|item_struct| &item_struct.fields);
+        assert!(
+            fields.is_some_and(|operation_descriptor_fields| {
+                operation_descriptor_fields.iter().any(|field| {
+                    field.ident.as_ref() == Some(&idempotency_capable_identifier)
+                        && field.ty == idempotency_capability_type
+                }) && operation_descriptor_fields.iter().any(|field| {
+                    field.ident.as_ref() == Some(&optimistic_concurrency_capable_identifier)
+                        && field.ty == optimistic_concurrency_capability_type
+                })
+            }),
+            "c29e2f74"
+        );
+    });
+}
 #[test]
 fn test_environment_initializer_is_in_domain_boundary_policy_scope() {
     assert!(

@@ -1,7 +1,7 @@
 #[cfg(test)]
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "lib uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 mod tests {
     #[derive(
@@ -107,7 +107,7 @@ mod tests {
             constants_str::PG_CRUD_WHERE_FILTERS,
             constants_str::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE,
             &format!(
-                "#![allow(dead_code, reason = \"lint suppression is required here\")]\n#![allow(unreachable_pub, reason = \"lint suppression is required here\")]\n#![allow(unused_imports, reason = \"lint suppression is required here\")]\n#[allow(clippy::wildcard_imports, reason = \"lint suppression is required here\")]\nuse where_filters::domain_types::*;\nuse where_filters::between;\nuse where_filters::encode_format;\nuse where_filters::pg_type_not_empty_unique_vec;\nuse where_filters::regex_case;\nuse where_filters::regex_regex;\n{}",
+                "#![allow(dead_code, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\n#![allow(unreachable_pub, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\n#![allow(unused_imports, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\n#[allow(clippy::wildcard_imports, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\nuse where_filters::domain_types::*;\nuse where_filters::between;\nuse where_filters::encode_format;\nuse where_filters::pg_type_not_empty_unique_vec;\nuse where_filters::regex_case;\nuse where_filters::regex_regex;\n{}",
                 generate_where_filters_src::generate_where_filters_source::generate_where_filters_source(
                     generate_where_filters_src::proc_macro2_generate_where_filters_input::ProcMacro2GenerateWhereFiltersInput::from(
                         &quote::quote! {

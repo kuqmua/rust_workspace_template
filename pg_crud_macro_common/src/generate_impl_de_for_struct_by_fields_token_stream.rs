@@ -33,14 +33,14 @@ pub fn generate_impl_de_for_struct_by_fields_token_stream(
     quote::quote! {
         #[derive(serde::Deserialize)]
 
-        #[allow(clippy::arbitrary_source_item_ordering, reason = "lint suppression is required here")]
+        #[allow(clippy::arbitrary_source_item_ordering, reason = "generate impl de for struct by fields token stream keeps declaration order aligned with generated layout or processing flow")]
         struct #raw_identifier_token_stream {
             #(#raw_fields_token_stream)*
         }
 
-        #[allow(unused_qualifications, reason = "lint suppression is required here")]
+        #[allow(unused_qualifications, reason = "generate impl de for struct by fields token stream keeps declaration order aligned with generated layout or processing flow")]
 
-        #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+        #[allow(clippy::absolute_paths, reason = "generate impl de for struct by fields token stream keeps declaration order aligned with generated layout or processing flow")]
         #allow_clippy_arbitrary_src_item_ordering
         const _: () = {
             extern crate serde as _serde;

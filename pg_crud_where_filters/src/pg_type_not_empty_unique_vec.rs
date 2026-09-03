@@ -60,16 +60,22 @@ impl<T: Eq + std::hash::Hash> PgTypeNotEmptyUniqueVec<T> {
     }
 }
 
-#[allow(unused_qualifications, reason = "lint suppression is required here")]
-#[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+#[allow(
+    unused_qualifications,
+    reason = "pg type not empty unique vec keeps explicit generated paths stable across expansion contexts"
+)]
+#[allow(
+    clippy::absolute_paths,
+    reason = "pg type not empty unique vec uses explicit paths to comply with the workspace import policy"
+)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "pg type not empty unique vec keeps declaration order aligned with generated layout or processing flow"
 )]
 const _: () = {
     #[expect(
         clippy::useless_attribute,
-        reason = "lint suppression is required here"
+        reason = "pg type not empty unique vec keeps declaration order aligned with generated layout or processing flow"
     )]
     extern crate serde as _serde;
     #[automatically_derived]

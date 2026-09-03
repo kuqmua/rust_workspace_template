@@ -19,7 +19,10 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "table header remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn TableHeader(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! { <singlestage::TableHeader attr:data-name="TableHeader" attr:class="[&_tr]:border-b sticky top-0 z-10 bg-card">{children()}</singlestage::TableHeader> }
 }

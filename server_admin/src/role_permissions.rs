@@ -1,5 +1,8 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlRolePermissionsError)]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "role permissions remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) async fn role_permissions(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     axum_admin_form: crate::axum_admin_form::AxumAdminForm<

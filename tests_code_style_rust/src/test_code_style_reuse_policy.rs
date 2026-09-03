@@ -162,7 +162,7 @@ fn test_reports_repeated_explicit_domain_shapes_for_code_reuse_review() {
 #[test]
 #[allow(
     clippy::option_if_let_else,
-    reason = "lint suppression is required here"
+    reason = "test code style reuse policy requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 fn test_substantial_function_bodies_have_one_source_of_truth() {
     let canonicalize_locations = |locations: &str| {

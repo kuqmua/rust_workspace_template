@@ -1,10 +1,10 @@
 #![allow(
     unused_crate_dependencies,
-    reason = "lint suppression is required here"
+    reason = "admin api requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 #![allow(
     clippy::tests_outside_test_module,
-    reason = "lint suppression is required here"
+    reason = "admin api requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 mod test_data_tables {
     #[tokio::test]

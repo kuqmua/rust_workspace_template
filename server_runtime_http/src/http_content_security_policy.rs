@@ -3,14 +3,9 @@
     Clone,
     Debug,
     proc_macro_newtype::DerefInner,
+    proc_macro_newtype::IntoInner,
 )]
 pub struct HttpContentSecurityPolicy(http::HeaderValue);
-
-impl HttpContentSecurityPolicy {
-    pub(crate) fn into_inner(self) -> http::HeaderValue {
-        self.0
-    }
-}
 
 impl TryFrom<String> for HttpContentSecurityPolicy {
     type Error = crate::http_content_security_policy_error::HttpContentSecurityPolicyError;

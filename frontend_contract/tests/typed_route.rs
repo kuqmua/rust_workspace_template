@@ -1,6 +1,6 @@
 #![allow(
     unused_crate_dependencies,
-    reason = "lint suppression is required here"
+    reason = "typed route requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 #![allow(
     unused_variables,

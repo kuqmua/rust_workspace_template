@@ -192,7 +192,7 @@ pub fn generate_derive_token_stream_builder(
                                         let mut _i = 0usize;
                                         let has_iter = ::quote::__private::HasIterator::<false>;
 
-                                        #[allow(unused_mut, reason = "lint suppression is required here")]
+                                        #[allow(unused_mut, reason = "lib emits configuration-dependent bindings that are unused in some generated variants")]
                                         let (mut derive_token_stream, i) = derive_token_stream
                                             .quote_into_iter();
                                         let has_iter = has_iter | i;

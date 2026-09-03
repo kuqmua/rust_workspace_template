@@ -21,7 +21,10 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "table cell remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn TableCell(
     #[prop(optional, into)] data_label: Option<std::borrow::Cow<'static, str>>,
     #[prop(optional, into)] data_field: Option<std::borrow::Cow<'static, str>>,

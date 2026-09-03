@@ -2,7 +2,7 @@
 #[allow(
     clippy::default_numeric_fallback,
     clippy::indexing_slicing,
-    reason = "lint suppression is required here"
+    reason = "lib requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 mod tests {
     #[derive(

@@ -1,6 +1,6 @@
 #![allow(
     unused_crate_dependencies,
-    reason = "lint suppression is required here"
+    reason = "config descriptor requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 
 #[cfg(test)]
@@ -8,7 +8,7 @@ mod tests {
     #[test]
     #[allow(
         clippy::needless_for_each,
-        reason = "lint suppression is required here"
+        reason = "config descriptor uses iterator traversal to comply with the workspace no-for-loop policy"
     )]
     fn test_env_example_matches_generated_config_descriptor_and_parsers() {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

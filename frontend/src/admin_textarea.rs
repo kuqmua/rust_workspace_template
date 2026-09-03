@@ -22,7 +22,10 @@ use leptos::prelude::{AddAnyAttr};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin textarea remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn AdminTextarea(
     #[prop(into)] admin_input_name: crate::admin_input_name::AdminInputName,
     #[prop(optional)] required: bool,

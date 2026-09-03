@@ -3,7 +3,7 @@
 )]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "http contract expectation keeps declaration order aligned with generated layout or processing flow"
 )]
 pub struct HttpContractExpectation {
     metadata: frontend_contract::route_metadata::RouteMetadata,

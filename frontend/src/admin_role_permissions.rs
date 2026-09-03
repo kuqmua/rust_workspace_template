@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin role permissions remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn admin_role_permissions(
     admin_role_summary: &server_admin_contract::admin_role_summary::AdminRoleSummary,
     admin_roles_page: &server_admin_contract::admin_roles_page::AdminRolesPage,

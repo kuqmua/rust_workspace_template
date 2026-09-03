@@ -17,7 +17,10 @@ pub fn impl_pg_type_where_filter_for_identifier_token_stream(
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
 
-    #[allow(non_snake_case, reason = "lint suppression is required here")]
+    #[allow(
+        non_snake_case,
+        reason = "impl pg type where filter for identifier token stream requires this localized allowance for generated or framework-constrained code verified by focused tests"
+    )]
     let (
         AllowClippyArbitrarySrcItemOrdering,
         PgTypeWhereFilterUpperCamelCase,

@@ -1,7 +1,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "newtype attrs keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(proc_macro_getters::Getters)]
 #[getters(get_mut)]

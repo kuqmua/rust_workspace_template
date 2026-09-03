@@ -17,7 +17,10 @@ where
             transport,
         }
     }
-    #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::future_not_send,
+        reason = "typed client futures remain task-local and are never transferred across threads"
+    )]
     pub async fn send<Route>(
         &self,
         request: Route::Request,
@@ -35,7 +38,10 @@ where
         })?;
         self.send_to::<Route>(&route_path, request).await
     }
-    #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::future_not_send,
+        reason = "typed client futures remain task-local and are never transferred across threads"
+    )]
     pub async fn send_parameterized<Route>(
         &self,
         parameter: &Route::Parameter,
@@ -53,7 +59,10 @@ where
                 })?;
         self.send_to::<Route>(&route_path, request).await
     }
-    #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::future_not_send,
+        reason = "typed client futures remain task-local and are never transferred across threads"
+    )]
     pub async fn send_contract(
         &self,
         route_contract: crate::route_contract::RouteContract,
@@ -79,7 +88,10 @@ where
             .success_body(route_contract.success_status().transport_status())
             .cloned()
     }
-    #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::future_not_send,
+        reason = "typed client futures remain task-local and are never transferred across threads"
+    )]
     async fn send_to<Route>(
         &self,
         transport_path: &crate::transport_path::TransportPath,
@@ -123,7 +135,10 @@ where
             )
         })
     }
-    #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::future_not_send,
+        reason = "typed client futures remain task-local and are never transferred across threads"
+    )]
     async fn send_request(
         &self,
         transport_body: crate::transport_body::TransportBody,

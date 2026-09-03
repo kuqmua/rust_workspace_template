@@ -1,7 +1,7 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "admin role permissions keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Debug,

@@ -6,7 +6,7 @@ pub struct CursorCodec {
 
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "cursor codec keeps declaration order aligned with generated layout or processing flow"
 )]
 impl CursorCodec {
     #[must_use]

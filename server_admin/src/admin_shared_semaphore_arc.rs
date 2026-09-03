@@ -11,9 +11,12 @@ impl AdminSharedSemaphoreArc {
     #[must_use]
     #[allow(
         clippy::missing_const_for_fn,
-        reason = "lint suppression is required here"
+        reason = "admin shared semaphore arc requires this localized allowance for generated or framework-constrained code verified by focused tests"
     )]
-    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::single_call_fn,
+        reason = "admin shared semaphore arc remains a named owner because its boundary role is clearer and directly testable"
+    )]
     pub(crate) fn new(
         runtime_admin_password_hash_concurrency: crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency,
     ) -> Self {

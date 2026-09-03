@@ -1,6 +1,6 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "between keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Debug,
@@ -77,11 +77,17 @@ impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> 
     }
 }
 
-#[allow(unused_qualifications, reason = "lint suppression is required here")]
-#[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+#[allow(
+    unused_qualifications,
+    reason = "between keeps explicit generated paths stable across expansion contexts"
+)]
+#[allow(
+    clippy::absolute_paths,
+    reason = "between uses explicit paths to comply with the workspace import policy"
+)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "between keeps declaration order aligned with generated layout or processing flow"
 )]
 const _: () = {
     extern crate serde as _serde;
@@ -99,7 +105,10 @@ const _: () = {
             __D: _serde::Deserializer<'de>,
         {
             #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-            #[expect(non_camel_case_types, reason = "lint suppression is required here")]
+            #[expect(
+                non_camel_case_types,
+                reason = "between requires this localized allowance for generated or framework-constrained code verified by focused tests"
+            )]
             #[doc(hidden)]
             enum __Field {
                 f0,

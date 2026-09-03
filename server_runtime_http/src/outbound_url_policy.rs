@@ -1,7 +1,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "outbound url policy keeps declaration order aligned with generated layout or processing flow"
 )]
 pub struct OutboundUrlPolicy {
     schemes: &'static [crate::outbound_url_scheme::OutboundUrlScheme],

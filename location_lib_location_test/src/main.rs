@@ -1,4 +1,7 @@
-#![allow(clippy::wildcard_imports, reason = "lint suppression is required here")]
+#![allow(
+    clippy::wildcard_imports,
+    reason = "main requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
 
 pub mod create_location_test_text;
 pub mod display_struct;

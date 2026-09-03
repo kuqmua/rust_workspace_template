@@ -1,6 +1,6 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "pg type len greater than test keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_getters::Getters,

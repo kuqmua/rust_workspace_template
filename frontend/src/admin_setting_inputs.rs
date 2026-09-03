@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin setting inputs remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn admin_setting_inputs(
     admin_settings_form_signals: crate::admin_settings_form_signals::AdminSettingsFormSignals,
     admin_setting_disabled: crate::admin_setting_disabled::AdminSettingDisabled,

@@ -14,7 +14,7 @@ mod tests {
     #[test]
     #[allow(
         clippy::needless_for_each,
-        reason = "lint suppression is required here"
+        reason = "route registration contract uses iterator traversal to comply with the workspace no-for-loop policy"
     )]
     fn test_route_method_router_supports_every_contract_method() {
         async fn endpoint() -> axum::http::StatusCode {

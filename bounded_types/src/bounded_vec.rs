@@ -5,6 +5,7 @@
     Eq,
     PartialEq,
     proc_macro_newtype::DerefTarget,
+    proc_macro_newtype::IntoInner,
     proc_macro_newtype::IntoIterator,
 )]
 pub struct BoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
@@ -21,11 +22,6 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     #[must_use]
     pub const fn as_slice(&self) -> &[T] {
         self.0.as_slice()
-    }
-
-    #[must_use]
-    pub fn into_inner(self) -> Vec<T> {
-        self.0
     }
 
     #[must_use]

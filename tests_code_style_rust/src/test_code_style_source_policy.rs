@@ -1673,6 +1673,27 @@ fn test_source_lint_suppressions_have_explicit_reasons() {
     );
 }
 #[test]
+fn test_lint_suppression_reasons_are_specific() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .project_source_files()
+            .iter()
+            .filter(|source_file| {
+                source_file
+                    .content()
+                    .as_ref()
+                    .contains(constants_str::GENERIC_LINT_SUPPRESSION_REASON)
+            })
+            .map(|source_file| source_file.path().as_ref().display().to_string())
+            .collect::<Vec<String>>();
+        assert!(
+            violations.is_empty(),
+            "{}: {violations:#?}",
+            constants_str::GENERIC_LINT_SUPPRESSION_REASONS_ARE_FORBIDDEN
+        );
+    });
+}
+#[test]
 fn test_source_lint_reason_policy_accepts_argument_and_comment_reasons() {
     let source = constants_str::VALUE_1D86D8F2;
     let ast = syn::parse_file(source).expect(constants_str::DIAGNOSTIC_EC218827);
@@ -1923,7 +1944,7 @@ fn append_public_use_import_errors(
 #[test]
 #[allow(
     clippy::wildcard_enum_match_arm,
-    reason = "lint suppression is required here"
+    reason = "test code style source policy requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 fn test_public_reexports_are_forbidden_and_private_imports_are_restricted() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
@@ -2333,7 +2354,7 @@ fn test_tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthroug
     );
 }
 #[test]
-fn test_tuple_newtypes_do_not_implement_manual_into_model_methods() {
+fn test_tuple_newtypes_do_not_implement_manual_passthrough_into_methods() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_A1DD158B),
         crate::types::SourceTextRef::from(constants_str::VALUE_E8DA133A),
@@ -2370,6 +2391,18 @@ fn test_tuple_newtype_manual_into_model_policy_rejects_passthrough_method() {
                 self.0
             }
         }
+        struct TestInnerWrapper(u8);
+        impl TestInnerWrapper {
+            fn into_inner(self) -> u8 {
+                self.0
+            }
+        }
+        struct TestConstInnerWrapper(u8);
+        impl TestConstInnerWrapper {
+            const fn into_inner(self) -> u8 {
+                self.0
+            }
+        }
     };
     let visitor = crate::code_style::visit_syn_file(
         crate::types::SynFileRef::from(&ast),
@@ -2378,7 +2411,7 @@ fn test_tuple_newtype_manual_into_model_policy_rejects_passthrough_method() {
             std::collections::BTreeSet::new(),
         ),
     );
-    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
+    assert_eq!(visitor.get_errors().len(), constants_usize::TWO);
 }
 #[test]
 fn test_tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
@@ -2654,11 +2687,11 @@ fn test_api_response_error_source_policy_rejects_raw_sources() {
 #[test]
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "test code style source policy uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 #[allow(
     clippy::option_if_let_else,
-    reason = "lint suppression is required here"
+    reason = "test code style source policy uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 fn test_every_fallible_typed_route_operation_has_its_own_error_type() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {

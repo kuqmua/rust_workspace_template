@@ -17,7 +17,10 @@ pub(crate) struct AdminPageRange {
 }
 
 impl AdminPageRange {
-    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+    #[allow(
+        clippy::single_call_fn,
+        reason = "admin page range remains a named owner because its boundary role is clearer and directly testable"
+    )]
     pub(crate) fn new(
         admin_page_offset: server_admin_contract::admin_page_offset::AdminPageOffset,
         admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,

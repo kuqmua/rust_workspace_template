@@ -1,5 +1,8 @@
 #[must_use]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "classify pg code remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn classify_pg_code(str: &str) -> crate::pg_error_kind::PgErrorKind {
     match str {
         constants_str::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION => {

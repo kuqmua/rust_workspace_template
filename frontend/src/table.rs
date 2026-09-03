@@ -19,7 +19,10 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "table remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn Table(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! { <singlestage::Table attr:data-name="Table" attr:class="w-full max-w-7xl text-sm caption-bottom">{children()}</singlestage::Table> }
 }

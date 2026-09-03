@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "mount service routes remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn mount_service_routes(
     axum_router: server_runtime_http::axum_router::AxumRouter,
     axum_api_routes: crate::axum_api_routes::AxumApiRoutes,

@@ -10,7 +10,10 @@ pub fn impl_pg_type_eq_operator_for_identifier_token_stream(
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
 
-    #[allow(non_snake_case, reason = "lint suppression is required here")]
+    #[allow(
+        non_snake_case,
+        reason = "impl pg type eq operator for identifier token stream requires this localized allowance for generated or framework-constrained code verified by focused tests"
+    )]
     let (EqOperatorUpperCamelCase, PgTypeEqOperatorUpperCamelCase) = (
         names.get_eq_operator_upper_camel_case(),
         names.get_pg_type_eq_operator_upper_camel_case(),

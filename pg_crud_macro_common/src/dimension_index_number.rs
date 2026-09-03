@@ -1,6 +1,6 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "dimension index number keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub enum DimensionIndexNumber {

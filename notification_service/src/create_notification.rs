@@ -1,4 +1,7 @@
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "create notification remains a named owner because its boundary role is clearer and directly testable"
+)]
 #[proc_macro_frontend_contract::route_openapi()]
 pub(super) async fn create_notification(
     notification_axum_state: crate::notification_axum_state::NotificationAxumState,

@@ -332,7 +332,7 @@ fn test_filtered_sql_places_pagination_after_filter_binds() {
 #[test]
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "test adapters repository data tables tests uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 fn test_table_spec_generates_bounded_projection_and_count_sql_for_every_table() {
     server_admin_contract::admin_data_table::AdminDataTable::ALL

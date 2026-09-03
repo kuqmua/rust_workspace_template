@@ -366,7 +366,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
 #[test]
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "test domain types generated tables tests uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     [

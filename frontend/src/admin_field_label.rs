@@ -1,11 +1,12 @@
-#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, PartialEq, Eq)]
+#[derive(
+    Debug,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    PartialEq,
+    Eq,
+    proc_macro_newtype::IntoInner,
+)]
 pub struct AdminFieldLabel(Box<str>);
-
-impl AdminFieldLabel {
-    pub(super) fn into_inner(self) -> Box<str> {
-        self.0
-    }
-}
 
 impl From<&'static str> for AdminFieldLabel {
     fn from(str: &'static str) -> Self {

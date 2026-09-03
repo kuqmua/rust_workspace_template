@@ -3,7 +3,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
 #[allow(
     clippy::arbitrary_source_item_ordering,
-    reason = "lint suppression is required here"
+    reason = "http request span config keeps declaration order aligned with generated layout or processing flow"
 )]
 pub struct HttpRequestSpanConfig {
     service_name: server_observability::service_name::ServiceName,

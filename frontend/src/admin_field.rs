@@ -22,7 +22,10 @@ use leptos::prelude::{AddAnyAttr, ElementChild};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "admin field remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn AdminField(
     #[prop(into)] admin_field_label: crate::admin_field_label::AdminFieldLabel,
     children: leptos::prelude::Children,

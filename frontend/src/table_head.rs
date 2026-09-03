@@ -20,7 +20,10 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "table head remains a named owner because its boundary role is clearer and directly testable"
+)]
 pub(crate) fn TableHead(
     #[prop(optional)] data_field: Option<String>,
     #[prop(optional)] data_filter_count: Option<String>,

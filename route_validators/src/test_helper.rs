@@ -1,4 +1,7 @@
-#![allow(clippy::shadow_reuse, reason = "lint suppression is required here")]
+#![allow(
+    clippy::shadow_reuse,
+    reason = "test helper requires this localized allowance for generated or framework-constrained code verified by focused tests"
+)]
 #[cfg(test)]
 mod tests {
     #[test]

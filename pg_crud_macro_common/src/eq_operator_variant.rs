@@ -12,7 +12,10 @@ impl EqOperatorVariant {
     {
         let names = crate::names_context::NamesContext::new();
 
-        #[allow(non_snake_case, reason = "lint suppression is required here")]
+        #[allow(
+            non_snake_case,
+            reason = "eq operator variant requires this localized allowance for generated or framework-constrained code verified by focused tests"
+        )]
         let (EqOperatorUpperCamelCase,) = (names.get_eq_operator_upper_camel_case(),);
         let ts = match &self {
             Self::Eq => quote::quote! {Eq},

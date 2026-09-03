@@ -450,7 +450,10 @@ mod tests {
         assert!(std::sync::Arc::ptr_eq(&arc_value.0, &cloned.0), "01da5e7c");
     }
 
-    #[allow(dead_code, reason = "lint suppression is required here")]
+    #[allow(
+        dead_code,
+        reason = "newtype declares fixture or generated API members exercised outside ordinary reachability analysis"
+    )]
     fn dependency_markers(
         _: Option<proc_macro2::TokenStream>,
         _: Option<syn::Path>,

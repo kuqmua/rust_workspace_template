@@ -13,7 +13,7 @@ pub fn emit_generate_where_filters(
 
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate where filters keeps declaration order aligned with generated layout or processing flow"
     )]
     #[derive(Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum PgTypePtrn {
@@ -22,7 +22,7 @@ pub fn emit_generate_where_filters(
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     #[allow(
         clippy::arbitrary_source_item_ordering,
-        reason = "lint suppression is required here"
+        reason = "emit generate where filters keeps declaration order aligned with generated layout or processing flow"
     )]
     enum PgTypeKind {
         Standard,

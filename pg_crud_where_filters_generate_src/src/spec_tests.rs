@@ -1,7 +1,7 @@
 #[cfg(test)]
 #[allow(
     clippy::needless_for_each,
-    reason = "lint suppression is required here"
+    reason = "spec tests uses iterator traversal to comply with the workspace no-for-loop policy"
 )]
 mod tests {
     #[test]
