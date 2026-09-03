@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(super) fn strip_ansi(
     text_ref: crate::text_ref::TextRef<'_>,
 ) -> crate::command_text::CommandText {

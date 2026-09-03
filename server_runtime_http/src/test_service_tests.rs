@@ -10,5 +10,3 @@ mod tests {
         assert!(optional_task.is_none());
     }
 }
-
-// Root-owned module compatibility wrappers.

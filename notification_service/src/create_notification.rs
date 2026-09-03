@@ -1,6 +1,4 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
-#[allow(clippy::single_call_fn)] // typed route registry owns this endpoint handler
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 #[proc_macro_frontend_contract::route_openapi()]
 pub(super) async fn create_notification(
     notification_axum_state: crate::notification_axum_state::NotificationAxumState,

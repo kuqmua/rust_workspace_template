@@ -191,8 +191,8 @@ pub fn generate_derive_token_stream_builder(
                                         use ::quote::__private::ext::*;
                                         let mut _i = 0usize;
                                         let has_iter = ::quote::__private::HasIterator::<false>;
-                                        // The owner module retains lint-sensitive semantics from the original implementation.
-                                        #[allow(unused_mut)]
+
+                                        #[allow(unused_mut, reason = "lint suppression is required here")]
                                         let (mut derive_token_stream, i) = derive_token_stream
                                             .quote_into_iter();
                                         let has_iter = has_iter | i;

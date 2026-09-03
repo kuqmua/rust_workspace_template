@@ -1,10 +1,15 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(unused_crate_dependencies)] // integration target exercises generated descriptors through server_config while library-only dependencies remain linked by Cargo
+#![allow(
+    unused_crate_dependencies,
+    reason = "lint suppression is required here"
+)]
 
 #[cfg(test)]
 mod tests {
     #[test]
-    #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+    #[allow(
+        clippy::needless_for_each,
+        reason = "lint suppression is required here"
+    )]
     fn test_env_example_matches_generated_config_descriptor_and_parsers() {
         let example_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join(constants_str::SERVER_DOT_ENV_EXAMPLE);

@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 proc_macro_frontend_contract::route_registry! {
     #[openapi(tags((name = "service", description = "Service operational routes")))]
     pub(super);

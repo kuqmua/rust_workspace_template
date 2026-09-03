@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 pub(crate) fn repository_page_total(
     admin_page_total_count: crate::admin_page_total_count::AdminPageTotalCount,
 ) -> Result<

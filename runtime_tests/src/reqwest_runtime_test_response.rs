@@ -4,8 +4,6 @@
 pub(crate) struct ReqwestRuntimeTestResponse(reqwest::blocking::Response);
 
 impl ReqwestRuntimeTestResponse {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-
     pub(crate) fn into_health_report(
         self,
     ) -> Result<
@@ -16,7 +14,6 @@ impl ReqwestRuntimeTestResponse {
             .json::<common_routes::health_report::HealthReport>()
             .map_err(server_runtime_http::reqwest_error::ReqwestError::from)
     }
-    // The owner module retains lint-sensitive semantics from the original implementation.
 
     pub(crate) fn into_notification_res(
         self,

@@ -137,7 +137,10 @@ fn typed_route_args(str: &str) -> String {
 }
 
 #[test]
-#[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_typed_route_args_require_exactly_one_error_source() {
     [
         constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,

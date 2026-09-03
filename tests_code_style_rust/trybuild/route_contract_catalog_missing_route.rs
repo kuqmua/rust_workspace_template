@@ -5,4 +5,6 @@ enum BrokenCatalog {
     MissingRouteAttribute,
 }
 
-fn main() {}
+fn main() {
+    let _arguments = std::env::args_os();
+}

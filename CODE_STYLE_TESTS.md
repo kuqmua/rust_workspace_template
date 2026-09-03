@@ -1,6 +1,6 @@
 # Code style tests
 
-This checklist lists all 244 tests discovered by `cargo test -p tests_code_style -- --list`.
+This checklist lists all 244 tests discovered by `cargo test -p tests_code_style_rust -- --list`.
 
 Tests marked with **Exceptions** contain an explicit allowlist, reviewed inventory, snapshot, or exempt owner/path. Each marked entry states what is exempted, the current inventory size when it is meaningful, where the authoritative inventory is maintained, and how stale or newly introduced entries are rejected. Ordinary test-fixture and out-of-scope filtering is not marked.
 
@@ -9,7 +9,7 @@ Tests marked with **Exceptions** contain an explicit allowlist, reviewed invento
 - [ ] `allocations_inside_loops_match_reviewed_inventory` — **Exceptions:** exact source paths, allocation counts, and non-empty reasons are reviewed in `code_style_advanced_policy.rs`; any new, removed, or relocated allocation changes the inventory and fails the test.
 - [ ] `arc_lock_and_trait_object_usage_matches_reviewed_inventory` — **Exceptions:** workspace owners with intentional `Arc`, lock, or trait-object use have reviewed per-owner counts and reasons in `code_style_advanced_policy.rs`; unlisted use and stale counts fail.
 - [ ] `architectural_boundaries_reject_upward_dependencies`
-- [ ] `contract_public_api_matches_reviewed_snapshot` — **Exceptions:** selected contract crates intentionally expose public structs, enums, traits, and functions. Their complete reviewed API is stored in `tests_code_style/snapshots/contract_public_api.snapshot`, grouped by crate with a reason for each group.
+- [ ] `contract_public_api_matches_reviewed_snapshot` — **Exceptions:** selected contract crates intentionally expose public structs, enums, traits, and functions. Their complete reviewed API is stored in `tests_code_style_rust/snapshots/contract_public_api.snapshot`, grouped by crate with a reason for each group.
 - [ ] `from_vec_implementations_are_forbidden`
 - [ ] `ignored_map_err_bindings_match_reviewed_inventory` — **Exceptions:** owners that intentionally ignore a `map_err` source binding have reviewed occurrence counts and reasons in `code_style_advanced_policy.rs`; wildcard source loss remains forbidden elsewhere.
 - [ ] `lock_across_await_policy_requires_explicit_drop`
@@ -24,7 +24,7 @@ Tests marked with **Exceptions** contain an explicit allowlist, reviewed invento
 - [ ] `select_policy_rejects_cancellation_sensitive_operations`
 - [ ] `select_sites_match_reviewed_cancellation_inventory` — **Exceptions:** every production `select!` site is reviewed by path, expected count, and cancellation-safety reason in `code_style_advanced_policy.rs`; unreviewed sites and empty reasons fail.
 - [ ] `spawn_lifecycle_policy_rejects_unconsumed_tasks`
-- [ ] `struct_error_exceptions_match_reviewed_snapshot` — **Exceptions:** 40 error types remain structs instead of `thiserror` enums. Of these, 38 preserve opaque external error sources without exposing third-party types at repository domain boundaries; the other 2 preserve an opaque public PostgreSQL query-bind error with a crate-private intermediate source and a tested two-level `Error::source()` chain. The exact `path::type` inventory is in `tests_code_style/snapshots/struct_errors.snapshot`; it has been reduced by 70 entries and any further change requires review.
+- [ ] `struct_error_exceptions_match_reviewed_snapshot` — **Exceptions:** 40 error types remain structs instead of `thiserror` enums. Of these, 38 preserve opaque external error sources without exposing third-party types at repository domain boundaries; the other 2 preserve an opaque public PostgreSQL query-bind error with a crate-private intermediate source and a tested two-level `Error::source()` chain. The exact `path::type` inventory is in `tests_code_style_rust/snapshots/struct_errors.snapshot`; it has been reduced by 70 entries and any further change requires review.
 - [ ] `usize_max_expression_visitor_skips_test_modules`
 - [ ] `usize_max_usage_matches_reviewed_inventory` — **Exceptions:** intentional production `usize::MAX` expressions are reviewed by source path, count, and reason in `code_style_advanced_policy.rs`; test modules are excluded by the underlying visitor rather than allowlisted.
 

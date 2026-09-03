@@ -10,15 +10,20 @@ pub fn emit_generate_where_filters(
             maybe_extra_traits_token_stream: Option<proc_macro2::TokenStream>,
         },
     }
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     #[derive(Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     enum PgTypePtrn {
         Standard,
     }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     enum PgTypeKind {
         Standard,
     }

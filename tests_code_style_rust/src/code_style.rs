@@ -708,7 +708,7 @@ pub(crate) fn read_toml_table(
     })
 }
 
-#[allow(clippy::single_call_fn)] // several policies share the cached manifest lookup through this root facade
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn cargo_toml_content(
     path_ref: crate::types::PathRef<'_>,
 ) -> Option<crate::types::SourceText> {
@@ -1605,7 +1605,7 @@ pub(crate) fn is_test_crate(
             .and_then(|package| package.get(constants_str::NAME))
             .and_then(toml::Value::as_str)
             .is_some_and(|name| {
-                name == constants_str::TESTS_CODE_STYLE
+                name == constants_str::TESTS_CODE_STYLE_RUST
                     || name
                         .split('_')
                         .any(|segment| segment == constants_str::TEST_ALT_3)
@@ -1632,7 +1632,7 @@ pub(crate) fn is_test_source_path(
     crate::types::AnalyzerBool::from(
         path_ref.as_ref().components().any(|component| {
             component.as_os_str() == constants_str::TESTS_ALT
-                || component.as_os_str() == constants_str::TESTS_CODE_STYLE
+                || component.as_os_str() == constants_str::TESTS_CODE_STYLE_RUST
         }) || path_ref
             .as_ref()
             .file_stem()

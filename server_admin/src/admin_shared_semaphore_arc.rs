@@ -9,8 +9,11 @@ pub struct AdminSharedSemaphoreArc(std::sync::Arc<tokio::sync::Semaphore>);
 
 impl AdminSharedSemaphoreArc {
     #[must_use]
-    #[allow(clippy::missing_const_for_fn)] // Tokio semaphore and Arc constructors are not const
-    #[allow(clippy::single_call_fn)] // Arc construction stays inside its cross-thread state owner
+    #[allow(
+        clippy::missing_const_for_fn,
+        reason = "lint suppression is required here"
+    )]
+    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
     pub(crate) fn new(
         runtime_admin_password_hash_concurrency: crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency,
     ) -> Self {

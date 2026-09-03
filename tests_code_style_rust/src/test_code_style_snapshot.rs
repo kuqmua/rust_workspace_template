@@ -100,9 +100,7 @@ impl CodebaseSnapshot {
             })
     }
 
-    // The snapshot exposes this derived workspace-name set through one policy consumer.
-
-    #[allow(clippy::single_call_fn)] // policy consumers share this snapshot accessor directly and through the root facade
+    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
     pub(super) fn workspace_crate_names(&self) -> crate::types::SourceTextBTreeSet {
         self.source.workspace_crate_names.clone()
     }

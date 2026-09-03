@@ -1,7 +1,8 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
-#![allow(clippy::arbitrary_source_item_ordering)] // OpenAPI document stays next to its generated schema and operation marker
-#![allow(clippy::wildcard_imports)] // root-owned binary modules share the former domain owner facade vocabulary
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
+#![allow(clippy::wildcard_imports, reason = "lint suppression is required here")]
 
 pub mod axum_notification_response;
 pub mod build_notification_router;

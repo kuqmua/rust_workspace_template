@@ -3,8 +3,6 @@ pub mod panic_file;
 pub mod panic_line;
 pub mod panic_with_location_message;
 
-// Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
-// prevents repeatedly replacing that hook from proc-macro entrypoints.
 static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
 
 pub fn panic_location() {

@@ -59,15 +59,18 @@ impl<T: Eq + std::hash::Hash> PgTypeNotEmptyUniqueVec<T> {
         .map(Self)
     }
 }
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(unused_qualifications)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::absolute_paths)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+
+#[allow(unused_qualifications, reason = "lint suppression is required here")]
+#[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 const _: () = {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[expect(clippy::useless_attribute)]
+    #[expect(
+        clippy::useless_attribute,
+        reason = "lint suppression is required here"
+    )]
     extern crate serde as _serde;
     #[automatically_derived]
     impl<'de, T: std::fmt::Debug + PartialEq + _serde::Deserialize<'de>> _serde::Deserialize<'de>

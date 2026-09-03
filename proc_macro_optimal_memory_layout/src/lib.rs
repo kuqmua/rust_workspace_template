@@ -150,8 +150,8 @@ pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macr
     let const_name_token_stream = quote::quote! {_OPTIMAL_PACK_CHECK};
     let impl_check_token_stream = quote::quote! {
         #[cfg(not(target_arch = "wasm32"))]
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(unused_qualifications)]
+
+        #[allow(unused_qualifications, reason = "lint suppression is required here")]
         impl #impl_generics #identifier #ty_generics #where_clause {
             const #const_name_token_stream: () = {
                 #ts

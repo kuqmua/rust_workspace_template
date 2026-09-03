@@ -9,7 +9,10 @@ pub struct SingleFlight {
 }
 impl SingleFlight {
     #[must_use]
-    #[allow(clippy::missing_const_for_fn)] // the lock-backed return value cannot be constructed in const context
+    #[allow(
+        clippy::missing_const_for_fn,
+        reason = "lint suppression is required here"
+    )]
     pub fn acquire(
         &self,
         single_flight_key: crate::single_flight_key::SingleFlightKey,

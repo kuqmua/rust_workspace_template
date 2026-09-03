@@ -2,7 +2,10 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default, proc_macro_getters::Getters,
 )]
 #[getters(get_mut)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub(super) struct ServiceCatalogDraft {
     compose_file: Option<crate::service_compose_file::ServiceComposeFile>,
     compose_name: Option<crate::service_compose_name::ServiceComposeName>,

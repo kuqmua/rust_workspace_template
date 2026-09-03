@@ -39,5 +39,3 @@ pub(crate) fn AdminUsersView(
         </section>
     }
 }
-
-// Root-owned module compatibility wrappers.

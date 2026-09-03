@@ -1,6 +1,9 @@
 #[cfg(test)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::default_numeric_fallback, clippy::indexing_slicing)] // literal JSON assertions mirror the exact serialized OpenAPI wire values
+#[allow(
+    clippy::default_numeric_fallback,
+    clippy::indexing_slicing,
+    reason = "lint suppression is required here"
+)]
 mod tests {
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -79,6 +82,7 @@ mod tests {
     where
         T: From<Inner> + AsRef<Inner> + std::borrow::Borrow<Inner>,
     {
+        let _: std::marker::PhantomData<(T, Inner)> = std::marker::PhantomData;
     }
     #[test]
     fn test_shared_json_contract_helper_round_trips_pg_type_fixture() {
@@ -561,6 +565,7 @@ mod tests {
                 + std::borrow::Borrow<str>
                 + sqlx::Type<sqlx::Postgres>,
         {
+            let _: std::marker::PhantomData<T> = std::marker::PhantomData;
         }
         assert_traits::<pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret>();
         let secret = pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(

@@ -22,7 +22,7 @@ use leptos::prelude::{AddAnyAttr};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn AdminInput(
     #[prop(into)] admin_input_name: crate::admin_input_name::AdminInputName,
     #[prop(default = crate::admin_input_kind::AdminInputKind::default())]

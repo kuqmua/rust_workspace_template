@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 proc_macro_config_lib::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
     TryFromStdEnvVarOkCorsAllowOriginError

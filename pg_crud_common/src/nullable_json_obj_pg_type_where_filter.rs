@@ -1,4 +1,3 @@
-//todo custom deserialization - must not contain more than one element
 #[derive(
     Debug,
     Clone,
@@ -50,7 +49,7 @@ where
     ) -> Result<crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>, crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
         match self.into_option() {
             Some(v) => v.query_bind(sqlx_postgres_query),
-            None => Ok(sqlx_postgres_query), //todo maybe wrong
+            None => Ok(sqlx_postgres_query),
         }
     }
     fn query_part(

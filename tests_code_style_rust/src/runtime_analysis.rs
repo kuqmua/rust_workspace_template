@@ -65,8 +65,10 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
     proc_macro_new::New,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub(super) struct RuntimeArcVisitor {
     errors: crate::types::DiagnosticMessages,
     allow_arc_value_usage: crate::types::AnalyzerBool,

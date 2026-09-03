@@ -4,8 +4,10 @@ pub struct CursorCodec {
     maximum_length: crate::cursor_maximum_length::CursorMaximumLength,
 }
 
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 impl CursorCodec {
     #[must_use]
     pub const fn new(

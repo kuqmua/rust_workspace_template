@@ -11,8 +11,8 @@ pub fn generate_impl_default_some_one_element_max_page_size_token_stream(
     ts: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(non_snake_case)]
+
+    #[allow(non_snake_case, reason = "lint suppression is required here")]
     let (DefaultSomeOneElementMaxPageSizeSnakeCase,) =
         (names.get_default_some_one_element_max_page_size_snake_case(),);
     let path_trait_token_stream = import.default_some_one_element_max_page_size();

@@ -16,5 +16,3 @@ pub fn admin_auth_routes(
         router.with_state(shared_admin_auth_svc_state_arc),
     )
 }
-
-// Root-owned module compatibility wrappers.

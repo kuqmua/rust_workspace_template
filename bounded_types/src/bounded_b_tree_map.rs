@@ -1,7 +1,5 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-/// A B-tree map with at most `MAX` retained keys.
-///
-/// B-tree-map deserialization accepts at most `MAX` wire entries, including repeated keys.
+
 pub struct BoundedBTreeMap<K, V, const MAX: usize>(std::collections::BTreeMap<K, V>);
 impl<K: Ord, V, const MAX: usize> BoundedBTreeMap<K, V, MAX> {
     #[must_use]

@@ -449,8 +449,8 @@ mod tests {
         assert_eq!(std::sync::Arc::strong_count(&cloned.0), 2usize, "03c8e1f4");
         assert!(std::sync::Arc::ptr_eq(&arc_value.0, &cloned.0), "01da5e7c");
     }
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(dead_code)]
+
+    #[allow(dead_code, reason = "lint suppression is required here")]
     fn dependency_markers(
         _: Option<proc_macro2::TokenStream>,
         _: Option<syn::Path>,

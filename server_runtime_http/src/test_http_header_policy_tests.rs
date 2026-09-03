@@ -27,5 +27,3 @@ mod tests {
         assert_eq!(u64::try_from(value), Ok(u64::MAX));
     }
 }
-
-// Root-owned module compatibility wrappers.

@@ -130,7 +130,7 @@ fn test_tests_mode_leaves_ignored_suite_to_database_mode() {
 fn test_tests_mode_runs_code_style_once() {
     assert!(
         constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_STYLE_ARGS
-            .contains(&constants_str::TESTS_CODE_STYLE)
+            .contains(&constants_str::TESTS_CODE_STYLE_RUST)
     );
     assert!(
         constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_WORKSPACE_ARGS
@@ -138,7 +138,7 @@ fn test_tests_mode_runs_code_style_once() {
             .any(|args| {
                 args == [
                     constants_str::SHARED_VALUES_EXCLUDE,
-                    constants_str::TESTS_CODE_STYLE,
+                    constants_str::TESTS_CODE_STYLE_RUST,
                 ]
             })
     );

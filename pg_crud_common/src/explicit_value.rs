@@ -1,4 +1,3 @@
-// This wrapper preserves explicit nested nulls when serde would otherwise skip a parent Option.
 #[derive(
     Debug,
     Clone,

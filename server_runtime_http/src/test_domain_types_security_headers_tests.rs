@@ -8,5 +8,3 @@ mod tests {
         .expect_err(constants_str::VALUE_1E8BE8A1);
     }
 }
-
-// Root-owned module compatibility wrappers.

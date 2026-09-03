@@ -1,5 +1,8 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Default)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 #[derive(proc_macro_getters::Getters)]
 #[getters(get_mut)]
 pub(crate) struct NewtypeAttrs {

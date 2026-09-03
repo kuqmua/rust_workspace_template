@@ -1,5 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 #[derive(
     Debug,
     Clone,
@@ -74,12 +76,13 @@ impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> 
         }
     }
 }
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(unused_qualifications)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::absolute_paths)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+
+#[allow(unused_qualifications, reason = "lint suppression is required here")]
+#[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 const _: () = {
     extern crate serde as _serde;
     #[automatically_derived]
@@ -96,8 +99,7 @@ const _: () = {
             __D: _serde::Deserializer<'de>,
         {
             #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[expect(non_camel_case_types)]
+            #[expect(non_camel_case_types, reason = "lint suppression is required here")]
             #[doc(hidden)]
             enum __Field {
                 f0,

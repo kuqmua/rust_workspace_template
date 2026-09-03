@@ -92,11 +92,11 @@ specific than a reusable path list.
 
 The inline inventories are defined in:
 
-- [`tests_code_style/src/code_style_cargo_policy.rs`](tests_code_style/src/code_style_cargo_policy.rs)
-- [`tests_code_style/src/code_style_source_policy.rs`](tests_code_style/src/code_style_source_policy.rs)
-- [`tests_code_style/src/code_style_module_policy.rs`](tests_code_style/src/code_style_module_policy.rs)
-- [`tests_code_style/src/code_style_advanced_policy.rs`](tests_code_style/src/code_style_advanced_policy.rs)
-- [`tests_code_style/src/code_style_reuse_policy.rs`](tests_code_style/src/code_style_reuse_policy.rs)
+- [`tests_code_style_rust/src/code_style_cargo_policy.rs`](tests_code_style_rust/src/code_style_cargo_policy.rs)
+- [`tests_code_style_rust/src/code_style_source_policy.rs`](tests_code_style_rust/src/code_style_source_policy.rs)
+- [`tests_code_style_rust/src/code_style_module_policy.rs`](tests_code_style_rust/src/code_style_module_policy.rs)
+- [`tests_code_style_rust/src/code_style_advanced_policy.rs`](tests_code_style_rust/src/code_style_advanced_policy.rs)
+- [`tests_code_style_rust/src/code_style_reuse_policy.rs`](tests_code_style_rust/src/code_style_reuse_policy.rs)
 
 ## Compiler-lint synchronization exceptions
 
@@ -117,7 +117,7 @@ reason:
 - `tail_call_track_caller`
 
 The authoritative list is in
-[`tests_code_style/src/code_style_lint_sync.rs`](tests_code_style/src/code_style_lint_sync.rs).
+[`tests_code_style_rust/src/code_style_lint_sync.rs`](tests_code_style_rust/src/code_style_lint_sync.rs).
 
 ## Syntax and generated-code boundaries
 

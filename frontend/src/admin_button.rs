@@ -21,7 +21,7 @@ use leptos::prelude::{Callable, ClassAttribute, ElementChild, OnAttribute};
     unreachable_pub,
     reason = "Leptos component visibility is required for composition across frontend modules"
 )]
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn AdminButton(
     #[prop(default = crate::admin_button_variant::AdminButtonVariant::default())]
     admin_button_variant: crate::admin_button_variant::AdminButtonVariant,

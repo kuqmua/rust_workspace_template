@@ -1,6 +1,8 @@
 #[cfg(test)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::needless_for_each)] // table-driven assertions avoid repository-forbidden for loops
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 mod tests {
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -105,7 +107,7 @@ mod tests {
             constants_str::PG_CRUD_WHERE_FILTERS,
             constants_str::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE,
             &format!(
-                "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse where_filters::domain_types::*;\nuse where_filters::between;\nuse where_filters::encode_format;\nuse where_filters::pg_type_not_empty_unique_vec;\nuse where_filters::regex_case;\nuse where_filters::regex_regex;\n{}",
+                "#![allow(dead_code, reason = \"lint suppression is required here\")]\n#![allow(unreachable_pub, reason = \"lint suppression is required here\")]\n#![allow(unused_imports, reason = \"lint suppression is required here\")]\n#[allow(clippy::wildcard_imports, reason = \"lint suppression is required here\")]\nuse where_filters::domain_types::*;\nuse where_filters::between;\nuse where_filters::encode_format;\nuse where_filters::pg_type_not_empty_unique_vec;\nuse where_filters::regex_case;\nuse where_filters::regex_regex;\n{}",
                 generate_where_filters_src::generate_where_filters_source::generate_where_filters_source(
                     generate_where_filters_src::proc_macro2_generate_where_filters_input::ProcMacro2GenerateWhereFiltersInput::from(
                         &quote::quote! {

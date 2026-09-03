@@ -39,5 +39,3 @@ pub(crate) fn AdminRolesView(
         </section>
     }
 }
-
-// Root-owned module compatibility wrappers.

@@ -102,7 +102,10 @@ fn test_admin_frontend_api_urls_come_from_typed_routes() {
     });
 }
 #[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_service_route_endpoint_composition_uses_shared_registries() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
@@ -139,7 +142,10 @@ fn test_service_route_endpoint_composition_uses_shared_registries() {
     });
 }
 #[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_typed_route_registries_own_request_bodies_and_schema_catalogs() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [constants_str::VALUE_7BF90B7C, constants_str::VALUE_629EE5ED]
@@ -179,7 +185,10 @@ fn test_typed_route_registries_own_request_bodies_and_schema_catalogs() {
     });
 }
 #[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_generated_admin_table_consumers_use_the_shared_catalog() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
@@ -255,7 +264,10 @@ fn test_generated_admin_table_consumers_use_the_shared_catalog() {
     });
 }
 #[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_administrator_data_table_queries_come_from_the_typed_spec() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let repository = snapshot

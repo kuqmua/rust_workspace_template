@@ -672,8 +672,8 @@ pub(super) enum IntRangeType {
         };
         let (ser_derive_or_impl, de_derive_or_impl) = if matches!(&is_standard_non_null, pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True) {
             #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+
+#[allow(clippy::arbitrary_source_item_ordering, reason = "lint suppression is required here")]
             enum ParameterNumber {
                 Two,
                 Three,
@@ -697,10 +697,10 @@ pub(super) enum IntRangeType {
                 {
                     let generate_impl_ser_for_identifier_standard_non_null_origin_tokens = |ts: &dyn quote::ToTokens| {
                         quote::quote! {
-                            // The owner module retains lint-sensitive semantics from the original implementation.
-                            #[allow(unused_qualifications)]
-                            // The owner module retains lint-sensitive semantics from the original implementation.
-                            #[allow(clippy::absolute_paths)]
+
+                            #[allow(unused_qualifications, reason = "lint suppression is required here")]
+
+                            #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
                             #allow_clippy_arbitrary_src_item_ordering
                             const _: () = {
                                 extern crate serde as _serde;
@@ -915,10 +915,10 @@ pub(super) enum IntRangeType {
                         pg_crud_macro_common::derive_or_impl::DeriveOrImpl::Impl(
                             macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
                                 quote::quote! {
-                                    // The owner module retains lint-sensitive semantics from the original implementation.
-                                    #[allow(unused_qualifications)]
-                                    // The owner module retains lint-sensitive semantics from the original implementation.
-                                    #[allow(clippy::absolute_paths)]
+
+                                    #[allow(unused_qualifications, reason = "lint suppression is required here")]
+
+                                    #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
                                     #allow_clippy_arbitrary_src_item_ordering
                                     const _: () = {
                                         extern crate serde as _serde;
@@ -1841,7 +1841,7 @@ pub(super) enum IsConst {
                 proc_macro2::TokenStream::new()
             };
             let maybe_pub_enum_identifier_standard_non_null_origin_try_new_for_de_error_token_stream = if matches!(&is_standard_non_null, pg_crud_macro_common::is_standard_non_null::IsStandardNonNull::True) {
-                //todo this is bad design. refactor later
+
                 let generate_error_token_stream = |pg_type_impl_try_new_for_deserialize: &crate::pg_type_impl_try_new_for_de::PgTypeImplTryNewForDe|{
                     let serde_error_enum_token_stream = pg_crud_macro_common::serde_error_enum_d_token_stream_builder::serde_error_enum_d_token_stream_builder()
                     .build_enum(
@@ -2445,7 +2445,7 @@ pub(super) enum IsConst {
                             })
                         }
                     ),
-                    //todo reuse naming
+
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => generate_impl_from_origin_token_stream(
                         &identifier_origin_wire_upper_camel_case,
                         &quote::quote! {Self(#inner_type_standard_non_null_token_stream::#new_snake_case(v.date.0, v.time.0))}
@@ -2576,7 +2576,7 @@ pub(super) enum IsConst {
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => generate_impl_try_from_origin_token_stream(
                         &inner_type_standard_non_null_token_stream,
                         &identifier_standard_non_null_origin_try_new_error_upper_camel_case,
-                        &quote::quote! {Self::try_new(v)}//todo use try_from instead of try_new ?
+                        &quote::quote! {Self::try_new(v)}
                     ),
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => generate_impl_try_from_de_error_token_stream(
                         &identifier_origin_wire_upper_camel_case,
@@ -2870,11 +2870,11 @@ pub(super) enum IsConst {
                 pg_crud_macro_common::generate_impl_pg_crud_common_default_some_one_element_token_stream::generate_impl_pg_crud_common_default_some_one_element_token_stream(&identifier_table_type_upper_camel_case, &self_default_some_one_element_call_token_stream);
             let impl_sqlx_type_and_encode_for_identifier_table_type_token_stream = pg_crud_macro_common::generate_impl_sqlx_type_and_encode_for_identifier_token_stream::generate_impl_sqlx_type_and_encode_for_identifier_token_stream(&identifier_table_type_upper_camel_case, &identifier_origin_upper_camel_case, &sqlx_encode_self_dot_zero_token_stream);
             let impl_sqlx_decode_sqlx_pg_for_identifier_table_type_token_stream = pg_crud_macro_common::generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream::generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(&identifier_table_type_upper_camel_case, &identifier_origin_upper_camel_case, &ok_self_v_token_stream);
-            //todo rewrite as dependency of PgType trait?
+
             let impl_pg_type_eq_operator_for_identifier_table_type_token_stream = pg_crud_macro_common::impl_pg_type_eq_operator_for_identifier_token_stream::impl_pg_type_eq_operator_for_identifier_token_stream(
                 &import,
                 &identifier_table_type_upper_camel_case,
-                //todo
+
                 &{
                     let eq_token_stream = pg_crud_macro_common::eq_operator_variant::EqOperatorVariant::Eq.to_tokens_path(&import);
                     let is_null_token_stream = pg_crud_macro_common::eq_operator_variant::EqOperatorVariant::IsNull.to_tokens_path(&import);
@@ -4008,12 +4008,12 @@ pub(super) enum RangeBoundToken<'token_lt> {
                         sqlx::types::ipnetwork::IpNetwork::V6(sqlx::types::ipnetwork::Ipv6Network::#new_snake_case("2001:db8::".parse().expect("d4e6df27 generate_flts_with invariant must hold"), 32).expect("a7486c5e generate_flts_with invariant must hold")),
                     ]},
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {vec![
-                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // All zeros
-                        sqlx::types::mac_address::MacAddress::#new_snake_case([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]), // All ones (broadcast address)
-                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x02, 0x00, 0x00, 0x00, 0x00, 0x01]), // Locally administered address
-                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E]), // Universally administered address
-                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x01, 0x00, 0x5E, 0x00, 0x00, 0xFB]), // Multicast address
-                        sqlx::types::mac_address::MacAddress::#new_snake_case([0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE]), // Random valid MAC
+                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),
+                        sqlx::types::mac_address::MacAddress::#new_snake_case([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]),
+                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x02, 0x00, 0x00, 0x00, 0x00, 0x01]),
+                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E]),
+                        sqlx::types::mac_address::MacAddress::#new_snake_case([0x01, 0x00, 0x5E, 0x00, 0x00, 0xFB]),
+                        sqlx::types::mac_address::MacAddress::#new_snake_case([0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE]),
                     ]},
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => generate_int_pgrange_read_ids_to_2_dimensions_vec_read_inner_token_stream(&IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range),
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => generate_int_pgrange_read_ids_to_2_dimensions_vec_read_inner_token_stream(&IntRangeType::SqlxPgTypesPgRangeI64AsInt8Range),
@@ -4131,7 +4131,7 @@ pub(super) enum RangeBoundToken<'token_lt> {
             let read_inner_into_update_with_new_or_try_new_unwraped_token_stream = generate_read_or_read_inner_into_update_with_new_or_try_new_unwraped_token_stream(&pg_crud_macro_common::read_or_update::ReadOrUpdate::Update);
             let update_to_read_ids_token_stream = if matches!(&is_non_null_standard_can_be_primary_key, IsNonNullStandardCanBePrimaryKey::True) {
                 quote::quote! {
-                    #identifier_read_ids_upper_camel_case(#identifier_read_upper_camel_case(#v_snake_case.0 #maybe_dot_clone_token_stream))//todo its not correct. must be only for primary_key but it for all types what van be primary_key
+                    #identifier_read_ids_upper_camel_case(#identifier_read_upper_camel_case(#v_snake_case.0 #maybe_dot_clone_token_stream))
                 }
             } else {
                 let token_stream =
@@ -4141,7 +4141,7 @@ pub(super) enum RangeBoundToken<'token_lt> {
                 }
             };
             let read_ids_to_optional_explicit_value_read_default_some_one_element_token_stream = {
-                //todo that is not correct for array of generated by pg pks but maybe just need to remove this variants and thats it?
+
                 let token_stream = generate_explicit_value_initialization_token_stream0(&{
                     let ts: &dyn quote::ToTokens = if matches!(&is_non_null_standard_can_be_primary_key, IsNonNullStandardCanBePrimaryKey::True) {
                         &quote::quote! {#v_snake_case.0 #maybe_dot_clone_token_stream}
@@ -4182,7 +4182,7 @@ pub(super) enum RangeBoundToken<'token_lt> {
                 };
                 quote::quote! {#identifier_table_type_upper_camel_case(#ts)}
             };
-            //todo maybe it into fn (not in proc macro)
+
             let read_ids_and_create_into_where_eq_token_stream = {
                 let ts = if matches!(&pg_type_pattern, crate::pg_type_pattern::PgTypePattern::Standard)
                     && matches!(&is_nullable, pg_crud_macro_common::is_nullable::IsNullable::False)
@@ -4339,7 +4339,7 @@ pub(super) enum RangeBoundToken<'token_lt> {
                                     &quote::quote! {#f32_token_stream::MAX.next_down()}
                                 )),
                                 crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
-                                //todo rust f64 != pg float8
+
                                     &quote::quote! {-2.0},
                                     &quote::quote! {-2.0 + 1.0},
                                     &quote::quote! {0.0},
@@ -4364,7 +4364,7 @@ pub(super) enum RangeBoundToken<'token_lt> {
                                     &quote::quote! {sqlx::types::time::Time::from_hms_micro(23, 59, 59, 999_998).expect("1e71f8c6 generate_flts_with invariant must hold")},
                                 )),
                                 crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
-                                    &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(-4712, 12, 30)?},//todo not sure about this values. maybe reuse
+                                    &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(-4712, 12, 30)?},
                                     &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(-4712, 12, 31)?},
                                     &quote::quote! {Self::middle_inner_type()},
                                     &quote::quote! {sqlx::types::chrono::NaiveDate::from_ymd_opt(0, 1, 2)?},
@@ -4397,9 +4397,9 @@ pub(super) enum RangeBoundToken<'token_lt> {
                                         #sqlx_types_chrono_naive_time_as_time_standard_non_null_token_stream::slightly_less_than_max_inner_type()
                                     )},
                                 )),
-                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |//todo diffrent test logic for autogenerated?
-                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |//todo diffrent test logic for autogenerated?
-                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |//todo diffrent test logic for autogenerated?
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
                                 crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
                                 crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
                                 crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
@@ -4466,12 +4466,12 @@ pub(super) enum CreateReadIds {
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg => IsNeedToImplPgTypeGreaterThanTest::TrueFromReadIds,
-                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |//todo why no support?
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval |
-                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |//todo why no support?
+                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient |
                         crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet |
@@ -4838,12 +4838,12 @@ pub(super) enum CreateReadIds {
     )>();
     if bool::from(generate_secret_text) {
         pg_type_array_vec.push(quote::quote! {
-            /// Secret PostgreSQL text deliberately has no serialization contract.
-            ///
-            /// ```compile_fail
-            /// fn assert_serialize<Value: serde::Serialize>() {}
-            /// assert_serialize::<pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret>();
-            /// ```
+
+
+
+
+
+
             #[derive(Clone, PartialEq, Eq)]
             pub struct StringAsNonNullTextSecret(String);
             impl From<String> for StringAsNonNullTextSecret {

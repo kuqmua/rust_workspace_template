@@ -1,6 +1,8 @@
 #[must_use]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::integer_division_remainder_used)]
+#[allow(
+    clippy::integer_division_remainder_used,
+    reason = "lint suppression is required here"
+)]
 pub fn spawn_interval_task<Run, RunFuture>(
     option: Option<crate::run_interval_duration::RunIntervalDuration>,
     mut run: Run,

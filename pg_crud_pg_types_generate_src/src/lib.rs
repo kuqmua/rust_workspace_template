@@ -3,8 +3,9 @@
     clippy::items_after_statements,
     clippy::unreachable,
     clippy::wildcard_enum_match_arm,
-    clippy::wildcard_imports
-)] // split implementation modules preserve the generator-stage lint contracts and share a private generation vocabulary
+    clippy::wildcard_imports,
+    reason = "lint suppression is required here"
+)]
 
 pub mod build_generate_pg_types;
 pub mod built_generate_pg_types_model;

@@ -6,8 +6,10 @@
     Eq,
     PartialEq,
 )]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub struct PgScopedForeignKey {
     local_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,
     referenced_columns: crate::pg_sql_identifiers::PgSqlIdentifiers,

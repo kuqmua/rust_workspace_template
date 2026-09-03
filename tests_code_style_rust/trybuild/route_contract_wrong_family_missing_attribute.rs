@@ -2,4 +2,6 @@
 #[derive(proc_macro_frontend_contract::RouteFamily)]
 struct MissingAttributeRouteFamily;
 
-fn main() {}
+fn main() {
+    let _arguments = std::env::args_os();
+}

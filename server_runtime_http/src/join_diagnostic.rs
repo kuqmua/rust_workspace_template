@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 #[allow(
     clippy::single_call_fn,
     reason = "diagnostic task joining remains directly exercised by focused test_tests"

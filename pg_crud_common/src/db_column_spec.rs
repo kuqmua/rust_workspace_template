@@ -7,8 +7,10 @@
     Eq,
     PartialEq,
 )]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub struct DbColumnSpec {
     data_type: crate::db_static_schema_text::DbStaticSchemaText,
     name: crate::db_static_schema_text::DbStaticSchemaText,

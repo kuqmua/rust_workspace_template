@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 #[cfg(test)]
 pub(crate) fn rs_file_path<P>(p: P) -> crate::rs_file_path_buf::RsFilePathBuf
 where

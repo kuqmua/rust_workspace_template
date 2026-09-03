@@ -4,6 +4,7 @@ fn test_route_contract_policy() {
     where
         Value: serde::Serialize,
     {
+        let _: std::marker::PhantomData<Value> = std::marker::PhantomData;
     }
     assert_serializable::<String>();
     assert_eq!(

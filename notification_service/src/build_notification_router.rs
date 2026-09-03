@@ -1,6 +1,4 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
-#[allow(clippy::single_call_fn)] // service startup owns the assembled notification router
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn build_notification_router(
     notification_state: crate::notification_state::NotificationState,
     notification_body_maximum_bytes: crate::notification_body_maximum_bytes::NotificationBodyMaximumBytes,

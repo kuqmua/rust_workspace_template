@@ -2,8 +2,11 @@
     clippy::arbitrary_source_item_ordering,
     reason = "status conversion implementations remain grouped before test-only modules"
 )]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 #[derive(
     Debug,
     strum_macros::Display,

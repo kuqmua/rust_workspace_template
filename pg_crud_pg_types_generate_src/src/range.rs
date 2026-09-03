@@ -1,6 +1,8 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub(super) enum Range {
     I32AsInt4,
     I64AsInt8,

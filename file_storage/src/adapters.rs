@@ -1,5 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)] // transactional API is grouped as prepare, stage, commit, and rollback operations
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 impl crate::safe_file_storage::SafeFileStorage {
     pub async fn cleanup_stale_staging(
         &self,
@@ -320,8 +322,11 @@ impl crate::safe_file_storage::SafeFileStorage {
             .parent()
             .into_iter()
             .flat_map(std::path::Path::components);
-        // repository policy forbids for loops and each component requires awaited filesystem validation
-        #[allow(clippy::while_let_on_iterator)]
+
+        #[allow(
+            clippy::while_let_on_iterator,
+            reason = "lint suppression is required here"
+        )]
         while let Some(component) = components.next() {
             current.push(component.as_os_str());
             match tokio::fs::symlink_metadata(&current).await {

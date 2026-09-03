@@ -10,5 +10,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-
-// Root-owned module compatibility wrappers.

@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(super) fn data_table_grid(
     admin_data_table_view: &server_admin_contract::admin_data_table_view::AdminDataTableView,
     admin_data_table_query: &server_admin_contract::admin_data_table_query::AdminDataTableQuery,

@@ -74,8 +74,6 @@ pub mod db_object_specs;
 pub mod pg_bounded_b_tree_map;
 pub mod pg_bounded_vec;
 pub mod pg_bounded_vec_len;
-// Generated Rust table descriptors are compile-time expectations and must be
-// checked against a database with all migrations applied before deployment.
 
 pub mod db_schema_conformance_error;
 pub mod db_schema_name_ref;

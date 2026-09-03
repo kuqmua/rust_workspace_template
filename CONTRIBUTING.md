@@ -9,8 +9,8 @@ Before submitting a change, run:
 ```bash
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
-cargo test -p tests_code_style
-cargo test --workspace --exclude tests_code_style
+cargo test -p tests_code_style_rust
+cargo test --workspace --exclude tests_code_style_rust
 ```
 
 Database changes require forward migrations and fresh-schema plus supported-upgrade tests. Public

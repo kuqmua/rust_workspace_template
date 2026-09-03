@@ -33,16 +33,16 @@ impl TryFrom<String> for RegexRegex {
         Ok(Self(string))
     }
 }
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(unused_qualifications)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::absolute_paths)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+
+#[allow(unused_qualifications, reason = "lint suppression is required here")]
+#[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 const _: () = {
     #[automatically_derived]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(unused_braces)]
+    #[allow(unused_braces, reason = "lint suppression is required here")]
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(

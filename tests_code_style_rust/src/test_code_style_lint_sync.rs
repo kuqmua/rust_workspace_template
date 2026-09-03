@@ -153,7 +153,6 @@ fn test_check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lin
         crate::types::StaticStr::from(constants_str::RUSTC),
         crate::types::AnalyzerBool::default(),
         crate::types::StaticStr::from(constants_str::VALUE_3C20B457),
-        //todo on commit momment seems like this lints still not added to rustc, but in the list of rustc -W help
         crate::types::StaticStrSliceRef::from(exceptions.as_slice()),
     );
 }

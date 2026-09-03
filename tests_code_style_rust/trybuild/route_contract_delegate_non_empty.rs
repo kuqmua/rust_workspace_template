@@ -15,4 +15,6 @@ async fn invalid_delegate(delegate_input: DelegateInput) -> Result<(), DelegateE
     delegate(delegate_input).await
 }
 
-fn main() {}
+fn main() {
+    let _arguments = std::env::args_os();
+}

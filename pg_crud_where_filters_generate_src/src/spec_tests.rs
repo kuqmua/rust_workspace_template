@@ -1,5 +1,8 @@
 #[cfg(test)]
-#[allow(clippy::needless_for_each)] // descriptor matrix avoids repository-forbidden for loops
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 mod tests {
     #[test]
     fn test_filter_specs_keep_sql_bind_and_value_shape_in_sync() {

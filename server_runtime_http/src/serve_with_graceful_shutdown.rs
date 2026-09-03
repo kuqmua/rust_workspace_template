@@ -1,5 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::integer_division_remainder_used)]
+#[allow(
+    clippy::integer_division_remainder_used,
+    reason = "lint suppression is required here"
+)]
 pub async fn serve_with_graceful_shutdown<Shutdown>(
     tokio_tcp_listener: crate::tokio_tcp_listener::TokioTcpListener,
     axum_router: crate::axum_router::AxumRouter,

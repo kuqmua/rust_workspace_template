@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 #[cfg(test)]
 pub(super) fn write_string_if_needed(
     written_file_path_ref: crate::written_file_path_ref::WrittenFilePathRef<'_>,

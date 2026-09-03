@@ -1,13 +1,16 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::needless_for_each)]
+    #[allow(
+        clippy::needless_for_each,
+        reason = "lint suppression is required here"
+    )]
     fn test_every_api_problem_error_is_an_error_enum_with_a_json_response() {
         fn assert_error<Error>()
         where
             Error: std::error::Error,
         {
+            let _: std::marker::PhantomData<Error> = std::marker::PhantomData;
         }
 
         assert_error::<crate::api_problem_error::ApiProblemError>();

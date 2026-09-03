@@ -20,7 +20,7 @@ fn test_build_stage_exposes_typed_model_without_emitting_source() {
     .expect(constants_str::DIAGNOSTIC_0F8B43D2);
     let built = crate::build_generate_pg_table::build_generate_pg_table(parsed)
         .expect(constants_str::DIAGNOSTIC_A715E9C4);
-    assert_eq!(usize::from(built.model().field_count()), 2usize);
+    assert_eq!(usize::from(built.get().field_count()), 2usize);
 }
 
 #[test]

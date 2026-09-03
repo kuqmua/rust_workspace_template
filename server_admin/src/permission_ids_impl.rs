@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn permission_ids_impl(
     admin_html_form_text: &crate::admin_html_form_text::AdminHtmlFormText,
 ) -> Result<

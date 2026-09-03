@@ -1,5 +1,5 @@
 #[proc_macro_frontend_contract::route_error(AdminHtmlRevokeSessionError)]
-#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) async fn revoke_session(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     axum_admin_form: crate::axum_admin_form::AxumAdminForm<
@@ -39,5 +39,3 @@ pub(crate) async fn revoke_session(
         Err(error) => axum::response::IntoResponse::into_response(error),
     }
 }
-
-// Root-owned module compatibility wrappers.

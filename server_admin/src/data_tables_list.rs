@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) async fn data_tables_list(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {

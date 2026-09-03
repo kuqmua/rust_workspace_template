@@ -187,8 +187,8 @@ pub fn derive_location(token_stream: proc_macro::TokenStream) -> proc_macro::Tok
         quote::quote! {
             impl #maybe_generic_parameters_token_stream #identifier #maybe_generic_parameters_token_stream {
                 pub fn #into_serde_version_snake_case(self) -> #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
-                    // The owner module retains lint-sensitive semantics from the original implementation.
-                    #[allow(clippy::redundant_closure_for_method_calls)]
+
+                    #[allow(clippy::redundant_closure_for_method_calls, reason = "lint suppression is required here")]
                     match self {
                         #ts
                     }
@@ -199,7 +199,7 @@ pub fn derive_location(token_stream: proc_macro::TokenStream) -> proc_macro::Tok
     let tokens = match supported_enum_variant {
         SuportedEnumVariant::Named => {
             let location_snake_case_str = naming::domain_types::LocationSnakeCase.to_string();
-            //todo maybe impl display was a bad idea. .to_string() casts is dangerous
+
             let impl_display_token_stream = {
                 let vrts_token_stream = data_enum.variants.iter().map(|element| {
                     let element_identifier = &element.ident;
@@ -568,7 +568,7 @@ pub fn derive_location(token_stream: proc_macro::TokenStream) -> proc_macro::Tok
                         )
                     },
                 );
-            //todo maybe make a trait?
+
             quote::quote! {
                 #impl_display_for_identifier_token_stream
                 #impl_identifier_into_serde_version_token_stream

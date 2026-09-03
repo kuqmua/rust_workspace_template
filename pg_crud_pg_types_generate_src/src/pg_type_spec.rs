@@ -1,4 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
 #[derive(
     proc_macro_getters::Getters,
     proc_macro_new::New,

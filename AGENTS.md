@@ -90,11 +90,11 @@ cargo clippy --all-targets --all-features -- -D warnings
 ```
 
 ```bash
-cargo test -p tests_code_style
+cargo test -p tests_code_style_rust
 ```
 
 ```bash
-cargo test --workspace --exclude tests_code_style
+cargo test --workspace --exclude tests_code_style_rust
 ```
 
 Run database-backed ignored tests only in a provisioned environment:

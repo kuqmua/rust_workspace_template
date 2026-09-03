@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) async fn authn_refresh(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,

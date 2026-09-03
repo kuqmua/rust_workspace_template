@@ -9,8 +9,8 @@ pub fn impl_pg_type_eq_operator_for_identifier_token_stream(
     ts: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(non_snake_case)]
+
+    #[allow(non_snake_case, reason = "lint suppression is required here")]
     let (EqOperatorUpperCamelCase, PgTypeEqOperatorUpperCamelCase) = (
         names.get_eq_operator_upper_camel_case(),
         names.get_pg_type_eq_operator_upper_camel_case(),

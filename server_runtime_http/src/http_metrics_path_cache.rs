@@ -6,7 +6,6 @@ pub(super) struct HttpMetricsPathCache {
 }
 
 impl HttpMetricsPathCache {
-    // The owner module retains lint-sensitive semantics from the original implementation.
     pub(super) fn label(
         &self,
         http_metrics_path_text_ref: crate::http_metrics_path_text_ref::HttpMetricsPathTextRef<'_>,

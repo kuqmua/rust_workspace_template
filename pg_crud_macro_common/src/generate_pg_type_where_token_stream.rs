@@ -15,8 +15,8 @@ where
     T: crate::pg_filter::PgFilter,
 {
     let names = crate::names_context::NamesContext::new();
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(non_snake_case)]
+
+    #[allow(non_snake_case, reason = "lint suppression is required here")]
     let (
         AddOperatorSnakeCase,
         ColumnSnakeCase,

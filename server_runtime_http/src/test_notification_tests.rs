@@ -82,5 +82,3 @@ mod tests {
         assert_eq!(response.status(), http::StatusCode::NO_CONTENT);
     }
 }
-
-// Root-owned module compatibility wrappers.

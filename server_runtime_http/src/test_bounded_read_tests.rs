@@ -157,5 +157,3 @@ mod tests {
         assert_eq!(bytes.into_inner(), b"abcd");
     }
 }
-
-// Root-owned module compatibility wrappers.

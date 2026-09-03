@@ -1,7 +1,10 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    #[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+    #[allow(
+        clippy::needless_for_each,
+        reason = "lint suppression is required here"
+    )]
     fn test_representative_statuses_cover_every_error_class() {
         [
             (
@@ -66,5 +69,3 @@ mod tests {
         });
     }
 }
-
-// Root-owned module compatibility wrappers.

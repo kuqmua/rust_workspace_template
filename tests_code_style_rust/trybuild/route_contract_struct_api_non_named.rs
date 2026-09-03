@@ -3,4 +3,6 @@
 #[contract_struct_api(new)]
 struct InvalidContract(u8);
 
-fn main() {}
+fn main() {
+    let _arguments = std::env::args_os();
+}

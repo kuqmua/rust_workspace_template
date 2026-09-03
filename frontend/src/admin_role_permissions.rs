@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn admin_role_permissions(
     admin_role_summary: &server_admin_contract::admin_role_summary::AdminRoleSummary,
     admin_roles_page: &server_admin_contract::admin_roles_page::AdminRolesPage,

@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 pub(crate) fn panic_with_location_message(
     panic_file: crate::panic_file::PanicFile<'_>,
     panic_line: crate::panic_line::PanicLine,

@@ -1,4 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
 #[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
 #[allow(
@@ -72,15 +71,18 @@ impl<T: PartialEq + Clone> PgTypeWhere<T> {
         }
     }
 }
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(unused_qualifications)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::absolute_paths)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+
+#[allow(unused_qualifications, reason = "lint suppression is required here")]
+#[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 const _: () = {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[expect(clippy::useless_attribute)]
+    #[expect(
+        clippy::useless_attribute,
+        reason = "lint suppression is required here"
+    )]
     extern crate serde as _serde;
     #[automatically_derived]
     impl<'de, T: std::fmt::Debug + PartialEq + Clone + serde::Deserialize<'de>>
@@ -91,8 +93,7 @@ const _: () = {
             __D: serde::Deserializer<'de>,
         {
             #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[expect(non_camel_case_types)]
+            #[expect(non_camel_case_types, reason = "lint suppression is required here")]
             #[doc(hidden)]
             enum __Field {
                 f0,

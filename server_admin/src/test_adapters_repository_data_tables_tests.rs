@@ -330,7 +330,10 @@ fn test_filtered_sql_places_pagination_after_filter_binds() {
 }
 
 #[test]
-#[allow(clippy::needless_for_each)] // iterator form is required by the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_table_spec_generates_bounded_projection_and_count_sql_for_every_table() {
     server_admin_contract::admin_data_table::AdminDataTable::ALL
         .into_iter()

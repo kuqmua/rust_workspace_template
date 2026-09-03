@@ -4,7 +4,10 @@
     proc_macro_getters::Getters,
     proc_macro_new::New,
 )]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub(super) struct ServiceCatalogEntry {
     compose_file: crate::service_compose_file::ServiceComposeFile,
     compose_name: crate::service_compose_name::ServiceComposeName,

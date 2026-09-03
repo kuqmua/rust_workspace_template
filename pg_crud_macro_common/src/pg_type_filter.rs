@@ -1,5 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 #[derive(
     Debug,
     Clone,
@@ -77,7 +79,7 @@ pub enum PgTypeFilter {
             macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
     RangeLen,
-    //BitVecPositionEq,//currently deactivated
+
 }
 impl crate::pg_filter::PgFilter for PgTypeFilter {
     fn maybe_generic(

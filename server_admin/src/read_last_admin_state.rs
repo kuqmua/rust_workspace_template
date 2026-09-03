@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 pub(crate) async fn read_last_admin_state(
     mut sqlx_admin_repository_connection_mut_ref: crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef<'_>,
     admin_user_record_id: server_admin_core::admin_user_record_id::AdminUserRecordId,

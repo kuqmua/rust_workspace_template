@@ -7,8 +7,10 @@
     PartialEq,
     thiserror::Error,
 )]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::module_name_repetitions)] // callers need an unambiguous error name in public signatures
+#[allow(
+    clippy::module_name_repetitions,
+    reason = "lint suppression is required here"
+)]
 pub enum BoundedVecError {
     #[error("bounded vector length {actual} exceeds limit {max}")]
     AboveMax {

@@ -79,5 +79,3 @@ mod tests {
         assert_eq!(ready_response.status(), http::StatusCode::OK);
     }
 }
-
-// Root-owned module compatibility wrappers.

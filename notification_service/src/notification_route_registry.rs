@@ -1,5 +1,3 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
 proc_macro_frontend_contract::endpoint_registry! {
     pub(super);
     state = crate::notification_state::NotificationState;

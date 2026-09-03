@@ -1,4 +1,7 @@
-#[allow(clippy::needless_for_each)] // iterator form follows the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 pub fn register_openapi_schema<Schema>(
     utoipa_open_api_components_ref_mut: &mut crate::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut<'_>,
 ) where

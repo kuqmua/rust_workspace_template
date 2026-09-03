@@ -46,5 +46,3 @@ pub(crate) fn test_branding() -> server_admin_contract::admin_branding_view::Adm
         ),
     )
 }
-
-// Root-owned module compatibility wrappers.

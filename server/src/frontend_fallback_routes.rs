@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn frontend_fallback_routes() -> server_runtime_http::axum_router::AxumRouter {
     server_runtime_http::axum_router::AxumRouter::from(axum::Router::new().fallback(async || {
         axum::response::Redirect::to(

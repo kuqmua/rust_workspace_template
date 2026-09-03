@@ -11,7 +11,7 @@ pub(crate) struct NotificationState {
     reason = "field access is intentionally encapsulated behind uniform getters"
 )]
 impl NotificationState {
-    #[allow(clippy::single_call_fn)] // service startup owns construction while test_tests reuse it under cfg(test)
+    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
     pub(crate) const fn new(
         notification_metrics_exporter_prometheus_renderer: crate::notification_metrics_exporter_prometheus_renderer::NotificationMetricsExporterPrometheusRenderer,
         sqlx_pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,

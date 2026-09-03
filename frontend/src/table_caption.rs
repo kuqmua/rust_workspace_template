@@ -20,7 +20,7 @@
 use leptos::prelude::{AddAnyAttr};
 
 #[leptos::component]
-#[allow(clippy::single_call_fn)] // named UI component or render stage has one composition owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn TableCaption(children: leptos::prelude::Children) -> impl leptos::prelude::IntoView {
     leptos::view! { <singlestage::TableCaption attr:data-name="TableCaption" attr:class="mt-4 text-sm text-muted-foreground">{children()}</singlestage::TableCaption> }
 }

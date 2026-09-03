@@ -7,7 +7,10 @@ fn test_contract_bodies_reject_values_above_shared_limit() {
         Err(crate::frontend_contract_body_error::FrontendContractBodyError::TooLarge)
     );
 }
-#[allow(clippy::needless_for_each)] // iterator form follows the workspace ban on explicit for loops
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 #[test]
 fn test_api_problem_status_mapping_is_stable_and_redacted() {
     let cases = [

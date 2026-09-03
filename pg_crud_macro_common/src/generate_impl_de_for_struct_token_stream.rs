@@ -29,15 +29,15 @@ pub fn generate_impl_de_for_struct_token_stream(
     });
     quote::quote! {
         #[derive(serde::Deserialize)]
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(clippy::arbitrary_source_item_ordering)]
+
+        #[allow(clippy::arbitrary_source_item_ordering, reason = "lint suppression is required here")]
         struct #raw_identifier_token_stream {
             #(#raw_fields_token_stream)*
         }
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(unused_qualifications)]
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(clippy::absolute_paths)]
+
+        #[allow(unused_qualifications, reason = "lint suppression is required here")]
+
+        #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
         #allow_clippy_arbitrary_src_item_ordering
         const _: () = {
             extern crate serde as _serde;

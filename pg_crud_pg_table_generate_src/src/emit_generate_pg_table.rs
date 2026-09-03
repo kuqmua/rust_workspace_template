@@ -1,33 +1,9 @@
-//todo decide where to do error log (maybe add in some places)
-//todo generate route what will return cols of the table and their rust and postgersql types
-//todo created at and updated at fields + created by + updated by
-//todo attrs for activation generation crud methods(like generate create, uo, dlo)
-//todo authorization for returning concrete error or just minimal info(user role)
-//todo generate rules and roles
-//todo maybe add unnest sql types?
-//todo maybe add unnest to filter params if its array ?
-//todo swagger ui https://github.com/juhaku/utoipa/blob/master/examples/todo-axum/src/main.rs
-//todo derive utoipa::ToSchema for what? original structs or with serialize deserialize?
-//todo need to add utoipa::ToSchema ann #[schema(value_type = YourToSchemaTraitImplStruct)] for all fields
-//todo remove useless derives like useless serde::Serialize and serde::Deserialize
-//todo maybe generate compisite type for user defined type https://docs.rs/sqlx/0.7.3/sqlx/pg/types/index.html#rust_decimal
-//todo read again some interesting thoughts about sql as api https://habr.com/ru/companies/timeweb/articles/798937/
-//todo reexport all crates what logic depends on (from crates.io) (use of undclared crate or module `time`)
-//todo add transaction isolation level (see pg docs)
-//todo check on pg max len value of type
-//todo in few cases rows affected is usefull. (update delete for example). if 0 afftected -maybe its error? or maybe use select then update\delete?(rewrite query)
-//todo generate json schema from rust type https://docs.rs/schemars/laTest/schemars/
-//todo support read table len
-//todo what is pub what is private
 #[must_use]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(non_snake_case)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(unused_variables)]
+#[allow(non_snake_case, reason = "lint suppression is required here")]
+#[allow(unused_variables, reason = "lint suppression is required here")]
 pub fn emit_generate_pg_table(
     syn_validated_generate_pg_table_input: crate::syn_validated_generate_pg_table_input::SynValidatedGeneratePgTableInput,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    // The owner module retains lint-sensitive semantics from the original implementation.
     #[derive(proc_macro_getters::Getters)]
     #[getters(bare)]
     #[allow(
@@ -63,8 +39,11 @@ pub fn emit_generate_pg_table(
         False,
         True,
     }
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     #[derive(
         Debug,
         Clone,
@@ -216,8 +195,11 @@ pub fn emit_generate_pg_table(
             }
         }
     }
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     #[derive(
         Clone,
         Copy,
@@ -293,8 +275,10 @@ pub fn emit_generate_pg_table(
         }
     }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     enum RmOrDm {
         Rm,
         Dm,
@@ -304,8 +288,11 @@ pub fn emit_generate_pg_table(
         Rm,
         Ro,
     }
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     #[derive(
         Debug,
         Clone,
@@ -368,23 +355,30 @@ pub fn emit_generate_pg_table(
         True,
     }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     enum CreateOrUpdateOrDm {
         Create,
         Update,
         Delete,
     }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     enum CreateOrUpdateOrDlo {
         Create,
         Update,
         Delete,
     }
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     #[derive(Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableConfig {
         #[serde(default)]
@@ -610,8 +604,10 @@ pub fn emit_generate_pg_table(
         is_primary_key: bool,
     }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Default)]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     struct GeneratePgTableFrontendFieldEmission {
         label: Option<String>,
         order: Option<usize>,
@@ -637,8 +633,10 @@ pub fn emit_generate_pg_table(
     #[derive(
         proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     struct GeneratePgTableVariantFieldEmission {
         identifier: syn::Ident,
         field_type: syn::Type,
@@ -778,7 +776,7 @@ pub fn emit_generate_pg_table(
         );
     let parsed_input = SynGeneratePgTableDeriveInput::from(syn::DeriveInput::from(
         syn_validated_generate_pg_table_input
-            .into_model()
+            .into_inner()
             .into_input(),
     ));
     let di = parsed_input.get();
@@ -1808,7 +1806,7 @@ pub fn emit_generate_pg_table(
             );
         }
     }
-    //todo must remove this and use trait type instead
+
     let primary_key_field_type_table_type_token_stream =
         naming::parameter::SelfTableTypeUpperCamelCase::from_type_last_segment(
             primary_key_field.get_field_type(),
@@ -2436,9 +2434,11 @@ pub fn emit_generate_pg_table(
             #ts
         }
     };
-    // This generated-code helper stays next to its only call sites inside the generation scope.
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::items_after_statements)]
+
+    #[allow(
+        clippy::items_after_statements,
+        reason = "lint suppression is required here"
+    )]
     fn new_syn_variant<DisplayValue>(
         variant_name: &dyn std::fmt::Display,
         option: Option<macro_helpers::status_code::StatusCode>,
@@ -3094,8 +3094,8 @@ pub fn emit_generate_pg_table(
             &quote::quote! {#import_token_stream pg_type_where_filter::PgTypeWhereFilter::query_part(
                 &#ParametersSnakeCase.#PayloadSnakeCase.#WhereManySnakeCase,
                 &mut #IncrementSnakeCase,
-                #import_token_stream sql_column_ref::SqlColumnRef::from(&""),//useless //todo check if can be optimized
-                #import_token_stream add_operator::AddOperator::from(false)//useless
+                #import_token_stream sql_column_ref::SqlColumnRef::from(&""),
+                #import_token_stream add_operator::AddOperator::from(false)
             )},
             &quote::quote! {v_d1627695},
             &{
@@ -5037,8 +5037,8 @@ enum WrapIntoOptional {
         let application_json_double_quoted_token_stream =
             generate_quotes::dq_token_stream::dq_token_stream(&constants_str::APPLICATION_JSON);
         let open_api_path_fn_token_stream = quote::quote! {
-            // The owner module retains lint-sensitive semantics from the original implementation.
-            #[allow(non_camel_case_types)]
+
+            #[allow(non_camel_case_types, reason = "lint suppression is required here")]
             pub struct #open_api_path_type_identifier;
             impl utoipa::__dev::PathConfig for #open_api_path_type_identifier {
                 fn methods() -> Vec<utoipa::openapi::path::HttpMethod> {
@@ -5572,7 +5572,7 @@ enum WrapIntoOptional {
                 };
                 let parameters_logic_token_stream = {
                     let parameters_logic_ts0 = {
-                        //todo in case of large type there is a stackoverflow. for example it was a 3.5md json file gend by cm_payload_example. 3400 fields = success. 16000 = stackoverflow
+
                         let ts = generate_match_ok_err_short_token_stream(
                             &{
                                 let identifier_operation_payload_upper_camel_case =
@@ -6729,10 +6729,10 @@ enum WrapIntoOptional {
                             },
                         );
                         let impl_de_for_identifier_um_payload_token_stream = quote::quote! {
-                            // The owner module retains lint-sensitive semantics from the original implementation.
-                            #[allow(unused_qualifications)]
-                            // The owner module retains lint-sensitive semantics from the original implementation.
-                            #[allow(clippy::absolute_paths)]
+
+                            #[allow(unused_qualifications, reason = "lint suppression is required here")]
+
+                            #[allow(clippy::absolute_paths, reason = "lint suppression is required here")]
                             #AllowClippyArbitrarySrcItemOrdering
                             const _: () = {
                                 extern crate serde as _serde;
@@ -7050,8 +7050,8 @@ enum WrapIntoOptional {
         pub struct #identifier_frontend_api_client_upper_camel_case<Transport> {
             transport: Transport,
         }
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(clippy::future_not_send)] // browser transports and WASM futures are intentionally single-threaded
+
+        #[allow(clippy::future_not_send, reason = "lint suppression is required here")]
         impl<Transport> #identifier_frontend_api_client_upper_camel_case<Transport>
         where
             Transport: frontend_contract::transport::Transport,
@@ -7476,8 +7476,8 @@ enum WrapIntoOptional {
         .map(|path_identifier| quote::format_ident!("__generated_path_{path_identifier}"))
         .collect::<Vec<_>>();
     let identifier_open_api_token_stream = quote::quote! {
-        // The owner module retains lint-sensitive semantics from the original implementation.
-        #[allow(clippy::needless_for_each)] // generated schema registration uses iterator callbacks internally
+
+        #[allow(clippy::needless_for_each, reason = "lint suppression is required here")]
         pub struct #identifier_open_api_upper_camel_case;
         impl utoipa::OpenApi for #identifier_open_api_upper_camel_case {
             fn openapi() -> utoipa::openapi::OpenApi {
@@ -7504,7 +7504,7 @@ enum WrapIntoOptional {
                     .build()
             }
         }
-        #[allow(clippy::needless_for_each)] // recursive schema-reference normalization is clearer as iterator traversal
+        #[allow(clippy::needless_for_each, reason = "lint suppression is required here")]
         impl #identifier_open_api_upper_camel_case {
             #[must_use]
             pub fn open_api() -> utoipa::openapi::OpenApi {
@@ -7973,7 +7973,7 @@ enum WrapIntoOptional {
             generate_identifier_operation_parameters_upper_camel_case(&Operation::Uo);
         let config_path_token_stream = quote::quote! {server_config::server_config::ServerConfig};
         let undrscr_unused_token_stream = quote::quote! {_unused};
-        //todo maybe remove it?\
+
         let generate_some_pg_type_where_try_new_token_stream =
             |operator_token_stream: &dyn quote::ToTokens, ts: &dyn quote::ToTokens| {
                 quote::quote! {
@@ -8012,7 +8012,7 @@ enum WrapIntoOptional {
                     quote::quote! {#field: None}
                 },
             );
-        //todo instead of first dropping table - check if its not exists. if exists Test must fail
+
         let select_default_all_with_max_page_size_not_empty_unique_vec_token_stream = {
             let ts = generate_read_fields_with_comma_token_stream(
                 &|element: &macro_helpers::syn_field::SynField| {
@@ -8485,7 +8485,7 @@ enum WrapIntoOptional {
                     #identifier::try_dm_execute(
                         &url_cloned,
                         #identifier_dm_parameters_upper_camel_case {
-                            //todo rewrite it using new\try_new?
+
                             payload: #identifier_dm_payload_upper_camel_case {
                                 where_many: #optional_identifier_where_upper_camel_case(Some(
                                     #identifier_where_upper_camel_case {
@@ -8743,7 +8743,6 @@ enum WrapIntoOptional {
                 }
             };
         let rm_tests_token_stream = {
-            //todo extra rm checks
             let where_primary_key_or_repeat_uuid_token_stream =
                 generate_where_primary_key_or_token_stream(&quote::quote! {
                     std::iter::repeat_with(|| #primary_key_where_eq_uuid_new_v_token_stream)
@@ -9268,7 +9267,6 @@ enum WrapIntoOptional {
             )
         };
         let um_tests_token_stream = {
-            //todo add Test for trying to update empty vec
             let um_only_one_column_tests_token_stream =
                 generate_fields_named_without_primary_key_without_comma_token_stream(
                     &|element: &macro_helpers::syn_field::SynField| {
@@ -9458,7 +9456,7 @@ enum WrapIntoOptional {
                                         payload: #identifier_update_upper_camel_case::try_new(
                                             #primary_key_field_type_as_pg_type_update_as_pg_type_primary_key_read_ids_into_update_token_stream,
                                             #identifier_update_parameters_initialization_without_primary_key_token_stream
-                                        ).expect("0e5d65a5 generate_read_ids_els_8a1ef027 invariant must hold")//todo add column identifier
+                                        ).expect("0e5d65a5 generate_read_ids_els_8a1ef027 invariant must hold")
                                     },
                                     &table_uo_cloned
                                 ).await.expect("4d755542 generate_read_ids_els_8a1ef027 invariant must hold")
@@ -9535,7 +9533,7 @@ enum WrapIntoOptional {
                 &{
                     let dm_accumulator_push_future_token_stream = generate_accumulator_push_future_token_stream(
                     &quote::quote! {table_7e35b1ce},
-                    &quote::quote! {table_test_rm_by_eq_to_created_pks},//todo is table name correct?
+                    &quote::quote! {table_test_rm_by_eq_to_created_pks},
                     &add_co_default_and_delete_after_just_to_add_some_data_to_be_sure_it_will_not_return_from_the_test_query_token_stream(&{
                         let assert_eq_dm_read_ids_token_stream = generate_assert_eq_token_stream(
                             &quote::quote! {read_ids_from_try_dm},
@@ -9924,7 +9922,7 @@ enum WrapIntoOptional {
                     #generate_read_ids_els_token_stream
                     tracing_subscriber::fmt::initialization();
                     tokio::runtime::Builder::new_multi_thread().worker_threads(num_cpus::get()).enable_all().build().expect("38823c21 crud invariant must hold").block_on(async {
-                        //todo maybe refactor
+
                         let database_url = "postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_test?connect_timeout=10";
                         macro_helpers::validate_test_database_url::validate_test_database_url(
                             macro_helpers::url_ref::UrlRef::from(database_url)
@@ -10009,7 +10007,7 @@ enum WrapIntoOptional {
                         };
                         drop_all_test_tbls().await;
                         #identifier::prep_extensions(&#PgPoolSnakeCase).await.expect("0633ff48 crud invariant must hold");
-                        //do not make it concrnt. would be pg error: "duplicate k v violates unique constraint \"pg_class_relname_nsp_index\""
+
                         for element_dac43b91 in table_names {
                             #identifier::prep_pg_table(
                                 &#PgPoolSnakeCase,

@@ -1,10 +1,9 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
 #[allow(
     clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
-    clippy::partial_pub_fields
+    clippy::partial_pub_fields,
+    reason = "lint suppression is required here"
 )]
-// generated declarations follow PostgreSQL order while the source table fields stay private to protect password hashes
 #[derive(
     Clone,
     Copy,
@@ -21,7 +20,7 @@
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[allow(dead_code)] // private descriptor fields are consumed by the macro and keep password hashes out of the API
+#[allow(dead_code, reason = "lint suppression is required here")]
 #[derive(proc_macro_getters::Getters)]
 pub struct AdminUsers {
     #[generate_pg_table_primary_key]
@@ -38,7 +37,10 @@ pub struct AdminUsers {
     #[generate_pg_table_db_default]
     updated_at: pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
-#[allow(clippy::missing_fields_in_debug)] // password_hash is intentionally represented by a redacted constant
+#[allow(
+    clippy::missing_fields_in_debug,
+    reason = "lint suppression is required here"
+)]
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter

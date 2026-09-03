@@ -1,5 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 #[derive(
     Debug,
     PartialEq,
@@ -12,8 +14,10 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub struct Location {
-    // The owner module retains lint-sensitive semantics from the original implementation.
-    #[allow(clippy::arbitrary_source_item_ordering)]
+    #[allow(
+        clippy::arbitrary_source_item_ordering,
+        reason = "lint suppression is required here"
+    )]
     file: crate::location_file::LocationFile,
     commit: crate::location_commit::LocationCommit,
     duration: crate::location_duration::LocationDuration,
@@ -21,8 +25,12 @@ pub struct Location {
     line: crate::location_line::LocationLine,
     column: crate::location_column::LocationColumn,
 }
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering, clippy::needless_pass_by_value)]
+
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    clippy::needless_pass_by_value,
+    reason = "lint suppression is required here"
+)]
 impl Location {
     fn fmt_github_location(
         &self,

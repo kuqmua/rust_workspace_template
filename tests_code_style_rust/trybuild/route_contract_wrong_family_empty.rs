@@ -3,4 +3,6 @@
 #[route_family()]
 struct EmptyRouteFamily;
 
-fn main() {}
+fn main() {
+    let _arguments = std::env::args_os();
+}

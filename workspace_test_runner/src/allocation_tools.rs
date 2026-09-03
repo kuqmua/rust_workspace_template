@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn allocation_tools() -> [crate::allocation_tool::AllocationTool; 6] {
     [
         crate::allocation_tool::AllocationTool::new(

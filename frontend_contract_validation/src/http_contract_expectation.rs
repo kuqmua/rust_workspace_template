@@ -1,8 +1,10 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
 )]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub struct HttpContractExpectation {
     metadata: frontend_contract::route_metadata::RouteMetadata,
     status: crate::http_contract_status::HttpContractStatus,

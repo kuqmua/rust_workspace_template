@@ -113,5 +113,3 @@ mod tests {
         assert_eq!(diagnostic.as_ref(), b"1234");
     }
 }
-
-// Root-owned module compatibility wrappers.

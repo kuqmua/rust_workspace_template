@@ -1,7 +1,10 @@
 #[derive(proc_macro_getters::Getters, proc_macro_new::New)]
 #[getters(bare)]
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub struct HttpRequestSpanConfig {
     service_name: server_observability::service_name::ServiceName,
     #[constructor(order = 2)]

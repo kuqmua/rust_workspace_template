@@ -6,5 +6,3 @@ impl crate::leptos_admin_input_signal::LeptosAdminInputSignal {
         )
     }
 }
-
-// Root-owned module compatibility wrappers.

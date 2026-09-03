@@ -364,7 +364,10 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
     assert!(!paths.contains_key(constants_str::VALUE_3768D146));
 }
 #[test]
-#[allow(clippy::needless_for_each)] // exhaustive generated-route assertions follow the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     [
         (

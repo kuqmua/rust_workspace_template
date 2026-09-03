@@ -29,6 +29,50 @@ struct EmptyModuleVisitor {
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
+struct EmptyFunctionBodyVisitor {
+    violations: crate::types::DiagnosticMessages,
+}
+
+impl EmptyFunctionBodyVisitor {
+    fn record(&mut self, identifier: &syn::Ident, block: &syn::Block) {
+        if block.stmts.is_empty() {
+            self.violations.push(format!(
+                "line {}: empty function `{identifier}`",
+                syn::spanned::Spanned::span(identifier).start().line
+            ));
+        }
+    }
+}
+
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for EmptyFunctionBodyVisitor {
+    fn visit_impl_item_fn(&mut self, impl_item_fn: &'ast_lt syn::ImplItemFn) {
+        let syn::ImplItemFn { sig, block, .. } = impl_item_fn;
+        self.record(&sig.ident, block);
+        syn::visit::visit_impl_item_fn(self, impl_item_fn);
+    }
+
+    fn visit_item_fn(&mut self, item_fn: &'ast_lt syn::ItemFn) {
+        if item_fn.block.stmts.is_empty() {
+            self.violations.push(format!(
+                "line {}: empty function `{}`",
+                syn::spanned::Spanned::span(&item_fn.sig.ident).start().line,
+                item_fn.sig.ident
+            ));
+        }
+        syn::visit::visit_item_fn(self, item_fn);
+    }
+
+    fn visit_trait_item_fn(&mut self, trait_item_fn: &'ast_lt syn::TraitItemFn) {
+        if let Some(block) = &trait_item_fn.default {
+            self.record(&trait_item_fn.sig.ident, block);
+        }
+        syn::visit::visit_trait_item_fn(self, trait_item_fn);
+    }
+}
+
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct GeneratedPublicUseVisitor {
     violations: crate::types::DiagnosticMessages,
 }
@@ -1877,7 +1921,10 @@ fn append_public_use_import_errors(
     }));
 }
 #[test]
-#[allow(clippy::wildcard_enum_match_arm)] // syn::Item is non-exhaustive; only modules are relevant
+#[allow(
+    clippy::wildcard_enum_match_arm,
+    reason = "lint suppression is required here"
+)]
 fn test_public_reexports_are_forbidden_and_private_imports_are_restricted() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::B4E7C2A9),
@@ -2235,8 +2282,8 @@ fn test_tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_fro
 #[test]
 fn test_tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_from() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
-        crate::types::StaticStr::from(constants_str::VALUE_A1DD158B),
-        crate::types::SourceTextRef::from(constants_str::VALUE_E8DA133A),
+        crate::types::StaticStr::from(constants_str::DIAGNOSTIC_3F8C1A72),
+        crate::types::SourceTextRef::from(constants_str::MANUAL_INTO_MODEL_METHODS_FOUND),
         |path, ast, errors| {
             let is_required_foundation_impl = [
                 (
@@ -2284,6 +2331,54 @@ fn test_tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthroug
             );
         },
     );
+}
+#[test]
+fn test_tuple_newtypes_do_not_implement_manual_into_model_methods() {
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
+        crate::types::StaticStr::from(constants_str::VALUE_A1DD158B),
+        crate::types::SourceTextRef::from(constants_str::VALUE_E8DA133A),
+        |path, ast, errors| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                super::source_analysis::PassthroughIntoMethodVisitor::new(
+                    crate::types::DiagnosticMessages::default(),
+                    std::collections::BTreeSet::new(),
+                ),
+            );
+            errors.extend(
+                visitor
+                    .get_errors()
+                    .clone()
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn test_tuple_newtype_manual_into_model_policy_rejects_passthrough_method() {
+    let ast: syn::File = syn::parse_quote! {
+        struct TestModelWrapper(u8);
+        impl TestModelWrapper {
+            fn into_model(self) -> u8 {
+                self.0
+            }
+        }
+        struct TestValueWrapper(u8);
+        impl TestValueWrapper {
+            fn into_value(self) -> u8 {
+                self.0
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::source_analysis::PassthroughIntoMethodVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+            std::collections::BTreeSet::new(),
+        ),
+    );
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }
 #[test]
 fn test_tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
@@ -2557,8 +2652,14 @@ fn test_api_response_error_source_policy_rejects_raw_sources() {
     assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }
 #[test]
-#[allow(clippy::needless_for_each)] // workspace policy intentionally avoids for loops
-#[allow(clippy::option_if_let_else)] // preserves ownership of the path buffer in the fallback
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
+#[allow(
+    clippy::option_if_let_else,
+    reason = "lint suppression is required here"
+)]
 fn test_every_fallible_typed_route_operation_has_its_own_error_type() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut groups = std::collections::BTreeMap::<
@@ -3522,4 +3623,109 @@ fn test_name_policy_rejects_redundant_test_tests_module() {
         ),
     );
     assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
+}
+
+#[test]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "the comment policy tests stay beside the visitor declarations they exercise"
+)]
+fn test_rust_source_contains_no_comments() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter_map(|source_file| {
+                crate::source_analysis::rust_comment_position(source_file.content().as_ref()).map(
+                    |position| {
+                        let line = source_file
+                            .content()
+                            .as_ref()
+                            .get(..position)
+                            .into_iter()
+                            .flat_map(|prefix| prefix.bytes())
+                            .filter(|byte| *byte == b'\n')
+                            .count()
+                            .saturating_add(constants_usize::ONE);
+                        format!("{}:{line}", source_file.path().as_ref().display())
+                    },
+                )
+            })
+            .collect::<Vec<String>>();
+        crate::code_style::assert_joined_errors_empty(
+            crate::types::SourceTextListRef::from(violations.as_slice()),
+            crate::types::StaticStr::from(constants_str::RUST_SOURCE_COMMENTS_ARE_FORBIDDEN),
+        );
+    });
+}
+
+#[test]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "the comment policy tests stay beside the visitor declarations they exercise"
+)]
+fn test_rust_comment_policy_distinguishes_comments_from_literals() {
+    let line_comment = ['/', '/'].into_iter().collect::<String>();
+    let block_comment = ['/', '*'].into_iter().collect::<String>();
+    assert_eq!(
+        crate::source_analysis::rust_comment_position(line_comment.as_str()),
+        Some(0usize)
+    );
+    assert_eq!(
+        crate::source_analysis::rust_comment_position(block_comment.as_str()),
+        Some(0usize)
+    );
+    assert_eq!(
+        crate::source_analysis::rust_comment_position(
+            format!(r##"let values = ("{line_comment}", r#"{block_comment}"#);"##).as_str(),
+        ),
+        None
+    );
+}
+
+#[test]
+fn test_empty_function_bodies_are_forbidden() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    EmptyFunctionBodyVisitor::default(),
+                );
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}:{violation}", source_file.path().as_ref().display())
+                    })
+            })
+            .collect::<Vec<String>>();
+        crate::code_style::assert_joined_errors_empty(
+            crate::types::SourceTextListRef::from(violations.as_slice()),
+            crate::types::StaticStr::from(constants_str::EMPTY_FUNCTIONS_ARE_FORBIDDEN),
+        );
+    });
+}
+
+#[test]
+fn test_empty_function_body_policy_checks_functions_methods_and_trait_defaults() {
+    let ast: syn::File = syn::parse_quote! {
+        fn test_free() {}
+        struct TestType;
+        impl TestType {
+            fn test_method() {}
+        }
+        trait TestTrait {
+            fn test_required();
+            fn test_default() {}
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        EmptyFunctionBodyVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), 3usize);
 }

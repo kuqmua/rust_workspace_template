@@ -46,8 +46,8 @@ Run the same required checks used by the repository:
 ```bash
 cargo fmt
 cargo clippy --all-targets --all-features -- -D warnings
-cargo test -p tests_code_style
-cargo test --workspace --exclude tests_code_style
+cargo test -p tests_code_style_rust
+cargo test --workspace --exclude tests_code_style_rust
 ```
 
 Run database-backed ignored tests only after provisioning the required services:

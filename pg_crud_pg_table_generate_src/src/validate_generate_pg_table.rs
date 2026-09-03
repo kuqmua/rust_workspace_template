@@ -5,7 +5,7 @@ pub fn validate_generate_pg_table(
     crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError,
 > {
     syn_built_generate_pg_table_input
-        .into_model()
+        .into_inner()
         .validate()
         .map(crate::syn_validated_generate_pg_table_input::SynValidatedGeneratePgTableInput::from)
         .map_err(|error| {

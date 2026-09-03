@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(crate) fn mount_service_routes(
     axum_router: server_runtime_http::axum_router::AxumRouter,
     axum_api_routes: crate::axum_api_routes::AxumApiRoutes,

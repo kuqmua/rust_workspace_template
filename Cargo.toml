@@ -85,7 +85,7 @@ members = [
   "server_runtime_core",
   "server_runtime_http",
   "synchronization_service_runtime",
-  "tests_code_style",
+  "tests_code_style_rust",
   "text_policy",
   "to_err_string",
   "token_patterns",

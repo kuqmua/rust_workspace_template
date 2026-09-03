@@ -291,5 +291,3 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
             .all(|description| description == expected_body_limit_description)
     );
 }
-
-// Root-owned module compatibility wrappers.

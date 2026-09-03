@@ -18,5 +18,3 @@ mod tests {
         assert!(!would_remove(constants_i64::ONE, false));
     }
 }
-
-// Root-owned module compatibility wrappers.

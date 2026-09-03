@@ -3,7 +3,10 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
 )]
-#[allow(clippy::arbitrary_source_item_ordering)] // alignment order required by optimal_memory_layout takes precedence over alphabetical field order
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub struct SynchronizationRuntimeConfiguration {
     #[getters(copy)]
     retry_policy: server_runtime_core::retry_policy::RetryPolicy,

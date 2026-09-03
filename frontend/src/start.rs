@@ -22,5 +22,3 @@ pub(crate) fn start() {
     root.set_inner_html(constants_str::EMPTY);
     leptos::mount::mount_to(root, crate::admin_app::AdminApp).forget();
 }
-
-// Root-owned module compatibility wrappers.

@@ -1,5 +1,4 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#![allow(clippy::shadow_reuse)]
+#![allow(clippy::shadow_reuse, reason = "lint suppression is required here")]
 #[cfg(test)]
 mod tests {
     #[test]

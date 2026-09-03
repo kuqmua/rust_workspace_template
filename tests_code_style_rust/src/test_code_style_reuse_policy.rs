@@ -160,7 +160,10 @@ fn test_reports_repeated_explicit_domain_shapes_for_code_reuse_review() {
 }
 
 #[test]
-#[allow(clippy::option_if_let_else)] // matched groups update the reviewed inventory as part of branching
+#[allow(
+    clippy::option_if_let_else,
+    reason = "lint suppression is required here"
+)]
 fn test_substantial_function_bodies_have_one_source_of_truth() {
     let canonicalize_locations = |locations: &str| {
         locations

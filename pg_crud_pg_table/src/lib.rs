@@ -71,5 +71,3 @@ pub mod test_tests;
 pub mod test_tests_domain_types_idempotency;
 pub mod update_selector_fmt;
 mod validate_pg_table_idempotency_text;
-
-// The owner module retains lint-sensitive semantics from the original implementation.

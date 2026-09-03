@@ -1,6 +1,8 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 pub struct OutboundUrlPolicy {
     schemes: &'static [crate::outbound_url_scheme::OutboundUrlScheme],
     host_policy: crate::outbound_host_policy::OutboundHostPolicy,

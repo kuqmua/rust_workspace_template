@@ -1,5 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "lint suppression is required here"
+)]
 #[derive(
     Debug,
     Clone,
@@ -23,7 +25,7 @@ pub(super) enum PgTypeCatalogKind {
     I32AsSerialInitializationByPg,
     I64AsBigSerialInitializationByPg,
     SqlxPgTypesPgMoneyAsMoney,
-    // SqlxTypesBigDecimalAsNumeric, remove coz dont know how to deserialize with scale i64
+
     BoolAsBool,
     StringAsText,
     StdVecVecU8AsBytea,

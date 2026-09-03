@@ -1,7 +1,5 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-/// A hash map with at most `MAX` retained keys.
-///
-/// Hash-map deserialization also accepts at most `MAX` wire entries, including repeated keys.
+
 pub struct BoundedHashMap<K: Eq + std::hash::Hash, V, const MAX: usize>(
     std::collections::HashMap<K, V>,
 );

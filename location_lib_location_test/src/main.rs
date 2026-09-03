@@ -1,4 +1,4 @@
-#![allow(clippy::wildcard_imports)] // split test fixtures share the private facade vocabulary
+#![allow(clippy::wildcard_imports, reason = "lint suppression is required here")]
 
 pub mod create_location_test_text;
 pub mod display_struct;

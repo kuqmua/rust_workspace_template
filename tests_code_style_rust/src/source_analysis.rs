@@ -153,6 +153,7 @@ impl<'ast> syn::visit::Visit<'ast> for DbgVisitor {
         }
     }
 }
+
 #[derive(
     proc_macro_getters::Getters,
     proc_macro_new::New,
@@ -2325,6 +2326,72 @@ pub(super) struct PassthroughIntoInnerFromVisitor {
     errors: crate::types::DiagnosticMessages,
     inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
+#[derive(
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
+pub(super) struct PassthroughIntoMethodVisitor {
+    errors: crate::types::DiagnosticMessages,
+    tuple_struct_names: std::collections::BTreeSet<String>,
+}
+impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoMethodVisitor {
+    fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
+        let wrapper_name = if item_impl.trait_.is_none() {
+            let syn::Type::Path(self_type) = item_impl.self_ty.as_ref() else {
+                return syn::visit::visit_item_impl(self, item_impl);
+            };
+            self_type
+                .path
+                .segments
+                .last()
+                .map(|segment| segment.ident.to_string())
+        } else {
+            None
+        };
+        let is_tuple_wrapper = wrapper_name
+            .as_ref()
+            .is_some_and(|name| self.tuple_struct_names.contains(name));
+        let has_passthrough_into_method = is_tuple_wrapper
+            && item_impl.items.iter().any(|item| {
+                let syn::ImplItem::Fn(function) = item else {
+                    return false;
+                };
+                let consumes_self = function.sig.inputs.first().is_some_and(|input| {
+                    matches!(input, syn::FnArg::Receiver(receiver) if matches!(receiver.kind, syn::ReceiverKind::Value))
+                });
+                consumes_self
+                    && function.sig.ident == constants_str::INTO_MODEL
+                    && function.block.stmts.len() == constants_usize::ONE
+                    && function.block.stmts.first().is_some_and(|statement| {
+                        let syn::Stmt::Expr(syn::Expr::Field(field), None) = statement else {
+                            return false;
+                        };
+                        let syn::Expr::Path(receiver) = field.base.as_ref() else {
+                            return false;
+                        };
+                        receiver
+                            .path
+                            .is_ident(constants_str::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+                            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == constants_u32::ZERO)
+                    })
+            });
+        if has_passthrough_into_method {
+            self.errors
+                .push(constants_str::CODE_STYLE_MANUAL_INTO_MODEL.to_owned());
+        }
+        syn::visit::visit_item_impl(self, item_impl);
+    }
+    fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
+        if matches!(&item_struct.fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == constants_usize::ONE)
+        {
+            let _inserted = self
+                .tuple_struct_names
+                .insert(item_struct.ident.to_string());
+        }
+        syn::visit::visit_item_struct(self, item_struct);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
         let source_wrapper_name = item_impl.trait_.as_ref().and_then(|(path, _)| {
@@ -2604,14 +2671,20 @@ impl ConstantInitializerStringLiteralVisitor {
     reason = "no-op visitor hooks preserve repository type-based parameter names"
 )]
 impl<'ast> syn::visit::Visit<'ast> for ConstantInitializerStringLiteralVisitor {
-    fn visit_expr_closure(&mut self, expr_closure: &'ast syn::ExprClosure) {}
+    fn visit_expr_closure(&mut self, expr_closure: &'ast syn::ExprClosure) {
+        let _: &syn::ExprClosure = std::hint::black_box(expr_closure);
+    }
     fn visit_expr_lit(&mut self, expr_lit: &'ast syn::ExprLit) {
         if matches!(expr_lit.lit, syn::Lit::Str(_)) {
             self.found.set_true();
         }
     }
-    fn visit_item(&mut self, item: &'ast syn::Item) {}
-    fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {}
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        let _: &syn::Item = std::hint::black_box(item);
+    }
+    fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
+        let _: &syn::Macro = std::hint::black_box(r#macro);
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
     fn visit_expr_const(&mut self, expr_const: &'ast syn::ExprConst) {
@@ -2853,7 +2926,9 @@ impl<'ast> syn::visit::Visit<'ast> for TracingMessageLiteralVisitor {
     reason = "the no-op visitor hook preserves the repository type-based parameter name"
 )]
 impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
-    fn visit_attribute(&mut self, attribute: &'ast syn::Attribute) {}
+    fn visit_attribute(&mut self, attribute: &'ast syn::Attribute) {
+        let _: &syn::Attribute = std::hint::black_box(attribute);
+    }
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
         if matches!(
             expr_call.func.as_ref(),
@@ -3025,4 +3100,115 @@ impl<'ast> syn::visit::Visit<'ast> for TestNameVisitor {
         syn::visit::visit_item_mod(self, item_mod);
         drop(self.module_names.pop());
     }
+}
+
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "the lexical source scanner is grouped with the source visitors it supports"
+)]
+pub(super) fn rust_comment_position(source: &str) -> Option<usize> {
+    let bytes = source.as_bytes();
+    let mut index = 0usize;
+    while index < bytes.len() {
+        if bytes.get(index) == Some(&b'/')
+            && matches!(
+                bytes.get(index.saturating_add(constants_usize::ONE)),
+                Some(b'/' | b'*')
+            )
+        {
+            return Some(index);
+        }
+        let prefix_len = match bytes.get(index..index.saturating_add(constants_usize::TWO)) {
+            Some([b'b' | b'c', b'"']) => constants_usize::ONE,
+            _ => 0usize,
+        };
+        if bytes.get(index.saturating_add(prefix_len)) == Some(&b'"') {
+            index = index
+                .saturating_add(prefix_len)
+                .saturating_add(constants_usize::ONE);
+            while index < bytes.len() {
+                match bytes.get(index) {
+                    Some(b'\\') => index = index.saturating_add(constants_usize::TWO),
+                    Some(b'"') => {
+                        index = index.saturating_add(constants_usize::ONE);
+                        break;
+                    }
+                    Some(_) | None => index = index.saturating_add(constants_usize::ONE),
+                }
+            }
+            continue;
+        }
+        let raw_prefix_len = match bytes.get(index..) {
+            Some([b'b' | b'c', b'r', ..]) => constants_usize::TWO,
+            Some([b'r', ..]) => constants_usize::ONE,
+            _ => 0usize,
+        };
+        if raw_prefix_len != 0usize {
+            let mut opening_quote = index.saturating_add(raw_prefix_len);
+            while bytes.get(opening_quote) == Some(&b'#') {
+                opening_quote = opening_quote.saturating_add(constants_usize::ONE);
+            }
+            if bytes.get(opening_quote) == Some(&b'"') {
+                let hash_count = opening_quote
+                    .saturating_sub(index)
+                    .saturating_sub(raw_prefix_len);
+                index = opening_quote.saturating_add(constants_usize::ONE);
+                while index < bytes.len() {
+                    if bytes.get(index) == Some(&b'"')
+                        && bytes
+                            .get(
+                                index.saturating_add(constants_usize::ONE)
+                                    ..index
+                                        .saturating_add(constants_usize::ONE)
+                                        .saturating_add(hash_count),
+                            )
+                            .is_some_and(|hashes| hashes.iter().all(|byte| *byte == b'#'))
+                    {
+                        index = index
+                            .saturating_add(constants_usize::ONE)
+                            .saturating_add(hash_count);
+                        break;
+                    }
+                    index = index.saturating_add(constants_usize::ONE);
+                }
+                continue;
+            }
+        }
+        let char_prefix_len = usize::from(bytes.get(index) == Some(&b'b'));
+        let apostrophe = index.saturating_add(char_prefix_len);
+        if bytes.get(apostrophe) == Some(&b'\'') {
+            let content = apostrophe.saturating_add(constants_usize::ONE);
+            let char_end = if bytes.get(content) == Some(&b'\\') {
+                match bytes.get(content.saturating_add(constants_usize::ONE)) {
+                    Some(b'x') => content.saturating_add(4usize),
+                    Some(b'u')
+                        if bytes.get(content.saturating_add(constants_usize::TWO))
+                            == Some(&b'{') =>
+                    {
+                        bytes
+                            .get(content.saturating_add(3usize)..)
+                            .and_then(|tail| tail.iter().position(|byte| *byte == b'}'))
+                            .map_or(content, |offset| {
+                                content.saturating_add(offset).saturating_add(4usize)
+                            })
+                    }
+                    Some(_) => content.saturating_add(constants_usize::TWO),
+                    None => content,
+                }
+            } else {
+                source
+                    .get(content..)
+                    .and_then(|tail| tail.chars().next())
+                    .map_or(content, |character| {
+                        content.saturating_add(character.len_utf8())
+                    })
+            };
+            if bytes.get(char_end) == Some(&b'\'') {
+                index = char_end.saturating_add(constants_usize::ONE);
+                continue;
+            }
+        }
+        index = index.saturating_add(constants_usize::ONE);
+    }
+    None
 }

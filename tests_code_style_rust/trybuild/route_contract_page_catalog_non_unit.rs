@@ -10,4 +10,6 @@ enum BrokenPages {
     Broken(frontend_contract::contract_str::ContractStr),
 }
 
-fn main() {}
+fn main() {
+    let _arguments = std::env::args_os();
+}

@@ -26,5 +26,3 @@ proc_macro_frontend_contract::api_operation_error!(AdminSignOutError,);
 proc_macro_frontend_contract::api_operation_error!(AdminUpdateRoleError,);
 proc_macro_frontend_contract::api_operation_error!(AdminUpdateSettingsError,);
 proc_macro_frontend_contract::api_operation_error!(AdminUpdateUserError,);
-
-// Root-owned module compatibility wrappers.

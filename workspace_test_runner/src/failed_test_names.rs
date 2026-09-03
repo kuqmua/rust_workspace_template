@@ -1,4 +1,4 @@
-#[allow(clippy::single_call_fn)] // named command or composition stage has one orchestration owner
+#[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
 pub(super) fn failed_test_names(
     text_ref: crate::text_ref::TextRef<'_>,
 ) -> crate::command_texts::CommandTexts {

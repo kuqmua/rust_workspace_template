@@ -1,8 +1,6 @@
 #[must_use]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(non_snake_case)]
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(unused_variables)]
+#[allow(non_snake_case, reason = "lint suppression is required here")]
+#[allow(unused_variables, reason = "lint suppression is required here")]
 pub fn generate_pg_table(
     proc_macro2_token_stream_ref: macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef<'_>,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {

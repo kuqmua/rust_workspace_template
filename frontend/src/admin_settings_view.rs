@@ -30,5 +30,3 @@ pub(crate) fn AdminSettingsView(
         </form></crate::admin_card::AdminCard></section>
     }
 }
-
-// Root-owned module compatibility wrappers.

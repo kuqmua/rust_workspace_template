@@ -71,7 +71,6 @@ impl LeaseRegistryInner {
             if let Some(entry) = self.by_id.remove(&stale_id) {
                 let _removed = self.by_key.remove(&entry.into_key());
             }
-            // paired indexes have both been updated before the next stale id
         });
         if self.by_id.len().get() >= lease_registry_maximum_non_zero_usize.get() {
             return crate::lease_reservation::LeaseReservation::LimitReached;

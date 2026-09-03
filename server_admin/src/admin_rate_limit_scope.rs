@@ -14,7 +14,7 @@ pub(crate) enum AdminRateLimitScope {
 }
 
 impl AdminRateLimitScope {
-    #[allow(clippy::single_call_fn)] // named route or composition boundary has one registry or orchestration owner
+    #[allow(clippy::single_call_fn, reason = "lint suppression is required here")]
     pub(crate) fn as_str(self) -> server_admin_core::std_admin_str_ref::StdAdminStrRef<'static> {
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(self.as_snake_case_str())
     }

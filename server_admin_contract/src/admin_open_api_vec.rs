@@ -1,5 +1,5 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-#[allow(dead_code)] // schema-only generic carries its item type without runtime construction
+#[allow(dead_code, reason = "lint suppression is required here")]
 pub(crate) struct AdminOpenApiVec<T, const MAX: usize> {
     marker: crate::admin_open_api_vec_phantom_data::AdminOpenApiVecPhantomData<T>,
 }

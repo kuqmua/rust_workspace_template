@@ -1,5 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-#[allow(clippy::integer_division_remainder_used)]
+#[allow(
+    clippy::integer_division_remainder_used,
+    reason = "lint suppression is required here"
+)]
 pub async fn wait_for_service_shutdown_signal()
 -> Result<(), crate::service_runtime_io_error::ServiceRuntimeIoError> {
     #[cfg(unix)]

@@ -126,5 +126,3 @@ mod tests {
         ));
     }
 }
-
-// Root-owned module compatibility wrappers.

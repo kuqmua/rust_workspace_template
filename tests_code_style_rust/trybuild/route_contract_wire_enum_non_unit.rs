@@ -1,11 +1,11 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(proc_macro_newtype::WireEnum)]
 #[wire_enum(ref_type = str, error_message = "invalid value")]
-enum DuplicateWireValue {
-    #[wire("same")]
-    First,
-    #[wire("same")]
-    Second,
+enum NonUnitWireValue {
+    #[wire("value")]
+    Value(frontend_contract::contract_str::ContractStr),
 }
 
-fn main() {}
+fn main() {
+    let _arguments = std::env::args_os();
+}

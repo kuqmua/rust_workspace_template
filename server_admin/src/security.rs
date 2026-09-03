@@ -300,5 +300,3 @@ mod tests {
         assert!(!debug.contains(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES));
     }
 }
-
-// Root-owned module compatibility wrappers.

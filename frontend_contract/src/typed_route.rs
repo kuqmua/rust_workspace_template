@@ -50,5 +50,7 @@ pub trait TypedRoute: Sized {
             '_,
         >,
     ) {
+        let _: &mut crate::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut<'_> =
+            std::hint::black_box(utoipa_open_api_components_ref_mut);
     }
 }

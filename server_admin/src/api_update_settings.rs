@@ -1,8 +1,7 @@
-// The owner module retains lint-sensitive semantics from the original implementation.
-
-#[proc_macro_frontend_contract::route_openapi(
-    delegate = crate::settings_update::settings_update,
-    tag = "admin_settings"
+#[proc_macro_frontend_contract::route_openapi(tag = "admin_settings")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "typed route registration requires a named endpoint function"
 )]
 pub(crate) async fn api_update_settings(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
@@ -13,4 +12,7 @@ pub(crate) async fn api_update_settings(
     crate::axum_admin_response::AxumAdminResponse,
     crate::application_auth::AdminUpdateSettingsError,
 > {
+    crate::settings_update::settings_update(admin_auth_request, axum_admin_json)
+        .await
+        .map_err(crate::application_auth::AdminUpdateSettingsError::from)
 }

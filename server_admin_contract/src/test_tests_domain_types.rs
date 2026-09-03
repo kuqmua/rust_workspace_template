@@ -21,7 +21,10 @@ impl frontend_contract::transport::Transport for ClientTransport {
     }
 }
 #[test]
-#[allow(clippy::needless_for_each)] // iterator assertions follow the workspace no-for-loop policy
+#[allow(
+    clippy::needless_for_each,
+    reason = "lint suppression is required here"
+)]
 fn test_every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(
         <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT,

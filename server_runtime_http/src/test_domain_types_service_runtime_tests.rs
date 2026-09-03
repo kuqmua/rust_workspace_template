@@ -8,5 +8,3 @@ mod tests {
         assert_eq!(runtime.block_on(async { 2u8 + 2u8 }), 4u8);
     }
 }
-
-// Root-owned module compatibility wrappers.
